@@ -1,16 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+
+# Dev tools
+.ruff_cache/
+.pytest_cache/
+
+# Environment
+.env
+
+# Logs (keep directory, ignore contents)
+logs/*
+!logs/.gitkeep
+
+# Model weights (large binaries, download separately)
+*.bin
+*.pth
+*.pt
+*.onnx
+*.safetensors
+
+# OS
 .DS_Store
-data/*
-data_release/*
-!data/README.md
-data.zip
-data_old/*
-src/temp/*
-models/baseline.py
-src/get_summary.py
-*.pdf
-.idea/*
-TODO.txt
-*result_old.csv
-figure/*
-!figure/gopt_poster.png
-colab/GOPT_old.ipynb

@@ -1,0 +1,244 @@
+English Pronunciation Evaluation without Complex Joint
+Training: LoRA Fine-tuned Speech Multimodal LLM
+Taekyung Ahn1,2, Hosung Nam2
+Enuma, Inc.1, Korea University2
+taekyung@enuma.com ,hnam@korea.ac.kr
+Abstract
+This study demonstrates that a Multimodal Large Language Model
+(MLLM) adapted via Low-Rank Adaptation (LoRA) can perform
+both Automatic Pronunciation Assessment (APA) and Mispronun-
+ciation Detection and Diagnosis (MDD) simultaneously. Leverag-
+ing Microsoft’s Phi-4-multimodal-instruct, our fine-tuning method
+eliminates the need for complex architectural changes or separate
+training procedures conventionally required for these distinct tasks.
+Fine-tuned on the Speechocean762 dataset, the pronunciation eval-
+uation scores predicted by the model exhibited a strong Pearson
+Correlation Coefficient (PCC > 0.7) with human-assigned scores,
+while achieving low Word Error Rate (WER) and Phoneme Error
+Rate (PER) (both < 0.15). Notably, fine-tuning only the LoRA layers
+was sufficient to achieve performance levels comparable to those
+achieved by fine-tuning all audio layers. This research highlights
+that an integrated pronunciation assessment system can be estab-
+lished by adapting large multimodal models without full fine-tuning,
+utilizing a significantly simpler training methodology compared to
+previous joint models designed for simultaneous APA and MDD.
+This efficient LoRA-based approach paves the way for more acces-
+sible, integrated, and effective Computer-Assisted Pronunciation
+Training (CAPT) technologies for English L2 learners.
+Keywords
+ASR, LLM, APA, MDD, Multimodal, EFL, CAPT
+1 Introduction
+With the advancement of ASR (Automatic Speech Recognition)
+technology, various technologies have been developed in the CAPT
+(Computer-assisted pronunciation training) field to help non-native
+English speakers with English pronunciation [ 8]. CAPT is a system
+that automatically evaluates pronunciation in speech. It can be pri-
+marily divided into the APA (Automatic Pronunciation Assessment)
+task, which evaluates given utterances with scores, and the MDD
+(Mispronunciation Detection and Diagnosis) task, which detects
+whether there were mispronunciations when a speaker reads a
+given sentence.
+The emergence of end-to-end pre-trained speech recognition
+models has enabled superior performance through fine-tuning with
+minimal data and streamlined training processes [ 3] [2] [5]. CAPT
+systems leveraging these models have advanced in two primary
+directions: enhancing mispronounced speech recognition through
+fine-tuning techniques, and developing robust pronunciation eval-
+uation frameworks based on recognition outcomes [ 18] [24] [12].
+The inherent flexibility of these models has facilitated research on
+unified systems that simultaneously perform APA and MDD tasks
+"The city was ..."
+"Rate the pronunciation of the audio…"
+Multimodal Large Language Model(Phi-4-multimodal instruct)❄
+ Large Language Model(Phi-4-mini)❄
+ Audio Encoder🔥
+ LoRA (Adapter)❄
+ Audio projector❄
+ Tokenizer
+{ "accuracy": 4.0, "prosodic": 3.5, "word transcript": "The city was ...","phoneme transcript": "DH AX..."}Figure 1: The overview of our proposed method.
+[20], revealing a significant correlation between these two function-
+alities. However, these approaches still require separate datasets
+and independent model architectures for each task, necessitating
+distinct training procedures and computational resources despite
+their functional interdependence.
+Recently, LLMs (Large Language Models) have exhibited signif-
+icant advancements in understanding the context of natural lan-
+guage [ 14]. LLMs can perform the required purpose through a small
+amount of additional training or even aligning using only prompts,
+without gathering massive training data and computing resources.
+Following these advancements, multimodal LLMs (MLLMs) com-
+bined with vision and audio encoders have emerged. They employ
+an architecture that connects encoders to existing LLMs, enabling
+the conversion of raw images or audio files into vector representa-
+tions similar to text embeddings. By training adapters to understand
+this vector, LLMs can understand image or audio inputs in the same
+context as text.
+To address the limitations of existing separate training approaches,
+our research introduces a unified method that executes both APA
+and MDD tasks within a single training framework and model ar-
+chitecture. We specifically employ Phi-4-multimodal-instruct [ 1],arXiv:2509.02915v1  [cs.CL]  3 Sep 2025Ahn et al.
+leveraging its MLLM capabilities to overcome the traditional re-
+quirement for independent datasets and model layers. By utilizing
+efficient LoRA (Low-Rank Adaptation) fine-tuning that learns only a
+speech adapter, our approach bypasses the computational demands
+of full fine-tuning while maintaining performance. Our objective is
+to demonstrate that this unified MLLM framework can effectively
+handle both pronunciation evaluation tasks simultaneously, provid-
+ing a more resource-efficient and streamlined alternative to existing
+multi-stage CAPT systems.
+2 Related Works
+2.1 CAPT system with ASR
+CAPT (Computer-assisted pronunciation training), emerged in the
+1980s [ 8]. In CAPT, pronunciation education has been actively used
+and researched by incorporating ASR (automatic speech recogni-
+tion) technology. Pronunciation evaluation methodology has been
+researched since the 1990s [ 15] [4] [10], and this area can be largely
+divided into Automatic Pronunciation Assessment (APA) and Mis-
+pronunciation Detection and Diagnosis (MDD) tasks.
+APA refers to a series of methodologies that help language learn-
+ing by building a system that automatically scores learners’ ut-
+terances. With ASR technology, it was possible to build a system
+that could recognize phoneme units of speech and automatically
+score pronunciation accuracy by comparing them with the correct
+phonemes [ 9] [10]. This research has been conducted in various
+ways regarding evaluation methods that can measure pronuncia-
+tion accuracy with a metric called goodness of pronunciation (GOP)
+using HMM-based ASR systems [15] [23].
+MDD research proceeded by comparing extracted phoneme-
+level acoustic features with correct phonemes. Traditional mis-
+pronunciation detection and diagnosis technologies typically rely
+on expert-crafted phonological rules, statistical methods such as
+Hidden Markov Models (HMMs) and Gaussian Mixture Models
+(GMMs), and acoustic feature analysis including MFCCs and for-
+mant tracking, which require extensive manual engineering and
+often struggle with context-dependent variations, prosodic features,
+and speaker variability [23] [6] [19].
+2.2 End-to-end ASR modeling
+[3.5, 4.0]Traditional Joint Model "DH AX … "Audio-language model { "accuracy": 4.0,          "prosodic": 3.5, "phoneme transcript": "DH AX..."}
+prompt"The city was ..."Audio model APA head MDD head 
+Joint Model with MLLM 
+"The city was ..."
+Figure 2: The Comparison of our model and past studies.
+With advances in machine learning technology, speech recog-
+nition models can now be trained without complex preprocessingprocedures as deep learning models can autonomously learn the re-
+lationship between speech and text [ 7]. Gong [ 13] proposed GOPT, a
+Transformer model based on GOP features for assessing non-native
+English speakers’ pronunciation. This model simultaneously evalu-
+ates multiple aspects of pronunciation quality (accuracy, fluency,
+completeness, prosody) across different features (phoneme, word,
+utterance) through multi-task learning, improving performance
+for each assessment task. Experiments on the Speechocean762 [ 25]
+dataset demonstrated that GOPT significantly outperforms previous
+traditional methods in pronunciation assessment.
+With the emergence of SSL (self-supervised learning) methods
+such as wav2vec2.0 [ 3], ASR models can learn speech features as
+units smaller than phonemes. Researchers could easily build APA
+and MDD engines by fine-tuning with a small amount of data [ 18]
+[24] [12]. Despite these advances, most approaches still require
+separate training procedures for APA and MDD tasks. [ 20] built a
+joint model that could perform both APA and MDD together by
+fine-tuning the wav2vec2.0 model with speech data transcribed
+at the phoneme level, then performing multi-task learning with
+separated APA and MDD heads. However, this approach still ne-
+cessitated separate datasets and distinct training processes for each
+task encoder, limiting scalability and resource efficiency. Addition-
+ally, being trained solely on speech input, these models cannot
+incorporate other modalities such as text prompts for enhanced
+flexibility.
+2.3 Multimodal Large Language Model (MLLM)
+Subsequently, Multimodal Large Language Models (MLLMs) emerged
+with the ability to process images and speech alongside text. These
+models convert visual or audio inputs into vector dimensions through
+specialized encoders, then align these vector representations with
+LLM embeddings to enable comprehensive multimodal understand-
+ing. Wang [ 21] investigated the zero-shot capabilities of the GPT-4o
+[16] for pronunciation assessment, evaluating its performance on
+multi-level (phoneme, word, sentence) scoring. The study shows
+GPT-4o’s zero-shot scoring accuracy was found to be significantly
+lower than other evaluation methods. This study concludes that
+MLLMs like GPT-4o may not yet replace specialized tools for scor-
+ing pronunciation without fine-tuning.
+Fu [11] developed a pronunciation evaluation system based on
+MLLMs. In their research, they trained a dedicated audio encoder
+and integrated it with an LLM, achieving high Pearson Correla-
+tion Coefficient (PCC) values between the system’s predicted pro-
+nunciation scores and human evaluators. This study successfully
+demonstrated the viability of MLLM-based pronunciation assess-
+ment systems. However, this study used approximately 1,000 hours
+of speech data to train the audio encoder for integration with the
+LLM. Connecting pre-trained audio encoders and LLMs through
+adapters to create MLLMs presented significant challenges. This
+approach involved complex integration processes resulting in sub-
+stantial costs for training and deployment.
+2.4 Phi-4-multimodal with LoRA fine-tuning
+Phi-4-multimodal [ 1] is a visual-speech language model released by
+Microsoft, a multimodal model that connects visual and speech en-
+coders to LLM. Phi-4 incorporates a Mixture-of-LoRAs (Low-RankEnglish Pronunciation Evaluation without Complex Joint Training: LoRA Fine-tuned Speech Multimodal LLM
+Phi-4 Multimodal Model 
+<|user|><|APA|><|audio_1|>Rate the pronunciation of the audio…<|end|><|assistant|><|user|><|MDD|><|audio_1|>Transcribe the audio utterance…<|end|><|assistant|>DATA Input Template with Control Tokens Inference Results { "word transcript": "The city...","phoneme transcript": "DH AX..."}{ "accuracy": 8, "prosodic": 9,"fluency": 8, "total": 8}
+Figure 3: The methods for using the prompts and control tokens.
+Adaptations) structure in the network, designing the architecture to
+achieve good performance while minimizing interference between
+modalities by training only LoRA layers, not full fine-tuning. With
+this advantage, various fine-tuning can be conducted with limited
+computational resources compared to the model size.
+Leveraging these capabilities of Phi-4-multimodal, our research
+addresses the fundamental limitations of existing CAPT systems
+that require separate training procedures and datasets for APA
+and MDD tasks. By utilizing the unified MLLM framework with
+efficient LoRA fine-tuning, we demonstrate that both tasks can
+be accomplished simultaneously within a single model architec-
+ture and training process. This approach not only eliminates the
+resource-intensive requirements of previous methods but also en-
+ables flexible system customization through prompt engineering,
+representing a significant advancement toward more accessible and
+efficient CAPT technologies. Our work establishes the feasibility
+of building a truly unified pronunciation assessment system that
+overcomes the computational and architectural constraints that
+have historically separated these functionally related tasks.
+3 Method
+3.1 Control Tokens
+To differentiate between tasks without modifying the model archi-
+tecture, we employed control tokens: <|APA|>for APA prompts
+and<|MDD|>for MDD prompts (see Figure 3). These tokens were
+prepended to each prompt before Supervised Fine-Tuning (SFT).
+During the SFT process, the model learned to associate each con-
+trol token with the specific requirements of the corresponding
+task. We then experimentally evaluated the performance benefits
+during inference when explicitly guiding the model using these
+task-specific control tokens. For baseline comparison, we used the
+Phi-4-multimodal-instruct model [ 1] for inference without control
+tokens or additional training.
+3.2 Encoder Layer Unfreeze
+This study investigated the effect of unfreezing specific audio-
+related layers. Using the same dataset, we compared two distinct
+fine-tuning strategies:
+1. LoRA-only fine-tuning: Updating only the weights of the LoRA
+adapter layers, while keeping other layers, including the Audio
+Encoder and Audio Projector, frozen (See Figure 1).
+2. Unfreeze fine-tuning: Updating the weights of the LoRA adapter
+layers in addition to unfreezing and updating the weights of the
+Audio Encoder and Audio Projector layers (See Figure 4).
+{ "accuracy": 4.0, "prosodic": 3.5, "word transcript": "The city was ...","phoneme transcript": "DH AX..."}Multimodal Large Language Model(Phi-4-multimodal instruct)❄
+ Large Language Model(Phi-4-mini)🔥
+ Audio Encoder🔥
+ LoRA (Adapter)🔥
+ Audio projector❄
+ Tokenizer
+Prompt Wav file Figure 4: The method of unfreezing layers.
+While conventional practice typically limits fine-tuning to LoRA
+adapter layers, the official documentation [ 17] suggests potential
+benefits from unfreezing all audio layers. For this reason, our exper-
+iment directly compares these approaches to determine whether
+unfreezing the Audio Encoder and Projector alongside the LoRA
+adapter provides performance advantages for audio-related tasks.
+3.3 Find the Correlation between APA and MDD
+tasks
+Based on Ryu et al.’s study [ 20], we analyzed the correlation be-
+tween pronunciation accuracy scores and pronunciation recogni-
+tion performance. We examined whether scores from the single
+model (jointly trained on both APA and MDD tasks using identical
+utterance datasets) genuinely reflect pronunciation quality rather
+than merely projecting data to scores. Specifically, we investigated
+the relationship between human and model’s accuracy scores and
+Phoneme Error Rate (PER) from the MDD task. We hypothesized

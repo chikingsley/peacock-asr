@@ -1,1 +1,0 @@
-For sample experiment log and pretrained model, please see the [pretrained models page](https://github.com/YuanGongND/gopt/tree/master/pretrained_models).

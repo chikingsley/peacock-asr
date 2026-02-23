@@ -1,0 +1,248 @@
+Automatic Pronunciation Assessment - A Review
+Yassine El Kheir, Ahmed Ali and Shammur Absar Chowdhury
+Qatar Computing Research Institute, HBKU, Qatar
+shchowdhury@hbku.edu.qa
+Abstract
+Pronunciation assessment and its application in
+computer-aided pronunciation training (CAPT)
+have seen impressive progress in recent years.
+With the rapid growth in language processing
+and deep learning over the past few years, there
+is a need for an updated review. In this paper,
+we review methods employed in pronunciation
+assessment for both phonemic and prosodic.
+We categorize the main challenges observed in
+prominent research trends, and highlight exist-
+ing limitations, and available resources. This
+is followed by a discussion of the remaining
+challenges and possible directions for future
+work.
+1 Introduction
+Computer-aided Pronunciation Training ( CAPT )
+technologies are pivotal in promoting self-directed
+language learning, offering constant, and tailored
+feedback for secondary language learners. The ris-
+ing demand for foreign language learning, with the
+tide of globalization, fuels the increment in the de-
+velopment of CAPT systems. This surge has led to
+extensive research and development efforts in the
+field (Neri et al., 2008; Kang et al., 2018; Rogerson-
+Revell, 2021). CAPT systems have two main us-
+ages: ( i) pronunciation assessment, where the sys-
+tem is concerned with the errors in the speech seg-
+ment; ( ii) pronunciation teaching, where the sys-
+tem is concerned with correcting and guiding the
+learner to fix mistakes in their pronunciation.
+This paper addresses the former – focusing on
+pronunciation assessment, which aims to automat-
+ically score non-native speech-segment and give
+meaningful feedback. To build such a robust pro-
+nunciation assessment system, the following design
+aspects should be addressed.
+Modelling Mispronunciation detection and diag-
+nosis (MDD), in many cases, are more challenging
+to model compared to the vanilla automatic speech
+recognition (ASR) system, which converts speechinto text regardless of pronunciation mistakes. Ro-
+bust ASR should perform well with all variation
+including dialects and non-native speakers. How-
+ever, MDD should mark phonetic variations from
+the learner, which may sometimes be subtle differ-
+ences (Li et al., 2016a).
+Training Resources Recent success in deep learn-
+ing methods emphasized the need for in-domain
+training data. Language learners can be divided
+into two groups: adult secondary (L2) language
+learners and children language learners – the for-
+mer depends on whether to build a system that is na-
+tive language dependant (L1). At the same time, the
+latter identifies the need for children’s voice, which
+is a challenging corpus to build (Council III et al.,
+2019; Venkatasubramaniam et al., 2023), even the
+accuracy for ASR for children is still behind com-
+pared to adult ASR (Liao et al., 2015). The scarcity
+and imbalanced distribution of negative mispro-
+nunciation classes pose a significant challenge in
+training data.
+Evaluation There is no clear definition of right
+or wrong in pronunciation, instead an entire scale
+from unintelligible to native-sounding speech (Witt,
+2012). Given that error in pronunciation is difficult
+to quantify, it can be split into (a) Objective evalu-
+ations – (i): phonetic or segmental; ( ii): prosodic
+or supra-segmental; and ( iii) place or articulation,
+manner of speech or sub-segmental; (b) Subjective
+evaluations ; in many cases measured through lis-
+tening tasks followed by human judgment, and can
+be split into three main classes: ( i) intelligibility;
+(ii) comprehensibility and ( iii) accentedness (or lin-
+guistic native-likeness). See Figure 1 for common
+pronunciation assessment factors.
+Several studies have summarized advances in
+pronunciation error detection (Eskenazi, 1999,
+2009; Witt, 2012; Li et al., 2016a; Chen and Li,
+2016; Zhang et al., 2020; Caro Anzola and Men-
+doza Moreno, 2023). Eskenazi (1999) investigatedarXiv:2310.13974v1  [cs.CL]  21 Oct 2023Figure 1: Types of Pronunciation Errors for Assessment
+the potentials and limitations of ASR for L2 pro-
+nunciation assessment, showcasing its practical im-
+plementation using an interface developed at CMU.
+Furthermore, the study reports different automatic
+scoring techniques, emphasizing modalities of in-
+teraction, associated algorithms, and the challenges.
+Witt (2012) presented an overview of pronuncia-
+tion error detection, encompassing various scoring
+methodologies and assessing commercial CAPT
+systems. Chen and Li (2016) provided a research
+summary, focusing on phoneme errors and prosodic
+error detection. More recently, Zhang et al. (2020)
+provided a summary of two automatic scoring ap-
+proaches (a) ASR-based scoring to calculate confi-
+dence measures; and (b) acoustic phonetics scoring
+focusing on comparing or classifying phonetic seg-
+ments using various acoustic features.
+With large transformer-based pre-trained models
+gaining popularity, re-visiting the existing litera-
+ture and presenting a comprehensive study of the
+field is timely. We provide an overview of tech-
+niques adapted for detecting mispronunciation in
+(a)segmental space, (b)assessing pronunciation
+with supra-segmal measures, along with (c)dif-
+ferent data generation/augmentation approaches.
+Unlike previous overview studies, we also cover
+a handful of (d)qualitative studies bringing to-
+gether the notion of intelligibility, comprehensive-
+ness, and accentedness. We note the resources and
+evaluation measures available to the speech com-
+munity and discuss the main challenges observed
+within prominent research trends, shedding light on
+existing limitations. Additionally, we also explore
+potential directions for future work.
+2 Nuances of Pronunciation
+Pronunciation can be defined as “the way in which
+a word or letter is said, or said correctly, or the
+way in which a language is spoken” .1Compared
+1https://dictionary.cambridge.org/dictionary/
+english/pronunciation , Accessed: 2023-06-21to other language skills, learning pronunciation is
+difficult. Yet, for learners, mastering L2 pronun-
+ciation is most crucial for better communication.
+Historically, pronunciation errors (mispronuncia-
+tions) are characterized by phonetic (segmental)
+errors and prosodic (supra-segmental) errors (Witt,
+2012; Chen and Li, 2016), as represented in Fig-
+ure 1. This characterization provides some clear
+distinctions for pronunciation assessment.
+2.1 Pronunciation Errors
+Phonetic Errors
+Phonetic (segmental) errors involve the production
+of individual sounds, such as vowels, and conso-
+nants, and it includes three errors: insertion, dele-
+tion, and substitution. This can be attributed to sev-
+eral factors, including negative language transfer,
+incorrect letter-to-sound conversion, and misread-
+ing of text prompts (Meng et al., 2007b; Qian et al.,
+2010; Kartushina and Frauenfelder, 2014; Li et al.,
+2016a). For example, Arabic L1 speakers may find
+it difficult to differentiate between /p/ and /b/ as the
+phoneme /p/ is non-existent in Arabic, so verbs like
+/park/ and /bark/ might sound similar to Arabic L1
+speakers. Similarly, in Spanish, there are no short
+vowels, so words like /eat/ and /it/ might sound
+similar to Spanish L1 speakers.
+Prosodic Errors
+Prosodic features encompass elements that influ-
+ence the pronunciation of an entire word or sen-
+tence, including stress, rhythm, and intonation. Er-
+rors related to prosodic features involve the pro-
+duction of larger sound units. For intelligibility,
+prosodic features particularly play a significant role
+(Raux and Kawahara, 2002). This is especially true
+for tonal languages (Dahmen et al., 2023) where
+variation in the pitch can lead to words with differ-
+ent meanings. Prosodic errors are often language-
+dependent and categorized by: stress (lexical and
+sentence), rhythm, and intonation.Corpus Languages
+(L2)Native Language (L1) Dur/Utt #Speakers Reported SOTA Results / Relevant Stud-
+ies
+ISLE (Menzel et al.,
+2000) ∗English German and Italian 18/ 46 # PER:(Hosseini-Kivanani et al., 2021).
+Accent PCC: 68% (Rasipuram et al.,
+2015)
+ERJ (Minematsu et al.,
+2004) ∗English Japanese /68,000 200 # Utterance PCC (Luan et al., 2012).
+Word Intelligibility (Minematsu et al.,
+2011). Phoneme Errors (Ito et al., 2005)
+CU-CHLOE (Meng
+et al., 2007a)English Cantonese and Mandarin 34.6/18,139 210 Phoneme F1-measure: 80.98% (Wu
+et al., 2021)
+EURONOUNCE (Cyl-
+wik et al., 2009)Polish German /721 18 # Utterance rythm (Wagner, 2014)
+iCALL (Chen et al.,
+2015)+Mandarin 24 countries 142/90,841 305 FAR: 8.65%, FRR: 3.09%: (Li et al.,
+2017). Tone Recognition: (Tong et al.,
+2015)
+SingaKids-Mandarin
+(?)+Mandarin Singaporean (English) 125/79,843 255 PER: 28.51%. Tone Recognition (Tong
+et al., 2017)
+SHEFCE (Ng et al.,
+2017b) ∗English, Can-
+toneseEnglish, Cantonese 25/ 31 Madarin syllabe error rate: 17.3%, En-
+glish PER: 34.5% (Ng et al., 2017a)
+V oisTUTOR (Yarra
+et al., 2019; Pal et al.,
+2022)English Kannada, Malayalam, Tel-
+ugu, Tamil, Hindi and Gu-
+jarati14/26,529 16 Word Intelligibility Accuracy: 96.58%
+(Anand et al., 2023)
+EpaDB (Vidal et al.,
+2019a)+English Spanish /3,200 50 (Sancinetti et al., 2022) reported Min-
+Cost per phoneme
+SELL-CORPUS (Chen
+et al., 2019) ∗English Chinese 31.6/ 389 F1-score Accent Detection: Word-level
+35%, Sentence-level 45% (Kyriakopou-
+los et al., 2020)
+L2-ARCTIC (Zhao
+et al., 2018a) ∗English Hindi, Korean, Mandarin,
+Spanish, and Arabic3.6/ 24 F1-score: 63.04% (Lin and Wang,
+2022a)
+Speechocean762
+(Zhang et al., 2021b) ∗English Chinese /5,000 250 Phone PCC: 65.60% (Chao et al., 2022).
+Word Accuracy PCC: 59.80% (Chao
+et al., 2022). Word Stress PCC: 32.30%
+(Do et al., 2023). Sentence total score
+PCC: 79.60% (Chao et al., 2022)
+LATIC (ZHANG,
+2021) ∗Mandarin Russian, Korean, French,
+and Arabic4/2,579 4 Sentence Accuracy PCC: 69.80% (Lin
+and Wang, 2023b)
+Arabic-CAPT (Algabri
+et al., 2022)Arabic India, Pakistan, Indonesia,
+Nepal, Afghanistan,
+Bangladesh, Nigeria,
+Uganda2.3/1,611 62 F1-score 70.53% (Algabri et al., 2022)
+AraV oiceL2 (EL Kheir
+et al., 2023b)Arabic Turkey, Nigeria,
+Bangladesh, Indone-
+sia, Malaysia5.5/7,062 11 F1-score 60.00% (EL Kheir et al.,
+2023b)
+Table 1: Widely used datasets. * represent publicly available dataset, + is available on request, # relevant study,
+Dur: total duration in hours, Utt: total number of utterances, SOTA: is the notable reported state-of-the-art for each
+corpus. FAR: false acceptance rate, FRR: false rejection rate, PCC: pearson correlation coefficient with human
+scores
+Stress is the emphasis placed on certain sylla-
+bles in a word or sentence. It is articulated by
+increasing the loudness, duration, and pitch of the
+stressed syllable. It can be categorized as lexical
+stress , if the stress is placed on syllables within
+the word, or sentence stress if the stress is placed
+on words within sentences. Mandarin learners of
+English have contrastive stress at the word-level
+that is absent in Korean, Mandarin speakers can
+have an advantage over Korean speakers in stressprocessing of English words (Wang, 2022).
+Rythm is the pattern of stressed and unstressed
+syllables in a word or sentence. A language can be
+classified as either stress-timed or syllable-timed
+(Ohata, 2004; Matthews, 2014). In stress-timed
+languages, the duration of stressed syllables tends
+to dominate the overall time required to complete a
+sentence. Conversely, in syllable-timed languages,
+each syllable receives an equal amount of time
+during production.

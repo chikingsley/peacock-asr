@@ -1,0 +1,333 @@
+Enhancing GOP in CTC-Based Mispronunciation Detection with Phonological
+Knowledge
+Aditya Kamlesh Parikh, Cristian Tejedor-Garcia, Catia Cucchiarini, Helmer Strik
+Centre for Language Studies, Radboud University, the Netherlands
+aditya.parikh@ru.nl, cristian.tejedorgarcia@ru.nl, catia.cucchiarini@ru.nl,
+helmer.strik@ru.nl
+Abstract
+Computer-Assisted Pronunciation Training (CAPT) sys-
+tems employ automatic measures of pronunciation quality, such
+as the goodness of pronunciation (GOP) metric. GOP relies
+on forced alignments, which are prone to labeling and segmen-
+tation errors due to acoustic variability. While alignment-free
+methods address these challenges, they are computationally ex-
+pensive and scale poorly with phoneme sequence length and in-
+ventory size. To enhance efficiency, we introduce a substitution-
+aware alignment-free GOP that restricts phoneme substitutions
+based on phoneme clusters and common learner errors. We
+evaluated our GOP on two L2 English speech datasets, one
+with child speech, My Pronunciation Coach (MPC), and Spee-
+chOcean762, which includes child and adult speech. We com-
+pared RPS (restricted phoneme substitutions) and UPS (un-
+restricted phoneme substitutions) setups within alignment-free
+methods, which outperformed the baseline. We discuss our re-
+sults and outline avenues for future research.
+Index Terms : goodness of pronunciation, GOP, phoneme
+recognition, Computer-Assisted Pronunciation Training
+1. Introduction
+Language is a fundamental skill that shapes communication,
+cognitive development, and cultural integration [1] and learning
+languages other than the native one is essential in our globalized
+society. Traditional classroom settings often make it difficult for
+teachers to provide the degree of individualized attention that is
+required for high-quality language learning, especially when it
+comes to speaking and pronunciation [2, 3]. However, early
+and effective pronunciation training can help language learners
+improve their ability to master the language [4].
+CAPT systems that incorporate Automatic Speech Recog-
+nition (ASR) technology can offer promising solutions to these
+challenges by providing personalized and scalable learning ex-
+periences [4, 5]. These systems enable learners to practice inde-
+pendently through ”read-aloud” exercises, incorporating Mis-
+pronunciation Detection and/or Diagnosis (MDD) to deliver
+corrective feedback at the phoneme, word, and sentence lev-
+els [6, 7]. Such targeted feedback can help learners bridge the
+gap between their L1 and L2 while promoting accurate pronun-
+ciation and confident communication [8, 9].
+The goodness of pronunciation (GOP) is a widely used
+measure in CAPT research that quantifies pronunciation qual-
+ity by analyzing posterior probabilities from an ASR system’s
+acoustic model [10, 11]. Initially developed using Hidden
+Markov Models (HMMs), GOP has since evolved based on
+deep neural networks (DNNs). Variants such as weighted-GOP
+[12], lattice-based GOP [13], and context-aware GOP [14] have
+further improved accuracy and robustness. More recently, theemergence of Self-Supervised Learning (SSL) models, such as
+Wav2vec2.0, Hubert, and WavLM, has significantly advanced
+MDD and phoneme recognition tasks [15, 16, 17]. These pre-
+trained models extract rich speech embeddings and require less
+labeled data for fine-tuning compared to the traditional super-
+vised approaches. In MDD, they are used to compare canoni-
+cal transcriptions with phoneme recognition outputs to identify
+pronunciation errors. However, this process involves challenges
+related to sequence alignment and the need for explicitly labeled
+mispronunciation data, which is expensive to produce.
+In the Connectionist Temporal Classification (CTC) frame-
+work, GOP scores for SSL fine-tuned phoneme recognition
+models can be computed using either forced alignment or
+alignment-free approaches [18, 19]. Forced alignment can be
+unreliable in non-native speech due to acoustic variability, po-
+tentially overlooking pronunciation errors [20]. The alignment-
+free method by Cao et al. [19] computes GOP features using
+scalar and multi-dimensional vector representations, improving
+the handling of substitution and deletion errors. However, in
+multilingual phoneme recognition with large phoneme invento-
+ries, this becomes computationally expensive, since phonemes
+in the canonical transcript must be substituted or inserted with
+others in the phoneme inventory, exponentially increasing com-
+putational costs, memory demands, and false positives. As the
+phoneme inventory expands, the CTC graph complexity grows
+quadratically [21], making real-time pronunciation learning im-
+practical since immediate feedback is required.
+To address these challenges in alignment-free CTC-based
+MDD for large phoneme inventories, we propose incorporating
+phoneme clustering [22, 23, 24] and learner-specific error mod-
+eling [25, 26]. By grouping acoustically and articulatory simi-
+lar phonemes, phoneme clustering reduces computational com-
+plexity while preserving essential phonemic distinctions. Inte-
+grating knowledge of common substitution and deletion errors
+made by non-native speakers can further refine MDD.
+To the best of our knowledge, no prior work has applied
+phoneme clustering and learner-specific error modeling in an
+alignment-free CTC-based MDD system. To investigate the po-
+tential of our novel approach, we conducted a study that ad-
+dressed the following research question (RQ): How do phoneme
+clustering and learner-specific error modeling affect the perfor-
+mance of an alignment-free CTC-based MDD system compared
+to unrestricted phoneme substitutions?
+2. Methodology
+2.1. GOP Definitions
+First, we follow the definition of GOP by Witt and Young
+[11]. They compute GOP using the sequence of feature vec-
+torsOT
+1={o1, . . . ,oT}of length Tand the correspondingarXiv:2506.02080v2  [eess.AS]  8 Jul 2025canonical phoneme transcription Lcano={l1, . . . , l |Lcano|}. For
+a given phoneme li∈Lcano, the original definition of GOP is
+based on the log-posterior probability of that phoneme:
+GOP classical (li) = log 
+p(Ot2
+t1|li)P(li)P
+q∈Qp(Ot2
+t1|q)P(q)!
+(t2−t1),
+(1)
+where Ot2
+t1represents the feature frames corresponding to
+the canonical phoneme li, andQis the set of all phonemes in the
+target language. The term p(Ot2
+t1|li)is typically modeled by
+HMM-GMM-based acoustic models. The score is then normal-
+ized by the duration of the segment, t2−t1. This method relies
+on forced alignment using ASR to align the canonical transcrip-
+tion to the speech recording. The resulting GOP scores indicate
+deviations in pronunciation for each phoneme.
+Second, with DNNs, GOP has been recently reformulated
+to utilize frame-level posterior probabilities directly from DNN-
+based acoustic models. The DNN-based GOP for the phoneme
+liis defined as:
+GOP DNN(li) =1
+t2−t1t2X
+t=t1log (P(li|ot)) (2)
+where P(li|ot)is the posterior probability of phoneme li
+given the acoustic observation ot. This formulation eliminates
+the need for explicit likelihood computation, relying instead on
+frame-level outputs of the DNN model.
+2.2. Alignment-Free CTC Based GOP
+From [19], we adapt the CTC-based alignment-free approach.
+This approach operates in two stages, taking speech features
+(OT) and the canonical transcription ( Lcanonical ) as input. In this
+framework, the computation of GOP relies on the probability
+of the complete canonical transcription as well as that of the
+individual phonemes within the sequence. The alignment-free
+GOP is formulated as:
+GOP alignment-free = logP(Lcanonical |OT)
+P(L(i)|OT)
+(3)
+This method works by first calculating the probability of
+the full canonical sequence P(Lcanonical |OT). Then, we com-
+pute the probability of each phoneme in the canonical sequence
+by substituting it with other phonemes from the vocabulary or
+deleting the phoneme entirely to form a perturbed sequence.
+While this approach can deal with deletion and substitution er-
+rors in pronunciation assessment, it can impose a significant
+computational burden. This raises the question of whether it
+would be a good method at all.
+For a phoneme inventory of V= 39 and the canonical tran-
+scription of ” Would you like wine ”/w U tS U l aI k w aI n/ with
+n= 10 phonemes, computing the GOP score involves both
+substitution and deletion. Each phoneme can be substituted by
+V−1alternatives or deleted once, leading to:
+Total calculations ∼n(V−1) +n= 390
+This demonstrates how computational cost scales with tran-
+script length and vocabulary size.
+2.3. Substitution-Aware Alignment-Free GOP
+In a Substitution-Aware CTC framework, GOP computation
+limits substitutions to a predefined set of phonetically confus-
+able alternatives. For instance, if a learner is likely to pronounce/D/ as /d/, the alignment process allows /d/ as a valid alterna-
+tive at the position originally labeled as / D/, rather than evalu-
+ating all possible substitutions. This is achieved using substi-
+tution mappings—sets of potential confusions—derived from
+phoneme clusters and common pronunciation errors made by
+non-native children learning a language.
+Revisiting our example sentence, “ Would you like wine ,”
+if each phoneme is associated with at least three confusable
+phoneme pairs, the total number of calculations is reduced from
+390 to 40, that is an approximate 90% reduction in computation.
+2.3.1. Substitution Mapping Construction
+A key aspect of our pronunciation assessment framework is the
+management of confusing phoneme pairs (or confusion sets)
+[23, 24]. The substitution mapping mechanism is a linguisti-
+cally informed approach that limits potential phoneme replace-
+ments to acoustically or articulatorily similar pairs, preventing
+arbitrary substitutions. A handcrafted Phoneme Confusion Map
+is developed based on three main criteria: (1) Phonetic Prox-
+imity, to capture natural articulatory relationships, stops, frica-
+tives, and nasals are only substituted with phonemes that share
+similar places or manners of articulation (e.g., bilabial stops: /p/
+→[/b/, /m/]); (2) common L2 learner errors, based on empirical
+observations of non-native speech patterns, reflecting frequent
+pronunciation mistakes (e.g., dental fricative substitutions: / T/
+→[/D/, /f/]); and (3) phonological rules, prioritizing allophonic
+variants (e.g., the flap / R/ substituting for /t/ or /d/) and vowel
+mergers (e.g., / I/→[/I/]), which account for common phonetic
+shifts across different learner populations [25, 27, 26, 28]. We
+applied this substitution mapping in two alignment-free GOP
+methods, which are described below.
+2.3.2. Phoneme-Adaptive Alignment-Free GOP (PA-AF GOP)
+In the numerator of Equation 3, the CTC loss is calculated by
+measuring how well the model’s acoustic frames align with
+the original canonical phoneme sequence. This calculation in-
+volves the conventional forward-pass computation of α-values
+(forward probabilities) to obtain the sequence likelihood. We
+denote this function as ctc loss(p, y), where: pis a(V×T)
+matrix of per-frame posterior distributions, and yis the ground-
+truth phoneme sequence of length N.
+In the denominator of Equation 3, we introduce a
+substitution-aware extension to the CTC forward pass, which
+computes CTC loss to evaluate the denominator term in GOP
+scoring while accounting for phonetically plausible mispronun-
+ciations. Unlike standard CTC loss, which estimates the likeli-
+hood of the reference phoneme sequence, this function incorpo-
+rates two key adaptations. First, position-specific perturbations
+modify the target phoneme at a given position by either delet-
+ing it to model omission errors or substituting it with acousti-
+cally confusable phonemes from a predefined Phoneme Con-
+fusion Map . Second, state-dependent token masking enforces
+substitution rules derived from linguistic knowledge by mask-
+ing transitions to non-confusable phonemes during the dynamic
+programming computation of the forward-pass variable α.
+We define this modified function as ctc loss(p, y, pos, M),
+where pos denotes the index of the phoneme in ythat can be
+altered, and Mis a dictionary mapping each phoneme ID to
+its allowable substitutions. At the chosen index pos, the al-
+gorithm allows alignment to any phoneme in M 
+ypos
+, where
+yposis the original phoneme at position pos. In the equation,
+a high GOP score indicates that substituting or deleting sig-
+nificantly decreases the log-likelihood, which means that thephoneme was correctly pronounced; a low GOP score indicates
+that substitutions or deletions have minimal impact on the log-
+likelihood, potentially indicating mispronunciation.
+2.3.3. Phoneme-Perturbed Alignment-Free GOP(PP-AF GOP)
+Unlike PA-AF GOP, which integrates substitution mechanisms
+directly within the CTC loss computation, PP-AF GOP han-
+dles phoneme substitutions and deletions externally by modi-
+fying the label sequences before computing the standard CTC
+loss. As in PA-AF GOP, we utilize the Phoneme Confusion Map
+(Section 2.3.1) to guide these modifications.
+The GOP score for each phoneme is computed based on the
+CTC loss difference between the original phoneme sequence
+and the perturbed phoneme sequence. For each phoneme, a
+set of perturbation sequences is created by (1) replacing the
+phoneme with mapped phonemes from the Phoneme Confu-
+sion Map , generating a new phoneme sequence; and (2) re-
+moving the phoneme from the sequence, creating an alternative
+sequence by omitting one phoneme. Finally, each perturbed
+sequence is evaluated based on the CTC loss of the acoustic
+model. The GOP score for each phoneme is computed as:
+GOP(p) = min( Lperturbed )−Loriginal (4)
+where Loriginal is the CTC loss for the original phoneme se-
+quence, and min(Lperturbed )is the minimum CTC loss obtained
+across all perturbed phoneme sequences.
+A higher GOP score ( ≥0) indicates that the original
+phoneme is more suited, while a negative GOP score sug-
+gests that a perturbation resulted in a lower CTC loss, mean-
+ing the phoneme is suboptimal or mispronounced. As in PA-AF
+GOP, we conducted our experiments using both Unrestricted
+Phoneme Substitutions (UPS) and Restricted Phoneme Substi-
+tutions (RPS) configurations.
+An illustrative example of phoneme transitions in the sub-
+stitution mapping is shown in Figure 1. This diagram pro-
+vides a conceptual understanding of how substitution mappings
+function within the alignment-free method. Each red target
+phoneme has possible substitutions (yellow), while deletions
+are indicated by blue lines. Given the canonical sequence /bæt/ ,
+possible sequences include /pæt/ ,/mæt/ , and /bæd/ , among
+others. Additionally, deletion-based variations, such as /at/(re-
+moval of /b/),/bt/ (removal of /a/), and /ba/ (removal of /t/),
+illustrate how phoneme deletion is handled in alignment-free.
+Figure 1: An illustrative example of the transition of the
+phonemes in the substitution mapping construction.
+3. Experimental Procedure
+3.1. Datasets
+3.1.1. My Pronunciation Coach Dataset
+To answer our RQ, we conducted experiments with two datasets
+of L2 English speech. The first one, the MPC speech database
+[27], is particularly challenging as it contains L2 speech of chil-
+dren (124 in total) learning English in Dutch secondary schools.Child speech presents specific difficulties in terms of ASR over
+and above those related to L2 speech. Each recording in MPC
+includes 53 words and 53 sentences covering various English
+phonemes. Sessions are classified into four quality groups:
+Doubtful, Overloud, OK and Excellent. For this study, we se-
+lected OK and Excellent sessions (71 speakers: 38 males, 33 fe-
+males), for a total of 3,130 utterances. As MPC lacks annotated
+mispronunciations, we introduced artificial errors by modifying
+phoneme sequences. These include replacing / D/ with / d/, /T/
+with / s/, /æ/ with / e/, /2/ with / A/, and simplifying diphthongs
+(e.g., / eI/→/e:/, /@U/→/o/).
+3.1.2. SpeechOcean762
+To allow comparisons with previous research, we also used the
+SpeechOcean762 dataset [29], an open-source corpus for pro-
+nunciation assessment that consists of 5,000 English utterances
+from 250 Mandarin-native speakers (125 adults, 125 children),
+with expert annotations at sentence, word and phoneme lev-
+els. Of 91,044 phoneme realizations, 3,401 were mispronun-
+ciations. We used all 5,000 utterances in our experiments.
+3.2. GOP Calculations
+We began our experiments by calculating GOP scores using
+the classical approach, as outlined in Equation 2. To obtain
+forced alignment at the phoneme level, we employed a Kaldi-
+based Hidden Markov Model-Gaussian Mixture Model (HMM-
+GMM) system [30], trained on the LibriSpeech [31] 100-hour
+training dataset.
+Regarding the forced alignment and alignment-free ap-
+proaches, as described in Equations 3 and 4, we generated
+pronunciation lexicons using representations of International
+Phonetic Alphabet (IPA) with the Phonemizer toolkit [32].
+For the acoustic model, we utilized an openly available fine-
+tuned phoneme recognition model based on [33], specifi-
+callyfacebook/wav2vec2-xlsr-53-espeak-cv-ft ,
+hosted on HuggingFace. This multilingual model is built on the
+pretrained checkpoint wav2vec2-large-xlsr-53 and has
+been fine-tuned on the CommonV oice dataset [34] to recognize
+phonetic labels across multiple languages. The phoneme inven-
+tory of this model consists of 387 phonetic labels, excluding
+special tokens such as <pad> ,<unk> , and sentence boundary
+markers ( <s> and</s> ).
+We conducted experiments using both forced alignment and
+alignment-free methods, employing UPS and RPS configura-
+tions, to evaluate their effectiveness in mispronunciation detec-
+tion. Experiments were performed with and without substitu-
+tion mapping: UPS allows any phoneme to be replaced by an-
+other without constraints, while RPS incorporates substitution
+mapping to restrict phoneme replacements.1
+3.3. Evaluation Metrics
+We evaluated model performance using accuracy, precision, re-
+call, F1-score, and Matthews Correlation Coefficient (MCC).
+Due to class imbalance in both MPC and SpeechOcean762,
+where correctly pronounced phonemes dominate, we optimized
+the threshold by selecting the GOP percentile that maximized
+MCC. Additionally, we reported the ROC AUC score at this
+threshold to assess classification effectiveness.
+For SpeechOcean762, which includes human-annotated
+phoneme accuracy scores, we followed [29] and used second-
+order polynomial regression to model the relationship between
+1https://github.com/Aditya3107/GOP_MDD_Phonological.git
