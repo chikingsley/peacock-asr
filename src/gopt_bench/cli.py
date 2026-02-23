@@ -47,14 +47,14 @@ def cmd_run(args: argparse.Namespace) -> None:
         skipped = 0
 
         for utt in tqdm(utterances, desc=split_name, unit="utt"):
-            phone_indices = []
-            valid_phones = []
-            valid_scores = []
+            phone_indices: list[int] = []
+            valid_phones: list[str] = []
+            valid_scores: list[float] = []
 
             for phone, score in zip(utt.phones, utt.phone_scores, strict=True):
-                idx = backend.map_phone(phone)
-                if idx is not None:
-                    phone_indices.append(idx)
+                indices = backend.map_phone(phone)
+                if indices is not None:
+                    phone_indices.extend(indices)
                     valid_phones.append(phone)
                     valid_scores.append(score)
 

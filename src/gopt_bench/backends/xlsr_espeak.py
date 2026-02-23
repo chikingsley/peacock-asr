@@ -105,13 +105,14 @@ class XLSREspeakBackend:
 
         return posteriors.numpy(force=True).astype(np.float64)
 
-    def map_phone(self, arpabet_phone: str) -> int | None:
+    def map_phone(self, arpabet_phone: str) -> list[int] | None:
         ipa = ARPABET_TO_IPA.get(arpabet_phone)
         if ipa is None:
             return None
         idx = self._token_to_idx.get(ipa)
         if idx is not None:
-            return idx
+            return [idx]
         # Try without length mark
         short = ipa.replace("\u02d0", "")
-        return self._token_to_idx.get(short)
+        idx = self._token_to_idx.get(short)
+        return [idx] if idx is not None else None

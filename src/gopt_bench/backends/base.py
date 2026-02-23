@@ -39,9 +39,11 @@ class PhonemeBackend(Protocol):
         """
         ...
 
-    def map_phone(self, arpabet_phone: str) -> int | None:
-        """Map an ARPABET phone to this backend's vocab index.
+    def map_phone(self, arpabet_phone: str) -> list[int] | None:
+        """Map an ARPABET phone to this backend's vocab indices.
 
-        Returns None if the phone has no mapping.
+        Returns a list of 1+ indices (most backends return a single-element
+        list, but character-level vocabs like ZIPA may return multiple indices
+        for diphthongs/affricates). Returns None if the phone has no mapping.
         """
         ...

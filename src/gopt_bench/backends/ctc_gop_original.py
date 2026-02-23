@@ -116,5 +116,6 @@ class OriginalBackend:
 
         return posteriors.numpy(force=True).astype(np.float64)
 
-    def map_phone(self, arpabet_phone: str) -> int | None:
-        return ARPABET_TO_IDX.get(arpabet_phone)
+    def map_phone(self, arpabet_phone: str) -> list[int] | None:
+        idx = ARPABET_TO_IDX.get(arpabet_phone)
+        return [idx] if idx is not None else None

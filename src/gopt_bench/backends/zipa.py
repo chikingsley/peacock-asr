@@ -6,8 +6,17 @@ import numpy as np
 
 logger = logging.getLogger(__name__)
 
-# ZIPA uses 127 IPA tokens. The mapping is similar to xlsr-espeak but
-# the exact vocab comes from the model config. We load it dynamically.
+# ZIPA uses 127 IPA tokens in a CHARACTER-LEVEL vocab (each token is
+# a single IPA character). Diphthongs/affricates like AW (aʊ) and CH (tʃ)
+# are multi-character and have NO single token in the ZIPA vocab — these
+# phones return None from map_phone() and are excluded from GOP scoring.
+#
+# Fixes vs original mapping:
+#   ER: ɝ (U+025D) not in ZIPA vocab → use ɜ (U+025C, index 52)
+#   G:  U+0261 not in ZIPA vocab → use plain ASCII 'g' (index 10)
+#
+# 32/39 ARPABET phones map to single IPA chars in the vocab.
+# 7 phones are unmappable: AW, AY, CH, EY, JH, OW, OY
 ARPABET_TO_IPA: dict[str, str] = {
     "AA": "\u0251",
     "AE": "\u00e6",
@@ -20,10 +29,10 @@ ARPABET_TO_IPA: dict[str, str] = {
     "D": "d",
     "DH": "\u00f0",
     "EH": "\u025b",
-    "ER": "\u025d",
+    "ER": "\u025c",
     "EY": "e\u026a",
     "F": "f",
-    "G": "\u0261",
+    "G": "g",
     "HH": "h",
     "IH": "\u026a",
     "IY": "i",
@@ -141,8 +150,9 @@ class ZIPABackend:
 
         return posteriors.astype(np.float64)
 
-    def map_phone(self, arpabet_phone: str) -> int | None:
+    def map_phone(self, arpabet_phone: str) -> list[int] | None:
         ipa = ARPABET_TO_IPA.get(arpabet_phone)
         if ipa is None:
             return None
-        return self._token_to_idx.get(ipa)
+        idx = self._token_to_idx.get(ipa)
+        return [idx] if idx is not None else None
