@@ -17,7 +17,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
-import numpy as np  # noqa: TC002
+import numpy as np
 import torch
 
 logger = logging.getLogger(__name__)
@@ -31,6 +31,7 @@ class GOPResult:
     phones: list[str]
     scores: list[float]
     occupancies: list[float]
+    features: np.ndarray | None = None  # [N_phones, 1 + V] feature matrix
 
 
 def _ctc_forward(params: torch.Tensor, seq: torch.Tensor, blank: int = 0) -> float:
@@ -282,10 +283,66 @@ def _step_arb(  # noqa: PLR0913
         alphas[s, t, :] = self_trans + skip + empty
 
 
+def _compute_lpr_features(
+    params: torch.Tensor,
+    seq: torch.Tensor,
+    ll_self: float,
+    blank: int,
+) -> np.ndarray:
+    """Compute LPP + LPR feature vectors for all phone positions.
+
+    For each phone position i, computes:
+      - LPP: CTC log-likelihood of the canonical sequence
+      - LPR[k] for k=0..V-1: log-likelihood ratio for substituting
+        phone i with token k (k=blank means deletion)
+
+    Follows the reference implementation in
+    CTC-based-GOP/taslpro26/gop_feats_sf_sd_norm.py
+
+    Args:
+        params: [V, T] posterior matrix
+        seq: 1-D tensor of phone indices
+        ll_self: pre-computed CTC NLL of the canonical sequence
+        blank: blank token index
+
+    Returns:
+        Feature matrix of shape [N_phones, 1 + V] where:
+          col 0 = LPP (same for all phones in an utterance)
+          col 1..V = LPR for each token substitution/deletion
+    """
+    n_phones = seq.shape[0]
+    vocab_size = params.shape[0]
+    features = np.zeros((n_phones, 1 + vocab_size), dtype=np.float32)
+
+    for i in range(n_phones):
+        features[i, 0] = ll_self  # LPP (stored as NLL, same as reference)
+
+        for sub_id in range(vocab_size):
+            if sub_id == blank:
+                # Deletion: remove phone i from the sequence
+                if n_phones == 1:
+                    # Can't delete the only phone — set LPR to 0
+                    features[i, 1 + sub_id] = 0.0
+                    continue
+                new_seq = torch.cat([seq[:i], seq[i + 1 :]])
+            else:
+                # Substitution: replace phone i with sub_id
+                new_seq = seq.clone()
+                new_seq[i] = sub_id
+
+            ctc_modified = _ctc_forward(params, new_seq, blank=blank)
+            # LPR = -LPP + CTC(modified) = difference in NLL
+            features[i, 1 + sub_id] = -ll_self + ctc_modified
+
+    return features
+
+
 def compute_gop(
     posteriors: np.ndarray,
     phone_indices: list[int],
     blank: int = 0,
+    *,
+    extract_features: bool = False,
 ) -> GOPResult:
     """Compute GOP-SF-SD-Norm scores for a sequence of phones.
 
@@ -293,9 +350,11 @@ def compute_gop(
         posteriors: [T, V] frame-level posterior matrix
         phone_indices: list of vocab indices for canonical phones
         blank: blank token index
+        extract_features: if True, also compute the full LPP+LPR feature
+            vectors per phone (slower but needed for SVR/GOPT evaluation)
 
     Returns:
-        GOPResult with per-phone scores and occupancies
+        GOPResult with per-phone scores, occupancies, and optionally features
     """
     if len(phone_indices) == 0:
         return GOPResult(phones=[], scores=[], occupancies=[])
@@ -315,8 +374,13 @@ def compute_gop(
         scores.append(gop)
         occupancies.append(occ)
 
+    features = None
+    if extract_features:
+        features = _compute_lpr_features(params, seq, ll_self, blank)
+
     return GOPResult(
         phones=[str(idx) for idx in phone_indices],
         scores=scores,
         occupancies=occupancies,
+        features=features,
     )

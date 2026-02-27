@@ -25,8 +25,10 @@ def cmd_run(args: argparse.Namespace) -> None:
 
     from gopt_bench.backends import get_backend  # noqa: PLC0415
     from gopt_bench.dataset import load_speechocean762  # noqa: PLC0415
-    from gopt_bench.evaluate import evaluate_gop  # noqa: PLC0415
+    from gopt_bench.evaluate import evaluate_gop, evaluate_gop_feats  # noqa: PLC0415
     from gopt_bench.gop import compute_gop  # noqa: PLC0415
+
+    use_feats = getattr(args, "feats", False)
 
     backend_cls = get_backend(args.backend)
     backend = backend_cls()
@@ -36,14 +38,21 @@ def cmd_run(args: argparse.Namespace) -> None:
     backend.load()
     logger.info("Vocab size: %d", len(backend.vocab))
 
+    if use_feats:
+        logger.info("Feature extraction: ON (LPP+LPR vectors)")
+        logger.info(
+            "Slower: %d CTC passes per phone", len(backend.vocab)
+        )
+
     data = load_speechocean762(limit=args.limit)
     train_utts = data.train
     test_utts = data.test
 
     def process_split(
         utterances: list, split_name: str
-    ) -> list[tuple[str, float, float]]:
-        results: list[tuple[str, float, float]] = []
+    ) -> list:
+        scalar_results: list[tuple[str, float, float]] = []
+        feats_results: list[tuple[str, list[float], float]] = []
         skipped = 0
 
         for utt in tqdm(utterances, desc=split_name, unit="utt"):
@@ -66,29 +75,35 @@ def cmd_run(args: argparse.Namespace) -> None:
                 posteriors=backend.get_posteriors(utt.audio, utt.sample_rate),
                 phone_indices=phone_indices,
                 blank=backend.blank_index,
+                extract_features=use_feats,
             )
 
-            for phone, gop_score, human_score in zip(
-                valid_phones,
-                gop_result.scores,
-                valid_scores,
-                strict=True,
+            for idx, (phone, gop_score, human_score) in enumerate(
+                zip(valid_phones, gop_result.scores, valid_scores, strict=True)
             ):
-                results.append((phone, gop_score, human_score))
+                scalar_results.append((phone, gop_score, human_score))
+                if use_feats and gop_result.features is not None:
+                    feats_results.append(
+                        (phone, gop_result.features[idx].tolist(), human_score)
+                    )
 
         logger.info(
             "[%s] %d utts, %d phones, %d skipped",
-            split_name, len(utterances), len(results), skipped,
+            split_name, len(utterances), len(scalar_results), skipped,
         )
-        return results
+        return feats_results if use_feats else scalar_results
 
     train_results = process_split(train_utts, "train")
     test_results = process_split(test_utts, "test")
 
-    logger.info("Evaluating...")
-    eval_result = evaluate_gop(train_results, test_results)
-
-    _print_results(backend.name, eval_result, args.verbose)
+    if use_feats:
+        logger.info("Evaluating with SVR on feature vectors...")
+        eval_result = evaluate_gop_feats(train_results, test_results)
+        _print_results(backend.name + " (SVR+feats)", eval_result, args.verbose)
+    else:
+        logger.info("Evaluating with polynomial regression on scalar scores...")
+        eval_result = evaluate_gop(train_results, test_results)
+        _print_results(backend.name, eval_result, args.verbose)
 
 
 def _print_results(
@@ -154,6 +169,11 @@ def main() -> None:
         "-b",
         required=True,
         help="Backend: original, xlsr-espeak, zipa",
+    )
+    run_p.add_argument(
+        "--feats",
+        action="store_true",
+        help="Extract full feature vectors (LPP+LPR) and evaluate with SVR",
     )
     run_p.add_argument(
         "--limit",
