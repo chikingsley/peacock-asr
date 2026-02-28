@@ -1,13 +1,13 @@
 # TODO
 
-## Immediate: Close the PCC Gap with Feature Vectors
+## Immediate: Full Dataset Run with Feature Vectors
 
-- [ ] Extract full GOP feature vectors (41-dim: LPP + LPR + expected count)
-  - Currently using scalar GOP scores → PCC 0.320
-  - Paper gets PCC 0.581 (poly) / 0.648 (SVR) with feature vectors
-  - This is the single biggest PCC improvement available right now
-- [ ] Train SVR or GOPT on feature vectors, evaluate PCC
-- [ ] Compare: scalar poly regression vs SVR vs GOPT on same features
+- [x] Extract full GOP feature vectors (41-dim: LPP + LPR)
+- [x] Train SVR on feature vectors, evaluate PCC
+- [x] GPU-accelerated batched ctc_loss (620x speedup over serial loop)
+- [ ] Run full dataset (2500 train + 2500 test) with --feats on GPU
+- [ ] Compare: scalar poly regression vs SVR on same features (full data)
+- [ ] Compare: original vs xlsr-espeak backends with feature vectors
 
 ## Phase 1: w2v-BERT 2.0 Phoneme Head (Lowest Risk)
 
@@ -63,3 +63,6 @@
 - [x] Collect ZIPA run 2 results (32/39 phones, ER/G fixes)
 - [x] Compare all three backends side-by-side
 - [x] Document findings in DECISIONS.md
+- [x] Implement GOP feature vector extraction (LPP + LPR)
+- [x] Add SVR evaluation pipeline
+- [x] GPU-accelerated batched feature extraction (ctc_loss kernel)
