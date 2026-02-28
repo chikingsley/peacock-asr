@@ -78,8 +78,8 @@ class OriginalBackend:
         return 0
 
     def _resolve_paths(self) -> tuple[Path, Path]:
-        repo_root = Path(__file__).parents[4]
-        models = repo_root / "CTC-based-GOP" / "is24" / "models"
+        repo_root = Path(__file__).parents[3]
+        models = repo_root / "references" / "CTC-based-GOP" / "is24" / "models"
         default_model = models / "checkpoint-8000"
         default_proc = models / "processor_config_gop"
 
