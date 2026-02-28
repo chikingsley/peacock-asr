@@ -12,6 +12,18 @@ class Settings(BaseSettings):
     ctc_gop_model_path: Path | None = None
     ctc_gop_processor_path: Path | None = None
     num_workers: int = 1
+    device: str = "auto"
+
+    @property
+    def torch_device(self) -> object:
+        """Resolve 'auto' to the best available device."""
+        import torch  # noqa: PLC0415
+
+        if self.device == "auto":
+            return torch.device(
+                "cuda" if torch.cuda.is_available() else "cpu",
+            )
+        return torch.device(self.device)
 
     @property
     def models_dir(self) -> Path:

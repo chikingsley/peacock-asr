@@ -15,10 +15,12 @@ GOP = -ll_self + ll_denom  (log-likelihood ratio)
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass
 
 import numpy as np
 import torch
+import torch.nn.functional as F  # noqa: N812
 
 logger = logging.getLogger(__name__)
 
@@ -337,12 +339,134 @@ def _compute_lpr_features(
     return features
 
 
+_BATCH_CHUNK = 1024  # Max sequences per ctc_loss call (memory cap)
+
+
+def _build_substitution_targets(
+    seq: torch.Tensor, vocab_size: int, blank: int,
+) -> tuple[torch.Tensor, torch.Tensor, list[tuple[int, int]], set[int]]:
+    """Build all L*V modified target sequences for LPR computation.
+
+    Returns (padded_targets, target_lengths, index_map, skip_set).
+    """
+    n_phones = seq.shape[0]
+    targets_list: list[torch.Tensor] = []
+    target_lens: list[int] = []
+    index_map: list[tuple[int, int]] = []
+    skip_set: set[int] = set()
+
+    for i in range(n_phones):
+        for k in range(vocab_size):
+            idx = i * vocab_size + k
+            index_map.append((i, k))
+            if k == blank:
+                if n_phones == 1:
+                    targets_list.append(torch.zeros(1, dtype=torch.long))
+                    target_lens.append(0)
+                    skip_set.add(idx)
+                    continue
+                new_seq = torch.cat([seq[:i], seq[i + 1 :]])
+            else:
+                new_seq = seq.clone()
+                new_seq[i] = k
+            targets_list.append(new_seq.long())
+            target_lens.append(len(new_seq))
+
+    n_total = len(targets_list)
+    max_tl = max(target_lens) if target_lens else 0
+    padded = torch.zeros(n_total, max_tl, dtype=torch.long)
+    for j, tgt in enumerate(targets_list):
+        tl = target_lens[j]
+        if tl > 0:
+            padded[j, :tl] = tgt
+
+    return padded, torch.tensor(target_lens, dtype=torch.long), index_map, skip_set
+
+
+def _compute_lpr_features_batched(
+    params: torch.Tensor,
+    seq: torch.Tensor,
+    ll_self: float,  # noqa: ARG001
+    blank: int,
+    device: torch.device | None = None,
+) -> np.ndarray:
+    """Compute LPP + LPR feature vectors using batched ctc_loss.
+
+    Mathematically equivalent to _compute_lpr_features() but replaces
+    L*V serial Python-loop CTC forward passes with batched calls to
+    torch.nn.functional.ctc_loss (optimized C++/CUDA kernel).
+
+    Args:
+        params: [V, T] posterior matrix (probability space)
+        seq: 1-D tensor of phone indices
+        ll_self: (unused) kept for API compat; recomputed internally
+        blank: blank token index
+        device: torch device for computation (None = CPU)
+    """
+    n_phones = seq.shape[0]
+    vocab_size, big_t = params.shape
+    use_dev = device if device is not None else torch.device("cpu")
+
+    log_probs = torch.log(params.T.clamp(min=1e-30))
+
+    padded, tl_tensor, index_map, skip_set = _build_substitution_targets(
+        seq, vocab_size, blank,
+    )
+    n_total = padded.shape[0]
+    il_tensor = torch.full((n_total,), big_t, dtype=torch.long)
+
+    # -- Compute canonical NLL with same method for consistency --
+    canon_lp = log_probs.unsqueeze(1).float().to(use_dev)
+    canon_tgt = seq.long().unsqueeze(0).to(use_dev)
+    canon_il = torch.tensor([big_t], dtype=torch.long).to(use_dev)
+    canon_tl = torch.tensor([n_phones], dtype=torch.long).to(use_dev)
+    ll_self_b = F.ctc_loss(
+        canon_lp, canon_tgt, canon_il, canon_tl,
+        blank=blank, reduction="none",
+    ).item()
+
+    # -- Batched CTC loss in chunks --
+    all_losses = torch.empty(n_total, dtype=torch.float32)
+    for start in range(0, n_total, _BATCH_CHUNK):
+        end = min(start + _BATCH_CHUNK, n_total)
+        chunk_n = end - start
+
+        chunk_lp = (
+            log_probs.unsqueeze(1)
+            .expand(big_t, chunk_n, vocab_size)
+            .contiguous()
+            .float()
+            .to(use_dev)
+        )
+        chunk_tgt = padded[start:end].to(use_dev)
+        chunk_il = il_tensor[start:end].to(use_dev)
+        chunk_tl = tl_tensor[start:end].to(use_dev)
+
+        losses = F.ctc_loss(
+            chunk_lp, chunk_tgt, chunk_il, chunk_tl,
+            blank=blank, reduction="none", zero_infinity=True,
+        )
+        all_losses[start:end] = losses.cpu()
+
+    # -- Fill feature matrix --
+    features = np.zeros((n_phones, 1 + vocab_size), dtype=np.float32)
+    for j, (pi, si) in enumerate(index_map):
+        features[pi, 0] = ll_self_b  # LPP
+        if j in skip_set:
+            features[pi, 1 + si] = 0.0
+        else:
+            features[pi, 1 + si] = -ll_self_b + all_losses[j].item()
+
+    return features
+
+
 def compute_gop(
     posteriors: np.ndarray,
     phone_indices: list[int],
     blank: int = 0,
     *,
     extract_features: bool = False,
+    device: torch.device | None = None,
 ) -> GOPResult:
     """Compute GOP-SF-SD-Norm scores for a sequence of phones.
 
@@ -351,7 +475,8 @@ def compute_gop(
         phone_indices: list of vocab indices for canonical phones
         blank: blank token index
         extract_features: if True, also compute the full LPP+LPR feature
-            vectors per phone (slower but needed for SVR/GOPT evaluation)
+            vectors per phone (needed for SVR/GOPT evaluation)
+        device: torch device for batched feature extraction (None = CPU)
 
     Returns:
         GOPResult with per-phone scores, occupancies, and optionally features
@@ -376,7 +501,12 @@ def compute_gop(
 
     features = None
     if extract_features:
-        features = _compute_lpr_features(params, seq, ll_self, blank)
+        if os.environ.get("GOPT_BENCH_CTC_BACKEND") == "loop":
+            features = _compute_lpr_features(params, seq, ll_self, blank)
+        else:
+            features = _compute_lpr_features_batched(
+                params, seq, ll_self, blank, device=device,
+            )
 
     return GOPResult(
         phones=[str(idx) for idx in phone_indices],

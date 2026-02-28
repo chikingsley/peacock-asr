@@ -61,6 +61,7 @@ class XLSREspeakBackend:
     def __init__(self) -> None:
         self._model: torch.nn.Module | None = None
         self._processor: object | None = None
+        self._device: torch.device = torch.device("cpu")
         self._vocab_list: list[str] = []
         self._token_to_idx: dict[str, int] = {}
 
@@ -79,12 +80,16 @@ class XLSREspeakBackend:
     def load(self) -> None:
         from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor  # noqa: PLC0415
 
+        from gopt_bench.settings import settings  # noqa: PLC0415
+
         logger.info("Loading %s...", MODEL_ID)
         self._processor = Wav2Vec2Processor.from_pretrained(
             MODEL_ID, revision=MODEL_REVISION
         )
         self._model = Wav2Vec2ForCTC.from_pretrained(MODEL_ID, revision=MODEL_REVISION)
         self._model.eval()
+        self._device = settings.torch_device
+        self._model = self._model.to(self._device)
 
         tokenizer = self._processor.tokenizer
         vocab = tokenizer.get_vocab()
@@ -100,10 +105,11 @@ class XLSREspeakBackend:
 
         inputs = self._processor(audio, return_tensors="pt", sampling_rate=sample_rate)
         with torch.no_grad():
-            logits = self._model(inputs.input_values).logits.squeeze(0)
+            iv = inputs.input_values.to(self._device)
+            logits = self._model(iv).logits.squeeze(0)
             posteriors = logits.softmax(dim=-1)
 
-        return posteriors.numpy(force=True).astype(np.float64)
+        return posteriors.cpu().numpy(force=True).astype(np.float64)
 
     def map_phone(self, arpabet_phone: str) -> list[int] | None:
         ipa = ARPABET_TO_IPA.get(arpabet_phone)

@@ -3,10 +3,17 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 import torch
 
 from gopt_bench.evaluate import evaluate_gop_feats
-from gopt_bench.gop import GOPResult, _ctc_forward, compute_gop
+from gopt_bench.gop import (
+    GOPResult,
+    _compute_lpr_features,
+    _compute_lpr_features_batched,
+    _ctc_forward,
+    compute_gop,
+)
 
 
 class TestCTCForward:
@@ -147,3 +154,79 @@ class TestEvaluateGOPFeats:
         result = evaluate_gop_feats(train_data, test_data)
         assert np.isfinite(result.pcc)
         assert result.n_phones > 0
+
+
+class TestBatchedEquivalence:
+    """Verify _compute_lpr_features_batched matches _compute_lpr_features."""
+
+    @staticmethod
+    def _make_params(v: int, t: int, seed: int = 42) -> torch.Tensor:
+        rng = np.random.default_rng(seed)
+        posteriors = rng.dirichlet(np.ones(v), size=t).astype(np.float64)
+        return torch.from_numpy(posteriors).double().T  # [V, T]
+
+    def test_lpr_correlation(self):
+        """Batched LPR features correlate > 0.99 with original."""
+        params = self._make_params(10, 30)
+        seq = torch.tensor([1, 3, 5], dtype=torch.int32)
+        ll_self = _ctc_forward(params, seq, blank=0)
+
+        orig = _compute_lpr_features(params, seq, ll_self, blank=0)
+        batched = _compute_lpr_features_batched(
+            params, seq, ll_self, blank=0,
+        )
+
+        # LPR columns (skip col 0 = LPP)
+        o = orig[:, 1:].flatten()
+        b = batched[:, 1:].flatten()
+        corr = np.corrcoef(o, b)[0, 1]
+        assert corr > 0.99, f"LPR correlation {corr:.4f} < 0.99"
+
+    def test_self_substitution_zero(self):
+        """Substituting a phone with itself gives LPR ~ 0."""
+        params = self._make_params(8, 25)
+        seq = torch.tensor([1, 2, 3], dtype=torch.int32)
+        ll_self = _ctc_forward(params, seq, blank=0)
+        feats = _compute_lpr_features_batched(
+            params, seq, ll_self, blank=0,
+        )
+        for i, pi in enumerate([1, 2, 3]):
+            assert abs(feats[i, 1 + pi]) < 1e-3
+
+    def test_shape_matches(self):
+        """Output shape is [L, 1+V]."""
+        v, t = 8, 20
+        params = self._make_params(v, t)
+        seq = torch.tensor([1, 2], dtype=torch.int32)
+        ll_self = _ctc_forward(params, seq, blank=0)
+        feats = _compute_lpr_features_batched(
+            params, seq, ll_self, blank=0,
+        )
+        assert feats.shape == (2, 1 + v)
+
+    def test_single_phone(self):
+        """Single phone: deletion column = 0."""
+        params = self._make_params(5, 15)
+        seq = torch.tensor([1], dtype=torch.int32)
+        ll_self = _ctc_forward(params, seq, blank=0)
+        feats = _compute_lpr_features_batched(
+            params, seq, ll_self, blank=0,
+        )
+        assert feats.shape == (1, 6)
+        assert feats[0, 1] == 0.0  # blank=0 → deletion → 0
+
+    def test_gpu_equivalence(self):
+        """GPU results match CPU results."""
+        if not torch.cuda.is_available():
+            pytest.skip("CUDA not available")
+        params = self._make_params(10, 30)
+        seq = torch.tensor([1, 3, 5], dtype=torch.int32)
+        ll_self = _ctc_forward(params, seq, blank=0)
+        cpu = _compute_lpr_features_batched(
+            params, seq, ll_self, blank=0,
+        )
+        gpu = _compute_lpr_features_batched(
+            params, seq, ll_self, blank=0,
+            device=torch.device("cuda"),
+        )
+        np.testing.assert_allclose(cpu, gpu, atol=1e-4)

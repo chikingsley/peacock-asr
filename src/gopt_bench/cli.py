@@ -27,21 +27,23 @@ def cmd_run(args: argparse.Namespace) -> None:
     from gopt_bench.dataset import load_speechocean762  # noqa: PLC0415
     from gopt_bench.evaluate import evaluate_gop, evaluate_gop_feats  # noqa: PLC0415
     from gopt_bench.gop import compute_gop  # noqa: PLC0415
+    from gopt_bench.settings import settings  # noqa: PLC0415
 
     use_feats = getattr(args, "feats", False)
+    if getattr(args, "device", None) is not None:
+        settings.device = args.device
+    device = settings.torch_device
 
-    backend_cls = get_backend(args.backend)
-    backend = backend_cls()
+    backend = get_backend(args.backend)()
 
     logger.info("Backend: %s", backend.name)
 
     backend.load()
-    logger.info("Vocab size: %d", len(backend.vocab))
+    logger.info("Vocab size: %d  Device: %s", len(backend.vocab), device)
 
     if use_feats:
-        logger.info("Feature extraction: ON (LPP+LPR vectors)")
         logger.info(
-            "Slower: %d CTC passes per phone", len(backend.vocab)
+            "Feature extraction: ON (batched ctc_loss, %d tokens)", len(backend.vocab),
         )
 
     data = load_speechocean762(limit=args.limit)
@@ -76,6 +78,7 @@ def cmd_run(args: argparse.Namespace) -> None:
                 phone_indices=phone_indices,
                 blank=backend.blank_index,
                 extract_features=use_feats,
+                device=device if use_feats else None,
             )
 
             for idx, (phone, gop_score, human_score) in enumerate(
@@ -174,6 +177,11 @@ def main() -> None:
         "--feats",
         action="store_true",
         help="Extract full feature vectors (LPP+LPR) and evaluate with SVR",
+    )
+    run_p.add_argument(
+        "--device",
+        default=None,
+        help="Compute device: auto, cpu, cuda (default: auto)",
     )
     run_p.add_argument(
         "--limit",
