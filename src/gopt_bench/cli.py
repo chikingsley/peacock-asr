@@ -47,8 +47,6 @@ def cmd_run(args: argparse.Namespace) -> None:
         )
 
     data = load_speechocean762(limit=args.limit)
-    train_utts = data.train
-    test_utts = data.test
 
     def process_split(
         utterances: list, split_name: str
@@ -86,9 +84,11 @@ def cmd_run(args: argparse.Namespace) -> None:
             ):
                 scalar_results.append((phone, gop_score, human_score))
                 if use_feats and gop_result.features is not None:
-                    feats_results.append(
-                        (phone, gop_result.features[idx].tolist(), human_score)
-                    )
+                    feat_vec = [
+                        *gop_result.features[idx].tolist(),
+                        gop_result.occupancies[idx],
+                    ]
+                    feats_results.append((phone, feat_vec, human_score))
 
         logger.info(
             "[%s] %d utts, %d phones, %d skipped",
@@ -96,8 +96,8 @@ def cmd_run(args: argparse.Namespace) -> None:
         )
         return feats_results if use_feats else scalar_results
 
-    train_results = process_split(train_utts, "train")
-    test_results = process_split(test_utts, "test")
+    train_results = process_split(data.train, "train")
+    test_results = process_split(data.test, "test")
 
     if use_feats:
         logger.info("Evaluating with SVR on feature vectors...")

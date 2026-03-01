@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 import numpy as np
 from scipy import stats
 from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.svm import SVR
 
@@ -267,9 +268,17 @@ def evaluate_gop_feats(
         min_unique_labels = 2
         if len(np.unique(label_arr)) < min_unique_labels:
             continue
-        model = SVR()
-        model.fit(feat_arr, label_arr)
-        models[phone] = model
+        n_folds = min(5, len(label_arr))
+        if n_folds < 2:  # noqa: PLR2004
+            continue
+        grid = GridSearchCV(
+            SVR(),
+            param_grid={"C": [0.1, 1.0, 10.0], "epsilon": [0.01, 0.1, 0.5]},
+            cv=n_folds,
+            scoring="neg_mean_squared_error",
+        )
+        grid.fit(feat_arr, label_arr)
+        models[phone] = grid.best_estimator_
 
     # Predict on test
     all_refs: list[float] = []
