@@ -5,14 +5,14 @@
 Results so far (original backend, SpeechOcean762 full dataset):
 
 - Scalar GOP + poly regression: PCC = 0.320
-- **SVR + LPP/LPR feature vectors: PCC = 0.539** (paper: 0.648)
+- SVR + LPP/LPR 41-dim features: PCC = 0.539
+- **SVR + 42-dim features (+ occupancy) + GridSearchCV: PCC = 0.548** (paper: 0.648)
 
-Remaining gap (0.539 → 0.648):
+Remaining gap (0.548 → 0.648):
 
-- [ ] Add expected count (occupancy) as 42nd feature dimension
-- [ ] Tune SVR hyperparameters (C, epsilon, kernel) with cross-validation
 - [ ] Compare: original vs xlsr-espeak backends with feature vectors
 - [ ] Try GOPT transformer on feature vectors (paper: 0.648+)
+- [ ] Feature normalization (z-score per feature dimension before SVR)
 
 ## Phase 1: w2v-BERT 2.0 Phoneme Head (Lowest Risk)
 
@@ -73,3 +73,5 @@ Remaining gap (0.539 → 0.648):
 - [x] GPU-accelerated batched feature extraction (ctc_loss kernel)
 - [x] Full dataset SVR+feats run: PCC = 0.539 (47K phones, 5000 utts)
 - [x] Model manager "peacock" backend for GPU VRAM reservation
+- [x] Add occupancy as 42nd feature dimension: PCC 0.539 → 0.548
+- [x] SVR GridSearchCV tuning (C, epsilon): MSE 0.2168 → 0.2136
