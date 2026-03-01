@@ -1,48 +1,39 @@
 # TODO
 
-## Immediate: Close Remaining PCC Gap
+Current PCC: **0.548** | Paper target: **0.648** | See [EXPERIMENTS.md](EXPERIMENTS.md) for full run history.
 
-Results so far (original backend, SpeechOcean762 full dataset):
+## Next: GOPT Transformer
 
-- Scalar GOP + poly regression: PCC = 0.320
-- SVR + LPP/LPR 41-dim features: PCC = 0.539
-- **SVR + 42-dim features (+ occupancy) + GridSearchCV: PCC = 0.548** (paper: 0.648)
+Reproduce the paper's main result by training their GOPT transformer on our feature vectors.
+Reference code: `references/gopt-transformer/`
 
-Remaining gap (0.548 → 0.648):
+- [ ] Adapt GOPT model input_dim (84 → 42) for our feature vectors
+- [ ] Restructure data pipeline from per-phone tuples to per-utterance batches
+- [ ] Train GOPT on SpeechOcean762 (MSE loss, 100 epochs, ~minutes on CPU)
+- [ ] Compare PCC with SVR baseline (0.548) and paper target (0.648)
 
-- [ ] Compare: original vs xlsr-espeak backends with feature vectors
-- [ ] Try GOPT transformer on feature vectors (paper: 0.648+)
-- [ ] Feature normalization (z-score per feature dimension before SVR)
+## Then: Better Backends (the actual research)
 
-## Phase 1: w2v-BERT 2.0 Phoneme Head (Lowest Risk)
+Once GOPT reproduction validates our features, swap in better phoneme models.
 
+- [ ] Compare: original vs xlsr-espeak backends with feature vectors + GOPT
 - [ ] Build ARPABET vocabulary (39 phones + blank + pad = 41 tokens)
 - [ ] Prepare LibriSpeech with phoneme labels (text → ARPABET via CMU dict / G2P)
 - [ ] Fine-tune w2v-BERT 2.0 with CTC on LibriSpeech (A100 80GB, ~6-12h)
-  - Follow HuggingFace blog recipe exactly, swap vocab only
-  - See docs/research/05_PHONEME_HEADS.md Phase 1 for details
 - [ ] Create new backend (`w2v_bert_phoneme.py`), plug into benchmark
-- [ ] Compare PCC with xlsr-espeak baseline (0.320 scalar / 0.539 SVR+feats)
+- [ ] Compare PCC with original baseline
 
-## Phase 2: omniASR Head Swap (Alternative Path)
+## Later
 
-- [ ] Swap omniASR-CTC-1B final_proj (9812 chars → 41 phones)
-- [ ] Fine-tune on LibriSpeech (~2-4h)
-- [ ] Note: fairseq2 ecosystem — may need HuggingFace port
-
-## Phase 3: Ablations & Analysis
-
-- [ ] Per-phone improvement analysis
+- [ ] omniASR head swap (9812 chars → 41 phones, fairseq2 ecosystem)
+- [ ] Per-phone improvement analysis across backends
 - [ ] Data efficiency study (100h vs 460h vs 960h LibriSpeech)
-- [ ] Temporal resolution experiment (downsample posteriors to 80ms)
 - [ ] Logit-based GOP-SF (pre-softmax values in CTC forward) — arXiv: 2506.12067
+- [ ] Feature normalization (z-score per feature dimension before SVR)
 
 ## Research Infrastructure
 
 - [ ] Build paper management system (Zotero replacement)
-  - Postgres backend with pgvector embeddings + tsvector full-text search
-  - Store papers as markdown with structured metadata
-  - Citation graph / relationship tracking
 
 ## Key Papers to Process
 
@@ -57,21 +48,3 @@ Remaining gap (0.548 → 0.648):
 - [ ] Original GOP paper (Witt & Young 2000)
 - [ ] GOPT Transformer paper (Gong et al. ICASSP 2022)
 - [ ] SpeechOcean762 dataset paper (2104.01378)
-
-## Completed
-
-- [x] Implement GOP-SF algorithm (scalar scores)
-- [x] Build backend architecture with pluggable phoneme models
-- [x] Benchmark three backends (original, xlsr-espeak, zipa)
-- [x] Identify ZIPA character-level vocab incompatibility
-- [x] Document research landscape (05_PHONEME_HEADS.md)
-- [x] Collect ZIPA run 2 results (32/39 phones, ER/G fixes)
-- [x] Compare all three backends side-by-side
-- [x] Document findings in DECISIONS.md
-- [x] Implement GOP feature vector extraction (LPP + LPR)
-- [x] Add SVR evaluation pipeline
-- [x] GPU-accelerated batched feature extraction (ctc_loss kernel)
-- [x] Full dataset SVR+feats run: PCC = 0.539 (47K phones, 5000 utts)
-- [x] Model manager "peacock" backend for GPU VRAM reservation
-- [x] Add occupancy as 42nd feature dimension: PCC 0.539 → 0.548
-- [x] SVR GridSearchCV tuning (C, epsilon): MSE 0.2168 → 0.2136
