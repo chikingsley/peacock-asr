@@ -1,13 +1,18 @@
 # TODO
 
-## Immediate: Full Dataset Run with Feature Vectors
+## Immediate: Close Remaining PCC Gap
 
-- [x] Extract full GOP feature vectors (41-dim: LPP + LPR)
-- [x] Train SVR on feature vectors, evaluate PCC
-- [x] GPU-accelerated batched ctc_loss (620x speedup over serial loop)
-- [ ] Run full dataset (2500 train + 2500 test) with --feats on GPU
-- [ ] Compare: scalar poly regression vs SVR on same features (full data)
+Results so far (original backend, SpeechOcean762 full dataset):
+
+- Scalar GOP + poly regression: PCC = 0.320
+- **SVR + LPP/LPR feature vectors: PCC = 0.539** (paper: 0.648)
+
+Remaining gap (0.539 → 0.648):
+
+- [ ] Add expected count (occupancy) as 42nd feature dimension
+- [ ] Tune SVR hyperparameters (C, epsilon, kernel) with cross-validation
 - [ ] Compare: original vs xlsr-espeak backends with feature vectors
+- [ ] Try GOPT transformer on feature vectors (paper: 0.648+)
 
 ## Phase 1: w2v-BERT 2.0 Phoneme Head (Lowest Risk)
 
@@ -17,7 +22,7 @@
   - Follow HuggingFace blog recipe exactly, swap vocab only
   - See docs/research/05_PHONEME_HEADS.md Phase 1 for details
 - [ ] Create new backend (`w2v_bert_phoneme.py`), plug into benchmark
-- [ ] Compare PCC with xlsr-espeak baseline (0.320 scalar / TBD feature vectors)
+- [ ] Compare PCC with xlsr-espeak baseline (0.320 scalar / 0.539 SVR+feats)
 
 ## Phase 2: omniASR Head Swap (Alternative Path)
 
@@ -66,3 +71,5 @@
 - [x] Implement GOP feature vector extraction (LPP + LPR)
 - [x] Add SVR evaluation pipeline
 - [x] GPU-accelerated batched feature extraction (ctc_loss kernel)
+- [x] Full dataset SVR+feats run: PCC = 0.539 (47K phones, 5000 utts)
+- [x] Model manager "peacock" backend for GPU VRAM reservation
