@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from gopt_bench.backends.base import PhonemeBackend
+    from peacock_asr.backends.base import PhonemeBackend
 
 BACKEND_REGISTRY: dict[str, type[PhonemeBackend]] = {}
 
@@ -21,14 +21,14 @@ def get_backend(name: str) -> type[PhonemeBackend]:
 
 
 def _register_builtins() -> None:
-    from gopt_bench.backends.ctc_gop_original import OriginalBackend  # noqa: PLC0415
-    from gopt_bench.backends.xlsr_espeak import XLSREspeakBackend  # noqa: PLC0415
+    from peacock_asr.backends.ctc_gop_original import OriginalBackend  # noqa: PLC0415
+    from peacock_asr.backends.xlsr_espeak import XLSREspeakBackend  # noqa: PLC0415
 
     register_backend("original", OriginalBackend)
     register_backend("xlsr-espeak", XLSREspeakBackend)
 
     try:
-        from gopt_bench.backends.zipa import ZIPABackend  # noqa: PLC0415
+        from peacock_asr.backends.zipa import ZIPABackend  # noqa: PLC0415
 
         register_backend("zipa", ZIPABackend)
     except ImportError:

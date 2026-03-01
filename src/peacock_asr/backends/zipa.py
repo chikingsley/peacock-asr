@@ -87,7 +87,7 @@ class ZIPABackend:
             msg = "onnxruntime is required for the ZIPA backend: uv add onnxruntime"
             raise ImportError(msg) from e
 
-        from gopt_bench.settings import settings  # noqa: PLC0415
+        from peacock_asr.settings import settings  # noqa: PLC0415
 
         model_dir = settings.models_dir
         model_path = model_dir / "zipa-large-crctc-ns-800k.onnx"

@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from gopt_bench.backends.ctc_gop_original import ARPABET_TO_IDX, ARPABET_VOCAB
-from gopt_bench.backends.xlsr_espeak import ARPABET_TO_IPA as XLSR_ARPABET_TO_IPA
-from gopt_bench.backends.zipa import ARPABET_TO_IPA as ZIPA_ARPABET_TO_IPA
+from peacock_asr.backends.ctc_gop_original import ARPABET_TO_IDX, ARPABET_VOCAB
+from peacock_asr.backends.xlsr_espeak import ARPABET_TO_IPA as XLSR_ARPABET_TO_IPA
+from peacock_asr.backends.zipa import ARPABET_TO_IPA as ZIPA_ARPABET_TO_IPA
 
 
 class TestOriginalBackendVocab:

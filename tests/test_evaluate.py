@@ -6,7 +6,7 @@ import math
 
 import numpy as np
 
-from gopt_bench.evaluate import EvalResult, balanced_sampling, evaluate_gop
+from peacock_asr.evaluate import EvalResult, balanced_sampling, evaluate_gop
 
 
 class TestBalancedSampling:

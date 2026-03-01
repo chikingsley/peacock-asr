@@ -6,9 +6,9 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    model_config = {"env_prefix": "GOPT_BENCH_", "env_file": ".env"}
+    model_config = {"env_prefix": "PEACOCK_ASR_", "env_file": ".env"}
 
-    cache_dir: Path = Path.home() / ".cache" / "gopt-bench"
+    cache_dir: Path = Path.home() / ".cache" / "peacock-asr"
     ctc_gop_model_path: Path | None = None
     ctc_gop_processor_path: Path | None = None
     num_workers: int = 1

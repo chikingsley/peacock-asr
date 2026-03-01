@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from gopt_bench.backends.zipa import ARPABET_TO_IPA
+from peacock_asr.backends.zipa import ARPABET_TO_IPA
 
 # The 39 ARPABET phones used in SpeechOcean762 (no stress digits)
 SPO762_PHONES = [

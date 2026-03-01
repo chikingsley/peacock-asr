@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from gopt_bench.settings import settings
+from peacock_asr.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +102,7 @@ class OriginalBackend:
         if not model_path.exists():
             msg = (
                 f"Model not found at {model_path}. "
-                "Make sure CTC-based-GOP is cloned alongside gopt-bench."
+                "Make sure CTC-based-GOP is cloned alongside peacock-asr."
             )
             raise FileNotFoundError(msg)
 

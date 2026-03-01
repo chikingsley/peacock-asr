@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from gopt_bench.dataset import strip_stress
+from peacock_asr.dataset import strip_stress
 
 
 class TestStripStress:

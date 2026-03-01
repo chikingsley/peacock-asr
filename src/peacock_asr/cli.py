@@ -1,4 +1,4 @@
-"""CLI entry points for gopt-bench."""
+"""CLI entry points for peacock-asr."""
 
 from __future__ import annotations
 
@@ -6,12 +6,12 @@ import argparse
 import logging
 import sys
 
-logger = logging.getLogger("gopt_bench")
+logger = logging.getLogger("peacock_asr")
 
 
 def cmd_download(_args: argparse.Namespace) -> None:
     """Download the SpeechOcean762 dataset."""
-    from gopt_bench.dataset import load_speechocean762  # noqa: PLC0415
+    from peacock_asr.dataset import load_speechocean762  # noqa: PLC0415
 
     data = load_speechocean762()
     print(f"Train: {len(data.train)} utterances")  # noqa: T201
@@ -23,11 +23,11 @@ def cmd_run(args: argparse.Namespace) -> None:
     """Run GOP-SF with a specified backend and evaluate."""
     from tqdm import tqdm  # noqa: PLC0415
 
-    from gopt_bench.backends import get_backend  # noqa: PLC0415
-    from gopt_bench.dataset import load_speechocean762  # noqa: PLC0415
-    from gopt_bench.evaluate import evaluate_gop, evaluate_gop_feats  # noqa: PLC0415
-    from gopt_bench.gop import compute_gop  # noqa: PLC0415
-    from gopt_bench.settings import settings  # noqa: PLC0415
+    from peacock_asr.backends import get_backend  # noqa: PLC0415
+    from peacock_asr.dataset import load_speechocean762  # noqa: PLC0415
+    from peacock_asr.evaluate import evaluate_gop, evaluate_gop_feats  # noqa: PLC0415
+    from peacock_asr.gop import compute_gop  # noqa: PLC0415
+    from peacock_asr.settings import settings  # noqa: PLC0415
 
     use_feats = getattr(args, "feats", False)
     if getattr(args, "device", None) is not None:
@@ -114,7 +114,7 @@ def _print_results(
     result: object,
     verbose: bool,  # noqa: FBT001
 ) -> None:
-    from gopt_bench.evaluate import EvalResult  # noqa: PLC0415
+    from peacock_asr.evaluate import EvalResult  # noqa: PLC0415
 
     if not isinstance(result, EvalResult):
         return
@@ -137,7 +137,7 @@ def _print_results(
 
 def cmd_compare(args: argparse.Namespace) -> None:
     """Run all available backends and compare."""
-    from gopt_bench.backends import BACKEND_REGISTRY  # noqa: PLC0415
+    from peacock_asr.backends import BACKEND_REGISTRY  # noqa: PLC0415
 
     available = list(BACKEND_REGISTRY.keys())
     print(f"Available backends: {', '.join(available)}")  # noqa: T201
@@ -158,7 +158,7 @@ def cmd_compare(args: argparse.Namespace) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        prog="gopt-bench",
+        prog="peacock-asr",
         description="Pronunciation assessment benchmark",
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")

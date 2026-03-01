@@ -80,7 +80,7 @@ class XLSREspeakBackend:
     def load(self) -> None:
         from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor  # noqa: PLC0415
 
-        from gopt_bench.settings import settings  # noqa: PLC0415
+        from peacock_asr.settings import settings  # noqa: PLC0415
 
         logger.info("Loading %s...", MODEL_ID)
         self._processor = Wav2Vec2Processor.from_pretrained(

@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 import torch
 
-from gopt_bench.evaluate import evaluate_gop_feats
-from gopt_bench.gop import (
+from peacock_asr.evaluate import evaluate_gop_feats
+from peacock_asr.gop import (
     GOPResult,
     _compute_lpr_features,
     _compute_lpr_features_batched,

@@ -1,5 +1,5 @@
 [project]
-name = "gopt-bench"
+name = "peacock-asr"
 version = "0.1.0"
 description = "Pronunciation assessment benchmark: swap phoneme models, compute GOP-SF, evaluate against SpeechOcean762"
 authors = [
@@ -30,7 +30,7 @@ dependencies = [
 zipa = ["onnxruntime>=1.18"]
 
 [project.scripts]
-gopt-bench = "gopt_bench.cli:main"
+peacock-asr = "peacock_asr.cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -117,7 +117,7 @@ unfixable = []
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["gopt_bench"]
+known-first-party = ["peacock_asr"]
 
 [tool.ruff.lint.pylint]
 max-args = 8
