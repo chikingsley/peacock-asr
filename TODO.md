@@ -1,22 +1,25 @@
 # TODO
 
-Current PCC: **0.548** | Paper target: **0.648** | See [EXPERIMENTS.md](EXPERIMENTS.md) for full run history.
+Current PCC: **0.648** (GOPT, matched paper target) | See [EXPERIMENTS.md](EXPERIMENTS.md) for full run history.
 
-## Next: GOPT Transformer
+## Next: Cleanup + Caching
 
-Reproduce the paper's main result by training their GOPT transformer on our feature vectors.
-Reference code: `references/gopt-transformer/`
+- [ ] Add feature caching to disk (extract once, iterate forever)
+- [ ] Clean up code issues from audit (see list below)
+- [ ] Compare: original vs xlsr-espeak backends with GOPT
 
-- [ ] Adapt GOPT model input_dim (84 → 42) for our feature vectors
-- [ ] Restructure data pipeline from per-phone tuples to per-utterance batches
-- [ ] Train GOPT on SpeechOcean762 (MSE loss, 100 epochs, ~minutes on CPU)
-- [ ] Compare PCC with SVR baseline (0.548) and paper target (0.648)
+### Cleanup Items
+
+- [ ] Extract shared PCC computation in evaluate.py (lines 145-183 ≈ lines 307-345)
+- [ ] Remove dead `GOPResult.phones` field (gop.py:512, unused downstream)
+- [ ] Rename env var `GOPT_BENCH_CTC_BACKEND` → `PEACOCK_ASR_CTC_BACKEND` or move to settings
+- [ ] Consider re-merging `_step_denom` helpers in gop.py (ruff split hurt readability)
+- [ ] Replace `Path(__file__).parents[3]` in ctc_gop_original.py with explicit repo root detection
 
 ## Then: Better Backends (the actual research)
 
-Once GOPT reproduction validates our features, swap in better phoneme models.
+Once caching enables fast iteration, swap in better phoneme models.
 
-- [ ] Compare: original vs xlsr-espeak backends with feature vectors + GOPT
 - [ ] Build ARPABET vocabulary (39 phones + blank + pad = 41 tokens)
 - [ ] Prepare LibriSpeech with phoneme labels (text → ARPABET via CMU dict / G2P)
 - [ ] Fine-tune w2v-BERT 2.0 with CTC on LibriSpeech (A100 80GB, ~6-12h)
@@ -29,7 +32,6 @@ Once GOPT reproduction validates our features, swap in better phoneme models.
 - [ ] Per-phone improvement analysis across backends
 - [ ] Data efficiency study (100h vs 460h vs 960h LibriSpeech)
 - [ ] Logit-based GOP-SF (pre-softmax values in CTC forward) — arXiv: 2506.12067
-- [ ] Feature normalization (z-score per feature dimension before SVR)
 
 ## Research Infrastructure
 
@@ -46,5 +48,5 @@ Once GOPT reproduction validates our features, swap in better phoneme models.
 - [ ] Enhancing GOP with Phonological Knowledge (2506.02080)
 - [ ] Logit-based GOP Scores (2506.12067)
 - [ ] Original GOP paper (Witt & Young 2000)
-- [ ] GOPT Transformer paper (Gong et al. ICASSP 2022)
+- [x] GOPT Transformer paper (Gong et al. ICASSP 2022)
 - [ ] SpeechOcean762 dataset paper (2104.01378)

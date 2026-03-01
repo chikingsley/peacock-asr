@@ -10,6 +10,25 @@ Paper target: PCC = 0.648 (GOPT transformer on feature vectors).
 
 ---
 
+### Run 7 — 2026-03-01: GOPT Transformer
+
+- **Changed**: Trained GOPT phone-level transformer on 42-dim feature vectors.
+  3-layer Pre-LN transformer, 1 head, embed_dim=24, ~4K params.
+  Adapted from `references/gopt-transformer/` (Gong et al., ICASSP 2022).
+  Input: 42-dim GOP features (1 LPP + 40 LPR + 1 occupancy) per phone,
+  padded to 50 phones per utterance. MSE loss with padding mask, 100 epochs.
+- **Backend**: original (checkpoint-8000)
+- **Eval**: GOPT transformer (contextual, utterance-level)
+- **Result**: PCC = 0.6480, 95% CI [0.6428, 0.6532], MSE = 0.0795, 47,369 phones
+- **Baseline**: PCC was 0.548 (SVR, run 6)
+- **Paper target**: 0.648
+- **Takeaway**: Matched the paper target exactly. The transformer's contextual
+  scoring (seeing full utterance sequences vs isolated phones) accounts for the
+  +0.100 PCC gain over SVR. This validates our entire pipeline: feature extraction,
+  GOP-SF algorithm, and GOPT model adaptation all working correctly.
+
+---
+
 ### Run 6 — 2026-03-01: Occupancy feature + SVR GridSearchCV
 
 - **Changed**: Appended CTC expected count (occupancy) as 42nd feature dimension.
@@ -98,5 +117,5 @@ Paper target: PCC = 0.648 (GOPT transformer on feature vectors).
 0.31  ██████████░░░░░░░░░░  Scalar GOP + poly regression
 0.539 █████████████████░░░  SVR + 41-dim features
 0.548 █████████████████░░░  SVR + 42-dim features + GridSearchCV
-0.648 ████████████████████  Paper target (GOPT transformer)  ← next
+0.648 ████████████████████  GOPT transformer  ← MATCHED PAPER TARGET
 ```

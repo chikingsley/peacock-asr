@@ -25,11 +25,13 @@ def cmd_run(args: argparse.Namespace) -> None:
 
     from peacock_asr.backends import get_backend  # noqa: PLC0415
     from peacock_asr.dataset import load_speechocean762  # noqa: PLC0415
-    from peacock_asr.evaluate import evaluate_gop, evaluate_gop_feats  # noqa: PLC0415
     from peacock_asr.gop import compute_gop  # noqa: PLC0415
+    from peacock_asr.gopt_model import UtteranceFeats  # noqa: PLC0415
     from peacock_asr.settings import settings  # noqa: PLC0415
 
     use_feats = getattr(args, "feats", False)
+    use_gopt = getattr(args, "gopt", False)
+    extract_features = use_feats or use_gopt
     if getattr(args, "device", None) is not None:
         settings.device = args.device
     device = settings.torch_device
@@ -41,18 +43,24 @@ def cmd_run(args: argparse.Namespace) -> None:
     backend.load()
     logger.info("Vocab size: %d  Device: %s", len(backend.vocab), device)
 
-    if use_feats:
+    if extract_features:
         logger.info(
-            "Feature extraction: ON (batched ctc_loss, %d tokens)", len(backend.vocab),
+            "Feature extraction: ON (batched ctc_loss, %d tokens)",
+            len(backend.vocab),
         )
 
     data = load_speechocean762(limit=args.limit)
 
     def process_split(
-        utterances: list, split_name: str
-    ) -> list:
+        utterances: list, split_name: str,
+    ) -> tuple[list, list[UtteranceFeats]]:
+        """Process a split, returning (scalar_results, utt_feats).
+
+        scalar_results: always populated (phone, gop_score, human_score)
+        utt_feats: populated only when extract_features is True
+        """
         scalar_results: list[tuple[str, float, float]] = []
-        feats_results: list[tuple[str, list[float], float]] = []
+        utt_feats: list[UtteranceFeats] = []
         skipped = 0
 
         for utt in tqdm(utterances, desc=split_name, unit="utt"):
@@ -60,7 +68,9 @@ def cmd_run(args: argparse.Namespace) -> None:
             valid_phones: list[str] = []
             valid_scores: list[float] = []
 
-            for phone, score in zip(utt.phones, utt.phone_scores, strict=True):
+            for phone, score in zip(
+                utt.phones, utt.phone_scores, strict=True,
+            ):
                 indices = backend.map_phone(phone)
                 if indices is not None:
                     phone_indices.extend(indices)
@@ -72,41 +82,122 @@ def cmd_run(args: argparse.Namespace) -> None:
                 continue
 
             gop_result = compute_gop(
-                posteriors=backend.get_posteriors(utt.audio, utt.sample_rate),
+                posteriors=backend.get_posteriors(
+                    utt.audio, utt.sample_rate,
+                ),
                 phone_indices=phone_indices,
                 blank=backend.blank_index,
-                extract_features=use_feats,
-                device=device if use_feats else None,
+                extract_features=extract_features,
+                device=device if extract_features else None,
             )
 
-            for idx, (phone, gop_score, human_score) in enumerate(
-                zip(valid_phones, gop_result.scores, valid_scores, strict=True)
+            for phone, gop_score, human_score in zip(
+                valid_phones, gop_result.scores,
+                valid_scores, strict=True,
             ):
-                scalar_results.append((phone, gop_score, human_score))
-                if use_feats and gop_result.features is not None:
-                    feat_vec = [
-                        *gop_result.features[idx].tolist(),
-                        gop_result.occupancies[idx],
+                scalar_results.append(
+                    (phone, gop_score, human_score),
+                )
+
+            if extract_features and gop_result.features is not None:
+                feat_vecs = [
+                    [
+                        *gop_result.features[i].tolist(),
+                        gop_result.occupancies[i],
                     ]
-                    feats_results.append((phone, feat_vec, human_score))
+                    for i in range(len(valid_phones))
+                ]
+                utt_feats.append(UtteranceFeats(
+                    phones=valid_phones,
+                    feat_vecs=feat_vecs,
+                    scores=valid_scores,
+                ))
 
         logger.info(
             "[%s] %d utts, %d phones, %d skipped",
-            split_name, len(utterances), len(scalar_results), skipped,
+            split_name, len(utterances),
+            len(scalar_results), skipped,
         )
-        return feats_results if use_feats else scalar_results
+        return scalar_results, utt_feats
 
-    train_results = process_split(data.train, "train")
-    test_results = process_split(data.test, "test")
+    train_scalar, train_utts = process_split(data.train, "train")
+    test_scalar, test_utts = process_split(data.test, "test")
 
-    if use_feats:
+    feat_dim = len(backend.vocab) + 2  # LPP + VxLPR + occupancy
+
+    _run_evaluation(
+        use_gopt=use_gopt,
+        use_feats=use_feats,
+        backend_name=backend.name,
+        feat_dim=feat_dim,
+        device=device,
+        train_scalar=train_scalar,
+        test_scalar=test_scalar,
+        train_utts=train_utts,
+        test_utts=test_utts,
+        verbose=args.verbose,
+    )
+
+
+def _run_evaluation(  # noqa: PLR0913
+    *,
+    use_gopt: bool,
+    use_feats: bool,
+    backend_name: str,
+    feat_dim: int,
+    device: object,
+    train_scalar: list,
+    test_scalar: list,
+    train_utts: list,
+    test_utts: list,
+    verbose: bool,
+) -> None:
+    """Dispatch to the appropriate evaluation method."""
+    from peacock_asr.evaluate import evaluate_gop, evaluate_gop_feats  # noqa: PLC0415
+
+    if use_gopt:
+        from peacock_asr.gopt_model import (  # noqa: PLC0415
+            train_and_evaluate_gopt,
+        )
+
+        logger.info(
+            "Training GOPT transformer (feat_dim=%d)...", feat_dim,
+        )
+        eval_result = train_and_evaluate_gopt(
+            train_utts, test_utts,
+            input_dim=feat_dim,
+            device=device,
+        )
+        _print_results(
+            backend_name + " (GOPT)", eval_result, verbose,
+        )
+    elif use_feats:
+        # Flatten utterance records into per-phone tuples for SVR
+        train_flat = [
+            (p, f, s)
+            for u in train_utts
+            for p, f, s in zip(
+                u.phones, u.feat_vecs, u.scores, strict=True,
+            )
+        ]
+        test_flat = [
+            (p, f, s)
+            for u in test_utts
+            for p, f, s in zip(
+                u.phones, u.feat_vecs, u.scores, strict=True,
+            )
+        ]
         logger.info("Evaluating with SVR on feature vectors...")
-        eval_result = evaluate_gop_feats(train_results, test_results)
-        _print_results(backend.name + " (SVR+feats)", eval_result, args.verbose)
+        eval_result = evaluate_gop_feats(train_flat, test_flat)
+        _print_results(
+            backend_name + " (SVR+feats)", eval_result, verbose,
+        )
     else:
-        logger.info("Evaluating with polynomial regression on scalar scores...")
-        eval_result = evaluate_gop(train_results, test_results)
-        _print_results(backend.name, eval_result, args.verbose)
+        logger.info(
+            "Evaluating with poly regression on scalar scores...",
+        )
+        eval_result = evaluate_gop(train_scalar, test_scalar)
+        _print_results(backend_name, eval_result, verbose)
 
 
 def _print_results(
@@ -177,6 +268,11 @@ def main() -> None:
         "--feats",
         action="store_true",
         help="Extract full feature vectors (LPP+LPR) and evaluate with SVR",
+    )
+    run_p.add_argument(
+        "--gopt",
+        action="store_true",
+        help="Train GOPT transformer on feature vectors and evaluate",
     )
     run_p.add_argument(
         "--device",
