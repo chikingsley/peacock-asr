@@ -1,3 +1,10 @@
+"""SpeechOcean762 dataset loader.
+
+Dataset: https://huggingface.co/datasets/mispeech/speechocean762
+Paper: "SpeechOcean762: An Open-Source Non-native English Speech Corpus
+       For Pronunciation Assessment" (Zhang et al., 2021, arXiv: 2104.01378)
+"""
+
 from __future__ import annotations
 
 import logging

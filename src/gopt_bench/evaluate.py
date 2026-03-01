@@ -1,5 +1,8 @@
 """Evaluation: compute PCC between GOP scores and human annotations.
 
+Adapted from CTC-based-GOP/is24/evaluation/spo762/evaluate_gop_feats.py
+Reference: https://github.com/YuanGongND/gopt (Gong et al.)
+
 Supports two modes:
   1. Scalar GOP scores → per-phone polynomial regression (original)
   2. Feature vectors → per-phone SVR (following CTC-based-GOP reference)

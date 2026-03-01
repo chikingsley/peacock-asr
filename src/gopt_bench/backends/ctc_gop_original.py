@@ -1,3 +1,9 @@
+"""Original CTC-GOP backend using the reference checkpoint.
+
+Loads the wav2vec2-based CTC model from CTC-based-GOP/is24/models/checkpoint-8000.
+Reference: https://github.com/YuanGongND/gopt (Gong et al.)
+"""
+
 from __future__ import annotations
 
 import logging
