@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import argparse
 import logging
+import re
 import sys
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = logging.getLogger("peacock_asr")
 
@@ -19,27 +24,168 @@ def cmd_download(_args: argparse.Namespace) -> None:
     print("Dataset cached by HuggingFace datasets.")  # noqa: T201
 
 
-def cmd_run(args: argparse.Namespace) -> None:
-    """Run GOP-SF with a specified backend and evaluate."""
+def _cache_path(
+    features_dir: Path, backend_name: str, split: str,
+) -> Path:
+    """Build the cache file path for a given backend and split."""
+    safe_name = re.sub(r"[^\w\-.]", "_", backend_name)
+    d = features_dir / safe_name
+    d.mkdir(parents=True, exist_ok=True)
+    return d / f"{split}.pt"
+
+
+def _load_cache(
+    features_dir: Path,
+    backend_name: str,
+    split: str,
+    dataset_revision: str,
+    extract_features: bool,  # noqa: FBT001
+) -> tuple[list, list] | None:
+    """Load cached features if valid. Returns None on miss."""
+    import torch  # noqa: PLC0415
+
+    path = _cache_path(features_dir, backend_name, split)
+    if not path.exists():
+        return None
+
+    data = torch.load(path, weights_only=False)
+    if data.get("backend") != backend_name:
+        return None
+    if data.get("dataset_revision") != dataset_revision:
+        return None
+    # If we need features but cache was saved without them, miss
+    if extract_features and not data.get("extract_features"):
+        return None
+
+    return data["scalar_results"], data.get("utt_feats", [])
+
+
+def _save_cache(
+    *,
+    features_dir: Path,
+    backend_name: str,
+    split: str,
+    dataset_revision: str,
+    extract_features: bool,
+    scalar_results: list,
+    utt_feats: list,
+) -> None:
+    """Save extraction results to cache."""
+    import torch  # noqa: PLC0415
+
+    path = _cache_path(features_dir, backend_name, split)
+    torch.save(
+        {
+            "backend": backend_name,
+            "dataset_revision": dataset_revision,
+            "extract_features": extract_features,
+            "scalar_results": scalar_results,
+            "utt_feats": utt_feats,
+        },
+        path,
+    )
+    logger.info("[%s] Saved cache to %s", split, path)
+
+
+def _process_split(
+    *,
+    utterances: list,
+    split_name: str,
+    backend: object,
+    extract_features: bool,
+    device: object,
+) -> tuple[list, list]:
+    """Process a split, returning (scalar_results, utt_feats).
+
+    scalar_results: always populated (phone, gop_score, human_score)
+    utt_feats: populated only when extract_features is True
+    """
     from tqdm import tqdm  # noqa: PLC0415
 
-    from peacock_asr.backends import get_backend  # noqa: PLC0415
-    from peacock_asr.dataset import load_speechocean762  # noqa: PLC0415
     from peacock_asr.gop import compute_gop  # noqa: PLC0415
     from peacock_asr.gopt_model import UtteranceFeats  # noqa: PLC0415
+
+    scalar_results: list[tuple[str, float, float]] = []
+    utt_feats: list[UtteranceFeats] = []
+    skipped = 0
+
+    for utt in tqdm(utterances, desc=split_name, unit="utt"):
+        phone_indices: list[int] = []
+        valid_phones: list[str] = []
+        valid_scores: list[float] = []
+
+        for phone, score in zip(
+            utt.phones, utt.phone_scores, strict=True,
+        ):
+            indices = backend.map_phone(phone)
+            if indices is not None:
+                phone_indices.extend(indices)
+                valid_phones.append(phone)
+                valid_scores.append(score)
+
+        if len(phone_indices) < 2:  # noqa: PLR2004
+            skipped += 1
+            continue
+
+        gop_result = compute_gop(
+            posteriors=backend.get_posteriors(
+                utt.audio, utt.sample_rate,
+            ),
+            phone_indices=phone_indices,
+            blank=backend.blank_index,
+            extract_features=extract_features,
+            device=device if extract_features else None,
+        )
+
+        for phone, gop_score, human_score in zip(
+            valid_phones, gop_result.scores,
+            valid_scores, strict=True,
+        ):
+            scalar_results.append(
+                (phone, gop_score, human_score),
+            )
+
+        if extract_features and gop_result.features is not None:
+            feat_vecs = [
+                [
+                    *gop_result.features[i].tolist(),
+                    gop_result.occupancies[i],
+                ]
+                for i in range(len(valid_phones))
+            ]
+            utt_feats.append(UtteranceFeats(
+                phones=valid_phones,
+                feat_vecs=feat_vecs,
+                scores=valid_scores,
+            ))
+
+    logger.info(
+        "[%s] %d utts, %d phones, %d skipped",
+        split_name, len(utterances),
+        len(scalar_results), skipped,
+    )
+    return scalar_results, utt_feats
+
+
+def cmd_run(args: argparse.Namespace) -> None:
+    """Run GOP-SF with a specified backend and evaluate."""
+    from peacock_asr.backends import get_backend  # noqa: PLC0415
+    from peacock_asr.dataset import (  # noqa: PLC0415
+        DATASET_REVISION,
+        load_speechocean762,
+    )
     from peacock_asr.settings import settings  # noqa: PLC0415
 
     use_feats = getattr(args, "feats", False)
     use_gopt = getattr(args, "gopt", False)
     extract_features = use_feats or use_gopt
+    use_cache = not getattr(args, "no_cache", False) and args.limit == 0
     if getattr(args, "device", None) is not None:
         settings.device = args.device
     device = settings.torch_device
 
     backend = get_backend(args.backend)()
-
     logger.info("Backend: %s", backend.name)
-
     backend.load()
     logger.info("Vocab size: %d  Device: %s", len(backend.vocab), device)
 
@@ -51,85 +197,47 @@ def cmd_run(args: argparse.Namespace) -> None:
 
     data = load_speechocean762(limit=args.limit)
 
-    def process_split(
-        utterances: list, split_name: str,
-    ) -> tuple[list, list[UtteranceFeats]]:
-        """Process a split, returning (scalar_results, utt_feats).
-
-        scalar_results: always populated (phone, gop_score, human_score)
-        utt_feats: populated only when extract_features is True
-        """
-        scalar_results: list[tuple[str, float, float]] = []
-        utt_feats: list[UtteranceFeats] = []
-        skipped = 0
-
-        for utt in tqdm(utterances, desc=split_name, unit="utt"):
-            phone_indices: list[int] = []
-            valid_phones: list[str] = []
-            valid_scores: list[float] = []
-
-            for phone, score in zip(
-                utt.phones, utt.phone_scores, strict=True,
-            ):
-                indices = backend.map_phone(phone)
-                if indices is not None:
-                    phone_indices.extend(indices)
-                    valid_phones.append(phone)
-                    valid_scores.append(score)
-
-            if len(phone_indices) < 2:  # noqa: PLR2004
-                skipped += 1
-                continue
-
-            gop_result = compute_gop(
-                posteriors=backend.get_posteriors(
-                    utt.audio, utt.sample_rate,
-                ),
-                phone_indices=phone_indices,
-                blank=backend.blank_index,
-                extract_features=extract_features,
-                device=device if extract_features else None,
+    results: dict[str, tuple[list, list]] = {}
+    for split_name, utterances in [("train", data.train), ("test", data.test)]:
+        cached = (
+            _load_cache(
+                settings.features_dir, backend.name, split_name,
+                DATASET_REVISION, extract_features,
             )
-
-            for phone, gop_score, human_score in zip(
-                valid_phones, gop_result.scores,
-                valid_scores, strict=True,
-            ):
-                scalar_results.append(
-                    (phone, gop_score, human_score),
-                )
-
-            if extract_features and gop_result.features is not None:
-                feat_vecs = [
-                    [
-                        *gop_result.features[i].tolist(),
-                        gop_result.occupancies[i],
-                    ]
-                    for i in range(len(valid_phones))
-                ]
-                utt_feats.append(UtteranceFeats(
-                    phones=valid_phones,
-                    feat_vecs=feat_vecs,
-                    scores=valid_scores,
-                ))
-
-        logger.info(
-            "[%s] %d utts, %d phones, %d skipped",
-            split_name, len(utterances),
-            len(scalar_results), skipped,
+            if use_cache
+            else None
         )
-        return scalar_results, utt_feats
+        if cached is not None:
+            logger.info("[%s] Loaded from cache", split_name)
+            results[split_name] = cached
+        else:
+            result = _process_split(
+                utterances=utterances,
+                split_name=split_name,
+                backend=backend,
+                extract_features=extract_features,
+                device=device,
+            )
+            if use_cache:
+                _save_cache(
+                    features_dir=settings.features_dir,
+                    backend_name=backend.name,
+                    split=split_name,
+                    dataset_revision=DATASET_REVISION,
+                    extract_features=extract_features,
+                    scalar_results=result[0],
+                    utt_feats=result[1],
+                )
+            results[split_name] = result
 
-    train_scalar, train_utts = process_split(data.train, "train")
-    test_scalar, test_utts = process_split(data.test, "test")
-
-    feat_dim = len(backend.vocab) + 2  # LPP + VxLPR + occupancy
+    train_scalar, train_utts = results["train"]
+    test_scalar, test_utts = results["test"]
 
     _run_evaluation(
         use_gopt=use_gopt,
         use_feats=use_feats,
         backend_name=backend.name,
-        feat_dim=feat_dim,
+        feat_dim=len(backend.vocab) + 2,
         device=device,
         train_scalar=train_scalar,
         test_scalar=test_scalar,
@@ -285,6 +393,11 @@ def main() -> None:
         type=int,
         default=0,
         help="Limit utterances per split (0 = all)",
+    )
+    run_p.add_argument(
+        "--no-cache",
+        action="store_true",
+        help="Skip feature cache (always re-extract)",
     )
 
     cmp_p = sub.add_parser("compare", help="Run all backends and compare")

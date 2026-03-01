@@ -84,6 +84,52 @@ def _round_score(
     return np.round(score / floor) * floor
 
 
+def _compute_pcc(
+    all_refs: list[float],
+    all_hyps: list[float],
+    per_phone_pcc: dict[str, float],
+) -> EvalResult:
+    """Compute PCC and MSE from collected predictions.
+
+    Shared by evaluate_gop() and evaluate_gop_feats().
+    """
+    all_refs_arr = np.array(all_refs)
+    all_hyps_arr = np.array(all_hyps)
+
+    min_eval_samples = 2
+    if len(all_refs_arr) < min_eval_samples:
+        logger.warning(
+            "Too few samples (%d) for PCC computation", len(all_refs_arr),
+        )
+        return EvalResult(
+            pcc=float("nan"), pcc_low=float("nan"),
+            pcc_high=float("nan"), mse=float("nan"),
+            n_phones=len(all_refs), per_phone_pcc=per_phone_pcc,
+        )
+
+    mse = float(np.mean((all_refs_arr - all_hyps_arr) ** 2))
+
+    if np.std(all_refs_arr) == 0 or np.std(all_hyps_arr) == 0:
+        logger.warning("Zero variance in scores, PCC undefined")
+        return EvalResult(
+            pcc=float("nan"), pcc_low=float("nan"),
+            pcc_high=float("nan"), mse=mse,
+            n_phones=len(all_refs), per_phone_pcc=per_phone_pcc,
+        )
+
+    res = stats.pearsonr(all_refs_arr, all_hyps_arr)
+    ci = res.confidence_interval(confidence_level=0.95)
+
+    return EvalResult(
+        pcc=float(res.statistic),
+        pcc_low=float(ci.low),
+        pcc_high=float(ci.high),
+        mse=mse,
+        n_phones=len(all_refs),
+        per_phone_pcc=per_phone_pcc,
+    )
+
+
 def evaluate_gop(
     train_data: list[tuple[str, float, float]],
     test_data: list[tuple[str, float, float]],
@@ -142,45 +188,7 @@ def evaluate_gop(
         if len(ref) >= min_samples and np.std(ref) > 0 and np.std(hyp) > 0:
             per_phone_pcc[phone] = float(np.corrcoef(ref, hyp)[0, 1])
 
-    all_refs_arr = np.array(all_refs)
-    all_hyps_arr = np.array(all_hyps)
-
-    min_eval_samples = 2
-    if len(all_refs_arr) < min_eval_samples:
-        logger.warning("Too few samples (%d) for PCC computation", len(all_refs_arr))
-        return EvalResult(
-            pcc=float("nan"),
-            pcc_low=float("nan"),
-            pcc_high=float("nan"),
-            mse=float("nan"),
-            n_phones=len(all_refs),
-            per_phone_pcc=per_phone_pcc,
-        )
-
-    if np.std(all_refs_arr) == 0 or np.std(all_hyps_arr) == 0:
-        logger.warning("Zero variance in scores, PCC undefined")
-        mse = float(np.mean((all_refs_arr - all_hyps_arr) ** 2))
-        return EvalResult(
-            pcc=float("nan"),
-            pcc_low=float("nan"),
-            pcc_high=float("nan"),
-            mse=mse,
-            n_phones=len(all_refs),
-            per_phone_pcc=per_phone_pcc,
-        )
-
-    res = stats.pearsonr(all_refs_arr, all_hyps_arr)
-    ci = res.confidence_interval(confidence_level=0.95)
-    mse = float(np.mean((all_refs_arr - all_hyps_arr) ** 2))
-
-    return EvalResult(
-        pcc=float(res.statistic),
-        pcc_low=float(ci.low),
-        pcc_high=float(ci.high),
-        mse=mse,
-        n_phones=len(all_refs),
-        per_phone_pcc=per_phone_pcc,
-    )
+    return _compute_pcc(all_refs, all_hyps, per_phone_pcc)
 
 
 # ---------------------------------------------------------------------------
@@ -304,42 +312,4 @@ def evaluate_gop_feats(
         if len(ref) >= min_samples and np.std(ref) > 0 and np.std(hyp) > 0:
             per_phone_pcc[phone] = float(np.corrcoef(ref, hyp)[0, 1])
 
-    all_refs_arr = np.array(all_refs)
-    all_hyps_arr = np.array(all_hyps)
-
-    min_eval_samples = 2
-    if len(all_refs_arr) < min_eval_samples:
-        logger.warning("Too few samples (%d) for PCC computation", len(all_refs_arr))
-        return EvalResult(
-            pcc=float("nan"),
-            pcc_low=float("nan"),
-            pcc_high=float("nan"),
-            mse=float("nan"),
-            n_phones=len(all_refs),
-            per_phone_pcc=per_phone_pcc,
-        )
-
-    if np.std(all_refs_arr) == 0 or np.std(all_hyps_arr) == 0:
-        logger.warning("Zero variance in scores, PCC undefined")
-        mse = float(np.mean((all_refs_arr - all_hyps_arr) ** 2))
-        return EvalResult(
-            pcc=float("nan"),
-            pcc_low=float("nan"),
-            pcc_high=float("nan"),
-            mse=mse,
-            n_phones=len(all_refs),
-            per_phone_pcc=per_phone_pcc,
-        )
-
-    res = stats.pearsonr(all_refs_arr, all_hyps_arr)
-    ci = res.confidence_interval(confidence_level=0.95)
-    mse = float(np.mean((all_refs_arr - all_hyps_arr) ** 2))
-
-    return EvalResult(
-        pcc=float(res.statistic),
-        pcc_low=float(ci.low),
-        pcc_high=float(ci.high),
-        mse=mse,
-        n_phones=len(all_refs),
-        per_phone_pcc=per_phone_pcc,
-    )
+    return _compute_pcc(all_refs, all_hyps, per_phone_pcc)

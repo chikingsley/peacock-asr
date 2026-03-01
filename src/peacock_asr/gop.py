@@ -15,7 +15,6 @@ GOP = -ll_self + ll_denom  (log-likelihood ratio)
 from __future__ import annotations
 
 import logging
-import os
 from dataclasses import dataclass
 
 import numpy as np
@@ -30,7 +29,6 @@ torch.set_num_threads(1)
 
 @dataclass
 class GOPResult:
-    phones: list[str]
     scores: list[float]
     occupancies: list[float]
     features: np.ndarray | None = None  # [N_phones, 1 + V] feature matrix
@@ -482,7 +480,7 @@ def compute_gop(
         GOPResult with per-phone scores, occupancies, and optionally features
     """
     if len(phone_indices) == 0:
-        return GOPResult(phones=[], scores=[], occupancies=[])
+        return GOPResult(scores=[], occupancies=[])
 
     post_mat = torch.from_numpy(posteriors).double()
     params = post_mat.transpose(0, 1)  # [V, T]
@@ -501,7 +499,9 @@ def compute_gop(
 
     features = None
     if extract_features:
-        if os.environ.get("GOPT_BENCH_CTC_BACKEND") == "loop":
+        from peacock_asr.settings import settings  # noqa: PLC0415
+
+        if settings.ctc_feature_backend == "loop":
             features = _compute_lpr_features(params, seq, ll_self, blank)
         else:
             features = _compute_lpr_features_batched(
@@ -509,7 +509,6 @@ def compute_gop(
             )
 
     return GOPResult(
-        phones=[str(idx) for idx in phone_indices],
         scores=scores,
         occupancies=occupancies,
         features=features,

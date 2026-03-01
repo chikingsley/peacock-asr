@@ -16,6 +16,20 @@ from peacock_asr.settings import settings
 
 logger = logging.getLogger(__name__)
 
+
+def _find_repo_root() -> Path | None:
+    """Walk up from this file to find the project root (contains pyproject.toml)."""
+    current = Path(__file__).resolve().parent
+    for _ in range(10):
+        if (current / "pyproject.toml").exists():
+            return current
+        parent = current.parent
+        if parent == current:
+            break
+        current = parent
+    return None
+
+
 # The checkpoint-8000 vocab (39 ARPABET phones + pad)
 ARPABET_VOCAB = [
     "<pad>",  # 0
@@ -85,13 +99,23 @@ class OriginalBackend:
         return 0
 
     def _resolve_paths(self) -> tuple[Path, Path]:
-        repo_root = Path(__file__).parents[3]
-        models = repo_root / "references" / "CTC-based-GOP" / "is24" / "models"
-        default_model = models / "checkpoint-8000"
-        default_proc = models / "processor_config_gop"
+        model_path = settings.ctc_gop_model_path
+        proc_path = settings.ctc_gop_processor_path
 
-        model_path = settings.ctc_gop_model_path or default_model
-        proc_path = settings.ctc_gop_processor_path or default_proc
+        if model_path is None or proc_path is None:
+            repo_root = _find_repo_root()
+            if repo_root is None:
+                msg = (
+                    "Cannot find project root. Set PEACOCK_ASR_CTC_GOP_MODEL_PATH "
+                    "and PEACOCK_ASR_CTC_GOP_PROCESSOR_PATH."
+                )
+                raise FileNotFoundError(msg)
+            models = repo_root / "references" / "CTC-based-GOP" / "is24" / "models"
+            if model_path is None:
+                model_path = models / "checkpoint-8000"
+            if proc_path is None:
+                proc_path = models / "processor_config_gop"
+
         return model_path, proc_path
 
     def load(self) -> None:

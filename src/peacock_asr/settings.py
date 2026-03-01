@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     cache_dir: Path = Path.home() / ".cache" / "peacock-asr"
     ctc_gop_model_path: Path | None = None
     ctc_gop_processor_path: Path | None = None
+    ctc_feature_backend: str = "batched"  # "batched" (GPU) or "loop" (serial)
     num_workers: int = 1
     device: str = "auto"
 
@@ -34,6 +35,12 @@ class Settings(BaseSettings):
     @property
     def data_dir(self) -> Path:
         d = self.cache_dir / "data"
+        d.mkdir(parents=True, exist_ok=True)
+        return d
+
+    @property
+    def features_dir(self) -> Path:
+        d = self.cache_dir / "features"
         d.mkdir(parents=True, exist_ok=True)
         return d
 

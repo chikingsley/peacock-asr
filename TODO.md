@@ -2,19 +2,18 @@
 
 Current PCC: **0.648** (GOPT, matched paper target) | See [EXPERIMENTS.md](EXPERIMENTS.md) for full run history.
 
-## Next: Cleanup + Caching
+## Next
 
-- [ ] Add feature caching to disk (extract once, iterate forever)
-- [ ] Clean up code issues from audit (see list below)
-- [ ] Compare: original vs xlsr-espeak backends with GOPT
+- [ ] Compare: original vs xlsr-espeak backends with GOPT (fast now with caching)
 
-### Cleanup Items
+### Done (Cleanup + Caching)
 
-- [ ] Extract shared PCC computation in evaluate.py (lines 145-183 ≈ lines 307-345)
-- [ ] Remove dead `GOPResult.phones` field (gop.py:512, unused downstream)
-- [ ] Rename env var `GOPT_BENCH_CTC_BACKEND` → `PEACOCK_ASR_CTC_BACKEND` or move to settings
-- [ ] Consider re-merging `_step_denom` helpers in gop.py (ruff split hurt readability)
-- [ ] Replace `Path(__file__).parents[3]` in ctc_gop_original.py with explicit repo root detection
+- [x] Add feature caching to disk (`~/.cache/peacock-asr/features/`, `--no-cache` to bypass)
+- [x] Extract shared PCC computation in evaluate.py (`_compute_pcc()` helper)
+- [x] Remove dead `GOPResult.phones` field
+- [x] Move env var `GOPT_BENCH_CTC_BACKEND` → `settings.ctc_feature_backend`
+- [x] Replace `Path(__file__).parents[3]` with `_find_repo_root()` (walks up to `pyproject.toml`)
+- [x] `_step_denom` helpers — kept split (each handles a distinct CTC case, re-merging triggers ruff)
 
 ## Then: Better Backends (the actual research)
 
