@@ -1,0 +1,22 @@
+curl https://w02x7bpi1qydn0-8000.proxy.runpod.net/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+      "model": "Qwen2-Audio-7B-Instruct",
+      "messages": [
+          {
+              "role": "user",
+              "content": [
+                  {
+                      "type": "audio_url",
+                      "audio_url": {
+                          "url": "https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen2-Audio/audio/glass-breaking-151256.mp3"
+                      }
+                  },
+                  {
+                      "type": "text",
+                      "text": "What is in this audio?"
+                  }
+              ]
+          }
+      ]
+  }'

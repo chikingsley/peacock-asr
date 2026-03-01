@@ -1,0 +1,12 @@
+sounddevice
+soundfile
+numpy
+datasets
+huggingface_hub
+transformers
+torch
+wandb
+trl
+accelerate
+pyyaml
+colorama 

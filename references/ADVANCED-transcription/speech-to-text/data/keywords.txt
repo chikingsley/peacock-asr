@@ -1,0 +1,25 @@
+SPIN - Self play fine tuning that improves LLMs.
+Tricksy - Fast inference involving sparsity.
+Phi-2
+Lightning Attention 2
+Mixtral-8x7B
+Solar 10.7B
+OpenChat
+Notux 8x7B v1
+Gemini Pro
+DeciLM 7B
+Arena Elo
+MT-bench
+MMLU
+GPT-4-Turbo
+Mistral Medium
+Claude Instant 1
+Claude 1
+Claude 2.0
+Mixtral 8x7b Instruct v0.1
+Yi 34B Chat
+Claude Instant 1
+Tulu 2 DPO 70B
+WizardLM 70B v1.0
+Llama 70B
+Llama 2

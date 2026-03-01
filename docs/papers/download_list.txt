@@ -1,4 +1,16 @@
-2507.16838 2511.20107 2206.07289 2103.03023 2311.07037 2005.11950 2111.08191 2203.15937 2104.08428
-2209.03787 2008.08647 2305.18392 2506.12067 2506.02080 2509.03256 2508.03937 2507.14346 2310.13974
-2207.00774 2510.04956 2502.07575 2105.05182 2506.19315 2204.03863 2601.14744 2507.06202 2104.01378
-2507.03043 2503.04710 2509.02915
+# arXiv Paper Download List
+# Format: arXiv_ID | Category | Description
+
+# RL/Alignment Speech Papers
+2602.11298 | rl_alignment_speech | Voxtral Realtime - streaming ASR architecture
+2507.09929 | rl_alignment_speech | DPO for speech enhancement with perceptual feedback
+2602.13891 | rl_alignment_speech | GSRM - Generative Speech Reward Model for Speech RLHF
+2507.05911 | rl_alignment_speech | DiffRO - Differentiable Reward Optimization for TTS
+2509.02915 | rl_alignment_speech | LoRA fine-tuned Speech Multimodal LLM for pronunciation evaluation
+
+# Streaming/Realtime Papers
+2602.12241 | streaming_realtime | Moonshine v2 - Ergodic Streaming Encoder ASR
+2601.22779 | streaming_realtime | Streaming ASR with decoder-only LLMs
+2509.03256 | streaming_realtime | End-to-end speech assessment models for pronunciation
+
+2509.18928 2505.04113 2509.01939 2509.18798 2508.12591 2509.15701 2503.11229 2510.20210 2601.16230 2509.03526 2409.10157

@@ -1,0 +1,10 @@
+[project]
+name = "voxtral-modal-training"
+version = "0.1.0"
+description = "Voxtral STT fine-tuning on Modal"
+requires-python = ">=3.11"
+dependencies = [
+    "modal",
+    "python-dotenv",
+    "huggingface-hub",
+]

@@ -1,0 +1,11 @@
+[project]
+name = "test-omni"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "omnilingual-asr",
+    "torch",
+    "torchaudio",
+    "soundfile",
+    "sentencepiece>=0.2.1",
+]

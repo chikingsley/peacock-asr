@@ -1,0 +1,20 @@
+[project]
+name = "orpheus-modal-training"
+version = "0.1.0"
+description = "Orpheus TTS fine-tuning on Modal"
+requires-python = ">=3.10"
+dependencies = [
+    "modal>=0.64.0",
+    "python-dotenv>=1.0.0",
+    "huggingface-hub>=0.20.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.1.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "ruff>=0.1.0",
+]

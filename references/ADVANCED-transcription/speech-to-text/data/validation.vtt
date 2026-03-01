@@ -1,0 +1,20 @@
+WEBVTT
+
+00:00:00.300 --> 00:00:21.800
+MMLU is an immediate means of testing performance. Claude 2.0 is the latest Claude model from Anthropic. Notux 8x7B v1 is a fine-tune of Mixtral. WizardLM 70B is a fine-tune of Llama 70B.
+
+00:00:22.160 --> 00:00:43.620
+It's actually WizardLM 70B v1.0. SPIN, self-play fine-tuning that improves LLMs. DeciLM 7B is a fast model with 7 billion parameters. Arena Elo is a means of measuring performance. The fastest OpenAI model is GPT-4-Turbo.
+
+00:00:43.900 --> 00:01:03.820
+OpenChat is a fine-tune then, basically it's a fine-tune of the Mistral 7B model. Tricksy is an approach for fast inference using sparsity. Microsoft have launched Phi-2. MT-bench is a metric for performance eval.
+
+00:01:03.880 --> 00:01:24.240
+Mistral Medium is a larger mixture of experts. Claude-1 is an earlier version of Claude from Anthropic. Mixtral 8x7b Instruct v0.1 is the mixture-of-experts with 7B models. Tulu 2 DPO 70B is a fine-tune of the 70B model. Gemini Pro is Google's best model.
+
+00:01:24.340 --> 00:01:47.940
+Solar 10.7B is the fastest, rather sorry, it's the, it's a strong, it's a version of Mistral 7B with extra layers. Claude 2.1 is the latest model from Anthropic. Mixtral 8x7b is a mixture-of-experts. Lightning Attention is another version of attention that improves inference speed.
+
+00:01:48.100 --> 00:02:00.780
+And Yi 34B Chat is a fine-tune of, actually I'm not sure what that is, but it's, I think it's a trained, a pre-trained model of llama style.
+

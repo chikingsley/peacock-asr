@@ -1,0 +1,11 @@
+=== pipeline Model Information ===
+
+Model Structure:
+<pyannote.audio.pipelines.speaker_diarization.SpeakerDiarization object at 0x32b3f4130>
+
+Pipeline Components:
+segmentation: <pyannote.pipeline.parameter.ParamDict object at 0x32b3f7790>
+embedding: pyannote/wespeaker-voxceleb-resnet34-LM
+clustering: <pyannote.audio.pipelines.clustering.AgglomerativeClustering object at 0x32b953fd0>
+
+Segmentation Model Details:

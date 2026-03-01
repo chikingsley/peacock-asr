@@ -1,0 +1,17 @@
+[project]
+name = "audio-alignment"
+version = "0.2.0"
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "torchaudio",
+    "soundfile",
+    "fastapi",
+    "uvicorn",
+    "python-multipart",
+    "httpx",
+    "python-dotenv",
+    # Using GitHub version (not PyPI) for custom model support via model_path parameter
+    "ctc-forced-aligner @ git+https://github.com/MahmoudAshraf97/ctc-forced-aligner.git@bcca0574b2b5d28db0bcd08d6688de891ad16ba4",
+    "numpy",
+]

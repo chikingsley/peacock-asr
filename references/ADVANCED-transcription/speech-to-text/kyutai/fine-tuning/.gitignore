@@ -1,0 +1,16 @@
+# Cache files
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Processed data cache
+processed_data*.pkl
+
+# Training outputs
+kyutai-finetuned/
+
+# Wandb logs
+wandb/
+
+# Virtual environment
+.venv/

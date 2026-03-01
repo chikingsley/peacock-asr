@@ -1,0 +1,19 @@
+# Format: filename|transcript|category
+1742557071_Ronan.wav|Can you please tell me how to get to the nearest bus station?|Basic Sentences
+1742557081_Ronan.wav|I would like a cup of coffee with milk and sugar.|Basic Sentences
+1742557092_Ronan.wav|I'm planning to go on vacation next month.|Basic Sentences
+1742557103_Ronan.wav|The latest advancements in quantum computing are quite fascinating.|Technical
+1742557114_Ronan.wav|Artificial intelligence can help solve some of humanity's greatest challenges.|Technical
+1742557126_Ronan.wav|Cloud computing has revolutionized the way businesses operate.|Technical
+1742557136_Ronan.wav|Could you elaborate a bit more on what you mean?|Conversational
+1742557145_Ronan.wav|I'm not sure about that, what do you think?|Conversational
+1742557167_Ronan.wav|Let me think about that for a moment before I respond.|Conversational
+1742557178_Ronan.wav|I'm feeling quite anxious about the presentation tomorrow.|Emotional
+1742557187_Ronan.wav|That news made me feel quite sad and disappointed.|Emotional
+1742557198_Ronan.wav|I'm so excited about the upcoming concert this weekend!|Emotional
+1742557208_Ronan.wav|Do you prefer reading books or watching movies?|Questions
+1742557217_Ronan.wav|How do you think technology will change in the next decade?|Questions
+1742557226_Ronan.wav|What would you consider your greatest accomplishment?|Questions
+1742557250_Ronan.wav|As we navigate through an increasingly interconnected world where information travels instantaneously across borders, we must develop more sophisticated frameworks for distinguishing between reliable knowledge and misleading content that can polarize communities and undermine democratic institutions.|Long Sentences
+1742557285_Ronan.wav|The book I recently finished reading not only presented a compelling narrative about historical events that shaped our modern world, but also offered profound insights into human psychology and the complex motivations that drive people to make difficult choices under pressure.|Long Sentences
+1742557317_Ronan.wav|The intricate relationship between technological advancement and societal well-being necessitates thoughtful consideration of ethical implications, particularly as artificial intelligence continues to reshape how we live, work, and interact with one another.|Long Sentences

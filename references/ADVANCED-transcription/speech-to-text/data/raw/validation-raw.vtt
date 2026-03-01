@@ -1,0 +1,20 @@
+WEBVTT
+
+00:00:00.300 --> 00:00:21.800
+MMLU is an immediate means of testing performance. Claude 2.0 is the latest Claude model from Anthropic. NoteHook SIP by 7B V1 is a fine tune of Mixtral. Wizard LM70B is a fine tune of Lama 70B.
+
+00:00:22.160 --> 00:00:43.620
+It's actually Wizard LM70B V1.0. Spin self-play fine tuning that improves LLMs. The SCLM7B is a fast model with 7 billion parameters. Arena Elo is a means of measuring performance. The fastest OpenAI model is GPT-4 Turbo.
+
+00:00:43.900 --> 00:01:03.820
+OpenChat is a fine tune then basically it's a fine tune of the Mixtral 7B. Model Trixie is an approach for fast inference using sparsity. Microsoft have launched PHY2. MTBench is a metric for performance eval.
+
+00:01:03.880 --> 00:01:24.240
+Mixtral Medium is a larger mixture of experts. Claude 1.0 is an earlier version of Claude from Anthropic. Mixtral 8.0 by 7B Instruct V0.1 is the mixture of experts with 7B models. Tulu2 DPO is a fine tune of the 7B model. Gemini Pro is Google's best model.
+
+00:01:24.340 --> 00:01:47.940
+Solar 10.7B is the fastest. It's a version of Mixtral 7B with extra layers. Claude 2.1 is the latest model from Anthropic. Mixtral 8.0 by 7B is a mixture of experts. Lightning Attention is another version of Attention that improves inference speed.
+
+00:01:48.100 --> 00:02:00.780
+And Yee34bchat is a fine tune of the 7B model. The Mixtral 8.0 by 7B is the latest model from Anthropic. Mixtral 8.0 by 7B is a mixture of experts. Lightning Attention is another version of Attention that improves inference speed. And Yee34bchat is a fine tune of the 7B model. The Mixtral 8.0 by 7B model is a fine tune of the 7B model. Actually, I'm not sure what that is, but it's a pre-trained model of Lama style.
+
