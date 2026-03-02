@@ -10,6 +10,86 @@ Paper target: PCC = 0.648 (GOPT transformer on feature vectors).
 
 ---
 
+### Run 11 — 2026-03-02: Stochastic repeats (5x per backend, GOPT)
+
+- **Changed**: Ran 5 full-dataset GOPT repeats for each top backend using cache:
+  `original --gopt` and `xlsr-espeak --gopt`.
+- **Results (5 runs each)**:
+
+| Backend | PCC mean ± std | PCC min/max | MSE mean ± std |
+|---------|-----------------|-------------|----------------|
+| original (checkpoint-8000) | 0.6336 ± 0.0056 | 0.6271 / 0.6423 | 0.0822 ± 0.0009 |
+| xlsr-espeak (wav2vec2-xlsr-53-espeak-cv-ft) | **0.6704 ± 0.0121** | 0.6604 / 0.6900 | **0.0741 ± 0.0022** |
+
+- **Takeaway**:
+  - `xlsr-espeak + GOPT` is better on both central tendency (mean PCC) and
+    error (mean MSE) across repeats.
+  - Variance exists (especially xlsr-espeak), so report mean/std for claims,
+    and optionally pin training seeds for strict reproducibility.
+
+---
+
+### Run 10 — 2026-03-02: Post-fix verification rerun (xlsr-espeak + GOPT)
+
+- **Changed**: Verified the xlsr-espeak GOPT path after fixing feature-width
+  handling (CLI infers observed feature width; dataset keeps safe pad/truncate
+  guard for mixed caches).
+- **Backend**: xlsr-espeak (wav2vec2-xlsr-53-espeak-cv-ft)
+- **Eval**: GOPT transformer
+- **Result**: PCC = 0.6710, 95% CI [0.6659, 0.6759], MSE = 0.0740, 46,314 phones
+- **Baseline**: PCC was 0.6618 (run 8, original backend + GOPT)
+- **Takeaway**: This is the current best run. Because GOPT training is
+  stochastic (no fixed seed), treat this as a strong candidate and confirm
+  with a short multi-seed rerun before final claims.
+
+---
+
+### Run 9 — 2026-03-02: MLflow matrix rerun (all backends + eval modes)
+
+- **Changed**: Ran a full matrix with MLflow logging enabled:
+  `original --feats`, `original --gopt`, `xlsr-espeak --feats`,
+  `xlsr-espeak --gopt`, and `zipa` scalar.
+- **Operational note**: `xlsr-espeak --gopt` initially failed due to mixed
+  cached feature widths (394 vs expected 395). Fixed in `GoptDataset` by
+  safely padding/truncating mismatched per-utterance feature vectors, and
+  in CLI by inferring GOPT `feat_dim` from observed feature vectors instead
+  of assuming `len(vocab)+2`; reran successfully.
+- **Results**:
+
+| Backend | Eval | PCC | 95% CI | MSE |
+|---------|------|-----|--------|-----|
+| original (checkpoint-8000) | SVR+feats | 0.5481 | [0.5417, 0.5543] | 0.2136 |
+| original (checkpoint-8000) | GOPT | 0.6413 | [0.6360, 0.6466] | 0.0813 |
+| xlsr-espeak (wav2vec2-xlsr-53-espeak-cv-ft) | SVR+feats | 0.5747 | [0.5686, 0.5808] | 0.2052 |
+| xlsr-espeak (wav2vec2-xlsr-53-espeak-cv-ft) | GOPT | **0.6564** | [0.6512, 0.6616] | **0.0767** |
+| ZIPA-CR (ONNX) | scalar | 0.0749 | [0.0656, 0.0842] | 0.9253 |
+
+- **Takeaway**:
+  - Best in this batch: `xlsr-espeak + GOPT` (PCC 0.6564, MSE 0.0767).
+  - `xlsr-espeak + GOPT` beats `original + GOPT` in this run by +0.0151 PCC.
+  - Historical best remains run 8 (`original + GOPT` PCC 0.6618), so this
+    is close but not a new top score.
+
+---
+
+### Run 8 — 2026-03-01: 3-phase multiprocessing pipeline
+
+- **Changed**: Split `_process_split()` into 3 phases to enable CPU parallelism:
+  1. Collect posteriors sequentially (GPU, fast)
+  2. Scalar GOP in parallel across 14 CPU cores (`ProcessPoolExecutor`)
+  3. Feature extraction sequentially on GPU (`F.ctc_loss`)
+  Added `compute_gop_scalar()` (CPU-only, picklable) and `compute_gop_features()`
+  (GPU, sequential) to `gop.py`.
+- **Backend**: original (checkpoint-8000)
+- **Eval**: GOPT transformer (same config as run 7)
+- **Result**: PCC = 0.6618, 95% CI [0.6567, 0.6668], MSE = 0.0775, 47,369 phones
+- **Baseline**: PCC was 0.6480 (run 7, sequential)
+- **Takeaway**: PCC difference (+0.014) is within GOPT training variance (no
+  fixed seed). The 3-phase split produces equivalent results while enabling
+  14-way CPU parallelism on the scalar GOP bottleneck.
+
+---
+
 ### Run 7 — 2026-03-01: GOPT Transformer
 
 - **Changed**: Trained GOPT phone-level transformer on 42-dim feature vectors.

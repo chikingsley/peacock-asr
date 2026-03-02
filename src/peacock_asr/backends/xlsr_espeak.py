@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING, Protocol, cast
 
 import numpy as np
 import torch
 
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 MODEL_ID = "facebook/wav2vec2-xlsr-53-espeak-cv-ft"
 MODEL_REVISION = "main"  # pin to specific commit after first successful run
@@ -55,12 +59,34 @@ ARPABET_TO_IPA: dict[str, str] = {
 }
 
 
+class _CTCModelOutput(Protocol):
+    logits: torch.Tensor
+
+
+class _CTCModel(Protocol):
+    def eval(self) -> None: ...
+
+    def to(self, device: torch.device) -> _CTCModel: ...
+
+    def __call__(self, input_values: torch.Tensor) -> _CTCModelOutput: ...
+
+
+class _AudioProcessor(Protocol):
+    def __call__(
+        self,
+        audio: np.ndarray,
+        *,
+        return_tensors: str,
+        sampling_rate: int,
+    ) -> Mapping[str, torch.Tensor]: ...
+
+
 class XLSREspeakBackend:
     """wav2vec2-xlsr-53-espeak-cv-ft: 387 IPA phonemes, 20ms frames."""
 
     def __init__(self) -> None:
-        self._model: torch.nn.Module | None = None
-        self._processor: object | None = None
+        self._model: _CTCModel | None = None
+        self._processor: _AudioProcessor | None = None
         self._device: torch.device = torch.device("cpu")
         self._vocab_list: list[str] = []
         self._token_to_idx: dict[str, int] = {}
@@ -78,20 +104,40 @@ class XLSREspeakBackend:
         return self._token_to_idx.get("<pad>", 0)
 
     def load(self) -> None:
-        from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor  # noqa: PLC0415
+        from transformers import (  # noqa: PLC0415
+            Wav2Vec2CTCTokenizer,
+            Wav2Vec2ForCTC,
+            Wav2Vec2Processor,
+        )
 
         from peacock_asr.settings import settings  # noqa: PLC0415
 
-        logger.info("Loading %s...", MODEL_ID)
-        self._processor = Wav2Vec2Processor.from_pretrained(
-            MODEL_ID, revision=MODEL_REVISION
+        hf_cache_dir = settings.models_dir / "huggingface"
+        hf_cache_dir.mkdir(parents=True, exist_ok=True)
+        logger.info("Loading %s (cache: %s)...", MODEL_ID, hf_cache_dir)
+        processor = cast(
+            "_AudioProcessor",
+            Wav2Vec2Processor.from_pretrained(
+                MODEL_ID, revision=MODEL_REVISION, cache_dir=str(hf_cache_dir),
+            ),
         )
-        self._model = Wav2Vec2ForCTC.from_pretrained(MODEL_ID, revision=MODEL_REVISION)
-        self._model.eval()
+        model = cast(
+            "_CTCModel",
+            Wav2Vec2ForCTC.from_pretrained(
+                MODEL_ID,
+                revision=MODEL_REVISION,
+                cache_dir=str(hf_cache_dir),
+            ),
+        )
         self._device = settings.torch_device
-        self._model = self._model.to(self._device)
+        model.eval()
+        model.to(self._device)
+        self._processor = processor
+        self._model = model
 
-        tokenizer = self._processor.tokenizer
+        tokenizer = Wav2Vec2CTCTokenizer.from_pretrained(
+            MODEL_ID, revision=MODEL_REVISION, cache_dir=str(hf_cache_dir),
+        )
         vocab = tokenizer.get_vocab()
         self._token_to_idx = vocab
         self._vocab_list = [""] * len(vocab)
@@ -99,14 +145,20 @@ class XLSREspeakBackend:
             self._vocab_list[idx] = token
 
     def get_posteriors(self, audio: np.ndarray, sample_rate: int) -> np.ndarray:
-        if self._model is None or self._processor is None:
+        model = self._model
+        processor = self._processor
+        if model is None or processor is None:
             msg = "Call load() before get_posteriors()"
             raise RuntimeError(msg)
 
-        inputs = self._processor(audio, return_tensors="pt", sampling_rate=sample_rate)
+        inputs = processor(audio, return_tensors="pt", sampling_rate=sample_rate)
+        input_values = inputs.get("input_values")
+        if input_values is None:
+            msg = "Processor did not return input_values."
+            raise RuntimeError(msg)
         with torch.no_grad():
-            iv = inputs.input_values.to(self._device)
-            logits = self._model(iv).logits.squeeze(0)
+            iv = input_values.to(self._device)
+            logits = model(iv).logits.squeeze(0)
             posteriors = logits.softmax(dim=-1)
 
         return posteriors.cpu().numpy(force=True).astype(np.float64)

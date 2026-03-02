@@ -1,0 +1,6 @@
+original_feats	0	172	runs/2026-03-02_mlflow_batch/original_feats.log
+original_gopt	0	49	runs/2026-03-02_mlflow_batch/original_gopt.log
+xlsr-espeak_feats	0	10840	runs/2026-03-02_mlflow_batch/xlsr-espeak_feats.log
+xlsr-espeak_gopt	1	13	runs/2026-03-02_mlflow_batch/xlsr-espeak_gopt.log
+xlsr-espeak_gopt_postfix	0	143	runs/2026-03-02_mlflow_batch/xlsr-espeak_gopt_postfix.log
+zipa	0	2651	runs/2026-03-02_mlflow_batch/zipa.log

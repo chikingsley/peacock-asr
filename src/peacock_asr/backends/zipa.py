@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Protocol, cast
 
 import numpy as np
 
@@ -60,11 +61,19 @@ ARPABET_TO_IPA: dict[str, str] = {
 }
 
 
+class _OnnxSession(Protocol):
+    def run(
+        self,
+        output_names: list[str] | None,
+        input_feed: dict[str, np.ndarray],
+    ) -> list[np.ndarray]: ...
+
+
 class ZIPABackend:
     """ZIPA-CR via ONNX Runtime: 127 IPA tokens, 20ms frames."""
 
     def __init__(self) -> None:
-        self._session: object | None = None
+        self._session: _OnnxSession | None = None
         self._vocab_list: list[str] = []
         self._token_to_idx: dict[str, int] = {}
 
@@ -103,7 +112,9 @@ class ZIPABackend:
             raise FileNotFoundError(msg)
 
         logger.info("Loading ZIPA ONNX model from %s", model_path)
-        self._session = ort.InferenceSession(str(model_path))
+        self._session = cast(
+            "_OnnxSession", ort.InferenceSession(str(model_path)),
+        )
 
         if vocab_path.exists():
             import json  # noqa: PLC0415
@@ -124,7 +135,8 @@ class ZIPABackend:
         import torch  # noqa: PLC0415
         from lhotse.features.kaldi.extractors import Fbank, FbankConfig  # noqa: PLC0415
 
-        if self._session is None:
+        session = self._session
+        if session is None:
             msg = "Call load() before get_posteriors()"
             raise RuntimeError(msg)
 
@@ -137,10 +149,17 @@ class ZIPABackend:
         extractor = Fbank(FbankConfig(num_filters=80, dither=0.0, snip_edges=False))
         audio_tensor = torch.from_numpy(audio).float().unsqueeze(0)
         features = extractor.extract_batch([audio_tensor], sampling_rate=expected_sr)
-        feature = features[0].unsqueeze(0).numpy()  # [1, T, 80]
+        first_feature = features[0]
+        if isinstance(first_feature, torch.Tensor):
+            feature = first_feature.unsqueeze(0).cpu().numpy(force=True)
+        elif isinstance(first_feature, np.ndarray):
+            feature = np.expand_dims(first_feature, axis=0)
+        else:
+            msg = "Unexpected feature tensor type from ZIPA extractor."
+            raise TypeError(msg)
         feat_lens = np.array([feature.shape[1]], dtype=np.int64)
 
-        outputs = self._session.run(None, {"x": feature, "x_lens": feat_lens})
+        outputs = session.run(None, {"x": feature, "x_lens": feat_lens})
         log_probs = outputs[0][0]  # [T, V]
 
         # Convert log-probs to posteriors

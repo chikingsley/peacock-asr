@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING, Protocol, cast
 
 import numpy as np
 import torch
@@ -15,6 +16,9 @@ import torch
 from peacock_asr.settings import settings
 
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 
 def _find_repo_root() -> Path | None:
@@ -77,13 +81,35 @@ ARPABET_VOCAB = [
 ARPABET_TO_IDX = {p: i for i, p in enumerate(ARPABET_VOCAB)}
 
 
+class _CTCModelOutput(Protocol):
+    logits: torch.Tensor
+
+
+class _CTCModel(Protocol):
+    def eval(self) -> None: ...
+
+    def to(self, device: torch.device) -> _CTCModel: ...
+
+    def __call__(self, input_values: torch.Tensor) -> _CTCModelOutput: ...
+
+
+class _AudioProcessor(Protocol):
+    def __call__(
+        self,
+        audio: np.ndarray,
+        *,
+        return_tensors: str,
+        sampling_rate: int,
+    ) -> Mapping[str, torch.Tensor]: ...
+
+
 class OriginalBackend:
     """Uses the CTC-based-GOP checkpoint-8000 (wav2vec2-xlsr-53 fine-tuned on
     LibriSpeech with 39 ARPABET phones)."""
 
     def __init__(self) -> None:
-        self._model: torch.nn.Module | None = None
-        self._processor: object | None = None
+        self._model: _CTCModel | None = None
+        self._processor: _AudioProcessor | None = None
         self._device: torch.device = torch.device("cpu")
 
     @property
@@ -131,21 +157,33 @@ class OriginalBackend:
             raise FileNotFoundError(msg)
 
         logger.info("Loading original CTC model from %s", model_path)
-        self._processor = Wav2Vec2Processor.from_pretrained(str(proc_path))
-        self._model = Wav2Vec2ForCTC.from_pretrained(str(model_path))
-        self._model.eval()
+        processor = cast(
+            "_AudioProcessor", Wav2Vec2Processor.from_pretrained(str(proc_path)),
+        )
+        model = cast(
+            "_CTCModel", Wav2Vec2ForCTC.from_pretrained(str(model_path)),
+        )
         self._device = settings.torch_device
-        self._model = self._model.to(self._device)
+        model.eval()
+        model.to(self._device)
+        self._processor = processor
+        self._model = model
 
     def get_posteriors(self, audio: np.ndarray, sample_rate: int) -> np.ndarray:
-        if self._model is None or self._processor is None:
+        model = self._model
+        processor = self._processor
+        if model is None or processor is None:
             msg = "Call load() before get_posteriors()"
             raise RuntimeError(msg)
 
-        inputs = self._processor(audio, return_tensors="pt", sampling_rate=sample_rate)
+        inputs = processor(audio, return_tensors="pt", sampling_rate=sample_rate)
+        input_values = inputs.get("input_values")
+        if input_values is None:
+            msg = "Processor did not return input_values."
+            raise RuntimeError(msg)
         with torch.no_grad():
-            iv = inputs.input_values.to(self._device)
-            logits = self._model(iv).logits.squeeze(0)
+            iv = input_values.to(self._device)
+            logits = model(iv).logits.squeeze(0)
             posteriors = logits.softmax(dim=-1)
 
         return posteriors.cpu().numpy(force=True).astype(np.float64)

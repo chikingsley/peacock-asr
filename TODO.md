@@ -1,14 +1,23 @@
 # TODO
 
-Current PCC: **0.648** (GOPT, matched paper target) | See [EXPERIMENTS.md](EXPERIMENTS.md) for full run history.
+Best single PCC: **0.6900** | Stochastic mean: **0.6704 ± 0.0121** (xlsr-espeak + GOPT, run 11) | See [EXPERIMENTS.md](EXPERIMENTS.md) for full run history.
 
 ## Next
 
-- [ ] Compare: original vs xlsr-espeak backends with GOPT (fast now with caching)
+- [x] Pull LibriSpeech alignments subset (`train_clean_100`, `dev_clean`, `test_clean`)
+      to `/home/simon/github/peacock-asr/.cache/data/librispeech-alignments`
+- [x] Compare: original vs xlsr-espeak backends with GOPT (fast now with caching)
+- [x] Run 5 repeats for top GOPT configs (original, xlsr-espeak) and report mean/std
+- [x] Move all caches into repo `.cache/` dir (gitignored), update settings.py default,
+      pass `cache_dir` to `load_dataset()` and `from_pretrained()` calls
+- [ ] Replace shell one-offs with a committed run script (`runs/` logging + summary)
+- [ ] Investigate deeper `_ctc_forward_denom` acceleration (true vectorization / Rust / k2)
 
 ### Done (Cleanup + Caching)
 
-- [x] Add feature caching to disk (`~/.cache/peacock-asr/features/`, `--no-cache` to bypass)
+- [x] Add feature caching to disk (`.cache/features/`, `--no-cache` to bypass)
+- [x] Parallelize scalar GOP across utterances with `ProcessPoolExecutor` (3-phase pipeline)
+- [x] Standardize run outputs under `runs/` with per-run log files
 - [x] Extract shared PCC computation in evaluate.py (`_compute_pcc()` helper)
 - [x] Remove dead `GOPResult.phones` field
 - [x] Move env var `GOPT_BENCH_CTC_BACKEND` → `settings.ctc_feature_backend`

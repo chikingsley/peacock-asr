@@ -14,6 +14,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from peacock_asr.settings import settings
+
 if TYPE_CHECKING:
     import datasets
 
@@ -110,8 +112,14 @@ DATASET_REVISION = "f95618ea1353303f34cf186b9c310fa2c1eb02c8"
 def load_speechocean762(*, limit: int = 0) -> SpeechOcean762:
     import datasets as ds_lib  # noqa: PLC0415
 
-    logger.info("Loading SpeechOcean762 from HuggingFace...")
-    dataset = ds_lib.load_dataset("mispeech/speechocean762", revision=DATASET_REVISION)
+    hf_cache_dir = settings.data_dir / "hf-datasets"
+    hf_cache_dir.mkdir(parents=True, exist_ok=True)
+    logger.info("Loading SpeechOcean762 from HuggingFace (cache: %s)...", hf_cache_dir)
+    dataset = ds_lib.load_dataset(
+        "mispeech/speechocean762",
+        revision=DATASET_REVISION,
+        cache_dir=str(hf_cache_dir),
+    )
 
     # Disable torchcodec auto-decoding — we use soundfile instead (much faster)
     for split in dataset:

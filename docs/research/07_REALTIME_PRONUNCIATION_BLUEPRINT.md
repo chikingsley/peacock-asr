@@ -1,133 +1,165 @@
-# 07: Real-Time Pronunciation Scoring Blueprint (Voxtral + Kyutai)
+# 07: Real-Time Pronunciation Blueprint
 
-## Goal
+This file is the execution plan for track 2.
+It translates research decisions from `06` into concrete delivery work.
 
-Deliver accurate per-word pronunciation scores with near-real-time latency, then evolve to open-ended streaming scoring without requiring a reference transcript.
+Last updated: 2026-03-01
 
-Target constraints:
-- Score latency: <500 ms after word completion
-- Accuracy: approach human ratings on speechocean762/L2-ARCTIC (PCC/SCC and calibration)
-- Streaming cadence: 80-160 ms backend update steps
+## Outcome Targets
 
-## What We Have Today
+Primary targets:
 
-### Voxtral path (`references/ADVANCED-transcription/speech-to-text/voxtral`)
-- Modal fine-tuning and serving scripts are present.
-- Current serving path is transcription-focused and does not emit pronunciation scores or calibrated confidences.
-- Useful for production-grade streaming infrastructure experiments and throughput baselines.
+- Score latency below 500 ms after word completion.
+- Strong correlation with human pronunciation scores.
+- Stable streaming updates with low score jitter.
 
-### Kyutai path (`references/ADVANCED-transcription/speech-to-text/kyutai`)
-- Real-time/streaming-oriented setup with delayed-stream style assumptions.
-- Existing forced alignment + timestamp alignment utilities.
-- Fine-tuning/eval code already exposes logits and training hooks.
-- Best current substrate for a first scoring implementation.
+Measurement targets:
 
-## Recommended Technical Path
+- Word and utterance PCC/SCC.
+- MAE and calibration error.
+- Time-to-first-score and time-to-final-score.
 
-### Phase A: Supervised Scoring Core (fastest path)
+## Workstream Split
 
-Objective:
-- Build a model-agnostic scoring module:
-  - inputs: token logits + alignment + transcript hypothesis
-  - outputs: per-word score (0-5), uncertainty, calibration metadata
+### Workstream 1: Baseline Reproduction
 
-Implementation notes:
-- Start in Kyutai fine-tuning code to reduce integration risk.
-- Use a small MLP/regressor over aligned word spans and confidence features.
-- Add calibration layer (temperature/isotonic) post-training.
+Goal:
 
-Why first:
-- Gives a measurable pronunciation signal before RL complexity.
+- Reproduce a LoRA pronunciation baseline from `2509.02915v1`.
 
-### Phase B: Near-Real-Time Inference
+Deliverables:
 
-Objective:
-- Stream chunked audio and emit provisional then finalized per-word scores.
+- Repeatable training config.
+- Baseline metrics report.
+- Clear gap summary versus our current stack.
 
-Implementation notes:
-- 80-160 ms frame updates.
-- Delay commit until sufficient right-context (e.g., 320-640 ms).
-- Add score smoothing to avoid UI flicker.
+### Workstream 2: Scoring Core In Kyutai Path
 
-Why second:
-- Real-time UX without waiting for full open-ended RL stack.
+Goal:
 
-### Phase C: Voxtral Open-Ended Scoring Head
+- Build a reusable scoring module using current alignment primitives.
 
-Objective:
-- Attach pronunciation head to Voxtral Realtime hidden states at `[W]` boundaries.
+Inputs:
 
-Implementation notes:
-- Freeze most base weights, train lightweight head + selective LoRA.
-- Multi-task objective: ASR token loss + pronunciation score loss.
-- Keep scoring head lightweight to preserve latency.
+- Token logits.
+- Alignment data.
+- Transcript hypothesis.
 
-Why third:
-- Moves from reference-driven scoring toward open-ended free speech scoring.
+Outputs:
 
-### Phase D: RL Alignment (quality refinement)
+- Per-word score in `0-5`.
+- Uncertainty signal.
+- Calibration metadata.
 
-Objective:
-- Align model scoring behavior toward human judgment consistency.
+### Workstream 3: Near-Real-Time Inference
 
-Implementation notes:
-- DPO first (more stable), then GRPO.
-- Reward sources:
-  - supervised human scores (speechocean762 etc.)
-  - consistency and calibration terms
-  - optional speech reward model (GSRM/SpeechJudge-style)
+Goal:
 
-Why fourth:
-- RL works best after baseline score signal is already strong and calibrated.
+- Emit provisional and finalized scores during chunked streaming.
 
-## Evaluation Stack
+Requirements:
 
-Primary:
-- PCC/SCC at word and utterance levels
-- MAE for absolute score error
-- Calibration error (ECE / reliability curves)
+- 80-160 ms update cadence.
+- Delayed score commit to reduce instability.
+- Score smoothing to avoid UI flicker.
 
-Operational:
-- Time-to-first-score
-- Time-to-final-score
-- Real-time factor (RTF)
-- Score stability under streaming revisions
+### Workstream 4: Voxtral Open-Ended Head
 
-Ablations:
-- Kyutai-only vs Voxtral-head
-- No-RL vs DPO vs GRPO
-- With/without calibration stage
+Goal:
 
-## Paper Priorities for This Track
+- Attach a lightweight scoring head to Voxtral word-boundary states.
 
-Must-use (already local):
-- `2602.11298` Voxtral Realtime
-- `2602.13891` GSRM
-- `2509.02915` LoRA pronunciation assessment
-- `2509.01939` GRPO for ASR
-- `2505.04113` preference-pair data methodology
-- `2511.07931` SpeechJudge
-- `2510.00743` MOS-RMBench
-- `2308.12490` MultiPA
+Approach:
 
-Useful adjacent (already local across `docs/papers/*`):
-- `2506.12067` logit-based GOP analysis
-- `2507.16838` segmentation-free GOP
-- `2506.19315` JCAPT
+- Freeze most base weights.
+- Train selective LoRA plus scoring head.
+- Keep overhead minimal for low-latency serving.
 
-## Immediate Build Tasks (next 1-2 weeks)
+### Workstream 5: Alignment Loop
 
-1. Add pronunciation scoring head interface in Kyutai train/eval path.
-2. Implement offline benchmark script producing PCC/SCC + calibration plots.
-3. Add streaming inference harness with provisional/final score events.
-4. Mirror scoring interface in Voxtral serving path for A/B latency and quality comparison.
-5. Prepare DPO pair-construction pipeline from supervised scores.
+Goal:
 
-## Main Risk
+- Improve score behavior with preference and reward alignment.
 
-Open-ended scoring can drift toward ASR confidence rather than pronunciation quality.
+Sequence:
+
+- DPO first.
+- GRPO second.
+
+Reward signals:
+
+- Human score correlation.
+- Calibration quality.
+- Consistency constraints.
+
+## Milestones
+
+### Milestone A
+
+- Baseline reproduction complete.
+- First offline scoring core integrated in Kyutai path.
+- Report includes PCC/SCC, MAE, and calibration.
+
+### Milestone B
+
+- Streaming harness emits provisional plus final score events.
+- Latency and stability metrics are logged per run.
+- Initial frontend-friendly event schema is locked.
+
+### Milestone C
+
+- Voxtral scoring head prototype runs end-to-end.
+- A/B comparison against Kyutai path is available.
+- Decision made on primary production path.
+
+### Milestone D
+
+- DPO/GRPO alignment runs complete.
+- Quality uplift is measured against no-RL baseline.
+- Go or no-go decision for RL in production.
+
+## Immediate Task List
+
+1. Add `scoring/` interface and adapters in Kyutai training and eval code.
+2. Build a benchmark script that outputs JSON plus plots per run.
+3. Define streaming score event schema for provisional and final updates.
+4. Add Voxtral inference hook for word-boundary hidden state extraction.
+5. Prepare preference pair generation pipeline from supervised labels.
+
+## Risks And Mitigations
+
+Risk:
+
+- Model learns ASR confidence instead of pronunciation quality.
 
 Mitigation:
-- Explicitly train score head against pronunciation labels, not transcription confidence.
-- Keep separate calibration for score quality.
-- Track disagreement cases where transcript is correct but pronunciation is weak.
+
+- Train directly on pronunciation labels.
+- Evaluate on disagreement subsets where transcript is correct but
+  pronunciation is weak.
+- Keep calibration and uncertainty as first-class outputs.
+
+Risk:
+
+- Streaming updates become unstable for the UI.
+
+Mitigation:
+
+- Use delayed commit windows.
+- Smooth provisional scores.
+- Log revision counts per word as a stability metric.
+
+## Dependencies
+
+Core papers:
+
+- `docs/papers/rl_alignment_speech/2509.02915v1.pdf`
+- `docs/papers/rl_alignment_speech/2602.11298_voxtral_realtime.pdf`
+- `docs/papers/rl_alignment_speech/2602.13891_gsrm_speech_reward_model.pdf`
+- `docs/papers/streaming_realtime/2509.08753_delayed_streams_modeling.pdf`
+
+Code references:
+
+- `references/ADVANCED-transcription/speech-to-text/kyutai`
+- `references/ADVANCED-transcription/speech-to-text/voxtral`
+- `references/voxtral-finetune`

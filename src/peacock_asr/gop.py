@@ -113,7 +113,7 @@ def _ctc_forward_denom(
     alphas = torch.zeros((big_l, big_t, big_p), dtype=torch.float64)
     alpha_bar = torch.zeros(big_t, dtype=torch.float64)
 
-    nli = seq[pos + 1].item() if pos < seq_len - 1 else None
+    nli = int(seq[pos + 1].item()) if pos < seq_len - 1 else None
 
     mask_ins = torch.eye(big_p, dtype=torch.float64)
     if nli is not None:
@@ -237,14 +237,17 @@ def _step_after_arb(
     pos: int,
     blank: int,
 ) -> None:
-    arb = _check_arbitrary(alphas, s - 2, t - 1, pos, [blank, seq[li].item()])
-    if li - 2 < 0 or seq[li - 2] == seq[li]:
-        skip_tok = 0
+    token_id = int(seq[li].item())
+    arb = _check_arbitrary(alphas, s - 2, t - 1, pos, [blank, token_id])
+    arb_term = 0.0 if arb is None else arb
+
+    if li - 2 < 0 or int(seq[li - 2].item()) == token_id:
+        skip_tok = torch.tensor(0.0, dtype=alphas.dtype)
     else:
-        skip_tok = alphas[s - 4, t - 1, 0] * params[seq[li], t]
-    skip_emp = alphas[s - 3, t - 1, 0] * params[seq[li], t]
-    prev = alphas[s, t - 1, 0] + alphas[s - 1, t - 1, 0] + arb
-    alphas[s, t, 0] = prev * params[seq[li], t] + skip_emp + skip_tok
+        skip_tok = alphas[s - 4, t - 1, 0] * params[token_id, t]
+    skip_emp = alphas[s - 3, t - 1, 0] * params[token_id, t]
+    prev = alphas[s, t - 1, 0] + alphas[s - 1, t - 1, 0] + arb_term
+    alphas[s, t, 0] = prev * params[token_id, t] + skip_emp + skip_tok
 
 
 def _step_arb(  # noqa: PLR0913
@@ -512,4 +515,63 @@ def compute_gop(
         scores=scores,
         occupancies=occupancies,
         features=features,
+    )
+
+
+@dataclass
+class ScalarGOPResult:
+    """CPU-only scalar GOP result (no features). Used for parallel workers."""
+
+    ll_self: float
+    scores: list[float]
+    occupancies: list[float]
+
+
+def compute_gop_scalar(
+    posteriors: np.ndarray,
+    phone_indices: list[int],
+    blank: int = 0,
+) -> ScalarGOPResult:
+    """Compute scalar GOP scores only (CPU, no GPU). Parallelizable.
+
+    This is Phase 2 of the 3-phase pipeline: pure CPU CTC forward-backward.
+    """
+    if len(phone_indices) == 0:
+        return ScalarGOPResult(ll_self=0.0, scores=[], occupancies=[])
+
+    post_mat = torch.from_numpy(posteriors).double()
+    params = post_mat.transpose(0, 1)
+    seq = torch.tensor(phone_indices, dtype=torch.int32)
+
+    ll_self = _ctc_forward(params, seq, blank=blank)
+
+    scores = []
+    occupancies = []
+    for i in range(len(phone_indices)):
+        ll_denom, occ = _ctc_forward_denom(params, seq, i, blank=blank)
+        scores.append(-ll_self + ll_denom)
+        occupancies.append(occ)
+
+    return ScalarGOPResult(
+        ll_self=ll_self, scores=scores, occupancies=occupancies,
+    )
+
+
+def compute_gop_features(
+    posteriors: np.ndarray,
+    phone_indices: list[int],
+    ll_self: float,
+    blank: int = 0,
+    device: torch.device | None = None,
+) -> np.ndarray:
+    """Compute LPP+LPR feature vectors (GPU). Sequential.
+
+    This is Phase 3 of the 3-phase pipeline: GPU feature extraction.
+    """
+    post_mat = torch.from_numpy(posteriors).double()
+    params = post_mat.transpose(0, 1)
+    seq = torch.tensor(phone_indices, dtype=torch.int32)
+
+    return _compute_lpr_features_batched(
+        params, seq, ll_self, blank, device=device,
     )

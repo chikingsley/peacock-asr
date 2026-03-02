@@ -1,14 +1,35 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
+from pydantic import Field
 from pydantic_settings import BaseSettings
+
+if TYPE_CHECKING:
+    import torch
+
+
+def _default_cache_dir() -> Path:
+    current = Path(__file__).resolve().parent
+    for _ in range(10):
+        if (current / "pyproject.toml").exists():
+            return current / ".cache"
+        parent = current.parent
+        if parent == current:
+            break
+        current = parent
+    return Path.home() / ".cache" / "peacock-asr"
 
 
 class Settings(BaseSettings):
-    model_config = {"env_prefix": "PEACOCK_ASR_", "env_file": ".env"}
+    model_config = {
+        "env_prefix": "PEACOCK_ASR_",
+        "env_file": ".env",
+        "extra": "ignore",
+    }
 
-    cache_dir: Path = Path.home() / ".cache" / "peacock-asr"
+    cache_dir: Path = Field(default_factory=_default_cache_dir)
     ctc_gop_model_path: Path | None = None
     ctc_gop_processor_path: Path | None = None
     ctc_feature_backend: str = "batched"  # "batched" (GPU) or "loop" (serial)
@@ -16,7 +37,7 @@ class Settings(BaseSettings):
     device: str = "auto"
 
     @property
-    def torch_device(self) -> object:
+    def torch_device(self) -> torch.device:
         """Resolve 'auto' to the best available device."""
         import torch  # noqa: PLC0415
 

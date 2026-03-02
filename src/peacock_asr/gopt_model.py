@@ -39,6 +39,7 @@ PHONE_TO_ID: dict[str, int] = {
 
 SEQ_LEN = 50  # max phones per utterance (matches reference)
 NUM_PHONE_CLASSES = 40  # 39 phones + 1 pad class (after +1 shift)
+FEATURE_RANK = 2
 
 
 # ---------------------------------------------------------------------------
@@ -169,7 +170,7 @@ class GOPTModel(nn.Module):
 # ---------------------------------------------------------------------------
 
 
-class GoptDataset(Dataset):
+class GoptDataset(Dataset[tuple[torch.Tensor, torch.Tensor, torch.Tensor]]):
     """Pads utterances to SEQ_LEN and normalizes features."""
 
     def __init__(
@@ -184,10 +185,31 @@ class GoptDataset(Dataset):
         self.scores = torch.full(
             (len(utts), SEQ_LEN), -1.0, dtype=torch.float,
         )
+        width_mismatch_count = 0
 
         for i, utt in enumerate(utts):
-            n = min(len(utt.phones), SEQ_LEN)
+            n = min(
+                len(utt.phones), len(utt.feat_vecs), len(utt.scores), SEQ_LEN,
+            )
+            if n == 0:
+                continue
+
             feat_arr = torch.tensor(utt.feat_vecs[:n], dtype=torch.float)
+            if feat_arr.ndim != FEATURE_RANK:
+                msg = (
+                    "GOPT feature array must be rank-2 "
+                    f"(got shape {tuple(feat_arr.shape)})"
+                )
+                raise ValueError(msg)
+
+            feat_width = int(feat_arr.shape[1])
+            if feat_width != input_dim:
+                width_mismatch_count += 1
+                adjusted = torch.zeros(n, input_dim, dtype=torch.float)
+                copy_width = min(feat_width, input_dim)
+                adjusted[:, :copy_width] = feat_arr[:, :copy_width]
+                feat_arr = adjusted
+
             # z-score normalize (single scalar mean/std, matching reference)
             self.feats[i, :n] = (feat_arr - norm_mean) / norm_std
 
@@ -196,13 +218,24 @@ class GoptDataset(Dataset):
                 self.phn_ids[i, j] = pid
                 self.scores[i, j] = utt.scores[j]
 
+        if width_mismatch_count > 0:
+            logger.warning(
+                "GOPT dataset adjusted feature width for %d utterances "
+                "(expected input_dim=%d)",
+                width_mismatch_count, input_dim,
+            )
+
     def __len__(self) -> int:
         return self.feats.shape[0]
 
     def __getitem__(
-        self, idx: int,
+        self,
+        index: object,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        return self.feats[idx], self.phn_ids[idx], self.scores[idx]
+        if not isinstance(index, int):
+            msg = f"GoptDataset index must be int, got {type(index).__name__}"
+            raise TypeError(msg)
+        return self.feats[index], self.phn_ids[index], self.scores[index]
 
 
 # ---------------------------------------------------------------------------
