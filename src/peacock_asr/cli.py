@@ -637,6 +637,24 @@ def cmd_compare(args: argparse.Namespace) -> None:
         print()  # noqa: T201
 
 
+def cmd_papers_convert(args: argparse.Namespace) -> None:
+    from peacock_asr.papers.convert import (  # noqa: PLC0415
+        ConvertConfig,
+        convert_papers,
+    )
+
+    config = ConvertConfig(
+        papers_root=Path(args.root),
+        folder=args.folder,
+        force=args.force,
+        strict=args.strict,
+        min_words=args.min_words,
+        timeout_seconds=args.timeout,
+        report_path=Path(args.report) if args.report else None,
+    )
+    convert_papers(config)
+
+
 def main() -> None:
     try:
         from dotenv import load_dotenv  # noqa: PLC0415
@@ -705,6 +723,52 @@ def main() -> None:
         help="Limit utterances per split (0 = all)",
     )
 
+    papers_p = sub.add_parser("papers", help="Paper ingestion tools")
+    papers_sub = papers_p.add_subparsers(dest="papers_command", required=True)
+
+    papers_convert_p = papers_sub.add_parser(
+        "convert",
+        help="Convert papers to markdown with quality checks",
+    )
+    papers_convert_p.add_argument(
+        "--root",
+        default="docs/papers",
+        help="Root papers directory (default: docs/papers)",
+    )
+    papers_convert_p.add_argument(
+        "--folder",
+        default=None,
+        help="Optional subfolder under --root to process",
+    )
+    papers_convert_p.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing .md files",
+    )
+    papers_convert_p.add_argument(
+        "--strict",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Fail command when quality checks report warnings (default: true)",
+    )
+    papers_convert_p.add_argument(
+        "--min-words",
+        type=int,
+        default=700,
+        help="Minimum word count threshold for quality checks",
+    )
+    papers_convert_p.add_argument(
+        "--timeout",
+        type=float,
+        default=20.0,
+        help="HTTP timeout for arXiv HTML fetches, in seconds",
+    )
+    papers_convert_p.add_argument(
+        "--report",
+        default=None,
+        help="Optional path for conversion JSON report",
+    )
+
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -719,6 +783,12 @@ def main() -> None:
             cmd_run(args)
         case "compare":
             cmd_compare(args)
+        case "papers":
+            if args.papers_command == "convert":
+                cmd_papers_convert(args)
+            else:
+                parser.print_help()
+                sys.exit(1)
         case _:
             parser.print_help()
             sys.exit(1)
