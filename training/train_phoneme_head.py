@@ -402,6 +402,29 @@ def main() -> None:  # noqa: PLR0915
         import os  # noqa: PLC0415
 
         os.environ.setdefault("HF_TOKEN", settings.hf_token)
+    primary_device_count = (
+        torch.cuda.device_count() if torch.cuda.is_available() else 0
+    )
+    primary_device_name = (
+        torch.cuda.get_device_name(0) if primary_device_count > 0 else "cpu"
+    )
+    effective_devices = max(primary_device_count, 1)
+    effective_global_batch_size = (
+        args.batch_size * args.gradient_accumulation * effective_devices
+    )
+    steps_per_epoch = max(
+        1,
+        math.ceil(len(train_ds) / effective_global_batch_size),
+    )
+    total_train_steps = max(1, int(args.num_epochs * steps_per_epoch))
+    warmup_steps = max(1, int(total_train_steps * 0.1))
+
+    # Prefer BF16 on A/H/B class datacenter GPUs; use FP16 elsewhere (e.g. L4).
+    use_bf16 = primary_device_count > 0 and any(
+        token in primary_device_name
+        for token in ("A100", "H100", "H200", "B100", "B200")
+    )
+    use_fp16 = primary_device_count > 0 and not use_bf16
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         train_sampling_strategy="group_by_length",
@@ -410,12 +433,13 @@ def main() -> None:  # noqa: PLR0915
         eval_strategy="steps",
         num_train_epochs=args.num_epochs,
         gradient_checkpointing=True,
-        bf16=True,  # A100 supports bf16 natively
+        bf16=use_bf16,
+        fp16=use_fp16,
         save_steps=2000,
         eval_steps=2000,
         logging_steps=100,
         learning_rate=args.learning_rate,
-        warmup_ratio=0.1,
+        warmup_steps=warmup_steps,
         save_total_limit=3,
         push_to_hub=push,
         hub_model_id=hub_repo if push else None,
@@ -435,17 +459,6 @@ def main() -> None:  # noqa: PLR0915
         train_dataset=train_ds,
         eval_dataset=eval_ds,
         processing_class=processor.feature_extractor,
-    )
-
-    primary_device_count = (
-        torch.cuda.device_count() if torch.cuda.is_available() else 0
-    )
-    primary_device_name = (
-        torch.cuda.get_device_name(0) if primary_device_count > 0 else "cpu"
-    )
-    effective_devices = max(primary_device_count, 1)
-    effective_global_batch_size = (
-        args.batch_size * args.gradient_accumulation * effective_devices
     )
 
     run_name = f"train-phoneme-head-{Path(args.output_dir).name}"
