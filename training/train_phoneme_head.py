@@ -419,12 +419,18 @@ def main() -> None:  # noqa: PLR0915
     total_train_steps = max(1, int(args.num_epochs * steps_per_epoch))
     warmup_steps = max(1, int(total_train_steps * 0.1))
 
-    # Prefer BF16 on A/H/B class datacenter GPUs; use FP16 elsewhere (e.g. L4).
+    # Prefer BF16 on A/H/B class datacenter GPUs.
+    # For other GPUs (e.g. L4), keep full precision for stability.
     use_bf16 = primary_device_count > 0 and any(
         token in primary_device_name
         for token in ("A100", "H100", "H200", "B100", "B200")
     )
-    use_fp16 = primary_device_count > 0 and not use_bf16
+    use_fp16 = False
+    if primary_device_count > 0 and not use_bf16:
+        logger.info(
+            "Using full precision training on %s for compatibility.",
+            primary_device_name,
+        )
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         train_sampling_strategy="group_by_length",
