@@ -1196,6 +1196,7 @@ def _run_train_profile(profile_name: str) -> None:
     cmd = [
         "uv",
         "run",
+        "python",
         str(script_path),
         "--output-dir",
         profile.output_dir,
