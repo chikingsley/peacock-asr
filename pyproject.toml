@@ -18,7 +18,6 @@ dependencies = [
     "pydantic-settings>=2.13",
     "python-dotenv>=1.2.1",
     "scikit-learn>=1.6",
-    "torchcodec>=0.10",
     "protobuf>=6.33.5",
     "phonemizer>=3.3.0",
     "huggingface-hub>=1.4.1",
