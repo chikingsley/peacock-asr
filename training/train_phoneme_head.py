@@ -223,15 +223,21 @@ def main() -> None:  # noqa: PLR0915
 
     train_splits = []
     for split_name in args.train_splits:
-        logger.info("  Loading split: %s", split_name)
+        split_spec = split_name
+        if args.max_train_samples:
+            split_spec = f"{split_name}[:{args.max_train_samples}]"
+        logger.info("  Loading split: %s", split_spec)
         ds = load_dataset(
-            "gilkeyio/librispeech-alignments", split=split_name
+            "gilkeyio/librispeech-alignments", split=split_spec
         )
         train_splits.append(ds)
     train_ds = concatenate_datasets(train_splits)
 
+    eval_split_spec = args.eval_split
+    if args.max_eval_samples:
+        eval_split_spec = f"{args.eval_split}[:{args.max_eval_samples}]"
     eval_ds = load_dataset(
-        "gilkeyio/librispeech-alignments", split=args.eval_split
+        "gilkeyio/librispeech-alignments", split=eval_split_spec
     )
 
     if args.max_train_samples:
