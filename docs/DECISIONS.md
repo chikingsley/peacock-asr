@@ -114,7 +114,7 @@
 
 ## Dependencies
 
-- `torchcodec` — required by datasets 4.x even though we don't use it for decoding
+- `torchcodec` — intentionally **not** required; we bypass datasets auto-decode with `Audio(decode=False)` and decode via `soundfile`
 - `protobuf` — required by HuggingFace tokenizers at runtime
 - `phonemizer` + `espeak-ng` (system) — required by xlsr-espeak tokenizer
 - `lhotse` — required for ZIPA FBank extraction
@@ -196,3 +196,34 @@ without fine-tuning. See [EXPERIMENTS.md](EXPERIMENTS.md) for full run results.
 
 1. Local machine: dev iteration and smaller/full eval runs.
 2. RunPod: heavier training runs, using the same repo-runner path.
+
+---
+
+## RunPod Training Stabilization (2026-03-03)
+
+**Context**: `peacock-asr train-preflight` repeatedly failed on RunPod L4 before first stable completion.
+
+**Root causes found**:
+
+1. `torch` runtime mismatch produced CUDA GEMM failures in wav2vec2-bert attention:
+   - `RuntimeError: CUDA error: CUBLAS_STATUS_INVALID_VALUE`.
+2. HF datasets audio auto-decoding path invoked `torchcodec`, which failed on the pod (ABI/FFmpeg issues) and blocked dataset loading.
+3. A prior run ended with exit code 143 (`SIGTERM`) due process interruption, not model logic.
+
+**Decisions/Fixes**:
+
+1. Pin `torch==2.8.0` for this training stack.
+2. Remove `torchcodec` dependency and avoid all auto-decode paths in training data loading:
+   - `Audio(decode=False)` for streaming and non-streaming splits.
+   - Decode audio manually with `soundfile`.
+3. Keep training precision in FP32 on L4 path for compatibility/stability.
+4. Keep HF dataset loading cache under project settings cache dir (`settings.data_dir / "hf-datasets"`).
+
+**Validation result**:
+
+- RunPod `train-preflight` completed end-to-end (Run ID `3aa093bd111e45aeba9681451c986595`), with final `Done.` in `logs/train-preflight.log`.
+
+**Notes on expected non-fatal messages**:
+
+- `MISSING/UNEXPECTED` model keys from `from_pretrained(..., add_adapter=True, vocab_size=...)` are expected for newly initialized adapter/CTC head params.
+- MLflow message `Skip logging GPU metrics` is informational in current server/runtime setup; run-level metrics still log.
