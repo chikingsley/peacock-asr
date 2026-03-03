@@ -36,6 +36,8 @@ def test_load_and_resolve_minimal_config_uses_cli_defaults(tmp_path):
             workers=8,
             no_cache=True,
             verbose=False,
+            score_variant="gop_sf",
+            score_alpha=0.5,
         ),
     )
 
@@ -50,6 +52,8 @@ def test_load_and_resolve_minimal_config_uses_cli_defaults(tmp_path):
     assert jobs[0].workers == 8
     assert jobs[0].no_cache is True
     assert jobs[0].verbose is False
+    assert jobs[0].score_variant == "gop_sf"
+    assert jobs[0].score_alpha == 0.5
     assert jobs[0].seeds == [None]
 
 
@@ -73,6 +77,8 @@ def test_resolve_seeds_expand_repeats_when_repeats_default(tmp_path):
             workers=0,
             no_cache=False,
             verbose=False,
+            score_variant="gop_sf",
+            score_alpha=0.5,
         ),
     )
 
@@ -146,5 +152,53 @@ def test_rejects_seed_length_mismatch_on_resolution(tmp_path):
                 workers=0,
                 no_cache=False,
                 verbose=False,
+                score_variant="gop_sf",
+                score_alpha=0.5,
             ),
         )
+
+
+def test_resolve_job_can_override_score_variant_and_alpha(tmp_path):
+    config_path = _write_batch_yaml(
+        tmp_path,
+        """
+        defaults:
+          score_variant: gop_sf
+          score_alpha: 0.5
+        jobs:
+          - id: margin
+            backend: original
+            score_variant: logit_margin
+            score_alpha: 0.25
+        """,
+    )
+    spec = load_batch_spec(config_path)
+    jobs = resolve_batch_jobs(
+        spec,
+        cli_defaults=BatchCliDefaults(
+            device=None,
+            limit=0,
+            workers=0,
+            no_cache=False,
+            verbose=False,
+            score_variant="gop_sf",
+            score_alpha=0.5,
+        ),
+    )
+
+    assert jobs[0].score_variant == "logit_margin"
+    assert jobs[0].score_alpha == 0.25
+
+
+def test_rejects_score_alpha_out_of_range(tmp_path):
+    config_path = _write_batch_yaml(
+        tmp_path,
+        """
+        jobs:
+          - backend: original
+            score_alpha: 1.5
+        """,
+    )
+
+    with pytest.raises(ValueError, match="score_alpha"):
+        load_batch_spec(config_path)

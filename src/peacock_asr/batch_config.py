@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 BatchMode = Literal["scalar", "feats", "gopt"]
+ScoreVariant = Literal["gop_sf", "logit_margin", "logit_combined"]
 
 
 class BatchDefaults(BaseModel):
@@ -30,6 +31,8 @@ class BatchDefaults(BaseModel):
     workers: int | None = Field(default=None, ge=0)
     no_cache: bool | None = None
     verbose: bool | None = None
+    score_variant: ScoreVariant | None = None
+    score_alpha: float | None = Field(default=None, ge=0.0, le=1.0)
     seed: int | None = None
     seeds: list[int] | None = None
 
@@ -61,6 +64,8 @@ class BatchJob(BaseModel):
     workers: int | None = Field(default=None, ge=0)
     no_cache: bool | None = None
     verbose: bool | None = None
+    score_variant: ScoreVariant | None = None
+    score_alpha: float | None = Field(default=None, ge=0.0, le=1.0)
     seed: int | None = None
     seeds: list[int] | None = None
 
@@ -133,6 +138,8 @@ class BatchCliDefaults(BaseModel):
     workers: int = Field(ge=0)
     no_cache: bool
     verbose: bool
+    score_variant: ScoreVariant
+    score_alpha: float = Field(ge=0.0, le=1.0)
 
 
 class BatchResolvedJob(BaseModel):
@@ -147,6 +154,8 @@ class BatchResolvedJob(BaseModel):
     workers: int = Field(ge=0)
     no_cache: bool
     verbose: bool
+    score_variant: ScoreVariant
+    score_alpha: float = Field(ge=0.0, le=1.0)
     seeds: list[int | None]
 
     @model_validator(mode="after")
@@ -259,6 +268,16 @@ def resolve_batch_jobs(
                 ),
                 verbose=_coalesce(
                     job.verbose, spec.defaults.verbose, cli_defaults.verbose
+                ),
+                score_variant=_coalesce(
+                    job.score_variant,
+                    spec.defaults.score_variant,
+                    cli_defaults.score_variant,
+                ),
+                score_alpha=_coalesce(
+                    job.score_alpha,
+                    spec.defaults.score_alpha,
+                    cli_defaults.score_alpha,
                 ),
                 seeds=seeds,
             )

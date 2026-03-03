@@ -35,8 +35,15 @@ if TYPE_CHECKING:
     from peacock_asr.evaluate import EvalResult
     from peacock_asr.gop import GOPResult, ScalarGOPResult
     from peacock_asr.gopt_model import UtteranceFeats
+    from peacock_asr.score_variants import ScoreVariant
 
 logger = logging.getLogger("peacock_asr")
+
+
+def _cuda_device_count() -> int:
+    import torch  # noqa: PLC0415
+
+    return torch.cuda.device_count()
 
 
 def cmd_download(_args: argparse.Namespace) -> None:
@@ -50,26 +57,29 @@ def cmd_download(_args: argparse.Namespace) -> None:
 
 
 def _cache_path(
-    features_dir: Path, backend_name: str, split: str,
+    features_dir: Path,
+    backend_name: str,
+    split: str,
+    score_variant: ScoreVariant,
+    score_alpha: float,
 ) -> Path:
     """Build the cache file path for a given backend and split."""
     safe_name = re.sub(r"[^\w\-.]", "_", backend_name)
-    d = features_dir / safe_name
+    alpha_key = f"{score_alpha:.4f}".replace(".", "p")
+    d = features_dir / safe_name / f"{score_variant}_a{alpha_key}"
     d.mkdir(parents=True, exist_ok=True)
     return d / f"{split}.pt"
 
 
 def _load_cache(
-    features_dir: Path,
+    path: Path,
     backend_name: str,
-    split: str,
     dataset_revision: str,
     extract_features: bool,  # noqa: FBT001
 ) -> tuple[list[tuple[str, float, float]], list[UtteranceFeats]] | None:
     """Load cached features if valid. Returns None on miss."""
     import torch  # noqa: PLC0415
 
-    path = _cache_path(features_dir, backend_name, split)
     if not path.exists():
         return None
 
@@ -87,9 +97,8 @@ def _load_cache(
 
 def _save_cache(
     *,
-    features_dir: Path,
+    path: Path,
     backend_name: str,
-    split: str,
     dataset_revision: str,
     extract_features: bool,
     scalar_results: list[tuple[str, float, float]],
@@ -98,7 +107,6 @@ def _save_cache(
     """Save extraction results to cache."""
     import torch  # noqa: PLC0415
 
-    path = _cache_path(features_dir, backend_name, split)
     torch.save(
         {
             "backend": backend_name,
@@ -109,7 +117,7 @@ def _save_cache(
         },
         path,
     )
-    logger.info("[%s] Saved cache to %s", split, path)
+    logger.info("Saved cache to %s", path)
 
 
 def _scalar_gop_worker(
@@ -131,6 +139,7 @@ def _collect_split_outputs(
     blank: int,
     device: torch.device,
     split_name: str,
+    score_config: tuple[ScoreVariant, float],
 ) -> tuple[list[tuple[str, float, float]], list[UtteranceFeats]]:
     from tqdm import tqdm  # noqa: PLC0415
 
@@ -140,9 +149,11 @@ def _collect_split_outputs(
         compute_gop_features,
     )
     from peacock_asr.gopt_model import UtteranceFeats  # noqa: PLC0415
+    from peacock_asr.score_variants import apply_score_variant  # noqa: PLC0415
 
     scalar_results: list[tuple[str, float, float]] = []
     utt_feats: list[UtteranceFeats] = []
+    score_variant, score_alpha = score_config
     iterator = (
         tqdm(prepared, desc=f"{split_name} [collect]", unit="utt")
         if extract_features and n_workers > 1
@@ -151,9 +162,16 @@ def _collect_split_outputs(
 
     for idx, (post, pidx, valid_phones, valid_scores) in enumerate(iterator):
         gop = scalar_gop_results[idx]
+        adjusted_scores = apply_score_variant(
+            variant=score_variant,
+            score_alpha=score_alpha,
+            posteriors=post,
+            phone_indices=pidx,
+            baseline_scores=gop.scores,
+        )
 
         for phone, gop_score, human_score in zip(
-            valid_phones, gop.scores, valid_scores, strict=True,
+            valid_phones, adjusted_scores, valid_scores, strict=True,
         ):
             scalar_results.append((phone, gop_score, human_score))
 
@@ -196,6 +214,8 @@ def _process_split(
     backend: PhonemeBackend,
     extract_features: bool,
     device: torch.device,
+    score_variant: ScoreVariant,
+    score_alpha: float,
     n_workers: int = 0,
 ) -> tuple[list[tuple[str, float, float]], list[UtteranceFeats]]:
     """Process a split, returning (scalar_results, utt_feats).
@@ -283,6 +303,7 @@ def _process_split(
         blank=blank,
         device=device,
         split_name=split_name,
+        score_config=(score_variant, score_alpha),
     )
 
     logger.info(
@@ -393,6 +414,8 @@ def _log_to_mlflow(  # noqa: PLR0913
     dataset_revision: str,
     workers: int,
     limit: int,
+    score_variant: str,
+    score_alpha: float,
     train_utterances: int,
     test_utterances: int,
     train_phones: int,
@@ -401,6 +424,8 @@ def _log_to_mlflow(  # noqa: PLR0913
     seed: int | None = None,
     training_history: list[dict[str, float]] | None = None,
     reuse_active_run: bool = False,
+    compute_wall_time_sec: float | None = None,
+    compute_gpu_device_count: int | None = None,
 ) -> None:
     tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
     if not tracking_uri:
@@ -438,6 +463,7 @@ def _log_to_mlflow(  # noqa: PLR0913
                     "backend": backend_name,
                     "mode": mode,
                     "eval_name": eval_name,
+                    "score_variant": score_variant,
                 },
             )
             log_params(
@@ -450,6 +476,8 @@ def _log_to_mlflow(  # noqa: PLR0913
                     "dataset_revision": dataset_revision,
                     "workers": workers,
                     "limit": limit,
+                    "score_variant": score_variant,
+                    "score_alpha": score_alpha,
                     "train_utterances": train_utterances,
                     "test_utterances": test_utterances,
                     "train_phones": train_phones,
@@ -468,6 +496,17 @@ def _log_to_mlflow(  # noqa: PLR0913
                     "n_phones_eval": float(eval_result.n_phones),
                 },
             )
+            if compute_wall_time_sec is not None:
+                wall_hours = compute_wall_time_sec / 3600.0
+                gpu_count = max(compute_gpu_device_count or 0, 0)
+                log_metrics(
+                    {
+                        "compute_wall_time_sec": float(compute_wall_time_sec),
+                        "compute_wall_time_hours": float(wall_hours),
+                        "compute_machine_hours": float(wall_hours),
+                        "compute_gpu_hours": float(wall_hours * gpu_count),
+                    },
+                )
 
             for phone, pcc in sorted(eval_result.per_phone_pcc.items()):
                 log_metric(f"per_phone_pcc.{phone}", float(pcc))
@@ -577,7 +616,7 @@ def _setup_live_mlflow_run(
     return run_context, live_mlflow_enabled, on_gopt_epoch
 
 
-def cmd_run(args: argparse.Namespace) -> tuple[str, EvalResult]:
+def cmd_run(args: argparse.Namespace) -> tuple[str, EvalResult]:  # noqa: PLR0915
     """Run GOP-SF with a specified backend and evaluate."""
     from peacock_asr.backends import get_backend  # noqa: PLC0415
     from peacock_asr.dataset import (  # noqa: PLC0415
@@ -588,12 +627,24 @@ def cmd_run(args: argparse.Namespace) -> tuple[str, EvalResult]:
 
     use_feats = getattr(args, "feats", False)
     use_gopt = getattr(args, "gopt", False)
+    score_variant = getattr(args, "score_variant", "gop_sf")
+    score_alpha = float(getattr(args, "score_alpha", 0.5))
+    if not (0.0 <= score_alpha <= 1.0):
+        msg = "score_alpha must be in [0, 1]"
+        raise ValueError(msg)
+    if score_variant != "gop_sf" and (use_feats or use_gopt):
+        msg = (
+            "score variants other than 'gop_sf' currently support scalar mode "
+            "only (no --feats/--gopt)."
+        )
+        raise ValueError(msg)
     extract_features = use_feats or use_gopt
     use_cache = not getattr(args, "no_cache", False) and args.limit == 0
     if getattr(args, "device", None) is not None:
         settings.device = args.device
     device = settings.torch_device
 
+    run_start = perf_counter()
     backend = get_backend(args.backend)()
     logger.info("Backend: %s", backend.name)
     backend.load()
@@ -609,10 +660,19 @@ def cmd_run(args: argparse.Namespace) -> tuple[str, EvalResult]:
 
     results: dict[str, tuple[list, list]] = {}
     for split_name, utterances in [("train", data.train), ("test", data.test)]:
+        split_cache_path = _cache_path(
+            settings.features_dir,
+            backend.name,
+            split_name,
+            score_variant,
+            score_alpha,
+        )
         cached = (
             _load_cache(
-                settings.features_dir, backend.name, split_name,
-                DATASET_REVISION, extract_features,
+                split_cache_path,
+                backend.name,
+                DATASET_REVISION,
+                extract_features,
             )
             if use_cache
             else None
@@ -627,13 +687,14 @@ def cmd_run(args: argparse.Namespace) -> tuple[str, EvalResult]:
                 backend=backend,
                 extract_features=extract_features,
                 device=device,
+                score_variant=score_variant,
+                score_alpha=score_alpha,
                 n_workers=getattr(args, "workers", 0),
             )
             if use_cache:
                 _save_cache(
-                    features_dir=settings.features_dir,
+                    path=split_cache_path,
                     backend_name=backend.name,
-                    split=split_name,
                     dataset_revision=DATASET_REVISION,
                     extract_features=extract_features,
                     scalar_results=result[0],
@@ -689,6 +750,8 @@ def cmd_run(args: argparse.Namespace) -> tuple[str, EvalResult]:
             dataset_revision=DATASET_REVISION,
             workers=getattr(args, "workers", 0),
             limit=getattr(args, "limit", 0),
+            score_variant=score_variant,
+            score_alpha=score_alpha,
             train_utterances=len(data.train),
             test_utterances=len(data.test),
             train_phones=len(train_scalar),
@@ -697,6 +760,10 @@ def cmd_run(args: argparse.Namespace) -> tuple[str, EvalResult]:
             seed=run_seed,
             training_history=None if live_mlflow_enabled else training_history,
             reuse_active_run=live_mlflow_enabled,
+            compute_wall_time_sec=perf_counter() - run_start,
+            compute_gpu_device_count=(
+                _cuda_device_count() if device.type == "cuda" else 0
+            ),
         )
     if checkpoint_dir is not None:
         _write_checkpoint_run_info(
@@ -861,6 +928,8 @@ def _write_batch_summary(rows: list[dict[str, str]], path: Path) -> None:
         "job_id",
         "backend",
         "mode",
+        "score_variant",
+        "score_alpha",
         "repeat",
         "seed",
         "status",
@@ -881,15 +950,23 @@ def _write_batch_summary(rows: list[dict[str, str]], path: Path) -> None:
 
 
 def _write_batch_aggregates(rows: list[dict[str, str]], path: Path) -> None:
-    groups: dict[tuple[str, str, str], list[dict[str, str]]] = {}
+    groups: dict[tuple[str, str, str, str, str], list[dict[str, str]]] = {}
     for row in rows:
-        key = (str(row["job_id"]), str(row["backend"]), str(row["mode"]))
+        key = (
+            str(row["job_id"]),
+            str(row["backend"]),
+            str(row["mode"]),
+            str(row["score_variant"]),
+            str(row["score_alpha"]),
+        )
         groups.setdefault(key, []).append(row)
 
     cols = [
         "job_id",
         "backend",
         "mode",
+        "score_variant",
+        "score_alpha",
         "n_runs",
         "n_success",
         "pcc_mean",
@@ -900,7 +977,9 @@ def _write_batch_aggregates(rows: list[dict[str, str]], path: Path) -> None:
     with path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=cols, delimiter="\t")
         writer.writeheader()
-        for (job_id, backend, mode), grouped_rows in groups.items():
+        for (
+            job_id, backend, mode, score_variant, score_alpha
+        ), grouped_rows in groups.items():
             ok_rows = [r for r in grouped_rows if r["status"] == "ok"]
             pcc_vals = [float(r["pcc"]) for r in ok_rows]
             mse_vals = [float(r["mse"]) for r in ok_rows]
@@ -924,6 +1003,8 @@ def _write_batch_aggregates(rows: list[dict[str, str]], path: Path) -> None:
                     "job_id": job_id,
                     "backend": backend,
                     "mode": mode,
+                    "score_variant": score_variant,
+                    "score_alpha": score_alpha,
                     "n_runs": len(grouped_rows),
                     "n_success": len(ok_rows),
                     "pcc_mean": f"{pcc_mean:.4f}" if pcc_vals else "nan",
@@ -949,11 +1030,14 @@ def _run_batch_repeat(
     run_tag = f"{job.job_id}_r{repeat}"
     log_path = run_dir / f"{run_tag}.log"
     logger.info(
-        "[batch] (%d) start job=%s backend=%s mode=%s repeat=%d seed=%s",
+        "[batch] (%d) start job=%s backend=%s mode=%s variant=%s alpha=%.4f "
+        "repeat=%d seed=%s",
         run_count,
         job.job_id,
         job.backend,
         job.mode,
+        job.score_variant,
+        job.score_alpha,
         repeat,
         seed if seed is not None else "none",
     )
@@ -967,6 +1051,8 @@ def _run_batch_repeat(
         no_cache=job.no_cache,
         workers=job.workers,
         seed=seed,
+        score_variant=job.score_variant,
+        score_alpha=job.score_alpha,
         verbose=job.verbose,
     )
 
@@ -983,6 +1069,8 @@ def _run_batch_repeat(
         log_file.write(
             "batch_job="
             f"{job.job_id} repeat={repeat} backend={job.backend} mode={job.mode} "
+            f"score_variant={job.score_variant} "
+            f"score_alpha={job.score_alpha:.4f} "
             f"seed={seed if seed is not None else 'none'}\n"
         )
         log_file.flush()
@@ -1005,6 +1093,8 @@ def _run_batch_repeat(
         "job_id": job.job_id,
         "backend": job.backend,
         "mode": mode_name,
+        "score_variant": job.score_variant,
+        "score_alpha": f"{job.score_alpha:.4f}",
         "repeat": str(repeat),
         "seed": str(seed) if seed is not None else "",
         "status": status,
@@ -1045,6 +1135,8 @@ def cmd_batch(args: argparse.Namespace) -> None:
         workers=args.workers,
         no_cache=args.no_cache,
         verbose=args.verbose,
+        score_variant=args.score_variant,
+        score_alpha=args.score_alpha,
     )
     jobs = resolve_batch_jobs(spec, cli_defaults=cli_defaults)
 
@@ -1170,6 +1262,21 @@ def main() -> None:  # noqa: PLR0915
         default=None,
         help="Optional random seed (used by GOPT training path)",
     )
+    run_p.add_argument(
+        "--score-variant",
+        choices=["gop_sf", "logit_margin", "logit_combined"],
+        default="gop_sf",
+        help=(
+            "Scalar score variant. Non-default variants currently support "
+            "scalar mode only."
+        ),
+    )
+    run_p.add_argument(
+        "--score-alpha",
+        type=float,
+        default=0.5,
+        help="Mixture weight for logit_combined in [0, 1] (default: 0.5).",
+    )
 
     cmp_p = sub.add_parser("compare", help="Run all backends and compare")
     cmp_p.add_argument(
@@ -1214,6 +1321,18 @@ def main() -> None:  # noqa: PLR0915
         "--no-cache",
         action="store_true",
         help="Default no-cache behavior for jobs",
+    )
+    batch_p.add_argument(
+        "--score-variant",
+        choices=["gop_sf", "logit_margin", "logit_combined"],
+        default="gop_sf",
+        help="Default score variant for jobs (default: gop_sf)",
+    )
+    batch_p.add_argument(
+        "--score-alpha",
+        type=float,
+        default=0.5,
+        help="Default score alpha for jobs (default: 0.5)",
     )
 
     papers_p = sub.add_parser("papers", help="Paper ingestion tools")

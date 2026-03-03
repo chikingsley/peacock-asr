@@ -36,10 +36,12 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from time import perf_counter
 
 import evaluate
+import mlflow
 import numpy as np
-import torch  # noqa: TC002 - used at runtime in DataCollatorCTCWithPadding
+import torch
 from datasets import Audio, concatenate_datasets, load_dataset
 from transformers import (
     SeamlessM4TFeatureExtractor,
@@ -165,6 +167,21 @@ def parse_args() -> argparse.Namespace:
         help="Dataset split to use for evaluation",
     )
     return p.parse_args()
+
+
+def _parse_bool_env(name: str, *, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _numeric_metrics(metrics: dict[str, object]) -> dict[str, float]:
+    numeric: dict[str, float] = {}
+    for key, value in metrics.items():
+        if isinstance(value, (int, float)):
+            numeric[key] = float(value)
+    return numeric
 
 
 def main() -> None:  # noqa: PLR0915
@@ -317,9 +334,29 @@ def main() -> None:  # noqa: PLR0915
         return {"per": per}
 
     # --- MLflow ---
-    mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI", "https://mlflow.peacockery.studio")
+    mlflow_uri = os.environ.get(
+        "MLFLOW_TRACKING_URI", "https://mlflow.peacockery.studio",
+    )
     os.environ["MLFLOW_TRACKING_URI"] = mlflow_uri
-    os.environ.setdefault("MLFLOW_EXPERIMENT_NAME", "peacock-asr-training")
+    experiment_name = os.environ.setdefault(
+        "MLFLOW_EXPERIMENT_NAME", "peacock-asr-training",
+    )
+    mlflow.set_tracking_uri(mlflow_uri)
+    mlflow.set_experiment(experiment_name)
+
+    enable_system_metrics = _parse_bool_env(
+        "MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING", default=True,
+    )
+    sample_interval_sec = int(
+        os.getenv("MLFLOW_SYSTEM_METRICS_SAMPLING_INTERVAL", "10"),
+    )
+    samples_before_log = int(
+        os.getenv("MLFLOW_SYSTEM_METRICS_SAMPLES_BEFORE_LOGGING", "1"),
+    )
+    if enable_system_metrics:
+        mlflow.enable_system_metrics_logging()
+        mlflow.set_system_metrics_sampling_interval(sample_interval_sec)
+        mlflow.set_system_metrics_samples_before_logging(samples_before_log)
     logger.info("MLflow tracking: %s", mlflow_uri)
 
     # --- Training arguments ---
@@ -359,18 +396,110 @@ def main() -> None:  # noqa: PLR0915
         processing_class=processor.feature_extractor,
     )
 
-    # --- Train ---
-    logger.info("Starting training...")
-    trainer.train()
+    primary_device_count = (
+        torch.cuda.device_count() if torch.cuda.is_available() else 0
+    )
+    primary_device_name = (
+        torch.cuda.get_device_name(0) if primary_device_count > 0 else "cpu"
+    )
+    effective_devices = max(primary_device_count, 1)
+    effective_global_batch_size = (
+        args.batch_size * args.gradient_accumulation * effective_devices
+    )
 
-    # --- Save final model ---
-    logger.info("Saving final model to %s", args.output_dir)
-    trainer.save_model(args.output_dir)
-    processor.save_pretrained(args.output_dir)
+    run_name = f"train-phoneme-head-{Path(args.output_dir).name}"
+    description = (
+        "W2V-BERT 2.0 CTC phoneme-head training on "
+        "gilkeyio/librispeech-alignments"
+    )
+    with mlflow.start_run(
+        run_name=run_name,
+        description=description,
+        log_system_metrics=enable_system_metrics,
+    ):
+        mlflow.set_tags(
+            {
+                "project": "peacock-asr",
+                "stage": "training",
+                "task": "phoneme-head-ctc",
+                "dataset_repo": "gilkeyio/librispeech-alignments",
+                "base_model": "facebook/w2v-bert-2.0",
+            },
+        )
+        mlflow.log_params(
+            {
+                "output_dir": args.output_dir,
+                "hub_repo": args.hub_repo if push else "none",
+                "push_to_hub": push,
+                "num_epochs": args.num_epochs,
+                "batch_size_per_device": args.batch_size,
+                "gradient_accumulation": args.gradient_accumulation,
+                "effective_global_batch_size": effective_global_batch_size,
+                "learning_rate": args.learning_rate,
+                "train_split_names": ",".join(args.train_splits),
+                "eval_split_name": args.eval_split,
+                "train_examples": len(train_ds),
+                "eval_examples": len(eval_ds),
+                "max_train_samples": args.max_train_samples or 0,
+                "max_eval_samples": args.max_eval_samples or 0,
+                "device_name": primary_device_name,
+                "gpu_device_count": primary_device_count,
+            },
+        )
 
-    if push:
-        logger.info("Pushing to Hub: %s", args.hub_repo)
-        trainer.push_to_hub()
+        if primary_device_count > 0:
+            props = torch.cuda.get_device_properties(0)
+            mlflow.log_params(
+                {
+                    "gpu_0_name": props.name,
+                    "gpu_0_total_memory_gb": round(
+                        props.total_memory / (1024 ** 3), 2,
+                    ),
+                    "gpu_0_compute_capability": f"{props.major}.{props.minor}",
+                },
+            )
+
+        try:
+            train_input = mlflow.data.from_huggingface(
+                train_ds,
+                path="gilkeyio/librispeech-alignments",
+                name="librispeech-alignments-train",
+            )
+            eval_input = mlflow.data.from_huggingface(
+                eval_ds,
+                path="gilkeyio/librispeech-alignments",
+                name="librispeech-alignments-eval",
+            )
+            mlflow.log_input(train_input, context="training")
+            mlflow.log_input(eval_input, context="evaluation")
+        except Exception:
+            logger.exception("Failed to log datasets to MLflow inputs.")
+
+        # --- Train ---
+        logger.info("Starting training...")
+        train_start = perf_counter()
+        train_output = trainer.train()
+        wall_time_sec = perf_counter() - train_start
+
+        mlflow.log_metrics(_numeric_metrics(train_output.metrics))
+        wall_time_hours = wall_time_sec / 3600.0
+        mlflow.log_metrics(
+            {
+                "compute_wall_time_sec": wall_time_sec,
+                "compute_wall_time_hours": wall_time_hours,
+                "compute_machine_hours": wall_time_hours,
+                "compute_gpu_hours": wall_time_hours * primary_device_count,
+            },
+        )
+
+        # --- Save final model ---
+        logger.info("Saving final model to %s", args.output_dir)
+        trainer.save_model(args.output_dir)
+        processor.save_pretrained(args.output_dir)
+
+        if push:
+            logger.info("Pushing to Hub: %s", args.hub_repo)
+            trainer.push_to_hub()
 
     logger.info("Done.")
 
