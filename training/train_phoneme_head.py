@@ -209,6 +209,27 @@ def _load_split(
     return load_dataset("gilkeyio/librispeech-alignments", split=split_name)
 
 
+def _freeze_feature_frontend(model: Wav2Vec2BertForCTC) -> None:
+    if hasattr(model, "freeze_feature_encoder"):
+        model.freeze_feature_encoder()
+        return
+    if hasattr(model, "freeze_feature_extractor"):
+        model.freeze_feature_extractor()
+        return
+    # Fallback for transformers variants that don't expose freeze helpers.
+    if hasattr(model, "wav2vec2_bert"):
+        for parameter in model.wav2vec2_bert.feature_projection.parameters():
+            parameter.requires_grad = False
+        logger.warning(
+            "Used fallback freezing for wav2vec2_bert.feature_projection; "
+            "freeze_feature_encoder helper not found in this transformers version."
+        )
+        return
+    logger.warning(
+        "Could not freeze feature frontend automatically; model will train fully."
+    )
+
+
 def main() -> None:  # noqa: PLR0915
     args = parse_args()
     hub_repo = args.hub_repo or settings.hf_train_repo
@@ -332,8 +353,8 @@ def main() -> None:  # noqa: PLR0915
         vocab_size=len(tokenizer),
     )
 
-    # Freeze the feature encoder (convolutional front-end)
-    model.freeze_feature_encoder()
+    # Freeze the feature frontend for faster/stabler CTC head adaptation.
+    _freeze_feature_frontend(model)
     logger.info(
         "Model loaded. Trainable params: %s",
         f"{sum(p.numel() for p in model.parameters() if p.requires_grad):,}",
