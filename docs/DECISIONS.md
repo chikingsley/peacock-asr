@@ -199,7 +199,11 @@ without fine-tuning. See [EXPERIMENTS.md](EXPERIMENTS.md) for full run results.
 
 ---
 
-## RunPod Training Stabilization (2026-03-03)
+## RunPod Training Stabilization (2026-03-03, updated 2026-03-03)
+
+> **Note**: This section was originally written with an incorrect diagnosis
+> (L4 lacks BF16 → fall back to FP32). The correction is inline below.
+> Kept for audit trail; see "Correction" annotations.
 
 **Context**: `peacock-asr train-preflight` repeatedly failed on RunPod L4 before first stable completion.
 
@@ -228,9 +232,12 @@ without fine-tuning. See [EXPERIMENTS.md](EXPERIMENTS.md) for full run results.
    safe to restore now that BF16 is used instead of FP16).
 5. Keep HF dataset loading cache under project settings cache dir (`settings.data_dir / "hf-datasets"`).
 
-**Validation result**:
+**Validation results**:
 
-- RunPod `train-preflight` completed end-to-end (Run ID `3aa093bd111e45aeba9681451c986595`), with final `Done.` in `logs/train-preflight.log`.
+- ~~FP32 run: completed (Run ID `3aa093bd111e45aeba9681451c986595`), 135.4s, 1.891 samples/sec~~ *(original, superseded)*
+- **BF16 run: completed (Run ID `12de87cf537b4470a4f95ee400a58dcf`), 111.7s, 2.291 samples/sec, +21% throughput**
+  - `torch.cuda.is_bf16_supported()` confirmed `True` on NVIDIA L4
+  - No CUBLAS errors, gradient checkpointing re-enabled, 11.5 GB / 23 GB VRAM used
 
 **Notes on expected non-fatal messages**:
 
