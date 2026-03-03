@@ -1236,6 +1236,11 @@ def _run_train_profile(profile_name: str) -> None:
         settings.mlflow_system_metrics_samples_before_logging,
     )
     env.setdefault("UV_CACHE_DIR", str(repo_root / ".cache" / "uv"))
+    src_path = str(repo_root / "src")
+    existing_pythonpath = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = (
+        f"{src_path}:{existing_pythonpath}" if existing_pythonpath else src_path
+    )
     if settings.hf_token:
         env["HF_TOKEN"] = settings.hf_token
 
