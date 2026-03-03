@@ -438,7 +438,7 @@ def main() -> None:  # noqa: PLR0915
         gradient_accumulation_steps=args.gradient_accumulation,
         eval_strategy="steps",
         num_train_epochs=args.num_epochs,
-        gradient_checkpointing=True,
+        gradient_checkpointing=False,
         bf16=use_bf16,
         fp16=use_fp16,
         save_steps=2000,
