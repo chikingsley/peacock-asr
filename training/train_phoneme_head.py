@@ -404,7 +404,7 @@ def main() -> None:  # noqa: PLR0915
         os.environ.setdefault("HF_TOKEN", settings.hf_token)
     training_args = TrainingArguments(
         output_dir=args.output_dir,
-        group_by_length=True,
+        train_sampling_strategy="group_by_length",
         per_device_train_batch_size=args.batch_size,
         gradient_accumulation_steps=args.gradient_accumulation,
         eval_strategy="steps",
