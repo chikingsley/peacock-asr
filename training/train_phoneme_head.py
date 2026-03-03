@@ -331,9 +331,13 @@ def main() -> None:  # noqa: PLR0915
         desc="Preparing eval",
     )
 
-    # Filter out empty examples (no valid phones)
-    train_ds = train_ds.filter(lambda x: x["phone_count"] > 0)
-    eval_ds = eval_ds.filter(lambda x: x["phone_count"] > 0)
+    # Filter out invalid examples before Trainer batching.
+    train_ds = train_ds.filter(
+        lambda x: x["phone_count"] > 0 and x["input_length"] > 1
+    )
+    eval_ds = eval_ds.filter(
+        lambda x: x["phone_count"] > 0 and x["input_length"] > 1
+    )
     logger.info(
         "After filtering: Train %d, Eval %d", len(train_ds), len(eval_ds)
     )
