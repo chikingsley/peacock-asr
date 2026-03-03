@@ -207,6 +207,9 @@ without fine-tuning. See [EXPERIMENTS.md](EXPERIMENTS.md) for full run results.
 
 1. `torch` runtime mismatch produced CUDA GEMM failures in wav2vec2-bert attention:
    - `RuntimeError: CUDA error: CUBLAS_STATUS_INVALID_VALUE`.
+   - **Correction**: These CUBLAS crashes were caused by FP16 (5-bit exponent) overflow on
+     wav2vec2-bert activations, not by missing BF16 hardware support. The original fix
+     incorrectly assumed L4 lacked BF16 and fell back to FP32.
 2. HF datasets audio auto-decoding path invoked `torchcodec`, which failed on the pod (ABI/FFmpeg issues) and blocked dataset loading.
 3. A prior run ended with exit code 143 (`SIGTERM`) due process interruption, not model logic.
 
@@ -216,8 +219,14 @@ without fine-tuning. See [EXPERIMENTS.md](EXPERIMENTS.md) for full run results.
 2. Remove `torchcodec` dependency and avoid all auto-decode paths in training data loading:
    - `Audio(decode=False)` for streaming and non-streaming splits.
    - Decode audio manually with `soundfile`.
-3. Keep training precision in FP32 on L4 path for compatibility/stability.
-4. Keep HF dataset loading cache under project settings cache dir (`settings.data_dir / "hf-datasets"`).
+3. **Use `torch.cuda.is_bf16_supported()` for BF16 detection** instead of a GPU name allowlist.
+   The NVIDIA L4 (Ada Lovelace, 4th-gen Tensor Cores) has native BF16 support at 242 TFLOPS
+   ([L4 datasheet](https://www.nvidia.com/en-us/data-center/l4/)). The previous allowlist
+   (`A100`, `H100`, `H200`, `B100`, `B200`) incorrectly excluded L4, forcing FP32 and wasting
+   ~50% compute. The runtime query covers all current and future GPU architectures correctly.
+4. Re-enable gradient checkpointing (was disabled as part of the L4 stability investigation;
+   safe to restore now that BF16 is used instead of FP16).
+5. Keep HF dataset loading cache under project settings cache dir (`settings.data_dir / "hf-datasets"`).
 
 **Validation result**:
 

@@ -472,16 +472,14 @@ def main() -> None:  # noqa: PLR0915
     total_train_steps = max(1, int(args.num_epochs * steps_per_epoch))
     warmup_steps = max(1, int(total_train_steps * 0.1))
 
-    # Prefer BF16 on A/H/B class datacenter GPUs.
-    # For other GPUs (e.g. L4), keep full precision for stability.
-    use_bf16 = primary_device_count > 0 and any(
-        token in primary_device_name
-        for token in ("A100", "H100", "H200", "B100", "B200")
-    )
+    # Use BF16 when the GPU supports it (covers A100, H100, L4, etc.).
+    # Previous allowlist incorrectly excluded L4 (Ada Lovelace, 242 TFLOPS BF16).
+    # The original CUBLAS crashes were from FP16 overflow, not missing BF16 support.
+    use_bf16 = primary_device_count > 0 and torch.cuda.is_bf16_supported()
     use_fp16 = False
     if primary_device_count > 0 and not use_bf16:
         logger.info(
-            "Using full precision training on %s for compatibility.",
+            "BF16 not supported on %s; using full precision training.",
             primary_device_name,
         )
     training_args = TrainingArguments(
@@ -491,7 +489,7 @@ def main() -> None:  # noqa: PLR0915
         gradient_accumulation_steps=args.gradient_accumulation,
         eval_strategy="steps",
         num_train_epochs=args.num_epochs,
-        gradient_checkpointing=False,
+        gradient_checkpointing=True,
         bf16=use_bf16,
         fp16=use_fp16,
         save_steps=2000,
