@@ -31,7 +31,6 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import os
 import re
 import sys
 from dataclasses import dataclass
@@ -51,6 +50,8 @@ from transformers import (
     Wav2Vec2BertProcessor,
     Wav2Vec2CTCTokenizer,
 )
+
+from peacock_asr.settings import settings
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -115,7 +116,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--hub-repo",
         type=str,
-        default="w2v-bert-phoneme-en",
+        default=None,
         help="HuggingFace Hub repo name",
     )
     p.add_argument(
@@ -166,14 +167,13 @@ def parse_args() -> argparse.Namespace:
         default="dev_clean",
         help="Dataset split to use for evaluation",
     )
+    p.add_argument(
+        "--dataloader-workers",
+        type=int,
+        default=4,
+        help="Number of dataloader worker processes (default: 4)",
+    )
     return p.parse_args()
-
-
-def _parse_bool_env(name: str, *, default: bool) -> bool:
-    raw = os.getenv(name)
-    if raw is None:
-        return default
-    return raw.strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _numeric_metrics(metrics: dict[str, object]) -> dict[str, float]:
@@ -186,6 +186,7 @@ def _numeric_metrics(metrics: dict[str, object]) -> dict[str, float]:
 
 def main() -> None:  # noqa: PLR0915
     args = parse_args()
+    hub_repo = args.hub_repo or settings.hf_train_repo
 
     # --- Load vocab ---
     if not args.vocab_json.exists():
@@ -334,25 +335,14 @@ def main() -> None:  # noqa: PLR0915
         return {"per": per}
 
     # --- MLflow ---
-    mlflow_uri = os.environ.get(
-        "MLFLOW_TRACKING_URI", "https://mlflow.peacockery.studio",
-    )
-    os.environ["MLFLOW_TRACKING_URI"] = mlflow_uri
-    experiment_name = os.environ.setdefault(
-        "MLFLOW_EXPERIMENT_NAME", "peacock-asr-training",
-    )
+    mlflow_uri = settings.mlflow_tracking_uri
+    experiment_name = settings.mlflow_experiment_name
     mlflow.set_tracking_uri(mlflow_uri)
     mlflow.set_experiment(experiment_name)
 
-    enable_system_metrics = _parse_bool_env(
-        "MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING", default=True,
-    )
-    sample_interval_sec = int(
-        os.getenv("MLFLOW_SYSTEM_METRICS_SAMPLING_INTERVAL", "10"),
-    )
-    samples_before_log = int(
-        os.getenv("MLFLOW_SYSTEM_METRICS_SAMPLES_BEFORE_LOGGING", "1"),
-    )
+    enable_system_metrics = settings.mlflow_enable_system_metrics_logging
+    sample_interval_sec = settings.mlflow_system_metrics_sampling_interval
+    samples_before_log = settings.mlflow_system_metrics_samples_before_logging
     if enable_system_metrics:
         mlflow.enable_system_metrics_logging()
         mlflow.set_system_metrics_sampling_interval(sample_interval_sec)
@@ -361,6 +351,10 @@ def main() -> None:  # noqa: PLR0915
 
     # --- Training arguments ---
     push = not args.no_push
+    if push and settings.hf_token:
+        import os  # noqa: PLC0415
+
+        os.environ.setdefault("HF_TOKEN", settings.hf_token)
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         group_by_length=True,
@@ -377,11 +371,11 @@ def main() -> None:  # noqa: PLR0915
         warmup_ratio=0.1,
         save_total_limit=3,
         push_to_hub=push,
-        hub_model_id=args.hub_repo if push else None,
+        hub_model_id=hub_repo if push else None,
         load_best_model_at_end=True,
         metric_for_best_model="per",
         greater_is_better=False,
-        dataloader_num_workers=4,
+        dataloader_num_workers=args.dataloader_workers,
         report_to="mlflow",
     )
 
@@ -416,7 +410,8 @@ def main() -> None:  # noqa: PLR0915
         run_name=run_name,
         description=description,
         log_system_metrics=enable_system_metrics,
-    ):
+    ) as active_run:
+        logger.info("MLflow run id: %s", active_run.info.run_id)
         mlflow.set_tags(
             {
                 "project": "peacock-asr",
@@ -429,7 +424,7 @@ def main() -> None:  # noqa: PLR0915
         mlflow.log_params(
             {
                 "output_dir": args.output_dir,
-                "hub_repo": args.hub_repo if push else "none",
+                "hub_repo": hub_repo if push else "none",
                 "push_to_hub": push,
                 "num_epochs": args.num_epochs,
                 "batch_size_per_device": args.batch_size,
@@ -498,7 +493,7 @@ def main() -> None:  # noqa: PLR0915
         processor.save_pretrained(args.output_dir)
 
         if push:
-            logger.info("Pushing to Hub: %s", args.hub_repo)
+            logger.info("Pushing to Hub: %s", hub_repo)
             trainer.push_to_hub()
 
     logger.info("Done.")

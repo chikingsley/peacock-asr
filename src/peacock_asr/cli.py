@@ -1180,6 +1180,83 @@ def cmd_batch(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def _run_train_profile(profile_name: str) -> None:
+    import subprocess  # noqa: PLC0415
+
+    from peacock_asr.settings import settings  # noqa: PLC0415
+    from peacock_asr.train_profile import load_train_profile  # noqa: PLC0415
+
+    profile = load_train_profile(profile_name)
+    repo_root = Path(__file__).resolve().parents[2]
+    script_path = repo_root / "training" / "train_phoneme_head.py"
+    if not script_path.exists():
+        msg = f"Training script not found: {script_path}"
+        raise FileNotFoundError(msg)
+
+    cmd = [
+        "uv",
+        "run",
+        str(script_path),
+        "--output-dir",
+        profile.output_dir,
+        "--num-epochs",
+        str(profile.num_epochs),
+        "--batch-size",
+        str(profile.batch_size),
+        "--gradient-accumulation",
+        str(profile.gradient_accumulation),
+        "--learning-rate",
+        str(profile.learning_rate),
+        "--eval-split",
+        profile.eval_split,
+        "--dataloader-workers",
+        str(profile.dataloader_workers),
+        "--train-splits",
+        *profile.train_splits,
+    ]
+    if profile.max_train_samples is not None:
+        cmd.extend(["--max-train-samples", str(profile.max_train_samples)])
+    if profile.max_eval_samples is not None:
+        cmd.extend(["--max-eval-samples", str(profile.max_eval_samples)])
+    if profile.push_to_hub:
+        cmd.extend(["--hub-repo", settings.hf_train_repo])
+    else:
+        cmd.append("--no-push")
+
+    env = os.environ.copy()
+    env["MLFLOW_TRACKING_URI"] = settings.mlflow_tracking_uri
+    env["MLFLOW_EXPERIMENT_NAME"] = settings.mlflow_experiment_name
+    env["MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING"] = str(
+        settings.mlflow_enable_system_metrics_logging,
+    ).lower()
+    env["MLFLOW_SYSTEM_METRICS_SAMPLING_INTERVAL"] = str(
+        settings.mlflow_system_metrics_sampling_interval,
+    )
+    env["MLFLOW_SYSTEM_METRICS_SAMPLES_BEFORE_LOGGING"] = str(
+        settings.mlflow_system_metrics_samples_before_logging,
+    )
+    env.setdefault("UV_CACHE_DIR", str(repo_root / ".cache" / "uv"))
+    if settings.hf_token:
+        env["HF_TOKEN"] = settings.hf_token
+
+    logger.info(
+        "[train] profile=%s mlflow=%s experiment=%s",
+        profile.name,
+        settings.mlflow_tracking_uri,
+        settings.mlflow_experiment_name,
+    )
+    logger.info("[train] cmd=%s", " ".join(cmd))
+    subprocess.run(cmd, cwd=repo_root, env=env, check=True)  # noqa: S603
+
+
+def cmd_train_preflight(_args: argparse.Namespace) -> None:
+    _run_train_profile("preflight")
+
+
+def cmd_train_main(_args: argparse.Namespace) -> None:
+    _run_train_profile("main")
+
+
 def cmd_papers_convert(args: argparse.Namespace) -> None:
     from peacock_asr.papers.convert import (  # noqa: PLC0415
         ConvertConfig,
@@ -1335,6 +1412,15 @@ def main() -> None:  # noqa: PLR0915
         help="Default score alpha for jobs (default: 0.5)",
     )
 
+    sub.add_parser(
+        "train-preflight",
+        help="Run fixed preflight training profile (tiny smoke run)",
+    )
+    sub.add_parser(
+        "train-main",
+        help="Run fixed main training profile",
+    )
+
     papers_p = sub.add_parser("papers", help="Paper ingestion tools")
     papers_sub = papers_p.add_subparsers(dest="papers_command", required=True)
 
@@ -1401,6 +1487,10 @@ def main() -> None:  # noqa: PLR0915
             cmd_compare(args)
         case "batch":
             cmd_batch(args)
+        case "train-preflight":
+            cmd_train_preflight(args)
+        case "train-main":
+            cmd_train_main(args)
         case "papers":
             if args.papers_command == "convert":
                 cmd_papers_convert(args)
