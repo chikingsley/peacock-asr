@@ -35,13 +35,22 @@ ONNX model.
 
 Three backends evaluated on SpeechOcean762 with GOP-SF-SD-Norm scoring:
 
+```text
+Backend              Scorer      PCC     95% CI              Phones   Status
+──────────────────────────────────────────────────────────────────────────────
+original (w2v2)      GOPT        0.662   [0.657, 0.667]      39/39    Best current
+original (w2v2)      SVR+feats   0.548   [0.542, 0.554]      39/39    Feature baseline
+xlsr-espeak          scalar      0.320   [0.312, 0.328]      39/39    Scalar baseline
+original (w2v2)      scalar      0.310   [0.302, 0.319]      39/39    Paper scalar baseline
+zipa                 scalar      0.075   [0.066, 0.084]      32/39    Vocab mismatch
 ```
-Backend              PCC     95% CI              Phones   Status
-─────────────────────────────────────────────────────────────────
-xlsr-espeak          0.320   [0.312, 0.328]      39/39    Best current
-original (w2v2)      0.310   [0.302, 0.319]      39/39    Paper baseline
-zipa                 0.075   [0.066, 0.084]      32/39    Vocab mismatch
-```
+
+Updated 2026-03-02: GOPT transformer on 42-dim feature vectors (1 LPP + 40 LPR +
+1 occupancy) achieves PCC 0.662, exceeding the paper target of 0.648. The 3-phase
+multiprocessing pipeline (posteriors → parallel scalar GOP → features) brings full
+dataset runtime from ~2h to ~25 min on 14 CPU cores.
+
+xlsr-espeak GOPT results pending (batch run in progress).
 
 **Key finding**: ZIPA's poor score is NOT due to poor acoustic modeling (it has
 2.71 PFER vs xlsr-espeak's 11.88). It's a structural incompatibility: ZIPA uses
@@ -53,7 +62,7 @@ the core motivation for this work.
 
 ### 2.2 The Pipeline We're Building
 
-```
+```text
 Audio (16kHz)
     │
     ▼
@@ -112,6 +121,7 @@ already encode phonetic information — we just need to add a head that reads it
 | data2vec 2.0 | 2024 | 95-317M | 960h+ | Teacher-student, multi-modal |
 
 **What the literature shows**:
+
 - These models produce representations where phoneme identity is linearly
   separable from intermediate layers (Pasad et al., 2021; Shah et al., 2021)
 - Layer 7-12 of a 24-layer model typically carries the most phonetic information
@@ -119,6 +129,7 @@ already encode phonetic information — we just need to add a head that reads it
   usable ASR (Baevski et al., 2020)
 
 **References**:
+
 - wav2vec 2.0: Baevski et al., "wav2vec 2.0: A Framework for Self-Supervised
   Learning of Speech Representations" (NeurIPS 2020)
 - HuBERT: Hsu et al., "HuBERT: Self-Supervised Speech Representation Learning
@@ -149,6 +160,7 @@ empirical validation.
 ### 3.3 Encoder Selection Recommendation
 
 **Primary**: w2v-BERT 2.0 (facebook/w2v-bert-2.0)
+
 - Most pretraining data (4.5M hours) → best representations
 - HuggingFace `Wav2Vec2BertForCTC` class exists with training recipe
 - Complete blog tutorial: "Fine-Tune W2V2-Bert for low-resource ASR with
@@ -156,6 +168,7 @@ empirical validation.
 - MIT license
 
 **Secondary**: omniASR CTC 1B (facebook/omniASR-CTC-1B)
+
 - Already has a CTC head (9,812 chars) — swap final_proj layer
 - 1,600 languages → strongest multilingual signal
 - Apache 2.0 license
@@ -223,6 +236,7 @@ The canonical reference for CTC head training on a pretrained encoder:
 2. **Create tokenizer**: `Wav2Vec2CTCTokenizer.from_pretrained("./", ...)`
 
 3. **Load model with new head**:
+
    ```python
    model = Wav2Vec2BertForCTC.from_pretrained(
        "facebook/w2v-bert-2.0",
@@ -240,6 +254,7 @@ The canonical reference for CTC head training on a pretrained encoder:
    ```
 
 4. **Train with HuggingFace Trainer**:
+
    ```python
    TrainingArguments(
        per_device_train_batch_size=16,
@@ -273,7 +288,7 @@ already good enough for GOP (our xlsr-espeak backend achieves PCC 0.320).
 The CTC-based-GOP paper (2507.16838) uses 39 ARPABET phones. This is the standard
 CMU pronunciation dictionary phone set. SpeechOcean762 annotations use this set.
 
-```
+```text
 39 ARPABET phones (stress stripped):
 AA AE AH AO AW AY B CH D DH EH ER EY F G HH IH IY JH K L M N
 NG OW OY P R S SH T TH UH UW V W Y Z ZH
@@ -283,6 +298,7 @@ NG OW OY P R S SH T TH UH UW V W Y Z ZH
 **OPEN QUESTION for multilingual (IPA)**:
 
 Two schools:
+
 - **Large vocab (387 IPA)**: wav2vec2-xlsr-53-espeak-cv-ft approach. Covers all
   languages but many phones have little training data.
 - **Core IPA (~100-200)**: Focus on phonemically contrastive segments. ZIPA uses
@@ -300,19 +316,37 @@ For multilingual, this is a design decision we'll need to make empirically.
 | Dataset | Hours | Phones | Use Case |
 |---------|-------|--------|----------|
 | **LibriSpeech 960h** | 960 | ARPABET via G2P | English phoneme CTC training |
+| **librispeech-alignments** | 960 | ARPABET (MFA-aligned) | Ready-to-use phoneme labels with timestamps |
 | **CommonVoice** | 1000+ per lang | IPA via espeak/G2P | Multilingual CTC training |
 | **TIMIT** | 5.4 | Hand-labeled phones | Small but gold-standard phone labels |
 | **SpeechOcean762** | ~5 | ARPABET (annotated) | NOT for CTC training — too small. For GOP eval only |
 
+**Pre-labeled phoneme datasets** (skip the G2P step):
+
+- **gilkeyio/librispeech-alignments** (HuggingFace): Full LibriSpeech 960h with
+  per-word and per-phone ARPABET alignments from Montreal Forced Aligner. Includes
+  start/end timestamps. This is the fastest path to CTC training — no G2P pipeline
+  needed.
+- **SUPERB PR benchmark**: 100h subset (train-clean-100) with phoneme labels.
+  Literature shows ~3.5% PER achievable on this with a fine-tuned SSL model.
+
 **The approach used by existing models**:
+
 - wav2vec2-xlsr-espeak: CommonVoice, phonemized via espeak-ng
 - ZIPA: IPAPack++ (17K hrs, G2P labels from CharsiuG2P)
 - POWSM: Multi-task training on mixed datasets
 - CTC-based-GOP baseline: LibriSpeech, ARPABET labels from CMU dict
 
-**Recommendation**: Start with **LibriSpeech + CMU pronunciation dictionary**
-for English (960h, ARPABET). This is exactly what the CTC-based-GOP paper's
-baseline model was trained on, so we have a direct comparison.
+**Recommendation**: Start with **gilkeyio/librispeech-alignments** — it has
+pre-computed ARPABET labels for the full 960h, no G2P pipeline needed. This is
+the same data the CTC-based-GOP paper used, just pre-labeled.
+
+**Learning sandbox**: The **icefall TIMIT recipe** (`egs/timit/ASR`) is the only
+phoneme-level CTC recipe in k2-fsa/icefall (43 total recipes, rest are BPE/word).
+It trains a TDNN-LSTM from scratch and achieves 17.66% PER. Useful for learning
+CTC training mechanics before committing to a full LibriSpeech run on RunPod.
+Note: icefall's LibriSpeech recipes (Conformer, Zipformer) are all BPE-level —
+none produce phoneme posteriors directly.
 
 ---
 
@@ -326,11 +360,12 @@ GOP-SF (Goodness of Pronunciation, Segmentation-Free) from Cao et al. (2507.1683
 
 For each phoneme position `p` in canonical transcription `W = (p₁, ..., pₖ)`:
 
-```
+```text
 GOP-SF(p) = [log P_CTC(W | X) - log P_CTC(W_p^* | X)] / E[d_p]
 ```
 
 Where:
+
 - `P_CTC(W | X)` = CTC forward probability of canonical transcription (numerator)
 - `P_CTC(W_p^* | X)` = CTC forward probability with position p replaced by any
   phone (denominator)
@@ -357,6 +392,7 @@ The implementation is a direct port of the paper's reference code from
 ### 5.3 What GOP-SF Requires from the Phoneme Head
 
 **Input**: Frame-level log posteriors `[T × N_phones]` where:
+
 - `T` = number of frames (typically audio_length / 20ms)
 - `N_phones` = vocabulary size (39 for ARPABET, more for IPA)
 - Values are log-softmax over the phone dimension
@@ -400,6 +436,7 @@ baseline that maps raw GOP scores to human ratings.
 
 The GOPT model (Gong et al., this repo's origin) is a small transformer that takes
 GOP feature vectors and predicts multi-aspect pronunciation scores:
+
 - Input: `[batch, max_phones, feat_dim]` GOP features + canonical phone embeddings
 - Output: phoneme / word / utterance level scores
 - Published results: PCC 0.612 phone, 0.742 sentence on SpeechOcean762
@@ -429,6 +466,7 @@ GOP features achieve AUC 0.914 on CMU Kids (vs 0.796 for the traditional approac
 
 **OPEN QUESTION**: How much of the GOPT improvement comes from better features
 vs better scoring head? We'll answer this by:
+
 1. Running GOPT on our new CTC-based GOP features (apples-to-apples on features)
 2. Comparing polynomial regression vs GOPT on the same features
 
@@ -487,6 +525,7 @@ forced alignment or a different scoring method.
 20ms used by all other models and by the GOP-SF paper).
 
 **Hypothesis**: Coarser resolution may hurt GOP-SF scoring because:
+
 - Fewer frames per phoneme → less precise occupancy estimates
 - Short phones (stops, flaps) may span only 1-2 frames at 80ms
 - The CTC forward-backward algorithm has fewer timesteps to work with
@@ -500,6 +539,7 @@ This gives us an answer without training a new model.
 #### Q4: How much training data do we need for the phoneme head?
 
 **Prior art**:
+
 - CTC-based-GOP baseline: LibriSpeech 960h (full)
 - wav2vec2-xlsr-espeak: CommonVoice (varies by language)
 - w2v-BERT blog demo: 14h Mongolian achieved competitive WER
@@ -514,6 +554,7 @@ on SpeechOcean762.
 #### Q5: ARPABET-only or IPA for the phoneme head?
 
 **Trade-off**:
+
 - ARPABET (39 phones): Exact match to SpeechOcean762 labels. Simpler. English only.
 - IPA (~100-400 phones): Multilingual from the start. Requires mapping IPA → ARPABET
   for evaluation (we already do this in xlsr-espeak backend).
@@ -528,7 +569,7 @@ baselines), then expand to IPA. The mapping code already exists in
 
 The 7 unmappable ARPABET phones in ZIPA:
 
-```
+```text
 ARPABET   IPA       ZIPA tokens     Problem
 ────────────────────────────────────────────
 AW        /aʊ/      a + ʊ           2 characters, no single token
@@ -541,6 +582,7 @@ OY        /ɔɪ/      ɔ + ɪ           2 characters, no single token
 ```
 
 **Solution options**:
+
 1. **Train new head** (recommended): Replace ZIPA's 127-char head with 39-phone
    ARPABET head. Each diphthong becomes a single output class.
 2. **Merge adjacent tokens**: Sum/max-pool adjacent ZIPA character predictions for
@@ -555,13 +597,17 @@ Option 1 is the standard approach. Options 2-3 are inventive.
 ## 8. The Execution Plan
 
 ### Phase 0: Preparation (Current)
+
 - [x] Implement GOP-SF algorithm (scalar scores)
 - [x] Build backend architecture with pluggable phoneme models
 - [x] Benchmark three existing backends
 - [x] Identify the ZIPA gap
 - [x] Document research landscape (this document)
-- [ ] Extract full GOP feature vectors (41-dim: LPP + LPR + expected count)
-- [ ] Evaluate with SVR/GOPT on feature vectors (expect PCC ~0.58-0.65)
+- [x] Extract full GOP feature vectors (42-dim: 1 LPP + 40 LPR + 1 occupancy)
+- [x] Evaluate with SVR on feature vectors (PCC 0.548)
+- [x] Evaluate with GOPT transformer on feature vectors (PCC 0.662)
+- [x] Implement 3-phase multiprocessing pipeline (14-way CPU parallelism)
+- [x] Add feature caching to skip 2h re-extraction on repeat runs
 - [ ] Build phoneme vocabulary for English (ARPABET 39 + blank + pad)
 - [ ] Set up training infrastructure (RunPod A100)
 
@@ -628,6 +674,7 @@ and fine-tune.
 Its encoder representations may be the strongest available.
 
 **The approach**:
+
 ```python
 # omniASR CTC is fairseq2-based
 # The final_proj is just a Linear layer
@@ -646,6 +693,7 @@ HuggingFace. May need to port the encoder to HuggingFace for easier training.
 **What**: Plug new model(s) into existing GOP-SF pipeline, compare with baselines.
 
 **Steps**:
+
 1. Create new backend class (e.g., `w2v_bert_phoneme.py`)
 2. Load fine-tuned model, produce posteriors
 3. Run `gopt-bench run --backend w2v-bert-phoneme`
@@ -665,6 +713,7 @@ and has a complete training pipeline in this repo.
 ### Phase 5: Ablations & Analysis (Research)
 
 **Questions to answer**:
+
 1. Per-phone improvement analysis: Which phones benefit most from the new encoder?
 2. Data efficiency: 100h vs 460h vs 960h LibriSpeech — where's the plateau?
 3. Encoder comparison: w2v-BERT 2.0 vs omniASR vs WavLM-large
@@ -729,83 +778,89 @@ and has a complete training pipeline in this repo.
 
 ### Foundation Model Papers
 
-6. **Baevski et al.** (2020). "wav2vec 2.0: A Framework for Self-Supervised
+1. **Baevski et al.** (2020). "wav2vec 2.0: A Framework for Self-Supervised
    Learning of Speech Representations." NeurIPS 2020.
 
-7. **Hsu et al.** (2021). "HuBERT: Self-Supervised Speech Representation Learning
+2. **Hsu et al.** (2021). "HuBERT: Self-Supervised Speech Representation Learning
    by Masked Prediction of Hidden Units." IEEE/ACM TASLP.
 
-8. **Chen et al.** (2022). "WavLM: Large-Scale Self-Supervised Pre-Training for
+3. **Chen et al.** (2022). "WavLM: Large-Scale Self-Supervised Pre-Training for
    Full Stack Speech Processing." IEEE JSTSP.
 
-9. **Babu et al.** (2022). "XLS-R: Self-supervised Cross-lingual Speech
+4. **Babu et al.** (2022). "XLS-R: Self-supervised Cross-lingual Speech
    Representation Learning at Scale." INTERSPEECH 2022.
 
-10. **Seamless Communication Team** (2024). "Seamless: Multilingual Expressive
+5. **Seamless Communication Team** (2024). "Seamless: Multilingual Expressive
     and Streaming Speech Translation." [Includes w2v-BERT 2.0]
 
 ### CTC & Phoneme Recognition Papers
 
-11. **Graves et al.** (2006). "Connectionist Temporal Classification: Labelling
+1. **Graves et al.** (2006). "Connectionist Temporal Classification: Labelling
     Unsegmented Sequence Data with Recurrent Neural Networks." ICML 2006.
 
-12. **Conneau et al.** (2021). "Unsupervised Cross-lingual Representation Learning
+2. **Conneau et al.** (2021). "Unsupervised Cross-lingual Representation Learning
     for Speech Recognition." INTERSPEECH.
 
 ### CTC Head & Phoneme Recognition Papers
 
-11. **Xu, Baevski, Auli** (2022). "Simple and Effective Zero-shot Cross-lingual
+1. **Xu, Baevski, Auli** (2022). "Simple and Effective Zero-shot Cross-lingual
     Phoneme Recognition." INTERSPEECH 2022. arXiv: 2109.11680.
     [How wav2vec2-xlsr-53-espeak-cv-ft was built — our xlsr-espeak baseline]
 
-12. **Pratap et al.** (2023). "Scaling Speech Technology to 1,000+ Languages."
+2. **Pratap et al.** (2023). "Scaling Speech Technology to 1,000+ Languages."
     arXiv: 2305.13516. [MMS — per-language adapter approach]
 
-13. **Li, X.** (2020). "Universal Phone Recognition with a Multilingual Allophone
+3. **Li, X.** (2020). "Universal Phone Recognition with a Multilingual Allophone
     System." ICASSP 2020. arXiv: 2002.11800. [Allosaurus]
 
 ### GOP Scoring Papers
 
-14. **Parikh et al.** (2025). "Enhancing GOP in CTC-Based MDD with Phonological
+1. **Parikh et al.** (2025). "Enhancing GOP in CTC-Based MDD with Phonological
     Knowledge." arXiv: 2506.02080. [Restricted phoneme substitutions in GOP]
 
-15. **Logit-based GOP** (2025). "Evaluating Logit-Based GOP Scores."
+2. **Logit-based GOP** (2025). "Evaluating Logit-Based GOP Scores."
     arXiv: 2506.12067. [Logit-based GOP can outperform probability-based GOP;
     hybrid methods combining logit + probability features give best results]
 
 ### Key Blog Posts & Tutorials
 
-16. **Lacombe, Y.** (2024). "Fine-Tune W2V2-Bert for low-resource ASR with
+1. **Lacombe, Y.** (2024). "Fine-Tune W2V2-Bert for low-resource ASR with
     Transformers." HuggingFace Blog. [Our primary training recipe]
 
-17. **von Platen, P.** (2021). "Fine-Tune XLSR-Wav2Vec2 for Multi-Lingual ASR
+2. **von Platen, P.** (2021). "Fine-Tune XLSR-Wav2Vec2 for Multi-Lingual ASR
     with Transformers." HuggingFace Blog. [Original CTC fine-tuning tutorial]
 
-18. **von Platen, P.** (2021). "Fine-Tune Wav2Vec2 for English ASR with
+3. **von Platen, P.** (2021). "Fine-Tune Wav2Vec2 for English ASR with
     Transformers." HuggingFace Blog. [Wav2Vec2 CTC on TIMIT]
 
 ### Datasets
 
-19. **SpeechOcean762**: Zhang et al. (2021). "speechocean762: An Open-Source
+1. **SpeechOcean762**: Zhang et al. (2021). "speechocean762: An Open-Source
     Non-native English Speech Corpus For Pronunciation Assessment."
     arXiv: 2104.01378.
 
-20. **LibriSpeech**: Panayotov et al. (2015). "LibriSpeech: An ASR corpus based
+2. **LibriSpeech**: Panayotov et al. (2015). "LibriSpeech: An ASR corpus based
     on public domain audio books." ICASSP 2015.
 
-21. **CMU Pronunciation Dictionary**: Carnegie Mellon University.
-    http://www.speech.cs.cmu.edu/cgi-bin/cmudict
+3. **CMU Pronunciation Dictionary**: Carnegie Mellon University.
+    <http://www.speech.cs.cmu.edu/cgi-bin/cmudict>
+
+### Datasets
+
+1. **gilkeyio/librispeech-alignments**: HuggingFace dataset.
+    [Full 960h LibriSpeech with per-phone ARPABET alignments from MFA]
 
 ### Code Repositories
 
-22. **CTC-based-GOP**: github.com/frank613/CTC-based-GOP [Reference GOP-SF impl]
-23. **GOPT**: github.com/YuanGongND/gopt [This repo's origin]
-24. **ZIPA**: github.com/lingjzhu/zipa [ZIPA phone recognizer]
-25. **Multilingual-PR**: github.com/ASR-project/Multilingual-PR
+1. **CTC-based-GOP**: github.com/frank613/CTC-based-GOP [Reference GOP-SF impl]
+2. **GOPT**: github.com/YuanGongND/gopt [This repo's origin]
+3. **ZIPA**: github.com/lingjzhu/zipa [ZIPA phone recognizer]
+4. **icefall**: github.com/k2-fsa/icefall [43 recipes; TIMIT is only phoneme CTC]
+5. **Multilingual-PR**: github.com/ASR-project/Multilingual-PR
     [Comparison of wav2vec2/HuBERT/WavLM for phoneme recognition with CTC]
-26. **IPA-Wav2Vec2**: github.com/Srinath-N-R/IPA-Wav2Vec2-Phoneme-Recognition
+6. **IPA-Wav2Vec2**: github.com/Srinath-N-R/IPA-Wav2Vec2-Phoneme-Recognition
     [End-to-end IPA phoneme recognition pipeline]
-27. **XLSR Phoneme Recognition**: github.com/kosuke-kitahara/xlsr-wav2vec2-phoneme-recognition
+7. **XLSR Phoneme Recognition**: github.com/kosuke-kitahara/xlsr-wav2vec2-phoneme-recognition
     [XLSR-Wav2Vec2 fine-tuned on TIMIT for IPA phoneme recognition]
 
 ---
@@ -813,13 +868,18 @@ and has a complete training pipeline in this repo.
 ## 11. Summary: The Story
 
 **Where we are**: We have a working pronunciation scoring pipeline (GOP-SF) with
-three phoneme backends. The best (xlsr-espeak) achieves PCC 0.320 on
-SpeechOcean762. We identified that ZIPA fails due to character-level vocabulary,
-not acoustic quality.
+three phoneme backends and two downstream scorers. The best combination
+(original wav2vec2 + GOPT transformer) achieves PCC 0.662 on SpeechOcean762,
+exceeding the paper target of 0.648. SVR on feature vectors achieves PCC 0.548.
+Scalar baselines top out at PCC 0.320. We identified that ZIPA fails due to
+character-level vocabulary, not acoustic quality. The 3-phase multiprocessing
+pipeline and feature caching are operational.
 
-**What we're doing**: Replacing the phoneme head with one we control — trained
-on IPA/ARPABET phones at the phoneme level, on top of the best available
-pretrained encoder (w2v-BERT 2.0, 4.5M hrs pretraining).
+**What we're doing next**: Training a phoneme CTC head we control — on top of
+the best available pretrained encoder (w2v-BERT 2.0, 4.5M hrs pretraining),
+using pre-labeled LibriSpeech data (gilkeyio/librispeech-alignments, 960h
+ARPABET). This replaces the xlsr-espeak posteriors with higher-quality ones,
+which should improve both scalar GOP and downstream GOPT scores.
 
 **Why it should work**: Every piece of the pipeline has been demonstrated
 independently. CTC head training is a solved problem with complete tutorials.
