@@ -29,8 +29,10 @@ gilkeyio/librispeech-alignments (960h, pre-labeled by MFA).
 from __future__ import annotations
 
 import argparse
+import itertools
 import json
 import logging
+import math
 import re
 import sys
 from dataclasses import dataclass
@@ -41,7 +43,7 @@ import evaluate
 import mlflow
 import numpy as np
 import torch
-from datasets import Audio, concatenate_datasets, load_dataset
+from datasets import Audio, Dataset, concatenate_datasets, load_dataset
 from transformers import (
     SeamlessM4TFeatureExtractor,
     Trainer,
@@ -184,6 +186,29 @@ def _numeric_metrics(metrics: dict[str, object]) -> dict[str, float]:
     return numeric
 
 
+def _load_split(
+    split_name: str,
+    *,
+    max_samples: int | None = None,
+) -> Dataset:
+    if max_samples and max_samples > 0:
+        logger.info(
+            "  Streaming split: %s (taking first %d samples)",
+            split_name,
+            max_samples,
+        )
+        stream = load_dataset(
+            "gilkeyio/librispeech-alignments",
+            split=split_name,
+            streaming=True,
+        )
+        rows = list(itertools.islice(stream, max_samples))
+        return Dataset.from_list(rows)
+
+    logger.info("  Loading split: %s", split_name)
+    return load_dataset("gilkeyio/librispeech-alignments", split=split_name)
+
+
 def main() -> None:  # noqa: PLR0915
     args = parse_args()
     hub_repo = args.hub_repo or settings.hf_train_repo
@@ -222,23 +247,18 @@ def main() -> None:  # noqa: PLR0915
     logger.info("Loading librispeech-alignments dataset...")
 
     train_splits = []
-    for split_name in args.train_splits:
-        split_spec = split_name
-        if args.max_train_samples:
-            split_spec = f"{split_name}[:{args.max_train_samples}]"
-        logger.info("  Loading split: %s", split_spec)
-        ds = load_dataset(
-            "gilkeyio/librispeech-alignments", split=split_spec
+    per_split_limit: int | None = None
+    if args.max_train_samples:
+        per_split_limit = max(
+            1,
+            math.ceil(args.max_train_samples / max(1, len(args.train_splits))),
         )
+    for split_name in args.train_splits:
+        ds = _load_split(split_name, max_samples=per_split_limit)
         train_splits.append(ds)
     train_ds = concatenate_datasets(train_splits)
 
-    eval_split_spec = args.eval_split
-    if args.max_eval_samples:
-        eval_split_spec = f"{args.eval_split}[:{args.max_eval_samples}]"
-    eval_ds = load_dataset(
-        "gilkeyio/librispeech-alignments", split=eval_split_spec
-    )
+    eval_ds = _load_split(args.eval_split, max_samples=args.max_eval_samples)
 
     if args.max_train_samples:
         train_ds = train_ds.select(range(min(args.max_train_samples, len(train_ds))))
