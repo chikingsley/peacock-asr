@@ -29,6 +29,7 @@ gilkeyio/librispeech-alignments (960h, pre-labeled by MFA).
 from __future__ import annotations
 
 import argparse
+import io
 import itertools
 import json
 import logging
@@ -57,6 +58,8 @@ from peacock_asr.settings import settings
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 logger = logging.getLogger(__name__)
+TARGET_SAMPLE_RATE = 16_000
+HF_DATASET_REPO = "gilkeyio/librispeech-alignments"
 
 # ---------------------------------------------------------------------------
 # Stress stripping: AY1 -> AY, IH0 -> IH, ER2 -> ER
@@ -191,6 +194,8 @@ def _load_split(
     *,
     max_samples: int | None = None,
 ) -> Dataset:
+    hf_cache_dir = settings.data_dir / "hf-datasets"
+    hf_cache_dir.mkdir(parents=True, exist_ok=True)
     if max_samples and max_samples > 0:
         logger.info(
             "  Streaming split: %s (taking first %d samples)",
@@ -198,15 +203,54 @@ def _load_split(
             max_samples,
         )
         stream = load_dataset(
-            "gilkeyio/librispeech-alignments",
+            HF_DATASET_REPO,
             split=split_name,
             streaming=True,
+            cache_dir=str(hf_cache_dir),
         )
+        stream = stream.cast_column("audio", Audio(decode=False))
         rows = list(itertools.islice(stream, max_samples))
         return Dataset.from_list(rows)
 
     logger.info("  Loading split: %s", split_name)
-    return load_dataset("gilkeyio/librispeech-alignments", split=split_name)
+    return load_dataset(
+        HF_DATASET_REPO,
+        split=split_name,
+        cache_dir=str(hf_cache_dir),
+    )
+
+
+def _load_audio_array(audio: dict[str, object]) -> tuple[np.ndarray, int]:
+    import soundfile as sf  # noqa: PLC0415
+
+    if "array" in audio and "sampling_rate" in audio:
+        array = np.asarray(audio["array"], dtype=np.float32)
+        sample_rate = int(audio["sampling_rate"])
+    elif isinstance(audio.get("bytes"), (bytes, bytearray)):
+        array, sample_rate = sf.read(io.BytesIO(audio["bytes"]), dtype="float32")
+    elif isinstance(audio.get("path"), str):
+        array, sample_rate = sf.read(audio["path"], dtype="float32")
+    else:
+        msg = (
+            "Audio payload must contain either decoded 'array' data or raw "
+            "'bytes'/'path' values."
+        )
+        raise ValueError(msg)
+
+    if array.ndim > 1:
+        array = np.mean(array, axis=1)
+    return array.astype(np.float32, copy=False), sample_rate
+
+
+def _resample_audio(array: np.ndarray, sample_rate: int) -> np.ndarray:
+    if sample_rate == TARGET_SAMPLE_RATE:
+        return array.astype(np.float32, copy=False)
+    from scipy.signal import resample_poly  # noqa: PLC0415
+
+    divisor = math.gcd(sample_rate, TARGET_SAMPLE_RATE)
+    up = TARGET_SAMPLE_RATE // divisor
+    down = sample_rate // divisor
+    return resample_poly(array, up, down).astype(np.float32, copy=False)
 
 
 def _freeze_feature_frontend(model: Wav2Vec2BertForCTC) -> None:
@@ -288,17 +332,21 @@ def main() -> None:  # noqa: PLR0915
 
     logger.info("Train: %d examples, Eval: %d examples", len(train_ds), len(eval_ds))
 
-    # --- Resample audio to 16kHz ---
-    train_ds = train_ds.cast_column("audio", Audio(sampling_rate=16_000))
-    eval_ds = eval_ds.cast_column("audio", Audio(sampling_rate=16_000))
+    # Disable datasets audio auto-decoding (torchcodec dependency). We decode with
+    # soundfile in prepare_dataset instead.
+    train_ds = train_ds.cast_column("audio", Audio(decode=False))
+    eval_ds = eval_ds.cast_column("audio", Audio(decode=False))
 
     # --- Preprocessing: extract phone sequences and audio features ---
     def prepare_dataset(batch):
-        audio = batch["audio"]
+        audio_array, sample_rate = _load_audio_array(batch["audio"])
+        if sample_rate != TARGET_SAMPLE_RATE:
+            audio_array = _resample_audio(audio_array, sample_rate)
+            sample_rate = TARGET_SAMPLE_RATE
 
         # Extract audio features
         batch["input_features"] = processor(
-            audio["array"], sampling_rate=audio["sampling_rate"]
+            audio_array, sampling_rate=sample_rate
         ).input_features[0]
         batch["input_length"] = len(batch["input_features"])
 
@@ -346,6 +394,7 @@ def main() -> None:  # noqa: PLR0915
     logger.info("Loading w2v-bert-2.0 with new %d-class CTC head...", len(vocab))
     model = Wav2Vec2BertForCTC.from_pretrained(
         "facebook/w2v-bert-2.0",
+        torch_dtype=torch.float32,
         attention_dropout=0.0,
         hidden_dropout=0.0,
         feat_proj_dropout=0.0,
