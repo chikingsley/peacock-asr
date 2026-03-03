@@ -21,13 +21,13 @@ Citation policy:
 | C1 | Segmentation-free GOP from CTC posteriors is the core scoring method and performs strongly on Speechocean762/CMU Kids. | Supported | [1] |
 | C2 | GOP-SF feature vectors (LPP/LPR/etc.) are suitable as downstream model inputs. | Supported | [1] |
 | C3 | Restricting substitutions/confusions is a viable GOP enhancement direction. | Supported | [3] |
-| C4 | Logit-based GOP variants can outperform probability-only GOP for assessment tasks. | Supported | [4] |
+| C4 | Logit-based GOP variants can outperform probability-only GOP for assessment tasks. | Partially supported (mixture variant only) | [4], [15] |
 | C5 | A GOPT-style transformer scorer is a strong downstream baseline for pronunciation scoring. | Supported | [2], [13], [14] |
 | C6 | SSL + CTC fine-tuning is a valid route for pronunciation assessment features. | Supported | [5] |
 | C7 | SpeechOcean762 is a valid benchmark dataset and should be used as central eval set. | Supported | [6] |
 | C8 | Modern multilingual phone recognizers (ZIPA/POWSM/PRiSM context) support phone-centric modeling direction. | Supported | [7], [8], [9] |
 | C9 | Character-level IPA vocab mismatches can harm ARPABET-targeted scoring pipelines. | Partially supported (needs explicit experiment citation in Methods/Results) | [7], [13], [14] |
-| C10 | Our current repo-level benchmark numbers (e.g., GOPT PCC 0.662) are reproducible internal evidence. | Supported (internal evidence, not literature) | [13], [14] |
+| C10 | Our current repo-level benchmark numbers (e.g., GOPT PCC 0.662) are reproducible internal evidence. | Supported (internal evidence, not literature) | [13], [14], [15] |
 
 Notes:
 - `C9` is strong internally but should cite a specific experiment artifact in the future paper’s Results section.
@@ -41,6 +41,15 @@ These are not external papers; they are reproducibility anchors for our own clai
 - Run logs for current GOPT experiments:
   - `/home/simon/github/peacock-asr/runs/2026-03-02_mlflow_batch/original_gopt.log`
   - `/home/simon/github/peacock-asr/runs/2026-03-02_mlflow_batch/xlsr-espeak_gopt.log`
+- Phase-1 baseline batch artifacts:
+  - `/home/simon/github/peacock-asr/runs/2026-03-03_001037_track05_phase1_baseline/summary.tsv`
+  - `/home/simon/github/peacock-asr/runs/2026-03-03_001037_track05_phase1_baseline/aggregates.tsv`
+- Phase-2 scalar logit batch artifacts:
+  - `/home/simon/github/peacock-asr/runs/2026-03-03_045426_track05_phase2_logit_scalar/summary.tsv`
+  - `/home/simon/github/peacock-asr/runs/2026-03-03_045426_track05_phase2_logit_scalar/aggregates.tsv`
+- Phase-2b dense alpha sweep artifacts:
+  - `/home/simon/github/peacock-asr/runs/2026-03-03_080157_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/alpha_sweep.tsv`
+  - `/home/simon/github/peacock-asr/runs/2026-03-03_080157_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/alpha_sweep_meta.json`
 - 05_ source narrative:
   - `/home/simon/github/peacock-asr/docs/research/05_PHONEME_HEADS.md`
 - GOP implementation used in repo:
@@ -49,6 +58,19 @@ These are not external papers; they are reproducibility anchors for our own clai
 Recommendation for paper rewrite:
 - Treat these as `Method implementation evidence` and `Experimental evidence`.
 - Keep them separate from bibliography citations.
+
+Phase-2 scalar logit ablation snapshot (2026-03-03):
+- `B1 gop_sf`: PCC `0.3195`, MSE `0.6655`
+- `B2 logit_margin`: PCC `0.1849`, MSE `0.8177`
+- `B3 logit_combined a=0.25`: PCC `0.3452`, MSE `0.5981`
+- `B4 logit_combined a=0.50`: PCC `0.3222`, MSE `0.6322`
+- `B5 logit_combined a=0.75`: PCC `0.2664`, MSE `0.7131`
+
+Interpretation note:
+- In this stack, pure `logit_margin` underperforms baseline scalar GOP-SF.
+- A low-weight mixture (`a=0.25`) improves over baseline.
+- Dense sweep (`a=0.00..1.00`, step `0.05`) confirms the best point at
+  `a=0.25` with PCC `0.3452` and MSE `0.5981`.
 
 ---
 
@@ -121,6 +143,14 @@ Local PDF: [2002.11800_universal_phone_recognition_multilingual_allophone_system
 
 [14] `05_PHONEME_HEADS.md` tracked benchmark statement:  
 `/home/simon/github/peacock-asr/docs/research/05_PHONEME_HEADS.md`
+
+[15] Track05 reproducible batch tables (2026-03-03):  
+`/home/simon/github/peacock-asr/runs/2026-03-03_001037_track05_phase1_baseline/summary.tsv`  
+`/home/simon/github/peacock-asr/runs/2026-03-03_001037_track05_phase1_baseline/aggregates.tsv`  
+`/home/simon/github/peacock-asr/runs/2026-03-03_045426_track05_phase2_logit_scalar/summary.tsv`  
+`/home/simon/github/peacock-asr/runs/2026-03-03_045426_track05_phase2_logit_scalar/aggregates.tsv`  
+`/home/simon/github/peacock-asr/runs/2026-03-03_080157_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/alpha_sweep.tsv`  
+`/home/simon/github/peacock-asr/runs/2026-03-03_080157_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/alpha_sweep_meta.json`
 
 ---
 

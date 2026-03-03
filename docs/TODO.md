@@ -4,6 +4,12 @@ Best single PCC: **0.6900** | Stochastic mean: **0.6704 ± 0.0121** (xlsr-espeak
 
 ## Next
 
+- [ ] Track05 closeout: generate missing `original` backend scalar variant caches
+      (`gop_sf`, `logit_margin`) under `.cache/features/original__checkpoint-8000_/`
+- [ ] Track05 closeout: run `sweep-alpha` on `original` backend and append results to
+      `docs/EXPERIMENTS.md` + `docs/research/track05_paper/*`
+- [ ] Track05 claim lock: decide final statement after `original` sweep
+      (`scorer variant gain` vs `stack-specific/noise-limited`)
 - [x] Pull LibriSpeech alignments subset (`train_clean_100`, `dev_clean`, `test_clean`)
       to `/home/simon/github/peacock-asr/.cache/data/librispeech-alignments`
 - [x] Compare: original vs xlsr-espeak backends with GOPT (fast now with caching)

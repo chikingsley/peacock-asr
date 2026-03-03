@@ -15,9 +15,11 @@ PCC improves from 0.3195 (scalar+poly) to 0.5747 (SVR+features), and to
 0.6774 mean PCC with GOPT over five seeds (std 0.0127), with corresponding MSE
 drop from 0.6655 to 0.0729. These results indicate that, in this stack, most
 performance gain comes from richer GOP representations and contextual
-downstream scoring rather than from changing the upstream posterior model.
-This draft is intentionally scoped as a reproducible systems-and-ablation study
-built on segmentation-free GOP, not as a new GOP objective.
+downstream scoring rather than from changing the upstream posterior model. In a
+Phase-2 scalar logit ablation, pure `logit_margin` underperforms baseline
+(PCC 0.1849), while a mixed score `logit_combined` with alpha 0.25 improves to
+PCC 0.3452, indicating limited but real upside from score mixing in the scalar
+regime.
 
 ## 1. Introduction
 
@@ -42,6 +44,7 @@ Contributions:
 - A reproducible Track-05 scoring-layer benchmark protocol on SpeechOcean762.
 - A controlled ablation of scalar GOP, feature-vector GOP+SVR, and feature-vector GOP+GOPT.
 - Empirical evidence that feature richness plus contextual scoring dominates scalar GOP in this setup.
+- A scalar logit-variant ablation showing mixture sensitivity and a best point at low alpha.
 
 ## 2. Related Work
 
@@ -122,6 +125,24 @@ We compare three heads:
 - Model: phone-level transformer (embed=24, heads=1, depth=3, seq_len=50),
   trained with masked MSE for 100 epochs.
 
+### 3.4 Scalar Score Variants (Phase 2)
+
+For scalar-only experiments we evaluate three score variants:
+
+1. `gop_sf`:
+- Baseline scalar GOP-SF score from CTC forward/denominator computation.
+
+2. `logit_margin`:
+- Per-phone frame-weighted margin proxy:
+`log p(target) - max log p(other)`, weighted by target posterior.
+
+3. `logit_combined`:
+- Convex mixture of margin and baseline:
+`score = alpha * logit_margin + (1 - alpha) * gop_sf`.
+- We sweep `alpha in {0.25, 0.50, 0.75}`.
+- We also run a dense cached sweep `alpha in {0.00, 0.05, ..., 1.00}` to
+  localize the scalar optimum without recomputing posteriors.
+
 ## 4. Experimental Setup
 
 ### 4.1 Dataset and Splits
@@ -135,24 +156,34 @@ All reported runs evaluate on the full test split.
 Primary metric is Pearson correlation coefficient (PCC) between predicted and
 human phone-level scores. We report 95% confidence intervals from SciPy
 `pearsonr(...).confidence_interval(...)`. Secondary metric is MSE.
-Each completed run in Phase-1 evaluates on 46,314 phones.
+Each completed run in Phase-1 and Phase-2 evaluates on 46,314 phones.
 
 ### 4.3 Reproducibility
 
-We run a fixed Phase-1 batch config:
-`runs/track05_phase1_baseline.yaml`.
+We run two fixed batch configs:
+- Phase 1: `runs/track05_phase1_baseline.yaml`
+- Phase 2: `runs/track05_phase2_logit_scalar.yaml`
 
-Jobs:
-- `A1`: `scalar` (1 run).
-- `A2`: `feats` (1 run).
-- `A3`: `gopt` (5 runs; seeds 501-505).
+Phase-1 jobs:
+- `A1`: `scalar` (1 run)
+- `A2`: `feats` (1 run)
+- `A3`: `gopt` (5 runs; seeds 501-505)
 
-Execution command:
-`uv run peacock-asr batch --config runs/track05_phase1_baseline.yaml --output-dir runs`
+Phase-2 jobs:
+- `B1`: `scalar`, `score_variant=gop_sf`
+- `B2`: `scalar`, `score_variant=logit_margin`
+- `B3`: `scalar`, `score_variant=logit_combined`, `alpha=0.25`
+- `B4`: `scalar`, `score_variant=logit_combined`, `alpha=0.50`
+- `B5`: `scalar`, `score_variant=logit_combined`, `alpha=0.75`
+
+Execution commands:
+- `uv run peacock-asr batch --config runs/track05_phase1_baseline.yaml --output-dir runs`
+- `MLFLOW_TRACKING_URI=https://mlflow.peacockery.studio MLFLOW_EXPERIMENT_NAME=peacock-asr-track05 uv run peacock-asr batch --config runs/track05_phase2_logit_scalar.yaml --output-dir runs`
 
 Artifacts:
-- `runs/2026-03-03_001037_track05_phase1_baseline/summary.tsv`
-- `runs/2026-03-03_001037_track05_phase1_baseline/aggregates.tsv`
+- `runs/2026-03-03_001037_track05_phase1_baseline/{summary.tsv,aggregates.tsv}`
+- `runs/2026-03-03_045426_track05_phase2_logit_scalar/{summary.tsv,aggregates.tsv}`
+- `runs/2026-03-03_080157_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/{alpha_sweep.tsv,alpha_sweep_meta.json}`
 
 ## 5. Results
 
@@ -174,13 +205,31 @@ Artifacts:
 | 504 | 0.6820 | [0.6771, 0.6868] | 0.0721 |
 | 505 | 0.6653 | [0.6602, 0.6704] | 0.0751 |
 
-### 5.3 Findings
+### 5.3 Scalar Logit Variant Ablation (Phase 2)
+
+| ID | Variant | Alpha | PCC | 95% CI | MSE |
+|---|---|---:|---:|---|---:|
+| B1 | gop_sf | 0.50 | 0.3195 | [0.3113, 0.3277] | 0.6655 |
+| B2 | logit_margin | 0.50 | 0.1849 | [0.1761, 0.1937] | 0.8177 |
+| B3 | logit_combined | 0.25 | 0.3452 | [0.3372, 0.3532] | 0.5981 |
+| B4 | logit_combined | 0.50 | 0.3222 | [0.3140, 0.3304] | 0.6322 |
+| B5 | logit_combined | 0.75 | 0.2664 | [0.2579, 0.2748] | 0.7131 |
+
+Dense cached alpha sweep (`0.00..1.00`, step `0.05`) confirms the same optimum
+at `alpha=0.25` (PCC `0.3452`, MSE `0.5981`). Relative to baseline scalar
+GOP-SF (`alpha=0.00`), this is `+0.0257` PCC and `-0.0674` MSE.
+
+### 5.4 Findings
 
 - Moving from scalar GOP to feature-vector GOP with SVR increases PCC from
   `0.3195 -> 0.5747` (+0.2552 absolute).
 - Replacing SVR with GOPT on the same feature family yields
   `0.5747 -> 0.6774` (+0.1027 mean absolute).
 - Relative to scalar baseline, GOPT mean PCC is ~112% higher.
+- In scalar-only score variants, pure `logit_margin` degrades strongly
+  (`0.3195 -> 0.1849`), while `logit_combined` at `alpha=0.25` improves
+  baseline (`0.3195 -> 0.3452`, +0.0257 absolute).
+- Increasing alpha beyond 0.25 reduces PCC (`0.3222` at 0.50, `0.2664` at 0.75).
 
 In this constrained experiment, downstream representation/scorer choice is the
 dominant factor.
@@ -195,7 +244,8 @@ downstream scoring capacity can dominate once posterior quality is adequate.
 Scope boundaries:
 - This is not evidence that backend quality is unimportant.
 - This does not establish cross-dataset or cross-language generalization.
-- This draft does not yet test algorithmic GOP variants (logit/constrained).
+- We tested only lightweight scalar logit variants, not constrained-substitution
+  or full DP-level GOP changes.
 
 ## 7. Limitations and Threats to Validity
 
@@ -211,21 +261,24 @@ Scope boundaries:
 This paper presents a narrow, reproducible ablation of scoring-layer design in
 a segmentation-free GOP pipeline. Under a frozen backend and fixed protocol,
 feature-vector GOP plus contextual GOPT scoring substantially outperforms
-scalar GOP baselines. The immediate next step is to add algorithmic GOP
-variants (e.g., logit-based and constrained substitutions) under the same
-evaluation contract to test whether further gains come from the GOP objective
-itself or mostly from downstream modeling.
+scalar GOP baselines. Scalar logit variants show that a small-margin mixture can
+improve baseline scalar performance, but pure margin scoring hurts substantially
+in this setup. The immediate next step is to test constrained-substitution and
+DP-level GOP variants under the same evaluation contract.
 
 ## Reproducibility Appendix (Draft)
 
 Run folder:
 - `runs/2026-03-03_001037_track05_phase1_baseline/`
+- `runs/2026-03-03_045426_track05_phase2_logit_scalar/`
+- `runs/2026-03-03_080157_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/`
 
 Primary artifacts:
 - `batch_spec.yaml`
 - `summary.tsv`
 - `aggregates.tsv`
 - per-run logs (`a1_scalar_r1.log`, `a2_feats_r1.log`, `a3_gopt_r1..r5.log`)
+- per-run logs (`b1_scalar_gopsf_r1.log` ... `b5_scalar_logit_combined_a075_r1.log`)
 
 ## Bibliography
 

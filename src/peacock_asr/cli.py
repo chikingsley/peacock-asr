@@ -902,6 +902,215 @@ def _print_results(
             print(f"  {phone:4s}  {pcc:.4f}")  # noqa: T201
 
 
+def _parse_alpha_values(
+    *,
+    alphas_arg: str | None,
+    start: float,
+    stop: float,
+    step: float,
+) -> list[float]:
+    if alphas_arg:
+        alphas: list[float] = []
+        for token in alphas_arg.split(","):
+            value = float(token.strip())
+            if not (0.0 <= value <= 1.0):
+                msg = f"alpha value out of range [0, 1]: {value}"
+                raise ValueError(msg)
+            alphas.append(value)
+        if len(alphas) == 0:
+            msg = "--alphas did not contain any values"
+            raise ValueError(msg)
+        return sorted(set(alphas))
+
+    if step <= 0.0:
+        msg = "alpha step must be > 0"
+        raise ValueError(msg)
+    if start > stop:
+        msg = "alpha start must be <= alpha stop"
+        raise ValueError(msg)
+    if not (0.0 <= start <= 1.0 and 0.0 <= stop <= 1.0):
+        msg = "alpha range must be within [0, 1]"
+        raise ValueError(msg)
+
+    alphas = []
+    current = start
+    epsilon = 1e-12
+    while current <= stop + epsilon:
+        alphas.append(round(current, 10))
+        current += step
+    return alphas
+
+
+def _mix_scalar_results(
+    *,
+    base: list[tuple[str, float, float]],
+    margin: list[tuple[str, float, float]],
+    alpha: float,
+) -> list[tuple[str, float, float]]:
+    if len(base) != len(margin):
+        msg = (
+            "Cache mismatch: baseline and margin scalar result lengths differ "
+            f"({len(base)} vs {len(margin)})."
+        )
+        raise ValueError(msg)
+
+    out: list[tuple[str, float, float]] = []
+    label_tolerance = 1e-6
+    for index, (b_row, m_row) in enumerate(zip(base, margin, strict=True)):
+        b_phone, b_score, b_label = b_row
+        m_phone, m_score, m_label = m_row
+        if b_phone != m_phone:
+            msg = (
+                "Cache mismatch: phone order differs at index "
+                f"{index}: {b_phone} != {m_phone}"
+            )
+            raise ValueError(msg)
+        if abs(b_label - m_label) > label_tolerance:
+            msg = (
+                "Cache mismatch: human label differs at index "
+                f"{index}: {b_label} != {m_label}"
+            )
+            raise ValueError(msg)
+        mixed_score = (1.0 - alpha) * b_score + alpha * m_score
+        out.append((b_phone, float(mixed_score), b_label))
+    return out
+
+
+def cmd_sweep_alpha(args: argparse.Namespace) -> None:  # noqa: PLR0915
+    """Fast scalar alpha sweep from cached GOP-SF and logit-margin scores."""
+    from peacock_asr.backends import get_backend  # noqa: PLC0415
+    from peacock_asr.dataset import DATASET_REVISION  # noqa: PLC0415
+    from peacock_asr.evaluate import evaluate_gop  # noqa: PLC0415
+    from peacock_asr.settings import settings  # noqa: PLC0415
+
+    backend_input = args.backend
+    try:
+        backend_name = get_backend(backend_input)().name
+    except Exception:  # noqa: BLE001
+        backend_name = backend_input
+    source_alpha = float(args.source_alpha)
+    if not (0.0 <= source_alpha <= 1.0):
+        msg = "source_alpha must be in [0, 1]"
+        raise ValueError(msg)
+
+    alphas = _parse_alpha_values(
+        alphas_arg=args.alphas,
+        start=float(args.alpha_start),
+        stop=float(args.alpha_stop),
+        step=float(args.alpha_step),
+    )
+
+    def _load_scalar_or_fail(
+        split: str,
+        variant: ScoreVariant,
+    ) -> list[tuple[str, float, float]]:
+        path = _cache_path(
+            settings.features_dir,
+            backend_name,
+            split,
+            variant,
+            source_alpha,
+        )
+        cached = _load_cache(
+            path,
+            backend_name,
+            DATASET_REVISION,
+            extract_features=False,
+        )
+        if cached is None:
+            msg = (
+                "Missing compatible scalar cache for "
+                f"backend={backend_name} split={split} variant={variant} "
+                f"alpha={source_alpha:.4f}. Expected cache at: {path}"
+            )
+            raise FileNotFoundError(msg)
+        return cached[0]
+
+    train_gop = _load_scalar_or_fail("train", "gop_sf")
+    test_gop = _load_scalar_or_fail("test", "gop_sf")
+    train_margin = _load_scalar_or_fail("train", "logit_margin")
+    test_margin = _load_scalar_or_fail("test", "logit_margin")
+
+    stamp = datetime.now(tz=UTC).strftime("%Y-%m-%d_%H%M%S")
+    run_dir = Path(args.output_dir) / f"{stamp}_alpha_sweep_{_safe_slug(backend_name)}"
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    rows: list[dict[str, str]] = []
+    best_alpha = None
+    best_result = None
+
+    for alpha in alphas:
+        train_mix = _mix_scalar_results(
+            base=train_gop,
+            margin=train_margin,
+            alpha=alpha,
+        )
+        test_mix = _mix_scalar_results(
+            base=test_gop,
+            margin=test_margin,
+            alpha=alpha,
+        )
+        result = evaluate_gop(train_mix, test_mix)
+        logger.info(
+            "[sweep-alpha] alpha=%.4f pcc=%.4f mse=%.4f n_phones=%d",
+            alpha,
+            result.pcc,
+            result.mse,
+            result.n_phones,
+        )
+        rows.append(
+            {
+                "alpha": f"{alpha:.4f}",
+                "pcc": f"{result.pcc:.4f}",
+                "pcc_low": f"{result.pcc_low:.4f}",
+                "pcc_high": f"{result.pcc_high:.4f}",
+                "mse": f"{result.mse:.4f}",
+                "n_phones": str(result.n_phones),
+            },
+        )
+        if best_result is None or result.pcc > best_result.pcc:
+            best_alpha = alpha
+            best_result = result
+
+    summary_path = run_dir / "alpha_sweep.tsv"
+    with summary_path.open("w", encoding="utf-8", newline="") as file:
+        writer = csv.DictWriter(
+            file,
+            fieldnames=["alpha", "pcc", "pcc_low", "pcc_high", "mse", "n_phones"],
+            delimiter="\t",
+        )
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+
+    metadata = {
+        "backend": backend_name,
+        "source_alpha": source_alpha,
+        "alphas": alphas,
+        "cache_root": str(settings.features_dir),
+        "summary_path": str(summary_path),
+        "best_alpha": best_alpha,
+        "best_pcc": None if best_result is None else best_result.pcc,
+        "best_mse": None if best_result is None else best_result.mse,
+    }
+    metadata_path = run_dir / "alpha_sweep_meta.json"
+    metadata_path.write_text(
+        json.dumps(metadata, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
+
+    if best_result is None or best_alpha is None:
+        msg = "Alpha sweep produced no results."
+        raise RuntimeError(msg)
+
+    print(f"Run dir: {run_dir}")  # noqa: T201
+    print(f"Summary: {summary_path}")  # noqa: T201
+    print(  # noqa: T201
+        "Best alpha: "
+        f"{best_alpha:.4f}  PCC={best_result.pcc:.4f}  MSE={best_result.mse:.4f}",
+    )
+
+
 def cmd_compare(args: argparse.Namespace) -> None:
     """Run all available backends and compare."""
     from peacock_asr.backends import BACKEND_REGISTRY  # noqa: PLC0415
@@ -1418,6 +1627,57 @@ def main() -> None:  # noqa: PLR0915
         help="Default score alpha for jobs (default: 0.5)",
     )
 
+    sweep_p = sub.add_parser(
+        "sweep-alpha",
+        help="Fast scalar alpha sweep from cached gop_sf/logit_margin scores",
+    )
+    sweep_p.add_argument(
+        "--backend",
+        "-b",
+        required=True,
+        help="Backend cache name to sweep (e.g., xlsr-espeak (wav2vec2-...))",
+    )
+    sweep_p.add_argument(
+        "--output-dir",
+        default="runs",
+        help="Directory where sweep run folders are written (default: runs)",
+    )
+    sweep_p.add_argument(
+        "--source-alpha",
+        type=float,
+        default=0.5,
+        help=(
+            "Alpha used when reading source gop_sf/logit_margin caches "
+            "(default: 0.5)."
+        ),
+    )
+    sweep_p.add_argument(
+        "--alphas",
+        default=None,
+        help=(
+            "Optional comma-separated alpha values, e.g. 0,0.1,0.2. "
+            "If provided, start/stop/step are ignored."
+        ),
+    )
+    sweep_p.add_argument(
+        "--alpha-start",
+        type=float,
+        default=0.0,
+        help="Grid start alpha in [0, 1] when --alphas is not provided.",
+    )
+    sweep_p.add_argument(
+        "--alpha-stop",
+        type=float,
+        default=1.0,
+        help="Grid stop alpha in [0, 1] when --alphas is not provided.",
+    )
+    sweep_p.add_argument(
+        "--alpha-step",
+        type=float,
+        default=0.05,
+        help="Grid step for alpha when --alphas is not provided.",
+    )
+
     sub.add_parser(
         "train-preflight",
         help="Run fixed preflight training profile (tiny smoke run)",
@@ -1493,6 +1753,8 @@ def main() -> None:  # noqa: PLR0915
             cmd_compare(args)
         case "batch":
             cmd_batch(args)
+        case "sweep-alpha":
+            cmd_sweep_alpha(args)
         case "train-preflight":
             cmd_train_preflight(args)
         case "train-main":

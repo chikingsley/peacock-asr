@@ -10,6 +10,38 @@ Paper target: PCC = 0.648 (GOPT transformer on feature vectors).
 
 ---
 
+### Run 12 — 2026-03-03: Track05 scalar logit ablation + dense alpha sweep (xlsr-espeak)
+
+- **Changed**:
+  - Completed Track05 Phase-2 scalar jobs (`B1..B5`) on frozen backend
+    `xlsr-espeak`.
+  - Added and ran cached dense alpha sweep over scalar mixing:
+    `score = (1 - alpha) * gop_sf + alpha * logit_margin`,
+    `alpha=0.00..1.00` step `0.05`.
+- **Batch artifact**:
+  - `runs/2026-03-03_045426_track05_phase2_logit_scalar/summary.tsv`
+- **Dense sweep artifact**:
+  - `runs/2026-03-03_080157_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/alpha_sweep.tsv`
+- **Phase-2 points (`B1..B5`)**:
+
+| ID | Variant | Alpha | PCC | MSE |
+|----|---------|------:|----:|----:|
+| B1 | gop_sf | 0.50 (config; ignored) | 0.3195 | 0.6655 |
+| B2 | logit_margin | 0.50 (config; ignored) | 0.1849 | 0.8177 |
+| B3 | logit_combined | 0.25 | **0.3452** | **0.5981** |
+| B4 | logit_combined | 0.50 | 0.3222 | 0.6322 |
+| B5 | logit_combined | 0.75 | 0.2664 | 0.7131 |
+
+- **Dense sweep best point**:
+  - Best alpha = `0.25`, PCC = `0.3452`, MSE = `0.5981`.
+  - Delta vs baseline (`alpha=0.00`, GOP-SF): `+0.0257 PCC`, `-0.0674 MSE`.
+  - Delta vs pure margin (`alpha=1.00`): `+0.1603 PCC`, `-0.2196 MSE`.
+- **Takeaway**:
+  - In scalar-only mode, pure `logit_margin` is clearly worse than GOP-SF.
+  - A low-weight mixture (`alpha≈0.25`) is the best scalar variant on this stack.
+
+---
+
 ### Run 11 — 2026-03-02: Stochastic repeats (5x per backend, GOPT)
 
 - **Changed**: Ran 5 full-dataset GOPT repeats for each top backend using cache:
