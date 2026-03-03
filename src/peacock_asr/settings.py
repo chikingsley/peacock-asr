@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from pydantic import Field
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings
 
 if TYPE_CHECKING:
@@ -35,6 +35,17 @@ class Settings(BaseSettings):
     ctc_feature_backend: str = "batched"  # "batched" (GPU) or "loop" (serial)
     num_workers: int = 1
     device: str = "auto"
+    hf_checkpoint_repo: str | None = None
+    hf_checkpoint_upload: bool = False
+    hf_checkpoint_repo_subdir: str = "runs"
+    hf_token: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "HF_TOKEN",
+            "HUGGINGFACE_HUB_TOKEN",
+            "PEACOCK_ASR_HF_TOKEN",
+        ),
+    )
 
     @property
     def torch_device(self) -> torch.device:
@@ -62,6 +73,12 @@ class Settings(BaseSettings):
     @property
     def features_dir(self) -> Path:
         d = self.cache_dir / "features"
+        d.mkdir(parents=True, exist_ok=True)
+        return d
+
+    @property
+    def checkpoints_dir(self) -> Path:
+        d = self.cache_dir / "checkpoints"
         d.mkdir(parents=True, exist_ok=True)
         return d
 

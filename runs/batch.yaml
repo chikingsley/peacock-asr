@@ -1,0 +1,16 @@
+name: gopt_stochastic_compare
+defaults:
+  limit: 0
+  no_cache: false
+  workers: 0
+jobs:
+  - id: original_gopt
+    backend: original
+    mode: gopt
+    repeats: 5
+    seeds: [101, 102, 103, 104, 105]
+  - id: xlsr_espeak_gopt
+    backend: xlsr-espeak
+    mode: gopt
+    repeats: 5
+    seeds: [201, 202, 203, 204, 205]

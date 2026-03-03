@@ -3,20 +3,34 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import logging
 import os
 import re
 import sys
 import tempfile
+import traceback
+from contextlib import (
+    AbstractContextManager,
+    nullcontext,
+    redirect_stderr,
+    redirect_stdout,
+)
+from datetime import UTC, datetime
 from pathlib import Path
+from statistics import mean, stdev
+from time import perf_counter
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     import numpy as np
     import torch
 
     from peacock_asr.backends.base import PhonemeBackend
+    from peacock_asr.batch_config import BatchResolvedJob
     from peacock_asr.dataset import Utterance
     from peacock_asr.evaluate import EvalResult
     from peacock_asr.gop import GOPResult, ScalarGOPResult
@@ -287,6 +301,87 @@ def _get_run_mode(*, use_gopt: bool, use_feats: bool) -> str:
     return "scalar"
 
 
+def _safe_slug(value: str) -> str:
+    return re.sub(r"[^\w\-.]", "_", value).strip("_") or "run"
+
+
+def _prepare_gopt_checkpoint_dir(
+    *,
+    checkpoints_root: Path,
+    backend_name: str,
+    seed: int | None,
+) -> Path:
+    stamp = datetime.now(tz=UTC).strftime("%Y-%m-%d_%H%M%S")
+    backend_slug = _safe_slug(backend_name)
+    seed_slug = f"seed{seed}" if seed is not None else "seednone"
+    run_dir = checkpoints_root / f"{stamp}_{backend_slug}_{seed_slug}"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    return run_dir
+
+
+def _write_checkpoint_run_info(
+    *,
+    checkpoint_dir: Path,
+    backend_name: str,
+    mode: str,
+    seed: int | None,
+    eval_result: EvalResult,
+    training_history: list[dict[str, float]] | None,
+) -> None:
+    payload = {
+        "backend": backend_name,
+        "mode": mode,
+        "seed": seed,
+        "metrics": {
+            "pcc": eval_result.pcc,
+            "pcc_low": eval_result.pcc_low,
+            "pcc_high": eval_result.pcc_high,
+            "mse": eval_result.mse,
+            "n_phones": eval_result.n_phones,
+        },
+        "training_history": training_history,
+    }
+    run_info_path = checkpoint_dir / "run_info.json"
+    run_info_path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True),
+        encoding="utf-8",
+    )
+
+
+def _maybe_upload_checkpoint_to_hf(checkpoint_dir: Path) -> None:
+    from peacock_asr.hf_checkpoints import upload_checkpoint_folder  # noqa: PLC0415
+    from peacock_asr.settings import settings  # noqa: PLC0415
+
+    if not settings.hf_checkpoint_upload:
+        return
+    repo_id = settings.hf_checkpoint_repo
+    if repo_id is None or repo_id.strip() == "":
+        logger.warning(
+            "HF checkpoint upload enabled but PEACOCK_ASR_HF_CHECKPOINT_REPO is unset."
+        )
+        return
+
+    subdir = settings.hf_checkpoint_repo_subdir.strip("/")
+    path_in_repo = f"{subdir}/{checkpoint_dir.name}" if subdir else checkpoint_dir.name
+    try:
+        upload_info = upload_checkpoint_folder(
+            folder_path=checkpoint_dir,
+            repo_id=repo_id,
+            path_in_repo=path_in_repo,
+            token=settings.hf_token,
+            private_repo=True,
+        )
+    except Exception:
+        logger.exception("Failed to upload checkpoint folder to HF Hub.")
+    else:
+        logger.info(
+            "Uploaded checkpoint folder to HF Hub: repo=%s path=%s (%s)",
+            repo_id,
+            path_in_repo,
+            upload_info,
+        )
+
+
 def _log_to_mlflow(  # noqa: PLR0913
     *,
     eval_name: str,
@@ -303,6 +398,9 @@ def _log_to_mlflow(  # noqa: PLR0913
     train_phones: int,
     test_phones: int,
     eval_result: EvalResult,
+    seed: int | None = None,
+    training_history: list[dict[str, float]] | None = None,
+    reuse_active_run: bool = False,
 ) -> None:
     tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
     if not tracking_uri:
@@ -331,8 +429,9 @@ def _log_to_mlflow(  # noqa: PLR0913
     set_experiment(experiment_name)
 
     run_name = f"{backend_name}-{mode}"
+    run_context = nullcontext() if reuse_active_run else start_run(run_name=run_name)
     try:
-        with start_run(run_name=run_name):
+        with run_context:
             set_tags(
                 {
                     "project": "peacock-asr",
@@ -357,6 +456,9 @@ def _log_to_mlflow(  # noqa: PLR0913
                     "test_phones": test_phones,
                 },
             )
+            if seed is not None:
+                log_param = {"seed": seed}
+                log_params(log_param)
             log_metrics(
                 {
                     "pcc": float(eval_result.pcc),
@@ -369,6 +471,17 @@ def _log_to_mlflow(  # noqa: PLR0913
 
             for phone, pcc in sorted(eval_result.per_phone_pcc.items()):
                 log_metric(f"per_phone_pcc.{phone}", float(pcc))
+
+            if training_history is not None:
+                for point in training_history:
+                    step = int(point["epoch"])
+                    log_metric("train_loss", point["loss"], step=step)
+                    log_metric("train_lr", point["lr"], step=step)
+                    log_metric(
+                        "train_epoch_time_sec",
+                        point["epoch_time_sec"],
+                        step=step,
+                    )
 
             report = {
                 "backend": backend_name,
@@ -403,7 +516,68 @@ def _log_to_mlflow(  # noqa: PLR0913
         )
 
 
-def cmd_run(args: argparse.Namespace) -> None:
+def _setup_live_mlflow_run(
+    *,
+    tracking_uri: str | None,
+    experiment_name: str,
+    run_name: str,
+) -> tuple[
+    AbstractContextManager[object],
+    bool,
+    Callable[[int, int, float, float, float], None] | None,
+]:
+    live_mlflow_enabled = False
+    live_epoch_elapsed_sec = 0.0
+    on_gopt_epoch: Callable[[int, int, float, float, float], None] | None = None
+    run_context: AbstractContextManager[object] = nullcontext()
+
+    if not tracking_uri:
+        return run_context, live_mlflow_enabled, on_gopt_epoch
+
+    try:
+        from mlflow.tracking import fluent, set_tracking_uri  # noqa: PLC0415
+    except ImportError:
+        logger.warning(
+            "MLFLOW_TRACKING_URI is set but mlflow is not installed. "
+            "Install with: uv add mlflow",
+        )
+        return run_context, live_mlflow_enabled, on_gopt_epoch
+
+    mlflow_log_metric = fluent.log_metric
+    set_experiment = fluent.set_experiment
+    start_run = fluent.start_run
+
+    set_tracking_uri(tracking_uri)
+    set_experiment(experiment_name)
+    run_context = start_run(run_name=run_name)
+    live_mlflow_enabled = True
+
+    def _on_gopt_epoch(
+        epoch: int,
+        total_epochs: int,
+        loss: float,
+        lr: float,
+        epoch_time_sec: float,
+    ) -> None:
+        nonlocal live_epoch_elapsed_sec
+        live_epoch_elapsed_sec += epoch_time_sec
+        avg_epoch_sec = live_epoch_elapsed_sec / max(epoch, 1)
+        eta_sec = max(total_epochs - epoch, 0) * avg_epoch_sec
+
+        mlflow_log_metric("train_loss", loss, step=epoch)
+        mlflow_log_metric("train_lr", lr, step=epoch)
+        mlflow_log_metric("train_epoch_time_sec", epoch_time_sec, step=epoch)
+        mlflow_log_metric(
+            "train_elapsed_sec", live_epoch_elapsed_sec, step=epoch,
+        )
+        mlflow_log_metric("train_eta_sec", eta_sec, step=epoch)
+        mlflow_log_metric("train_epoch", float(epoch), step=epoch)
+
+    on_gopt_epoch = _on_gopt_epoch
+    return run_context, live_mlflow_enabled, on_gopt_epoch
+
+
+def cmd_run(args: argparse.Namespace) -> tuple[str, EvalResult]:
     """Run GOP-SF with a specified backend and evaluate."""
     from peacock_asr.backends import get_backend  # noqa: PLC0415
     from peacock_asr.dataset import (  # noqa: PLC0415
@@ -470,35 +644,71 @@ def cmd_run(args: argparse.Namespace) -> None:
     train_scalar, train_utts = results["train"]
     test_scalar, test_utts = results["test"]
 
-    eval_name, eval_result = _run_evaluation(
-        use_gopt=use_gopt,
-        use_feats=use_feats,
-        backend_name=backend.name,
-        feat_dim=len(backend.vocab) + 2,
-        device=device,
-        train_scalar=train_scalar,
-        test_scalar=test_scalar,
-        train_utts=train_utts,
-        test_utts=test_utts,
-        verbose=args.verbose,
+    mode_name = _get_run_mode(use_gopt=use_gopt, use_feats=use_feats)
+    run_seed = getattr(args, "seed", None)
+    checkpoint_dir: Path | None = None
+    if use_gopt:
+        checkpoint_dir = _prepare_gopt_checkpoint_dir(
+            checkpoints_root=settings.checkpoints_dir,
+            backend_name=backend.name,
+            seed=run_seed,
+        )
+
+    tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
+    experiment_name = os.getenv("MLFLOW_EXPERIMENT_NAME", "peacock-asr")
+    mlflow_run_context, live_mlflow_enabled, on_gopt_epoch = _setup_live_mlflow_run(
+        tracking_uri=tracking_uri,
+        experiment_name=experiment_name,
+        run_name=f"{backend.name}-{mode_name}",
     )
 
-    _log_to_mlflow(
-        eval_name=eval_name,
-        mode=_get_run_mode(use_gopt=use_gopt, use_feats=use_feats),
-        backend_name=backend.name,
-        device=device,
-        use_cache=use_cache,
-        extract_features=extract_features,
-        dataset_revision=DATASET_REVISION,
-        workers=getattr(args, "workers", 0),
-        limit=getattr(args, "limit", 0),
-        train_utterances=len(data.train),
-        test_utterances=len(data.test),
-        train_phones=len(train_scalar),
-        test_phones=len(test_scalar),
-        eval_result=eval_result,
-    )
+    with mlflow_run_context:
+        eval_name, eval_result, training_history = _run_evaluation(
+            use_gopt=use_gopt,
+            use_feats=use_feats,
+            backend_name=backend.name,
+            feat_dim=len(backend.vocab) + 2,
+            device=device,
+            train_scalar=train_scalar,
+            test_scalar=test_scalar,
+            train_utts=train_utts,
+            test_utts=test_utts,
+            verbose=args.verbose,
+            seed=run_seed,
+            checkpoint_dir=checkpoint_dir,
+            on_gopt_epoch=on_gopt_epoch,
+        )
+
+        _log_to_mlflow(
+            eval_name=eval_name,
+            mode=mode_name,
+            backend_name=backend.name,
+            device=device,
+            use_cache=use_cache,
+            extract_features=extract_features,
+            dataset_revision=DATASET_REVISION,
+            workers=getattr(args, "workers", 0),
+            limit=getattr(args, "limit", 0),
+            train_utterances=len(data.train),
+            test_utterances=len(data.test),
+            train_phones=len(train_scalar),
+            test_phones=len(test_scalar),
+            eval_result=eval_result,
+            seed=run_seed,
+            training_history=None if live_mlflow_enabled else training_history,
+            reuse_active_run=live_mlflow_enabled,
+        )
+    if checkpoint_dir is not None:
+        _write_checkpoint_run_info(
+            checkpoint_dir=checkpoint_dir,
+            backend_name=backend.name,
+            mode=mode_name,
+            seed=run_seed,
+            eval_result=eval_result,
+            training_history=training_history,
+        )
+        _maybe_upload_checkpoint_to_hf(checkpoint_dir)
+    return eval_name, eval_result
 
 
 def _run_evaluation(  # noqa: PLR0913
@@ -513,7 +723,10 @@ def _run_evaluation(  # noqa: PLR0913
     train_utts: list[UtteranceFeats],
     test_utts: list[UtteranceFeats],
     verbose: bool,
-) -> tuple[str, EvalResult]:
+    seed: int | None = None,
+    checkpoint_dir: Path | None = None,
+    on_gopt_epoch: Callable[[int, int, float, float, float], None] | None = None,
+) -> tuple[str, EvalResult, list[dict[str, float]] | None]:
     """Dispatch to the appropriate evaluation method."""
     from peacock_asr.evaluate import (  # noqa: PLC0415
         EvalResult,
@@ -521,6 +734,7 @@ def _run_evaluation(  # noqa: PLR0913
         evaluate_gop_feats,
     )
 
+    training_history: list[dict[str, float]] | None = None
     if use_gopt:
         from peacock_asr.gopt_model import (  # noqa: PLC0415
             train_and_evaluate_gopt,
@@ -549,10 +763,15 @@ def _run_evaluation(  # noqa: PLR0913
         logger.info(
             "Training GOPT transformer (feat_dim=%d)...", feat_dim,
         )
+        training_history = []
         eval_result = train_and_evaluate_gopt(
             train_utts, test_utts,
             input_dim=feat_dim,
             device=device,
+            seed=seed,
+            history_out=training_history,
+            checkpoint_dir=checkpoint_dir,
+            on_epoch_end=on_gopt_epoch,
         )
         eval_name = backend_name + " (GOPT)"
         _print_results(eval_name, eval_result, verbose)
@@ -587,7 +806,7 @@ def _run_evaluation(  # noqa: PLR0913
     if not isinstance(eval_result, EvalResult):
         msg = "Unexpected evaluation result type."
         raise TypeError(msg)
-    return eval_name, eval_result
+    return eval_name, eval_result, training_history
 
 
 def _print_results(
@@ -637,6 +856,238 @@ def cmd_compare(args: argparse.Namespace) -> None:
         print()  # noqa: T201
 
 
+def _write_batch_summary(rows: list[dict[str, str]], path: Path) -> None:
+    cols = [
+        "job_id",
+        "backend",
+        "mode",
+        "repeat",
+        "seed",
+        "status",
+        "pcc",
+        "pcc_low",
+        "pcc_high",
+        "mse",
+        "n_phones",
+        "duration_sec",
+        "log_path",
+        "error",
+    ]
+    with path.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=cols, delimiter="\t")
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(row)
+
+
+def _write_batch_aggregates(rows: list[dict[str, str]], path: Path) -> None:
+    groups: dict[tuple[str, str, str], list[dict[str, str]]] = {}
+    for row in rows:
+        key = (str(row["job_id"]), str(row["backend"]), str(row["mode"]))
+        groups.setdefault(key, []).append(row)
+
+    cols = [
+        "job_id",
+        "backend",
+        "mode",
+        "n_runs",
+        "n_success",
+        "pcc_mean",
+        "pcc_std",
+        "mse_mean",
+        "mse_std",
+    ]
+    with path.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=cols, delimiter="\t")
+        writer.writeheader()
+        for (job_id, backend, mode), grouped_rows in groups.items():
+            ok_rows = [r for r in grouped_rows if r["status"] == "ok"]
+            pcc_vals = [float(r["pcc"]) for r in ok_rows]
+            mse_vals = [float(r["mse"]) for r in ok_rows]
+            if len(pcc_vals) == 0:
+                pcc_mean = float("nan")
+                pcc_std = float("nan")
+                mse_mean = float("nan")
+                mse_std = float("nan")
+            elif len(pcc_vals) == 1:
+                pcc_mean = pcc_vals[0]
+                pcc_std = 0.0
+                mse_mean = mse_vals[0]
+                mse_std = 0.0
+            else:
+                pcc_mean = mean(pcc_vals)
+                pcc_std = stdev(pcc_vals)
+                mse_mean = mean(mse_vals)
+                mse_std = stdev(mse_vals)
+            writer.writerow(
+                {
+                    "job_id": job_id,
+                    "backend": backend,
+                    "mode": mode,
+                    "n_runs": len(grouped_rows),
+                    "n_success": len(ok_rows),
+                    "pcc_mean": f"{pcc_mean:.4f}" if pcc_vals else "nan",
+                    "pcc_std": f"{pcc_std:.4f}" if pcc_vals else "nan",
+                    "mse_mean": f"{mse_mean:.4f}" if pcc_vals else "nan",
+                    "mse_std": f"{mse_std:.4f}" if pcc_vals else "nan",
+                }
+            )
+
+
+def _run_batch_repeat(
+    *,
+    run_count: int,
+    run_dir: Path,
+    job: BatchResolvedJob,
+    repeat: int,
+    seed: int | None,
+) -> tuple[dict[str, str], bool]:
+    use_gopt = job.mode == "gopt"
+    use_feats = job.mode == "feats"
+    mode_name = _get_run_mode(use_gopt=use_gopt, use_feats=use_feats)
+
+    run_tag = f"{job.job_id}_r{repeat}"
+    log_path = run_dir / f"{run_tag}.log"
+    logger.info(
+        "[batch] (%d) start job=%s backend=%s mode=%s repeat=%d seed=%s",
+        run_count,
+        job.job_id,
+        job.backend,
+        job.mode,
+        repeat,
+        seed if seed is not None else "none",
+    )
+
+    run_args = argparse.Namespace(
+        backend=job.backend,
+        feats=use_feats,
+        gopt=use_gopt,
+        device=job.device,
+        limit=job.limit,
+        no_cache=job.no_cache,
+        workers=job.workers,
+        seed=seed,
+        verbose=job.verbose,
+    )
+
+    started = perf_counter()
+    status = "ok"
+    error = ""
+    pcc = float("nan")
+    pcc_low = float("nan")
+    pcc_high = float("nan")
+    mse = float("nan")
+    n_phones = 0
+
+    with log_path.open("w", encoding="utf-8") as log_file:
+        log_file.write(
+            "batch_job="
+            f"{job.job_id} repeat={repeat} backend={job.backend} mode={job.mode} "
+            f"seed={seed if seed is not None else 'none'}\n"
+        )
+        log_file.flush()
+        try:
+            with redirect_stdout(log_file), redirect_stderr(log_file):
+                _, eval_result = cmd_run(run_args)
+        except Exception as e:  # noqa: BLE001
+            status = "failed"
+            error = f"{type(e).__name__}: {e}"
+            traceback.print_exc(file=log_file)
+        else:
+            pcc = float(eval_result.pcc)
+            pcc_low = float(eval_result.pcc_low)
+            pcc_high = float(eval_result.pcc_high)
+            mse = float(eval_result.mse)
+            n_phones = int(eval_result.n_phones)
+
+    duration_sec = perf_counter() - started
+    row = {
+        "job_id": job.job_id,
+        "backend": job.backend,
+        "mode": mode_name,
+        "repeat": str(repeat),
+        "seed": str(seed) if seed is not None else "",
+        "status": status,
+        "pcc": f"{pcc:.4f}" if status == "ok" else "nan",
+        "pcc_low": f"{pcc_low:.4f}" if status == "ok" else "nan",
+        "pcc_high": f"{pcc_high:.4f}" if status == "ok" else "nan",
+        "mse": f"{mse:.4f}" if status == "ok" else "nan",
+        "n_phones": str(n_phones) if status == "ok" else "",
+        "duration_sec": f"{duration_sec:.2f}",
+        "log_path": str(log_path),
+        "error": error,
+    }
+
+    logger.info(
+        "[batch] done job=%s repeat=%d status=%s pcc=%s mse=%s",
+        job.job_id,
+        repeat,
+        status,
+        row["pcc"],
+        row["mse"],
+    )
+    return row, status != "ok"
+
+
+def cmd_batch(args: argparse.Namespace) -> None:
+    """Run a YAML-defined batch of runs."""
+    from peacock_asr.batch_config import (  # noqa: PLC0415
+        BatchCliDefaults,
+        load_batch_spec,
+        resolve_batch_jobs,
+    )
+
+    spec_path = Path(args.config)
+    spec = load_batch_spec(spec_path)
+    cli_defaults = BatchCliDefaults(
+        device=args.device,
+        limit=args.limit,
+        workers=args.workers,
+        no_cache=args.no_cache,
+        verbose=args.verbose,
+    )
+    jobs = resolve_batch_jobs(spec, cli_defaults=cli_defaults)
+
+    batch_name = spec.name
+    safe_batch_name = re.sub(r"[^\w\-.]", "_", batch_name).strip("_") or "batch"
+    stamp = datetime.now(tz=UTC).strftime("%Y-%m-%d_%H%M%S")
+    output_root = Path(args.output_dir)
+    run_dir = output_root / f"{stamp}_{safe_batch_name}"
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    run_spec_copy = run_dir / "batch_spec.yaml"
+    run_spec_copy.write_text(spec_path.read_text(encoding="utf-8"), encoding="utf-8")
+
+    rows: list[dict[str, str]] = []
+    total_failed = 0
+    run_count = 0
+
+    for job in jobs:
+        for rep, seed in enumerate(job.seeds, start=1):
+            run_count += 1
+            row, failed = _run_batch_repeat(
+                run_count=run_count,
+                run_dir=run_dir,
+                job=job,
+                repeat=rep,
+                seed=seed,
+            )
+            rows.append(row)
+            if failed:
+                total_failed += 1
+
+    summary_path = run_dir / "summary.tsv"
+    aggregate_path = run_dir / "aggregates.tsv"
+    _write_batch_summary(rows, summary_path)
+    _write_batch_aggregates(rows, aggregate_path)
+    logger.info("[batch] summary: %s", summary_path)
+    logger.info("[batch] aggregates: %s", aggregate_path)
+
+    if total_failed > 0:
+        logger.error("[batch] %d run(s) failed", total_failed)
+        sys.exit(1)
+
+
 def cmd_papers_convert(args: argparse.Namespace) -> None:
     from peacock_asr.papers.convert import (  # noqa: PLC0415
         ConvertConfig,
@@ -655,7 +1106,7 @@ def cmd_papers_convert(args: argparse.Namespace) -> None:
     convert_papers(config)
 
 
-def main() -> None:
+def main() -> None:  # noqa: PLR0915
     try:
         from dotenv import load_dotenv  # noqa: PLC0415
 
@@ -713,6 +1164,12 @@ def main() -> None:
         default=0,
         help="Parallel workers for GOP computation (0 = auto, 1 = sequential)",
     )
+    run_p.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Optional random seed (used by GOPT training path)",
+    )
 
     cmp_p = sub.add_parser("compare", help="Run all backends and compare")
     cmp_p.add_argument(
@@ -721,6 +1178,42 @@ def main() -> None:
         type=int,
         default=0,
         help="Limit utterances per split (0 = all)",
+    )
+
+    batch_p = sub.add_parser(
+        "batch", help="Run a YAML-defined experiment batch"
+    )
+    batch_p.add_argument(
+        "--config",
+        default="runs/batch.yaml",
+        help="Batch YAML config path (default: runs/batch.yaml)",
+    )
+    batch_p.add_argument(
+        "--output-dir",
+        default="runs",
+        help="Directory where batch run folders are written (default: runs)",
+    )
+    batch_p.add_argument(
+        "--device",
+        default=None,
+        help="Default device override for jobs (default: use settings)",
+    )
+    batch_p.add_argument(
+        "--limit",
+        type=int,
+        default=0,
+        help="Default utterance limit for jobs (0 = all)",
+    )
+    batch_p.add_argument(
+        "--workers",
+        type=int,
+        default=0,
+        help="Default workers for jobs (0 = auto)",
+    )
+    batch_p.add_argument(
+        "--no-cache",
+        action="store_true",
+        help="Default no-cache behavior for jobs",
     )
 
     papers_p = sub.add_parser("papers", help="Paper ingestion tools")
@@ -775,6 +1268,10 @@ def main() -> None:
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(levelname)s %(name)s: %(message)s",
     )
+    # Keep third-party HTTP libraries quiet even in -v mode; debug headers
+    # can include temporary auth details from remote services.
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
 
     match args.command:
         case "download":
@@ -783,6 +1280,8 @@ def main() -> None:
             cmd_run(args)
         case "compare":
             cmd_compare(args)
+        case "batch":
+            cmd_batch(args)
         case "papers":
             if args.papers_command == "convert":
                 cmd_papers_convert(args)

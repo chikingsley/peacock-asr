@@ -12,8 +12,12 @@ or word-level heads. Those can be added later.
 
 from __future__ import annotations
 
+import json
 import logging
+import random
 from dataclasses import dataclass
+from time import perf_counter
+from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
@@ -23,6 +27,10 @@ from torch.utils.data import DataLoader, Dataset
 
 from peacock_asr.backends.ctc_gop_original import ARPABET_VOCAB
 from peacock_asr.evaluate import EvalResult
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -271,7 +279,7 @@ def _warmup_lr(
             pg["lr"] = lr
 
 
-def train_and_evaluate_gopt(  # noqa: PLR0913
+def train_and_evaluate_gopt(  # noqa: PLR0913, PLR0915
     train_utts: list[UtteranceFeats],
     test_utts: list[UtteranceFeats],
     *,
@@ -283,6 +291,10 @@ def train_and_evaluate_gopt(  # noqa: PLR0913
     batch_size: int = 25,
     lr: float = 1e-3,
     device: torch.device | None = None,
+    seed: int | None = None,
+    history_out: list[dict[str, float]] | None = None,
+    checkpoint_dir: Path | None = None,
+    on_epoch_end: Callable[[int, int, float, float, float], None] | None = None,
 ) -> EvalResult:
     """Train GOPT and evaluate on test set.
 
@@ -291,6 +303,12 @@ def train_and_evaluate_gopt(  # noqa: PLR0913
     """
     if device is None:
         device = torch.device("cpu")
+
+    if seed is not None:
+        random.seed(seed)
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
 
     # Normalization stats from training data
     norm_mean, norm_std = _compute_norm_stats(train_utts)
@@ -335,6 +353,7 @@ def train_and_evaluate_gopt(  # noqa: PLR0913
         model.train()
         epoch_loss = 0.0
         n_batches = 0
+        epoch_start = perf_counter()
 
         for feats_cpu, phns_cpu, scores_cpu in train_loader:
             feats = feats_cpu.to(device)
@@ -365,17 +384,96 @@ def train_and_evaluate_gopt(  # noqa: PLR0913
             global_step += 1
 
         scheduler.step()
+        avg_loss = epoch_loss / max(n_batches, 1)
+        epoch_time_sec = perf_counter() - epoch_start
+        epoch_lr = float(optimizer.param_groups[0]["lr"])
+
+        if history_out is not None:
+            history_out.append(
+                {
+                    "epoch": float(epoch + 1),
+                    "loss": float(avg_loss),
+                    "lr": epoch_lr,
+                    "epoch_time_sec": float(epoch_time_sec),
+                }
+            )
+
+        if on_epoch_end is not None:
+            on_epoch_end(
+                epoch + 1,
+                n_epochs,
+                float(avg_loss),
+                epoch_lr,
+                float(epoch_time_sec),
+            )
 
         if (epoch + 1) % 20 == 0 or epoch == 0:
-            avg_loss = epoch_loss / max(n_batches, 1)
             logger.info(
                 "Epoch %d/%d  loss=%.4f  lr=%.2e",
                 epoch + 1, n_epochs, avg_loss,
-                optimizer.param_groups[0]["lr"],
+                epoch_lr,
             )
 
-    # Evaluation
-    return _evaluate_gopt(model, test_loader, device)
+    if checkpoint_dir is not None:
+        checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        checkpoint_path = checkpoint_dir / "gopt_model.pt"
+        torch.save(
+            {
+                "model_state_dict": model.state_dict(),
+                "input_dim": input_dim,
+                "embed_dim": embed_dim,
+                "num_heads": num_heads,
+                "depth": depth,
+                "n_epochs": n_epochs,
+                "batch_size": batch_size,
+                "lr": lr,
+                "seed": seed,
+                "norm_mean": norm_mean,
+                "norm_std": norm_std,
+            },
+            checkpoint_path,
+        )
+        config_path = checkpoint_dir / "gopt_config.json"
+        config_path.write_text(
+            json.dumps(
+                {
+                    "input_dim": input_dim,
+                    "embed_dim": embed_dim,
+                    "num_heads": num_heads,
+                    "depth": depth,
+                    "n_epochs": n_epochs,
+                    "batch_size": batch_size,
+                    "lr": lr,
+                    "seed": seed,
+                    "norm_mean": norm_mean,
+                    "norm_std": norm_std,
+                },
+                indent=2,
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
+
+    eval_result = _evaluate_gopt(model, test_loader, device)
+
+    if checkpoint_dir is not None:
+        metrics_path = checkpoint_dir / "eval_metrics.json"
+        metrics_path.write_text(
+            json.dumps(
+                {
+                    "pcc": eval_result.pcc,
+                    "pcc_low": eval_result.pcc_low,
+                    "pcc_high": eval_result.pcc_high,
+                    "mse": eval_result.mse,
+                    "n_phones": eval_result.n_phones,
+                },
+                indent=2,
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
+
+    return eval_result
 
 
 def _evaluate_gopt(
