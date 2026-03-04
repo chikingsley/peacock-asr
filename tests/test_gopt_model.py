@@ -14,6 +14,7 @@ from peacock_asr.gopt_model import (
     GOPTModel,
     UtteranceFeats,
     train_and_evaluate_gopt,
+    train_and_evaluate_gopt_conpco,
 )
 
 
@@ -157,3 +158,128 @@ class TestTrainAndEvaluate:
 
         assert math.isnan(result.pcc)
         assert result.n_phones == 0
+
+
+class TestGOPTModelConPCO:
+    """Tests for ConPCO projection heads and return_projections API."""
+
+    def test_return_projections_tuple(self):
+        """use_conpco=True + return_projections=True → 3-element tuple."""
+        model = GOPTModel(input_dim=42, embed_dim=24, use_conpco=True)
+        x = torch.randn(2, SEQ_LEN, 42)
+        phn = torch.randint(0, 39, (2, SEQ_LEN))
+        out = model(x, phn, return_projections=True)
+        assert isinstance(out, tuple)
+        assert len(out) == 3
+        scores, audio_proj, text_proj = out
+        assert scores.shape == (2, SEQ_LEN, 1)
+        assert audio_proj.shape == (2, SEQ_LEN, 24)
+        assert text_proj.shape == (2, SEQ_LEN, 24)
+
+    def test_default_forward_single_tensor(self):
+        """use_conpco=True but return_projections=False → single tensor."""
+        model = GOPTModel(input_dim=42, embed_dim=24, use_conpco=True)
+        x = torch.randn(2, SEQ_LEN, 42)
+        phn = torch.randint(0, 39, (2, SEQ_LEN))
+        out = model(x, phn)
+        assert isinstance(out, torch.Tensor)
+        assert out.shape == (2, SEQ_LEN, 1)
+
+    def test_no_conpco_backward_compatible(self):
+        """use_conpco=False → single tensor, no projection heads."""
+        model = GOPTModel(input_dim=42, embed_dim=24, use_conpco=False)
+        assert not hasattr(model, "phn_audio_proj")
+        assert not hasattr(model, "phn_text_proj")
+        x = torch.randn(1, SEQ_LEN, 42)
+        phn = torch.randint(0, 39, (1, SEQ_LEN))
+        out = model(x, phn)
+        assert isinstance(out, torch.Tensor)
+        assert out.shape == (1, SEQ_LEN, 1)
+
+    def test_projection_param_count(self):
+        """ConPCO adds 2 identical MLPs: each is Linear(24,24)+Linear(24,24)."""
+        model_base = GOPTModel(input_dim=42, embed_dim=24, use_conpco=False)
+        model_conpco = GOPTModel(input_dim=42, embed_dim=24, use_conpco=True)
+        base_params = sum(p.numel() for p in model_base.parameters())
+        conpco_params = sum(p.numel() for p in model_conpco.parameters())
+        # Each MLP: Linear(24,24) = 24*24+24 = 600, twice = 1200 per head, 2 heads = 2400
+        expected_extra = 2 * (24 * 24 + 24 + 24 * 24 + 24)  # 2 × (600+600) = 2400
+        assert conpco_params - base_params == expected_extra
+
+    def test_gradients_flow_through_projections(self):
+        """Gradients should flow from projection outputs to model parameters."""
+        model = GOPTModel(input_dim=42, embed_dim=24, use_conpco=True)
+        x = torch.randn(2, SEQ_LEN, 42)
+        phn = torch.randint(0, 39, (2, SEQ_LEN))
+        scores, audio_proj, text_proj = model(x, phn, return_projections=True)
+        loss = audio_proj.sum() + text_proj.sum() + scores.sum()
+        loss.backward()
+        assert model.phn_audio_proj[0].weight.grad is not None
+        assert model.phn_text_proj[0].weight.grad is not None
+
+
+class TestTrainAndEvaluateConPCO:
+    """Smoke test for train_and_evaluate_gopt_conpco."""
+
+    def _make_utts(self, n: int = 20) -> list:
+        rng = torch.Generator().manual_seed(42)
+        phones = list(PHONE_TO_ID.keys())[:10]
+        utts = []
+        for _ in range(n):
+            n_ph = 8
+            chosen = [phones[i % len(phones)] for i in range(n_ph)]
+            score = float(torch.rand(1, generator=rng).item() * 2)
+            scores = [score] * n_ph
+            feat_vecs = [
+                torch.randn(42, generator=rng).tolist() for _ in range(n_ph)
+            ]
+            utts.append(UtteranceFeats(
+                phones=chosen, feat_vecs=feat_vecs, scores=scores,
+            ))
+        return utts
+
+    def test_p1b_ordinal_entropy_only(self):
+        """P1-B: MSE + Ordinal Entropy (no CLAP)."""
+        utts = self._make_utts()
+        result = train_and_evaluate_gopt_conpco(
+            utts[:15], utts[15:],
+            input_dim=42,
+            n_epochs=3,
+            batch_size=4,
+            use_ordinal_entropy=True,
+            use_clap=False,
+        )
+        assert result.n_phones > 0
+        assert not math.isnan(result.mse)
+
+    def test_p1c_full_conpco(self):
+        """P1-C: MSE + OE + CLAP."""
+        utts = self._make_utts()
+        result = train_and_evaluate_gopt_conpco(
+            utts[:15], utts[15:],
+            input_dim=42,
+            n_epochs=3,
+            batch_size=4,
+            use_ordinal_entropy=True,
+            use_clap=True,
+        )
+        assert result.n_phones > 0
+        assert not math.isnan(result.mse)
+
+    def test_history_logged(self):
+        """History should contain per-component losses."""
+        utts = self._make_utts()
+        history: list[dict] = []
+        train_and_evaluate_gopt_conpco(
+            utts[:15], utts[15:],
+            input_dim=42,
+            n_epochs=3,
+            batch_size=4,
+            use_ordinal_entropy=True,
+            use_clap=True,
+            history_out=history,
+        )
+        assert len(history) == 3
+        assert "loss_mse" in history[0]
+        assert "loss_oe" in history[0]
+        assert "loss_clap" in history[0]

@@ -31,5 +31,15 @@ logs/*
 # OS
 .DS_Store
 
+# wandb local artifacts
+wandb/
+
+# Processed features (large Arrow files)
+processed-features/
+
+# Other agent configs
+.pi/
+.agents/
+
 # Local binaries / archives
 runpodctl.tar.gz
