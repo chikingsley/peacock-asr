@@ -1,0 +1,1 @@
+batch_job=b1_scalar_gopsf repeat=1 backend=xlsr-espeak mode=scalar score_variant=gop_sf score_alpha=0.5000 seed=none

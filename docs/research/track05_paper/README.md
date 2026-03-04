@@ -14,6 +14,7 @@ Source of truth:
 
 Draft files:
 - `manuscript.md` (primary writing file)
+- `PAPER_CLOSE_CHECKLIST.md` (W&B-first closeout checklist)
 
 Citation convention:
 - Use Pandoc/Quarto citekeys, e.g. `[@cao2026segmentation_free_gop]`.

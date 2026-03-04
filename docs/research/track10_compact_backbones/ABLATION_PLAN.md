@@ -21,6 +21,27 @@ with two axes:
 - Scorer: GOPT with MSE loss (unless comparing HMamba)
 - Baseline: xlsr-53 (300M) + GOPT, PCC 0.6774 +/- 0.0127
 
+## Phase 0: Backbone Preparation (CTC Fine-Tuning Recipe)
+
+Before swapping backbones, we need to validate a CTC fine-tuning recipe that works
+for any HuggingFace SSL model with a 41-token ARPABET vocabulary on LibriSpeech.
+
+| Run ID | Backbone | Params | Script | Status | Purpose |
+|---|---|---|---|---|---|
+| P0-A | w2v-bert-2.0 | 600M | `training/train_phoneme_head.py` | **Running** (RunPod L4) | Validate recipe, produce 600M Pareto point |
+
+Details:
+
+- Training on LibriSpeech (train_clean_100 + train_clean_360 + train_other_500)
+- 41-token ARPABET CTC head, BF16, 3 epochs
+- Hub push to `Peacockery/w2v-bert-phoneme-en`
+- MLflow tracking at `mlflow.peacockery.studio`
+- Same recipe will be reused for wav2vec2-base and HuBERT-base in Phase 1
+
+The w2v-bert-2.0 result is useful in two ways: (1) it validates the fine-tuning
+pipeline end-to-end, and (2) it adds a 600M data point to the Pareto plot,
+establishing the upper bound for backbone size.
+
 ## Phase 1: Drop-In Backbone Swap (Same GOP Pipeline)
 
 Keep GOP-SF algorithm and GOPT scorer identical. Only change the CTC backbone.

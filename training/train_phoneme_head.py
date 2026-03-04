@@ -8,7 +8,6 @@
 #     "accelerate",
 #     "jiwer",
 #     "evaluate",
-#     "mlflow",
 # ]
 # ///
 """Train a w2v-BERT 2.0 CTC phoneme head on LibriSpeech alignments.
@@ -38,20 +37,21 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from time import perf_counter
+import os
 
 import evaluate
-import mlflow
 import numpy as np
 import torch
 from datasets import Audio, Dataset, concatenate_datasets, load_dataset
 from transformers import (
-    SeamlessM4TFeatureExtractor,
+    AutoConfig,
+    AutoFeatureExtractor,
+    AutoModelForCTC,
     Trainer,
     TrainingArguments,
-    Wav2Vec2BertForCTC,
     Wav2Vec2BertProcessor,
     Wav2Vec2CTCTokenizer,
+    Wav2Vec2Processor,
 )
 
 from peacock_asr.settings import settings
@@ -76,13 +76,13 @@ def strip_stress(phone: str) -> str:
 # ---------------------------------------------------------------------------
 @dataclass
 class DataCollatorCTCWithPadding:
-    processor: Wav2Vec2BertProcessor
+    processor: Wav2Vec2BertProcessor | Wav2Vec2Processor
     padding: bool | str = True
 
     def __call__(self, features: list[dict]) -> dict[str, torch.Tensor]:
-        input_features = [
-            {"input_features": f["input_features"]} for f in features
-        ]
+        # w2v-bert uses "input_features", wav2vec2/HuBERT use "input_values"
+        feat_key = "input_features" if "input_features" in features[0] else "input_values"
+        input_features = [{feat_key: f[feat_key]} for f in features]
         label_features = [{"input_ids": f["labels"]} for f in features]
 
         batch = self.processor.pad(
@@ -107,11 +107,18 @@ def parse_args() -> argparse.Namespace:
         default=Path(__file__).parent / "vocab.json",
         help="Path to vocab.json (default: training/vocab.json)",
     )
+    # On RunPod, default to NFS volume so checkpoints survive pod restarts.
+    # Locally, use a relative path.
+    default_output_dir = (
+        "/runpod/w2v-bert-phoneme-en"
+        if Path("/runpod").exists()
+        else "w2v-bert-phoneme-en"
+    )
     p.add_argument(
         "--output-dir",
         type=str,
-        default="w2v-bert-phoneme-en",
-        help="Local output directory for checkpoints",
+        default=default_output_dir,
+        help="Output directory for checkpoints (auto-detects RunPod NFS)",
     )
     p.add_argument(
         "--no-push",
@@ -133,14 +140,14 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--batch-size",
         type=int,
-        default=16,
-        help="Per-device train batch size (default: 16)",
+        default=4,
+        help="Per-device train batch size (default: 4)",
     )
     p.add_argument(
         "--gradient-accumulation",
         type=int,
-        default=4,
-        help="Gradient accumulation steps (default: 4)",
+        default=16,
+        help="Gradient accumulation steps (default: 16)",
     )
     p.add_argument(
         "--learning-rate",
@@ -178,15 +185,27 @@ def parse_args() -> argparse.Namespace:
         default=4,
         help="Number of dataloader worker processes (default: 4)",
     )
+    p.add_argument(
+        "--resume-from-checkpoint",
+        type=str,
+        default=None,
+        help="Path to checkpoint dir, or 'true' to auto-detect latest in output_dir",
+    )
+    p.add_argument(
+        "--preprocessed-dataset",
+        type=str,
+        default=None,
+        help="HF Hub repo with pre-extracted features (e.g. Peacockery/librispeech-phoneme-features). "
+        "When set, skips audio decoding and feature extraction entirely.",
+    )
+    p.add_argument(
+        "--model-name",
+        type=str,
+        default="facebook/w2v-bert-2.0",
+        help="HF model name/path for the backbone (default: facebook/w2v-bert-2.0). "
+        "Supports wav2vec2-base, HuBERT-base, etc.",
+    )
     return p.parse_args()
-
-
-def _numeric_metrics(metrics: dict[str, object]) -> dict[str, float]:
-    numeric: dict[str, float] = {}
-    for key, value in metrics.items():
-        if isinstance(value, (int, float)):
-            numeric[key] = float(value)
-    return numeric
 
 
 def _load_split(
@@ -301,99 +320,147 @@ def main() -> None:  # noqa: PLR0915
         word_delimiter_token=None,  # No word boundaries for phone sequences
     )
 
-    feature_extractor = SeamlessM4TFeatureExtractor.from_pretrained(
-        "facebook/w2v-bert-2.0"
-    )
-    processor = Wav2Vec2BertProcessor(
-        feature_extractor=feature_extractor, tokenizer=tokenizer
-    )
+    model_name = args.model_name
+    feature_extractor = AutoFeatureExtractor.from_pretrained(model_name)
+    # w2v-bert uses Wav2Vec2BertProcessor; wav2vec2/HuBERT use Wav2Vec2Processor
+    is_w2v_bert = "w2v-bert" in model_name.lower() or "wav2vec2-bert" in model_name.lower()
+    if is_w2v_bert:
+        processor = Wav2Vec2BertProcessor(
+            feature_extractor=feature_extractor, tokenizer=tokenizer
+        )
+    else:
+        processor = Wav2Vec2Processor(
+            feature_extractor=feature_extractor, tokenizer=tokenizer
+        )
 
     # --- Load dataset ---
-    logger.info("Loading librispeech-alignments dataset...")
+    use_preprocessed = args.preprocessed_dataset is not None
+    if use_preprocessed:
+        logger.info("Loading preprocessed dataset: %s", args.preprocessed_dataset)
+        hf_cache_dir = settings.data_dir / "hf-datasets"
+        hf_cache_dir.mkdir(parents=True, exist_ok=True)
 
-    train_splits = []
-    per_split_limit: int | None = None
-    if args.max_train_samples:
-        per_split_limit = max(
-            1,
-            math.ceil(args.max_train_samples / max(1, len(args.train_splits))),
+        # Preprocessed dataset has splits: train_clean_100, train_clean_360,
+        # train_other_500, eval. Already filtered, features pre-extracted.
+        train_splits = []
+        for split_name in args.train_splits:
+            ds = load_dataset(
+                args.preprocessed_dataset,
+                split=split_name,
+                cache_dir=str(hf_cache_dir),
+            )
+            train_splits.append(ds)
+        train_ds = concatenate_datasets(train_splits)
+
+        # Preprocessed eval split is named "eval" (not "dev_clean")
+        eval_split = "eval" if args.eval_split == "dev_clean" else args.eval_split
+        eval_ds = load_dataset(
+            args.preprocessed_dataset,
+            split=eval_split,
+            cache_dir=str(hf_cache_dir),
         )
-    for split_name in args.train_splits:
-        ds = _load_split(split_name, max_samples=per_split_limit)
-        train_splits.append(ds)
-    train_ds = concatenate_datasets(train_splits)
 
-    eval_ds = _load_split(args.eval_split, max_samples=args.max_eval_samples)
+        if args.max_train_samples:
+            train_ds = train_ds.select(range(min(args.max_train_samples, len(train_ds))))
+        if args.max_eval_samples:
+            eval_ds = eval_ds.select(range(min(args.max_eval_samples, len(eval_ds))))
 
-    if args.max_train_samples:
-        train_ds = train_ds.select(range(min(args.max_train_samples, len(train_ds))))
-    if args.max_eval_samples:
-        eval_ds = eval_ds.select(range(min(args.max_eval_samples, len(eval_ds))))
+        logger.info("Train: %d examples, Eval: %d examples", len(train_ds), len(eval_ds))
+        logger.info("Preprocessed columns: %s", train_ds.column_names)
 
-    logger.info("Train: %d examples, Eval: %d examples", len(train_ds), len(eval_ds))
+    else:
+        logger.info("Loading librispeech-alignments dataset...")
 
-    # Disable datasets audio auto-decoding (torchcodec dependency). We decode with
-    # soundfile in prepare_dataset instead.
-    train_ds = train_ds.cast_column("audio", Audio(decode=False))
-    eval_ds = eval_ds.cast_column("audio", Audio(decode=False))
+        train_splits = []
+        per_split_limit: int | None = None
+        if args.max_train_samples:
+            per_split_limit = max(
+                1,
+                math.ceil(args.max_train_samples / max(1, len(args.train_splits))),
+            )
+        for split_name in args.train_splits:
+            ds = _load_split(split_name, max_samples=per_split_limit)
+            train_splits.append(ds)
+        train_ds = concatenate_datasets(train_splits)
 
-    # --- Preprocessing: extract phone sequences and audio features ---
-    def prepare_dataset(batch):
-        audio_array, sample_rate = _load_audio_array(batch["audio"])
-        if sample_rate != TARGET_SAMPLE_RATE:
-            audio_array = _resample_audio(audio_array, sample_rate)
-            sample_rate = TARGET_SAMPLE_RATE
+        eval_ds = _load_split(args.eval_split, max_samples=args.max_eval_samples)
 
-        # Extract audio features
-        batch["input_features"] = processor(
-            audio_array, sampling_rate=sample_rate
-        ).input_features[0]
-        batch["input_length"] = len(batch["input_features"])
+        if args.max_train_samples:
+            train_ds = train_ds.select(range(min(args.max_train_samples, len(train_ds))))
+        if args.max_eval_samples:
+            eval_ds = eval_ds.select(range(min(args.max_eval_samples, len(eval_ds))))
 
-        # Extract phone sequence from phoneme alignments
-        # Strip stress markers: AY1 -> AY, IH0 -> IH
-        phones = [strip_stress(p["phoneme"]) for p in batch["phonemes"]]
+        logger.info("Train: %d examples, Eval: %d examples", len(train_ds), len(eval_ds))
 
-        # Filter to phones in our vocab (skip silence markers, etc.)
-        phones = [p for p in phones if p in vocab]
+        # Disable datasets audio auto-decoding (torchcodec dependency). We decode with
+        # soundfile in prepare_dataset instead.
+        train_ds = train_ds.cast_column("audio", Audio(decode=False))
+        eval_ds = eval_ds.cast_column("audio", Audio(decode=False))
 
-        # Convert to label IDs
-        batch["labels"] = [vocab[p] for p in phones]
-        batch["phone_count"] = len(phones)
+        # --- Pre-filter: remove examples with no valid phones (cheap, no audio) ---
+        def _has_valid_phones(example):
+            phones = [strip_stress(p["phoneme"]) for p in example["phonemes"]]
+            return any(p in vocab for p in phones)
 
-        return batch
+        logger.info("Filtering examples with no valid phones...")
+        train_ds = train_ds.filter(
+            _has_valid_phones, num_proc=4, desc="Filtering train"
+        )
+        eval_ds = eval_ds.filter(
+            _has_valid_phones, num_proc=4, desc="Filtering eval"
+        )
+        logger.info(
+            "After filtering: Train %d, Eval %d", len(train_ds), len(eval_ds)
+        )
 
-    logger.info("Preprocessing training data...")
-    train_ds = train_ds.map(
-        prepare_dataset,
-        remove_columns=train_ds.column_names,
-        num_proc=4,
-        desc="Preparing train",
-    )
+        # --- On-the-fly preprocessing via set_transform ---
+        # Feature extraction runs in DataLoader workers during training, not
+        # upfront.  This avoids a multi-hour .map() blocking step on large
+        # datasets (see: https://github.com/huggingface/datasets/issues/6789).
+        def prepare_on_the_fly(batch):
+            # set_transform always receives batches (dict of lists)
+            all_features = []
+            all_labels = []
+            all_lengths = []
+            all_counts = []
 
-    logger.info("Preprocessing eval data...")
-    eval_ds = eval_ds.map(
-        prepare_dataset,
-        remove_columns=eval_ds.column_names,
-        num_proc=4,
-        desc="Preparing eval",
-    )
+            for audio, phoneme_list in zip(batch["audio"], batch["phonemes"]):
+                audio_array, sample_rate = _load_audio_array(audio)
+                if sample_rate != TARGET_SAMPLE_RATE:
+                    audio_array = _resample_audio(audio_array, sample_rate)
+                    sample_rate = TARGET_SAMPLE_RATE
 
-    # Filter out invalid examples before Trainer batching.
-    train_ds = train_ds.filter(
-        lambda x: x["phone_count"] > 0 and x["input_length"] > 1
-    )
-    eval_ds = eval_ds.filter(
-        lambda x: x["phone_count"] > 0 and x["input_length"] > 1
-    )
-    logger.info(
-        "After filtering: Train %d, Eval %d", len(train_ds), len(eval_ds)
-    )
+                processed = processor(audio_array, sampling_rate=sample_rate)
+                # w2v-bert: input_features (mel); wav2vec2/HuBERT: input_values (raw)
+                if hasattr(processed, "input_features"):
+                    features = processed.input_features[0]
+                else:
+                    features = processed.input_values[0]
+
+                phones = [strip_stress(p["phoneme"]) for p in phoneme_list]
+                phones = [p for p in phones if p in vocab]
+                labels = [vocab[p] for p in phones]
+
+                all_features.append(features)
+                all_labels.append(labels)
+                all_lengths.append(len(features))
+                all_counts.append(len(phones))
+
+            # Use the key name that matches the model's expected input
+            feat_key = "input_features" if is_w2v_bert else "input_values"
+            return {
+                feat_key: all_features,
+                "labels": all_labels,
+                "input_length": all_lengths,
+                "phone_count": all_counts,
+            }
+
+        train_ds.set_transform(prepare_on_the_fly)
+        eval_ds.set_transform(prepare_on_the_fly)
 
     # --- Load model ---
-    logger.info("Loading w2v-bert-2.0 with new %d-class CTC head...", len(vocab))
-    model = Wav2Vec2BertForCTC.from_pretrained(
-        "facebook/w2v-bert-2.0",
+    logger.info("Loading %s with new %d-class CTC head...", model_name, len(vocab))
+    model_kwargs = dict(
         torch_dtype=torch.float32,
         attention_dropout=0.0,
         hidden_dropout=0.0,
@@ -401,10 +468,13 @@ def main() -> None:  # noqa: PLR0915
         mask_time_prob=0.0,
         layerdrop=0.0,
         ctc_loss_reduction="mean",
-        add_adapter=True,
         pad_token_id=tokenizer.pad_token_id,
         vocab_size=len(tokenizer),
     )
+    # w2v-bert supports adapter layers; wav2vec2/HuBERT don't
+    if is_w2v_bert:
+        model_kwargs["add_adapter"] = True
+    model = AutoModelForCTC.from_pretrained(model_name, **model_kwargs)
 
     # Freeze the feature frontend for faster/stabler CTC head adaptation.
     _freeze_feature_frontend(model)
@@ -433,21 +503,6 @@ def main() -> None:  # noqa: PLR0915
         # Compute PER (phone error rate = WER on phone sequences)
         per = per_metric.compute(predictions=pred_str, references=label_str)
         return {"per": per}
-
-    # --- MLflow ---
-    mlflow_uri = settings.mlflow_tracking_uri
-    experiment_name = settings.mlflow_experiment_name
-    mlflow.set_tracking_uri(mlflow_uri)
-    mlflow.set_experiment(experiment_name)
-
-    enable_system_metrics = settings.mlflow_enable_system_metrics_logging
-    sample_interval_sec = settings.mlflow_system_metrics_sampling_interval
-    samples_before_log = settings.mlflow_system_metrics_samples_before_logging
-    if enable_system_metrics:
-        mlflow.enable_system_metrics_logging()
-        mlflow.set_system_metrics_sampling_interval(sample_interval_sec)
-        mlflow.set_system_metrics_samples_before_logging(samples_before_log)
-    logger.info("MLflow tracking: %s", mlflow_uri)
 
     # --- Training arguments ---
     push = not args.no_push
@@ -482,18 +537,29 @@ def main() -> None:  # noqa: PLR0915
             "BF16 not supported on %s; using full precision training.",
             primary_device_name,
         )
+    # --- W&B setup ---
+    # HF Trainer's WandbCallback calls wandb.init() itself (integration_utils.py:752).
+    # It reads project from WANDB_PROJECT env var (default: "huggingface").
+    # It reads run name from TrainingArguments.run_name.
+    # We set env vars here so it works regardless of shell environment.
+    os.environ["WANDB_PROJECT"] = "w2v-bert-phoneme-en"
+    os.environ["WANDB_ENTITY"] = "peacockery"
+    os.environ["WANDB_LOG_MODEL"] = "checkpoint"
+
+    run_name = f"phoneme-head-{Path(args.output_dir).name}"
     training_args = TrainingArguments(
         output_dir=args.output_dir,
-        train_sampling_strategy="group_by_length",
+        run_name=run_name,
         per_device_train_batch_size=args.batch_size,
         gradient_accumulation_steps=args.gradient_accumulation,
         eval_strategy="steps",
         num_train_epochs=args.num_epochs,
         gradient_checkpointing=True,
+        remove_unused_columns=False,
         bf16=use_bf16,
         fp16=use_fp16,
-        save_steps=2000,
-        eval_steps=2000,
+        save_steps=500,
+        eval_steps=500,
         logging_steps=100,
         learning_rate=args.learning_rate,
         warmup_steps=warmup_steps,
@@ -504,7 +570,8 @@ def main() -> None:  # noqa: PLR0915
         metric_for_best_model="per",
         greater_is_better=False,
         dataloader_num_workers=args.dataloader_workers,
-        report_to="mlflow",
+        dataloader_persistent_workers=args.dataloader_workers > 0,
+        report_to=["wandb"],
     )
 
     # --- Trainer ---
@@ -518,100 +585,23 @@ def main() -> None:  # noqa: PLR0915
         processing_class=processor.feature_extractor,
     )
 
-    run_name = f"train-phoneme-head-{Path(args.output_dir).name}"
-    description = (
-        "W2V-BERT 2.0 CTC phoneme-head training on "
-        "gilkeyio/librispeech-alignments"
-    )
-    with mlflow.start_run(
-        run_name=run_name,
-        description=description,
-        log_system_metrics=enable_system_metrics,
-    ) as active_run:
-        logger.info("MLflow run id: %s", active_run.info.run_id)
-        mlflow.set_tags(
-            {
-                "project": "peacock-asr",
-                "stage": "training",
-                "task": "phoneme-head-ctc",
-                "dataset_repo": "gilkeyio/librispeech-alignments",
-                "base_model": "facebook/w2v-bert-2.0",
-            },
-        )
-        mlflow.log_params(
-            {
-                "output_dir": args.output_dir,
-                "hub_repo": hub_repo if push else "none",
-                "push_to_hub": push,
-                "num_epochs": args.num_epochs,
-                "batch_size_per_device": args.batch_size,
-                "gradient_accumulation": args.gradient_accumulation,
-                "effective_global_batch_size": effective_global_batch_size,
-                "learning_rate": args.learning_rate,
-                "train_split_names": ",".join(args.train_splits),
-                "eval_split_name": args.eval_split,
-                "train_examples": len(train_ds),
-                "eval_examples": len(eval_ds),
-                "max_train_samples": args.max_train_samples or 0,
-                "max_eval_samples": args.max_eval_samples or 0,
-                "device_name": primary_device_name,
-                "gpu_device_count": primary_device_count,
-            },
-        )
+    # --- Train ---
+    resume = args.resume_from_checkpoint
+    if resume and resume.lower() == "true":
+        resume = True  # HF Trainer auto-detects latest checkpoint in output_dir
+    if resume:
+        logger.info("Resuming from checkpoint: %s", resume)
+    logger.info("Starting training...")
+    train_output = trainer.train(resume_from_checkpoint=resume)
 
-        if primary_device_count > 0:
-            props = torch.cuda.get_device_properties(0)
-            mlflow.log_params(
-                {
-                    "gpu_0_name": props.name,
-                    "gpu_0_total_memory_gb": round(
-                        props.total_memory / (1024 ** 3), 2,
-                    ),
-                    "gpu_0_compute_capability": f"{props.major}.{props.minor}",
-                },
-            )
+    # --- Save final model ---
+    logger.info("Saving final model to %s", args.output_dir)
+    trainer.save_model(args.output_dir)
+    processor.save_pretrained(args.output_dir)
 
-        try:
-            train_input = mlflow.data.from_huggingface(
-                train_ds,
-                path="gilkeyio/librispeech-alignments",
-                name="librispeech-alignments-train",
-            )
-            eval_input = mlflow.data.from_huggingface(
-                eval_ds,
-                path="gilkeyio/librispeech-alignments",
-                name="librispeech-alignments-eval",
-            )
-            mlflow.log_input(train_input, context="training")
-            mlflow.log_input(eval_input, context="evaluation")
-        except Exception:
-            logger.exception("Failed to log datasets to MLflow inputs.")
-
-        # --- Train ---
-        logger.info("Starting training...")
-        train_start = perf_counter()
-        train_output = trainer.train()
-        wall_time_sec = perf_counter() - train_start
-
-        mlflow.log_metrics(_numeric_metrics(train_output.metrics))
-        wall_time_hours = wall_time_sec / 3600.0
-        mlflow.log_metrics(
-            {
-                "compute_wall_time_sec": wall_time_sec,
-                "compute_wall_time_hours": wall_time_hours,
-                "compute_machine_hours": wall_time_hours,
-                "compute_gpu_hours": wall_time_hours * primary_device_count,
-            },
-        )
-
-        # --- Save final model ---
-        logger.info("Saving final model to %s", args.output_dir)
-        trainer.save_model(args.output_dir)
-        processor.save_pretrained(args.output_dir)
-
-        if push:
-            logger.info("Pushing to Hub: %s", hub_repo)
-            trainer.push_to_hub()
+    if push:
+        logger.info("Pushing to Hub: %s", hub_repo)
+        trainer.push_to_hub()
 
     logger.info("Done.")
 

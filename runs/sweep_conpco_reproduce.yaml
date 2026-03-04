@@ -1,0 +1,46 @@
+program: runs/reproduce_conpco.py
+method: grid
+metric:
+  name: best/phn_pcc
+  goal: maximize
+
+command:
+  - ${env}
+  - uv
+  - run
+  - ${program}
+  - ${args}
+
+parameters:
+  seed:
+    values: [42, 123, 456]
+  conpco:
+    values: ["on", "off"]
+  n-epochs:
+    value: 100
+  batch-size:
+    value: 25
+  lr:
+    value: 0.001
+  embed-dim:
+    value: 12
+  heads:
+    value: 1
+  p-depth:
+    value: 1
+  w-depth:
+    value: 1
+  u-depth:
+    value: 1
+  ssl-drop:
+    value: 0.1
+  pco-ld:
+    value: 5.0
+  pco-lt:
+    value: 0.1
+  pco-mg:
+    value: 1.0
+  clap-t2a:
+    value: 0.1
+  wandb-project:
+    value: peacock-asr

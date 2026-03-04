@@ -9,11 +9,8 @@ import logging
 import os
 import re
 import sys
-import tempfile
 import traceback
 from contextlib import (
-    AbstractContextManager,
-    nullcontext,
     redirect_stderr,
     redirect_stdout,
 )
@@ -403,219 +400,6 @@ def _maybe_upload_checkpoint_to_hf(checkpoint_dir: Path) -> None:
         )
 
 
-def _log_to_mlflow(  # noqa: PLR0913
-    *,
-    eval_name: str,
-    mode: str,
-    backend_name: str,
-    device: torch.device,
-    use_cache: bool,
-    extract_features: bool,
-    dataset_revision: str,
-    workers: int,
-    limit: int,
-    score_variant: str,
-    score_alpha: float,
-    train_utterances: int,
-    test_utterances: int,
-    train_phones: int,
-    test_phones: int,
-    eval_result: EvalResult,
-    seed: int | None = None,
-    training_history: list[dict[str, float]] | None = None,
-    reuse_active_run: bool = False,
-    compute_wall_time_sec: float | None = None,
-    compute_gpu_device_count: int | None = None,
-) -> None:
-    tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
-    if not tracking_uri:
-        return
-
-    try:
-        from mlflow.tracking import set_tracking_uri  # noqa: PLC0415
-        from mlflow.tracking.fluent import (  # noqa: PLC0415
-            log_artifact,
-            log_metric,
-            log_metrics,
-            log_params,
-            set_experiment,
-            set_tags,
-            start_run,
-        )
-    except ImportError:
-        logger.warning(
-            "MLFLOW_TRACKING_URI is set but mlflow is not installed. "
-            "Install with: uv add mlflow",
-        )
-        return
-
-    set_tracking_uri(tracking_uri)
-    experiment_name = os.getenv("MLFLOW_EXPERIMENT_NAME", "peacock-asr")
-    set_experiment(experiment_name)
-
-    run_name = f"{backend_name}-{mode}"
-    run_context = nullcontext() if reuse_active_run else start_run(run_name=run_name)
-    try:
-        with run_context:
-            set_tags(
-                {
-                    "project": "peacock-asr",
-                    "backend": backend_name,
-                    "mode": mode,
-                    "eval_name": eval_name,
-                    "score_variant": score_variant,
-                },
-            )
-            log_params(
-                {
-                    "backend": backend_name,
-                    "mode": mode,
-                    "device": str(device),
-                    "use_cache": use_cache,
-                    "extract_features": extract_features,
-                    "dataset_revision": dataset_revision,
-                    "workers": workers,
-                    "limit": limit,
-                    "score_variant": score_variant,
-                    "score_alpha": score_alpha,
-                    "train_utterances": train_utterances,
-                    "test_utterances": test_utterances,
-                    "train_phones": train_phones,
-                    "test_phones": test_phones,
-                },
-            )
-            if seed is not None:
-                log_param = {"seed": seed}
-                log_params(log_param)
-            log_metrics(
-                {
-                    "pcc": float(eval_result.pcc),
-                    "pcc_low": float(eval_result.pcc_low),
-                    "pcc_high": float(eval_result.pcc_high),
-                    "mse": float(eval_result.mse),
-                    "n_phones_eval": float(eval_result.n_phones),
-                },
-            )
-            if compute_wall_time_sec is not None:
-                wall_hours = compute_wall_time_sec / 3600.0
-                gpu_count = max(compute_gpu_device_count or 0, 0)
-                log_metrics(
-                    {
-                        "compute_wall_time_sec": float(compute_wall_time_sec),
-                        "compute_wall_time_hours": float(wall_hours),
-                        "compute_machine_hours": float(wall_hours),
-                        "compute_gpu_hours": float(wall_hours * gpu_count),
-                    },
-                )
-
-            for phone, pcc in sorted(eval_result.per_phone_pcc.items()):
-                log_metric(f"per_phone_pcc.{phone}", float(pcc))
-
-            if training_history is not None:
-                for point in training_history:
-                    step = int(point["epoch"])
-                    log_metric("train_loss", point["loss"], step=step)
-                    log_metric("train_lr", point["lr"], step=step)
-                    log_metric(
-                        "train_epoch_time_sec",
-                        point["epoch_time_sec"],
-                        step=step,
-                    )
-
-            report = {
-                "backend": backend_name,
-                "mode": mode,
-                "dataset_revision": dataset_revision,
-                "results": {
-                    "pcc": eval_result.pcc,
-                    "pcc_low": eval_result.pcc_low,
-                    "pcc_high": eval_result.pcc_high,
-                    "mse": eval_result.mse,
-                    "n_phones": eval_result.n_phones,
-                    "per_phone_pcc": eval_result.per_phone_pcc,
-                },
-            }
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".json", encoding="utf-8", delete=False,
-            ) as tmp:
-                json.dump(report, tmp, indent=2, sort_keys=True)
-                report_path = tmp.name
-            try:
-                log_artifact(report_path, artifact_path="reports")
-            finally:
-                Path(report_path).unlink(missing_ok=True)
-    except Exception:
-        logger.exception("Failed to log run to MLflow.")
-    else:
-        logger.info(
-            "Logged run to MLflow: uri=%s experiment=%s run=%s",
-            tracking_uri,
-            experiment_name,
-            run_name,
-        )
-
-
-def _setup_live_mlflow_run(
-    *,
-    tracking_uri: str | None,
-    experiment_name: str,
-    run_name: str,
-) -> tuple[
-    AbstractContextManager[object],
-    bool,
-    Callable[[int, int, float, float, float], None] | None,
-]:
-    live_mlflow_enabled = False
-    live_epoch_elapsed_sec = 0.0
-    on_gopt_epoch: Callable[[int, int, float, float, float], None] | None = None
-    run_context: AbstractContextManager[object] = nullcontext()
-
-    if not tracking_uri:
-        return run_context, live_mlflow_enabled, on_gopt_epoch
-
-    try:
-        from mlflow.tracking import fluent, set_tracking_uri  # noqa: PLC0415
-    except ImportError:
-        logger.warning(
-            "MLFLOW_TRACKING_URI is set but mlflow is not installed. "
-            "Install with: uv add mlflow",
-        )
-        return run_context, live_mlflow_enabled, on_gopt_epoch
-
-    mlflow_log_metric = fluent.log_metric
-    set_experiment = fluent.set_experiment
-    start_run = fluent.start_run
-
-    set_tracking_uri(tracking_uri)
-    set_experiment(experiment_name)
-    run_context = start_run(run_name=run_name)
-    live_mlflow_enabled = True
-
-    def _on_gopt_epoch(
-        epoch: int,
-        total_epochs: int,
-        loss: float,
-        lr: float,
-        epoch_time_sec: float,
-    ) -> None:
-        nonlocal live_epoch_elapsed_sec
-        live_epoch_elapsed_sec += epoch_time_sec
-        avg_epoch_sec = live_epoch_elapsed_sec / max(epoch, 1)
-        eta_sec = max(total_epochs - epoch, 0) * avg_epoch_sec
-
-        mlflow_log_metric("train_loss", loss, step=epoch)
-        mlflow_log_metric("train_lr", lr, step=epoch)
-        mlflow_log_metric("train_epoch_time_sec", epoch_time_sec, step=epoch)
-        mlflow_log_metric(
-            "train_elapsed_sec", live_epoch_elapsed_sec, step=epoch,
-        )
-        mlflow_log_metric("train_eta_sec", eta_sec, step=epoch)
-        mlflow_log_metric("train_epoch", float(epoch), step=epoch)
-
-    on_gopt_epoch = _on_gopt_epoch
-    return run_context, live_mlflow_enabled, on_gopt_epoch
-
-
 def cmd_run(args: argparse.Namespace) -> tuple[str, EvalResult]:  # noqa: PLR0915
     """Run GOP-SF with a specified backend and evaluate."""
     from peacock_asr.backends import get_backend  # noqa: PLC0415
@@ -715,56 +499,21 @@ def cmd_run(args: argparse.Namespace) -> tuple[str, EvalResult]:  # noqa: PLR091
             seed=run_seed,
         )
 
-    tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
-    experiment_name = os.getenv("MLFLOW_EXPERIMENT_NAME", "peacock-asr")
-    mlflow_run_context, live_mlflow_enabled, on_gopt_epoch = _setup_live_mlflow_run(
-        tracking_uri=tracking_uri,
-        experiment_name=experiment_name,
-        run_name=f"{backend.name}-{mode_name}",
+    eval_name, eval_result, training_history = _run_evaluation(
+        use_gopt=use_gopt,
+        use_feats=use_feats,
+        backend_name=backend.name,
+        feat_dim=len(backend.vocab) + 2,
+        device=device,
+        train_scalar=train_scalar,
+        test_scalar=test_scalar,
+        train_utts=train_utts,
+        test_utts=test_utts,
+        verbose=args.verbose,
+        seed=run_seed,
+        checkpoint_dir=checkpoint_dir,
     )
 
-    with mlflow_run_context:
-        eval_name, eval_result, training_history = _run_evaluation(
-            use_gopt=use_gopt,
-            use_feats=use_feats,
-            backend_name=backend.name,
-            feat_dim=len(backend.vocab) + 2,
-            device=device,
-            train_scalar=train_scalar,
-            test_scalar=test_scalar,
-            train_utts=train_utts,
-            test_utts=test_utts,
-            verbose=args.verbose,
-            seed=run_seed,
-            checkpoint_dir=checkpoint_dir,
-            on_gopt_epoch=on_gopt_epoch,
-        )
-
-        _log_to_mlflow(
-            eval_name=eval_name,
-            mode=mode_name,
-            backend_name=backend.name,
-            device=device,
-            use_cache=use_cache,
-            extract_features=extract_features,
-            dataset_revision=DATASET_REVISION,
-            workers=getattr(args, "workers", 0),
-            limit=getattr(args, "limit", 0),
-            score_variant=score_variant,
-            score_alpha=score_alpha,
-            train_utterances=len(data.train),
-            test_utterances=len(data.test),
-            train_phones=len(train_scalar),
-            test_phones=len(test_scalar),
-            eval_result=eval_result,
-            seed=run_seed,
-            training_history=None if live_mlflow_enabled else training_history,
-            reuse_active_run=live_mlflow_enabled,
-            compute_wall_time_sec=perf_counter() - run_start,
-            compute_gpu_device_count=(
-                _cuda_device_count() if device.type == "cuda" else 0
-            ),
-        )
     if checkpoint_dir is not None:
         _write_checkpoint_run_info(
             checkpoint_dir=checkpoint_dir,
@@ -1434,17 +1183,6 @@ def _run_train_profile(profile_name: str) -> None:
         cmd.append("--no-push")
 
     env = os.environ.copy()
-    env["MLFLOW_TRACKING_URI"] = settings.mlflow_tracking_uri
-    env["MLFLOW_EXPERIMENT_NAME"] = settings.mlflow_experiment_name
-    env["MLFLOW_ENABLE_SYSTEM_METRICS_LOGGING"] = str(
-        settings.mlflow_enable_system_metrics_logging,
-    ).lower()
-    env["MLFLOW_SYSTEM_METRICS_SAMPLING_INTERVAL"] = str(
-        settings.mlflow_system_metrics_sampling_interval,
-    )
-    env["MLFLOW_SYSTEM_METRICS_SAMPLES_BEFORE_LOGGING"] = str(
-        settings.mlflow_system_metrics_samples_before_logging,
-    )
     env.setdefault("UV_CACHE_DIR", str(repo_root / ".cache" / "uv"))
     src_path = str(repo_root / "src")
     existing_pythonpath = env.get("PYTHONPATH", "")
@@ -1454,12 +1192,7 @@ def _run_train_profile(profile_name: str) -> None:
     if settings.hf_token:
         env["HF_TOKEN"] = settings.hf_token
 
-    logger.info(
-        "[train] profile=%s mlflow=%s experiment=%s",
-        profile.name,
-        settings.mlflow_tracking_uri,
-        settings.mlflow_experiment_name,
-    )
+    logger.info("[train] profile=%s", profile.name)
     logger.info("[train] cmd=%s", " ".join(cmd))
     subprocess.run(cmd, cwd=repo_root, env=env, check=True)  # noqa: S603
 
@@ -1687,6 +1420,28 @@ def main() -> None:  # noqa: PLR0915
         help="Run fixed main training profile",
     )
 
+    # --- Pod management (RunPod remote training) ---
+    pod_p = sub.add_parser("pod", help="Manage RunPod training pod")
+    pod_sub = pod_p.add_subparsers(dest="pod_command", required=True)
+
+    pod_sub.add_parser("status", help="Check GPU, processes, checkpoints")
+
+    pod_train_p = pod_sub.add_parser("train", help="Launch/resume training")
+    pod_train_p.add_argument(
+        "--fresh", action="store_true", help="Ignore checkpoints, start fresh",
+    )
+
+    pod_sub.add_parser("stop", help="Stop the pod")
+
+    pod_ssh_p = pod_sub.add_parser("ssh", help="SSH to pod (or run a command)")
+    pod_ssh_p.add_argument(
+        "ssh_command", nargs="?", default=None, help="Command to run (omit for interactive)",
+    )
+
+    pod_p.add_argument(
+        "--pod-id", default="5gpoxrtamdt1wx", help="RunPod pod ID",
+    )
+
     papers_p = sub.add_parser("papers", help="Paper ingestion tools")
     papers_sub = papers_p.add_subparsers(dest="papers_command", required=True)
 
@@ -1759,6 +1514,23 @@ def main() -> None:  # noqa: PLR0915
             cmd_train_preflight(args)
         case "train-main":
             cmd_train_main(args)
+        case "pod":
+            from peacock_asr.pod import (  # noqa: PLC0415
+                cmd_ssh,
+                cmd_status,
+                cmd_stop,
+                cmd_train,
+            )
+
+            match args.pod_command:
+                case "status":
+                    cmd_status(args.pod_id)
+                case "train":
+                    cmd_train(args.pod_id, fresh=args.fresh)
+                case "stop":
+                    cmd_stop(args.pod_id)
+                case "ssh":
+                    cmd_ssh(args.pod_id, command=args.ssh_command)
         case "papers":
             if args.papers_command == "convert":
                 cmd_papers_convert(args)

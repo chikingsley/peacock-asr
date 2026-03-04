@@ -6,6 +6,7 @@ Working title:
 
 Purpose:
 
+- **Phase 0 (active):** Validate CTC fine-tuning recipe on w2v-bert-2.0 (600M). Running on RunPod L4. Same recipe reused for smaller backbones in Phase 1.
 - Compare smaller CTC backbones (wav2vec2-base 95M, HuBERT-base 95M, Citrinet 10M) against our xlsr-53 300M baseline as GOP feature extractors.
 - Measure the compute-accuracy tradeoff at the backbone level.
 - Include HMamba (Mamba-based scoring head) as an alternative to GOPT transformer.

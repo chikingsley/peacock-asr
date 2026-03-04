@@ -39,11 +39,17 @@ Ordinal Entropy (ICLR 2023, Zhang et al.) ─── math foundation
 |------|-------|---------|-------|------|-----------|
 | `read_to_hear_emnlp.pdf` | Read to Hear: Zero-Shot Pronunciation Assessment via Text+LLMs | Chen, Ma, Hirschberg (Columbia) | EMNLP 2025 | 2025 | Alternative paradigm: zero-shot LLM scoring, no training on scored audio |
 
-## Missing (Need to Acquire)
+## Acquired (IEEE Official — purchased)
+
+| File | Paper | Venue | Year | Notes |
+|------|-------|-------|------|-------|
+| `hiergat_taslp2024.pdf` | HierGAT: Hierarchical Graph Attention Network for APA | IEEE/ACM TASLP 2024 | 2024 | 12 pages, full journal paper. Graph-based architecture preceding HierCB. |
+| `conpco_ieee_official.pdf` | ConPCO (IEEE official version) | ICASSP 2025 | 2025 | Official IEEE version (also have arxiv preprint as `conpco_2406.02859.pdf`) |
+
+## Still Missing
 
 | Paper | Venue | Why We Need It | How to Get |
 |-------|-------|---------------|-----------|
-| HierGAT: Hierarchical Graph Attention Network for APA | IEEE/ACM TASLP 2024 (DOI: 10.1109/TASLP.2024.3449111) | Introduces the graph-based architecture that preceded HierCB. Needed to understand full lineage. | IEEE paywalled. Try: email <bicheng@ntnu.edu.tw>, or check ResearchGate for full-text request. |
 | MASA: Multimodal Foundation Model for L2 Speaking Assessment | LREC 2026 (not yet published) | Newest Yan & Chen work — multimodal LLM for picture-description assessment. | Wait for May 2026 conference proceedings, or check arxiv closer to date. |
 
 ## Also In Repo

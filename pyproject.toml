@@ -24,10 +24,10 @@ dependencies = [
     "onnxruntime>=1.24.2",
     "lhotse>=1.32.2",
     "tqdm>=4.67.3",
-    "mlflow>=3.10.0",
     "trafilatura>=2.0.0",
     "evaluate>=0.4.6",
     "jiwer>=4.0.0",
+    "wandb>=0.25.0",
 ]
 
 [project.optional-dependencies]
