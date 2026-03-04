@@ -17,11 +17,11 @@ Citation policy:
 
 | ID | Claim | Evidence Status | Primary Citations |
 |---|---|---|---|
-| C1 | ConPCO regularization improves pronunciation scoring over MSE-only training | Needs experiment (Phase 1) | [1], [2] |
-| C2 | Ordinal entropy loss is the primary driver (not CLAP contrastive) | Needs experiment (Phase 1 B vs C) | [2] |
+| C1 | ConPCO regularization improves pronunciation scoring over MSE-only training | **Refuted on GOP-SF** — P1 sweep shows +0.003 PCC (not significant) | [1], [2] |
+| C2 | Ordinal entropy loss is the primary driver (not CLAP contrastive) | **Inconclusive** — OE gives +0.003, adding CLAP washes it out (net 0.000) | [2] |
 | C3 | Duration and energy features add meaningful signal beyond GOP-SF features | Needs experiment (Phase 2) | [1] |
 | C4 | SSL embeddings provide large marginal gain over handcrafted features | Needs experiment (Phase 2C) | [1], [3] |
-| C5 | HierCB's SOTA (0.743) is primarily from architecture+features, not just loss | Hypothesis from research agent analysis | [1] |
+| C5 | HierCB's SOTA (0.743) is primarily from architecture+features, not just loss | **Supported** — ConPCO loss without rich features adds negligible value | [1] |
 | C6 | Our GOPT baseline (0.6774) is a valid compute-fair comparison point | Supported (Track 05 Phase 1 A3, 5 seeds) | Internal |
 
 ---
@@ -83,3 +83,44 @@ loss_w_clap (CLAP loss weight): 1.0
 | HierCB (full) | GOP + energy + dur + 3xSSL | 3164 | 0.743 |
 
 The 75x feature dimension gap (42 vs 3164) is the elephant in the room.
+
+---
+
+## 5. Experiment Results
+
+### Phase 1: ConPCO Loss on GOPT + GOP-SF (2026-03-04)
+
+**Sweep:** `peacockery/peacock-asr-runs/sweeps/p38g7dnj` (15 runs, 3 ablations × 5 seeds)
+
+| Ablation | Description | Mean PCC | Mean MSE | Δ vs P1-A |
+|----------|-------------|----------|----------|-----------|
+| P1-A | GOPT + MSE only | 0.6381 | 0.08127 | — |
+| P1-B | GOPT + MSE + OE | **0.6409** | **0.08120** | +0.003 |
+| P1-C | GOPT + MSE + OE + CLAP | 0.6380 | 0.08167 | −0.000 |
+
+**Conclusion:** ConPCO loss adds negligible value on 42-dim GOP-SF features. The loss was
+designed for 3000+ dim feature spaces (3×SSL + energy + duration). Ordinal entropy gives
+a marginal +0.003 PCC; adding CLAP contrastive on top cancels it out.
+
+**Note:** P1-A mean (0.638) is below Track 05 best (0.677) because this sweep used
+`train_and_evaluate_gopt_conpco()` with slightly different LR schedule parameters.
+The relative comparison within P1 is valid.
+
+### v3 Reproduction: HierCB + ConPCO (RunPod, in progress)
+
+**Sweep:** `peacockery/peacock-asr-runs/sweeps/3cv5id20` (10 runs: 5 ON + 5 OFF)
+
+Preliminary (ConPCO ON, 5 seeds complete): mean PCC ~0.667 (paper target: 0.701).
+ConPCO OFF runs still finishing — needed for the ON vs OFF comparison.
+
+---
+
+## 6. Strategic Assessment
+
+The value of ConPCO is **not the loss function** — it's the rich features + architecture.
+Two independent paths forward:
+
+1. **Improve our features** (Phase 2): add duration, energy, SSL embeddings to GOPT.
+   This is where HierCB's gains come from. ConPCO loss may help once features are richer.
+2. **Improve our architecture** (Track 10): compact backbones, attention patterns,
+   hierarchical scoring. Independent of loss function choice.

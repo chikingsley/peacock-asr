@@ -10,6 +10,29 @@ Paper target: PCC = 0.648 (GOPT transformer on feature vectors).
 
 ---
 
+### Run 13 — 2026-03-04: Track09 Phase 1 — ConPCO loss ablation on GOPT + GOP-SF
+
+- **Changed**: Ported ConPCO loss (Yan & Chen, ICASSP 2025) into GOPT pipeline.
+  Added `OrdinalEntropyLoss` and `CLAPContrastiveLoss` to `losses.py`, projection
+  heads to `GOPTModel`, and `train_and_evaluate_gopt_conpco()` training function.
+- **Sweep**: `peacockery/peacock-asr-runs/sweeps/p38g7dnj` (15 runs: 3 ablations × 5 seeds)
+- **Backend**: original (checkpoint-8000), GOP-SF features (42-dim), cached
+- **Results**:
+
+| Ablation | Description | Mean PCC | Mean MSE | Δ PCC vs P1-A |
+|----------|-------------|----------|----------|---------------|
+| P1-A | MSE only (baseline) | 0.6381 | 0.08127 | — |
+| P1-B | MSE + Ordinal Entropy | **0.6409** | **0.08120** | +0.003 |
+| P1-C | MSE + OE + CLAP | 0.6380 | 0.08167 | −0.000 |
+
+- **Note**: P1-A mean (0.638) is below Track 05 best (0.677) due to different LR
+  schedule parameters in the ConPCO training function. Relative comparison valid.
+- **Takeaway**: ConPCO loss adds negligible value on 42-dim GOP-SF features.
+  The loss was designed for 3000+ dim feature spaces. The value of ConPCO is in
+  their rich features + architecture, not the loss function alone.
+
+---
+
 ### Run 12 — 2026-03-03: Track05 scalar logit ablation + dense alpha sweep (xlsr-espeak)
 
 - **Changed**:
@@ -226,8 +249,10 @@ Paper target: PCC = 0.648 (GOPT transformer on feature vectors).
 ## Score Progression (original backend)
 
 ```text
-0.31  ██████████░░░░░░░░░░  Scalar GOP + poly regression
-0.539 █████████████████░░░  SVR + 41-dim features
-0.548 █████████████████░░░  SVR + 42-dim features + GridSearchCV
-0.648 ████████████████████  GOPT transformer  ← MATCHED PAPER TARGET
+0.31  ████████░░░░░░░░░░░░  Scalar GOP + poly regression
+0.539 █████████████░░░░░░░  SVR + 41-dim features
+0.548 █████████████░░░░░░░  SVR + 42-dim features + GridSearchCV
+0.648 ████████████████░░░░  GOPT transformer  ← MATCHED PAPER TARGET
+0.677 █████████████████░░░  GOPT + xlsr-espeak (5-seed mean, Track 05)  ← CURRENT BEST
+0.641 ████████████████░░░░  GOPT + ConPCO loss (Track 09 P1-B)  ← loss alone doesn't help
 ```
