@@ -72,7 +72,7 @@ def get_args():
     parser.add_argument("--loss-w-utt", type=float, default=1.0)
     parser.add_argument("--noise", type=float, default=0.0)
     parser.add_argument("--wandb-project", type=str, default="peacock-asr")
-    parser.add_argument("--tag", type=str, default="v3", help="Version tag for wandb")
+    parser.add_argument("--tag", type=str, default="v4", help="Version tag for wandb")
     return parser.parse_args()
 
 
@@ -290,8 +290,10 @@ def train(args):
     wandb.init(
         project=args.wandb_project,
         name=run_name,
+        group="reproduce-conpco-v4",
         config={
             "experiment": "reproduce_conpco",
+            "version": args.tag,
             "track": "09",
             "seed": args.seed,
             "conpco_enabled": use_conpco,
@@ -314,6 +316,7 @@ def train(args):
     best_phn_pcc = 0.0
     best_mse = 999.0
     best_epoch = 0
+    best_metrics = {}  # metrics at best MSE epoch (official selection criterion)
     global_step = 0
 
     for epoch in range(args.n_epochs):
@@ -340,10 +343,13 @@ def train(args):
                 for pg in optimizer.param_groups:
                     pg["lr"] = warm_lr
 
-            # Noise augmentation
-            if args.noise > 0:
-                noise = (torch.rand_like(feat) - 1) * args.noise
-                feat = feat + noise
+            # Noise augmentation — always create tensor to match official RNG
+            # trajectory (official#L125), even when noise=0 (adds zeros).
+            noise = (torch.rand(
+                [feat.shape[0], feat.shape[1], feat.shape[2]],
+            ) - 1) * args.noise
+            noise = noise.to(device, non_blocking=True)
+            feat = feat + noise
 
             u1, u2, u3, u4, u5, p, w1, w2, w3, phn_audio, phn_text = model(
                 feat, eng, dur, ssl, phns, word_label[:, :, -1], word_id
@@ -401,13 +407,17 @@ def train(args):
         for k in epoch_losses:
             epoch_losses[k] /= max(n_batches, 1)
 
-        # Evaluate
+        # Evaluate — match official: validate on BOTH train and test loaders
+        # (official#L181). The train_loader iteration consumes DataLoader
+        # shuffle RNG, which affects all subsequent random state.
+        _ = evaluate(model, tr_loader, device)  # train eval (RNG alignment)
         metrics = evaluate(model, te_loader, device)
 
-        # Track best (by MSE, matching paper's original code)
+        # Track best by lowest test MSE (official#L199), save all metrics at that epoch
         if metrics["phn_mse"] < best_mse:
             best_mse = metrics["phn_mse"]
             best_epoch = epoch
+            best_metrics = dict(metrics)
         if metrics["phn_pcc"] > best_phn_pcc:
             best_phn_pcc = metrics["phn_pcc"]
 
@@ -433,9 +443,12 @@ def train(args):
             "test/phn_mse": metrics["phn_mse"],
             **{f"test/{k}": v for k, v in metrics.items() if k.startswith("utt_")},
             **{f"test/{k}": v for k, v in metrics.items() if k.startswith("word_")},
-            # Best tracking
-            "best/phn_pcc": best_phn_pcc,
+            # Best tracking (by MSE, official selection criterion)
+            "best/phn_pcc": best_metrics.get("phn_pcc", 0),
+            "best/phn_mse": best_mse,
             "best/epoch": best_epoch,
+            # Also track best PCC ever seen (may differ from best-MSE epoch)
+            "best/phn_pcc_ever": best_phn_pcc,
         })
 
         print(
@@ -446,8 +459,11 @@ def train(args):
         )
 
     wandb.finish()
-    print(f"\nDone. Best phone PCC: {best_phn_pcc:.4f} at epoch {best_epoch}")
-    print(f"Target: ~0.743 (ConPCO paper)")
+    best_epoch_pcc = best_metrics.get("phn_pcc", 0)
+    print(f"\nDone. Best MSE epoch: {best_epoch}")
+    print(f"  PCC at best-MSE epoch: {best_epoch_pcc:.4f}  (this is what the paper reports)")
+    print(f"  Best PCC ever seen:    {best_phn_pcc:.4f}")
+    print(f"Target: ~0.743 (ConPCO paper, 5-seed mean)")
 
 
 if __name__ == "__main__":
