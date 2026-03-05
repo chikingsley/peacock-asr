@@ -542,9 +542,9 @@ def main() -> None:  # noqa: PLR0915
     # It reads project from WANDB_PROJECT env var (default: "huggingface").
     # It reads run name from TrainingArguments.run_name.
     # We set env vars here so it works regardless of shell environment.
-    os.environ["WANDB_PROJECT"] = "w2v-bert-phoneme-en"
-    os.environ["WANDB_ENTITY"] = "peacockery"
-    os.environ["WANDB_LOG_MODEL"] = "checkpoint"
+    os.environ.setdefault("WANDB_PROJECT", hub_repo.split("/")[-1] if hub_repo else "peacock-asr-training")
+    os.environ.setdefault("WANDB_ENTITY", "peacockery")
+    os.environ.setdefault("WANDB_LOG_MODEL", "checkpoint")
 
     run_name = f"phoneme-head-{Path(args.output_dir).name}"
     training_args = TrainingArguments(

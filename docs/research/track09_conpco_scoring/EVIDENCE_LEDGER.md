@@ -17,7 +17,7 @@ Citation policy:
 
 | ID | Claim | Evidence Status | Primary Citations |
 |---|---|---|---|
-| C1 | ConPCO regularization improves pronunciation scoring over MSE-only training | **Refuted on GOP-SF** — P1 sweep shows +0.003 PCC (not significant) | [1], [2] |
+| C1 | ConPCO regularization improves pronunciation scoring over MSE-only training | **Refuted on GOP-SF** (P1: +0.003); **Marginal on HierCB** (v3: +0.007, paper claims +0.042) | [1], [2] |
 | C2 | Ordinal entropy loss is the primary driver (not CLAP contrastive) | **Inconclusive** — OE gives +0.003, adding CLAP washes it out (net 0.000) | [2] |
 | C3 | Duration and energy features add meaningful signal beyond GOP-SF features | Needs experiment (Phase 2) | [1] |
 | C4 | SSL embeddings provide large marginal gain over handcrafted features | Needs experiment (Phase 2C) | [1], [3] |
@@ -106,12 +106,29 @@ a marginal +0.003 PCC; adding CLAP contrastive on top cancels it out.
 `train_and_evaluate_gopt_conpco()` with slightly different LR schedule parameters.
 The relative comparison within P1 is valid.
 
-### v3 Reproduction: HierCB + ConPCO (RunPod, in progress)
+### v3 Reproduction: HierCB + ConPCO (RunPod)
 
-**Sweep:** `peacockery/peacock-asr-runs/sweeps/3cv5id20` (10 runs: 5 ON + 5 OFF)
+**Sweep:** `peacockery/peacock-asr-runs/sweeps/3cv5id20` (10 runs: 5 ON + 5 OFF, FINISHED)
 
-Preliminary (ConPCO ON, 5 seeds complete): mean PCC ~0.667 (paper target: 0.701).
-ConPCO OFF runs still finishing — needed for the ON vs OFF comparison.
+| Condition | Mean PCC | Std | Min | Max |
+|-----------|----------|-----|-----|-----|
+| ConPCO ON | **0.6672** | 0.0070 | 0.6570 | 0.6745 |
+| ConPCO OFF | 0.6598 | 0.0064 | 0.6504 | 0.6665 |
+| **Δ (ON − OFF)** | **+0.0074** | | | |
+
+Paper target: 0.701 (ON), gap = −0.034. Known v3 code mismatches (fixed in v4):
+RNG noise tensor always created, train-set validation each epoch, best-MSE-epoch
+model selection. v4 sweep running locally to test these fixes.
+
+**Per-seed breakdown:**
+
+| Seed | ON PCC | OFF PCC | Δ |
+|------|--------|---------|---|
+| 22 | 0.6632 | 0.6504 | +0.013 |
+| 33 | 0.6570 | 0.6598 | −0.003 |
+| 44 | 0.6701 | 0.6648 | +0.005 |
+| 55 | 0.6745 | 0.6577 | +0.017 |
+| 66 | 0.6712 | 0.6665 | +0.005 |
 
 ---
 

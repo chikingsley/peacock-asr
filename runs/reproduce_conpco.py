@@ -5,8 +5,18 @@
 #     "torch>=2.0",
 #     "numpy>=1.26",
 #     "wandb>=0.25",
+#     "scipy>=1.14",
 # ]
 # ///
+# NOTE: Official ConPCO pins torch==2.5.0+cu118, numpy==1.26.4.
+# RTX 5070 (sm_120/Blackwell) requires torch>=2.6. For exact version
+# matching, run on RunPod with an older GPU (L4/A5000) and pin via:
+#   [tool.uv.sources]
+#   torch = { index = "pytorch-cu118" }
+#   [[tool.uv.index]]
+#   name = "pytorch-cu118"
+#   url = "https://download.pytorch.org/whl/cu118"
+#   explicit = true
 """
 Reproduce ConPCO (Yan & Chen, ICASSP 2025) results on SpeechOcean762.
 

@@ -44,6 +44,17 @@ Key references:
 - Citrinet-256: <https://huggingface.co/nvidia/stt_en_citrinet_256_ls>
 - GOPT repo: <https://github.com/YuanGongND/gopt>
 
+## Launch commands
+
+Phase 1: wav2vec2-base (95M) CTC fine-tuning on local RTX 5070 (12GB VRAM):
+
+```bash
+wandb sweep runs/sweep_track10_wav2vec2_base.yaml
+wandb agent <sweep-id>
+```
+
+No `--preprocessed-dataset` needed — wav2vec2's feature extractor is just audio normalization (0.3ms/sample), so `set_transform()` on-the-fly is faster than loading preprocessed data.
+
 Key insight:
 
 - No published paper has used wav2vec2-base or HuBERT-base as a CTC backbone for GOP-based pronunciation assessment on SpeechOcean762. This is a genuine gap.
