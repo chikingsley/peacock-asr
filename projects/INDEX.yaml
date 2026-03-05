@@ -1,0 +1,71 @@
+projects:
+  - id: P001
+    slug: gop-baselines
+    name: GOP Baselines
+    status: active
+    legacy_track: track05_paper
+    root: projects/P001-gop-baselines
+    wandb_project: peacock-asr-p001-gop-baselines
+    active_paths:
+      - docs/research/track05_paper
+      - runs/track05_phase1_baseline.yaml
+      - runs/track05_phase2_logit_scalar.yaml
+  - id: P002
+    slug: conpco-scoring
+    name: ConPCO Scoring
+    status: active
+    legacy_track: track09_conpco_scoring
+    root: projects/P002-conpco-scoring
+    wandb_project: peacock-asr-p002-conpco-scoring
+    active_paths:
+      - docs/research/track09_conpco_scoring
+      - runs/reproduce_conpco.py
+      - runs/sweep_conpco_v3_paper.yaml
+      - runs/sweep_conpco_v4_rng_fix.yaml
+      - references/ConPCO
+    notes:
+      - "Keep references/ConPCO and runs/reproduce_conpco.py in place until active sweeps finish."
+  - id: P003
+    slug: compact-backbones
+    name: Compact Backbones
+    status: active
+    legacy_track: track10_compact_backbones
+    root: projects/P003-compact-backbones
+    wandb_project: peacock-asr-p003-compact-backbones
+    active_paths:
+      - docs/research/track10_compact_backbones
+      - runs/sweep_track10_wav2vec2_base.yaml
+      - training/train_phoneme_head.py
+      - training/preprocess_features.py
+  - id: P004
+    slug: training-from-scratch
+    name: Training From Scratch
+    status: planning
+    legacy_track: track07_training_from_scratch
+    root: projects/P004-training-from-scratch
+    wandb_project: peacock-asr-p004-training-from-scratch
+    active_paths:
+      - docs/research/track07_training_from_scratch
+  - id: P005
+    slug: llm-pronunciation
+    name: LLM Pronunciation
+    status: planning
+    legacy_track: track06_llm_pronunciation
+    root: projects/P005-llm-pronunciation
+    wandb_project: peacock-asr-p005-llm-pronunciation
+    active_paths:
+      - docs/research/track06_llm_pronunciation
+  - id: P006
+    slug: realtime-streaming
+    name: Realtime Streaming
+    status: planning
+    legacy_track: track08_realtime_streaming
+    root: projects/P006-realtime-streaming
+    wandb_project: peacock-asr-p006-realtime-streaming
+    active_paths:
+      - docs/research/track08_realtime_streaming
+
+conventions:
+  canonical_naming: P###-slug
+  enforce_project_id_on_runs: true
+  keep_legacy_paths_during_migration: true
