@@ -1,0 +1,175 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2021
+
+% ready for submission
+% \usepackage{neurips_2021}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%    \usepackage[preprint]{neurips_2021}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+\usepackage[final]{neurips_2021}
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2021}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usetikzlibrary[patterns]
+\usepackage[inline]{enumitem}
+\usepackage{amsmath}
+\pgfplotsset{compat=1.11}
+\usepackage{verbatim}
+\usepackage{dirtree}
+\usepackage{makecell}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{algorithmicx}
+\usepackage{multicol,multirow}
+\usepackage[scientific-notation=true]{siunitx}
+
+
+% \usepackage[arabic,main=english]{babel}  % for the persian words
+
+% \usepackage{arabtex}
+% \usepackage[utf8]{inputenc}
+% \usepackage[LFE,LAE]{fontenc}
+% \usepackage[arabic]{babel}
+
+% Definitions of handy macros can go here
+
+\input{macro}
+\input{tables}
+
+
+% Scaling Speech Technology Beyond 
+\title{Scaling Speech Technology to 1,000+ Languages}
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+\author{
+\centering 
+\centerline{
+Vineel Pratap$^{\Diamond}$\quad
+Andros Tjandra$^{\Diamond}$\quad
+Bowen Shi$^{\Diamond}$ 
+}\vspace{4mm}
+\and
+\centerline{\textbf{
+Paden Tomasello\quad
+Arun Babu\quad
+Sayani Kundu\thanks{JPMorgan Chase. Work done while at Meta AI.}\quad
+Ali Elkahky\thanks{Apple. Work done while at Meta AI.}
+}}\vspace{4mm}\and
+\centerline{\textbf{
+Zhaoheng Ni\quad
+Apoorv Vyas\quad
+Maryam Fazel-Zarandi\quad
+Alexei Baevski\thanks{Character.AI. Work done while at Meta AI.}
+}}\vspace{4mm}\and
+\centerline{\textbf{
+Yossi Adi\thanks{Meta AI \& Hebrew University of Jerusalem.}\quad
+Xiaohui Zhang\quad
+Wei-Ning Hsu\quad
+Alexis Conneau\thanks{Open AI. Work done while at Meta AI.}
+}}\vspace{4mm}\and
+\centerline{\textbf{
+Michael Auli$^{\Diamond}$
+}}
+\vspace{4mm}
+\and
+{\normalfont Meta AI}\and
+{\normalfont $^{\Diamond}$ core team}
+}
+\begin{document}
+
+\maketitle
+\vspace*{-0.18cm}
+\begin{abstract}
+Expanding the language coverage of speech technology has the potential to improve access to information for many more people.
+However, current speech technology is restricted to about one hundred languages which is a small fraction of the over 7,000 languages spoken around the world.
+The Massively Multilingual Speech (\modelname{}) project increases the number of supported languages by 10-40x, depending on the task.
+The main ingredients are a new dataset based on readings of publicly available religious texts and effectively leveraging self-supervised learning.
+We built pre-trained wav2vec 2.0 models covering \numptlang{} languages, a single multilingual automatic speech recognition model for \nummmslang{} languages, speech synthesis models for the same number of languages, as well as a language identification model for \numlidlang{} languages.
+Experiments show that our multilingual speech recognition model more than halves the word error rate of Whisper on 54 languages of the FLEURS benchmark while being trained on a small fraction of the labeled data.
+The \modelname{} models are available at \url{https://github.com/pytorch/fairseq/tree/master/examples/mms}.
+\end{abstract}
+
+
+
+\input{sections/intro}
+
+\input{sections/related}
+
+\input{sections/dataset}
+
+\input{sections/pretrain}
+
+\input{sections/asr}
+
+\input{sections/lid}
+
+\input{sections/tts}
+
+\input{sections/rai}
+
+\input{sections/conclusion}
+
+
+\section*{Acknowledgments}
+
+We would like to thank Chlo\'{e} Bakalar and Hubert Etienne for providing feedback on responsible AI evaluations, as well as the people who featured in the demo video: 
+Filmawit Gebreegziabher, Gilbert Buada, Shanti Jha, Masoud Tavazoei, Akinniyi Akinyemi, Mari Silvia Marin, Amlan Roy, Kumar Rajarshi, Sugat Nayak, Jason Carlo Carranceja, Amit Prakash, Hangameh Vahabzadeh, Mohsen Dalil, Swati Verma, Edwina Anandita, Faisal Putra.
+We would like to thank Moto Hira for help in preparing the forced alignment tutorial in TorchAudio and Ping Yu for analyzing the Chinese language datasets for \modelname{}.
+We thank Sainbayar Sukhbaatar for his analysis of the model transcriptions. 
+
+
+
+
+
+\bibliography{refs}
+
+\bibliographystyle{abbrvnat}
+
+
+\newpage
+\appendix
+% \renewcommand{\thesection}{\Alph{section}}
+
+\appendix
+\setcounter{table}{0}
+\setcounter{figure}{0}
+\renewcommand{\thetable}{A\arabic{table}}
+\renewcommand{\thefigure}{A\arabic{figure}}
+
+
+\section*{Appendices}
+
+\input{sections/appendix}
+
+
+
+
+\end{document}

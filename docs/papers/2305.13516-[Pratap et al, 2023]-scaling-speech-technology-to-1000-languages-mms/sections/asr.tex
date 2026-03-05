@@ -1,0 +1,150 @@
+\section{Automatic Speech Recognition}
+\label{sec:asr}
+
+We first turn to the task of transcribing speech in up to \nummmslang{} different languages.
+We use the labeled dataset we collected (\textsection\ref{sec:data-paired}) to fine-tune our pre-trained models (\textsection\ref{sec:pretrain}) for ASR.
+We first outline our modeling approach (\textsection\ref{sec:asr_modeling}) and then scale the number of languages for multilingual ASR from 61 to \nummmslang{} in order to better understand the impact of supporting more languages (\textsection\ref{sec:asr_scaling}).
+Next, we compare our models to existing multilingual work (\textsection\ref{sec:asr_main_results}), and build robust multilingual models supporting 1,162 languages trained on several existing corpora as well as the \MMS{} data (\textsection\ref{sec:asr-everything}).
+Finally, we evaluate our multilingual models on all languages they support (\textsection\ref{sec:asr-full-eval}).
+
+
+\subsection{Modeling and Training Approach}
+\label{sec:asr_modeling}
+
+We train multilingual speech recognition models by fine-tuning our pre-trained \modelnameb{1} model (\textsection\ref{sec:pretrain}) using labeled data, similar to~\citet{baevski2020wav}. 
+To output transcriptions, we add a linear layer on top of the model which maps to an output vocabulary which is the set of letters in the labeled training data of all languages considered in a particular setting.
+Next, we fine-tune the entire model with the Connectionist Temporal Classification (CTC) criterion~\citep{graves2006ctc}.
+
+\paragraph{Optimization.}
+We use Adam~\citep{kingma2015adam} with exponential decay rates $\beta_1=0.9$, $\beta_2=0.98$ to train model weights using a tri-stage schedule where the learning rate is warmed up for the first 10\% of updates, held constant for the next 40\% updates, and then decayed in the final 50\% updates. 
+We experimented with different learning rates ($\Enot{1e-4}$, $\Enot{7e-4}$, $\Enot{3e-4}$ $\Enot{1e-5}$, $\Enot{7e-6}$, $\Enot{3e-6}$, $\Enot{1e-6}$) and number of updates (50K, 100K, 200K, 300K).
+Unless otherwise mentioned, we fine-tune models for a total of 50K updates with a batch size of 0.8 hours of data using 16 A100 GPUs with 80GB of memory.
+
+\paragraph{Language-specific Adapters, Head and Fine-Tuning (LSAH).}
+In addition to training dense models which share all parameters across languages, we also consider adding adapter modules~\citep{houlsby2019parameter} to models where we use a different set of adapter weights for each language.
+Specifically, we introduce adapters at every block of the transformer, and the adapter is added after the last feed-forward block. The adapter module consists of a LayerNorm \cite{ba2016layer} layer, a downward linear projection followed by a ReLU activation and an upward linear projection; the inner dimension of the projections is 16. 
+
+For each language, using an adapter increases the number of parameters by 2M or about 2\% of the total number of parameters without adapters.
+We then perform a second stage of fine-tuning for each language where we introduce a randomly initialized linear layer mapping to the specific output vocabulary of a language in addition to language-specific adapter and fine-tune these additional parameters only for another 2K updates on the labeled data of the respective language.
+
+% \paragraph{Hyper-parameters.}
+
+
+\subsection{Scaling Multilingual ASR to \nummmslang{} Languages}
+\label{sec:asr_scaling}
+
+We first analyze training multilingual ASR models with an increasing number of languages by scaling from 61 to \nummmslang{} languages, roughly doubling the number of languages at every step.
+Models are trained on the labeled data of \MMS{} by fine-tuning the \modelnameb{1} pre-trained model (\textsection\ref{sec:pretrain}) and we consider training models with and without language specific adapters and output layers.
+Each setting is evaluated on the 61 FLEURS languages covered by \MMS{} (FLEURS-61) as well as the 49 languages of CommonVoice covered by \MMS{} (CV-49). 
+Results are reported on the development sets of FLEURS and CommonVoice in terms of Character Error Rate without a language model.
+
+\insertResultsASRLangScaling
+
+
+\autoref{fig:results_asr_scale_lang} shows that performance degrades quickly for dense models which have no language-specific parameters:
+for FLEURS-61, CER increases by 5.1 when moving from 61 to \nummmslang{} languages and for CV-49, there is a 2.1 CER increase.
+This is mainly due to languages being confused with each other which results in large performance drops for certain languages.
+Language-specific parameters (LSAH) alleviate this issue and show only very little degradation (0.4 CER for FLEURS-61 and 0.2 CER for CV-49).
+
+In summary, this shows that scaling multilingual ASR models to over one thousand languages is feasible and that there is little performance degradation when coupled with language-specific parameters.
+
+
+
+\subsection{Comparison to Other Work}
+\label{sec:asr_main_results}
+
+Next, we present comparisons to other recent related work on multilingual ASR: 
+Whisper~\citep{radford2022whisper} uses large quantities of labeled web data to train a model supporting 99 languages (\textsection\ref{sec:asr-comp-whisper}) and Google USM~\citep{zhang2023usm} builds multilingual ASR models supporting 100 languages by pre-training on YouTube data (\textsection\ref{sec:asr-comp-usm}).
+
+\subsubsection{Whisper}
+\label{sec:asr-comp-whisper}
+
+Whisper is a multilingual model trained on 680K hours of weakly labeled audio data from the web and able to transcribe speech in 99 languages~\citep{radford2022whisper}.
+The model uses a sequence to sequence architecture~\citep{sutskever2014sequence} which has a neural sequence model as decoder that acts in part like a language model.
+The decoder has been trained on the target side text of the labeled training data which likely amounts to several billions of words of text from the web.\footnote{Assuming 10K words of text per hour of paired speech data, the decoder was trained on about 6.8B words.}
+
+\insertResultsASRWisper
+
+In contrast, \modelname{} is a CTC model whose decoder is a simple linear layer mapping to a set of characters (\textsection\ref{sec:asr_modeling}).
+When comparing CTC models to models with sequence-model based decoders, the former are typically paired with an external language model to enable a fairer comparison.
+We therefore train simple n-gram models on web data (Common Crawl) for each language and use it during inference time~(CC LM; \citealt{heafield-2011-kenlm,conneau2020xlsr,nllbteam2022language}); Appendix~\ref{app:train-lms} details the training procedure.
+We evaluate both models on the 54 languages of FLEURS supported by both Whisper and \modelname{}  (FLEURS-54) and report word error rate except for  Thai, Lao, Burmese and Khmer where we use character error rate.\footnote{We follow Whisper's evaluation methodology but add Khmer to the list of languages where evaluation is in terms of CER because there is no standard tokenization we are aware of.}
+
+
+The results (\autoref{tab:asr-whisper}) show that \modelname{} reduces the word error rate of Whisper by a relative 58\% while supporting over 11 times the number of languages.
+Moreover, \modelname{} was trained on \nummmshrs{} hours of labeled data compared to 680K for Whisper.\footnote{The non-English portion of the Whisper training data is still 117K hours and covers less than 100 languages, while \MMS{} is less than half the size and covers 11 times the number of languages.}
+A reduced version of \modelname{} trained on 61 languages can still outperform Whisper to a similar degree while being trained on only about 3K hours of labeled training data.
+Overall, \modelname{} (LSAH) outperforms Whisper on 31 out of the 54 languages.
+Appendix~\ref{app:asr-whisper} provides a per-language breakdown of the results.
+
+
+
+\subsubsection{Google USM}
+\label{sec:asr-comp-usm}
+
+This model is pre-trained on 12M hours of proprietary YouTube audio spanning 300 languages and then fine-tuned to perform ASR for up to 100 languages on a labeled dataset of 90K hours~\citep{zhang2023usm} which results in large improvements over Whisper.\footnote{
+We were not able to obtain the list of languages involved in their comparison to Whisper and therefore resort to a comparison not involving the labeled YouTube data. 
+This has the downside of removing the impact of the labeled datasets of each approach in the comparison.
+}
+In a best effort comparison, we adopt the USM setup where the authors fine-tune their pre-trained model on the labeled FLEURS data.
+We follow the same training regime as outlined above (\textsection\ref{sec:asr_modeling}) but fine-tune this model for a total of 300K updates.
+Results are in terms of character error rate.\footnote{\citet{zhang2023usm} did not perform any additional pre-processing on the reference transcriptions when reporting CER which enables a comparison to their results [Yu Zhang, personal communication 5 May 2023].}
+
+There are several important differences between their approach and \modelname{}:
+first, USM uses an RNN-T model~\citep{chan2015las} which has a built-in neural language model while as \modelname{} is a CTC-based acoustic model.\footnote{
+RNN-T may benefit particularly from pre-training on unlabeled text data in the case of USM-M, effectively training a strong neural language model.}
+Second, some of the USM models were pre-trained on large quantities of unlabeled text as well as 20K hours of labeled audio data (USM-M/USM-M-adapter) while as \modelname{} is pre-trained only on unlabeled speech data.
+
+\insertResultsASRUSM
+
+To enable a fairer comparison, we use n-gram language models trained on unlabeled text during inference: 
+for each language, we use either an n-gram model trained on CommonCrawl or a model trained on the transcriptions of the FLEURS training set, depending on dev set performance and data availability.
+Appendix~\ref{app:train-lms} details the training procedure.
+
+\autoref{tab:asr-usm} shows that \modelname{} performs very competitively compared to USM.
+We note that the approaches have significant differences in the model architecture and uses of unlabeled/labeled data, however, we believe that the result convinces the reader that a simple CTC model paired with n-gram models can perform very competitively to more advanced architectures and more elaborate pre-training procedures.
+Appendix~\ref{app:finetune-fleurs-results} shows a per-language breakdown of the results.
+
+
+\subsection{Robust Multilingual ASR Models}
+\label{sec:asr-everything}
+
+\insertTableASREverything
+
+In this section, we turn to building multilingual ASR models on data from multiple domains following a similar approach as prior work for English-only models~\citep{likhomanenko2020rasr,chan2021speechstew,hsu2021robust}. 
+We fine-tune the pre-trained \modelnameb{1} model on \MMS{}, FLEURS, CommonVoice, VoxPopuli, and MLS data to support 1,162 language and perform 300K updates; we denote this as multi-domain training.
+During fine-tuninig, the data of each language and dataset is balanced similar to pre-training (\textsection\ref{sec:pretrain-setup}; using $\beta_D=0$ and $\beta_L=0.3$). 
+The validation set for this model is the concatenation of the dev sets of each dataset for every language.
+
+We evaluate this single model on FLEURS, CommonVoice, VoxPopuli and MLS.
+For FLEURS we measure average CER on the 102 languages of FLEURS, for CommonVoice WER over 76 languages, for VoxPopuli WER over 14 languages and for MLS WER over eight languages.
+We also fine-tune \modelnameb{1} on each benchmark individually (single-domain training).\footnote{
+Models trained on FLEURS data were trained for 300K updates, for MLS models we found 50k updates to work well, CommonVoice and VoxPopuli models were trained for 200K updates.
+}
+During inference, we use n-gram models trained on CommonCrawl data.
+
+\autoref{tab:asr-everything} shows that the multi-domain model (\MMS{}+FL+CV+VP+MLS) can perform very competitively in several settings:
+For both FLEURS and CommonVoice it outperforms prior work as well the single-domain baselines and for VoxPopuli and MLS it is slightly worse than the single-domain baselines.
+For VoxPopuli, the \modelname{} model it is outperformed by Maestro which supports a much smaller number of languages and on MLS other approaches are better which attribute to a focus on fewer languages.
+Whisper results are not strictly comparable due to the different normalization but it appears to perform better on MLS due to a focus on head languages.
+Overall, this demonstrates that a combined model supporting well over 1,000 languages can perform in aggregate competitively on a range of benchmarks.
+
+
+
+\subsection{Evaluation on \nummmslang{} Languages}
+\label{sec:asr-full-eval}
+
+\insertTableResultsASRFullEval
+
+Finally, we evaluate the multi-domain model trained on \MMS{}, FLEURS, CommonVoice, VoxPopuli and MLS on the test sets of all \nummmslang{} languages in \MMS{}.
+We measure character error rate and group languages into six geographical regions covered by \MMS{}: Asia,
+North America, South America, Europe, Africa and the Pacific region.
+In order to get a broader sense of quality, we measure the number of languages for which CER $\leq$ 5. 
+This indicates for how many languages the model makes on average no more than one error in twenty characters.
+While this measure is very coarse, it enables us to get a sense of quality across such a large number of languages.
+
+\autoref{tab:asr-full-eval} shows that our model meets the CER quality threshold for 96\% of the \nummmslang{} languages.
+The region with the lowest rate is Africa at 91\% and we attribute this in part to different writing scripts. 
+We note that this metric is by far not perfect as it imposes the same threshold for every language which may not be appropriate due to different character sets etc.
+Also, many of the recordings in \MMS{} are single speaker which means that both the training data and the test data contains utterances with the same voice for a particular language.
+While this makes evaluation challenging, we hope that this analysis gives a sense that the model can be used to transcribe a wide variety of languages.

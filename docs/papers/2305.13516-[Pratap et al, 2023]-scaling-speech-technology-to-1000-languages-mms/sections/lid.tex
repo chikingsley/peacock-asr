@@ -1,0 +1,79 @@
+\section{Language Identification}
+\label{sec:lid}
+
+Language Identification (LID) is the task of determining the language which is spoken in a given utterance. 
+This has several important applications: 
+despite much work on multilingual speech recognition~\citep{burget2010multilingual, lin2009study,heigold2013multilingual,bourlard2011current,cho2018multilingual,toshniwal2018multilingual,kannan2019mult,li2019bytes,pratap2020massively}, many deployed systems are still trained on data in a single language despite the need to  transcribe speech in different languages. 
+It is therefore crucial to route utterances to the correct system and this routing depends on an LID model.
+Moreover, much work on mining speech data from the web relies on LID, including some of the most recent large-scale weakly-supervised work~\citep{radford2022whisper}.
+Training a language identification system requires speech data for which the spoken language is known, however, the most diverse public corpora span no more than about 100 languages~\citep{valk2020voxlingua,conneau2022fleurs}.
+
+In this section, we first describe our methodology to build LID models (\textsection\ref{sec:lid-setup}), then evaluate the feasibility of training LID systems using \MMSU{} and \GRN{} data compared data from existing corpora (\textsection\ref{sec:lid-existing-data}) and then build LID models with 40x more languages compared to existing systems (\textsection\ref{sec:lid-scaling}).\footnote{Note that we use \MMSU{} instead of \MMS{} because it supports more languages and we do not require the data to be paired with transcriptions for LID (\textsection\ref{sec:data-paired-source}).}
+
+
+
+\subsection{Training Setup}
+\label{sec:lid-setup}
+
+We train models by fine-tuning the \modelnameb{1} pre-trained model (\textsection\ref{sec:pretrain-setup}) for language identification.
+This is done by stacking a linear classifier on top of the pre-trained model, which maps to the set of possible languages for a particular task, followed by fine-tuning all parameters, including the pre-trained model.
+
+We optimize models with Adam with exponential decay rates $\beta_1=0.9$ and $\beta_2=0.98$ and a tri-state learning rate schedule where the learning rate is warmed up for the first 10\% of updates, held constant for the next 40\% and then linearly decayed for the remainder of training~\citep{kingma2015adam}.
+During development, we experiment with different hyper-parameters and perform final model selection based on development set accuracy.
+We experiment with different learning rates ($\Enot{1e-5}$, $\Enot{3e-5}$, $\Enot{3e-6}$, $\Enot{5e-6}$, $\Enot{7e-6}$), training updates (10K, 20K, 30K, 40K, 50K) and batch sizes (1.5min, 3min, 6min). 
+We train models on 16 GPUs.
+
+To balance the different languages and corpora during training, we first balance the data of every language in the different corpora, using sampling parameter $\beta_L$. This is followed by balancing each language using the resampled data of the first step, using sampling parameter $\beta_D$ with the sampling distribution outlined in~\textsection\ref{sec:pretrain-w2v}.
+We experiment with $\beta_L$ and $\beta_D$ settings 0, 0.3, 0.5, 0.7 and 1.
+
+When we train models on multiple datasets, then we use a development set containing up to 30 minutes of data for each language and we sample an equal amount of data from each corpus.
+For models supporting 1K, 2K or 4K languages, we reduce the amount of data per language to 15 min, 7min and 3min to enable faster development.
+
+
+
+\subsection{Comparison to Existing Datasets}
+\label{sec:lid-existing-data}
+
+\insertResultsLIDFLVLCompare
+
+
+We first assess the effectiveness of training LID models on \MMSU{} and \GRN{} data compared to existing LID training data (FLEURS, VoxLingua-107).
+Performance is evaluated both on the FLEURS and VoxLingua-107 benchmarks.
+In this setting, FLEURS and VoxLingua-107 models are at an advantage because there is no domain shift compared to systems trained on \MMSU{} and \GRN{} data.
+
+We are particularly interested in the setting where models trained on existing corpora are evaluated out-of-domain, i.e., the performance of a model trained on VoxLingua-107 evaluated on FLEURS or a model trained on FLEURS evaluated on VoxLingua-107 data, and how this compares to models trained on \MMSU{}/\GRN{}.
+To enable a controlled comparison, we report LID accuracy on the 72 languages supported by all considered datasets and train only on data of these languages.
+
+
+The results (\autoref{fig:lid-fl-vl-comp2}) show that \MMSUboth{} enables LID with slightly lower performance compared to systems trained on existing datasets when both are evaluated out-of-domain: 
+on FLEURS evaluation data the gap is 2.1\% compared to a VoxLingua-107 model and on VoxLingua-107 evaluation data \MMSUboth{} trails a FLEURS model by 1.6\%.
+Combining \MMSU{} and \GRN{} works particularly well as \GRN{} is more varied which improves performance.
+Naturally, models trained on in-domain training data (FLEURS or VoxLingua-107) perform best.
+We conclude that \MMSU{} and \GRN{} enable good quality LID models while enabling LID for many more languages as we will demonstrate next.
+
+
+
+\subsection{Scaling Language Identification to \numlidlang{} Languages}
+\label{sec:lid-scaling}
+
+\insertLIDResultsScaling
+
+Next, we scale spoken language identification from about 100 languages to \numlidlang{} languages by combining \MMSU{}, \GRN{}, FLEURS, and VoxLingua-107 data.
+Our primary goal is to understand how accuracy is impacted as models support more and more languages.
+We start with 126 languages, the union of the languages in both FLEURS and VoxLingua-107, and then add languages from \MMSUboth{}, roughly doubling the number of languages at every experiment.
+Languages are sorted by descending speaker count and we add the most spoken languages first.\footnote{We obtain the number of speakers of each language from \url{https://www.ethnologue.com}}
+
+Performance is evaluated on FLEURS and VoxLingua-107 which is in-domain with respect to the models we train.
+To get a sense of how the models perform on domains not seen in the training data, we also evaluate on two other datasets which are out-of-domain with respect to the training data domain:
+first, BABEL is conversational telephone speech data and we evaluate on 23 African and Asian languages~\citep{gales2014babel}.\footnote{Amharic, Assamese, Bengali, Cantonese, Cebuano, Georgian, Guarani, Haitian Creole, Igbo, Javanese, Kazakh, Lao, Lithuanian, Dholuo, Mongolian, Pashto, Swahili, Tagalog, Tamil, Telugu, Turkish, Vietnamese,  Zulu. 
+We evaluate on test utterances longer than 10 seconds.}
+Second, VoxPopuli~\citep{wang2021voxpopuli} consists of parliamentary speech in 25 languages from the European parliament. 
+We evaluate on 2.5 hours of data for each language sampled from the VoxPopuli unlabeled data portion.
+
+\autoref{tab:lid-scale} shows that \modelname{} models scale very well: 
+increasing the number of languages from 126 to \numlidlang{} results in a modest performance drop of just 0.3\% on FLEURS and no drop on VoxLingua-107.
+Out-of-domain we observe a drop of 3.6\% on BABEL and 0.2\% on VoxPopuli.
+The results are also competitive to models trained only on in-domain data: 
+On FLEURS evaluation data, the \numlidlang{} language \modelname{} model performs 1\% better than the baseline trained only on FLEURS data and is only 0.2\% behind the baseline trained on both FLEURS and VoxLingua-107.
+On VoxLingua-107 evaluation data, the gap is 0.4-0.8\%.
+This shows that scaling LID to \numlidlang{} can result in models with competitive performance to models trained on much fewer languages.

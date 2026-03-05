@@ -1,0 +1,25 @@
+\begin{table}[t!]
+\centering
+\setlength\tabcolsep{4pt}
+\resizebox{1.01\columnwidth}{!}{
+\footnotesize
+\begin{tabular}{lcccccc}
+\toprule
+& \multicolumn{2}{c}{Dakshina} & \multicolumn{4}{c}{\textsc{Sigmorphon} 2020} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-7}
+& \multicolumn{2}{c}{Transliteration} & \multicolumn{2}{c}{Grapheme-to-Phoneme} & \multicolumn{2}{c}{Inflection} \\
+& \multicolumn{2}{c}{CER ($\downarrow$)} & \multicolumn{2}{c}{WER ($\downarrow$) / PER ($\downarrow$)} & \multicolumn{2}{c}{Accuracy ($\uparrow$)} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+Model & \hspace{2pt}mT5 & ByT5 & \hspace{8pt}mT5 & ByT5\hspace{8pt} & mT5 & ByT5 \\
+\midrule
+Small & \hspace{2pt}20.7 & \textbf{9.8} & \hspace{8pt}54.0 / 10.6 & \textbf{14.8} / \textbf{1.8}\hspace{8pt} & 66.5 & \textbf{88.3} \\
+Base & \hspace{2pt}19.2 & \textbf{9.9} & \hspace{8pt}46.2 / 7.7 & \textbf{14.0} / \textbf{1.7}\hspace{8pt} & 70.9 & \textbf{89.3} \\
+Large & \hspace{2pt}18.1 & \textbf{10.5} & \hspace{8pt}43.5 / 6.7 & \textbf{15.4} / \textbf{1.8}\hspace{8pt} & 75.7 & \textbf{89.7} \\
+XL & \hspace{2pt}17.3 & \textbf{10.6} & \hspace{8pt}42.0 / 6.0 & \textbf{14.7} / \textbf{1.8}\hspace{8pt} & 77.4 & \textbf{89.9} \\
+XXL & \hspace{2pt}16.6 & \textbf{9.6} & \hspace{8pt}40.1 / 5.4 & \textbf{13.8} / \textbf{1.6}\hspace{8pt} & 78.0 & \textbf{90.9} \\
+\bottomrule
+\end{tabular}
+}
+\caption{mT5 vs.~ByT5 on three word-level tasks. Dakshina metrics are reported on the development set to be comparable with \citet{roark-etal-2020-processing}. \textsc{Sigmorphon} metrics are reported on the test sets.}
+\label{tab:word_tasks}
+\end{table}

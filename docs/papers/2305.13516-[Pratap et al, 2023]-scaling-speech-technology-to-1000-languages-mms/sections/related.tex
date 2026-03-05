@@ -1,0 +1,46 @@
+\section{Related Work}
+
+\paragraph{Multilingual Speech Datasets.} 
+Current multilingual speech datasets with transcriptions are drawn from a variety of domains, including Wikipedia~\citep{ardila2019common,conneau2022fleurs}, political speech~\citep{wang2021voxpopuli}, audiobooks~\citep{pratap2020mls} to name a few.  
+They are limited to about 100 languages with some datasets only containing data for European languages \citep{wang2021voxpopuli,pratap2020mls}.
+Multilingual datasets without transcriptions include VoxLingua107~\citep{valk2020voxlingua} spanning data in 107 languages, or VoxPopuli~\citep{wang2021voxpopuli} which contains large amounts of unlabeled data for European languages.
+\citet{leong2022bloom} covers 56 low-resource languages and 428 hours of data.
+
+Compared to prior work utilizing read versions of the New Testament~\cite{black2019cmu}, MMS covers many more languages (58\% more for \MMS{} and over five times more for \GRN{}) and our alignments are of much higher quality which leads to better models as we show in~\textsection\ref{sec:data-comp-cmu}.
+We also use the resulting data to train self-supervised models, build speech recognition systems as well as language identification models while as~\citet{black2019cmu} focused on speech synthesis.
+
+
+
+\paragraph{Multilingual Automatic Speech Recognition (ASR).}
+Prior work on multilingual speech recognition includes both non-neural methods~\citep{burget2010multilingual,lin2009study}, hybrid neural and HMM models~\citep{heigold2013multilingual} and more recently neural systems~\citep{cho2018multilingual,toshniwal2018multilingual,kannan2019mult,li2019bytes}.
+\citet{boli2021scaling} built multilingual ASR for up to 15 languages, \citet{Pratap2020multiasr,lugosch2022icassp, tjandra2022massively} trained and explored several strategies for 50\texttt{+} languages. 
+
+Whisper~\citep{radford2022whisper} mines 680K hours of data from the web and their model supports the transcription of 99 different languages. 
+\cite{zhang2023usm} trained a multilingual ASR model based on YouTube audio data and successfully scaled to 100 languages. 
+A notable exception is~\citet{li2022asr2k} who created ASR for 1,909 languages by mapping the phoneme-like output of an eight language multilingual model to appropriate phonemes for the language of interest. 
+In contrast, MMS uses actual paired speech and text for over 1,100 languages and present a comparison to their approach below (\textsection\ref{sec:data-comp-asr2k}).
+
+
+
+\paragraph{Spoken Language Identification (LID).}
+Whisper~\citep{radford2022whisper} also supports language identification and can distinguish between 99 different languages. 
+\citet{fan2021exploring} utilizes wav2vec 2.0 for language identification using the API17-OLR dataset that consists of ten Asian languages. 
+Later, \citet{tjandra2022improved} demonstrated that a cross-lingual self-supervised model can improve language identification performance by training a language identification model for 26 languages using a proprietary dataset. 
+\citet{babu22_interspeech} fine-tunes a pre-trained model to perform LID for 107 languages using the VoxLingua-107 dataset~\citep{valk2020voxlingua}.  
+In this work, we scale the number of languages to over 4,000 which to our knowledge is the broadest coverage spoken language identification model so far.
+
+
+\paragraph{Multilingual Text-To-Speech (TTS).} 
+Speech synthesis has been undergoing a transition from controlled settings to the generation of more diverse speech, with multilinguality being a crucial aspect~\citep{casanova2022yourtts,zhang2023speak}. 
+However, the lack of multilingual training data, particularly for low-resource languages, presents a common obstacle in scaling TTS to more languages.
+To address data scarcity, prior work explored various approaches including byte encoding to unify text representations which was evaluated on English, Spanish, and Chinese~\citep{li2019bytes}
+Further studies explored other input representations, including phonemes~\citep{zhang2019learning} and phonological features \citep{Staib2020Phonological}. 
+
+Additionally, various modeling schemes have been developed to encourage knowledge sharing between languages, such as parameter generation networks~\citep{Nekvinda2020one} and leveraging unpaired speech or text data for pre-training~\citep{Saeki2023Virtuoso,Saeki2023learning}.
+Despite these efforts, most prior work still covers a small number of languages but there are a few efforts which scaled to 46 languages~\citep{he2021multi} or use unsupervised techniques to scale to 101 languages~\citep{Saeki2023Virtuoso}. 
+\citet{meyer2022bibletts} also builds VITS models based on readings of the Bible but their work is limited to ten African languages.
+
+
+\paragraph{Multilingual NLP.}
+Multilinguality has been a very active research area in NLP where researchers introduced cross-lingually pre-trained sentence encoders~\citep{conneau2019cross} spanning 100 languages, or pre-trained multilingual sequence to sequence models~\citep{liu2020multilingual} applied to machine translation. 
+Multilingual machine translation models have also been scaled to 200 languages~\citep{nllbteam2022language} and even 1,000 languages~\citep{bapna2022mt1k}.

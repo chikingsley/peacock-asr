@@ -1,0 +1,32 @@
+\begin{table}[t]
+\caption{Effect of lexicon construction strategies (\textsection\ref{sec:mapping}) and different phonemizers (\textsection\ref{sec:preprocess}) on CommonVoice in terms of PER: tr2tgt denotes a lexicon constructed by mapping training language phonemes to target language phonemes and tgt2tr denotes the reverse strategy. 
+Average PER excludes "eu" and "ia" since they are not supported by Phonetisaurus. \label{tab:cv_res_abl2}}
+\begin{center}
+% \setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}ccccc@{}}
+\toprule
+ Phonemizer  & \multicolumn{2}{c}{Espeak}  & \multicolumn{2}{c}{Phonetisaurus}  \\
+ \cmidrule(lr){2-3} \cmidrule(lr){4-5}
+  Lexicon & tr2tgt      & tgt2tr     & tr2tgt      & tgt2tr   \\
+\midrule
+% it & {13.9} & 14.3          & 18.1      & 17.8      \\
+% eu & 13.7          & 12.2& -         & -         \\
+% ia & 6.1           & 6.0 & -         & -         \\
+% lv & 32.3 & 34.0          & 40.5      & 62.4      \\
+% ka & 23.8 & 24.3          & 26.6      & 25.5      \\
+% nl & 19.8 & 22.7          & 24.4      & 27.8      \\
+% el & 10.4          & 9.9  & 32.2      & 22.9      \\
+% ro & 14.8          & 12.6 & 16.2      & 17.5      \\
+% mt & 35.9 & 36.1          & 34.7      & 37.5      \\
+% tt & 37.4          & 35.5 & 45.6      & 35.3      \\
+% fi & 29.0          & 27.1 & 34.0      & 37.2      \\
+% sl & 26.1 & 27.4          & 26.1      & 23.9      \\
+% pl & 25.7 & 27.1          & 49.9      & 48.1       \\
+% \midrule
+% mean & 22.2&	22.3&31.7&	32.4
+Avg & 24.5&	24.6&31.7&	32.4
+\\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}

@@ -1,0 +1,225 @@
+\begin{thebibliography}{32}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Bhat et~al.(2021)Bhat, Alhashim, and Wonka]{bhat2021adabins}
+Shariq~Farooq Bhat, Ibraheem Alhashim, and Peter Wonka.
+\newblock Adabins: Depth estimation using adaptive bins.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition}, pp.\  4009--4018, 2021.
+
+\bibitem[Boudiaf et~al.(2020)Boudiaf, Rony, Ziko, Granger, Pedersoli,
+  Piantanida, and Ayed]{boudiaf2020unifying}
+Malik Boudiaf, J{\'e}r{\^o}me Rony, Imtiaz~Masud Ziko, Eric Granger, Marco
+  Pedersoli, Pablo Piantanida, and Ismail~Ben Ayed.
+\newblock A unifying mutual information view of metric learning: cross-entropy
+  vs. pairwise losses.
+\newblock In \emph{European conference on computer vision}, pp.\  548--564.
+  Springer, 2020.
+
+\bibitem[Cao et~al.(2017)Cao, Wu, and Shen]{cao2017estimating}
+Yuanzhouhan Cao, Zifeng Wu, and Chunhua Shen.
+\newblock Estimating depth from monocular images as classification using deep
+  fully convolutional residual networks.
+\newblock \emph{IEEE Transactions on Circuits and Systems for Video
+  Technology}, 28\penalty0 (11):\penalty0 3174--3182, 2017.
+
+\bibitem[Castagnos et~al.(2022)Castagnos, Mihelich, and
+  Dognin]{castagnos-etal-2022-simple}
+Fran{\c{c}}ois Castagnos, Martin Mihelich, and Charles Dognin.
+\newblock A simple log-based loss function for ordinal text classification.
+\newblock In \emph{Proceedings of the 29th International Conference on
+  Computational Linguistics}, Gyeongju, Republic of Korea, October 2022.
+  International Committee on Computational Linguistics.
+\newblock URL \url{https://aclanthology.org/2022.coling-1.407}.
+
+\bibitem[Dubey et~al.(2017)Dubey, Gupta, Raskar, Rahwan, and
+  Naik]{dubey2017regularizing}
+Abhimanyu Dubey, Otkrist Gupta, Ramesh Raskar, Iyad Rahwan, and Nikhil Naik.
+\newblock Regularizing prediction entropy enhances deep learning with limited
+  data.
+\newblock In \emph{Proceedings of the Neural Information Processing Systems
+  (NIPS)}, 2017.
+
+\bibitem[Faivishevsky \& Goldberger(2008)Faivishevsky and
+  Goldberger]{faivishevsky2008ica}
+Lev Faivishevsky and Jacob Goldberger.
+\newblock Ica based on a smooth estimation of the differential entropy.
+\newblock \emph{Advances in neural information processing systems}, 21, 2008.
+
+\bibitem[Faivishevsky \& Goldberger(2010)Faivishevsky and
+  Goldberger]{faivishevsky2010nonparametric}
+Lev Faivishevsky and Jacob Goldberger.
+\newblock Nonparametric information theoretic clustering algorithm.
+\newblock In \emph{ICML}, 2010.
+
+\bibitem[Fu et~al.(2018)Fu, Gong, Wang, Batmanghelich, and Tao]{fu2018deep}
+Huan Fu, Mingming Gong, Chaohui Wang, Kayhan Batmanghelich, and Dacheng Tao.
+\newblock Deep ordinal regression network for monocular depth estimation.
+\newblock In \emph{Proceedings of the IEEE conference on computer vision and
+  pattern recognition}, pp.\  2002--2011, 2018.
+
+\bibitem[Gong et~al.(2022)Gong, Mori, and Tung]{gong2022ranksim}
+Yu~Gong, Greg Mori, and Frederick Tung.
+\newblock {R}ank{S}im: Ranking similarity regularization for deep imbalanced
+  regression.
+\newblock In \emph{International Conference on Machine Learning (ICML)}, 2022.
+
+\bibitem[Gu et~al.(2021)Gu, Yang, and Yao]{gu2021removing}
+Kerui Gu, Linlin Yang, and Angela Yao.
+\newblock Removing the bias of integral pose regression.
+\newblock In \emph{Proceedings of the IEEE/CVF International Conference on
+  Computer Vision}, pp.\  11067--11076, 2021.
+
+\bibitem[Gu et~al.(2022)Gu, Yang, and Yao]{gu2021dive}
+Kerui Gu, Linlin Yang, and Angela Yao.
+\newblock Dive deeper into integral pose regression.
+\newblock In \emph{International Conference on Learning Representations}, 2022.
+
+\bibitem[He et~al.(2016)He, Zhang, Ren, and Sun]{he2016deep}
+Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun.
+\newblock Deep residual learning for image recognition.
+\newblock In \emph{Proceedings of the IEEE conference on computer vision and
+  pattern recognition}, pp.\  770--778, 2016.
+
+\bibitem[Laina et~al.(2016)Laina, Rupprecht, Belagiannis, Tombari, and
+  Navab]{laina2016deeper}
+Iro Laina, Christian Rupprecht, Vasileios Belagiannis, Federico Tombari, and
+  Nassir Navab.
+\newblock Deeper depth prediction with fully convolutional residual networks.
+\newblock In \emph{2016 Fourth international conference on 3D vision (3DV)},
+  pp.\  239--248. IEEE, 2016.
+
+\bibitem[Lee et~al.(2019)Lee, Han, Ko, and Suh]{lee2019big}
+Jin~Han Lee, Myung-Kyu Han, Dong~Wook Ko, and Il~Hong Suh.
+\newblock From big to small: Multi-scale local planar guidance for monocular
+  depth estimation.
+\newblock \emph{arXiv preprint arXiv:1907.10326}, 2019.
+
+\bibitem[Li et~al.(2022)Li, Yang, Liu, Zhang, Wang, Wang, Yang, and
+  Xia]{li20212d}
+Yanjie Li, Sen Yang, Peidong Liu, Shoukui Zhang, Yunxiao Wang, Zhicheng Wang,
+  Wankou Yang, and Shu-Tao Xia.
+\newblock Simcc: a simple coordinate classification perspective for human pose
+  estimation.
+\newblock 2022.
+
+\bibitem[Li et~al.(2018)Li, Zhang, and Chen]{li2018csrnet}
+Yuhong Li, Xiaofan Zhang, and Deming Chen.
+\newblock Csrnet: Dilated convolutional neural networks for understanding the
+  highly congested scenes.
+\newblock In \emph{Proceedings of the IEEE Conference on Computer Vision and
+  Pattern Recognition}, pp.\  1091--1100, 2018.
+
+\bibitem[Liu et~al.(2019{\natexlab{a}})Liu, Lu, Xiong, Xian, Cao, and
+  Shen]{liu2019counting}
+Liang Liu, Hao Lu, Haipeng Xiong, Ke~Xian, Zhiguo Cao, and Chunhua Shen.
+\newblock Counting objects by blockwise classification.
+\newblock \emph{IEEE Transactions on Circuits and Systems for Video
+  Technology}, 30\penalty0 (10):\penalty0 3513--3527, 2019{\natexlab{a}}.
+
+\bibitem[Liu et~al.(2019{\natexlab{b}})Liu, Miao, Zhan, Wang, Gong, and
+  Yu]{liu2019large}
+Ziwei Liu, Zhongqi Miao, Xiaohang Zhan, Jiayun Wang, Boqing Gong, and Stella~X
+  Yu.
+\newblock Large-scale long-tailed recognition in an open world.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition}, pp.\  2537--2546, 2019{\natexlab{b}}.
+
+\bibitem[Lu et~al.(2021)Lu, Jin, Pang, Zhang, and Karniadakis]{lu2021learning}
+Lu~Lu, Pengzhan Jin, Guofei Pang, Zhongqiang Zhang, and George~Em Karniadakis.
+\newblock Learning nonlinear operators via deeponet based on the universal
+  approximation theorem of operators.
+\newblock \emph{Nature Machine Intelligence}, 3\penalty0 (3):\penalty0
+  218--229, 2021.
+
+\bibitem[M{\"u}ller et~al.(2019)M{\"u}ller, Kornblith, and
+  Hinton]{muller2019does}
+Rafael M{\"u}ller, Simon Kornblith, and Geoffrey~E Hinton.
+\newblock When does label smoothing help?
+\newblock \emph{Advances in neural information processing systems}, 32, 2019.
+
+\bibitem[Newell et~al.(2016)Newell, Yang, and Deng]{newell2016stacked}
+Alejandro Newell, Kaiyu Yang, and Jia Deng.
+\newblock Stacked hourglass networks for human pose estimation.
+\newblock In \emph{European conference on computer vision}, pp.\  483--499.
+  Springer, 2016.
+
+\bibitem[Pereyra et~al.(2017)Pereyra, Tucker, Chorowski, Kaiser, and
+  Hinton]{pereyra2017regularizing}
+Gabriel Pereyra, George Tucker, Jan Chorowski, {\L}ukasz Kaiser, and Geoffrey
+  Hinton.
+\newblock Regularizing neural networks by penalizing confident output
+  distributions.
+\newblock \emph{arXiv preprint arXiv:1701.06548}, 2017.
+
+\bibitem[Polat et~al.(2022)Polat, Ergenc, Kani, Alahdab, Atug, and
+  Temizel]{10.1007/978-3-031-12053-4_12}
+Gorkem Polat, Ilkay Ergenc, Haluk~Tarik Kani, Yesim~Ozen Alahdab, Ozlen Atug,
+  and Alptekin Temizel.
+\newblock Class distance weighted cross-entropy loss for ulcerative colitis
+  severity estimation.
+\newblock In Guang Yang, Angelica Aviles-Rivero, Michael Roberts, and
+  Carola-Bibiane Sch{\"o}nlieb (eds.), \emph{Medical Image Understanding and
+  Analysis}, pp.\  157--171, Cham, 2022. Springer International Publishing.
+
+\bibitem[Rothe et~al.(2015)Rothe, Timofte, and Van~Gool]{rothe2015dex}
+Rasmus Rothe, Radu Timofte, and Luc Van~Gool.
+\newblock Dex: Deep expectation of apparent age from a single image.
+\newblock In \emph{Proceedings of the IEEE international conference on computer
+  vision workshops}, pp.\  10--15, 2015.
+
+\bibitem[Shwartz-Ziv \& Tishby(2017)Shwartz-Ziv and Tishby]{shwartz2017opening}
+Ravid Shwartz-Ziv and Naftali Tishby.
+\newblock Opening the black box of deep neural networks via information.
+\newblock \emph{arXiv preprint arXiv:1703.00810}, 2017.
+
+\bibitem[Silberman et~al.(2012)Silberman, Hoiem, Kohli, and
+  Fergus]{silberman2012indoor}
+Nathan Silberman, Derek Hoiem, Pushmeet Kohli, and Rob Fergus.
+\newblock Indoor segmentation and support inference from rgbd images.
+\newblock In \emph{European conference on computer vision}, pp.\  746--760.
+  Springer, 2012.
+
+\bibitem[Tompson et~al.(2014)Tompson, Jain, LeCun, and
+  Bregler]{tompson2014joint}
+Jonathan~J Tompson, Arjun Jain, Yann LeCun, and Christoph Bregler.
+\newblock Joint training of a convolutional network and a graphical model for
+  human pose estimation.
+\newblock \emph{Advances in neural information processing systems}, 27, 2014.
+
+\bibitem[Xiong \& Yao(2022)Xiong and Yao]{xiong2022discrete}
+Haipeng Xiong and Angela Yao.
+\newblock Discrete-constrained regression for local counting models.
+\newblock 2022.
+
+\bibitem[Yang et~al.(2021)Yang, Zha, Chen, Wang, and Katabi]{yang2021delving}
+Yuzhe Yang, Kaiwen Zha, Yingcong Chen, Hao Wang, and Dina Katabi.
+\newblock Delving into deep imbalanced regression.
+\newblock In \emph{International Conference on Machine Learning}, pp.\
+  11842--11851. PMLR, 2021.
+
+\bibitem[Yuan et~al.(2022)Yuan, Gu, Dai, Zhu, and Tan]{yuan2022new}
+Weihao Yuan, Xiaodong Gu, Zuozhuo Dai, Siyu Zhu, and Ping Tan.
+\newblock New crfs: Neural window fully-connected crfs for monocular depth
+  estimation.
+\newblock In \emph{Proceedings of the IEEE/CVF conference on computer vision
+  and pattern recognition}, 2022.
+
+\bibitem[Zhang et~al.(2015)Zhang, Li, Wang, and Yang]{zhang2015cross}
+Cong Zhang, Hongsheng Li, Xiaogang Wang, and Xiaokang Yang.
+\newblock Cross-scene crowd counting via deep convolutional neural networks.
+\newblock In \emph{Proceedings of the IEEE conference on computer vision and
+  pattern recognition}, pp.\  833--841, 2015.
+
+\bibitem[Zhang et~al.(2020)Zhang, Zhu, Dai, Ye, and Zhu]{zhang2020distribution}
+Feng Zhang, Xiatian Zhu, Hanbin Dai, Mao Ye, and Ce~Zhu.
+\newblock Distribution-aware coordinate representation for human pose
+  estimation.
+\newblock In \emph{Proceedings of the IEEE/CVF conference on computer vision
+  and pattern recognition}, pp.\  7093--7102, 2020.
+
+\end{thebibliography}

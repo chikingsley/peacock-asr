@@ -1,0 +1,31 @@
+\begin{table}[t]
+\caption{Effect of no pretraining, monolingual pre-training (w2v LV-60K) and multilingual pretraining (XLSR-53) in terms of PER on the test languages of CommonVoice. \label{tab:cv_res_abl1}}
+\begin{center}
+% \setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}ccccc@{}}
+\toprule
+  & \multicolumn{2}{c}{No pretrain} & w2v LV-60K & XLSR-53   \\
+ \# hours / lang & 10 & 200 & 10 & 10 \\
+ \# hours total & 149 & 1156 & 149 & 149 \\
+% \cmidrule(lr){2-5}\
+\midrule
+it       & 47.5   & 41.8      & 16.9          & 13.9   \\
+eu       & 45.6   & 32.1      & 16.3          & 13.7             \\
+ia       & 27.8      & 23.0               & 6.7     & 6.1      \\
+lv       & 59.8      & 56.5               & 33.5    & 32.3    \\
+ka       & 56.1      & 48.9               & 24.0    & 23.8    \\
+nl       & 56.8      & 56.1               & 30.5    & 19.8    \\
+el       & 40.6      & 33.7               & 10.7    & 10.4             \\
+ro       & 34.7      & 36.9               & 15.0    & 14.8             \\
+mt       & 60.2      & 56.0               & 36.1    & 35.9    \\
+tt       & 63.9   & 60.8      & 34.7          & 37.4             \\
+fi       & 55.6      & 48.3               & 29.9    & 29.0              \\
+sl       & 56.0   & 54.6      & 29.0          & 26.1   \\
+pl       & 59.3      & 56.0               & 27.3    & 25.7      \\
+\midrule
+Avg & 51.1&	46.5&	23.9&22.2
+\\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}

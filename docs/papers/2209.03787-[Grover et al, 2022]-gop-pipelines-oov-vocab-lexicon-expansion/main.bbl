@@ -1,0 +1,228 @@
+\begin{thebibliography}{30}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Permanasari et~al.(2019)Permanasari, Harahap, and
+  Ali]{Permanasari_2019}
+Yurika Permanasari, Erwin~H. Harahap, and Erwin~Prayoga Ali.
+\newblock Speech recognition using dynamic time warping ({DTW}).
+\newblock \emph{Journal of Physics: Conference Series}, 1366\penalty0
+  (1):\penalty0 012091, nov 2019.
+\newblock \doi{10.1088/1742-6596/1366/1/012091}.
+\newblock URL \url{https://doi.org/10.1088/1742-6596/1366/1/012091}.
+
+\bibitem[SASAHIRA(1995)]{LPC}
+Yoshinari SASAHIRA.
+\newblock Voice pitch changing by linear predictive coding method to keep the
+  singer's personal timbre.
+\newblock \emph{Proceeding of the 1995 International Computer Music
+  Conference}, 1995.
+\newblock URL \url{https://cir.nii.ac.jp/crid/1571698600557554176}.
+
+\bibitem[Rabiner(1989)]{18626}
+L.R. Rabiner.
+\newblock A tutorial on hidden markov models and selected applications in
+  speech recognition.
+\newblock \emph{Proceedings of the IEEE}, 77\penalty0 (2):\penalty0 257--286,
+  1989.
+\newblock \doi{10.1109/5.18626}.
+
+\bibitem[Huang et~al.(2014)Huang, Gong, Fu, and Feng]{huang2014research}
+Chenchen Huang, Wei Gong, Wenlong Fu, and Dongyu Feng.
+\newblock A research of speech emotion recognition based on deep belief network
+  and svm.
+\newblock \emph{Mathematical Problems in Engineering}, 2014, 2014.
+
+\bibitem[Markl and McNulty(2022)]{markl2022language}
+Nina Markl and Stephen~Joseph McNulty.
+\newblock Language technology practitioners as language managers: arbitrating
+  data bias and predictive bias in asr.
+\newblock \emph{arXiv preprint arXiv:2202.12603}, 2022.
+
+\bibitem[Vielzeuf and Antipov(2021)]{vielzeuf2021e2e}
+Valentin Vielzeuf and Grigory Antipov.
+\newblock Are e2e asr models ready for an industrial usage?
+\newblock \emph{arXiv preprint arXiv:2112.12572}, 2021.
+
+\bibitem[Aks{\"e}nova et~al.(2020)Aks{\"e}nova, Bruguier, Ritchart-Scott, and
+  Mendlovic]{aksenova2020algorithmic}
+Al{\"e}na Aks{\"e}nova, Antoine Bruguier, Amanda Ritchart-Scott, and Uri
+  Mendlovic.
+\newblock Algorithmic exploration of american english dialects.
+\newblock In \emph{ICASSP 2020-2020 IEEE International Conference on Acoustics,
+  Speech and Signal Processing (ICASSP)}, pages 7374--7378. IEEE, 2020.
+
+\bibitem[MacDonald et~al.(2021)MacDonald, Jiang, Cattiau, Heywood, Cave,
+  Seaver, Ladewig, Tobin, Brenner, Nelson, Green, and Tomanek]{50460}
+Bob MacDonald, Pan-Pan Jiang, Julie Cattiau, Rus Heywood, Richard Cave, Katie
+  Seaver, Marilyn Ladewig, Jimmy Tobin, Michael Brenner, Philip~Q Nelson,
+  Jordan~R. Green, and Katrin Tomanek.
+\newblock Disordered speech data collection: Lessons learned at 1 million
+  utterances from project euphonia.
+\newblock 2021.
+
+\bibitem[Kim et~al.(2008)Kim, Hasegawa-Johnson, Perlman, Gunderson, Huang,
+  Watkin, and Frame]{kim2008dysarthric}
+Heejin Kim, Mark Hasegawa-Johnson, Adrienne Perlman, Jon Gunderson, Thomas~S
+  Huang, Kenneth Watkin, and Simone Frame.
+\newblock Dysarthric speech database for universal access research.
+\newblock In \emph{Ninth Annual Conference of the International Speech
+  Communication Association}, 2008.
+
+\bibitem[Garg et~al.(2021)Garg, Mehrotra, Krishna, and
+  Vuppala]{garg2021towards}
+Sparsh Garg, Utkarsh Mehrotra, Gurugubelli Krishna, and Anil~Kumar Vuppala.
+\newblock Towards a database for detection of multiple speech disfluencies in
+  indian english.
+\newblock In \emph{2021 National Conference on Communications (NCC)}, pages
+  1--6. IEEE, 2021.
+
+\bibitem[Panayotov et~al.(2015)Panayotov, Chen, Povey, and
+  Khudanpur]{panayotov2015librispeech}
+Vassil Panayotov, Guoguo Chen, Daniel Povey, and Sanjeev Khudanpur.
+\newblock Librispeech: an asr corpus based on public domain audio books.
+\newblock In \emph{2015 IEEE international conference on acoustics, speech and
+  signal processing (ICASSP)}, pages 5206--5210. IEEE, 2015.
+
+\bibitem[Ardila et~al.(2019)Ardila, Branson, Davis, Henretty, Kohler, Meyer,
+  Morais, Saunders, Tyers, and Weber]{ardila2019common}
+Rosana Ardila, Megan Branson, Kelly Davis, Michael Henretty, Michael Kohler,
+  Josh Meyer, Reuben Morais, Lindsay Saunders, Francis~M Tyers, and Gregor
+  Weber.
+\newblock Common voice: A massively-multilingual speech corpus.
+\newblock \emph{arXiv preprint arXiv:1912.06670}, 2019.
+
+\bibitem[Aks{\"e}nova et~al.(2022)Aks{\"e}nova, Chen, Chiu, van Esch, Golik,
+  Han, King, Ramabhadran, Rosenberg, Schwartz, et~al.]{aksenova2022accented}
+Al{\"e}na Aks{\"e}nova, Zhehuai Chen, Chung-Cheng Chiu, Daan van Esch, Pavel
+  Golik, Wei Han, Levi King, Bhuvana Ramabhadran, Andrew Rosenberg, Suzan
+  Schwartz, et~al.
+\newblock Accented speech recognition: Benchmarking, pre-training, and diverse
+  data.
+\newblock \emph{arXiv preprint arXiv:2205.08014}, 2022.
+
+\bibitem[Bisani and Ney(2008)]{bisani2008joint}
+Maximilian Bisani and Hermann Ney.
+\newblock Joint-sequence models for grapheme-to-phoneme conversion.
+\newblock \emph{Speech communication}, 50\penalty0 (5):\penalty0 434--451,
+  2008.
+
+\bibitem[Povey et~al.(2011)Povey, Ghoshal, Boulianne, Burget, Glembek, Goel,
+  Hannemann, Motlicek, Qian, Schwarz, et~al.]{povey2011kaldi}
+Daniel Povey, Arnab Ghoshal, Gilles Boulianne, Lukas Burget, Ondrej Glembek,
+  Nagendra Goel, Mirko Hannemann, Petr Motlicek, Yanmin Qian, Petr Schwarz,
+  et~al.
+\newblock The kaldi speech recognition toolkit.
+\newblock In \emph{IEEE 2011 workshop on automatic speech recognition and
+  understanding}, number CONF. IEEE Signal Processing Society, 2011.
+
+\bibitem[Ghahremani et~al.(2016)Ghahremani, Manohar, Povey, and
+  Khudanpur]{ghahremani2016acoustic}
+Pegah Ghahremani, Vimal Manohar, Daniel Povey, and Sanjeev Khudanpur.
+\newblock Acoustic modelling from the signal domain using cnns.
+\newblock In \emph{Interspeech}, pages 3434--3438, 2016.
+
+\bibitem[Hermansky(1990)]{hermansky1990perceptual}
+Hynek Hermansky.
+\newblock Perceptual linear predictive (plp) analysis of speech.
+\newblock \emph{the Journal of the Acoustical Society of America}, 87\penalty0
+  (4):\penalty0 1738--1752, 1990.
+
+\bibitem[Snyder et~al.(2018)Snyder, Garcia-Romero, Sell, Povey, and
+  Khudanpur]{snyder2018x}
+David Snyder, Daniel Garcia-Romero, Gregory Sell, Daniel Povey, and Sanjeev
+  Khudanpur.
+\newblock X-vectors: Robust dnn embeddings for speaker recognition.
+\newblock In \emph{2018 IEEE international conference on acoustics, speech and
+  signal processing (ICASSP)}, pages 5329--5333. IEEE, 2018.
+
+\bibitem[Viikki and Laurila(1998)]{viikki1998cepstral}
+Olli Viikki and Kari Laurila.
+\newblock Cepstral domain segmental feature vector normalization for noise
+  robust speech recognition.
+\newblock \emph{Speech Communication}, 25\penalty0 (1-3):\penalty0 133--147,
+  1998.
+
+\bibitem[Young et~al.(1994)Young, Odell, and Woodland]{young1994tree}
+Steve~J Young, Julian~J Odell, and Phil~C Woodland.
+\newblock Tree-based state tying for high accuracy modelling.
+\newblock In \emph{Human Language Technology: Proceedings of a Workshop held at
+  Plainsboro, New Jersey, March 8-11, 1994}, 1994.
+
+\bibitem[Rigoll(1998)]{rigoll1998hybrid}
+Gerhard Rigoll.
+\newblock Hybrid speech recognition systems-a real alternative to traditional
+  approaches.
+\newblock In \emph{Survey Lecture, Proc. International Workshop Speech and
+  Computer (SPECOM’98)}. Citeseer, 1998.
+
+\bibitem[Neumeyer et~al.(1996)Neumeyer, Franco, Weintraub, and
+  Price]{neumeyer1996automatic}
+Leonardo Neumeyer, Horacio Franco, Mitchel Weintraub, and Patti Price.
+\newblock Automatic text-independent pronunciation scoring of foreign language
+  student speech.
+\newblock In \emph{Proceeding of Fourth International Conference on Spoken
+  Language Processing. ICSLP'96}, volume~3, pages 1457--1460. IEEE, 1996.
+
+\bibitem[Witt and Young(2000)]{witt2000phone}
+Silke~M Witt and Steve~J Young.
+\newblock Phone-level pronunciation scoring and assessment for interactive
+  language learning.
+\newblock \emph{Speech communication}, 30\penalty0 (2-3):\penalty0 95--108,
+  2000.
+
+\bibitem[Zhang et~al.(2008)Zhang, Huang, Soong, Chu, and
+  Wang]{zhang2008automatic}
+Feng Zhang, Chao Huang, Frank~K Soong, Min Chu, and Renhua Wang.
+\newblock Automatic mispronunciation detection for mandarin.
+\newblock In \emph{2008 IEEE International Conference on Acoustics, Speech and
+  Signal Processing}, pages 5077--5080. IEEE, 2008.
+
+\bibitem[Shi et~al.(2020)Shi, Huo, and Jin]{shi2020context}
+Jiatong Shi, Nan Huo, and Qin Jin.
+\newblock Context-aware goodness of pronunciation for computer-assisted
+  pronunciation training.
+\newblock \emph{arXiv preprint arXiv:2008.08647}, 2020.
+
+\bibitem[Hu et~al.(2015)Hu, Qian, and Soong]{hu2015improved}
+Wenping Hu, Yao Qian, and Frank~K Soong.
+\newblock An improved dnn-based approach to mispronunciation detection and
+  diagnosis of l2 learners' speech.
+\newblock In \emph{SLaTE}, pages 71--76, 2015.
+
+\bibitem[Huang et~al.(2017)Huang, Xu, Hu, and Zhou]{huang2017transfer}
+Hao Huang, Haihua Xu, Ying Hu, and Gang Zhou.
+\newblock A transfer learning approach to goodness of pronunciation based
+  automatic mispronunciation detection.
+\newblock \emph{The Journal of the Acoustical Society of America}, 142\penalty0
+  (5):\penalty0 3165--3177, 2017.
+
+\bibitem[Hwang and Huang(1992)]{hwang1992subphonetic}
+Mei-Yuh Hwang and Xuedong Huang.
+\newblock Subphonetic modeling with markov states-senone.
+\newblock In \emph{[Proceedings] ICASSP-92: 1992 IEEE International Conference
+  on Acoustics, Speech, and Signal Processing}, volume~1, pages 33--36. IEEE,
+  1992.
+
+\bibitem[Sudhakara et~al.(2019)Sudhakara, Ramanathi, Yarra, and
+  Ghosh]{sudhakara2019improved}
+Sweekar Sudhakara, Manoj~Kumar Ramanathi, Chiranjeevi Yarra, and Prasanta~Kumar
+  Ghosh.
+\newblock An improved goodness of pronunciation (gop) measure for pronunciation
+  evaluation with dnn-hmm system considering hmm transition probabilities.
+\newblock In \emph{INTERSPEECH}, pages 954--958, 2019.
+
+\bibitem[Hori and Nakamura(2013)]{hori_speech_2013}
+Takaaki Hori and Atsushi Nakamura.
+\newblock \emph{Speech {Recognition} {Algorithms} {Using} {Weighted}
+  {Finite}-{State} {Transducers}}.
+\newblock Synthesis {Lectures} on {Speech} and {Audio} {Processing}. Springer
+  International Publishing, Cham, 2013.
+\newblock ISBN 978-3-031-01434-5 978-3-031-02562-4.
+\newblock \doi{10.1007/978-3-031-02562-4}.
+\newblock URL \url{https://link.springer.com/10.1007/978-3-031-02562-4}.
+
+\end{thebibliography}

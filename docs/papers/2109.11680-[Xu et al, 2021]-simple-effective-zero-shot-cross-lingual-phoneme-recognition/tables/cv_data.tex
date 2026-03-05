@@ -1,0 +1,55 @@
+\begin{table*}[h!]
+\caption{Statistics of languages from CommonVoice and the ones that are supported in Espeak and Phonetisaurus phonemizers. The languages denoted with $*$ are potentially not well supported by Espeak phonemizer, so we manually removed them in either train or test set. \label{tab:data_cv}}
+\begin{center}
+% \begin{tabular}{@{}c|ccc|ccc|cc@{}}
+\begin{tabular}{@{}cccccccccc@{}}
+\toprule
+\multirow{2}{*}{\textbf{Dataset}} & \multirow{2}{*}{\textbf{Code}} & \multirow{2}{*}{\textbf{Lang}} & \multirow{2}{*}{\textbf{Family}} & \multirow{2}{*}{\textbf{Split}} & \multicolumn{3}{c}{\textbf{Hours}} & \multicolumn{2}{c}{\textbf{Phonemizer}} \\
+                                  &                                &                                &                                  & & train      & valid      & test     & Espeak    & Phonetisaurus               \\
+\cmidrule(lr){1-1} \cmidrule(lr){2-5} \cmidrule(lr){6-8} \cmidrule(lr){9-10}   
+\multirow{42}{*}{CV}              & eo                             & esperanto                      & Constructed      &train                & 34.0       & 13.3       & 14.3     & eo        &                             \\
+                                  & lt                             & lithuanian                     & Baltic           &train                & 1.2        & 0.4        & 0.7      & lt        & lithuanian\_4\_2\_2.fst     \\
+                                  & cy                             & welsh                          & Celtic           &train                & 9.1        & 6.8        & 7.0      & cy        &                             \\
+                                  & ta                             & tamil                          & Dravidian        &train                & 2.4        & 2.2        & 2.3      & ta        & tamil\_2\_3\_3.fst          \\
+                                  & sv-SE                          & swedish                        & North Germanic   &train                & 2.1        & 1.7        & 1.8      & sv-SE     & swedish\_4\_4\_4.fst        \\
+                                  & de                             & german                         & West Germanic     &train               & 392.7      & 25.0       & 25.5     & de        & german\_download.fst        \\
+                                  & en                             & english                        & West Germanic    &train                & 893.5      & 27.2       & 26.0     & en        & english\_4\_2\_2.fst        \\
+                                  & as                             & assamese                       & Indic           &train                 & 0.4        & 0.2        & 0.2      & as        & assamese\_4\_2\_3.fst       \\
+                                  & hi                             & hindi                          & Indic           &train                 & 0.2        & 0.2        & 0.2      & hi        & hindi\_4\_2\_2.fst          \\
+                                  & or                             & oriya                          & Indic           &train                 & 0.6        & 0.2        & 0.2      & or        &                             \\
+                                  & fa                             & persian                        & Iranian         &train                 & 7.7        & 6.5        & 7.2      & fa        & persian\_2\_2\_2.fst        \\
+                                  & ja$*$                             & japanese                       & Japonic      &train                    & 0.9        & 0.8        & 0.9      & ja        & japanese\_4\_4\_4.fst       \\
+                                  & id                             & indonesian                     & Austronesian    &train                 & 2.1        & 1.9        & 2.0      & id        & indonesian\_2\_4\_4.fst     \\
+                                  & ca                             & catalan                        & Romance        &train                  & 441.5      & 24.0       & 24.9     & ca        &                             \\
+                                  & es                             & spanish                        & Romance        &train                  & 235.1      & 25.0       & 25.7     & es        & spanish\_4\_3\_2.fst        \\
+                                  & fr                             & french                         & Romance        &train                  & 424.5      & 24.0       & 25.1     & fr        & french\_8\_4\_3.fst         \\
+                                  & pt                             & portuguese                     & Romance       &train                   & 7.8        & 5.6        & 6.1      & pt        & portuguese\_download.fst    \\
+                                  & ar                             & arabic                         & Semitic       &train                   & 16.0       & 8.8        & 9.1      & ar        & arabic\_download.fst        \\
+                                  & zh-CN                          & chinese                        & Sino-Tibetan   &train                  & 26.6       & 13.3       & 14.1     & cmn       & mandarin\_2\_4\_4.fst       \\
+                                  & zh-TW                          & chinese                        & Sino-Tibetan   &train                  & 3.0        & 2.4        & 2.6      & cmn       & mandarin\_2\_4\_4.fst       \\
+                                  & tr                             & turkish                        & Turkic         &train                  & 2.0        & 1.9        & 2.1      & tr        & turkish\_download.fst       \\
+                                  & ky                             & kirghiz                        & Turkic         &train                  & 2.6        & 2.1        & 1.9      & ky        & kirghiz\_8\_2\_2.fst    \\
+                                  & et                             & estonian                       & Uralic        &train                   & 5.5        & 4.7        & 4.6      & et        & estonian\_2\_4\_4.fst       \\
+                                  & hu                             & hungarian                      & Uralic         &train                  & 4.3        & 1.7        & 1.9      & hu        & hungarian\_2\_4\_2.fst      \\
+                                  & ru                             & russian                        & East Slavic     &train                 & 23.5       & 12.3       & 13.2     & ru        & russian\_download.fst       \\
+                                  & cs                             & czech                          & West Slavic     &train                 & 7.3        & 5.0        & 5.0      & cs        & czech\_4\_4\_4.fst          \\
+                                  & it                             & italian                        & Romance         &dev                 & 86.2       & 21.0       & 22.1     & it        & italian\_8\_2\_3.fst        \\
+                                  & eu                             & basque                         & Language isolate     &test            & 10.9       & 7.8        & 8.2      & eu        &                             \\
+                                  & ia                             & interlingua                    & Constructed       &test               & 2.2        & 1.5        & 0.8      & ia        &                             \\
+                                  & lv                             & latvian                        & Baltic           &test                & 1.9        & 1.6        & 1.6      & lv        & latvian\_2\_4\_4.fst        \\
+                                  & ka                             & georgian                       & South Caucasian   &test               & 1.6        & 0.9        & 1.0      & ka        & georgian\_4\_2\_3.fst       \\
+                                  & nl                             & dutch                          & West Germanic    &test                & 11.5       & 6.4        & 7.0      & nl        & dutch\_download.fst         \\
+                                  & el                             & greek                          & Hellenic      &test                   & 2.8        & 1.5        & 1.8      & el        & greek\_2\_2\_2.fst          \\
+                                  & ro                             & romanian                       & Romance     &test                     & 3.6        & 1.0        & 2.0      & ro        & romanian\_2\_3\_3.fst       \\
+                                  & mt                             & maltese                        & Semitic     &test                     & 2.3        & 1.8        & 2.1      & mt        & maltese\_2\_4\_4.fst        \\
+                                  & tt                             & tatar                          & Turkic      &test                     & 11.5       & 2.0        & 4.4      & tt        & tatar\_2\_2\_2.fst          \\
+                                  & fi                             & finnish                        & Uralic      &test                     & 0.5        & 0.5        & 0.6      & fi        & finnish\_2\_4\_4.fst        \\
+                                  & sl                             & slovenian                      & South Slavic     &test                & 1.9        & 0.5        & 0.7      & sl        & slovenian\_2\_4\_4.fst      \\
+                                  & pl                             & polish                         & West Slavic     &test                 & 9.3        & 6.6        & 7.0      & pl        & polish\_2\_2\_2.fst         \\
+                                  & ga-IE$*$                         & irish                          & Celtic        &test                   & 0.5        & 0.4        & 0.5      & ga        &                             \\
+                                  & zh-HK$*$                         & chinese                        & Sino-Tibetan   &test                  & 3.9        & 3.1        & 3.6      & yue       & yue\_2\_2\_4.fst            \\
+                                  & pa-IN$*$                          & punjabi                        & Indic     &test                       & 0.2        & 0.1        & 0.1      & pa        & panjabi\_4\_4\_4.fst        \\
+                                \bottomrule
+\end{tabular}
+\end{center}
+\end{table*}

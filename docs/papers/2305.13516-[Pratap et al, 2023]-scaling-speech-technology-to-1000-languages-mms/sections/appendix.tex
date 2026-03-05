@@ -1,0 +1,118 @@
+\section{Forced Alignment}
+\label{app:align}
+
+Given an input audio sequence $X = (x_1,...,x_N)$, where $N$ is the number of frames, a CTC alignment model produces an output sequence $Y = (\bf{y^1,...,y^{T}})$ of length $T$, where $\bf{y^t}$ denotes the posterior probability distribution over an alphabet $\Alphabet$ and blank token $\Blank$. 
+Let $\CollapseFunc$ denote the collapsing function of CTC which collapses all repeating symbols and which removes all blanks for a given sequence. 
+An alignment path $\boldsymbol{\pi} = \pi_1,...,\pi_T$ in CTC for a given target label of length $M$, $L = (l_1,...,l_M)$ where $\pi_t \in \Alphabet \cup \{\Blank\}$ and $l_i \in \Alphabet$ should satisfy $\CollapseFunc(\boldsymbol{\pi}) = L$. 
+
+Among the all the alignment paths which can be collapsed to the given target label $L$, forced alignment computes the best alignment path $\hat{\boldsymbol{\pi}}$ which maximizes the probability under the posterior distribution given by the acoustic model. 
+
+\begin{equation} \label{eqn:force_align}
+\hat{\boldsymbol{\pi}} = \argmax_{\boldsymbol{\pi} \in \CollapseFunc^{-1}(L)} P(\boldsymbol{\pi} | X) 
+\end{equation}
+
+CTC assumes every output is conditionally independent of the other outputs given the input. We have 
+\begin{equation}
+    P(\boldsymbol{\pi} | X) = \prod_{t=1}^{T} P(\boldsymbol{\pi_t} | t, X) = \prod_{t=1}^{T} y^t_{\pi_t}
+\end{equation}
+
+\autoref{eqn:force_align} can be computed efficiently using dynamic programming and backtracking.  
+An efficient version of this algorithm is implemented in flashlight~\citep{kahn2022flashlight} on CPU. 
+We implement a parallel version on CUDA, incorporating memory optimizations that offload memory to CPU, allowing it to process long audio files efficiently as shown in Algorithm~\ref{algo:force_align}.
+
+
+\begin{algorithm} 
+\caption{Pseudo code of our CTC Forced Alignment algorithm on GPU}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\algblockdefx{FORALLP}{ENDFAP}[1]%
+  {\textbf{for all }#1 \textbf{do in parallel}}%
+  {\textbf{end for}}
+\begin{algorithmic}[1]
+    \Require{Posterior probabilities $\bf{y}$, target label $L$}
+    \Ensure{Alignment path $\pi$} \\ 
+    $ S \leftarrow 2 \times |L| + 1$  \\ 
+    Create GPU matrices $\alpha_{\text{odd}}$, $\alpha_{\text{even}}$ of size $S$ each to store the maximum log probability of aligning the target upto the given node \\
+    B $\leftarrow$ 100; \# buffer size for data copy from GPU to CPU \\ 
+    Create CPU matrix $\beta$ of size $T \times S$ for saving the label indices from previous time step used to compute $\alpha_{\text{odd}}$/$\alpha_{\text{even}}$ \\ 
+    Create GPU matrix $\beta_{\text{buffer}}$ of size $B \times S$, where B is the buffer size, to store the values of $\beta$ temporarily in a buffer before being copied to CPU. 
+    % \zni{should it be updated to (min(B, T), S)?} \vin{This is an implementation detail. The algo works with B x S as well.}
+    \For {$t=1,\ldots,T$}
+        \FORALLP {$l=1,\ldots,S$} 
+            \State If $t$ is odd, update $\alpha_{\text{odd}}[l]$ based on $\alpha_{\text{even}}$, $\bf{y^t}$ using dynamic programming and vice-versa
+            \State Store the index $l'$ from previous time step used to update $\alpha_{\text{odd}}$/$\alpha_{\text{even}}$ in  $\beta_{\text{buffer}}$
+        \ENDFAP
+        \If {t \% B == 0 \textbf{or} t == T}
+            \State Copy $\beta_{\text{buffer}}$ to CPU matrix $\beta$ asynchronously
+        \EndIf 
+    \EndFor
+    \\Backtrack and compute $\pi$ from $\alpha_{\text{odd}}$, $\alpha_{\text{even}}$ and $\beta$
+\end{algorithmic} 
+\label{algo:force_align}
+\end{algorithm}
+
+
+
+\paragraph{Relationship to Other Alignment Generation Approaches.}
+For dealing with noisy transcripts, a commonly used alternative to forced alignment is as follows~\citep{povey2011kaldi}:
+first segment the audio into shorter segments that can be input to an acoustic model composed with a language model and generate a transcription for each segment.\footnote{\url{https://github.com/mozilla/DSAlign}} 
+Then align the generated transcription with the original text to determine the audio segment for each word. 
+If the generated transcriptions cannot be well aligned, then these segments are discarded.
+
+The advantage of this approach is that it enables alignment when the audio and the text do not correspond entirely to each other. 
+However, the alignments are performed on a segment per segment basis, whereas our forced alignment process performs a global alignment taking the entire sequence into account. 
+
+
+
+% \clearpage
+\section{\textit{n}-gram Language Models} 
+\label{app:train-lms}
+
+We train 5-gram language models on Common Crawl data using KenLM~\citep{heafield-2011-kenlm} for each language in FLEURS.
+For languages that do not use spaces to separate words, we train 20-gram character-level language models.
+These languages are Mandarin Chinese (cmn), Cantonese Chinese (yue), Japanese (jpn), Thai (tha), Lao (lao), Burmese (mya) and Khmer (khm).
+The text is pre-processed following~\autoref{sec:data-preprocess} and we also remove emojis.\footnote{\url{https://stackoverflow.com/a/33417311}}.
+
+For word-level models, we limit the training data to 40GB and select the 250K most-frequent words as the vocabulary. 
+For character-level models, we limit the training data to 6GB.
+We provide example commands used for training the LMs below:
+
+\shellcmd{\# word-level LM}\\
+\shellcmd{> kenlm/build/bin/lmplz  --prune 1 2 3 4 5 -o 5 --limit\_vocab\_file vocab.txt  -S 90\% -T /tmp/ < input.txt > output.arpa }\footnote{We use \texttt{--prune 1 1 2 3 4} if data size < 5GB and additionally use \texttt{--discount\_fallback} if data size < 1GB }  \\
+
+\shellcmd{\# character-level LM} \\
+\shellcmd{> kenlm/build/bin/lmplz  --prune 0 0 0 0 0 1 1 1 2 3 -o 20 trie   -S 90\% -T /tmp/ < input.txt > output.arpa} \\
+
+For n-gram models trained on the FLEURS training data transcriptions, we build 15-gram character level language models without any pruning on all languages in FLEURS. 
+For the comparison with Whisper, we only use the Common Crawl language models. 
+
+We use the CTC beam-search decoder from the Flashlight~\citep{kahn2022flashlight} library for decoding our models. 
+For decoding with word-level LMs, we use the lexicon-based decoder of~\citet{collobert2016wav2letter, pratap2019w2l} and for character-level LMs, we use the lexicon-free beam-search decoder of~\citet{likhomanenko2019convlm}. 
+We tune the language model weight and word insertion penalty on the validation set to select the best hyperparameters for decoding the test set.
+
+
+\newpage
+\section{Comparison to Whisper}
+\label{app:asr-whisper}
+
+\autoref{tab:asr-whisper-perlang-test} shows a breakdown of the results into individual languages and \autoref{tab:asr-whisper-full} shows results with and without CC LM n-gram language models.
+
+\insertResultsASRWisperPerLang
+
+\insertResultsASRWisperFull
+
+
+
+\clearpage
+\section{Comparison to USM}
+\label{app:finetune-fleurs-results}
+
+\insertResultsASRUSMFull
+
+
+
+% \clearpage
+\section{Gender Bias Study}
+\label{app:gender-bias-study}
+
+\insertResultsGenderBiasFull

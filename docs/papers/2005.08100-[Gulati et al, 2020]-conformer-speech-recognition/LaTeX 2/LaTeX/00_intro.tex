@@ -1,0 +1,22 @@
+\section{Introduction}
+
+Convolution Neural Network (CNN) based models for speech recognition is attracting an increasing amount of attention~\cite{zhang2017very,zeghidour2018fully,li2019jasper,kriman2019quartznet}. Among them, the Jasper model~\cite{li2019jasper} is the first CNN based model that achieves close to the state-of-the-art word error rate (WER) 2.95\%  on LibriSpeech test-clean \cite{panayotov2015librispeech} with an external neural language model. The main feature behind this model is a deep convolution based encoder with stacked layers of 1D convolutions and skip connections. Various separable convolutions have been utilized to increase the speed of the model\cite{hannun2019sequence,kriman2019quartznet} and improve the WER.
+
+Nevertheless, the WER achieved by the best CNN model~\cite{kriman2019quartznet} is still significantly higher than the WER from the state-of-the-art transformer-transducer based models~\cite{wang2019transformer}. In addition, a CNN model relies on very deep convolutions to achieve high accuracy, imposing a large number of parameters and flops. This makes it prohibitive to deploy a CNN model to the mobile platform. 
+
+In this paper, we address both the accuracy and the computation issues of a CNN model. We propose a new end-to-end CNN architecture for speech recognition that achieves the state-of-the-art WER of 1.8\%/4.6\% on LibriSpeech test-clean/test-other, out performing existing transformer and LSTM based models\cite{zhang2020transformer, wang2019transformer, zeyer2019comparison, karita2019comparative, park2019specaugment}. In addition, our model has significantly smaller number of parameters compared with existing CNN based models\cite{li2019jasper, kriman2019quartznet}.
+
+To improve the accuracy of the model, we redesign the convolutional encoder to blend the utterance level information with the local acoustic information. A traditional CNN based encoder can only extract local information; it is even shown in \cite{luo2016understanding} that the effective receptive field of a CNN encoder in practice is significantly smaller than its theoretic estimation. To address this, we incorporate the squeeze-and-excitation layer \cite{hu2018squeeze} into our CNN encoder. Such a layer squeezes a sequence of feature vectors which encode local information of an audio into a single global context vector, broadcast this context back to each local feature vector, and blend the two via depthwise convolution. This technique guarantees that each convolutional layer has access to the global information in addition to the local features. Empirically, we observe that this squeeze-and-excitation technique introduces the most reduction on the WER, 2\% \zhengdong{confirm} reduction on the WER on the LibriSpeech test-clean.
+
+In addition, we also propose other design choices of the network architecture, such as replacing the CTC loss by the RNN-T loss\cite{graves2012sequence} and using the swiss-activation function\cite{ramachandran2017searching}. Each technique contributes a slight gain; they sum up and help the model reaching the state-of-the-art WER.
+
+To address the computation cost of a CNN model, we introduce a progressive downsampling scheme on the input utterance for more aggressive downsampling. This allow us to reduce the filter size of all the convolution layers to five without significantly reducing the effective receptive field of the entire encoder. As a benefit, we reduce the length of the encoded sequence by as large as $8\times$ while maintaining the model accuracy.
+
+Inspired by the recent works on network scaling~\cite{tan2019efficientnet}, we also allow our net to scale with the number of channels of a convolution filter, enabling us to scale up the network for lower WER at the cost of increased computation, or to significantly reduce the computation while maintaining good WER.
+
+In summary, the main contributions of this paper are:
+\begin{itemize}
+    \item A CNN encoder architecture with global context that outperforms existing CNN and transformer based models in accuracy,
+    \item A progressive downsampling and model scaling scheme to achieve the best accuracy and computation trade-off.
+\end{itemize}
+

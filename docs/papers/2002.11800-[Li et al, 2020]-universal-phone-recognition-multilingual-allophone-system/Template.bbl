@@ -1,0 +1,171 @@
+\begin{thebibliography}{10}
+
+\bibitem{phoible}
+Steven Moran and Daniel McCloy, Eds.,
+\newblock {\em PHOIBLE 2.0},
+\newblock Max Planck Institute for the Science of Human History, Jena, 2019.
+
+\bibitem{dalmia2018sequence}
+Siddharth Dalmia, Ramon Sanabria, Florian Metze, and Alan~W Black,
+\newblock ``Sequence-based multi-lingual low resource speech recognition,''
+\newblock in {\em 2018 IEEE International Conference on Acoustics, Speech and
+  Signal Processing (ICASSP)}. IEEE, 2018, pp. 4909--4913.
+
+\bibitem{lin2009study}
+Hui Lin, Li~Deng, Dong Yu, Yi-fan Gong, Alex Acero, and Chin-Hui Lee,
+\newblock ``A study on multilingual acoustic modeling for large vocabulary
+  asr,''
+\newblock in {\em 2009 IEEE International Conference on Acoustics, Speech and
+  Signal Processing}. IEEE, 2009, pp. 4333--4336.
+
+\bibitem{cohen1997towards}
+Paul~S. Cohen, Satyanarayana Dharanipragada, Jerneja~Zganec Gros,
+  Michael~Daniel Monkowski, Chalapathy Neti, Salim Roukos, and Todd Ward,
+\newblock ``Towards a universal speech recognizer for multiple languages,''
+\newblock in {\em 1997 IEEE Workshop on Automatic Speech Recognition and
+  Understanding Proceedings}. IEEE, 1997, pp. 591--598.
+
+\bibitem{schultz2001language}
+Tanja Schultz and Alex Waibel,
+\newblock ``Language-independent and language-adaptive acoustic modeling for
+  speech recognition,''
+\newblock {\em Speech Communication}, vol. 35, no. 1-2, pp. 31--51, 2001.
+
+\bibitem{schultz1997fast}
+Tanja Schultz and Alex Waibel,
+\newblock ``Fast bootstrapping of lvcsr systems with multilingual phoneme
+  sets,''
+\newblock in {\em Fifth European Conference on Speech Communication and
+  Technology}, 1997.
+
+\bibitem{li2020zero}
+Xinjian Li, Siddharth Dalmia, David~R Mortensen, Juncheng Li, Alan~W Black, and
+  Florian Metze,
+\newblock ``Towards zero-shot learning for automatic phonemic transcription,''
+\newblock in {\em Thirty-Fourth AAAI Conference on Artificial Intelligence},
+  2020.
+
+\bibitem{watanabe2017language}
+Shinji Watanabe, Takaaki Hori, and John~R Hershey,
+\newblock ``Language independent end-to-end architecture for joint language
+  identification and speech recognition,''
+\newblock in {\em 2017 IEEE Automatic Speech Recognition and Understanding
+  Workshop (ASRU)}. IEEE, 2017, pp. 265--271.
+
+\bibitem{toshniwal2018multilingual}
+Shubham Toshniwal, Tara~N Sainath, Ron~J Weiss, Bo~Li, Pedro Moreno, Eugene
+  Weinstein, and Kanishka Rao,
+\newblock ``Multilingual speech recognition with a single end-to-end model,''
+\newblock in {\em 2018 IEEE International Conference on Acoustics, Speech and
+  Signal Processing (ICASSP)}. IEEE, 2018, pp. 4904--4908.
+
+\bibitem{thompson2019transferable}
+Jessica~AF Thompson, Marc Sch{\"o}nwiesner, Yoshua Bengio, and Daniel Willett,
+\newblock ``How transferable are features in convolutional neural network
+  acoustic models across languages?,''
+\newblock in {\em ICASSP 2019-2019 IEEE International Conference on Acoustics,
+  Speech and Signal Processing (ICASSP)}. IEEE, 2019, pp. 2827--2831.
+
+\bibitem{huang2013cross}
+Jui-Ting Huang, Jinyu Li, Dong Yu, Li~Deng, and Yifan Gong,
+\newblock ``Cross-language knowledge transfer using multilingual deep neural
+  network with shared hidden layers,''
+\newblock in {\em 2013 IEEE International Conference on Acoustics, Speech and
+  Signal Processing}. IEEE, 2013, pp. 7304--7308.
+
+\bibitem{li2019multilingual}
+Xinjian Li, Siddharth Dalmia, Alan~W Black, and Florian Metze,
+\newblock ``Multilingual speech recognition with corpus relatedness sampling,''
+\newblock {\em Proc. Interspeech 2019}, pp. 2120--2124, 2019.
+
+\bibitem{dicanio2013using}
+Christian DiCanio, Hosung Nam, Douglas~H Whalen, H~Timothy~Bunnell, Jonathan~D
+  Amith, and Rey~Castillo Garc{\'\i}a,
+\newblock ``Using automatic alignment to analyze endangered language data:
+  Testing the viability of untrained alignment,''
+\newblock {\em The Journal of the Acoustical Society of America}, vol. 134, no.
+  3, pp. 2235--2246, 2013.
+
+\bibitem{michaud2018integrating}
+Alexis Michaud, Oliver Adams, Trevor~Anthony Cohn, Graham Neubig, and
+  S{\'e}verine Guillaume,
+\newblock ``Integrating automatic transcription into the language documentation
+  workflow: Experiments with na data and the persephone toolkit,''
+\newblock 2018.
+
+\bibitem{matejka2005phonotactic}
+Pavel Matejka, Petr Schwarz, Jan Cernock{\`y}, and Pavel Chytil,
+\newblock ``Phonotactic language identification using high quality phoneme
+  recognition,''
+\newblock in {\em Ninth European Conference on Speech Communication and
+  Technology}, 2005.
+
+\bibitem{neubig2018towards}
+Graham Neubig, Patrick Littell, Chian-Yu Chen, Jean Lee, Zirui Li, Yu-Hsiang
+  Lin, and Yuyan Zhang,
+\newblock ``Towards a general-purpose linguistic annotation backend,''
+\newblock {\em arXiv preprint arXiv:1812.05272}, 2018.
+
+\bibitem{rousseau2012ted}
+Anthony Rousseau, Paul Del{\'e}glise, and Yannick Esteve,
+\newblock ``{TED-LIUM}: an automatic speech recognition dedicated corpus.,''
+\newblock in {\em LREC}, 2012, pp. 125--129.
+
+\bibitem{godfrey1992switchboard}
+John~J Godfrey, Edward~C Holliman, and Jane McDaniel,
+\newblock ``{SWITCHBOARD}: Telephone speech corpus for research and
+  development,''
+\newblock in {\em Acoustics, Speech, and Signal Processing, 1992. ICASSP-92.,
+  1992 IEEE International Conference on}. IEEE, 1992, vol.~1, pp. 517--520.
+
+\bibitem{maekawa2003corpus}
+Kikuo Maekawa,
+\newblock ``Corpus of spontaneous japanese: Its design and evaluation,''
+\newblock in {\em ISCA \& IEEE Workshop on Spontaneous Speech Processing and
+  Recognition}, 2003.
+
+\bibitem{liu2006hkust}
+Yi~Liu, Pascale Fung, Yongsheng Yang, Christopher Cieri, Shudong Huang, and
+  David Graff,
+\newblock ``Hkust/mts: A very large scale mandarin telephone speech corpus,''
+\newblock in {\em Chinese Spoken Language Processing}, pp. 724--735. Springer,
+  2006.
+
+\bibitem{aishell_2017}
+Xingyu Na Bengu Wu Hao~Zheng Hui~Bu, Jiayu~Du,
+\newblock ``Aishell-1: An open-source mandarin speech corpus and a speech
+  recognition baseline,''
+\newblock in {\em Oriental COCOSDA 2017}, 2017, p. Submitted.
+
+\bibitem{THCHS30_2015}
+Zhiyong~Zhang Dong~Wang, Xuewei~Zhang,
+\newblock ``Thchs-30 : A free chinese speech corpus,'' 2015.
+
+\bibitem{Abate2005}
+Solomon~Teferra Abate, Wolfgang Menzel, and Bairu Tafila,
+\newblock ``An amharic speech corpus for large vocabulary continuous speech
+  recognition,''
+\newblock in {\em INTERSPEECH-2005}, 2005.
+
+\bibitem{graves2006connectionist}
+Alex Graves, Santiago Fern{\'a}ndez, Faustino Gomez, and J{\"u}rgen
+  Schmidhuber,
+\newblock ``Connectionist temporal classification: labelling unsegmented
+  sequence data with recurrent neural networks,''
+\newblock in {\em Proceedings of the 23rd international conference on Machine
+  learning}. ACM, 2006, pp. 369--376.
+
+\bibitem{povey2011kaldi}
+Daniel Povey, Arnab Ghoshal, Gilles Boulianne, Lukas Burget, Ondrej Glembek,
+  Nagendra Goel, Mirko Hannemann, Petr Motlicek, Yanmin Qian, Petr Schwarz,
+  et~al.,
+\newblock ``The kaldi speech recognition toolkit,''
+\newblock in {\em IEEE 2011 workshop on automatic speech recognition and
+  understanding}. IEEE Signal Processing Society, 2011, number CONF.
+
+\bibitem{mortensen2018epitran}
+David~R Mortensen, Siddharth Dalmia, and Patrick Littell,
+\newblock ``Epitran: Precision {G2P} for many languages.,''
+\newblock in {\em LREC}, 2018.
+
+\end{thebibliography}

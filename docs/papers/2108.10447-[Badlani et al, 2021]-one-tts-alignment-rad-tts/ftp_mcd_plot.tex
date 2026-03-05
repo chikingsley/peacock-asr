@@ -1,0 +1,30 @@
+\begin{tikzpicture}[]
+  \begin{axis}[
+    height=3.2cm,
+    width=0.9\linewidth,
+      % xlabel= Iteration,
+      legend cell align={left},
+      ylabel= {MCD-DTW},
+      ylabel near ticks,
+      xlabel near ticks,
+      xlabel style= {font=\small},
+      ylabel style={font=\small},
+      legend style={font=\tiny},
+      yticklabel style = {font=\tiny},
+      xticklabel style = {font=\tiny},
+      %ymode=log,
+      xmin=500,
+      xmax=19000,
+      x tick label style={/pgf/number format/1000 sep=},  % sep={} disables comma in 1,000
+      legend columns=1,
+      legend entries={RadTTS (MFA durations), RadTTS w/o prior + $\mathcal{L}_{\mathit{align}}$, RadTTS with prior + $\mathcal{L}_{\mathit{align}}$}
+    ]
+    \addplot [line width=0.3mm, color=lava] table [x=iteration, y=mel_cepstrum_mcd, y error=oursstd,col sep=comma] {\ftpmfadtwsorted};
+    
+    
+    \addplot [line width=0.3mm, color=glaucous] table [x=iteration, y=mel_cepstrum_mcd, y error=oursstd,col sep=comma] {\ftpnopriormcddtwsorted};
+    
+    \addplot [line width=0.3mm, color=forestgreen] table [x=iteration, y=mel_cepstrum_mcd, y error=oursstd,col sep=comma] {\ftpbetabinomialmcddtwsorted};
+    
+  \end{axis}
+\end{tikzpicture}

@@ -1,0 +1,28 @@
+\begin{table}[t!]
+\centering
+\resizebox{0.95\columnwidth}{!}{
+\footnotesize
+\setlength\tabcolsep{3pt}
+\begin{tabular}{lcl}
+\toprule
+Model & Params & Description \\
+\midrule
+ByT5-Large           & 1.23B           & Baseline ByT5 model \\
+mT5-Large            & 1.23B           & Baseline mT5 model \\
+\midrule
+(a) ByT5-36/12-668M      & 668M            & encoder:36, decoder:12 \\
+(b) ByT5-24/24-718M      & 718M            & encoder:24, decoder:24 \\
+(c) ByT5-12/36-768M      & 768M            & encoder:12, decoder:36 \\
+\midrule
+(d) mT5-36/12-1.18B      & 1.18B           & encoder:36, decoder:12 \\
+\midrule
+(e) ByT5-Large-Span3    & 1.23B           & Mean noise span 3.0 \\
+(f) ByT5-Large-Span40   & 1.23B           & Mean noise span 40.0 \\
+\midrule
+(g) CharT5-36/12-1.23B   & 1.23B           & 47K character vocab \\
+
+\bottomrule
+\end{tabular}}
+\caption{Models used in our ablation study.}
+\label{tab:ablation_models}
+\end{table}

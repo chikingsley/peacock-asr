@@ -1,0 +1,119 @@
+\documentclass[a4paper]{article}
+
+\usepackage{INTERSPEECH2021}
+% Recommended, but optional, packages for figures and better typesetting:
+\usepackage{microtype}
+\usepackage{graphicx}
+
+%\usepackage{subfigure}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{booktabs} % for professional tables
+\usepackage{xcolor} % temp package, delete for camera-ready
+\usepackage{pgfplots,pgfplotstable}
+
+\usepackage{hyperref}
+
+\usepackage{siunitx}
+
+\usepackage{enumitem}
+
+\usepackage{cite}
+
+\setlist{nosep} % or \setlist{noitemsep} to leave space around whole list
+
+\usepackage[colorinlistoftodos]{todonotes}
+
+% Attempt to make hyperref and algorithmic work together better:
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+\newcommand\boldhead[1]{\vspace{0.03in}\noindent\textbf{#1: }}
+
+% \newcommand{\attn}[1]{\mathcal{A}_{\mathit{#1}}}
+\newcommand{\posterior}{P_{\mathit{posterior}}}
+\newcommand{\blank}{\emptyset}
+
+% A "=" sign with less spacing for neat P(A=a|X=x) etc.
+\newcommand\slimeq{\mkern1.5mu{=}\mkern1.5mu}
+
+\definecolor{forestgreen}{rgb}{0.13, 0.55, 0.13}
+\definecolor{fulvous}{rgb}{0.86, 0.52, 0.0}
+\definecolor{glaucous}{rgb}{0.38, 0.51, 0.71}
+\definecolor{lava}{rgb}{0.81, 0.06, 0.13}
+\definecolor{buff}{rgb}{0.94, 0.86, 0.51}
+\definecolor{chromeyellow}{rgb}{1.0, 0.65, 0.0}
+\definecolor{brightube}{rgb}{0.82, 0.62, 0.91}
+
+\pgfplotsset{scaled y ticks=false, scaled x ticks=false}
+
+\pgfplotstableread[col sep=comma]{data/mcd/flowtron_base_mcd.csv.csv}\ftabasemcd
+\pgfplotstableread[col sep=comma]{data/mcd/flowtron_baseline_mcd.csv.csv}\ftabaselinemcd
+\pgfplotstableread[col sep=comma]{data/mcd/flowtron_ctc_mcd.csv.csv}\ftactcmcd
+
+\pgfplotstableread[col sep=comma]{data/mcd/tacotron_baseline_mcd.csv.csv}\tacotronbaselinemcd
+\pgfplotstableread[col sep=comma]{data/mcd/tacotron_ctc_mcd.csv.csv}\tacotronctcmcd
+\pgfplotstableread[col sep=comma]{data/mcd/tacotron_without_prior_mcd.csv.csv}\tacotronbasewopriormcd
+
+\pgfplotstableread[col sep=comma]{data/mcd/fastpitch_grapheme_baseline_mcd.csv}\fastpitchbaselinemcd
+\pgfplotstableread[col sep=comma]{data/mcd/fastpitch_grapheme_mcd.csv}\fastpitchconvmcd
+
+\pgfplotstableread[col sep=comma]{data/mcd/fastspeech2_mfa_mcd.csv}\fastspeechbaseline
+\pgfplotstableread[col sep=comma]{data/mcd/fastspeech2_convattn_mcd.csv}\fastspeechconvattn
+
+\pgfplotstableread[col sep=comma]{data/mcd/collated_with_betab_mcd_dtw.csv}\ftpbetabinomialmcddtw
+\pgfplotstablesort[sort key=iteration, sort cmp=int >]{\ftpbetabinomialmcddtwsorted}{\ftpbetabinomialmcddtw}
+\pgfplotstableread[col sep=comma]{data/mcd/collated_with_mfa_mcd_dtw.csv}\ftpmfamcddtw
+\pgfplotstablesort[sort key=iteration, sort cmp=int >]{\ftpmfadtwsorted}{\ftpmfamcddtw}
+\pgfplotstableread[col sep=comma]{data/mcd/collated_without_prior_mcd_dtw.csv}\ftpnopriormcddtw
+\pgfplotstablesort[sort key=iteration, sort cmp=int >]{\ftpnopriormcddtwsorted}{\ftpnopriormcddtw}
+
+\pgfplotstableread[col sep=comma]{data/duration/distance_flowtron_baseline.csv}\ftabasedurationdistance
+\pgfplotstableread[col sep=comma]{data/duration/distance_flowtron_CTC_guided.csv}\ftactcdurationdistance
+
+
+\pgfplotstableread[col sep=comma]{data/cer/memfix_fta_base.csv}\ftacerbase
+\pgfplotstableread[col sep=comma]{data/cer/memfix_fta_ctc.csv}\ftacerctc
+\pgfplotstableread[col sep=comma]{data/cer/taco2_base_smoothed-v2.csv}\tacocerbase
+\pgfplotstableread[col sep=comma]{data/cer/taco2_ctc_smoothed-v2.csv}\tacocerctc
+\pgfplotstableread[col sep=comma]{data/cer/ftp_dp_smoothed-v2.csv}\ftpcer
+
+
+\pgfplotstableread[col sep=comma]{data/duration/distance_tacotron_base.csv}\tacotronbasedurationdistance
+\pgfplotstableread[col sep=comma]{data/duration/distance_tacotron_ctc.csv}\tacotronctcdurationdistance
+
+
+
+\newcommand{\attn}[1]{\mathcal{A}_{\mathit{#1}}}
+
+\title{One TTS Alignment To Rule Them All}
+\name{Rohan Badlani, Adrian Łańcucki, Kevin J. Shih, Rafael Valle, Wei Ping, Bryan Catanzaro}
+
+\address{
+  NVIDIA %Jensen has asked that we only use NVIDIA as affiliation. One team one dream
+}
+
+\email{\{rbadlani,alancucki,kshih,rafaelvalle,wping,bcatanzaro\}@nvidia.com}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    Speech-to-text alignment is a critical component of neural text-to-speech (TTS) models. Autoregressive TTS models typically use an attention mechanism to learn these alignments on-line. However, these alignments tend to be brittle and often fail to generalize to long utterances and out-of-domain text, leading to missing or repeating words. Most non-autoregressive end-to-end TTS models rely on durations extracted from external sources. In this paper we leverage the alignment mechanism proposed in RAD-TTS as a generic alignment learning framework, easily applicable to a variety of neural TTS models. The framework combines forward-sum algorithm, the Viterbi algorithm, and a simple and efficient static prior.
+    In our experiments, the alignment learning framework improves all tested TTS architectures, both autoregressive (Flowtron, Tacotron 2) and non-autoregressive (FastPitch, FastSpeech 2, RAD-TTS). Specifically, it improves alignment convergence speed of existing attention-based mechanisms, simplifies the training pipeline, and makes the models more robust to errors on long utterances.
+    Most importantly, the framework improves the perceived speech synthesis quality, as judged by human evaluators.
+\end{abstract}
+
+\noindent\textbf{Index Terms}: neural speech synthesis, speech text alignments 
+
+\input{intro.tex}
+\input{method.tex}
+\input{experiments.tex}
+\input{conclusion.tex}
+
+\pagebreak
+\bibliographystyle{IEEEtran}
+\bibliography{main}
+
+\end{document}

@@ -1,0 +1,56 @@
+\begin{table}[t!]
+\centering
+\resizebox{\columnwidth}{!}{
+\footnotesize
+\setlength\tabcolsep{4pt}
+\begin{tabular}{llccc}
+\toprule
+
+& & \multicolumn{2}{c}{\textbf{Learnable Noise}} & \textbf{Unseen Noise} \\
+
+\cmidrule(lr){3-4} \cmidrule(lr){5-5}
+
+& & XNLI & TyDiQA- & XNLI \\
+& Model & (accuracy) & GoldP (F1) & (accuracy) \\
+\midrule
+
+\multirow{2}{*}{Clean}
+& mT5 & 81.1 & 85.3 & 81.1 \\
+& ByT5 & 79.7 & 87.7 & 79.7 \\
+
+\midrule
+
+\multirow{2}{*}{Drop}
+& mT5 & \minus10.2 & \minus24.0 & \minus18.3\\
+& ByT5 & \textbf{\minus8.2} & \textbf{\minus19.5} & \textbf{\minus11.4} \\
+
+\midrule
+
+\multirow{2}{*} {Repetitions}
+& mT5 & \minus8.5 & \minus9.5 &\minus12.3 \\
+& ByT5 & \textbf{\minus4.1} & \textbf{\minus3.0} & \textbf{\minus5.9} \\
+
+\midrule
+
+\multirow{2}{*} {Antspeak}
+& mT5 & \minus32.0 & \minus27.7 & \minus34.4 \\
+& ByT5 & \textbf{\minus8.7} & \textbf{\minus4.8} & \textbf{\minus24.4}\\
+
+\midrule
+
+\multirow{2}{*} {Uppercase}
+& mT5 & \minus7.0 & \minus8.0 & \minus8.1 \\
+& ByT5 & \textbf{\minus1.5} & \textbf{\minus0.5} & \textbf{\minus1.7} \\
+
+\midrule
+
+\multirow{2}{*} {Random Case}
+& mT5 & \minus25.7 & \minus14.3 & \minus19.2 \\
+& ByT5 & \textbf{\minus1.5} & \textbf{\minus0.2} & \textbf{\minus5.9}\\
+
+\bottomrule
+
+\end{tabular}}
+\caption{Degradation of mT5 and ByT5 under various types of noise. ``Clean'' shows original task performance. Subsequent rows show the delta from ``clean'' when adding different types of noise. Learnable noise is added in training and eval, while unseen noise only affects eval.}
+\label{tab:noisy_tasks}
+\end{table}

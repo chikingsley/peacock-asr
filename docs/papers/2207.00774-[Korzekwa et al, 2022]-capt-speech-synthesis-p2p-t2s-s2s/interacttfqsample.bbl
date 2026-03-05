@@ -1,0 +1,422 @@
+\begin{thebibliography}{10}
+\newcommand{\printfirst}[2]{#1}
+\newcommand{\switchargs}[2]{#2#1}
+\providecommand{\url}[1]{\normalfont{#1}}
+\providecommand{\urlprefix}{Available at }
+
+\bibitem{unesco2016if}
+ UNESCO, \emph{If you don’t understand, how can you learn?} (2016).
+  \urlprefix\url{https://en.unesco.org/news/40-don-t-access-education-language-they-understand}.
+
+\bibitem{statista2020}
+ Statista, \emph{Most common languages used on the internet as of january 2020,
+  by share of internet users} (2021).
+  \urlprefix\url{https://www.statista.com/statistics/262946/share-of-the-most-common-languages-on-the-internet/}.
+
+\bibitem{EPI2020}
+ EF-Education-First, \emph{Ef english proficiency index} (2020).
+  \urlprefix\url{https://www.ef.pl/epi/}.
+
+\bibitem{levy2013call}
+M. Levy and G. Stockwell, \emph{CALL dimensions: Options and issues in
+  computer-assisted language learning}, Routledge, 2013.
+
+\bibitem{mehri2019diagnosing}
+A. Mehri~Kamrood, M. Davoudi, S. Ghaniabadi, and S.M.R. Amirian,
+  \emph{Diagnosing l2 learners’ development through online computerized
+  dynamic assessment}, Computer Assisted Language Learning  (2019), pp. 1--30.
+
+\bibitem{neri2008effectiveness}
+A. Neri, O. Mich, M. Gerosa, and D. Giuliani, \emph{The effectiveness of
+  computer assisted pronunciation training for foreign language learning by
+  children}, Computer Assisted Language Learning 21 (2008), pp. 393--408.
+
+\bibitem{golonka2014technologies}
+E.M. Golonka, A.R. Bowles, V.M. Frank, D.L. Richardson, and S. Freynik,
+  \emph{Technologies for foreign language learning: A review of technology
+  types and their effectiveness}, Computer assisted language learning 27
+  (2014), pp. 70--105.
+
+\bibitem{tejedor2020assessing}
+C. Tejedor-Garc{\'\i}a, D. Escudero, E. C{\'a}mara-Arenas, C.
+  Gonz{\'a}lez-Ferreras, and V. Carde{\~n}oso-Payo, \emph{Assessing
+  pronunciation improvement in students of english using a controlled
+  computer-assisted pronunciation tool}, IEEE Transactions on Learning
+  Technologies  (2020).
+
+\bibitem{leung2019cnn}
+W.K. Leung, X. Liu, and H. Meng, \emph{CNN-RNN-CTC based end-to-end
+  mispronunciation detection and diagnosis}, in \emph{ICASSP 2019-2019 IEEE
+  International Conference on Acoustics, Speech and Signal Processing
+  (ICASSP)}. IEEE, 2019, pp. 8132--8136.
+
+\bibitem{zhang2021text}
+Z. Zhang, Y. Wang, and J. Yang, \emph{Text-conditioned transformer for
+  automatic pronunciation error detection}, Speech Communication 130 (2021),
+  pp. 55--63.
+
+\bibitem{korzekwa2021mispronunciation}
+D. Korzekwa, J. Lorenzo-Trueba, S. Zaporowski, S. Calamaro, T. Drugman, and B.
+  Kostek, \emph{Mispronunciation Detection in Non-Native (L2) English with
+  Uncertainty Modeling}, in \emph{ICASSP 2021-2021 IEEE International
+  Conference on Acoustics, Speech and Signal Processing (ICASSP)}. IEEE, 2021,
+  pp. 7738--7742.
+
+\bibitem{ai2015automatic}
+R. Ai, \emph{Automatic pronunciation error detection and feedback generation
+  for call applications}, in \emph{International Conference on Learning and
+  Collaboration Technologies}. Springer, 2015, pp. 175--186.
+
+\bibitem{ferrer2015classification}
+L. Ferrer, H. Bratt, C. Richey, H. Franco, V. Abrash, and K. Precoda,
+  \emph{Classification of lexical stress using spectral and prosodic features
+  for computer-assisted language learning systems}, Speech Communication 69
+  (2015), pp. 31--45.
+
+\bibitem{witt2000phone}
+S.M. Witt and S.J. Young, \emph{Phone-level pronunciation scoring and
+  assessment for interactive language learning}, Speech communication 30
+  (2000), pp. 95--108.
+
+\bibitem{Hongyan2011}
+H. Li, S. Huang, S. Wang, and B. Xu, \emph{Context-Dependent Duration Modeling
+  with Backoff Strategy and Look-Up Tables for Pronunciation Assessment and
+  Mispronunciation Detection}, in \emph{{INTERSPEECH} 2011, 12th Annual
+  Conference of the International Speech Communication Association, Florence,
+  Italy, August 27-31, 2011}. {ISCA}, 2011, pp. 1133--1136.
+
+\bibitem{chen2010automatic_2}
+J.Y. Chen and L. Wang, \emph{Automatic lexical stress detection for Chinese
+  learners' of English}, in \emph{2010 7th Intl. Symposium on Chinese Spoken
+  Language Processing}. IEEE, 2010, pp. 407--411.
+
+\bibitem{shahin2016automatic}
+M.A. Shahin, J. Epps, and B. Ahmed, \emph{Automatic Classification of Lexical
+  Stress in English and Arabic Languages Using Deep Learning.}, in
+  \emph{INTERSPEECH}. 2016, pp. 175--179.
+
+\bibitem{bishop2006pattern}
+C.M. Bishop, \emph{Pattern recognition}, Machine learning 128 (2006).
+
+\bibitem{huybrechts2021low}
+G. Huybrechts, T. Merritt, G. Comini, B. Perz, R. Shah, and J. Lorenzo-Trueba,
+  \emph{Low-resource expressive text-to-speech using data augmentation}, in
+  \emph{ICASSP 2021-2021 IEEE International Conference on Acoustics, Speech and
+  Signal Processing (ICASSP)}. IEEE, 2021, pp. 6593--6597.
+
+\bibitem{shah21_ssw}
+R. Shah, K. Pokora, A. Ezzerg, V. Klimkov, G. Huybrechts, B. Putrycz, D.
+  Korzekwa, and T. Merritt, \emph{{Non-Autoregressive TTS with Explicit
+  Duration Modelling for Low-Resource Highly Expressive Speech}}, in
+  \emph{Proc. 11th ISCA Speech Synthesis Workshop (SSW 11)}. 2021, pp. 96--101.
+
+\bibitem{fazel21_interspeech}
+A. Fazel, W. Yang, Y. Liu, R. Barra-Chicote, Y. Meng, R. Maas, and J. Droppo,
+  \emph{{SynthASR: Unlocking Synthetic Data for Speech Recognition}}, in
+  \emph{Proc. Interspeech 2021}. 2021, pp. 896--900.
+
+\bibitem{korzekwa21b_interspeech}
+D. Korzekwa, J. Lorenzo-Trueba, T. Drugman, S. Calamaro, and B. Kostek,
+  \emph{{Weakly-Supervised Word-Level Pronunciation Error Detection in
+  Non-Native English Speech}}, in \emph{Proc. Interspeech 2021}. 2021, pp.
+  4408--4412.
+
+\bibitem{korzekwa21_interspeech}
+D. Korzekwa, R. Barra-Chicote, S. Zaporowski, G. Beringer, J. Lorenzo-Trueba,
+  A. Serafinowicz, J. Droppo, T. Drugman, and B. Kostek, \emph{{Detection of
+  Lexical Stress Errors in Non-Native (L2) English with Data Augmentation and
+  Attention}}, in \emph{Proc. Interspeech 2021}. 2021, pp. 3915--3919.
+
+\bibitem{li2016mispronunciation}
+K. Li, X. Qian, and H. Meng, \emph{Mispronunciation detection and diagnosis in
+  l2 english speech using multidistribution deep neural networks}, IEEE/ACM
+  Transactions on Audio, Speech, and Language Processing 25 (2016), pp.
+  193--207.
+
+\bibitem{sudhakara2019improved}
+S. Sudhakara, M.K. Ramanathi, C. Yarra, and P.K. Ghosh, \emph{An Improved
+  Goodness of Pronunciation (GoP) Measure for Pronunciation Evaluation with
+  DNN-HMM System Considering HMM Transition Probabilities.}, in
+  \emph{INTERSPEECH}. 2019, pp. 954--958.
+
+\bibitem{cheng2020asr}
+S. Cheng, Z. Liu, L. Li, Z. Tang, D. Wang, and T.F. Zheng, \emph{Asr-free
+  pronunciation assessment}, arXiv preprint arXiv:2005.11902  (2020).
+
+\bibitem{franco1997automatic}
+H. Franco, L. Neumeyer, Y. Kim, and O. Ronen, \emph{Automatic pronunciation
+  scoring for language instruction}, in \emph{1997 IEEE international
+  conference on acoustics, speech, and signal processing}, Vol.~2. IEEE, 1997,
+  pp. 1471--1474.
+
+\bibitem{Minematsu2004PronunciationAB}
+N. Minematsu, \emph{Pronunciation assessment based upon the phonological
+  distortions observed in language learners' utterances}, in
+  \emph{INTERSPEECH}. 2004.
+
+\bibitem{harrison2009implementation}
+A.M. Harrison, W.K. Lo, X.j. Qian, and H. Meng, \emph{Implementation of an
+  extended recognition network for mispronunciation detection and diagnosis in
+  computer-assisted pronunciation training}, in \emph{Intl. Workshop on Speech
+  and Language Technology in Education}. 2009.
+
+\bibitem{Lee2013PronunciationAV}
+A. Lee and J.R. Glass, \emph{Pronunciation assessment via a comparison-based
+  system}, in \emph{SLaTE}. 2013.
+
+\bibitem{plantinga2019towards}
+P. Plantinga and E. Fosler-Lussier, \emph{Towards Real-Time Mispronunciation
+  Detection in Kids' Speech}, in \emph{2019 IEEE Automatic Speech Recognition
+  and Understanding Workshop (ASRU)}. IEEE, 2019, pp. 690--696.
+
+\bibitem{Sudhakara2019NoiseRG}
+S. Sudhakara, M.K. Ramanathi, C. Yarra, A. Das, and P. Ghosh, \emph{Noise
+  robust goodness of pronunciation measures using teacher's utterance}, in
+  \emph{SLaTE}. 2019.
+
+\bibitem{zhang2020end}
+L. Zhang, Z. Zhao, C. Ma, L. Shan, H. Sun, L. Jiang, S. Deng, and C. Gao,
+  \emph{End-to-end automatic pronunciation error detection based on improved
+  hybrid ctc/attention architecture}, Sensors 20 (2020), p. 1809.
+
+\bibitem{chorowski2014end}
+J. Chorowski, D. Bahdanau, K. Cho, and Y. Bengio, \emph{End-to-end continuous
+  speech recognition using attention-based recurrent nn: First results}, arXiv
+  preprint arXiv:1412.1602  (2014).
+
+\bibitem{chorowski2015attention}
+J.K. Chorowski, D. Bahdanau, D. Serdyuk, K. Cho, and Y. Bengio,
+  \emph{Attention-based models for speech recognition}, in \emph{Advances in
+  neural information processing systems}. 2015, pp. 577--585.
+
+\bibitem{bahdanau2016end}
+D. Bahdanau, J. Chorowski, D. Serdyuk, P. Brakel, and Y. Bengio,
+  \emph{End-to-end attention-based large vocabulary speech recognition}, in
+  \emph{2016 IEEE international conference on acoustics, speech and signal
+  processing (ICASSP)}. IEEE, 2016, pp. 4945--4949.
+
+\bibitem{xiao2018paired}
+Y. Xiao, F. Soong, and W. Hu, \emph{{Paired Phone-Posteriors Approach to ESL
+  Pronunciation Quality Assessment}}, in \emph{Proc. Interspeech 2018}. 2018,
+  pp. 1631--1635.
+
+\bibitem{nicolao2015automatic}
+M. Nicolao, A.V. Beeston, and T. Hain, \emph{Automatic assessment of English
+  learner pronunciation using discriminative classifiers}, in \emph{2015 IEEE
+  Intl. Conference on Acoustics, Speech and Signal Processing (ICASSP)}. IEEE,
+  2015, pp. 5351--5355.
+
+\bibitem{wang2019child}
+J. Wang, Y. Qin, Z. Peng, and T. Lee, \emph{Child Speech Disorder Detection
+  with Siamese Recurrent Network Using Speech Attribute Features.}, in
+  \emph{INTERSPEECH}. 2019, pp. 3885--3889.
+
+\bibitem{qian2010capturing}
+X. Qian, H. Meng, and F. Soong, \emph{Capturing L2 segmental mispronunciations
+  with joint-sequence models in computer-aided pronunciation training (CAPT)},
+  in \emph{2010 7th Intl. Symposium on Chinese Spoken Language Processing}.
+  IEEE, 2010, pp. 84--88.
+
+\bibitem{needleman1970general}
+S.B. Needleman and C.D. Wunsch, \emph{A general method applicable to the search
+  for similarities in the amino acid sequence of two proteins}, Journal of
+  molecular biology 48 (1970), pp. 443--453.
+
+\bibitem{duan2019cross}
+R. Duan, T. Kawahara, M. Dantsuji, and H. Nanjo, \emph{Cross-lingual transfer
+  learning of non-native acoustic modeling for pronunciation error detection
+  and diagnosis}, IEEE/ACM Transactions on Audio, Speech, and Language
+  Processing 28 (2019), pp. 391--401.
+
+\bibitem{yan20_interspeech}
+B.C. Yan, M.C. Wu, H.T. Hung, and B. Chen, \emph{{An End-to-End
+  Mispronunciation Detection System for L2 English Speech Leveraging Novel
+  Anti-Phone Modeling}}, in \emph{Proc. Interspeech 2020}. 2020, pp.
+  3032--3036.
+
+\bibitem{xu21k_interspeech}
+X. Xu, Y. Kang, S. Cao, B. Lin, and L. Ma, \emph{{Explore wav2vec 2.0 for
+  Mispronunciation Detection}}, in \emph{Proc. Interspeech 2021}. 2021, pp.
+  4428--4432.
+
+\bibitem{peng21e_interspeech}
+L. Peng, K. Fu, B. Lin, D. Ke, and J. Zhan, \emph{{A Study on Fine-Tuning
+  wav2vec2.0 Model for the Task of Mispronunciation Detection and Diagnosis}},
+  in \emph{Proc. Interspeech 2021}. 2021, pp. 4448--4452.
+
+\bibitem{lin21j_interspeech}
+B. Lin and L. Wang, \emph{{Deep Feature Transfer Learning for Automatic
+  Pronunciation Assessment}}, in \emph{Proc. Interspeech 2021}. 2021, pp.
+  4438--4442.
+
+\bibitem{field2005intelligibility}
+J. Field, \emph{Intelligibility and the listener: The role of lexical stress},
+  TESOL quarterly 39 (2005), pp. 399--423.
+
+\bibitem{lepage2014intelligibility}
+A. Lepage and M.G. Bus{\`a}, \emph{Intelligibility of English L2: The effects
+  of incorrect word stress placement and incorrect vowel reduction in the
+  speech of French and Italian learners of English}, in \emph{Proc. of the
+  Intl. Symposium on the Acquisition of Second Language Speech}. 2014, 2014,
+  pp. 387--400.
+
+\bibitem{jung2018acoustic}
+Y.J. Jung, S.C. Rhee, \emph{et~al.}, \emph{Acoustic analysis of english lexical
+  stress produced by korean, japanese and taiwanese-chinese speakers},
+  Phonetics and Speech Sciences 10 (2018), pp. 15--22.
+
+\bibitem{bergem1991acoustic}
+D.R.v. Bergem, \emph{Acoustic and lexical vowel reduction}, in \emph{Phonetics
+  and Phonology of Speaking Styles}. 1991.
+
+\bibitem{li2018automatic}
+K. Li, S. Mao, X. Li, Z. Wu, and H. Meng, \emph{Automatic lexical stress and
+  pitch accent detection for l2 english speech using multi-distribution deep
+  neural networks}, Speech Communication 96 (2018), pp. 28--36.
+
+\bibitem{zhao2011automatic}
+J. Zhao, H. Yuan, J. Liu, and S. Xia, \emph{Automatic lexical stress detection
+  using acoustic features for computer assisted language learning}, Proc.
+  APSIPA ASC  (2011), pp. 247--251.
+
+\bibitem{chen2007using}
+N. Chen and Q. He, \emph{Using nonlinear features in automatic English lexical
+  stress detection}, in \emph{2007 Intl. Conference on Computational
+  Intelligence and Security Workshops (CISW 2007)}. IEEE, 2007, pp. 328--332.
+
+\bibitem{li2013lexical}
+K. Li, X. Qian, S. Kang, and H. Meng, \emph{Lexical stress detection for L2
+  English speech using deep belief networks.}, in \emph{Interspeech}. 2013, pp.
+  1811--1815.
+
+\bibitem{ramanathi2019asr}
+M.K. Ramanathi, C. Yarra, and P.K. Ghosh, \emph{ASR Inspired Syllable Stress
+  Detection for Pronunciation Evaluation Without Using a Supervised Classifier
+  and Syllable Level Features.}, in \emph{INTERSPEECH}. 2019, pp. 924--928.
+
+\bibitem{badenhorst2017limitations}
+J. Badenhorst and F. De~Wet, \emph{The limitations of data perturbation for ASR
+  of learner data in under-resourced languages}, in \emph{2017 Pattern
+  Recognition Association of South Africa and Robotics and Mechatronics
+  (PRASA-RobMech)}. IEEE, 2017, pp. 44--49.
+
+\bibitem{eklund2019data}
+V.V. Eklund, \emph{Data augmentation techniques for robust audio analysis},
+  Master's thesis, Tampere University,  2019.
+
+\bibitem{lee2016language}
+A. Lee, \emph{et~al.}, \emph{Language-independent methods for computer-assisted
+  pronunciation training}, Ph.D. diss., Massachusetts Institute of Technology,
+  2016.
+
+\bibitem{komatsu2019speech}
+S. Komatsu and M. Sasayama, \emph{Speech Error Detection depending on
+  Linguistic Units}, in \emph{Proceedings of the 2019 3rd International
+  Conference on Natural Language Processing and Information Retrieval}. 2019,
+  pp. 75--79.
+
+\bibitem{fu2021full}
+K. Fu, J. Lin, D. Ke, Y. Xie, J. Zhang, and B. Lin, \emph{A full text-dependent
+  end to end mispronunciation detection and diagnosis with easy data
+  augmentation techniques}, arXiv preprint arXiv:2104.08428  (2021).
+
+\bibitem{yan2021maximum}
+B.C. Yan, S.W.F. Jiang, F.A. Chao, and B. Chen, \emph{Maximum f1-score training
+  for end-to-end mispronunciation detection and diagnosis of l2 english
+  speech}, arXiv preprint arXiv:2108.13816  (2021).
+
+\bibitem{huang2016machine}
+G. Huang, A. Gorin, J.L. Gauvain, and L. Lamel, \emph{Machine translation based
+  data augmentation for cantonese keyword spotting}, in \emph{2016 IEEE
+  International Conference on Acoustics, Speech and Signal Processing
+  (ICASSP)}. IEEE, 2016, pp. 6020--6024.
+
+\bibitem{koller2009probabilistic}
+D. Koller and N. Friedman, \emph{Probabilistic graphical models: principles and
+  techniques}, MIT press, 2009.
+
+\bibitem{latorre2019effect}
+J. Latorre, J. Lachowicz, J. Lorenzo-Trueba, T. Merritt, T. Drugman, S.
+  Ronanki, and V. Klimkov, \emph{Effect of data reduction on
+  sequence-to-sequence neural tts}, in \emph{ICASSP 2019-2019 IEEE
+  International Conference on Acoustics, Speech and Signal Processing
+  (ICASSP)}. IEEE, 2019, pp. 7075--7079.
+
+\bibitem{oord2018parallel}
+A. Oord, Y. Li, I. Babuschkin, K. Simonyan, O. Vinyals, K. Kavukcuoglu, G.
+  Driessche, E. Lockhart, L. Cobo, F. Stimberg, \emph{et~al.}, \emph{Parallel
+  wavenet: Fast high-fidelity speech synthesis}, in \emph{International
+  conference on machine learning}. PMLR, 2018, pp. 3918--3926.
+
+\bibitem{jiao2021universal}
+Y. Jiao, A. Gabry{\'s}, G. Tinchev, B. Putrycz, D. Korzekwa, and V. Klimkov,
+  \emph{Universal neural vocoding with parallel wavenet}, in \emph{ICASSP
+  2021-2021 IEEE International Conference on Acoustics, Speech and Signal
+  Processing (ICASSP)}. IEEE, 2021, pp. 6044--6048.
+
+\bibitem{jordan1999introduction}
+M.I. Jordan, Z. Ghahramani, T.S. Jaakkola, and L.K. Saul, \emph{An introduction
+  to variational methods for graphical models}, Machine learning 37 (1999), pp.
+  183--233.
+
+\bibitem{garofolo1993darpa}
+J.S. Garofolo, L.F. Lamel, W.M. Fisher, J.G. Fiscus, and D.S. Pallett,
+  \emph{Darpa timit acoustic-phonetic continous speech corpus cd-rom. nist
+  speech disc 1-1.1}, STIN 93 (1993), p. 27403.
+
+\bibitem{Zen2019}
+H. Zen, V. Dang, R. Clark, Y. Zhang, R.J. Weiss, Y. Jia, Z. Chen, and Y. Wu,
+  \emph{{LibriTTS: A Corpus Derived from LibriSpeech for Text-to-Speech}}, in
+  \emph{Proc. Interspeech 2019}. 2019, pp. 1526--1530.
+
+\bibitem{atwell2003isle}
+E. Atwell, P. Howarth, and D. Souter, \emph{The isle corpus: Italian and german
+  spoken learner's english}, ICAME Journal: Intl. Computer Archive of Modern
+  and Medieval English Journal 27 (2003), pp. 5--18.
+
+\bibitem{Weber2020}
+D. Weber, S. Zaporowski, and D. Korzekwa, \emph{Constructing a Dataset of
+  Speech Recordings with Lombard Effect}, in \emph{24th IEEE SPA}. 2020.
+
+\bibitem{kominek2004cmu}
+J. Kominek and A.W. Black, \emph{The CMU Arctic speech databases}, in
+  \emph{Fifth ISCA workshop on speech synthesis}. 2004.
+
+\bibitem{porzuczek2017english}
+A. Porzuczek and A. Rojczyk, \emph{English word stress in polish learners
+  speech production and metacompetence}, Research in Language 15 (2017), pp.
+  313--323.
+
+\bibitem{graves2012connectionist}
+A. Graves, \emph{Connectionist temporal classification}, in \emph{Supervised
+  Sequence Labelling with Recurrent Neural Networks}, Springer,  2012, pp.
+  61--93.
+
+\bibitem{sutskever2014sequence}
+I. Sutskever, O. Vinyals, and Q.V. Le, \emph{Sequence to sequence learning with
+  neural networks}, in \emph{Advances in neural information processing
+  systems}. 2014, pp. 3104--3112.
+
+\bibitem{hieke1984linking}
+A.E. Hieke, \emph{Linking as a marker of fluent speech}, Language and Speech 27
+  (1984), pp. 343--354.
+
+\bibitem{michel2011quantitative}
+J.B. Michel, Y.K. Shen, A.P. Aiden, A. Veres, M.K. Gray, J.P. Pickett, D.
+  Hoiberg, D. Clancy, P. Norvig, J. Orwant, \emph{et~al.}, \emph{Quantitative
+  analysis of culture using millions of digitized books}, science 331 (2011),
+  pp. 176--182.
+
+\bibitem{vaswani2017attention}
+A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A.N. Gomez, L.
+  Kaiser, and I. Polosukhin, \emph{Attention is all you need}, in
+  \emph{Advances in neural information processing systems}. 2017, pp.
+  5998--6008.
+
+\bibitem{merritt22_icassp_vc}
+T. Merritt, A. Ezzerg, P. Biliński, M. Proszewska, K. Pokora, R.
+  Barra-Chicote, and D. Korzekwa, \emph{Text-free non-parallel many-to-many
+  voice conversion using normalising flows}, Accepted to Acoustics, Speech and
+  Signal Processing (ICASSP)  (2022).
+
+\end{thebibliography}

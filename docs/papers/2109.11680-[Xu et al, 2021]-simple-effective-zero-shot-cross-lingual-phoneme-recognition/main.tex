@@ -1,0 +1,354 @@
+% Template for ICASSP-2021 paper; to be used with:
+%          spconf.sty  - ICASSP/ICIP LaTeX style file, and
+%          IEEEbib.bst - IEEE bibliography style file.
+% --------------------------------------------------------------------------
+\documentclass{article}
+\usepackage{spconf,amsmath,graphicx}
+\usepackage[toc,page]{appendix}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage[final]{pdfpages}
+\usepackage{graphicx}
+
+% Example definitions.
+% --------------------
+\def\x{{\mathbf x}}
+\def\L{{\cal L}}
+
+% comments
+\newcommand{\ma}[1]{{\color{orange}#1}}
+\newcommand{\qx}[1]{{\color{blue}#1}}
+\input{macro}
+
+
+% Title.
+% ------
+\title{Simple and Effective Zero-shot Cross-lingual Phoneme Recognition}
+%
+% Single address.
+% ---------------
+\name{Qiantong Xu, Alexei Baevski, Michael Auli}
+\address{Facebook AI Research}
+%
+% For example:
+% ------------
+%\address{School\\
+%	Department\\
+%	Address}
+%
+% Two addresses (uncomment and modify for two-address case).
+% ----------------------------------------------------------
+%\twoauthors
+%  {A. Author-one, B. Author-two\sthanks{Thanks to XYZ agency for funding.}}
+%	{School A-B\\
+%	Department A-B\\
+%	Address A-B}
+%  {C. Author-three, D. Author-four\sthanks{The fourth author performed the work
+%	while at ...}}
+%	{School C-D\\
+%	Department C-D\\
+%	Address C-D}
+%
+\begin{document}
+%\ninept
+%
+\maketitle
+%
+\begin{abstract}
+Recent progress in self-training, self-supervised pretraining and unsupervised learning enabled well performing speech recognition systems without any labeled data.
+However, in many cases there is labeled data available for related languages which is not utilized by these methods.
+This paper extends previous work on zero-shot cross-lingual transfer learning by fine-tuning a multilingually pretrained wav2vec 2.0 model to transcribe unseen languages.
+This is done by mapping phonemes of the training languages to the target language using articulatory features.
+Experiments show that this simple method significantly outperforms prior work which introduced task-specific architectures and used only part of a monolingually pretrained model.
+% However, given the complexity of the training mechanism of the aforementioned methods and a good amount of transcribed languages available, zero-shot cross-lingual transfer learning, as a much easier method, becomes a practical research topic nowadays. 
+% In this paper, we demonstrate that a global phoneme recognizer build upon a multilingual pretrained wav2vec model can be effectively used to transcribe unseen languages, with a simple lexicon mapping training phonemes to the target language specific ones in the decoding stage. 
+% The phoneme mapping is purely based on their articulatory features, where comprehensive studies have been done for quite a lot of languages for decades. Experiments show that our simple method is on par with the purely unsupervised speech recognition and outperforms existing zero-shot transfer learning methods.
+\end{abstract}
+%
+\begin{keywords}
+zero-shot transfer learning, cross-lingual, phoneme recognition, multilingual ASR
+
+\end{keywords}
+%
+\section{Introduction}
+\label{sec:intro}
+
+% \ma{
+% \begin{enumerate}
+%     \item Motivation: progress in Unsupervised ASR but we do have labeled data for a good amount of languages, but of course not all languages.
+%     \item pretraining very successful in speech etc. etc.
+%     \item Zero-shot ASR uses this data and we hope to generalize across languages.
+%     \item Previous zero-shot work (1) used pretraining but only feature extractor. larger pretrained models more effective (cpc -> w2v -> w2v2). (2) focused on task-specific enhancements, e.g., language embeddings.
+%     \item This work: use full pretrained model in a simple approach of multilingually fine-tuning the pretrained model. Experiments show that this is effective (outperform Gao et al. in zero shot setting).
+% \end{enumerate}
+% }
+
+There is a large number of languages spoken around the world of which only a small fraction is served by speech technology. 
+A large barrier to making speech technology more accessible is the requirement for large amounts of transcribed speech audio by current models which is simply not available for the vast majority of languages.
+Speech recognition accuracy has been steadily improving by recent advances in supervised multilingual modeling~\cite{dalmia2018sequence, pratap2020massively}, self-supervised learning~\cite{oord2018cpc,chung2018speech2vec,chung2019unsupervised,baevski2020wav2vec, hsu2021hubert}, and semi-supervised learning~\cite{synnaeve2019end, xu2020iterative, likhomanenko2020slimipl, xu2021self, park2020improved}, particularly for low-resource languages.
+This recently led to good speech recognition performance in settings where no labeled data exists at all~\cite{liu2018completely,chen2019completely,baevski2021unsupervised}.
+One downside of these approaches is that they require training a separate unsupervised model for each language while ignoring the presence of labeled data in related languages.
+
+Zero-shot transfer learning addresses this by training a single multilingual model on the labeled data of several languages to enable zero-shot transcription of unseen languages~\cite{gaozero, li2020universal, jacobs2021multilingual, yan2021differentiable, li2020universal, li2020towards}.
+Models usually have a common encoder that extracts acoustic information from speech audio and then predict either a shared phoneme vocabulary~\cite{li2020universal, gaozero} or language-specific phonemes~\cite{dalmia2018sequence, li2020towards, winata2020adapt}. 
+The former requires either phonological units that are agnostic to any particular language such as articulatory features~\cite{li2020towards} or global phones \cite{schultz2002globalphone, li2020universal}. %, which can be annotated through examination of audio data or learned by relating language-specific units to their universal phonetic distinctions \cite{yan2021differentiable}. 
+
+In this paper, we study a simple zero-shot transfer learning approach which builds a global phoneme recognizer by simply considering all possible phonemes of the training languages and then decodes the model with a language model to generate the final phoneme sequence. 
+The lexicon is built from articulatory features to map the phonemes between the training and target vocabulary. 
+Our method makes no assumption about the relation of training and testing languages, including attributes like phoneme distribution or coverage.
+We extend prior work by using unsupervised cross-lingually pretrained representations estimated on 53 languages~\cite{conneau2020unsupervised} instead of monolingually trained representations~\cite{gaozero} and our approach also uses the full pretrained model instead of only the feature-extractor~\cite{gaozero}.
+
+We conduct experiments on 42 languages of CommonVoice~\cite{ardila2019common}, 19 languages of BABEL~\cite{gales2014speech} and six languages of MLS~\cite{pratap2020mls}. Results show significant improvements on unseen languages over the approach of~\cite{gaozero} and cross-lingual pretrained representations are more effective.
+Finally, zero-shot transfer learning performs comparably to unsupervised approaches with the benefit of being able to transcribe multiple unseen languages using a single model.
+
+
+% Developing speech recognition systems for languages for which no transcribed speech data exists remains a challenging task. 
+% With recent progress in speech modeling and learning mechanism, a great deal of directions show promise for low-resource or even zero-resource languages, such as massively supervised multilingual model \cite{dalmia2018sequence, pratap2020massively}, unsupervised-pretraining \cite{oord2018cpc,chung2018speech2vec,chung2019unsupervised,baevski2020wav2vec, hsu2021hubert}, self-training \cite{synnaeve2019end, xu2020iterative, likhomanenko2020slimipl, park2020improved} and purely unsupervised-learning~\cite{liu2018completely,chen2019completely,baevski2021unsupervised}. 
+% Although they are able to reach high accuracy on common speech recognition benchmarks \cite{panayotov2015librispeech, kahn2020libri}, the main problem still remains in the complex pipeline with high training cost, from data preparation to model training and deployment. 
+% \ma{Are you saying the pipeline for unsupervised ASR is complex or for speech systems in general?} \qx{I mean for all the semi-/un-supervised methods, they are complicated and need quite some time to train.}
+% Besides, there are indeed transcribed audios existing for a good amount of languages that we can utilize to benefit the low-/zero-resource language.
+% These points motivate us to study the zero-shot transfer learning capability of the ASR systems, which only requires one cycle of supervised training on the seen languages and another simple inference step on the unseen language. 
+
+% Zero-shot works. train models + phones, phone mapping - private/global, language embedding
+% The current studies of the zero-shot transfer learning focus on building multilingual speech recognition systems to leverage increased amount and diversity of data and mitigates the potential data sparsity when applying the system on unseen languages \cite{gaozero, li2020universal, jacobs2021multilingual, yan2021differentiable, li2020universal, li2020towards}.
+% Specifically, the models usually have a common encoder that extracts acoustic information from audio features and can predict either a shared phoneme vocabulary \cite{li2020universal, gaozero} or language-specific phonemes \cite{dalmia2018sequence, li2020towards, winata2020adapt}. In the former case, a language-universal speech recognition requires either  phonological units that are agnostic to any particular language such as articulatory features \cite{li2020towards} or global phones \cite{schultz2002globalphone, li2020universal}, which can be annotated through examination of audio data or explicit learned universal phone representations by relating language-specific units to their universal phonetic distinctions \cite{yan2021differentiable}. 
+% Our methods goes along this direction as well, trying to make predictions on a shared phoneme vocabulary across languages, but we also integrate the state-of-the-art multilingual pretrained models XLSR-53 \cite{conneau2020unsupervised} that shows superior performance on low-resource languages. 
+% \ma{Can you be more specific than "goes along"?} \qx{done}
+% \cite{gaozero} also used pretraining with a learned language embedding, but it only considered the feature extractor of wav2vec model \cite{baevski2020wav2vec}, which leaves some performance on the table.
+
+% In this work, we study a simple approach, which builds a global phoneme recognizer simply considering the joint of all the possible phonemes from the training languages and then decodes the model with a language model trained on the target language text corpus to generate the final phoneme sequence. A lexicon built on purely articulatory features is used to map the phonemes between training and target vocabulary. Our method makes no assumption about the relation/closeness between training and test languages, including attributes like phoneme distribution and coverage.
+
+
+% We show that the proposed algorithm with the state-of-the-art acoustic model outperforms existing zero-shot transfer learning methods and is on par with the complex unsupervised-learning technique \cite{baevski2021unsupervised}. With experimenting on 42 languages on CommonVoice, we also demonstrate its effective on a bunch of unseen languages spanning 13 different language families.   
+
+
+\section{Approach}
+\label{sec:approach}
+
+Our approach entails the use of self-supervised representations trained on data in many languages (\cite{conneau2020unsupervised}, \textsection\ref{sec:w2v}).
+Next we simultaneously fine-tune the model to perform phoneme recognition on data in multiple training languages.
+At inference time, we test the fine-tuned model on all unseen languages using a mapping of the phonemes from the training vocabulary to the ones in the target languages (\textsection\ref{sec:mapping}).
+
+
+\subsection{Self-supervised Model Training}
+\label{sec:w2v}
+
+We use XLSR-53, a wav2vec 2.0 model pretrained on data in 53 languages~(\cite{conneau2020unsupervised,baevski2020wav2vec}). 
+This model contains a convolutional feature encoder $f: \Inp \mapsto \Feat$ to map raw audio~$\Inp$ to latent speech representations $\ze_1, \dots, \ze_T$ which are input to a Transformer $g: \Feat \mapsto \Context$ to output context representations $\cc_1, \dots, \cc_T$~\cite{devlin2018bert,baevski2019vqwav2vec}.
+Each $\ze_t$ represents about 25ms of audio strided by 20ms and the Transformer architecture follows BERT~\cite{vaswani2017transformer,devlin2018bert}.
+During training, feature encoder representations are discretized to $\zq_1, \dots, \zq_T$ with a quantization module $\Feat \mapsto \QFeat$ to represent the targets in the objective.
+The quantization module uses a Gumbel softmax to choose entries form the codebooks and the chosen entries are concatenated to obtain $\zq$~\cite{jegou2011ieee,jang2016gumbel,baevski2019vqwav2vec}.
+The model is trained by solving a contrastive task over masked feature encoder outputs.
+At training time, spans of ten time steps with random starting indices are masked.
+The objective requires identifying the true quantized latent $\zq_t$ for a masked time-step within a set of $K=100$ distractors $\mathbf{Q}_t$ sampled from other masked time steps.
+% $-\log \frac{\exp(sim(\cc_t, \zq_t))}{\sum_{\zqt \sim \mathbf{Q}_t} \exp(sim(\cc_t, \zqt))}$
+% where $\cc_t$ is the output of the Transformer, and $sim(\mathbf{a}, \mathbf{b})$ denotes cosine similarity.
+% The objective is augmented by a codebook diversity penalty to encourage the model to use all codebook entries~\cite{dieleman2018challenge}.
+
+% \ma{TODO for Michael: Nothing in this section is about multilinguality. We need to say that the model is trained on data from multiple languages and reference \cite{conneau2020unsupervised}.}
+
+
+\subsection{Phoneme Mapping}
+\label{sec:mapping}
+
+We use phonemes as modeling units and in particular, the symbols of the standard International Phonetic Alphabet (IPA). 
+However, the vocabulary estimated from the training languages may not cover the full vocabulary of the target languages which results in out-of-vocabulary (OOV) phonemes at test time.
+We address this by mapping between the training and target vocabularies based on articulatory/phonological features~\cite{Mortensen-et-al:2016}. 
+Articulatory feature is a set of global attributes to describe any sound or phone. 
+There are four groups of attributes: major class (syllabic, vocalic, approximant, sonorant), manner (continuant, lateral, nasal, strident), place (labial, coronal, dorsal, pharyngeal), and laryngeal (voiced, aspirated, glottalized). 
+Each attribute can be either positive or negative.
+
+We compute the distance between each pair of phonemes using the hamming edit distance between the articulatory feature vectors\footnote{https://github.com/dmort27/panphon. In this repository, each feature articulatory vector contains 21 attributes}, and then generate two types of simple many-to-one mapping lexicons:
+\begin{itemize}
+% \setlength{\parindent}{-2em}
+% \setlength{\leftmargin}{-2em}
+% \setlength{\itemindent}{-2em}
+\item \textbf{tr2tgt lexicon} maps each phoneme in the training vocabulary to its closest one in the target vocabulary. Then for the remaining uncovered phonemes in the target vocabulary, it maps the closest ones in the training vocabulary to them.
+\item \textbf{tgt2tr lexicon} that maps for each phoneme in the target vocabulary, the phonemes in the training vocabulary that have 0 distance to it.  
+\end{itemize}
+We compare both below (\textsection\ref{sec:exp_lexicons}) and use tr2tgt unless otherwise mentioned.
+
+
+\section{Experimental setup}
+\label{sec:expsetup}
+
+\input{tables/data}
+
+
+\subsection{Datasets}
+We consider three multilingual corpora and a variety of languages to evaluate our approach. All the audios are up-/down-sampled to 16kHz.
+
+\textbf{Multilingual LibriSpeech (MLS)} is a large corpus of read audiobooks from Librivox and we experiment with the same six languages as~\cite{baevski2021unsupervised}: Dutch (du), French (fr), German (de), Italian (it), Portuguese (pt), Spanish (es). We use the same split as~\cite{baevski2021unsupervised} for validation and test.
+
+
+\textbf{CommonVoice (CV)} is a multilingual corpus of read speech comprising more than two thousand hours of speech data in 76 languages~\cite{ardila2019common}. 
+We use the December 2020 release (v6.1) for training and fine-tuning models. 
+% The details of the dataset can be found in appendix Table \ref{tab:data_cv}. 
+We select 42 languages in total that are supported by our phonemizer (see \textsection\ref{sec:preprocess}) as well as their official train, dev and test splits.
+Italian (it) serves as validation language for development, for training we use a total of 26 languages and the remaining 13 languages are for testing (Table~\ref{tab:data}). 
+For each language in the test set, we also make sure that there is at least one language that belongs to the same language family as in the training set. 
+Compared to other datasets such as BABEL or MLS, CommonVoice is well suited for zero-shot transfer learning, since it covers a larger number of languages.
+
+\textbf{BABEL} is a multilingual corpus of conversational telephone speech from IARPA, which includes Asian and African language \cite{gales2014speech}. 
+We include 21 languages from it (Table~\ref{tab:data}). % and list all the details in appendix Table \ref{tab:data_babel}. 
+We include Cantonese and Lao in the test set to compare with \cite{gaozero} and the remaining 19 languages in the training set. Italian serves for validation.
+
+
+\subsection{Pre-processing and Phonemization}
+\label{sec:preprocess}
+We first normalize all transcriptions for CommonVoice and BABEL by removing punctuation and rare characters. 
+Rare characters are usually numbers or characters from other languages. 
+We then obtain the phonemic annotations from the word transcriptions using ESpeak\footnote{https://github.com/espeak-ng/espeak-ng}, as well as \cite{hasegawa2020grapheme} based on Phonetisaurus\footnote{https://github.com/AdolfVonKleist/Phonetisaurus} to compare with \cite{gaozero}. 
+Specifically, we use Espeak on MLS, Phonetisaurus on BABEL. %The languages supported by each phonemizer can be found in appendix Table \ref{tab:data_cv} and Table \ref{tab:data_babel}.
+
+
+\subsection{Model Training}
+Models are implemented in fairseq \cite{ott2019fairseq} and we use the pretrained XLSR-53 model~\cite{conneau2020unsupervised} which has 24 Transformer blocks, model dimension 1024, inner dimension 4096 and 16 attention heads. 
+It is pretrained on the joint training set of MLS, CommonVoice and BABEL, which consists of about 56K hours of speech data.
+
+To fine-tune the model we add a classifier representing the joint vocabulary of the training languages on top of the model and train on the labeled data with a Connectionist
+Temporal Classification (CTC) loss \cite{graves2006connectionist}. Weights of the feature encoder are not updated at fine-tuning time, while the Transformer weights are finetuned after 10k updates. We determine the best transformer final dropout in [0, 0.3], learning rates setting in [5e-6, 5e-4]. The learning rate schedule has three phases: warm up for the first 10\% of updates, keep constant for 40\% and then linearly decay for the remainder. The models were finetuned for 25k updates on 4 GPUs. The best checkpoints are selected by the validation error on the validations set for BABEL and CommonVoice; while for MLS, it is selected using the unsupervised cross validation metric of \cite{baevski2021unsupervised} to enable a direct comparison.
+
+% We also train 6-gram language models (LMs) on the training phoneme annotations of all the languages in all datasets. They are integrated during beam-search.
+
+
+\subsection{Decoding}
+
+The wav2letter beam-search decoder~\cite{pratap2019wav2letter++} is used to generate the final transcriptions with the lexicon and an external 6-gram language model trained on the phoneme annotations of the labeled training data.
+Beam size is set to 50 in all the inference experiments. 
+The lexicons mentioned above limits the search space to only the valid phones in the training vocabulary and ensures the decoder predicts only phones in the target dictionary.
+% \ma{We use the full-single mapping lexicon by default in all our experiments} but have a discussion between the two lexicons in section \ref{sec:res}.
+
+
+% \subsection{Evaluation}
+
+\section{Results}
+\label{sec:res}
+
+\subsection{Comparison with unsupervised method}
+\input{tables/mls_res}
+
+In our first experiment, we compare zero-shot transfer learning to wav2vec-U~\cite{baevski2021unsupervised}, both of which use the same pretrained representations (XLSR-53).
+% Both use XLSR-53 and we have access to audio and text in the target language, but no paired data at all. 
+We use 10 hours of labeled data for each MLS language as prepared in  \cite{conneau2020unsupervised} and measure the performance when fine-tuning XLSR-53 on five of the six languages and then evaluate on the held-out language.
+Table~\ref{tab:mls_res} shows that the performance of zero-shot transfer learning is on par to wav2vec-U~\cite{baevski2021unsupervised} while using a simpler training and inference pipeline.
+
+\subsection{Comparison to other zero-shot work}
+\input{tables/gao_res}
+
+Next, we compare performance to the zero-shot transfer learning approach of \cite{gaozero} which used only the feature extractor of a wav2vec 2.0 model trained on English.
+The training data on CommonVoice and BABEL is prepared in the same way as \cite{gaozero} and we report the same phonetic token error rate (PTER) metric, in which each IPA token is treated as separate suprasegmentals (such as long vowels, and primary stress symbol), tones, diphthongs and affricates.
+
+Table~\ref{tab:gao_res} shows that finetuning on only 6 languages of BABEL (BB-6) with our method can outperform \cite{gaozero} on the supervised languages while using 317 hours of labeled data compared to nearly 1.5K hours.
+This shows that using the full pretraining model is beneficial.
+Our approach can outperform~\cite{gaozero} on the zero-shot directions when we add CommonVoice data while restricting the amount of labeled data to 10 hours for each language. 
+This results in fewer than 300 hours of labeled data since some languages do not even have 10 hours.
+
+
+\subsection{Ablations}
+\input{tables/cv_res_abl1}
+
+In this section, we analyze the importance of pretraining, cross-lingual pretraining, lexicon construction strategies as well as the impact of different phonemizers. 
+We use the CommonVoice benchmark for these experiments (Table~\ref{tab:data}).
+
+% perform several experiments on CommonVoice with different pretrained models, phonnemizers and decoding lexicons as ablations. The full results are listed in appendix Table \ref{tab:cv_res} and can be used as baselines for the following zero-shot transfer learning researches on CommonVoice dataset. 
+
+% \ma{Restructuring Table 3:}
+% \ma{
+% \begin{enumerate}
+%     \item Table 3: keep (-10), (-200), (EN-LV (10)), (XLSR-53 (10)), n-gram only results [for 5.3.1]
+%     \item New table in appendix: (XLSR-53 (10)) Espeak + Phonetisaurus [5.3.2]
+%     \item New table in appendix: (XLSR-53 (10)) Espeak + Phonetisaurus, show only n-gram* columns [5.3.3]
+% \end{enumerate}
+% }
+
+\subsubsection{Effect of multilingual pretraining}
+\input{tables/cv_res_abl2}
+
+Multilingual pretraining plays an important role for the model to perform well on unseen languages.
+Table \ref{tab:cv_res_abl1} shows that accuracy without pretraining performs vastly less well than pretraining-based approaches, even when the amount of labeled data is increased by up to a factor of 20.
+This is inline with prior work on automatic speech recognition~\cite{baevski2020wav2vec}.
+Furthermore, multilingual pre-training (XLSR-53) performs better than monolingual pretraining on English data (w2v LV-60K) on every single language.
+
+
+\subsubsection{Comparison of lexicon and phonemizers}
+\label{sec:exp_lexicons}
+
+Next, we compare the decoding performance with different lexicons.
+Table~\ref{tab:cv_res_abl2} shows that tr2tgt is slightly better than tgt2tr on average for different phonemizers. 
+Different phonemizers can generate fairly different phoneme sequences given the same word transcriptions which may impact the final performance of our models.
+To better understand the impact of this, we use both Espeak and Phonetisaurus (\textsection\ref{sec:preprocess}) and evaluate them on both types of lexicon construction techniques.
+Table~\ref{tab:cv_res_abl2} indicates that both phonemizers show the same trend in performance for tr2tgt/tgt2tr.
+% Since deep machine learning models are highly sensitive to the training data, the labels obtained from different phonemizers tend to cause different systematic errors. However, comparing the results in Table \ref{tab:cv_res_abl2}, the overall accuracy trend on the unseen languages looks similar across phonemizers. 
+
+\section{Conculusion}
+
+In this work, we investigate zero-shot transfer learning on cross-lingual phoneme recognition using a cross-lingually pretrained self-supervised model.
+Pretraining vastly improves accuracy over no pretraining, even when a moderate amount of labeled data is used, and cross-lingual pretraining performs better than monolingual pretraining.
+Our simple approach of fine-tuning a large pretrained model performs better than prior work which only used the feature extractor of a monolingually pre-trained wav2vec 2.0 model and which relied on task-specific architectures such as language embeddings.
+We also show that our approach performs on par to the recently introduced unsupervised speech recognition work of~\cite{baevski2021unsupervised} which does not use labeled data from related languages and requires training separate models for each target language.
+
+% Specifically, we use the simplest two-stage pipeline where a global phoneme recognizer built upon multilingual pretrained model is used to recognize phonemes in the training vocabulary, and then a beam-search decoder together with a phoneme mapping lexicon are used to generate the phonemes sequences with the ones belongs to the target language. We show that this method outperforms existing zero-shot transfer learning methods and is on par with the complex unsupervised-learning technique. We also demonstrate its effectiveness on a bunch of unseen languages spanning 13 different language families.
+
+
+
+
+\vfill\pagebreak
+% References should be produced using the bibtex program from suitable
+% BiBTeX files (here: strings, refs, manuals). The IEEEbib.bst bibliography
+% style file from IEEE produces unsorted bibliography list.
+% -------------------------------------------------------------------------
+\bibliographystyle{IEEEbib}
+\small
+\bibliography{refs}
+
+
+\vfill\pagebreak
+\newpage
+
+\onecolumn
+
+\begin{appendices}
+\normalsize
+\input{tables/cv_data}
+\input{tables/babel_data}
+\input{tables/cv_res}
+\twocolumn
+
+\section{Dataset Details}
+
+
+In this section, we summarize the details of CommonVoice and BABEL datsets. Specifically we list the code and name of each language together with the family they belong to. We also show the duration in hours of each split of each language. The amount of training data varies a lot in CommonVoice dataset. 
+We subsample the training data for high resource languages to avoid bias. Additionally, for each language, we also provide the specific language identifier we used in Espeak and the specific finite state transducers\footnote{https://github.com/uiuc-sst/g2ps} in Phonetisaurus. We can see that Espeak covers more languages in CommonVoice, while Phonetisaurus covers more languages in BABEL. 
+
+The languages in Table \ref{tab:data_cv} are ordered first by splits (training, validation and test) and then they are grouped by families. 
+
+
+% \section{Babel results}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.54\textwidth]{figures/hm1.pdf}
+  \caption{
+      Correlation between each pair of languages in CommonVoice dataset. \label{fig:cor}
+  }
+\end{figure}
+
+\section{Language correlation}
+
+We simply denote the correlation between each pair of languages by $cor(l_1, l_2) = \frac{|vocab(l_1)~\cup~vocab(l_2)|}{|vocab(l_1)~\cup~vocab(l_2)|}$, where $l_1$ and $l_2$ are two languages and $vocab(\cdot)$ denotes the phoneme vocabulary of a given language. Figure \ref{fig:cor} shows the correlations between pairs of CommonVoice languages. Since languages are ordered purely by family, it is reasonable to see high correlations on the diagonal blocks. However, this high correlation also scatter around the whole plot, meaning that IPA phoneme symbols are commonly shared across different languages and it is good for zero-shot transfer learning. Besides, Vietnamese (vi) and Chinese faimily (zh-CN, zh-TW, zh-HK) seems isolated to others, as their phoneme symbols include tones. Specifically, vowels like 'ou' can be denoted as one of the following: 'ou1', 'ou2', 'ou3', 'ou4', ou5' and 'ou6'. They are intrinsically both hard to learn and hard to predict. 
+
+
+
+\section{Full comparison on CommonVoice}
+
+We summarize all the results on CommonVoice in Table \ref{tab:cv_res}. Apart from the analysis in the ablation section, we can also find that beam-search decoding consistently helps to improve the model performance for all languages in all the settings. The results in Table \ref{tab:cv_res_abl2} shows that the trend of accuracy on unseen languages is similar across phonemizers. 
+
+\section{Full results on BABEL}
+
+\input{tables/gao_res_full}
+As shown in Table \ref{tab:gao_res_full}, with finetuning on only the BABEL subset of \cite{gaozero}'s training data, our method performs better on the supervised languages already, indicating that the wav2vec Transformer blocks, that are not included in \cite{gaozero}, benefit the model learning a lot. Additionally, models trained with mixed CommonVoice and BABEL data generalize better than the ones trained on either one of them on the unseen languages. It also surpasses \cite{gaozero} with using an extra learned language encoder.
+
+\end{appendices}
+\end{document}
+

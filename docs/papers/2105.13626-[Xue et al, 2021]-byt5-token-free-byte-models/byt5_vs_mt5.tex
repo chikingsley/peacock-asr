@@ -1,0 +1,22 @@
+\begin{table}[t!]
+\hspace{-8pt}
+\centering
+\resizebox{1.015\columnwidth}{!}{
+\footnotesize
+\setlength\tabcolsep{1pt}
+\begin{tabular}{lccccccc}
+\toprule
+& & \multicolumn{3}{c}{\textbf{mT5}} & \multicolumn{3}{c}{\textbf{ByT5}} \\
+\cmidrule(l{4pt}r{4pt}){3-5} \cmidrule(l{4pt}r{4pt}){6-8}
+Size & Param & Vocab & d\textsubscript{model}\,/\,d\textsubscript{ff} & Enc/Dec & Vocab & d\textsubscript{model}\,/\,d\textsubscript{ff} & Enc/Dec \\
+\midrule
+Small & 300M  & 85\%    & 512\,/\,1024    & 8/8  & 0.3\% & 1472\,/\,3584  & 12/4    \\
+Base  & 582M  & 66\%  & 768\,/\,2048  & 12/12 & 0.1\% & 1536\,/\,3968  & 18/6    \\
+Large & 1.23B & 42\% & 1024\,/\,2816 & 24/24 & 0.06\% & 1536\,/\,3840  & 36/12   \\
+XL    & 3.74B & 27\%   & 2048\,/\,5120  & 24/24 & 0.04\% & 2560\,/\,6720  & 36/12   \\
+XXL   & 12.9B & 16\%  & 4096\,/\,10240  & 24/24 & 0.02\% & 4672\,/\,12352 & 36/12  \\
+\bottomrule
+\end{tabular}}
+\caption{Comparison of mT5 and ByT5 architectures. For a given named size (e.g.~``Large''), the total numbers of parameters and layers are fixed. ``Vocab'' shows the percentage of vocabulary-related parameters, counting both the input embedding matrix and the decoder softmax layer. ByT5 moves these parameters out of the vocabulary and into the transformer layers, as well as shifting to a $3$:$1$ ratio of encoder to decoder layers.}
+\label{tab:model_params}
+\end{table}

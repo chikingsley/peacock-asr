@@ -1,0 +1,749 @@
+
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2023_conference,times}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+\usepackage{hyperref}
+\hypersetup{colorlinks,linkcolor={blue},citecolor={purple},urlcolor={red}} 
+\usepackage{url}
+\usepackage{soul}
+\usepackage{comment}
+\include{def}
+\newcommand{\SH}[1]{{\color{blue} {\bf (SH: #1)}}}
+\newcommand{\AY}[1]{{\color{purple} {\bf (AY: #1)}}}
+\newcommand{\LY}[1]{{\color{green} {\bf (LY: #1)}}}
+
+\def\shihao{\textcolor{black}}
+
+\title{Improving Deep Regression with Ordinal Entropy}
+
+% \title{%Higher-Entropy 
+% \hl{Entropic Feature Spaces} for Classification and Regression} %: An Analysis Comparing Classification and Regression}
+
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the \iclrfinalcopy macro remains commented out below.
+% Non-anonymous submissions will be rejected without review.
+
+\author{Shihao Zhang$^1$, Linlin Yang$^1$, Michael Bi Mi$^2$, Xiaoxu Zheng$^2$, Angela Yao$^1$ \\
+$^1$National University of Singapore, Singapore, \\ 
+$^2$Huawei International Pte Ltd, Singapore
+}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+In computer vision, it is often observed that formulating regression problems as a classification task yields better performance.  
+We investigate this curious phenomenon and provide a derivation to show that classification, with the cross-entropy loss, outperforms 
+regression with a mean squared error loss in its ability to learn high-entropy feature representations.
+Based on the analysis, we propose an ordinal entropy \shihao{regularizer} to encourage higher-entropy feature spaces while maintaining ordinal relationships to improve the performance of regression tasks.
+Experiments on synthetic and real-world regression tasks demonstrate the 
+importance and benefits of increasing entropy for regression. Code can be found here: \url{https://github.com/needylove/OrdinalEntropy}
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+
+Classification and regression are two fundamental tasks of machine learning. The choice between the two usually depends on the categorical or continuous nature of the target output. Curiously, in computer vision, specifically with deep learning, it is often preferable to solve regression-type problems as classification tasks. A simple and common way is to discretize the continuous labels; each bin is then treated as a class. After converting regression into classification, the ordinal information of the target space is lost. Discretization errors are also introduced to the targets. Yet for a diverse set of regression problems, including depth estimation~\citep{cao2017estimating}, age estimation~\citep{rothe2015dex}, crowd-counting~\citep{liu2019counting} and keypoint detection~\citep{li20212d}, classification yields better performance.
+
+
+The phenomenon of classification outperforming regression on inherently continuous estimation tasks naturally begs the question of why. Previous works have not investigated the cause, although they hint at task-specific reasons. 
+For depth estimation, both~\cite{cao2017estimating} and \cite{fu2018deep} postulate that it is easier to estimate a quantized range of depth values rather than one precise depth value. 
+For crowd counting, regression suffers from inaccurately generated target values~\citep{xiong2022discrete}. Discretization helps alleviate some of the imprecision. For pose estimation, classification allows for the denser and more effective heatmap-based supervision~\citep{zhang2020distribution,gu2021removing,gu2021dive}. 
+
+
+Could the performance advantages of classification 
+run deeper than task-specific nuances? In this work, we posit that regression lags in its ability to learn high-entropy feature representations. We arrive at this conclusion by analyzing the differences between classification and regression from a mutual information perspective.   
+According to~\citet{shwartz2017opening}, deep neural networks during learning aim to maximize the mutual information between the learned representation $Z$ and the target $Y$. The mutual information between the two can be defined as  $\mI(Z; Y) = \mH(Z) - \mH(Z|Y)$. 
+$\mI(Z; Y)$ is large when the marginal entropy $\mH(Z)$ is high, \ie features $Z$ are as spread as possible, and the conditional entropy $\mH(Z|Y)$ is low, \ie features of common targets are as close as possible. 
+Classification accomplishes both objectives~\citep{boudiaf2020unifying}.  This work, as a key contribution, shows through derivation that regression minimizes %the conditional entropy 
+$\mH(Z|Y)$ but ignores %the marginal entropy 
+$\mH(Z)$.  Accordingly, the learned representations $Z$ from regression have a 
+lower marginal entropy (see Fig.~\ref{fig_train}).  A t-SNE visualization of the features (see Fig.~\ref{fig_regression} and\ref{fig_classification}) confirms that features learned by classification have more spread than features learned by regression. More visualizations are shown in Appendix \ref{appendix_C}.
+
+\begin{figure}[!t]
+\centering
+
+\subfigure[Entropy of feature space] {
+ \label{fig_train}
+\includegraphics[width=0.33\columnwidth]{fig/entropy_training.png}
+}
+\subfigure[Regression] {
+ \label{fig_regression}
+\includegraphics[width=0.25\columnwidth]{fig/regression2.png}
+}
+\subfigure[Classification] {
+\label{fig_classification}
+\includegraphics[width=0.28\columnwidth]{fig/classification256.png}
+}
+\caption{Feature learning of regression versus classification for depth estimation.
+%on NYU-Depth-v2.  
+Regression keeps features close together and forms an ordinal relationship, while classification spreads the features (compare (b) vs. (c) ), leading to a higher entropy feature space. Features are colored based on their predicted depth. Detailed experimental settings are given in Appendix \ref{appendix_C}.
+}
+\label{fig_motivation1}
+\end{figure}
+
+The difference in entropy between classification and \shihao{regression} stems from the different losses. We postulate that the lower entropy features learned by %$L_1$ or 
+$L_2$ losses in regression explain the performance gap compared to classification.  Despite its overall performance advantages, classification lags in the ability to capture ordinal relationships.  As such, simply spreading the features for regression to emulate classification will break the inherent ordinality of the regression target output.  
+
+To retain the benefits of both high entropy and ordinality for feature learning, we propose, as a second contribution, an 
+ordinal entropy \shihao{regularizer}
+for regression.  
+Specifically, we capture ordinal relationships as a weighting based on the distances between samples in both the representation and target space. 
+Our ordinal entropy \shihao{regularizer} increases the distances between representations, while weighting the distances to preserve the ordinal relationship.
+
+
+
+The experiments on various regression tasks demonstrate the effectiveness of our proposed method.
+Our main contributions are three-fold: 
+\begin{itemize}
+    \item To our best knowledge, we are the first to analyze regression's reformulation as a classification problem, especially in the view of representation learning. {We find that regression lags in its ability to learn high-entropy features, which in turn leads to the lower mutual information between the learned representation and the target output.}
+    \item Based on our theoretical analysis, we design an ordinal entropy \shihao{regularizer} to %encourage the 
+    learn high-entropy feature representations that preserve ordinality.
+    \item Benefiting from our ordinal entropy loss, our methods achieve significant improvement on synthetic datasets for solving ODEs and stochastic PDEs as well as real-world regression tasks including depth estimation, crowd outing and age estimation. 
+\end{itemize}
+
+
+\section{Related work}\label{sec:relatedwork}
+
+\textbf{Classification for Continuous Targets.} 
+Several works formulate regression problems as classification tasks to improve performance.  They focus on different design aspects such as label discretization and uncertainty modeling. 
+To discretize the labels, \citet{cao2017estimating,fu2018deep} and \citet{liu2019counting} convert the continuous values into discrete intervals with a pre-defined interval width. 
+To improve class flexibility,~\citet{bhat2021adabins} followed up with an adaptive bin-width estimator. 
+Due to inaccurate or imprecise regression targets, several works have explored modeling the uncertainty of labels with classification. \citet{liu2019counting} proposed estimating targets that fall within a certain interval with high confidence.~\citet{tompson2014joint} and~\cite{newell2016stacked} propose modeling the uncertainty by using a heatmap target in which each pixel represents the probability of that pixel being the target class.  This work, instead of focusing on task-specific designs, explores the difference between classification and regression from a learning representation point of view.  By analyzing mutual information, we reveal a previously underestimated impact of high-entropy feature spaces. 
+
+
+\shihao{\textbf{Ordinal Classification.} 
+%Ordinal classification preserves ordinality in the target outputs.  
+Ordinal classification aims to predict ordinal target outputs.
+Many works exploit the distances between labels~\citep{castagnos-etal-2022-simple,10.1007/978-3-031-12053-4_12, gong2022ranksim} to preserve ordinality. Our ordinal entropy regularizer also preserves the ordinality by exploiting the label distances, while it mainly aims at encouraging a higher-entropy feature space.
+}
+
+\textbf{Entropy.}
+The entropy of a random variable reflects its uncertainty and can be used to analyze and regularize a feature space. 
+With entropy analysis, \cite{boudiaf2020unifying} has shown the benefits of the cross-entropy loss, \ie encouraging features to be dispersed while keeping intra-class features compact. Moreover, existing works~\citep{pereyra2017regularizing,dubey2017regularizing} have shown that 
+many regularization terms, like confidence penalization~\citep{pereyra2017regularizing} and label smoothing~\citep{muller2019does}, are actually regularizing the entropy of the output distribution. Inspired by these works, we explore the difference in entropy between classification and regression. Based on our entropy analysis, we design an entropy term (\ie ordinal entropy) for regression and bypass explicit classification reformulation with label discretization.
+
+\begin{figure}[!t]
+\centering
+\subfigure[{Illustration of frameworks}] {
+\label{fig:framework}
+\includegraphics[width=0.32\columnwidth]{fig/framework2.pdf}
+}
+\subfigure[{Tightness and diversity of ordinal entropy}] {
+\label{fig_ordinalEntropy}
+% \includegraphics[width=0.45\columnwidth]{fig/entropy2.pdf}
+% \includegraphics[width=0.45\columnwidth]{fig/ordinalentropyIllustrate.png}
+% \includegraphics[width=0.45\columnwidth]{fig/ordinalentropyIllustrate2.png}
+\includegraphics[width=0.64\columnwidth]{fig/ordinalentropyIllustrate.png}
+}
+\caption{Illustration of (a) regression and classification for continuous targets, and the use of our ordinal entropy for regression, (b) the pull and push objective of tightness and diversity on the feature space. The tightness part encourages features to be close to their feature centers while the diversity part encourages feature centers
+to be far away from each other.}
+\label{fig_weightentropy}
+\end{figure}
+
+\section{A Mutual-Information Based Comparison 
+on Feature Learning}
+\label{sec:theory}
+\subsection{Preliminaries}
+Suppose we have a dataset $\{X, Y\}$ with $N$ input data $X=\{\bx_i\}_{i=1}^N$ and their corresponding labels $Y=\{y_i\}_{i=1}^N$. In a typical regression problem for computer vision, $\bx_i$ 
+is an image or video,  
+while $y_i \in \mathcal{R}^{\mY}$ takes a continuous value in the label space $\mY$.
+The target of regression is to recover $y_i$ by encoding the image to feature $\bz_i=\varphi(\bx_i)$ with encoder $\varphi$ and then mapping $\bz_i$ to a predicted target $\hat{y}_i = f_{\varreg}(\bz_i)$ with a regression function $f(\cdot)$ parameterized by $\varreg$. 
+The encoder $\varphi$ and $\varreg$ are learned by minimizing a regression loss function such as the mean-squared error $\mL_{\text{mse}} = \frac{1}{N}\sum_{i=1}^N(y_i-\hat{y}_i)^2$. 
+
+To formulate regression as a classification task with $K$ classes, the continuous target $Y$ can be converted to classes $Y^C=\{\by^c_i\}_{i=1}^N$ with some discretizing mapping function, where $\by^c_i \in [0, K-1]$ is a categorical target. The feature $\bz_i$ is then mapped to the categorical target $\by^c_i = g_{\varcls}(\bz_i)$ with classifier $g_{\varcls}(\cdot)$ parameterized by $\varcls$.  The encoder $\phi$ and $\varcls$ are learned by minimizing the cross-entropy loss $\mL_{CE} = -\frac{1}{N}\sum_{i=1}^{N}\log g_{\varcls}(\bz_i)$, where  $(g_{\varcls}(\bz_i))_k=\frac{exp \varcls_k^{\trsp}\bz_i}{\sum_j exp \varcls_k^{\trsp}\bz_j}$ .
+Fig.~\ref{fig:framework} visualizes the symmetry of the two formulations. 
+
+The entropy of a random variable can be loosely defined as the amount of ``information'' associated with that random variable. One approach for estimating entropy $\mH(Z)$ for a random variable $Z$ is the meanNN entropy estimator~\citep{faivishevsky2008ica}.  
+It can accommodate higher-dimensional $Z$s, and is commonly used in high-dimensional space~\citep{faivishevsky2010nonparametric}. 
+The meanNN estimator relies on the distance between samples to approximate $p(Z)$. For a $D$-dimensional $Z$, it is defined as
+
+\begin{equation}
+    \hat{\mH}(Z) = \frac{D}{N(N-1)}\sum_{i \neq j} \log ||\bz_i - \bz_j||^2 + \text{const}.
+    \label{equ_entropyestimation}
+\end{equation}
+
+
+\subsection{Feature Learning with a Cross-Entropy Loss (Classification)} 
+
+Given that mutual information between target $Y^C$ and feature $Z$ is defined as $\mI(Z; Y^C)=\mH(Z)-\mH(Z|Y^C)$, it follows that $\mI(Z; Y^C)$ can be maximized by minimizing the second term $\mH(Z|Y^C)$ and maximizing the first term $\mH(Z)$. \citet{boudiaf2020unifying} showed that minimizing the cross-entropy loss accomplishes both 
+by approximating the standard cross-entropy loss $\mL_{CE}$ with a pairwise cross-entropy loss $\mL_{PCE}$.  $\mL_{PCE}$ serves as a lower bound for $\mL_{CE}$, and can be defined as 
+
+\begin{equation}
+    \!\!\!\!\mL_{PCE} = \underbrace{- \frac {1}{2\lambda N^{2}}  \sum^N_{i=1} \sum_{j\in [\by^c_j=\by^c_i]}\bz_{i}^{\intercal}\bz_{j}}_{\textit{Tightness}~\propto~\mH(Z|Y^C)}  +  \underbrace{\frac{1}{N}\sum^N_{i=1}\log\sum^K_{k=1}\exp(\frac{1}{\lambda N}\sum_{j=1}^Np_{jk}\bz_{i}^{\intercal}\bz_{j})-\frac{1}{2\lambda}\sum_{k=1}^K||\bc_k||}_{\textit{Diversity}~\propto~\mH(Z)},
+    \label{eq:pce_reformulated}
+\end{equation}
+
+where 
+$\lambda \in \mmR$ is to make sure  $\mL_{CE}$ is a convex function with respect to $\varcls$.
+Intuitively, $\mL_{PCE}$ can be understood as being composed of both a pull and a push objective more familiar in contrastive learning. We interpret the pulling force as a tightness term.  It encourages higher values for $\bz_i^{\intercal}\bz_j$ and closely aligns the feature vectors within a given class. This results in features clustered according to their class, \ie lower conditional entropy $\mH(Z|Y^C)$.  The pushing force from the second term encourages lower $\bz_i^{\intercal}\bz_j$ while forcing classes' centers $\bc_k^s$ to be far from the origin.  This results in diverse features that are spread apart, or higher marginal entropy $\mH(Z)$. Note that the tightness term corresponds to the numerator of the Softmax function in $\mL_{CE}$, while the diversity term corresponds to the denominator. 
+
+\subsection{Feature Learning with an $\mL_{\text{mse}}$ Loss (Regression)} 
+
+In this work, we find that minimizing $\mL_{\text{mse}}$, as done in regression, is a proxy for minimizing $\mH(Z|Y)$, without increasing $\mH(Z)$.  Minimizing $\mL_{\text{mse}}$ does not increase the marginal entropy $\mH(Z)$ and therefore limits feature diversity. The link between classification and regression is first established below in Lemma~\ref{Lemma_discretize}.  We assume that we are dealing with a linear regressor, as is commonly used in deep neural networks.
+
+\begin{lemma}
+\label{Lemma_discretize}
+	%We are given dataset $\{\bz_i, y_i\}^N_{i=1}$, where $y_i \in \mY$ is the label and $\bz_i$ is the corresponding feature, and linear regressor $f_\varreg(\cdot)$ parameterized by $\varreg$. 
+	We are given dataset $\{\bx_i, y_i\}^N_{i=1}$, where $\bx_i$ is the input and $y_i \in \mY$ is the label,
+	and linear regressor $f_\varreg(\cdot)$ parameterized by 
+	$\varreg$.  
+	Let $\bz_i$ denote the corresponding feature. 
+	Assume that the label space $\mY$ is discretized into bins with maximum width $\eta$, and $c_i$ is the center of the bin to which $y_i$ belongs. Then for any $\epsilon >0$, there exists $\eta>0$ such that:
+\begin{equation}\label{eq:lemma1}
+	 |\mL_{{\text{mse}}} - \frac{1}{N} \sum_{1}^{N}(\varreg^{\trsp}\bz_i -c_i)^2| \shihao{\leq  
+    \frac{\eta}{2n} \sum_{1}^{n}|2\varreg^{\trsp}\bz_i -c_i -y_i|} < \epsilon.
+    \end{equation}
+\end{lemma}
+
+The detailed proof of Lemma~\ref{Lemma_discretize} is provided in Appendix~\ref{appendix_A}. 
+
+The result of Lemma~\ref{Lemma_discretize} says that the discretization error from replacing a regression target $y_i$ with $c_i$ can be made arbitrarily small if the bin width $\eta$ is sufficiently fine. As such, the $\mL_{\text{mse}}$ can be directly approximated by the second term of Eq.~\ref{eq:lemma1} \ie  $\mL_{\text{mse}} \approx \frac{1}{N} \sum_{1}^{N}(\varreg^{\trsp}\bz_i -c_i)^2$. With this result, it can be proven that minimizing $\mL_{\text{mse}}$ is a proxy for \shihao{minimizing} $\mH(Z|Y)$.
+
+\begin{thm}
+Let $\bz_{c_i}$ denote the \shihao{center of the features} corresponding to bin center $c_i$, and $\phi_i$ be the angle between $\varreg$ and $\bz_i -\bz_{c_i}$. Assume that $\varreg$ is normalized, $(Z^c | Y) \sim \mN(\bz_{c_i}, I)$, where $Z^c$ is the distribution of $\bz_{c_i}$ and that $\cos \phi_i$ is fixed. 
+Then, minimizing $\mL_{\text{mse}}$ can be seen as a proxy for \shihao{minimizing} $\mH(Z|Y)$ \shihao{ without increasing $\mH(Z)$}.
+\label{thm:1}
+\end{thm}
+
+\begin{proof}
+Based on Lemma~\ref{Lemma_discretize}, we have
+\begin{equation}
+    \begin{aligned}
+    \mL_{\text{mse}} &=\frac{1}{N} \sum_{1}^{N}(\varreg^{\trsp}(\bz_i -\bz_{c_i}))^2 
+    = \frac{1}{N} \sum_{1}^{N}(||\varreg|| ||\bz_i -\bz_{c_i}|| \cos{\phi_i})^2 \\
+    & = \frac{1}{N} \sum_{1}^{N}||\varreg||^2 ||\bz_i -\bz_{c_i}||^2 \cos^2{\phi_i} 
+    \propto \frac{1}{N} \sum_{1}^{N}||\bz_i -\bz_{c_i}||^2.
+    % \overset{c}{\geq} \frac{1}{n} \sum_{1}^{n}||\bz_i -\bz_{c_i}||^2,
+    \label{e_3}
+\end{aligned}
+\end{equation}
+
+
+Note, $\bz_{c_i}$ exist unless $\varreg = 0$ and $c_i \neq 0$.
+%more analysis can be found in Appendix \ref{appendix_B}.
+Since it is assumed that $Z^c | Y \sim \mN(\bz_{c_i}, I)$, the term $\frac{1}{N} \sum_{1}^{N}||\bz_i -\bz_{c_i}||^2$ can be interpreted as a conditional cross entropy between $Z$ and $Z^c$, as it satisfies
+\begin{equation}
+    \begin{aligned}
+    \mH(Z; Z^c |Y) 
+    &= -\mmE_{\bz \sim Z |Y} [\log p_{Z^c |Y}(\bz) ] \; \overset{mc}{\approx} \;\frac{-1}{N} \sum_{i=1}^{N} \log (e^{\frac{-1}{2}||\bz_i -\bz_{c_i}||^2}) + \text{const} \\
+    &\overset{c}{=} \frac{1}{N} \sum_{i=1}^{N} ||\bz_i -\bz_{c_i}||^2,
+\end{aligned}
+\end{equation}
+where $\overset{c}{=}$ denotes equal to, up to a multiplicative and an additive constant.  The $\overset{mc}{\approx}$ denotes Monte Carlo sampling from the $Z| Y$ distribution, allowing us to replace the expectation by the mean of the samples. Subsequently, we can show that 
+\begin{equation}\label{eq:proofresult}
+    \mL_{\text{mse}} \propto \frac{1}{N} \sum_{1}^{N}||\bz_i -\bz_{c_i}||^2 \overset{c}{=} \mH(Z; Z^c |Y) = \mH(Z|Y) + \mD_{KL}(Z||Z^c |Y).
+\end{equation}
+The {result} in Eq.~\ref{eq:proofresult} shows that $\frac{1}{N} \sum_{1}^{N}||\bz_i -\bz_{c_i}||^2$ is an upper bound of the tightness term in mutual information.  
+If $(Z | Y) \sim \mN(\bz_{c_i}, I)$, then $\mD_{KL}(Z||Z^c |Y)$ is equal to 0 and the bound is tight \ie $\frac{1}{N} \sum_{1}^{N}||\bz_i -\bz_{c_i}||^2 \geq \mH(Z|Y)$.
+Hence, minimizing $\mL_{\text{mse}}$ is a proxy for \shihao{minimizing} $\mH(Z|Y)$.
+
+
+\shihao{Apart from $\mH(Z|Y)$, the relation in Eq. \ref{eq:proofresult} also contains the KL divergence between the two conditional distributions $P(Z|Y)$ and $P(Z^c|Y)$, where $Z^c_i$ are feature centers of Z.  Minimizing this divergence will either force $Z$ closer to the centers $Z^c$, or move the centers $Z^c$ around. By definition, however, the cluster centers $Z^{c}_i$ cannot expand beyond $Z$’s coverage, so features Z must shrink to minimize the divergence. As such, the entropy $\mH(Z)$ will not be increased by this term.}
+\end{proof}
+
+Based on 
+Eq. \ref{eq:pce_reformulated}
+and Theorem~\ref{thm:1}, we draw the conclusion that regression, with an MSE loss, overlooks the marginal entropy $\mH(Z)$ and results in a less diverse feature space than classification with a cross-entropy loss.
+
+
+
+%It is worth mentioning that although we {assume} $\cos\phi_i$ to be fixed, it is fixed only in one dimension, and thus has limited influence on high-dimension feature space. 
+
+It is worth mentioning that the Gaussian distribution assumption, \ie $Z^c | Y \sim \mN(\bz_{c_i}, I)$, is standard in the literature when analyzing features \citep{yang2021free,salakhutdinov2012one} and entropy \citep{misra2005estimation}, and $\cos \phi_i$ is a constant value at each iteration.
+
+\section{Ordinal Entropy}
+
+Our theoretical analysis in Sec.~\ref{sec:theory} shows that learning with only the MSE loss does not increase the marginal entropy $\mH(Z)$ and results in lower feature diversity.  To remedy this situation, we propose a novel
+regularizer to encourage a higher entropy feature space. 
+
+Using the distance-based entropy estimate from Eq.~\ref{equ_entropyestimation}, 
+one can then minimize the 
+\shihao{the negative distances between feature centers $\bz_{c_i}$ to maximize the entropy of the feature space. $\bz_{c_i}$ are calculated by taking a mean over all the features $\bz$ which project to the same $y_i$.}
+Note that as feature spaces are unbounded, the features \shihao{$\bz$} must first be normalized, and below, we assume all the features \shihao{$\bz$} are already normalized with an L2 norm:
+
+
+
+\begin{equation}
+    \mL'_d = -\frac{1}{M(M-1)}\sum_{i=1}^M\sum_{i \neq j}||\bz_{c_i} - \bz_{c_j}||_2 \propto \shihao{-} H(Z), 
+\end{equation}
+where $M$ is the number of feature centers \shihao{in a batch of samples or a sampled subset sampled from a batch}. We consider each feature as a feature center when the continuous labels of the dataset are precise enough.
+
+While the \shihao{regularizer} $\mL'_d$ indeed spreads features to a larger extent, it also breaks ordinality in the feature space (see Fig.~\ref{fig_directlyentropy}). As such, we opt to weight the feature norms in $\mL'_d$ with $w_{ij}$, where $w_{ij}$ are the distances in the label space $\mY$:
+\begin{equation}
+    \mL_d = -\frac{1}{M(M-1)}\sum_{i=1}^M\sum_{i \neq j}w_{ij}||\bz_{c_i} - \bz_{c_j}||_2, \qquad \text{where } w_{ij} = ||y_i - y_j||_2
+    \label{eq:ordinal_entropy}
+\end{equation}
+
+As shown in Figure \ref{fig_wd}, $\mL_d$ spreads the feature while also preserve preserving ordinality.  Note that $\mL'_d$ is a special case of $\mL_d$ when $w_{ij}$ are all equal.
+
+To further minimize the conditional entropy $\mH(Z|Y)$, we introduce an additional tightness term that directly considers the distance between each feature $\bz_i$ with 
+\shihao{its} centers $\bz_{c_i}$ in the feature space:
+\begin{equation}
+    \mL_t = \frac{1}{N_{b}}\sum_{i=1}^{N_{b}}||\bz_i-\bz_{c_i}||_2,
+\end{equation}
+%\hl{while $\mL_{\text{mse}}$ indirectly closing the features.}  
+\shihao{where $N_{b}$ is the batch size.} Adding this tightness term further encourages features \shihao{close to its centers} (compare Fig.~\ref{fig_wd} with Fig.~\ref{fig_w}).  
+%The $\mL_t$ term \hl{strengths the effect of $\mL_{\text{mse}}$} of minimizing the conditional entropy $\mH(Z|Y)$, \hl{which will also reduce the marginal entropy} $\mH(Z)$. 
+Compared with features from standard regression (Fig.~\ref{fig_reg2}), the features in Fig.~\ref{fig_w} are more spread, \ie the lines formed by the features are longer. 
+
+
+We define the ordinal entropy \shihao{regularizer} as $\mL_{oe} = \mL_d + \mL_t$, with a diversity term $\mL_d$ and a tightness term $\mL_t$. $\mL_{oe}$ achieves similar effect as classification in that it spreads $\bz_{c_i}$ while tightening features $z_i$ corresponding to $\bz_{c_i}$. \shihao{Note, if the continuous labels of the dataset are precise enough and each feature is its own center, then our ordinal entropy regularizer will only contain the diversity term, \ie $\mL_{oe} = \mL_d$.}
+We show our regression with ordinal entropy (red dotted arrow) in Fig.~\ref{fig:framework}.
+
+The final loss function $\mL_{total}$ is defined as:
+\begin{equation}
+    \mL_{total} = \mL_m + \lambda_d\mL_d + \lambda_t\mL_t,
+\end{equation}
+where $\mL_m$ is the task-specific regression loss and $\lambda_d$ and $\lambda_e$ are trade-off parameters.
+
+\begin{figure}[!t]
+\centering
+\subfigure[Regression] {
+ \label{fig_reg2}
+\includegraphics[width=0.2\columnwidth]{fig/regression2.png}
+}
+\subfigure[Regression $+\mL'_d$] {
+ \label{fig_directlyentropy}
+\includegraphics[width=0.2\columnwidth]{fig/directlyentropy.png}
+}
+\subfigure[Regression $+\mL_d$] {
+ \label{fig_wd}
+\includegraphics[width=0.2\columnwidth]{fig/weightentropy2.png}
+}
+\subfigure[
+%~\hl{XX}$
+Regression $+\mL_d + \mL_t$] {
+ \label{fig_w}
+\includegraphics[width=0.23\columnwidth]{fig/weightentropyTightness2.png}
+}
+\caption{t-SNE visualization 
+of features from the depth estimation task. (b) Simply spreading the features ($\mL'_d$) leads to a higher entropy feature space, while the ordinal relationship is lost. (c) By further exploiting the ordinal relationship in the label space ($\mL_d$), the features are spread and the ordinal relationship is also preserved. (d) Adding the tightness term ($\mL_t$) further encourages features close to its centers.}
+\label{fig_vis}
+\end{figure}
+
+
+
+\section{Experiments}
+\label{sec:experiment}
+
+\subsection{Datasets,  Metrics \& Baseline Architectures}
+We conduct experiments on four tasks: operator learning, a synthetic dataset and three real-world regression settings of depth estimation, crowd counting, age estimation. 
+
+For \textbf{operator learning}, we follow the task from DeepONet~\citep{lu2021learning} and use a two-layer fully connected neural network with 100 hidden units. See Sec.~\ref{sec:synthetic} for details on data preparation. % are given in .
+
+For \textbf{depth estimation}, NYU-Depth-v2 \citep{silberman2012indoor} provides indoor images with the corresponding depth maps at a pixel resolution $640 \times 480$. 
+We follow~\citep{lee2019big} and use ResNet50~\citep{he2016deep} as our baseline architecture unless otherwise indicated.  We use the train/test split given used by previous works~\citep{bhat2021adabins,yuan2022new}, 
+and evaluate with the standard metrics of threshold accuracy $\delta_1$,  average relative error (REL), root mean squared error (RMS)  and average $\log_{10}$ error.  
+
+For \textbf{crowd counting}, we evaluate on SHA and SHB of the ShanghaiTech crowd counting dataset (SHTech)~\citep{zhang2015cross}. Like previous works, we adopt density maps as labels and evaluate with mean absolute error (MAE) and mean squared error (MSE).  We follow~\cite{li2018csrnet} and use CSRNet with ResNet50 as the \shihao{regression} baseline architecture.
+
+For \textbf{age estimation}, we use AgeDB-DIR~\citep{yang2021delving} and also implement their \shihao{regression} baseline model, which uses ResNet-50 as a backbone. Following~\cite{liu2019large}, we report results on three disjoint subsets (\ie,Many, Med. and Few), and also overall performance (\ie ALL). We evaluate with MAE and geometric mean (GM).
+
+
+\textbf{Other Implementation Details:} We follow the settings of previous works DeepONet~\citep{lu2021learning} for operator learning, Adabins~\citep{bhat2021adabins} for depth estimation, CSRNet~\citep{li2018csrnet} for crowd counting, and~\cite{yang2021delving} for age estimation.  See Appendix~\ref{appendix_E} for details.
+
+$\lambda_d$ and $\lambda_t$ are set empirically based on the scale of the task loss $\lambda_m$.  We use the trade-off parameters $\lambda_d, \lambda_t$ the same value of $0.001, 1, 10, 1, $ for operator learning, depth estimation, crowd counting and age estimation, respectively.
+
+
+\subsection{Learning Linear and Nonlinear Operators}\label{sec:synthetic}
+
+We first verify our {method} on the synthetic task of operator learning. In this task, an (unknown) operator maps input functions into output functions and the objective is to regress the output value.  We follow~\citep{lu2021learning} and generate data for both a linear and non-linear operator. For the linear operator, we aim to learn the integral operation $G$:
+\begin{equation}
+    G: u(x) \mapsto s(x) = \int_0^{x} u(\tau) d\tau, x\in [0,1],
+\end{equation}
+where $u$ is the input function, and $s$ is the target function. The data is generated with a mean-zero Gaussian random field function space: $u \sim \mG(0, k_l(x_1, x_2))$, where the covariance kernel $k_l(x_1, x_2) = exp(-||x_1 -x_2||^2/2l^2)$ is the radial-basis function kernel with a length-scale parameter $l = 0.2$. The function $u$ is represented by the function values of $m=100$ fixed locations $\{x_1, x_2, \cdots, x_m\}$. 
+The data is generated as $([u, y], G(u)(y))$, where $y$ is sampled from the domain of $G(u)$. We randomly sample 1k data as the training set and test on the testing set with 100k samples.
+%We report results as mean $\pm$ std with 10 runs.
+
+For the nonlinear operator, we aim to learn the following {stochastic partial differential equation}, which maps $b(x; \omega)$ of different correlation lengths $l\in[1,2]$ to a solution $u(x; \omega)$:
+\begin{equation}
+    \text{div} (e^{b(x;\omega)}\nabla u(x;\omega)) = f(x), 
+\end{equation}
+where $x \in (0, 1)$, 
+%$\omega \in \Omega$  
+$\omega$ from the random space 
+with Dirichlet boundary conditions $u(0)=u(1)=0$, and $f(x)=10$. The randomness comes from the diffusion coefficient $e^{b(x;\omega)}$.  The function $b(x;\omega) \sim \mG\mP(b_0(x), \text{cov}(x1, x2))$ is modelled as a Gaussian random process $\mG\mP$, with mean $b_0(x)=0$ and $\text{cov}(x1,x2) = \sigma^2 \exp(-||x_1 -x_2||^2/2l^2)$.
+We randomly sample 1k training samples and 10k test samples.
+
+\begin{table*}[t]
+	\caption{Ablation studies on linear and nonlinear operators learning with synthetic data and depth estimation on NYU-Depth-v2. For operator learning, we report results as mean $\pm$ standard variance over 10 runs. 
+    \textbf{Bold} numbers indicate the best performance.}
+	\label{tab:depth_ablation}
+	\centering
+	\scalebox{0.95}{
+		\begin{tabular}{l|c|c|cccc}
+			\hline
+			\multirow{2}[0]{*}{Method} & \multicolumn{1}{c|}{Linear}& \multicolumn{1}{c|}{Nonlinear} & \multicolumn{4}{c}{NYU-Depth-v2}\\
+ 			\cline{2-7}
+			& $\mL_{\text{mse}}$($\times 10^{-3}$)~$\downarrow$ & $\mL_{\text{mse}}$($\times 10^{-2}$)~$\downarrow$ & $\delta_1$~$\uparrow$ & REL~$\downarrow$ & RMS~$\downarrow$ & $\log_{10}$~$\downarrow$ \\
+			\hline
+			Baseline  & 3.0 $\pm$ 0.93 &  2.5$\pm$ 2.0 & 0.793  & 0.148 & 0.502 & 0.064 \\
+			Baseline + $\mL'_d$ & 2.2 $\pm$ 0.42 & 0.8 $\pm$ 0.3 & 0.795  & 0.147 & 0.505 & 0.063  \\
+			Baseline + $\mL_d$ &  \textbf{1.6} $\pm$ \textbf{0.34} & 0.5 $\pm$ 0.3 & 0.808 & 0.144 & 0.483 & 0.061 \\
+			Baseline + $\mL_d + \mL_t$   & - & - & \textbf{0.811} & \textbf{0.143} & \textbf{0.478} & \textbf{0.060} \\
+			\midrule
+			w/ cosine distance  & 1.7 $\pm$ 0.33 & 0.6 $\pm$ 0.5 & 0.806 & 0.147 & 0.488 & 0.061 \\
+			w/o normalization  & 5.3 $\pm$ 1.10  & 15.5 $\pm$ 0.4 & 0.790 & 0.153 & 0.510 & 0.064\\	\midrule
+			%\hl{weight w/ square}
+			$w_{ij}= ||y_i -y_j||_2^2$  & 2.0  $\pm$ 0.60 & \textbf{0.4} $\pm$ \textbf{0.2} & 0.800 & 0.149 & 0.498 & 0.063\\
+			%weight w/ square root
+			$w_{ij}= \sqrt{||y_i -y_j||_2}$  & 1.8 $\pm$ 0.50  & 0.5$\pm$ 0.2 & 0.799 & 0.147 & 0.496 & 0.062\\
+			\hline
+		\end{tabular}}
+\end{table*}
+
+For operator learning, we set $\mL_{\text{mse}}$ as the task-specific baseline loss for both the linear and non-linear operator. Table~\ref{tab:depth_ablation} shows that even without ordinal information, adding the diversity term \ie $\mL'_d$ to  $\mL_\text{mse}$ already improves performance.  The best gains, however, are achieved by incorporating the weighting with $\mL_d$, which decreases %~\AY{MSE?}
+$\mL_{\text{mse}}$ by 46.7\% for the linear operator and up to 80\% for the more challenging non-linear operator. The corresponding standard variances are also reduced significantly. 
+
+Note that we do not verify $\mL_t$ on operator learning due to the 
+%\hl{limited number of samples} and 
+high data precision on synthetic datasets, it is difficult to sample points belonging to the same $\bz_{c_i}$. Adding $\mL_t$, however, is beneficial for the three real-world tasks (see Sec.~\ref{subsection_depth}).  
+
+\subsection{Real-World Tasks: Depth Estimation, Crowd Counting \& Age Estimation}
+\label{subsection_depth}
+
+\textbf{Depth Estimation:} 
+Table~\ref{tab:nyu} shows that adding the ordinal entropy terms boosts the performance of the regression baseline and the state-of-the-art regression method~NeW-CRFs~\citep{yuan2022new}.  %, making New-CRFs with ordinal entropy the . In fact, adding ordinal  Currently, 
+NeW-CRFs with ordinal entropy achieves the highest values for all metrics, decreasing $\delta_1$ and REL errors by $12.8\%$ and $6.3\%$, respectively.
+Moreover, higher improvement can be observed when adding the ordinal entropy into a simpler baseline, \ie ResNet-50.
+
+
+\begin{table*}[t]
+	\caption{{Quantitative comparison} of depth estimation results with NYU-Depth-v2. \textbf{Bold} numbers indicate the best performance.}
+	\label{tab:nyu}
+	\centering
+		\begin{tabular}{l|cccc}
+			\hline
+			\multirow{1}[0]{*}{Method}
+			& $\delta_1$~$\uparrow$ & REL~$\downarrow$ & RMS~$\downarrow$ & $\log_{10}$~$\downarrow$ \\
+			\hline
+% 			Eigen et al. \citep{eigen2014depth} & 0.769 & 0.158 & 0.641 & -  \\
+			Laina et al. \citep{laina2016deeper} & 0.811 & 0.127 & 0.573 & 0.055  \\
+			DORN \citep{fu2018deep} & 0.828 & 0.115 & 0.509 & 0.051  \\
+			BTS \citep{lee2019big} & 0.885  & 0.110 & 0.392 & 0.047  \\
+			Adabins \citep{bhat2021adabins} & 0.903 & 0.103 & 0.364 & 0.044 \\
+			\midrule
+			NeW-CRFs \citep{yuan2022new} & 0.922  & 0.095 & 0.334 & 0.041 \\
+			NeW-CRFs + $\mL_d + \mL_t$ & ~~\bf{0.932}~~ & ~~\bf{0.089}~~ & ~~\bf{0.321}~~ &~~\bf{0.039}~~\\
+			Baseline (ResNet-50) & 0.793  & 0.148 & 0.502 & 0.064\\
+			Baseline (ResNet-50) + $\mL_d$ & 0.808 & 0.144 & 0.483 & 0.061\\
+			Baseline (ResNet-50) + $\mL_d + \mL_t$ & {0.811} & {0.143} & {0.478} & {0.060}\\
+			\hline
+		\end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+	\caption{Results on SHTech. \textbf{Bold} numbers indicate the best performance.}
+	\label{tab:counting}
+	\centering
+		\begin{tabular}{c|cc|cc}
+			\hline
+			\multirow{2}[0]{*}{Method} & \multicolumn{2}{c|}{MAE~$\downarrow$} & \multicolumn{2}{c}{MSE~$\downarrow$}  \\
+ 			\cline{2-5}
+			& SHA & SHB &  SHA & SHB\\
+			\hline
+			\shihao{Regression} Baseline~\citep{li2018csrnet} & 68.2 & 10.6 & 115.0 & 16.0 \\
+			+$\mL_d$ & 66.9 & \textbf{9.1} & 107.5 & 14.7 \\
+			+$\mL_d$ + $\mL_t$ & \textbf{65.6} & \textbf{9.1} & \textbf{105.0} & \textbf{14.5} \\
+			\hline
+		\end{tabular}
+\end{table*}
+
+
+\begin{table*}[t]
+	\caption{Results on AgeDB-DIR. 
+	%Baseline and Baseline$^*$ denote the results from the original paper and our re-trained model. 
+% 	\AY{\hl{ALL, Many, etc. refer to XX}}
+	\textbf{Bold} numbers indicate the best performance.
+	}
+	\label{tab:age}
+	\centering
+		\begin{tabular}{c|cccc|cccc}
+			\hline
+			\multirow{2}[0]{*}{Method} & \multicolumn{4}{c|}{MAE~$\downarrow$} & \multicolumn{4}{c}{GM~$\downarrow$}  \\
+ 			\cline{2-9}
+ 			
+			& ALL & Many & Med. & Few & ALL & Many & Med. & Few\\
+			\hline	Baseline~\citep{yang2021delving} & 7.77 & \textbf{6.62} & 9.55 & 13.67 & 5.05 & 4.23 & 7.01 & 10.75 \\
+% 			Baseline$^*$ & 7.73 & 6.74 & 9.05 & 13.35 & 5.05 & 4.38 & 6.44 & 9.77 \\
+			$+ \mL_d$ & 7.60 & 6.79 & 8.55 & 12.70 & 4.76 & 4.15 & 5.95 & \textbf{9.60} \\
+			$+ \mL_d + \mL_t$  & \textbf{7.46} & 6.73 & \textbf{8.18} & \textbf{12.38} & \textbf{4.72} & \textbf{4.21} & \textbf{5.36} & 9.70 \\
+			\hline
+		\end{tabular}
+\end{table*}
+
+
+
+\textbf{Crowd Counting:} Table~\ref{tab:counting} shows that adding $\mL_d$ and $\mL_t$ each contribute to improving the baseline.  Adding both terms has the largest impact and for SHB, the improvement is up to 14.2\% on MAE and 9.4\% on MSE.  
+
+\textbf{Age Estimation:}
+Table~\ref{tab:age} shows that with $\mL_d$ we achieve a significant 0.13 and 0.29 overall improvement (\ie ALL) on MAE and GM, %for \hl{ALL},
+respectively. Applying $\mL_t$ achieves a further overall improvement over $\mL_d$ only, including 0.14 on MAE and 0.04 on GM.
+
+\subsection{Ablation Studies}
+Ablation results on both operator learning and depth estimation are shown in Table~\ref{tab:depth_ablation} and Figure~\ref{fig:ablation}. 
+
+\textbf{Ordinal Relationships:} Table \ref{tab:depth_ablation} shows that using the unweighted diversity term `Baseline+$\mL'_d$', which ignores ordinal relationships, is worse than the weighted version `Baseline+$\mL_d$' for both operator learning and depth estimation. 
+
+
+\textbf{Feature Normalization:} As expected, normalization is important, as performance will decrease (compare `w/o normalization' to `Baseline+$\mL_d$' in Table~\ref{tab:depth_ablation}) for both operator learning and depth estimation.  Most interestingly, normalization also helps to lower variance for operator learning. 
+
+\textbf{Feature Distance} $||\bz_{c_i}-\bz_{c_j}||$: We replace the original feature distance L2 with cosine distance (see `w/ cosine distance') and the cosine distance is slightly worse than L2 for all the cases.
+
+\textbf{Weighting Function} $w_{ij}$: The weight as defined in Eq.~\ref{eq:ordinal_entropy} is based on an L2 distance. Table~\ref{tab:depth_ablation} shows that L2 is best for linear operator learning and depth estimation but is slightly worse than 
+$w_{ij}= ||y_i -y_j||_2^2$
+%~\AY{\hl{XX define mathematically}}
+for nonlinear operator learning.
+
+
+\textbf{Sample Size (M)}
+In practice, we estimate the entropy from a limited number of regressed samples and this is determined by the batch size. For certain tasks, this may be sufficiently large, \eg depth estimation (number of pixels per image $\times$ batch size) or very small, \eg age estimation (batch size).  We investigate the influence of $M$ from Eq. \ref{eq:ordinal_entropy} on linear operator learning (see Fig.\ref{fig_lamda_MSE}).
+In the most extreme case, when $M$ = 2, the performance is slightly better than the baseline model ($2.7 \times 10^{-3}$ vs. $3.0 \times 10^{-3}$), suggesting that our ordinal \shihao{regularizer} terms are effective even with 2 samples. 
+As $M$ increases, the MSE and its variance steadily decrease as the estimated entropy likely becomes more accurate.  However, at a certain point, MSE and variance start to increase again. This behavior is not surprising; with too many samples under consideration, it likely becomes too difficult to increase the distance between a pair of points without decreasing the distance to other points, \ie there is not sufficient room to maneuver. 
+The results for the nonlinear operator learning are given in Appendix \ref{appendix_nonlinear}.
+
+
+\textbf{Hyperparameter $\lambda_d$ and $\lambda_t$:} 
+Fig.~\ref{fig_lamda_MSE} plots the MSE for linear operator learning versus the trade-off hyper-parameter  $\lambda_d$ applied to the diversity term $\mL_d$.  Performance remains relatively stable up to $10^{-2}$, after which this term likely overtakes the original learning objective $\mL_{\text{mse}}$ and causes MSE to decrease.
+\shihao{The results for the nonlinear operator and analysis on $\lambda_t$ are given in Appendix \ref{appendix_nonlinear} and \ref{sec_lambdat}.}
+
+\textbf{Marginal Entropy $\mH(Z)$:} We show the marginal
+entropy of the testing set from different methods during training (see Fig.~\ref{fig_entropy_methods}). We can see that the marginal entropy of classification is always larger than that of regression, which has a downward trend. 
+Regression with only diversity achieves the largest marginal entropy, which verifies the effectiveness of our diversity term.
+With both diversity and tightness terms, as training goes, its marginal entropy continues to increase and larger than that of regression after the $13^{th}$ epoch.
+\shihao{More experiment results can be found in Appendix \ref{app_m}.}
+
+\begin{figure}[!t]
+	\centering
+	\subfigure[MSE with number of samples]{	
+	\label{fig_sample_MSE}
+	\includegraphics[width=0.30\linewidth]{fig/mse_samples2.png}}
+	\subfigure[MSE with $\lambda_d$]{	
+	\label{fig_lamda_MSE}
+	\includegraphics[width=0.30\linewidth]{fig/mse_weight2.png}}
+	\subfigure[Entropy of different methods]{	
+	\label{fig_entropy_methods}
+	\includegraphics[width=0.33\linewidth]{fig/mv_6.png}}
+	\caption{Based on the linear operator learning and depth estimation, we show (a) the effect of the number of samples on MSE, (b) the performance analysis with different $\lambda_d$ and (c) the entropy curves of different methods during testing. The results for the nonlinear operator learning are given in Appendix \ref{appendix_nonlinear}. }
+	\label{fig:ablation}
+\end{figure}
+
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+In this paper, we dive deeper into the trend of solving regression-type problems as classification tasks by comparing the difference between regression and classification from a mutual information perspective. We conduct a theoretical analysis and show that regression with an MSE loss lags in its
+ability to learn high-entropy feature representations. Based on the findings, we propose an ordinal entropy \shihao{regularizer} for regression, which not only keeps an ordinal relationship in feature space like regression, but also learns a high-entropy feature representation like classification. Experiments on different regression tasks demonstrate that our entropy \shihao{regularizer} can serve as a plug-in component for regression-based methods to further improve the performance. 
+
+\textbf{Acknowledgement}. This research / project is supported by the Ministry of Education, Singapore, under its MOE Academic Research Fund Tier 2 (STEM RIE2025 MOE-T2EP20220-0015).
+
+\bibliography{iclr2023_conference}
+\bibliographystyle{iclr2023_conference}
+
+\newpage
+
+\renewcommand\thefigure{\Alph{figure}} 
+\setcounter{figure}{0}
+
+\textbf{Appendix}
+\appendix
+\section{Proof of lemma \ref{Lemma_discretize}}
+\label{appendix_A}
+
+\begin{proof}
+    \begin{align*}
+    \mL_{\text{mse}} 
+    &= \frac{1}{n} \sum_{1}^{n}(\varreg^{\trsp}\bz_i - y_i)^{2} \\
+    &= \frac{1}{n} \sum_{1}^{n}((\varreg^{\trsp}\bz_i -c_i) + (c_i - y_i))^{2} \\
+    &= \frac{1}{n} \sum_{1}^{n}(\varreg^{\trsp}\bz_i -c_i)^2 + \frac{1}{n} \sum_{1}^{n}((c_i-y_i)(2\varreg^{\trsp}\bz_i -c_i -y_i)) 
+\end{align*}
+Since $|c_i - y_i| \leq \frac{\eta}{2}$, we have:
+\begin{align*}
+    |\mL_{\text{mse}} - \frac{1}{n} \sum_{1}^{n}(\varreg^{\trsp}\bz_i -c_i)^2| \leq  
+    \frac{\eta}{2n} \sum_{1}^{n}|2\varreg^{\trsp}\bz_i -c_i -y_i|
+\end{align*}
+For $\eta <\frac{2n \epsilon}{\sum_{1}^{n}|2\varreg^{\trsp}\bz_i -c_i -y_i|}$:
+\begin{align*}
+    |\mL_{\text{mse}} - \frac{1}{n} \sum_{1}^{n}(\varreg^{\trsp}\bz_i -c_i)^2| < \epsilon
+\end{align*}
+\end{proof}
+
+
+\section{Visualization}
+\label{appendix_C}
+
+\textbf{Experimental setting}
+We train the regression and classification models on the NYU-Depth-v2 dataset for depth estimation. We modify the last layer of a ResNet-50 model to a convolution operation with kernel size $1 \times 1$, and train the modified model with $\mL_{\text{mse}}$ as our regression model. For the classification models, we modify the last layer of two ResNet-50 models to output $N_c$ channels, where $N_c$ is the number of classes, and train the modified models with cross-entropy. The classes are defined by uniformly discrete ground-truth depths into $N_c$ bins. The entropy of feature space is estimated using Eq \ref{equ_entropyestimation} on pixel-wise features over the training and test set of NYU-Depth-v2. After training, we visualize the pixel-wise features of an image from the test set using t-distributed stochastic neighbor embedding (t-SNE), and features are colored based on their predicted depth. 
+
+The visualization results are shown in Figure A. We exploit three entropy estimators to estimate the entropy of feature space $\mH(Z)$. Entropy in the first row of Figure A is estimated with the meanNN entropy estimator Eq.~\ref{equ_entropyestimation}. Entropy in the second row is also estimated with the meanNN entropy estimator, where the input is the features normalized with the L2 norm. Entropy in the third row is estimated with the diversity part of our ordinal entropy Eq.~\ref{eq:ordinal_entropy}.
+
+ 
+
+We make several interesting observations from the visualization results: (1) On both training and testing, compared with classification, regression always has a lower estimated entropy based on all three entropy estimators; (2) benefiting from the diversity part of our ordinal entropy $\mL_d$, regression produces a higher entropy space than the classification model; (3) $\mL_d$ with the tightness term $\mL_t$ can result in feature space with a similarly estimated entropy compared with classification. 
+
+
+\begin{figure}[h]
+\centering
+\subfigure[Training] {
+	\includegraphics[width=0.31\columnwidth]{fig/mv_1.png}
+}
+\subfigure[Testing] {
+	\includegraphics[width=0.31\columnwidth]{fig/mv_2.png}
+}
+\subfigure[Testing] {
+	\includegraphics[width=0.31\columnwidth]{fig/mv3.png}
+}
+\subfigure[Training(feature normalized)] {
+	\includegraphics[width=0.31\columnwidth]{fig/mv_4.png}
+}
+\subfigure[Testing(feature normalized)] {
+	\includegraphics[width=0.31\columnwidth]{fig/mv_5.png}
+}
+\subfigure[Testing(feature normalized)] {
+	\includegraphics[width=0.31\columnwidth]{fig/mv_6.png}
+}
+\subfigure[Training(ordinal entropy)] {
+	\includegraphics[width=0.31\columnwidth]{fig/mv_7.png}
+}
+\subfigure[Testing(ordinal entropy)] {
+	\includegraphics[width=0.31\columnwidth]{fig/mv_8.png}
+}
+\subfigure[Testing(ordinal entropy)] {
+	\includegraphics[width=0.31\columnwidth]{fig/mv_9.png}
+}
+\label{fig:fig_mv}
+\caption{Visualization results with different entropy estimators on training and testing set.}
+\end{figure}
+
+\section{Results on the nonlinear operator learning problem}
+\label{appendix_nonlinear}
+We analyze the effect of the number of samples on MSE loss and the performance with $\lambda_d$ on the nonlinear operator learning task. The results are shown in Figure~B. The results corroborate the conclusions derived from the linear task. 
+
+\begin{figure}[h]
+\centering
+\subfigure[MSE with number of samples] {
+	\includegraphics[width=0.45\columnwidth]{fig/mse_samples_nonlinear.png}
+}
+\subfigure[MSE with $\lambda_d$] {
+	\includegraphics[width=0.45\columnwidth]{fig/mse_weight_nonlinear.png}
+}
+\label{fig:result_nonlinear}
+\caption{Based on the nonlinear operator learning problem, we show (a) the effect of the number of samples on MSE loss, (b) the performance analysis with different $\lambda_d$.}
+\end{figure}
+
+
+\section{Evaluation Metrics}
+\label{appendix_E}
+Here we introduce the definition of the evaluation metrics for depth estimation, crowd counting, and age estimation.
+
+\textbf{Depth Estimation.} We denote the predicted depth at position $p$ as $y_p$ and the corresponding ground truth depth as $y'_p$, the total number of pixels is $n$. 
+The metrics are: 
+1) threshold accuracy $\delta_1 \triangleq$ \% of $y_p, \st \max(\frac{y_p}{y'_p}, \frac{y'_p}{y_p}) < t_1$, where $t_1=1.25$;
+2) average relative error (REL): $\frac{1}{n}\sum_p\frac{|y_p - y'_p|}{y_p}$;
+3) root mean squared error (RMS):  $\sqrt{\frac{1}{n}\sum_p(y_p - y'_p)^2}$;
+4) average ($\log_{10}$ error): $\frac{1}{n}\sum_p|\log_{10}(y_p) - \log_{10}(y'_p)|$.
+
+\textbf{Crowd Counting.} Given $N$ images for testing, \shihao{$y_i, y'_i$} are the estimated count and the ground truth for the $i$-th image, respectively. We exploit two widely used metrics as measurements:
+1) Mean Absolute Error (MAE)$ =\frac{1}{N}\sum_{i=1}^{N} \shihao{|y_i - y'_i|}$, and 
+2) Mean Squared Error (MSE) $=\sqrt{\frac{1}{N}\sum_{i=1}^{N} |\shihao{y_i - y'_i}|^2}$.
+
+\textbf{Age Estimation.} Given $N$ images for testing, $y_i$ and $y'_i$ are the $i$-th prediction and ground-truth, respectively. The evaluation metrics include 
+1)MAE: $\frac{1}{N}\sum_{i=1}^{N} |y_i - y'_i|$, and 
+2)Geometric Mean (GM): $(\prod_{i=1}^{N}|y_i-y'_i|)^{\frac{1}{N}}$.
+
+
+\section{Effect of $\lambda_t$}
+\label{sec_lambdat}
+
+We analyze the effect of $\lambda_t$ with an ablation study on the age estimation with Age-DB-DIR.
+Table~\ref{tab:age_lambda_t} shows that the final performance is not sensitive to the change of $\lambda_t$, and $\mL_t$ is effective even with a small $\lambda_t$, \ie 0.1.
+
+
+\begin{table*}[h]
+	\caption{Results on AgeDB-DIR. 
+	%Baseline and Baseline$^*$ denote the results from the original paper and our re-trained model. 
+% 	\AY{\hl{ALL, Many, etc. refer to XX}}
+	\textbf{Bold} numbers indicate the best performance.
+	}
+	\label{tab:age_lambda_t}
+	\centering
+		\begin{tabular}{c|cccc|cccc}
+			\hline
+			\multirow{2}[0]{*}{$\lambda_t$} & \multicolumn{4}{c|}{MAE~$\downarrow$} & \multicolumn{4}{c}{GM~$\downarrow$}  \\
+ 			\cline{2-9}
+ 			
+			& ALL & Many & Med. & Few & ALL & Many & Med. & Few\\
+			\hline
+			0 & 7.60 & 6.79 & 8.55 & 12.70 & 4.76 & 4.15 & 5.95 & \textbf{9.60} \\
+% 			Baseline$^*$ & 7.73 & 6.74 & 9.05 & 13.35 & 5.05 & 4.38 & 6.44 & 9.77 \\
+			0.1 & 7.50 & \textbf{6.53} & 8.64 & 13.50 & \textbf{4.71} & \textbf{4.04} & 5.92 & 10.62 \\
+			1 & \textbf{7.46} & 6.73 & \textbf{8.18} & \textbf{12.38} & 4.72 & 4.21 & \textbf{5.36} & 9.70 \\
+			10 & 7.49 & 6.70 & 8.27 & 12.86 & 4.79 & 4.23 & 5.61 & 10.21 \\
+			\hline
+		\end{tabular}
+\end{table*}
+
+\section{Influence of the Sample Size (M)}
+\label{app_m}
+
+
+Efficiency-wise, the computing complexity of the regularizer is quadratic with respect to $M$.  The synthetic experiments on operator learning (Table \ref{tab:app_m}) use a 2-layer MLP, so the regularizer adds significant computing time when M gets large. However, the real-world experiments on depth estimation (Table \ref{tab:app_m2}) use a ResNet-50 backbone, and the added time and memory are negligible (27\% and 0.3\%, respectively), even with $M=3536$. We exploit $M=3536$ in our depth estimation experiments, where $3536$ is a 16x subsampling of the total number of pixels in an image. Note that these increases are only during training and do not add computing demands for inference. In addition, the added time and memory with $L_t$ are also negligible (0.08\% and ~0\%, respectively), even with M=3536.
+
+
+
+\begin{table*}[h]
+	\caption{Quantitative comparison of the time consumption and memory consumption on linear operator learning with synthetic data.}
+	\label{tab:app_m}
+	\centering
+		\begin{tabular}{l|cccc}
+			\hline
+			\multirow{1}[0]{*}{M}
+			& Training time (s) & Memory taken (MB)  \\
+			\hline
+			0 & 155 & 2163    \\
+			2 & 291 & 2163    \\
+			10 & 296 & 2163    \\
+			100 & 327 & 2163   \\
+			1000 & 1033 & 2205    \\			
+			\hline
+		\end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+	\caption{Quantitative comparison of the time consumption and memory consumption on depth estimation with NYU-v2. The training time is  one epoch training time.}
+	\label{tab:app_m2}
+	\centering
+		\begin{tabular}{lr|ccc}
+			\hline
+			\multirow{1}[0]{*}{M}
+			& Regularizer & Training time (s) & Memory taken (MB) \\
+			\hline
+			0 & no regularizer & 1836 & 12363   \\
+			100 & $L_d+L_t$ & 1877 & 12379   \\
+			1000 & $L_d+L_t$ & 1999 & 12395   \\
+			3526  & $L_d$ & 2342 & 12405   \\
+			3526 & $L_d+L_t$ & 2344 & 12405  \\
+			\hline
+		\end{tabular}
+\end{table*}
+
+\end{document}

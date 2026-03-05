@@ -1,0 +1,220 @@
+\section{Experiments}
+\vskip -0.1in
+\label{sec:experiment}
+\subsection{Data}
+We evaluate the proposed model on the LibriSpeech~\cite{panayotov2015librispeech} dataset, which consists of 970 hours of labeled speech and an additional 800M word token text-only corpus for building language model. We extracted 80-channel filterbanks features computed from a 25ms window with a stride of 10ms. We use SpecAugment \cite{park2019specaugment, largespecaugment} with mask parameter ($F=27$), and ten time masks with maximum time-mask ratio ($p_S = 0.05$), where the maximum-size of the time mask is set to $p_S$ times the length of the utterance.
+
+\subsection{Conformer Transducer}
+
+We identify three models, small, medium and large, with 10M, 30M, and 118M params, respectively, by sweeping different combinations of network depth, model dimensions, number of attention heads and choosing the best performing one within model parameter size constraints. We use a single-LSTM-layer decoder in all our models.
+Table ~\ref{tab:model_sizes} describes their architecture hyper-parameters. 
+
+For regularization, we apply dropout \cite{JMLR:v15:srivastava14a} in each residual unit of the conformer, i.e, to the output of each module, before it is added to the module input. We use a rate of $P_{drop} = 0.1$. Variational noise \cite{graves2012sequence, jim1996analysis} is introduced to the model as a regularization. A $\ell_2$ regularization with $1e-6$ weight is also added to all the trainable weights in the network. We train the models with the Adam optimizer \cite{kingma2014adam} with $\beta_{1} = 0.9$, $\beta_{2} = 0.98$ and $\epsilon = 10^{-9}$ and a transformer learning rate schedule \cite{vaswani2017attention}, with 10k warm-up steps and peak learning rate $0.05/\sqrt{\bf{d}}$ where $\bf{d}$ is the model dimension in conformer encoder.   
+
+We use a 3-layer LSTM language model (LM) with width 4096 trained on the LibriSpeech langauge model corpus with the LibriSpeech960h transcripts added, tokenized with the 1k WPM built from LibriSpeech 960h.  The LM has word-level perplexity 63.9 on the dev-set transcripts. The LM weight $\lambda$ for shallow fusion is tuned on the dev-set via grid search. All models are implemented with Lingvo toolkit~\cite{lingvo}.
+
+\begin{table}
+\begin{centering}
+\caption{Model hyper-parameters for Conformer S, M, and L models, found via sweeping different combinations and choosing the best performing models within the parameter limits.}
+\label{tab:model_sizes}
+\begin{tabular}{@{}l|ccc@{}}
+\hline 
+\small
+\makecell{Model} & \makecell{Conformer\\ (S)} & \makecell{Conformer\\ (M)} & \makecell{Conformer\\ (L)} \\
+\hline 
+\hline 
+{Num Params (M)} & 10.3 & 30.7 & 118.8  \tabularnewline
+{Encoder Layers} & 16 & 16 & 17 \tabularnewline
+{Encoder Dim} & 144 & 256 & 512  \tabularnewline
+{Attention Heads} & 4 & 4 & 8 \tabularnewline
+{Conv Kernel Size} & 32 & 32 & 32 \tabularnewline
+{Decoder Layers} & 1 & 1 & 1 \tabularnewline
+{Decoder Dim} & 320 & 640 & 640 \tabularnewline
+\hline
+\end{tabular}
+\par\end{centering}
+\end{table}
+
+
+\subsection{Results on LibriSpeech}
+\begin{table}[h!]
+\caption{Comparison of {\netname} with recent published models. Our model shows improvements consistently over various model parameter size constraints. At 10.3M parameters, our model is 0.7\% better on testother when compared to contemporary work, ContextNet(S) \cite{han2020contextnet}. At 30.7M model parameters our model already significantly outperforms the previous published state of the art results of Transformer Transducer \cite{zhang2020transformer} with 139M parameters.}
+\label{tab:results:libri_main_results}
+  
+  %\vskip 0.1in
+  \centering
+  \small
+  \resizebox{\columnwidth}{!}{%
+  \begin{tabular}{@{}lccccc@{}}
+    \toprule
+    \bfseries Method & \#{\bfseries Params (M)} & \multicolumn{2}{c}{\bfseries WER Without LM} & \multicolumn{2}{c}{\bfseries WER With LM} \\
+    \cmidrule(r){3-4} \cmidrule(r){5-6}
+     & & \bfseries testclean & \bfseries testother & \bfseries testclean & \bfseries testother \\
+    \midrule
+    \bfseries Hybrid \\
+    \quad Transformer~\cite{wang2019transformer} & - 
+    & - & - & 2.26 & 4.85 \\
+    \bfseries CTC \\
+    \quad QuartzNet ~\cite{kriman2019quartznet} & 19
+    &3.90 & 11.28 & 2.69 & 7.25\\
+    \bfseries LAS \\
+    \quad  Transformer \cite{synnaeve2019endtoend} & 270
+    & 2.89 & 6.98 & 2.33 & 5.17 \\
+    \quad Transformer \cite{karita2019comparative} & -
+    & 2.2 & 5.6 & 2.6 & 5.7 \\
+    \quad LSTM & 360 & 2.6 & 6.0 & 2.2 & 5.2 \\
+    \bfseries Transducer \\
+    \quad Transformer \cite{zhang2020transformer} & 139
+    & 2.4 & 5.6 & 2.0 & 4.6 \\
+    \quad ContextNet(S) \cite{han2020contextnet} & 10.8
+    & 2.9 & 7.0 & 2.3 & 5.5\\
+    \quad ContextNet(M) \cite{han2020contextnet} & 31.4
+    & 2.4 & 5.4 & \textbf{2.0} & 4.5\\
+    \quad ContextNet(L) \cite{han2020contextnet} & 112.7
+    & \textbf{2.1} & 4.6 & \textbf{1.9} & 4.1\\
+    \midrule
+    \bfseries Conformer (Ours)\\
+    \quad\netname(S) & 10.3 & \textbf{2.7} & \textbf{6.3} & \textbf{2.1} & \textbf{5.0} \\
+    \quad\netname(M) & 30.7 & \textbf{2.3} & \textbf{5.0} & \textbf{2.0} & \textbf{4.3} \\
+    \quad\netname(L) & 118.8 & \textbf{2.1} & \textbf{4.3} & \textbf{1.9} & \textbf{3.9} \\
+    \bottomrule
+  \end{tabular}}
+\end{table}
+
+Table~\ref{tab:results:libri_main_results} compares the (WER) result of our model on LibriSpeech test-clean/test-other with a few state-of-the-art models include: ContextNet~\cite{han2020contextnet}, Transformer transducer~\cite{zhang2020transformer}, and QuartzNet~\cite{kriman2019quartznet}.
+All our evaluation results round up to 1 digit after decimal point.
+
+Without a language model, the performance of our medium model already achieve competitive results of $2.3$/$5.0$ on test/testother outperforming the best known Transformer, LSTM based model, or a similar sized convolution model. With the language model added, our model achieves the lowest word error rate among all the existing models. This clearly demonstrates the effectiveness of combining Transformer and convolution in a single neural network. 
+
+
+
+\subsection{Ablation Studies}
+
+\subsubsection{Conformer Block vs. Transformer Block}
+\label{ablate_conformer_transformer}
+A Conformer block differs from a Transformer block in a number of ways, in particular, the inclusion of a convolution block and having a pair of FFNs surrounding the block in the Macaron-style. Below we study these effects of these differences by mutating a Conformer block towards a Transformer block, while keeping the total number of parameters unchanged. Table~\ref{tab:ablation_model} shows the impact of each change to the Conformer block.
+%
+Among all differences, convolution sub-block is the most important feature, while having a Macaron-style FFN pair is also more effective than a single FFN of the same number of parameters.
+Using swish activations led to faster convergence in the Conformer models.
+\begin{table}[h]
+% \begin{centering}
+\caption{\textbf{Disentangling Conformer.}
+Starting from a Conformer block, we remove its features and move towards a vanilla Transformer block: (1) replacing SWISH with ReLU; (2) removing the convolution sub-block; (3) replacing the Macaron-style FFN pairs with a single FFN; (4) replacing self-attention with relative positional embedding~\cite{dai2019transformerxl} with a vanilla self-attention layer~\cite{vaswani2017attention}.
+All ablation study results are evaluated without the external LM.}
+\label{tab:ablation_model}
+\begin{tabular}{@{}l|cccc@{}}
+\hline 
+\makecell{Model\\ Architecture} & \makecell{dev\\ clean} & \makecell{dev\\ other} & \makecell{test\\ clean} & \makecell{test\\ other} \\
+\hline 
+\hline 
+Conformer Model & 1.9 & 4.4 & 2.1 & 4.3 \tabularnewline
+\enskip -- SWISH + ReLU & 1.9 & 4.4 & 2.0 & 4.5 \tabularnewline
+\enskip\enskip-- \textbf{Convolution Block} & 2.1 & 4.8 & 2.1 & 4.9 \tabularnewline
+\enskip\enskip\enskip-- Macaron FFN & 2.1 & 5.1 & 2.1 & 5.0 \tabularnewline
+\enskip\enskip\enskip\enskip-- {Relative Pos. Emb.} & 2.3 & 5.8 & 2.4 & 5.6 \tabularnewline
+\hline 
+\end{tabular}
+
+\vskip -0.2in
+\end{table}
+
+\subsubsection{Combinations of Convolution and Transformer Modules}
+\label{ablate_conformer_convolution}
+We study the effects of various different ways of combining the multi-headed self-attention (MHSA) module with the convolution module. First, we try replacing the depthwise convolution in the convolution module with a lightweight convolution \cite{wu2019pay}, see a significant drop in the performance  especially on the dev-other dataset. Second, we study placing the convolution module before the MHSA module in our Conformer model and find that it degrades the results by 0.1 on dev-other. 
+Another possible way of the architecture is to split the input into parallel branches of multi-headed self attention module and a convolution module with their output concatenated as suggested in \cite{wu2020lite}. We found that this worsens the performance when compared to our proposed architecture.
+
+These results in Table~\ref{tab:sa_conv_order} suggest the advantage of placing the convolution module after the self-attention module in the Conformer block.
+
+\begin{table}[h]
+% \begin{centering}
+
+\caption{\textbf{Ablation study of Conformer Attention Convolution Blocks.} Varying the combination of the convolution block with the multi-headed self attention: (1) Conformer architecture; (2) Using Lightweight convolutions instead of depthwise convolution in the convolution block in Conformer; (3) Convolution before multi-headed self attention; (4) Convolution and MHSA in parallel with their output concatenated~\cite{wu2020lite}.
+}
+\label{tab:sa_conv_order}
+\begin{tabular}{@{}l|cc@{}}
+\hline 
+\makecell{Model Architecture} & \makecell{dev\\ clean} & \makecell{dev\\ other} \\
+\hline 
+\hline 
+Conformer & 1.9 & 4.4 \tabularnewline
+{-- Depthwise conv + Lightweight convolution}  & 2.0 & 4.8 \tabularnewline
+Convolution block before MHSA  & 1.9 & 4.5  \tabularnewline
+Parallel MHSA and Convolution & 2.0 & 4.9 \tabularnewline
+\hline 
+\end{tabular}
+\vskip -0.2in
+\end{table}
+
+
+\subsubsection{Macaron Feed Forward Modules}
+\label{ablate_conformer_macaron}
+Instead of a single feed-forward module (FFN) post the attention blocks as in the Transformer models, the Conformer block has a pair of macaron-like Feed forward modules sandwiching the self-attention and convolution modules. Further, the Conformer feed forward modules are used with half-step residuals.
+Table~\ref{tab:ablation_macaron} shows the impact of changing the Conformer block to use a single FFN or full-step residuals.
+%
+\begin{table}[h]
+\begin{centering}
+\caption{\textbf{Ablation study of Macaron-net Feed Forward modules.}
+Ablating the differences between the Conformer feed forward module with that of a single FFN used in Transformer models: (1) Conformer; (2) Conformer with full-step residuals in Feed forward modules; (3) replacing the Macaron-style FFN pair with a single FFN.
+}
+\label{tab:ablation_macaron}
+\begin{tabular}{l|cccc}
+\hline 
+\makecell{Model\\ Architecture} & \makecell{dev\\ clean} & \makecell{dev\\ other} & \makecell{test\\ clean} & \makecell{test\\ other} \\
+\hline 
+\hline 
+Conformer & 1.9 & 4.4 & 2.1 & 4.3 \tabularnewline
+Single FFN & 1.9 & 4.5 & 2.1 & 4.5 \tabularnewline
+Full step residuals & 1.9 & 4.5 & 2.1 & 4.5 \tabularnewline
+\hline 
+\end{tabular}
+\par\end{centering}
+
+\end{table}
+
+\subsubsection{Number of Attention Heads}
+
+In self-attention, each attention head learns to focus on different parts of the input, making it possible to improve predictions beyond the simple weighted average. We perform experiments to study the effect of varying the number of attention heads from $4$ to $32$ in our large model, using the same number of heads in all layers. We find that increasing attention heads up to $16$ improves the accuracy, especially over the devother datasets, as shown in Table~\ref{tab:atten_heads}.
+
+\begin{table}[h]
+\begin{centering}
+\caption{Ablation study on the attention heads in multi-headed self attention.}
+\label{tab:atten_heads}
+\vskip -0.1in
+\begin{tabular}{@{}cc|cccc@{}}
+\hline 
+\makecell{Attention\\ Heads} & \makecell{Dim per\\ Head} & \makecell{dev\\ clean} & \makecell{dev\\ other} & \makecell{test\\ clean} & \makecell{test\\ other} \\
+\hline 
+\hline 
+4 & 128 & 1.9 & 4.6 & 2.0 & 4.5 \tabularnewline
+8 & 64 & 1.9 & 4.4 & 2.1 & 4.3 \tabularnewline
+16 & 32 & 2.0 & 4.3 & 2.2 & 4.4 \tabularnewline
+32 & 16 & 1.9 & 4.4 & 2.1 & 4.5 \tabularnewline
+\hline
+\end{tabular}
+\par\end{centering}
+\vskip -0.2in
+\end{table}
+
+\subsubsection{Convolution Kernel Sizes}
+To study the effect of kernel sizes in the depthwise convolution, we sweep the kernel size in $\{3, 7, 17, 32, 65\}$ of the large model, using the same kernel size for all layers. We find that the performance improves with larger kernel sizes till kernel sizes $17$ and $32$ but worsens in the case of kernel size $65$, as show in Table~\ref{tab:kernel_sizes}. On comparing the second decimal in dev WER, we find kernel size 32 to perform better than rest. 
+
+\begin{table}[h]
+\begin{centering}
+\caption{Ablation study on depthwise convolution kernel sizes.}
+\label{tab:kernel_sizes}
+\vskip -0.1in
+\begin{tabular}{@{}c|cccc@{}}
+\hline 
+\makecell{Kernel\\ size}  & \makecell{dev\\ clean} & \makecell{dev\\ other} & \makecell{test\\ clean} & \makecell{test\\ other} \\
+\hline 
+\hline 
+3 & 1.88 & 4.41 & 1.99 & 4.39 \tabularnewline
+7 & 1.88 & 4.30 & 2.02 & 4.44 \tabularnewline
+17 & 1.87 & 4.31 & 2.04 & 4.38 \tabularnewline
+32 & 1.83 & 4.30 & 2.03 & 4.29 \tabularnewline
+65 & 1.89 & 4.47 & 1.98 & 4.46 \tabularnewline
+\hline
+\end{tabular}
+\par\end{centering}
+\vskip -0.2in
+\end{table}

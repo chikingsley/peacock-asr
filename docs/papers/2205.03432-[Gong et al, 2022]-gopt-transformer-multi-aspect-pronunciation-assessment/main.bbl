@@ -1,0 +1,160 @@
+\begin{thebibliography}{10}
+
+\bibitem{Eskenazi2009review}
+Maxine Eskenazi,
+\newblock ``An overview of spoken language technology for education,''
+\newblock {\em Speech Communication}, 2009.
+
+\bibitem{Zechner2009SpeechRater}
+Klaus Zechner, Derrick Higgins, et~al.,
+\newblock ``Automatic scoring of non-native spontaneous speech in tests of
+  spoken english,''
+\newblock {\em Speech Communication}, 2009.
+
+\bibitem{witt2012automatic}
+Silke~M Witt,
+\newblock ``Automatic error detection in pronunciation training: Where we are
+  and where we need to go,''
+\newblock in {\em International Symposium on Automatic Detection on Errors in
+  Pronunciation Training}, 2012.
+
+\bibitem{Witt2000GOP}
+S.M Witt and S.J Young,
+\newblock ``Phone-level pronunciation scoring and assessment for interactive
+  language learning,''
+\newblock {\em Speech Communication}, 2000.
+
+\bibitem{zhang2008automatic}
+Feng Zhang, Chao Huang, et~al.,
+\newblock ``Automatic mispronunciation detection for mandarin,''
+\newblock in {\em ICASSP}, 2008.
+
+\bibitem{luo2009analysis}
+Dean Luo, Yu~Qiao, et~al.,
+\newblock ``Analysis and utilization of mllr speaker adaptation technique for
+  learners' pronunciation evaluation,''
+\newblock in {\em Interspeech}, 2009.
+
+\bibitem{wang2012improved}
+Yow-Bang Wang and Lin-Shan Lee,
+\newblock ``Improved approaches of modeling and detecting error patterns with
+  empirical analysis for computer-aided pronunciation training,''
+\newblock in {\em ICASSP}, 2012.
+
+\bibitem{hu2015improved}
+Wenping Hu, Yao Qian, et~al.,
+\newblock ``Improved mispronunciation detection with deep neural network
+  trained acoustic models and transfer learning based logistic regression
+  classifiers,''
+\newblock {\em Speech Communication}, 2015.
+
+\bibitem{Shi2020ContextawareGOP}
+Jiatong Shi, Nan Huo, and Qin Jin,
+\newblock ``Context-aware goodness of pronunciation for computer-assisted
+  pronunciation training,''
+\newblock in {\em Interspeech}, 2020.
+
+\bibitem{van2010using}
+Joost van Doremalen, C~Cucchiarini, and H~Strik,
+\newblock ``Using non-native error patterns to improve pronunciation
+  verification,''
+\newblock in {\em Interspeech}, 2010.
+
+\bibitem{cucchiarini1998quantitative}
+Catia Cucchiarini, Helmer Strik, and LWJ Boves,
+\newblock ``Quantitative assessment of second language learners' fluency: an
+  automatic approach,''
+\newblock in {\em ICSLP}, 1998.
+
+\bibitem{cucchiarini2000quantitative}
+Catia Cucchiarini, Helmer Strik, and Lou Boves,
+\newblock ``Quantitative assessment of second language learners’ fluency by
+  means of automatic speech recognition technology,''
+\newblock {\em The Journal of the Acoustical Society of America}, 2000.
+
+\bibitem{bagshaw1994automatic}
+Paul~Christopher Bagshaw,
+\newblock {\em Automatic prosodic analysis for computer aided pronunciation
+  teaching},
+\newblock Ph.D. thesis, 1994.
+
+\bibitem{tepperman2005automatic}
+Joseph Tepperman and Shrikanth Narayanan,
+\newblock ``Automatic syllable stress detection using prosodic features for
+  pronunciation evaluation of language learners,''
+\newblock in {\em ICASSP}, 2005.
+
+\bibitem{arias2010automatic}
+Juan~Pablo Arias, Nestor~Becerra Yoma, and Hiram Vivanco,
+\newblock ``Automatic intonation assessment for computer aided language
+  learning,''
+\newblock {\em Speech Communication}, 2010.
+
+\bibitem{LI2017innotation}
+Kun Li, Xixin Wu, and Helen Meng,
+\newblock ``Intonation classification for l2 english speech using
+  multi-distribution deep neural networks,''
+\newblock {\em Computer Speech and Language}, 2017.
+
+\bibitem{vaswani2017attention}
+Ashish Vaswani, Noam Shazeer, et~al.,
+\newblock ``Attention is all you need,''
+\newblock in {\em Advances in Neural Information Processing Systems}, 2017.
+
+\bibitem{zhang2021speechocean762}
+Junbo Zhang, Zhiwen Zhang, et~al.,
+\newblock ``speechocean762: An open-source non-native english speech corpus for
+  pronunciation assessment,''
+\newblock in {\em Interspeech}, 2021.
+
+\bibitem{lin2020automatic}
+Binghuai Lin, Liyuan Wang, Xiaoli Feng, and Jinsong Zhang,
+\newblock ``Automatic scoring at multi-granularity for l2 pronunciation.,''
+\newblock in {\em Interspeech}, 2020.
+
+\bibitem{xu2021explore}
+Xiaoshuo Xu, Yueteng Kang, Songjun Cao, Binghuai Lin, et~al.,
+\newblock ``Explore wav2vec 2.0 for mispronunciation detection,''
+\newblock {\em Interspeech}, 2021.
+
+\bibitem{lin2021deep}
+Binghuai Lin and Liyuan Wang,
+\newblock ``Deep feature transfer learning for automatic pronunciation
+  assessment,''
+\newblock {\em Interspeech}, 2021.
+
+\bibitem{cincarek2009automatic}
+Tobias Cincarek, Rainer Gruhn, et~al.,
+\newblock ``Automatic pronunciation scoring of words and sentences independent
+  from the non-native’s first language,''
+\newblock {\em Computer Speech and Language}, 2009.
+
+\bibitem{devlin2018bert}
+Jacob Devlin, Ming-Wei Chang, et~al.,
+\newblock ``Bert: Pre-training of deep bidirectional transformers for language
+  understanding,''
+\newblock {\em ACL}, 2018.
+
+\bibitem{panayotov2015librispeech}
+Vassil Panayotov, Guoguo Chen, et~al.,
+\newblock ``Librispeech: an asr corpus based on public domain audio books,''
+\newblock in {\em ICASSP}, 2015.
+
+\bibitem{tu2018investigating}
+Ming Tu, Anna Grabek, et~al.,
+\newblock ``Investigating the role of l1 in automatic pronunciation evaluation
+  of l2 speech,''
+\newblock in {\em Interspeech}, 2018.
+
+\bibitem{hernandez2018ted}
+Fran{\c{c}}ois Hernandez, Vincent Nguyen, et~al.,
+\newblock ``Ted-lium 3: twice as much data and corpus repartition for
+  experiments on speaker adaptation,''
+\newblock in {\em SPECOM}, 2018.
+
+\bibitem{marcus1993building}
+Mitchell~P Marcus, Mary~Ann Marcinkiewicz, et~al.,
+\newblock ``Building a large annotated corpus of english: the penn treebank,''
+\newblock {\em Computational Linguistics}, 1993.
+
+\end{thebibliography}

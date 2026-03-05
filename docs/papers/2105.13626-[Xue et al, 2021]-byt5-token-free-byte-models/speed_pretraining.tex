@@ -1,0 +1,21 @@
+\begin{table}[t!]
+\centering
+\resizebox{0.9\columnwidth}{!}{
+\footnotesize
+\begin{tabular}{lrrrr}
+\toprule
+      & \multicolumn{2}{c}{sequences / sec} &\multicolumn{2}{c}{einsum ops $\times1e^{12}$} \\
+      \cmidrule(lr){2-3} \cmidrule(lr){4-5}
+      & mT5 & ByT5\hspace{2.5em} & mT5 & ByT5\hspace{2.5em} \\
+\midrule
+Small & 1646 & 1232 ($0.75\times$) & 87 & 98 ($1.13\times$) \\
+Base & 747 & 576 ($0.77\times$) & 168 & 194 ($1.15\times$) \\
+Large & 306 & 232 ($0.76\times$) & 346 & 416 ($1.20\times$) \\
+XL & 94 & 70 ($0.74\times$) & 1000 & 1220 ($1.22\times$) \\
+XXL & 33 & 25 ($0.76\times$) & 1660 & 2070 ($1.25\times$) \\
+\bottomrule 
+\end{tabular}}
+\caption{Pre-training speed and computation of mT5 vs.~ByT5. \textbf{Left}: Sequences per second pre-training on a TPUv3-64 device. \textbf{Right}: Total einsum operations for a forward pass, as logged by the T5 framework.}
+\label{tab:speed_pretraining}
+
+\end{table}

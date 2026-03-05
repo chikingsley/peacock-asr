@@ -1,0 +1,34 @@
+\begin{table}[t!]
+\centering
+\resizebox{0.9\columnwidth}{!}{
+\footnotesize
+\begin{tabular}{lrrrr}
+\toprule
+     & \multicolumn{2}{c}{Grapheme-to-Phoneme} &\multicolumn{2}{c}{Dakshina} \\
+      \cmidrule(lr){2-3} \cmidrule(lr){4-5}
+      & mT5 & ByT5\hspace{1.5em} & mT5 & ByT5\hspace{1.5em} \\
+\midrule
+Small & 1223 & 1190 (1.0$\times$) & 9483 & 6482 (1.5$\times$) \\
+Base  & 726  & 932 (0.8$\times$)  & 7270 & 4272 (1.7$\times$) \\
+Large & 387  & 478 (0.8$\times$)  & 4243 & 2282 (1.9$\times$) \\
+XL    & 280  & 310 (0.9$\times$)  & 2922 & 1263 (2.3$\times$) \\
+XXL   & 150  & 146 (1.0$\times$)  & 1482 & 581 (2.6$\times$)  \\
+\midrule
+\midrule
+     & \multicolumn{2}{c}{XNLI} &\multicolumn{2}{c}{GEM-XSum} \\
+      \cmidrule(lr){2-3} \cmidrule(lr){4-5}
+      & mT5 & ByT5\hspace{1.5em} & mT5 & ByT5\hspace{1.5em} \\
+\midrule
+Small & 8632 & 1339 (6.4$\times$) & 750 & 202 (3.7$\times$) \\
+Base  & 5157 & 687 (7.5$\times$)  & 450 & 114 (3.9$\times$) \\
+Large & 1598 & 168 (9.5$\times$)  & 315 & 51 (6.2$\times$)  \\
+XL    & 730  & 81 (9.0$\times$)   & 162 & 25 (6.4$\times$)  \\
+XXL   & 261  & 33 (8.0$\times$)   & 61  & 10 (6.3$\times$) \\ 
+\bottomrule 
+
+\end{tabular}
+}
+\caption{Average inference examples per second on the test sets of word-level tasks (top) and sentence- or document-level tasks (bottom). We use a TPUv3-128 for GEM-XSum, and a TPUv3-32 elsewhere.}
+\label{tab:speed_inference}
+
+\end{table}

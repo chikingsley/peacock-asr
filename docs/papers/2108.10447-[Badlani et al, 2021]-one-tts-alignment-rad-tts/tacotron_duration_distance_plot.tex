@@ -1,0 +1,26 @@
+\begin{tikzpicture}[scale=1.0]
+  \begin{axis}[
+  height=3.0cm,
+  width=0.9\linewidth,
+      legend cell align={left},
+      xlabel= Iteration,
+      ylabel= {Alignment error},
+      ylabel near ticks,
+      y label style={at={(-0.07,1.2)}},
+      xlabel near ticks,
+      xlabel style={font=\small},
+      ylabel style={font=\small},
+      yticklabel style = {font=\tiny},
+      xticklabel style = {font=\tiny},
+      x tick label style={/pgf/number format/1000 sep=},  % sep={} disables comma in 1,000
+      xmin=0,
+      xmax=29000,
+      legend style={font=\tiny},
+      legend columns=1,
+      legend entries={Tacotron 2, Tacotron 2 + prior + $\mathcal{L}_{\mathit{align}}$}
+    ]
+    \addplot [line width=0.3mm, color=lava] table [x=iteration, y=phoneme_l1_distance, y error=oursstd,col sep=comma] {\tacotronbasedurationdistance};
+    \addplot [line width=0.3mm, color=forestgreen] table [x=iteration, y=phoneme_l1_distance, y error=oursstd,col sep=comma] {\tacotronctcdurationdistance};
+    
+  \end{axis}
+\end{tikzpicture}

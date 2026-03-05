@@ -1,0 +1,25 @@
+\begin{tikzpicture}[]
+  \begin{axis}[
+    height=3.2cm,
+    width=0.9\linewidth,
+      % xlabel= Iteration,
+      ylabel= { },
+      legend cell align={left},
+      ylabel near ticks,
+      xlabel near ticks,
+      xlabel style= {font=\tiny},
+      ylabel style={font=\tiny},
+      legend style={font=\tiny},
+      yticklabel style = {font=\tiny},
+     xticklabel style = {font=\tiny},
+      %ymode=log,
+      xmin=500,
+      xmax=5250,
+      x tick label style={/pgf/number format/1000 sep=},  % sep={} disables comma in 1,000
+      legend columns=1,
+      legend entries={FastPitch (Tacotron 2 durations), FastPitch + prior + $\mathcal{L}_{\mathit{align}}$}
+    ]
+    \addplot [line width=0.3mm, color=lava] table [x=model, y=mel_cepstrum_mcd, y error=oursstd,col sep=comma] {\fastpitchbaselinemcd};
+    \addplot [line width=0.3mm, color=forestgreen] table [x=model, y=mel_cepstrum_mcd, y error=oursstd,col sep=comma] {\fastpitchconvmcd};
+  \end{axis}
+\end{tikzpicture}

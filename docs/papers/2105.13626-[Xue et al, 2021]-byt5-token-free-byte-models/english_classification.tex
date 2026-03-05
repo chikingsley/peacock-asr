@@ -1,0 +1,20 @@
+\begin{table}[t!]
+\centering
+\resizebox{0.7\columnwidth}{!}{
+\footnotesize
+\begin{tabular}{lcccccc}
+\toprule
+& \multicolumn{2}{c}{GLUE} & \multicolumn{2}{c}{SuperGLUE} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+Model & mT5 & ByT5 & mT5 & ByT5 \\
+\midrule
+ Small & 75.6 & \textbf{80.5} & 60.2 & \textbf{67.8} \\
+ Base & 83.0 & \textbf{85.3} & 72.5 & \textbf{74.0} \\
+ Large & \textbf{87.6} & 87.0 & \textbf{81.9} & 80.4 & \\
+ XL & \textbf{88.7} & 87.9 & \textbf{84.7} & 83.2 \\
+ XXL & \textbf{90.7} & 90.1 & \textbf{89.2} & 88.6 \\
+\bottomrule
+\end{tabular}}
+\caption{mT5 and ByT5 performance on GLUE and SuperGLUE\@. For each benchmark, we fine-tune a single model on a mixture of all tasks, select the best checkpoint per task based on validation set performance, and report average validation set scores over all tasks.}
+\label{tab:english_classification}
+\end{table}

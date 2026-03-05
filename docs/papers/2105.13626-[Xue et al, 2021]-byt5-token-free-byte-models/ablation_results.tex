@@ -1,0 +1,28 @@
+\begin{table}[t!]
+\centering
+\resizebox{\columnwidth}{!}{
+\footnotesize
+\setlength\tabcolsep{3pt}
+\begin{tabular}{lccc}
+\toprule
+& XNLI & TyDiQA- & GEM-XSum \\
+Model & (Accuracy) & GoldP (F1) & (BLEU) \\
+\midrule
+ByT5-Large (1.23B) & 79.7 & 87.7 & 11.5 \\
+mT5-Large (1.23B) & 81.1 & 85.3 & 10.1 \\
+\midrule
+(a) ByT5-36/12-668M & 78.3 & 87.8 & 12.3 \\
+(b) ByT5-24/24-718M & 75.4 & 83.0 & 7.1 \\
+(c) ByT5-12/36-768M & 73.5 & 83.1 & 8.3 \\
+\midrule
+(d) mT5-36/12-1.18B & 81.5 & 87.1 & 10.8 \\
+\midrule
+(e) ByT5-Large-Span3 & 79.4 & 87.4 & 10.2 \\
+(f) ByT5-Large-Span40 & 78.9 & 88.3 & 12.6 \\
+\midrule
+(g) CharT5-36/12-1.23B & 79.0 & 87.6 & 11.2 \\
+\bottomrule
+\end{tabular}}
+\caption{Ablation model results across three tasks.}
+\label{tab:ablation_results}
+\end{table}

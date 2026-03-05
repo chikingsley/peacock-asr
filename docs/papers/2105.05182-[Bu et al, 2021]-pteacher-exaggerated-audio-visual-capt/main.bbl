@@ -1,0 +1,1157 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{91}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{}, \showDOI{}, and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showDOI}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showDOI #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showDOI      \undefined \def \showDOI       #1{#1}\fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       {\relax}        \fi
+% The following commands are used for tagged output and should be
+% invisible to TeX
+\providecommand\bibfield[2]{#2}
+\providecommand\bibinfo[2]{#2}
+\providecommand\natexlab[1]{#1}
+\providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[\protect\citeauthoryear{Alghamdi, Maddock, Barker, and Brown}{Alghamdi
+  et~al\mbox{.}}{2017}]%
+        {alghamdi2017impact}
+\bibfield{author}{\bibinfo{person}{Najwa Alghamdi}, \bibinfo{person}{Steve
+  Maddock}, \bibinfo{person}{Jon Barker}, {and} \bibinfo{person}{Guy~J Brown}.}
+  \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{The impact of automatic exaggeration of the visual
+  articulatory features of a talker on the intelligibility of spectrally
+  distorted speech}.
+\newblock \bibinfo{journal}{\emph{Speech Communication}}  \bibinfo{volume}{95}
+  (\bibinfo{year}{2017}), \bibinfo{pages}{127--136}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Badin, Youssef, Bailly, Elisei, and
+  Hueber}{Badin et~al\mbox{.}}{2010}]%
+        {badin2010visual}
+\bibfield{author}{\bibinfo{person}{Pierre Badin}, \bibinfo{person}{Atef~Ben
+  Youssef}, \bibinfo{person}{G{\'e}rard Bailly},
+  \bibinfo{person}{Fr{\'e}d{\'e}ric Elisei}, {and} \bibinfo{person}{Thomas
+  Hueber}.} \bibinfo{year}{2010}\natexlab{}.
+\newblock \showarticletitle{Visual articulatory feedback for phonetic
+  correction in second language learning}. In \bibinfo{booktitle}{\emph{Second
+  Language Studies: Acquisition, Learning, Education and Technology}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Bliss, Abel, and Gick}{Bliss
+  et~al\mbox{.}}{2018}]%
+        {bliss2018computer}
+\bibfield{author}{\bibinfo{person}{Heather Bliss}, \bibinfo{person}{Jennifer
+  Abel}, {and} \bibinfo{person}{Bryan Gick}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Computer-assisted visual articulation feedback in
+  L2 pronunciation instruction: A review}.
+\newblock \bibinfo{journal}{\emph{Journal of Second Language Pronunciation}}
+  \bibinfo{volume}{4}, \bibinfo{number}{1} (\bibinfo{year}{2018}),
+  \bibinfo{pages}{129--153}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Bradlow, Pisoni, Akahane-Yamada, and
+  Tohkura}{Bradlow et~al\mbox{.}}{1997}]%
+        {bradlow1997training}
+\bibfield{author}{\bibinfo{person}{Ann~R Bradlow}, \bibinfo{person}{David~B
+  Pisoni}, \bibinfo{person}{Reiko Akahane-Yamada}, {and}
+  \bibinfo{person}{Yoh’ichi Tohkura}.} \bibinfo{year}{1997}\natexlab{}.
+\newblock \showarticletitle{Training Japanese listeners to identify
+  English/r/and/l: IV. Some effects of perceptual learning on speech
+  production}.
+\newblock \bibinfo{journal}{\emph{The Journal of the Acoustical Society of
+  America}} \bibinfo{volume}{101}, \bibinfo{number}{4} (\bibinfo{year}{1997}),
+  \bibinfo{pages}{2299--2310}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Browman and Goldstein}{Browman and
+  Goldstein}{1992}]%
+        {browman1992articulatory}
+\bibfield{author}{\bibinfo{person}{Catherine~P Browman} {and}
+  \bibinfo{person}{Louis Goldstein}.} \bibinfo{year}{1992}\natexlab{}.
+\newblock \showarticletitle{Articulatory phonology: An overview}.
+\newblock \bibinfo{journal}{\emph{Phonetica}} \bibinfo{volume}{49},
+  \bibinfo{number}{3-4} (\bibinfo{year}{1992}), \bibinfo{pages}{155--180}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Brown and Cieplinski}{Brown and
+  Cieplinski}{2020}]%
+        {brown2020device}
+\bibfield{author}{\bibinfo{person}{Matthew~I Brown} {and}
+  \bibinfo{person}{Avi~E Cieplinski}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \bibinfo{title}{Device, method, and graphical user interface for
+  providing audiovisual feedback}.
+\newblock
+\newblock
+\newblock
+\shownote{US Patent 10,599,394.}
+
+
+\bibitem[\protect\citeauthoryear{Bu, Jia, Li, Zhou, and Lu}{Bu
+  et~al\mbox{.}}{2018}]%
+        {bu2018icoobook}
+\bibfield{author}{\bibinfo{person}{Yaohua Bu}, \bibinfo{person}{Jia Jia},
+  \bibinfo{person}{Xiang Li}, \bibinfo{person}{Suping Zhou}, {and}
+  \bibinfo{person}{Xiaobo Lu}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{IcooBook: when the picture book for children
+  encounters aesthetics of interaction}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 26th ACM international
+  conference on Multimedia}}. \bibinfo{pages}{1260--1262}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Bu, Li, Ma, Chen, Jia, Li, and Lu}{Bu
+  et~al\mbox{.}}{2020}]%
+        {bu2020visual}
+\bibfield{author}{\bibinfo{person}{Yaohua Bu}, \bibinfo{person}{Weijun Li},
+  \bibinfo{person}{Tianyi Ma}, \bibinfo{person}{Shengqi Chen},
+  \bibinfo{person}{Jia Jia}, \bibinfo{person}{Kun Li}, {and}
+  \bibinfo{person}{Xiaobo Lu}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Visual-speech Synthesis of Exaggerated Corrective
+  Feedback}. In \bibinfo{booktitle}{\emph{Proceedings of the 28th ACM
+  International Conference on Multimedia}}. \bibinfo{pages}{4521--4523}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Cervi{\~n}o-Povedano and
+  Mora}{Cervi{\~n}o-Povedano and Mora}{2010}]%
+        {cervino2010investigating}
+\bibfield{author}{\bibinfo{person}{Eva Cervi{\~n}o-Povedano} {and}
+  \bibinfo{person}{Joan~C Mora}.} \bibinfo{year}{2010}\natexlab{}.
+\newblock \showarticletitle{Investigating Catalan learners of English
+  over-reliance on duration: Vowel cue weighting and phonological short-term
+  memory}.
+\newblock \bibinfo{journal}{\emph{Achievements and perspectives in the
+  acquisition of second language speech: New Sounds}} (\bibinfo{year}{2010}),
+  \bibinfo{pages}{53--64}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Chalfoun and Frasson}{Chalfoun and
+  Frasson}{2011}]%
+        {chalfoun2011subliminal}
+\bibfield{author}{\bibinfo{person}{Pierre Chalfoun} {and}
+  \bibinfo{person}{Claude Frasson}.} \bibinfo{year}{2011}\natexlab{}.
+\newblock \showarticletitle{Subliminal cues while teaching: HCI technique for
+  enhanced learning}.
+\newblock \bibinfo{journal}{\emph{Advances in Human-Computer Interaction}}
+  \bibinfo{volume}{2011} (\bibinfo{year}{2011}).
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Chang and Ungar}{Chang and Ungar}{1993}]%
+        {chang1993animation}
+\bibfield{author}{\bibinfo{person}{Bay-Wei Chang} {and} \bibinfo{person}{David
+  Ungar}.} \bibinfo{year}{1993}\natexlab{}.
+\newblock \showarticletitle{Animation: from cartoons to the user interface}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 6th annual ACM symposium on User
+  interface software and technology}}. \bibinfo{pages}{45--55}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Chen and Rao}{Chen and Rao}{1998}]%
+        {chen1998audio}
+\bibfield{author}{\bibinfo{person}{Tsuhan Chen} {and} \bibinfo{person}{Ram~R
+  Rao}.} \bibinfo{year}{1998}\natexlab{}.
+\newblock \showarticletitle{Audio-visual integration in multimodal
+  communication}.
+\newblock \bibinfo{journal}{\emph{Proc. IEEE}} \bibinfo{volume}{86},
+  \bibinfo{number}{5} (\bibinfo{year}{1998}), \bibinfo{pages}{837--852}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Cheng, Zhang, Fan, and Zhang}{Cheng
+  et~al\mbox{.}}{2019b}]%
+        {cheng2019role}
+\bibfield{author}{\bibinfo{person}{Bing Cheng}, \bibinfo{person}{Xiaojuan
+  Zhang}, \bibinfo{person}{Siying Fan}, {and} \bibinfo{person}{Yang Zhang}.}
+  \bibinfo{year}{2019}\natexlab{b}.
+\newblock \showarticletitle{The role of temporal acoustic exaggeration in high
+  variability phonetic training: A behavioral and ERP study}.
+\newblock \bibinfo{journal}{\emph{Frontiers in psychology}}
+  \bibinfo{volume}{10} (\bibinfo{year}{2019}), \bibinfo{pages}{1178}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Cheng, Zhang, and Zhang}{Cheng
+  et~al\mbox{.}}{2019a}]%
+        {cheng2019temporal}
+\bibfield{author}{\bibinfo{person}{Bing Cheng}, \bibinfo{person}{Xiaojuan
+  Zhang}, {and} \bibinfo{person}{Yang Zhang}.}
+  \bibinfo{year}{2019}\natexlab{a}.
+\newblock \showarticletitle{Temporal exaggeration facilitates second language
+  phonetic training: The case of syllable-final nasal contrast}.
+\newblock \bibinfo{journal}{\emph{The Journal of the Acoustical Society of
+  America}} \bibinfo{volume}{146}, \bibinfo{number}{4} (\bibinfo{year}{2019}),
+  \bibinfo{pages}{2844--2844}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Colantoni, Steele, Escudero, and
+  Neyra}{Colantoni et~al\mbox{.}}{2015}]%
+        {colantoni2015second}
+\bibfield{author}{\bibinfo{person}{Laura Colantoni}, \bibinfo{person}{Jeffrey
+  Steele}, \bibinfo{person}{Paola Escudero}, {and} \bibinfo{person}{Paola
+  Roc{\'\i}o~Escudero Neyra}.} \bibinfo{year}{2015}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Second language speech}}.
+\newblock \bibinfo{publisher}{Cambridge University Press}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Corbin and Strauss}{Corbin and
+  Strauss}{2014}]%
+        {corbin2014basics}
+\bibfield{author}{\bibinfo{person}{Juliet Corbin} {and} \bibinfo{person}{Anselm
+  Strauss}.} \bibinfo{year}{2014}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Basics of qualitative research: Techniques
+  and procedures for developing grounded theory}}.
+\newblock \bibinfo{publisher}{Sage publications}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Cort{\'e}s}{Cort{\'e}s}{2005}]%
+        {cortes2005negative}
+\bibfield{author}{\bibinfo{person}{Nuria~Calvo Cort{\'e}s}.}
+  \bibinfo{year}{2005}\natexlab{}.
+\newblock \showarticletitle{Negative language transfer when learning Spanish as
+  a foreign language}.
+\newblock \bibinfo{journal}{\emph{Interling{\"u}{\'\i}stica}}
+  \bibinfo{number}{16} (\bibinfo{year}{2005}), \bibinfo{pages}{237--248}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Council}{Council}{2013}]%
+        {council2013english}
+\bibfield{author}{\bibinfo{person}{British Council}.}
+  \bibinfo{year}{2013}\natexlab{}.
+\newblock \showarticletitle{The English Effect}.
+\newblock \bibinfo{journal}{\emph{Retrieved March}}  \bibinfo{volume}{22}
+  (\bibinfo{year}{2013}), \bibinfo{pages}{2015}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Crystal}{Crystal}{2011}]%
+        {crystal2011dictionary}
+\bibfield{author}{\bibinfo{person}{David Crystal}.}
+  \bibinfo{year}{2011}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{A dictionary of linguistics and
+  phonetics}}. Vol.~\bibinfo{volume}{30}.
+\newblock \bibinfo{publisher}{John Wiley \& Sons}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Derwing and Munro}{Derwing and Munro}{2005}]%
+        {derwing2005second}
+\bibfield{author}{\bibinfo{person}{Tracey~M Derwing} {and}
+  \bibinfo{person}{Murray~J Munro}.} \bibinfo{year}{2005}\natexlab{}.
+\newblock \showarticletitle{Second language accent and pronunciation teaching:
+  A research-based approach}.
+\newblock \bibinfo{journal}{\emph{TESOL quarterly}} \bibinfo{volume}{39},
+  \bibinfo{number}{3} (\bibinfo{year}{2005}), \bibinfo{pages}{379--397}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Derwing and Rossiter}{Derwing and
+  Rossiter}{2002}]%
+        {derwing2002esl}
+\bibfield{author}{\bibinfo{person}{Tracey~M Derwing} {and}
+  \bibinfo{person}{Marian~J Rossiter}.} \bibinfo{year}{2002}\natexlab{}.
+\newblock \showarticletitle{ESL learners' perceptions of their pronunciation
+  needs and strategies}.
+\newblock \bibinfo{journal}{\emph{System}} \bibinfo{volume}{30},
+  \bibinfo{number}{2} (\bibinfo{year}{2002}), \bibinfo{pages}{155--166}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Escudero}{Escudero}{2001}]%
+        {escudero2001role}
+\bibfield{author}{\bibinfo{person}{Paola Escudero}.}
+  \bibinfo{year}{2001}\natexlab{}.
+\newblock \showarticletitle{The role of the input in the development of L1 and
+  L2 sound contrasts: language-specific cue weighting for vowels}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 25th annual Boston University
+  conference on language development}}, Vol.~\bibinfo{volume}{1}. Citeseer,
+  \bibinfo{pages}{250--261}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Escudero~Neyra}{Escudero~Neyra}{2005}]%
+        {escudero2005linguistic}
+\bibfield{author}{\bibinfo{person}{Paola~Roc{\'\i}o Escudero~Neyra}.}
+  \bibinfo{year}{2005}\natexlab{}.
+\newblock \emph{\bibinfo{title}{Linguistic perception and second language
+  acquisition: explaining the attainment of optimal phonological
+  categorization}}.
+\newblock \bibinfo{thesistype}{Ph.D. Dissertation}. \bibinfo{school}{Utrecht
+  University \& LOT}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Ezzat and Poggio}{Ezzat and Poggio}{2000}]%
+        {ezzat2000visual}
+\bibfield{author}{\bibinfo{person}{Tony Ezzat} {and} \bibinfo{person}{Tomaso
+  Poggio}.} \bibinfo{year}{2000}\natexlab{}.
+\newblock \showarticletitle{Visual speech synthesis by morphing visemes}.
+\newblock \bibinfo{journal}{\emph{International Journal of Computer Vision}}
+  \bibinfo{volume}{38}, \bibinfo{number}{1} (\bibinfo{year}{2000}),
+  \bibinfo{pages}{45--57}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Garcia, Kolat, and Morgan}{Garcia
+  et~al\mbox{.}}{2018}]%
+        {garcia2018self}
+\bibfield{author}{\bibinfo{person}{Christina Garcia}, \bibinfo{person}{Mark
+  Kolat}, {and} \bibinfo{person}{Terrell~A Morgan}.}
+  \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{SELF-CORRECTION OF SECOND-LANGUAGE PRONUNCIATION
+  VIA ONLINE, REAL-TIME, VISUAL FEEDBACK}. In
+  \bibinfo{booktitle}{\emph{PRONUNCIATION IN SECOND LANGUAGE LEARNING AND
+  TEACHING CONFERENCE (ISSN 2380-9566)}}. \bibinfo{pages}{54}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Geoghegan, Spence, Ho, Lu, Jermy, Hunter, and
+  Cater}{Geoghegan et~al\mbox{.}}{2012}]%
+        {geoghegan2012stereoscopic}
+\bibfield{author}{\bibinfo{person}{Patrick~H Geoghegan}, \bibinfo{person}{C
+  Spence}, \bibinfo{person}{Wei~H Ho}, \bibinfo{person}{X Lu},
+  \bibinfo{person}{M Jermy}, \bibinfo{person}{P Hunter}, {and}
+  \bibinfo{person}{J Cater}.} \bibinfo{year}{2012}\natexlab{}.
+\newblock \showarticletitle{Stereoscopic PIV measurement of airflow in human
+  speech during pronunciation of fricatives}. In \bibinfo{booktitle}{\emph{16th
+  International Symposium of Laser Techniques to Fluid Mechanics, Lisbon,
+  Portugal, 9th-12th July}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Golonka, Bowles, Frank, Richardson, and
+  Freynik}{Golonka et~al\mbox{.}}{2014}]%
+        {golonka2014technologies}
+\bibfield{author}{\bibinfo{person}{Ewa~M Golonka}, \bibinfo{person}{Anita~R
+  Bowles}, \bibinfo{person}{Victor~M Frank}, \bibinfo{person}{Dorna~L
+  Richardson}, {and} \bibinfo{person}{Suzanne Freynik}.}
+  \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{Technologies for foreign language learning: a
+  review of technology types and their effectiveness}.
+\newblock \bibinfo{journal}{\emph{Computer assisted language learning}}
+  \bibinfo{volume}{27}, \bibinfo{number}{1} (\bibinfo{year}{2014}),
+  \bibinfo{pages}{70--105}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Granqvist, Takala, Takatalo, and
+  H{\"a}m{\"a}l{\"a}inen}{Granqvist et~al\mbox{.}}{2018}]%
+        {granqvist2018exaggeration}
+\bibfield{author}{\bibinfo{person}{Antti Granqvist}, \bibinfo{person}{Tapio
+  Takala}, \bibinfo{person}{Jari Takatalo}, {and} \bibinfo{person}{Perttu
+  H{\"a}m{\"a}l{\"a}inen}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Exaggeration of Avatar Flexibility in Virtual
+  Reality}. In \bibinfo{booktitle}{\emph{Proceedings of the 2018 Annual
+  Symposium on Computer-Human Interaction in Play}}. \bibinfo{pages}{201--209}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Hailpern, Karahalios, and Halle}{Hailpern
+  et~al\mbox{.}}{2009}]%
+        {hailpern2009creating}
+\bibfield{author}{\bibinfo{person}{Joshua Hailpern}, \bibinfo{person}{Karrie
+  Karahalios}, {and} \bibinfo{person}{James Halle}.}
+  \bibinfo{year}{2009}\natexlab{}.
+\newblock \showarticletitle{Creating a spoken impact: encouraging vocalization
+  through audio visual feedback in children with ASD}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the SIGCHI conference on human
+  factors in computing systems}}. \bibinfo{pages}{453--462}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Halle, Vaux, and Wolfe}{Halle
+  et~al\mbox{.}}{2000}]%
+        {halle2000feature}
+\bibfield{author}{\bibinfo{person}{Morris Halle}, \bibinfo{person}{Bert Vaux},
+  {and} \bibinfo{person}{Andrew Wolfe}.} \bibinfo{year}{2000}\natexlab{}.
+\newblock \showarticletitle{On feature spreading and the representation of
+  place of articulation}.
+\newblock \bibinfo{journal}{\emph{Linguistic inquiry}} \bibinfo{volume}{31},
+  \bibinfo{number}{3} (\bibinfo{year}{2000}), \bibinfo{pages}{387--444}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Hsu}{Hsu}{[n.d.]}]%
+        {hsupython}
+\bibfield{author}{\bibinfo{person}{CC Hsu}.} \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \bibinfo{title}{Python-wrapper-for-world-vocoder}.
+\newblock
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Hubbard}{Hubbard}{2002}]%
+        {hubbard2002interactive}
+\bibfield{author}{\bibinfo{person}{Philip Hubbard}.}
+  \bibinfo{year}{2002}\natexlab{}.
+\newblock \showarticletitle{Interactive participatory dramas for language
+  learning}.
+\newblock \bibinfo{journal}{\emph{Simulation \& Gaming}} \bibinfo{volume}{33},
+  \bibinfo{number}{2} (\bibinfo{year}{2002}), \bibinfo{pages}{210--216}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Iribe, Manosavanh, Katsurada, Hayashi, Zhu,
+  and Nitta}{Iribe et~al\mbox{.}}{2011}]%
+        {iribe2011generating}
+\bibfield{author}{\bibinfo{person}{Yurie Iribe}, \bibinfo{person}{Silasak
+  Manosavanh}, \bibinfo{person}{Kouichi Katsurada}, \bibinfo{person}{Ryoko
+  Hayashi}, \bibinfo{person}{Chunyue Zhu}, {and} \bibinfo{person}{Tsuneo
+  Nitta}.} \bibinfo{year}{2011}\natexlab{}.
+\newblock \showarticletitle{Generating animated pronunciation from speech
+  through articulatory feature extraction}. In
+  \bibinfo{booktitle}{\emph{Twelfth Annual Conference of the International
+  Speech Communication Association}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Kalikow and Swets}{Kalikow and Swets}{1972}]%
+        {kalikow1972experiments}
+\bibfield{author}{\bibinfo{person}{D Kalikow} {and} \bibinfo{person}{J Swets}.}
+  \bibinfo{year}{1972}\natexlab{}.
+\newblock \showarticletitle{Experiments with computer-controlled displays in
+  second-language learning}.
+\newblock \bibinfo{journal}{\emph{IEEE Transactions on Audio and
+  Electroacoustics}} \bibinfo{volume}{20}, \bibinfo{number}{1}
+  (\bibinfo{year}{1972}), \bibinfo{pages}{23--28}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Kartushina and Frauenfelder}{Kartushina and
+  Frauenfelder}{2014}]%
+        {kartushina2014effects}
+\bibfield{author}{\bibinfo{person}{Natalia Kartushina} {and}
+  \bibinfo{person}{Ulrich~H Frauenfelder}.} \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{On the effects of L2 perception and of individual
+  differences in L1 production on L2 pronunciation}.
+\newblock \bibinfo{journal}{\emph{Frontiers in psychology}}
+  \bibinfo{volume}{5} (\bibinfo{year}{2014}), \bibinfo{pages}{1246}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Kartushina, Hervais-Adelman, Frauenfelder, and
+  Golestani}{Kartushina et~al\mbox{.}}{2015}]%
+        {kartushina2015effect}
+\bibfield{author}{\bibinfo{person}{Natalia Kartushina}, \bibinfo{person}{Alexis
+  Hervais-Adelman}, \bibinfo{person}{Ulrich~Hans Frauenfelder}, {and}
+  \bibinfo{person}{Narly Golestani}.} \bibinfo{year}{2015}\natexlab{}.
+\newblock \showarticletitle{The effect of phonetic production training with
+  visual feedback on the perception and production of foreign speech sounds}.
+\newblock \bibinfo{journal}{\emph{The journal of the acoustical society of
+  America}} \bibinfo{volume}{138}, \bibinfo{number}{2} (\bibinfo{year}{2015}),
+  \bibinfo{pages}{817--832}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Kawahara, Dantsuji, and Tsubota}{Kawahara
+  et~al\mbox{.}}{2004}]%
+        {kawahara2004practical}
+\bibfield{author}{\bibinfo{person}{Tatsuya Kawahara}, \bibinfo{person}{Masatake
+  Dantsuji}, {and} \bibinfo{person}{Yasushi Tsubota}.}
+  \bibinfo{year}{2004}\natexlab{}.
+\newblock \showarticletitle{Practical use of English pronunciation system for
+  Japanese students in the CALL classroom}. In \bibinfo{booktitle}{\emph{Eighth
+  International Conference on Spoken Language Processing}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Kelly}{Kelly}{2006}]%
+        {kelly2006teach}
+\bibfield{author}{\bibinfo{person}{Gerald Kelly}.}
+  \bibinfo{year}{2006}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{How To Teach Pronunciation (With Cd)}}.
+\newblock \bibinfo{publisher}{Pearson Education India}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Khul, Williams, Lacerda, and Stevens}{Khul
+  et~al\mbox{.}}{[n.d.]}]%
+        {khul255b}
+\bibfield{author}{\bibinfo{person}{P Khul}, \bibinfo{person}{K Williams},
+  \bibinfo{person}{F Lacerda}, {and} \bibinfo{person}{K~Lindblom Stevens}.}
+  \bibinfo{year}{[n.d.]}\natexlab{}.
+\newblock \showarticletitle{B.(1992). Linguistic Experience Alters Phonetic
+  Perception in Infants by 6 Months of Age}.
+\newblock \bibinfo{journal}{\emph{Science}}  \bibinfo{volume}{255}
+  (\bibinfo{year}{[n.\,d.]}).
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{King and Palmer}{King and Palmer}{1985}]%
+        {king1985integration}
+\bibfield{author}{\bibinfo{person}{AJ King} {and} \bibinfo{person}{AR Palmer}.}
+  \bibinfo{year}{1985}\natexlab{}.
+\newblock \showarticletitle{Integration of visual and auditory information in
+  bimodal neurones in the guinea-pig superior colliculus}.
+\newblock \bibinfo{journal}{\emph{Experimental brain research}}
+  \bibinfo{volume}{60}, \bibinfo{number}{3} (\bibinfo{year}{1985}),
+  \bibinfo{pages}{492--500}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Kozhevnikov and Chistovich}{Kozhevnikov and
+  Chistovich}{1967}]%
+        {kozhevnikov1967speech}
+\bibfield{author}{\bibinfo{person}{Valeri~Aleksandrovich Kozhevnikov} {and}
+  \bibinfo{person}{Liudmila~Andreevna Chistovich}.}
+  \bibinfo{year}{1967}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Speech: articulation and perception}}.
+  Vol.~\bibinfo{volume}{30}.
+\newblock \bibinfo{publisher}{US Department of Commerce, Clearinghouse for
+  Federal Scientific and~…}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Lasseter}{Lasseter}{1987}]%
+        {lasseter1987principles}
+\bibfield{author}{\bibinfo{person}{John Lasseter}.}
+  \bibinfo{year}{1987}\natexlab{}.
+\newblock \showarticletitle{Principles of traditional animation applied to 3D
+  computer animation}. In \bibinfo{booktitle}{\emph{Proceedings of the 14th
+  annual conference on Computer graphics and interactive techniques}}.
+  \bibinfo{pages}{35--44}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Lee and Lyster}{Lee and Lyster}{2016}]%
+        {lee2016effects}
+\bibfield{author}{\bibinfo{person}{Andrew~H Lee} {and} \bibinfo{person}{Roy
+  Lyster}.} \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{The effects of corrective feedback on instructed L2
+  speech perception}.
+\newblock \bibinfo{journal}{\emph{Studies in Second Language Acquisition}}
+  \bibinfo{volume}{38}, \bibinfo{number}{1} (\bibinfo{year}{2016}),
+  \bibinfo{pages}{35}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Lee, Plonsky, and Saito}{Lee
+  et~al\mbox{.}}{2020}]%
+        {lee2020effects}
+\bibfield{author}{\bibinfo{person}{Bradford Lee}, \bibinfo{person}{Luke
+  Plonsky}, {and} \bibinfo{person}{Kazuya Saito}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{The effects of perception-vs. production-based
+  pronunciation instruction}.
+\newblock \bibinfo{journal}{\emph{System}}  \bibinfo{volume}{88}
+  (\bibinfo{year}{2020}), \bibinfo{pages}{102185}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Leung, Liu, and Meng}{Leung
+  et~al\mbox{.}}{2019}]%
+        {leung2019cnn}
+\bibfield{author}{\bibinfo{person}{Wai-Kim Leung}, \bibinfo{person}{Xunying
+  Liu}, {and} \bibinfo{person}{Helen Meng}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{CNN-RNN-CTC based end-to-end mispronunciation
+  detection and diagnosis}. In \bibinfo{booktitle}{\emph{ICASSP 2019-2019 IEEE
+  International Conference on Acoustics, Speech and Signal Processing
+  (ICASSP)}}. IEEE, \bibinfo{pages}{8132--8136}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Leung, Yuen, Wong, and Meng}{Leung
+  et~al\mbox{.}}{2013}]%
+        {leung2013development}
+\bibfield{author}{\bibinfo{person}{Wai-Kim Leung}, \bibinfo{person}{Ka-Wa
+  Yuen}, \bibinfo{person}{Ka-Ho Wong}, {and} \bibinfo{person}{Helen Meng}.}
+  \bibinfo{year}{2013}\natexlab{}.
+\newblock \showarticletitle{Development of text-to-audiovisual speech synthesis
+  to support interactive language learning on a mobile device}. In
+  \bibinfo{booktitle}{\emph{2013 IEEE 4th International Conference on Cognitive
+  Infocommunications (CogInfoCom)}}. IEEE, \bibinfo{pages}{583--588}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Li, Li, Song, and Fu}{Li
+  et~al\mbox{.}}{2015a}]%
+        {li2015rating}
+\bibfield{author}{\bibinfo{person}{Kun Li}, \bibinfo{person}{Jing Li},
+  \bibinfo{person}{Yufang Song}, {and} \bibinfo{person}{Hewei Fu}.}
+  \bibinfo{year}{2015}\natexlab{a}.
+\newblock \showarticletitle{Rating Algorithm for Pronunciation of English Based
+  on Audio Feature Pattern Matching}. In \bibinfo{booktitle}{\emph{MATEC Web of
+  Conferences}}, Vol.~\bibinfo{volume}{22}. EDP Sciences,
+  \bibinfo{pages}{01032}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Li, Qian, Kang, Liu, and Meng}{Li
+  et~al\mbox{.}}{2015b}]%
+        {li2015integrating}
+\bibfield{author}{\bibinfo{person}{Kun Li}, \bibinfo{person}{Xiaojun Qian},
+  \bibinfo{person}{Shiyin Kang}, \bibinfo{person}{Pengfei Liu}, {and}
+  \bibinfo{person}{Helen Meng}.} \bibinfo{year}{2015}\natexlab{b}.
+\newblock \showarticletitle{Integrating acoustic and state-transition models
+  for free phone recognition in L2 English speech using multi-distribution deep
+  neural networks.}. In \bibinfo{booktitle}{\emph{SLaTE}}.
+  \bibinfo{pages}{119--124}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Li, Qian, and Meng}{Li et~al\mbox{.}}{2016}]%
+        {li2016mispronunciation}
+\bibfield{author}{\bibinfo{person}{Kun Li}, \bibinfo{person}{Xiaojun Qian},
+  {and} \bibinfo{person}{Helen Meng}.} \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{Mispronunciation detection and diagnosis in l2
+  english speech using multidistribution deep neural networks}.
+\newblock \bibinfo{journal}{\emph{IEEE/ACM Transactions on Audio, Speech, and
+  Language Processing}} \bibinfo{volume}{25}, \bibinfo{number}{1}
+  (\bibinfo{year}{2016}), \bibinfo{pages}{193--207}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Liberman, Harris, Hoffman, and
+  Griffith}{Liberman et~al\mbox{.}}{1957}]%
+        {liberman1957discrimination}
+\bibfield{author}{\bibinfo{person}{Alvin~M Liberman},
+  \bibinfo{person}{Katherine~Safford Harris}, \bibinfo{person}{Howard~S
+  Hoffman}, {and} \bibinfo{person}{Belver~C Griffith}.}
+  \bibinfo{year}{1957}\natexlab{}.
+\newblock \showarticletitle{The discrimination of speech sounds within and
+  across phoneme boundaries.}
+\newblock \bibinfo{journal}{\emph{Journal of experimental psychology}}
+  \bibinfo{volume}{54}, \bibinfo{number}{5} (\bibinfo{year}{1957}),
+  \bibinfo{pages}{358}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Lightbown and Spada}{Lightbown and
+  Spada}{2000}]%
+        {lightbown2000they}
+\bibfield{author}{\bibinfo{person}{Patsy~M Lightbown} {and}
+  \bibinfo{person}{Nina Spada}.} \bibinfo{year}{2000}\natexlab{}.
+\newblock \showarticletitle{Do they know what they're doing? L2 learners'
+  awareness of L1 influence}.
+\newblock \bibinfo{journal}{\emph{Language Awareness}} \bibinfo{volume}{9},
+  \bibinfo{number}{4} (\bibinfo{year}{2000}), \bibinfo{pages}{198--217}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Liu, Ding, Yu, Gao, Chi, and Shi}{Liu
+  et~al\mbox{.}}{2019}]%
+        {liu2019bought}
+\bibfield{author}{\bibinfo{person}{Guanhong Liu}, \bibinfo{person}{Xianghua
+  Ding}, \bibinfo{person}{Chun Yu}, \bibinfo{person}{Lan Gao},
+  \bibinfo{person}{Xingyu Chi}, {and} \bibinfo{person}{Yuanchun Shi}.}
+  \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{" I Bought This for Me to Look More Ordinary" A
+  Study of Blind People Doing Online Shopping}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 2019 CHI Conference on Human
+  Factors in Computing Systems}}. \bibinfo{pages}{1--11}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Liu, Yuen, Leung, and Meng}{Liu
+  et~al\mbox{.}}{2012}]%
+        {liu2012menunciate}
+\bibfield{author}{\bibinfo{person}{Pengfei Liu}, \bibinfo{person}{Ka-Wa Yuen},
+  \bibinfo{person}{Wai-Kim Leung}, {and} \bibinfo{person}{Helen Meng}.}
+  \bibinfo{year}{2012}\natexlab{}.
+\newblock \showarticletitle{menunciate: Development of a computer-aided
+  pronunciation training system on a cross-platform framework for mobile,
+  speech-enabled application development}. In \bibinfo{booktitle}{\emph{2012
+  8th International Symposium on Chinese Spoken Language Processing}}. IEEE,
+  \bibinfo{pages}{170--173}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Lu, Wang, and De~Silva}{Lu
+  et~al\mbox{.}}{2012}]%
+        {lu2012automatic}
+\bibfield{author}{\bibinfo{person}{Jingli Lu}, \bibinfo{person}{Ruili Wang},
+  {and} \bibinfo{person}{Liyanage~C De~Silva}.}
+  \bibinfo{year}{2012}\natexlab{}.
+\newblock \showarticletitle{Automatic stress exaggeration by prosody
+  modification to assist language learners perceive sentence stress}.
+\newblock \bibinfo{journal}{\emph{International journal of speech technology}}
+  \bibinfo{volume}{15}, \bibinfo{number}{2} (\bibinfo{year}{2012}),
+  \bibinfo{pages}{87--98}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Lu, Wang, Silva, Gao, and Liu}{Lu
+  et~al\mbox{.}}{2010}]%
+        {lu2010castle}
+\bibfield{author}{\bibinfo{person}{Jingli Lu}, \bibinfo{person}{Ruili Wang},
+  \bibinfo{person}{Liyanage C~De Silva}, \bibinfo{person}{Yang Gao}, {and}
+  \bibinfo{person}{Jia Liu}.} \bibinfo{year}{2010}\natexlab{}.
+\newblock \showarticletitle{CASTLE: a computer-assisted stress teaching and
+  learning environment for learners of English as a second language}. In
+  \bibinfo{booktitle}{\emph{Eleventh Annual Conference of the International
+  Speech Communication Association}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{McAuliffe, Socolof, Mihuc, Wagner, and
+  Sonderegger}{McAuliffe et~al\mbox{.}}{2017}]%
+        {mcauliffe2017montreal}
+\bibfield{author}{\bibinfo{person}{Michael McAuliffe},
+  \bibinfo{person}{Michaela Socolof}, \bibinfo{person}{Sarah Mihuc},
+  \bibinfo{person}{Michael Wagner}, {and} \bibinfo{person}{Morgan
+  Sonderegger}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{Montreal Forced Aligner: Trainable Text-Speech
+  Alignment Using Kaldi.}. In \bibinfo{booktitle}{\emph{Interspeech}},
+  Vol.~\bibinfo{volume}{2017}. \bibinfo{pages}{498--502}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Meng, Meng, Wu, and Cai}{Meng
+  et~al\mbox{.}}{2010}]%
+        {meng2010synthesizing}
+\bibfield{author}{\bibinfo{person}{Fanbo Meng}, \bibinfo{person}{Helen Meng},
+  \bibinfo{person}{Zhiyong Wu}, {and} \bibinfo{person}{Lianhong Cai}.}
+  \bibinfo{year}{2010}\natexlab{}.
+\newblock \showarticletitle{Synthesizing expressive speech to convey focus
+  using a perturbation model for computer-aided pronunciation training}. In
+  \bibinfo{booktitle}{\emph{Second Language Studies: Acquisition, Learning,
+  Education and Technology}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Meng, Wu, Jia, Meng, and Cai}{Meng
+  et~al\mbox{.}}{2014}]%
+        {meng2014synthesizing}
+\bibfield{author}{\bibinfo{person}{Fanbo Meng}, \bibinfo{person}{Zhiyong Wu},
+  \bibinfo{person}{Jia Jia}, \bibinfo{person}{Helen Meng}, {and}
+  \bibinfo{person}{Lianhong Cai}.} \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{Synthesizing English emphatic speech for multimodal
+  corrective feedback in computer-aided pronunciation training}.
+\newblock \bibinfo{journal}{\emph{Multimedia tools and applications}}
+  \bibinfo{volume}{73}, \bibinfo{number}{1} (\bibinfo{year}{2014}),
+  \bibinfo{pages}{463--489}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Meng, Wu, Meng, Jia, and Cai}{Meng
+  et~al\mbox{.}}{2012}]%
+        {meng2012hierarchical}
+\bibfield{author}{\bibinfo{person}{Fanbo Meng}, \bibinfo{person}{Zhiyong Wu},
+  \bibinfo{person}{Helen Meng}, \bibinfo{person}{Jia Jia}, {and}
+  \bibinfo{person}{Lianhong Cai}.} \bibinfo{year}{2012}\natexlab{}.
+\newblock \showarticletitle{Hierarchical English emphatic speech synthesis
+  based on HMM with limited training data}. In
+  \bibinfo{booktitle}{\emph{Thirteenth Annual Conference of the International
+  Speech Communication Association}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Meng, Lo, Wang, and Lau}{Meng
+  et~al\mbox{.}}{2007}]%
+        {meng2007deriving}
+\bibfield{author}{\bibinfo{person}{Helen Meng}, \bibinfo{person}{Yuen~Yee Lo},
+  \bibinfo{person}{Lan Wang}, {and} \bibinfo{person}{Wing~Yiu Lau}.}
+  \bibinfo{year}{2007}\natexlab{}.
+\newblock \showarticletitle{Deriving salient learners’ mispronunciations from
+  cross-language phonological comparisons}. In \bibinfo{booktitle}{\emph{2007
+  IEEE Workshop on Automatic Speech Recognition \& Understanding (ASRU)}}.
+  IEEE, \bibinfo{pages}{437--442}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Miller}{Miller}{1990}]%
+        {miller1990major}
+\bibfield{author}{\bibinfo{person}{Richard~I Miller}.}
+  \bibinfo{year}{1990}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Major American Higher Education Issues and
+  Challenges in the 1990s. Higher Education Policy Series 9.}}
+\newblock \bibinfo{publisher}{ERIC}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Mora and Darcy}{Mora and Darcy}{2017}]%
+        {mora2017relationship}
+\bibfield{author}{\bibinfo{person}{Joan~C Mora} {and} \bibinfo{person}{Isabelle
+  Darcy}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{The relationship between cognitive control and
+  pronunciation in a second language}.
+\newblock \bibinfo{journal}{\emph{Second language pronunciation assessment}}
+  (\bibinfo{year}{2017}), \bibinfo{pages}{95}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Munro, Derwing, and Flege}{Munro
+  et~al\mbox{.}}{1999}]%
+        {munro1999canadians}
+\bibfield{author}{\bibinfo{person}{Murray~J Munro}, \bibinfo{person}{Tracey~M
+  Derwing}, {and} \bibinfo{person}{James~E Flege}.}
+  \bibinfo{year}{1999}\natexlab{}.
+\newblock \showarticletitle{Canadians in Alabama: A perceptual study of dialect
+  acquisition in adults}.
+\newblock \bibinfo{journal}{\emph{Journal of Phonetics}} \bibinfo{volume}{27},
+  \bibinfo{number}{4} (\bibinfo{year}{1999}), \bibinfo{pages}{385--403}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Neri, Cucchiarini, and Strik}{Neri
+  et~al\mbox{.}}{2006}]%
+        {neri2006asr}
+\bibfield{author}{\bibinfo{person}{Ambra Neri}, \bibinfo{person}{Catia
+  Cucchiarini}, {and} \bibinfo{person}{Helmer Strik}.}
+  \bibinfo{year}{2006}\natexlab{}.
+\newblock \showarticletitle{ASR corrective feedback on pronunciation: Does it
+  really work?}
+\newblock  (\bibinfo{year}{2006}).
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Neri, Cucchiarini, Strik, and Boves}{Neri
+  et~al\mbox{.}}{2002}]%
+        {neri2002pedagogy}
+\bibfield{author}{\bibinfo{person}{Ambra Neri}, \bibinfo{person}{Catia
+  Cucchiarini}, \bibinfo{person}{Helmer Strik}, {and} \bibinfo{person}{Lou
+  Boves}.} \bibinfo{year}{2002}\natexlab{}.
+\newblock \showarticletitle{The pedagogy-technology interface in computer
+  assisted pronunciation training}.
+\newblock \bibinfo{journal}{\emph{Computer assisted language learning}}
+  \bibinfo{volume}{15}, \bibinfo{number}{5} (\bibinfo{year}{2002}),
+  \bibinfo{pages}{441--467}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Neri, Mich, Gerosa, and Giuliani}{Neri
+  et~al\mbox{.}}{2008}]%
+        {neri2008effectiveness}
+\bibfield{author}{\bibinfo{person}{Ambra Neri}, \bibinfo{person}{Ornella Mich},
+  \bibinfo{person}{Matteo Gerosa}, {and} \bibinfo{person}{Diego Giuliani}.}
+  \bibinfo{year}{2008}\natexlab{}.
+\newblock \showarticletitle{The effectiveness of computer assisted
+  pronunciation training for foreign language learning by children}.
+\newblock \bibinfo{journal}{\emph{Computer Assisted Language Learning}}
+  \bibinfo{volume}{21}, \bibinfo{number}{5} (\bibinfo{year}{2008}),
+  \bibinfo{pages}{393--408}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Ning, Wu, Jia, Meng, Meng, and Cai}{Ning
+  et~al\mbox{.}}{2015}]%
+        {ning2015hmm}
+\bibfield{author}{\bibinfo{person}{Yishuang Ning}, \bibinfo{person}{Zhiyong
+  Wu}, \bibinfo{person}{Jia Jia}, \bibinfo{person}{Fanbo Meng},
+  \bibinfo{person}{Helen Meng}, {and} \bibinfo{person}{Lianhong Cai}.}
+  \bibinfo{year}{2015}\natexlab{}.
+\newblock \showarticletitle{HMM-based emphatic speech synthesis for corrective
+  feedback in computer-aided pronunciation training}. In
+  \bibinfo{booktitle}{\emph{2015 IEEE International Conference on Acoustics,
+  Speech and Signal Processing (ICASSP)}}. IEEE, \bibinfo{pages}{4934--4938}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Ogden}{Ogden}{2017}]%
+        {ogden2017introduction}
+\bibfield{author}{\bibinfo{person}{Richard Ogden}.}
+  \bibinfo{year}{2017}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Introduction to English Phonetics}}.
+\newblock \bibinfo{publisher}{Edinburgh university press}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Oliveira, Bitencourt, Teixeira, and
+  Santos}{Oliveira et~al\mbox{.}}{2013}]%
+        {oliveira2013thematic}
+\bibfield{author}{\bibinfo{person}{Mirian Oliveira}, \bibinfo{person}{Claudia
+  Bitencourt}, \bibinfo{person}{Eduardo Teixeira}, {and}
+  \bibinfo{person}{Ana~Clarissa Santos}.} \bibinfo{year}{2013}\natexlab{}.
+\newblock \showarticletitle{Thematic content analysis: Is there a difference
+  between the support provided by the MAXQDA{\textregistered} and
+  NVivo{\textregistered} software packages}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 12th European Conference on
+  Research Methods for Business and Management Studies}}.
+  \bibinfo{pages}{304--314}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Ortega and Hazan}{Ortega and Hazan}{1999}]%
+        {ortega1999enhancing}
+\bibfield{author}{\bibinfo{person}{Marta Ortega} {and} \bibinfo{person}{Valerie
+  Hazan}.} \bibinfo{year}{1999}\natexlab{}.
+\newblock \showarticletitle{Enhancing acoustic cues to aid L2 speech
+  perception}. In \bibinfo{booktitle}{\emph{Proceedings of the International
+  Congress of Phonetics Sciences}}. \bibinfo{pages}{117--120}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Pennington}{Pennington}{1999}]%
+        {pennington1999computer}
+\bibfield{author}{\bibinfo{person}{Martha~C Pennington}.}
+  \bibinfo{year}{1999}\natexlab{}.
+\newblock \showarticletitle{Computer-aided pronunciation pedagogy: Promise,
+  limitations, directions}.
+\newblock \bibinfo{journal}{\emph{Computer Assisted Language Learning}}
+  \bibinfo{volume}{12}, \bibinfo{number}{5} (\bibinfo{year}{1999}),
+  \bibinfo{pages}{427--440}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Pierrehumbert}{Pierrehumbert}{1980}]%
+        {pierrehumbert1980phonology}
+\bibfield{author}{\bibinfo{person}{Janet~Breckenridge Pierrehumbert}.}
+  \bibinfo{year}{1980}\natexlab{}.
+\newblock \emph{\bibinfo{title}{The phonology and phonetics of English
+  intonation}}.
+\newblock \bibinfo{thesistype}{Ph.D. Dissertation}.
+  \bibinfo{school}{Massachusetts Institute of Technology}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Polka and Werker}{Polka and Werker}{1994}]%
+        {polka1994developmental}
+\bibfield{author}{\bibinfo{person}{Linda Polka} {and} \bibinfo{person}{Janet~F
+  Werker}.} \bibinfo{year}{1994}\natexlab{}.
+\newblock \showarticletitle{Developmental changes in perception of nonnative
+  vowel contrasts.}
+\newblock \bibinfo{journal}{\emph{Journal of Experimental Psychology: Human
+  perception and performance}} \bibinfo{volume}{20}, \bibinfo{number}{2}
+  (\bibinfo{year}{1994}), \bibinfo{pages}{421}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Ren, Ruan, Tan, Qin, Zhao, Zhao, and Liu}{Ren
+  et~al\mbox{.}}{2019}]%
+        {ren2019fastspeech}
+\bibfield{author}{\bibinfo{person}{Yi Ren}, \bibinfo{person}{Yangjun Ruan},
+  \bibinfo{person}{Xu Tan}, \bibinfo{person}{Tao Qin}, \bibinfo{person}{Sheng
+  Zhao}, \bibinfo{person}{Zhou Zhao}, {and} \bibinfo{person}{Tie-Yan Liu}.}
+  \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Fastspeech: Fast, robust and controllable text to
+  speech}. In \bibinfo{booktitle}{\emph{Advances in Neural Information
+  Processing Systems}}. \bibinfo{pages}{3171--3180}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Ribeiro and Paiva}{Ribeiro and Paiva}{2012}]%
+        {ribeiro2012illusion}
+\bibfield{author}{\bibinfo{person}{Tiago Ribeiro} {and} \bibinfo{person}{Ana
+  Paiva}.} \bibinfo{year}{2012}\natexlab{}.
+\newblock \showarticletitle{The illusion of robotic life: principles and
+  practices of animation for robots}. In \bibinfo{booktitle}{\emph{Proceedings
+  of the seventh annual ACM/IEEE international conference on Human-Robot
+  Interaction}}. \bibinfo{pages}{383--390}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Ricard}{Ricard}{1986}]%
+        {ricard1986beyond}
+\bibfield{author}{\bibinfo{person}{Ellen Ricard}.}
+  \bibinfo{year}{1986}\natexlab{}.
+\newblock \showarticletitle{Beyond Fossilization: A Course in Strategies and
+  Techniques in Pronunciation for Advanced Adult Learners.}
+\newblock \bibinfo{journal}{\emph{TESL Canada Journal}} (\bibinfo{year}{1986}),
+  \bibinfo{pages}{243--253}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Robertson, Munteanu, and Penn}{Robertson
+  et~al\mbox{.}}{2018}]%
+        {robertson2018designing}
+\bibfield{author}{\bibinfo{person}{Sean Robertson}, \bibinfo{person}{Cosmin
+  Munteanu}, {and} \bibinfo{person}{Gerald Penn}.}
+  \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Designing Pronunciation Learning Tools: The Case
+  for Interactivity against Over-Engineering}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 2018 CHI Conference on Human
+  Factors in Computing Systems}}. \bibinfo{pages}{1--13}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Rogerson-Revell}{Rogerson-Revell}{2011}]%
+        {rogerson2011english}
+\bibfield{author}{\bibinfo{person}{Pamela Rogerson-Revell}.}
+  \bibinfo{year}{2011}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{English phonology and pronunciation
+  teaching}}.
+\newblock \bibinfo{publisher}{Bloomsbury Publishing}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Strange}{Strange}{1995}]%
+        {strange1995speech}
+\bibfield{author}{\bibinfo{person}{Winifred Strange}.}
+  \bibinfo{year}{1995}\natexlab{}.
+\newblock \bibinfo{title}{Speech perception and linguistic experience:
+  Theoretical and methodological issues}.
+\newblock
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Strange, Shafer, et~al\mbox{.}}{Strange
+  et~al\mbox{.}}{2008}]%
+        {strange2008speech}
+\bibfield{author}{\bibinfo{person}{Winifred Strange},
+  \bibinfo{person}{Valerie~L Shafer}, {et~al\mbox{.}}}
+  \bibinfo{year}{2008}\natexlab{}.
+\newblock \showarticletitle{Speech perception in second language learners: The
+  re-education of selective perception}.
+\newblock \bibinfo{journal}{\emph{Phonology and second language acquisition}}
+  \bibinfo{volume}{36} (\bibinfo{year}{2008}), \bibinfo{pages}{153--192}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Thomas, Johnston, and Thomas}{Thomas
+  et~al\mbox{.}}{1995}]%
+        {thomas1995illusion}
+\bibfield{author}{\bibinfo{person}{Frank Thomas}, \bibinfo{person}{Ollie
+  Johnston}, {and} \bibinfo{person}{Frank Thomas}.}
+  \bibinfo{year}{1995}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{The illusion of life: Disney animation}}.
+\newblock \bibinfo{publisher}{Hyperion New York}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Titze and Martin}{Titze and Martin}{1998}]%
+        {titze1998principles}
+\bibfield{author}{\bibinfo{person}{Ingo~R Titze} {and}
+  \bibinfo{person}{Daniel~W Martin}.} \bibinfo{year}{1998}\natexlab{}.
+\newblock \bibinfo{title}{Principles of voice production}.
+\newblock
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Trubetzkoy}{Trubetzkoy}{1969}]%
+        {trubetzkoy1969principles}
+\bibfield{author}{\bibinfo{person}{Nikolai~Sergeevich Trubetzkoy}.}
+  \bibinfo{year}{1969}\natexlab{}.
+\newblock \showarticletitle{Principles of phonology.}
+\newblock  (\bibinfo{year}{1969}).
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Veselovska}{Veselovska}{2016}]%
+        {veselovska2016teaching}
+\bibfield{author}{\bibinfo{person}{Ganna Veselovska}.}
+  \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{Teaching elements of English RP connected speech
+  and CALL: Phonemic assimilation}.
+\newblock \bibinfo{journal}{\emph{Education and Information Technologies}}
+  \bibinfo{volume}{21}, \bibinfo{number}{5} (\bibinfo{year}{2016}),
+  \bibinfo{pages}{1387--1400}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Wohlert and Hammen}{Wohlert and
+  Hammen}{2000}]%
+        {wohlert2000lip}
+\bibfield{author}{\bibinfo{person}{Amy~B Wohlert} {and}
+  \bibinfo{person}{Vicki~L Hammen}.} \bibinfo{year}{2000}\natexlab{}.
+\newblock \showarticletitle{Lip muscle activity related to speech rate and
+  loudness}.
+\newblock \bibinfo{journal}{\emph{Journal of Speech, Language, and Hearing
+  Research}} \bibinfo{volume}{43}, \bibinfo{number}{5} (\bibinfo{year}{2000}),
+  \bibinfo{pages}{1229--1239}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Wong, Leung, Lo, and Meng}{Wong
+  et~al\mbox{.}}{2010}]%
+        {wong2010development}
+\bibfield{author}{\bibinfo{person}{Ka-Ho Wong}, \bibinfo{person}{Wai-Kim
+  Leung}, \bibinfo{person}{Wai-Kit Lo}, {and} \bibinfo{person}{Helen Meng}.}
+  \bibinfo{year}{2010}\natexlab{}.
+\newblock \showarticletitle{Development of an articulatory visual-speech
+  synthesizer to support language learning}. In \bibinfo{booktitle}{\emph{2010
+  7th International Symposium on Chinese Spoken Language Processing}}. IEEE,
+  \bibinfo{pages}{139--143}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Yuen, Leung, Liu, Wong, Qian, Lo, and
+  Meng}{Yuen et~al\mbox{.}}{2011}]%
+        {yuen2011enunciate}
+\bibfield{author}{\bibinfo{person}{Ka-Wa Yuen}, \bibinfo{person}{Wai-Kim
+  Leung}, \bibinfo{person}{Peng-fei Liu}, \bibinfo{person}{Ka-Ho Wong},
+  \bibinfo{person}{Xiao-jun Qian}, \bibinfo{person}{Wai-Kit Lo}, {and}
+  \bibinfo{person}{Helen Meng}.} \bibinfo{year}{2011}\natexlab{}.
+\newblock \showarticletitle{Enunciate: An internet-accessible computer-aided
+  pronunciation training system and related user evaluations}. In
+  \bibinfo{booktitle}{\emph{2011 International Conference on Speech Database
+  and Assessments (Oriental COCOSDA)}}. IEEE, \bibinfo{pages}{85--90}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Zeng, Martino, Linthicum, and Soli}{Zeng
+  et~al\mbox{.}}{2000}]%
+        {zeng2000auditory}
+\bibfield{author}{\bibinfo{person}{Fan-Gang Zeng}, \bibinfo{person}{Kristina~M
+  Martino}, \bibinfo{person}{Fred~H Linthicum}, {and}
+  \bibinfo{person}{Sigfrid~D Soli}.} \bibinfo{year}{2000}\natexlab{}.
+\newblock \showarticletitle{Auditory perception in vestibular neurectomy
+  subjects}.
+\newblock \bibinfo{journal}{\emph{Hearing research}} \bibinfo{volume}{142},
+  \bibinfo{number}{1-2} (\bibinfo{year}{2000}), \bibinfo{pages}{102--112}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Zhao, Yuan, Leung, Meng, Liu, and Xia}{Zhao
+  et~al\mbox{.}}{2013}]%
+        {zhao2013audiovisual}
+\bibfield{author}{\bibinfo{person}{Junhong Zhao}, \bibinfo{person}{Hua Yuan},
+  \bibinfo{person}{Wai-Kim Leung}, \bibinfo{person}{Helen Meng},
+  \bibinfo{person}{Jia Liu}, {and} \bibinfo{person}{Shanhong Xia}.}
+  \bibinfo{year}{2013}\natexlab{}.
+\newblock \showarticletitle{Audiovisual synthesis of exaggerated speech for
+  corrective feedback in computer-assisted pronunciation training}. In
+  \bibinfo{booktitle}{\emph{2013 IEEE International Conference on Acoustics,
+  Speech and Signal Processing}}. IEEE, \bibinfo{pages}{8218--8222}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Zhou, Liu, Liu, Luo, and Wang}{Zhou
+  et~al\mbox{.}}{2019}]%
+        {zhou2019talking}
+\bibfield{author}{\bibinfo{person}{Hang Zhou}, \bibinfo{person}{Yu Liu},
+  \bibinfo{person}{Ziwei Liu}, \bibinfo{person}{Ping Luo}, {and}
+  \bibinfo{person}{Xiaogang Wang}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Talking Face Generation by Adversarially
+  Disentangled Audio-Visual Representation}. In \bibinfo{booktitle}{\emph{AAAI
+  Conference on Artificial Intelligence (AAAI)}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Zhou, Han, Shechtman, Echevarria, Kalogerakis,
+  and Li}{Zhou et~al\mbox{.}}{2020}]%
+        {Yang:2020:MakeItTalk}
+\bibfield{author}{\bibinfo{person}{Yang Zhou}, \bibinfo{person}{Xintong Han},
+  \bibinfo{person}{Eli Shechtman}, \bibinfo{person}{Jose Echevarria},
+  \bibinfo{person}{Evangelos Kalogerakis}, {and} \bibinfo{person}{Dingzeyu
+  Li}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{MakeItTalk: Speaker-Aware Talking-Head Animation}.
+\newblock \bibinfo{journal}{\emph{ACM Transactions on Graphics}}
+  \bibinfo{volume}{39}, \bibinfo{number}{6} (\bibinfo{year}{2020}).
+\newblock
+
+
+\end{thebibliography}

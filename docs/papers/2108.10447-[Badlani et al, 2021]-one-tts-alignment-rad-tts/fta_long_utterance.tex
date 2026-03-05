@@ -1,0 +1,30 @@
+\begin{center}
+\begin{tikzpicture}[scale=1.0]
+  \begin{axis}[
+  height=3.5cm,
+  width=0.98\linewidth,
+      %xlabel= {Character Length},
+      legend cell align={left},
+      ylabel= {CER},
+      ylabel near ticks,
+      xlabel near ticks,
+      xlabel style={font=\small},
+      ylabel style={font=\small},
+      yticklabel style = {font=\tiny},
+      xticklabel style = {font=\tiny},
+      xmin=40,
+      xmax=400,
+      x tick label style={/pgf/number format/1000 sep=},  % sep={} disables comma in 1,000
+      legend style={font=\tiny},
+      legend columns=1,
+      legend style={at={(0,1)},anchor=north west},
+      legend entries={Flowtron, Flowtron + prior + $\mathcal{L}_{\mathit{align}}$} 
+    ]
+    \addplot [line width=0.3mm, color=lava] table [x=text_len, y=mean_cer, y error=oursstd,col sep=comma] {\ftacerbase};
+    \addplot [line width=0.3mm, color=forestgreen] table [x=text_len, y=mean_cer, y error=oursstd,col sep=comma] {\ftacerctc};
+    % \addplot [line width=0.3mm, color=brightube] table [x=text_len, y=mean_cer, y error=oursstd,col sep=comma] {\tacocerbase};
+    % \addplot [line width=0.3mm, color=fulvous] table [x=text_len, y=mean_cer, y error=oursstd,col sep=comma] {\tacocerctc};
+    % \addplot [line width=0.3mm, color=glaucous] table [x=text_len, y=mean_cer, y error=oursstd,col sep=comma] {\ftpcer};
+  \end{axis}
+\end{tikzpicture}
+\end{center}

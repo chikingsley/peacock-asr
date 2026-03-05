@@ -1,0 +1,73 @@
+\section{Bias Analysis and Ethical Considerations}
+
+Training machine learning models on religious texts may introduce biases and requires ethical considerations. 
+In this section, we analyze whether our models are biased to perform better for different genders (\textsection\ref{sec:rai-gender-bias}), if the language produced by our models is religiously biased (\textsection\ref{sec:rai-lang-bias} and finally, we discuss ethical considerations of using religious texts in research (\textsection\ref{sec:rai-ethical}).
+
+
+\subsection{Understanding Gender Bias}
+\label{sec:rai-gender-bias}
+
+Most speakers in \MMS{} dataset appear to be male and this bears the risk of machine learning models trained on this data performing better for male speakers.
+To understand whether the models trained on our datasets (\textsection\ref{sec:datasets}) exhibit gender bias, we perform the following experiment:
+we evaluate models on the development set of FLEURS which contains metadata indicating the gender of the speaker and we use this information to report performance for each gender.
+Using this split, we evaluate the accuracy of ASR models trained on \MMS{} on 27 languages of the FLEURS dataset for which \MMS{} provides data (61 languages), and for which there are at least 50 samples for each gender (27 out of these 61 languages).
+
+\insertGenderAnalysis
+
+\autoref{fig:rai-gender-analysis} shows that the average character error rate over these 27 languages is very similar, both for the \modelname{} model and the model trained on FLEURS data.
+There can be significant differences between genders within a particular language, but both models appear to be equally affected (see~\autoref{tab:rai-gender-full-results}).
+On a per language basis, male speakers have a higher error rate for 14 languages while as female speakers have a higher error rate for the remaining 13 languages.
+We conclude that our models exhibit similar gender bias to models trained on FLEURS data which is general domain data.
+ 
+
+
+\subsection{Understanding Language Bias}
+\label{sec:rai-lang-bias}
+
+The datasets created as part of this study are from a particular narrow domain and machine learning models estimated on this data may exhibit certain biases.
+In this section, we examine the extent to which automatic speech recognition models trained on \MMS{} data output biased language.
+
+\paragraph{Methodology.}
+The general methodology of our analysis is to identify a set of biased words in each language and to measure the rate at which biased words are produced by ASR models.
+We compare models trained on \MMS{} data and models trained on FLEURS, a corpus of people reading Wikipedia articles in different languages.
+Both sets of models are tasked to transcribe the FLEURS development set and we are interested in whether models trained on \MMS{} data are more likely to use biased language compared to models trained on FLEURS data.
+
+\paragraph{Identifying Biased Words.} 
+We were not able to find speakers for most of the considered languages of this study and therefore use the following automatic procedure to determine religious words: 
+for each word that occurs in the training data of \MMS{}, we compare the relative token frequency, that is, the rate at which the word type occurs in the \MMS{} data, to the relative token frequency in a general domain corpus; we use Common Crawl~\citep{conneau2020xlsr} as a general domain corpus.
+If the relative word frequency is at least twice as high in \MMS{} compared to Common Crawl, then we add it to the subset of words we include in our study.
+This enables us to evaluate on 51 languages of the FLEURS corpus since not all languages are covered by \MMS{} and we also need to find data in Common Crawl for each language.
+The automatic procedure has the added benefit of avoiding any potential biases introduced by human annotators.
+
+
+
+\paragraph{Results.}
+\autoref{fig:data-rai-words} shows that the rate of biased words is much lower in the outputs of \modelname{} models compared to the training data (\MMS{} ASR output vs. \MMS{} train).
+For many languages, \modelname{} models generate these words at the same rate as the FLEURS models.
+On average the rate of biased words is 0.7\% absolute higher for \modelname{} compared to the FLEURS model.
+We interpret this as a slight bias as the difference between \MMS{} ASR output and FLEURS ASR output in~\autoref{fig:data-rai-words} shows.
+
+We consulted with native speakers for languages which showed the largest discrepancies:
+for Mongolian (mon), a native speaker verified that most of the biased words in question are actually general language with no particular bias.
+For Persian (fas), only two out of the words the procedure identified were of religious nature and both were indeed over predicted: the Persian words for Jesus and spirit/ghost were predicted in four instances (on the entire development set) while the FLEURS model does not predict these words, however, the \modelname{} model also predicts the word for hand 15 times more often than the baseline FLEURS model.
+
+
+
+In English, the procedure identifies words such as \emph{you}, \emph{that}, \emph{they} but it also includes \emph{jesus}, which both models predict at the same rate. There is also \emph{christ}, and \emph{lord}, both of which are not predicted at all, or \emph{men} which is predicted six times by the \modelname{} model compared to five times by the FLEURS model.
+Our method of identifying biased words has low precision but it does capture words which are likely more used in religious contexts than otherwise.
+
+
+\insertDataRAIWords
+
+
+\subsection{Ethical Considerations and use of Religious Texts in Research}
+\label{sec:rai-ethical}
+
+Our consultations with Christian ethicists concluded that most Christians would not regard the New Testament, and translations thereof, as too sacred to be used in machine learning.
+The same is not true for all religious texts: for example, the Quran was originally not supposed to be  translated.
+There is also the risk of religious training data biasing the models with respect to a particular world view, however, our analysis of the language generated by our models suggests that the language produced by the resulting speech recognition models exhibit only little bias compared to baseline models trained on other domains (\textsection\ref{sec:rai-lang-bias}).
+
+This project follows a long line of research utilizing the New Testament to train and evaluate machine learning models.
+The most related project is the CMU Wilderness effort~\citep{black2019cmu} which created speech synthesis models for 699 languages using speech and text data from similar sources as our datasets.
+For machine translation, researchers used data from the Bible both for training and evaluation~\citep{christos2014bible,mccarthy2020bible,nllbteam2022language}.
+For speech processing, researchers trained speech synthesis models for ten African languages based on readings of the bible~\citep{meyer2022bibletts}.

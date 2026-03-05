@@ -1,0 +1,36 @@
+\begin{table*}[t!]
+\centering
+\resizebox{\textwidth}{!}{
+\footnotesize
+\begin{tabular}{l cc cc cc cc cc}
+\toprule
+\multicolumn{1}{l}{\multirow{2}{*}{}}  & \multicolumn{2}{c}{Small} & \multicolumn{2}{c}{Base} & \multicolumn{2}{c}{Large} & \multicolumn{2}{c}{XL} & \multicolumn{2}{c}{XXL}        \\
+
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9} \cmidrule(lr){10-11}
+
+ & mT5    & ByT5    & mT5    & ByT5   & mT5    & ByT5    & mT5   & ByT5  & mT5 & ByT5 \\
+\midrule % ==================================================
+\multicolumn{11}{l}{\emph{In-language multitask (models fine-tuned on gold data in all target languages)}} \\
+\midrule % ==================================================
+WikiAnn NER & 86.4 & \textbf{90.6} & 88.2 & \textbf{91.6} & 89.7 & \textbf{91.8} & 91.3 & \textbf{92.6} & 92.2 & \textbf{93.7} \\
+TyDiQA-GoldP & 75.9 / 64.8 & \textbf{82.6 / 73.6} & 81.7 / 71.2 & \textbf{86.4 / 78.0} & 85.3 / 75.3 & \textbf{87.7 / 79.2} & 87.6 / 78.4 & \textbf{88.0 / 79.3} & 88.7 / 79.5 & \multicolumn{1}{r}{\textbf{89.4 / 81.4}} \\
+\midrule % ==================================================
+\multicolumn{11}{l}{\emph{Translate-train (models fine-tuned on English data plus translations in all target languages)}} \\
+\midrule % ==================================================
+XNLI & 75.3 & \textbf{76.6} & \textbf{80.5} & 79.9 & \textbf{84.4} & 82.8 & \textbf{85.3} & 85.0 & \textbf{87.1} & 85.7 \\
+PAWS-X & 87.7 & \textbf{88.6} & \textbf{90.5} & 89.8 & \textbf{91.3} & 90.6 & \textbf{91.0} & 90.5 & 91.5 & \textbf{91.7} \\
+XQuAD & 71.3 / 55.7 & \textbf{74.0 / 59.9} & 77.6 / 62.2 & \textbf{78.5 / 64.6} & 81.3 / 66.5 & \textbf{81.4 / 67.4} & 82.7 / 68.1 & \textbf{83.7 / 69.5} & \textbf{85.2 / 71.3} & 84.1 / 70.2 \\
+MLQA &	56.6 / 38.8	 & \textbf{67.5 / 49.9} & 	69.7 / 51.0	 & \textbf{71.9 / 54.1} & 	74.0 / 55.0	 & \textbf{74.4 / 56.1} & 	75.1 / 56.6	 & \textbf{75.9 / 57.7} & 	\textbf{76.9} / 58.3	 & \textbf{76.9 / 58.8}	\\										
+TyDiQA-GoldP & 49.8 / 35.6 & \textbf{64.2 / 50.6} & 66.4 / 51.0 & \textbf{75.6 / 61.7} & 75.8 / 60.2 & \textbf{80.1 / 66.4} & 80.1 / 65.0 & \textbf{81.5 / 67.6} & \textbf{83.3} / 69.4 & 83.2 / \textbf{69.6} \\
+\midrule % ==================================================
+\multicolumn{11}{l}{\emph{Cross-lingual zero-shot transfer (models fine-tuned on English data only)}} \\
+\midrule % ==================================================
+XNLI   & 67.5        & \textbf{69.1}        & \textbf{75.4}                 & \textbf{75.4}        & \textbf{81.1}        & 79.7        & \textbf{82.9}        & 82.2        & \textbf{85.0}        & 83.7          \\
+PAWS-X  & 82.4        & \textbf{84.0}          & \textbf{86.4}                 & 86.3                 & \textbf{88.9}        & 87.4        & \textbf{89.6}        & 88.6        & 90.0                 & \textbf{90.1} \\
+WikiAnn NER & 50.5        & \textbf{57.6} & 55.7        & \textbf{62.0} & 58.5        & \textbf{62.9} & \textbf{65.5} & 61.6        & \textbf{69.2} & 67.7 \\
+\bottomrule
+\end{tabular}
+}
+\caption{ByT5 and mT5 performance on a subset of \textsc{xtreme} tasks. Our evaluation setup follows \citet{mt5}. For QA tasks we report F1 / EM scores.}
+\label{tab:xtreme}
+\end{table*}

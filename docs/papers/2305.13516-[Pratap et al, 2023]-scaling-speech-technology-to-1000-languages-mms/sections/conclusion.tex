@@ -1,0 +1,18 @@
+\section{Conclusions and Open Problems}
+
+We presented the first study which scaled speech technology to over one thousand languages. 
+This has been made possible by the rapid progress in self-supervised speech representation learning which in turn enabled more sample efficient learning from labeled data. 
+We presented how we collected datasets, pretrained models and then built models for automatic speech recognition, language identification and speech synthesis.
+This scaled the number of supported languages for several major speech tasks by between 10-40x. Going forward, we see several avenues for future work:
+
+\paragraph{Scaling to even more languages and dialects.}
+Even though, we built speech systems supporting between 1,100-4,000 languages, there are currently over 7,000 languages being spoken around the world today. 
+Moreover, there are many more dialects which are often not adequately represented in the training data, even for high-resource languages such as English. 
+This can lead to undesirable biases in the performance of these models~\citep{koenecke2020racial}.
+
+\paragraph{Multi-task models.}
+Another avenue is to train single models for several downstream tasks such as speech recognition, language identification etc. which can then all be performed by a single model. 
+There has been work on a moderate number of languages~\citep{radford2022whisper} but we hope that this approach can be scaled to many more languages and with a smaller focus on head languages.
+
+\paragraph{Tackling more speech tasks.}
+While this study covered three different speech tasks, there are many more tasks involving speech data, such as speech translation, both to text and to speech, or keyword spotting, intent classification etc. We hope that future work will expand these tasks to many more languages as well.

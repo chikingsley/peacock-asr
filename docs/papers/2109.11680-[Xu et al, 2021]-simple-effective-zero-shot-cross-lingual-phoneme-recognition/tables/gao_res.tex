@@ -1,0 +1,68 @@
+\begin{table}[t]
+\begin{center}
+\caption{Comparison to prior zero-shot work~\cite{gaozero} in terms of phonetic token error rate (PTER) on the test sets of a subset of BABEL languages. Cantonese and Lao are the unseen languages. Models are trained on 6 or 19 languages of BABEL (BB-6/19), 21 languages of CommonVoice (CV-21), Globalphone (GP) and the Spoken Dutch Corpus (CGN).\label{tab:gao_res}
+}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}lc|c|cc@{}}
+\toprule
+& & Gao et al. \cite{gaozero} & \multicolumn{2}{|c}{This work} \\
+\midrule
+& BB Data          & BB-6 & BB-6 & BB-19 \\
+& Other Data       & CGN+GP & - & CV-21 \\
+\midrule 
+& \# hours / lang &        all              & all & 10                        \\
+& \# hours total               & 1,492                & 317            & 298                       \\
+\midrule
+\multirow{6}{*}{Supervised } & Bengali                   & 38.2                 & \textbf{36.1}    & 40.7                      \\
+& Vietnamese                & \textbf{32.0}        & 40.7             & 63.3                      \\
+& Zulu                      & 35.2                 & \textbf{34.6}    & 44.1                      \\
+& Amharic                   & 38.0                 & \textbf{35.5}    & 42.8                      \\
+& Javanese                  & 44.2                 & \textbf{40.2}    & 49.1                      \\
+& Georgian                  & 38.6                 & \textbf{27.6}    & 43.2                      \\
+\midrule
+\multirow{2}{*}{Zero-shot} & Cantonese                 & 73.1                 & 73.6             & \textbf{63.6}             \\
+& Lao                       & 69.3                 & 70.3             & \textbf{63.7}    \\ 
+\bottomrule         
+\end{tabular}
+
+
+% \begin{table}[t]
+% \begin{center}
+% \caption{Comparison to prior zero-shot work~\cite{gaozero} in terms of phonetic token error rate (PTER) on the test sets of a subset of BABEL languages. Cantonese and Lao are the unseen languages. BB and CV represents BABEL and CommonVoice dataset and the following numbers are the number of the languages included in the training set.\label{tab:gao_res}
+% }
+% \setlength{\tabcolsep}{3pt}
+% \begin{tabular}{@{}cccccc@{}}
+% \toprule
+% BB Data          & BB-6\cite{gaozero} & BB-6 & BB-19 & - & BB-19 \\
+% Other Data       & CGN+GP & - & - & CV-21 & CV-21 \\
+% \# hours / lang &        $\infty$              &       $\infty$           &        $\infty$           & 10             & 10                        \\
+% \# hours total               & 1,492                & 317              & 935               & 118            & 298                       \\
+% \midrule
+% Bengali                   & 38.2                 & \textbf{36.1}    & 35.4              & 53.2           & 40.7                      \\
+% Vietnamese                & \textbf{32.0}        & 40.7             & 42.1              & 71.0           & 63.3                      \\
+% Zulu                      & 35.2                 & \textbf{34.6}    & 34.8              & 61.0           & 44.1                      \\
+% Amharic                   & 38.0                 & \textbf{35.5}    & 35.5              & 63.2           & 42.8                      \\
+% Javanese                  & 44.2                 & \textbf{40.2}    & 40.8              & 57.4           & 49.1                      \\
+% Georgian                  & 38.6                 & \textbf{27.6}    & 43.8              & 51.6           & 43.2                      \\
+% \midrule
+% Cantonese                 & 73.1                 & 73.6             & 72.6              & 70.9           & \textbf{63.6}             \\
+% Lao                       & 69.3                 & 70.3             & 70.2              & 72.1           & \textbf{63.7}    \\ 
+% \bottomrule         
+% \end{tabular}
+
+% \setlength{\tabcolsep}{1pt}
+% \begin{tabular}{@{}cccc|cccccc|cc@{}}
+% \toprule
+% \textbf{BB}                    & \textbf{Other} & \textbf{\# hours} & \textbf{\# hours} & 103           & 107           & 206           & 307           & 402           & 404           & 101           & 203           \\
+% \textbf{Data}                    & \textbf{Data} & \textbf{per lang} & \textbf{total} & 103           & 107           & 206           & 307           & 402           & 404           & 101           & 203           \\
+% \midrule
+% BB-6 \cite{gaozero} & CGN+GP              &                        & 1,492                   & 38.2          & \textbf{32.0} & 35.2          & 38.0          & 44.2          & 38.6          & 73.1          & 69.3          \\
+% BB-6                                & -                   &                        & 317                     & \textbf{36.1} & 40.7          & \textbf{34.6} & \textbf{35.5} & \textbf{40.2} & \textbf{27.6} & 73.6          & 70.3          \\
+% BB-19                               & -                   &                        & 935                     & 35.4          & 42.1          & 34.8          & 35.5          & 40.8          & 43.8          & 72.6          & 70.2          \\
+% -                                   & CV-21               & 10                     & 118                     & 53.2          & 71.0          & 61.0          & 63.2          & 57.4          & 51.6          & 70.9          & 72.1          \\
+% BB-19                               & CV-21               & 10                     & 298                     & 40.7          & 63.3          & 44.1          & 42.8          & 49.1          & 43.2          & \textbf{63.6} & \textbf{63.7} \\
+% \bottomrule 
+% \end{tabular}
+
+\end{center}
+\end{table}

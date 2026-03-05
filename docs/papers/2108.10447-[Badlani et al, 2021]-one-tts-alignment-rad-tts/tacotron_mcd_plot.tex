@@ -1,0 +1,26 @@
+\begin{tikzpicture}[]
+  \begin{axis}[
+    height=3.0cm,
+    width=0.9\linewidth,
+      % xlabel= Iteration,
+      % ylabel= {MCD-DTW},
+      legend cell align={left},
+      ylabel near ticks,
+      xlabel near ticks,
+      xlabel style= {font=\small},
+      ylabel style={font=\small},
+      legend style={font=\tiny},
+      yticklabel style = {font=\tiny},
+      xticklabel style = {font=\tiny},
+      %ymode=log,
+      xmin=600,
+      xmax=24000,
+      x tick label style={/pgf/number format/1000 sep=},  % sep={} disables comma in 1,000
+      legend columns=1,
+      legend entries={Tacotron 2, Tacotron 2 + prior, Tacotron 2 + prior + $\mathcal{L}_{\mathit{align}}$}
+    ]
+    \addplot [line width=0.3mm, color=lava] table [x=model, y=mel_cepstrum_mcd, y error=oursstd,col sep=comma] {\tacotronbasewopriormcd};
+    \addplot [line width=0.3mm, color=glaucous] table [x=model, y=mel_cepstrum_mcd, y error=oursstd,col sep=comma] {\tacotronbaselinemcd};
+    \addplot [line width=0.3mm, color=forestgreen] table [x=model, y=mel_cepstrum_mcd, y error=oursstd,col sep=comma] {\tacotronctcmcd};
+  \end{axis}
+\end{tikzpicture}

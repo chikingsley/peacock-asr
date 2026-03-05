@@ -1,0 +1,33 @@
+\begin{table*}[h!]
+\caption{Comparison of PER on the test set of a subset of Common Voice languages. tr2tgt lexicon is used in beam-search decoding by default, while tgt2tr lexicon is used only for the columns denoted with $*$. The numbers in the parenthesis next to each pre-trained model is the maximum number of hours per language in the training set. \label{tab:cv_res}
+% 1. split the lexicon
+}
+\begin{center}
+\setlength{\tabcolsep}{4.5pt}
+% \begin{tabular}{@{}c|cc|cc|cc|ccc|ccc@{}}
+\begin{tabular}{@{}ccccccccccccc@{}}
+\toprule
+ Pretrain  & \multicolumn{2}{c}{- (10)} & \multicolumn{2}{c}{- (200)} & \multicolumn{2}{c}{EN - LV (10)} & \multicolumn{3}{c}{XLSR - 53 (10)}      & \multicolumn{3}{c}{XLSR - 53 (10)} \\
+ Phonemizer  & \multicolumn{2}{c}{Espeak} & \multicolumn{2}{c}{Espeak}  & \multicolumn{2}{c}{Espeak}       & \multicolumn{3}{c}{Espeak}              & \multicolumn{3}{c}{Phonetisaurus}  \\
+   & viterbi      & n-gram      & viterbi       & n-gram      & viterbi         & n-gram         & viterbi & n-gram        & n-gram*       & viterbi    & n-gram    & n-gram*   \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-10} \cmidrule(lr){11-13}
+it & 56.6         & 47.5        & 50.1          & 41.8        & 31.8            & 16.9           & 26.0    & \textbf{13.9} & 14.3          & 26.6       & 18.1      & 17.8      \\
+eu & 51.2         & 45.6        & 39.7          & 32.1        & 24.8            & 16.3           & 20.8    & 13.7          & \textbf{12.2} & -          & -         & -         \\
+ia & 38.9         & 27.8        & 30.9          & 23.0        & 12.7            & 6.7            & 10.7    & 6.1           & \textbf{6.0}  & -          & -         & -         \\
+lv & 65.2         & 59.8        & 62.7          & 56.5        & 41.9            & 33.5           & 39.9    & \textbf{32.3} & 34.0          & 50.0       & 40.5      & 62.4      \\
+ka & 61.8         & 56.1        & 54.6          & 48.9        & 29.1            & 24.0           & 30.5    & \textbf{23.8} & 24.3          & 34.7       & 26.6      & 25.5      \\
+nl & 66.3         & 56.8        & 63.0          & 56.1        & 46.8            & 30.5           & 37.1    & \textbf{19.8} & 22.7          & 37.3       & 24.4      & 27.8      \\
+el & 49.5         & 40.6        & 42.1          & 33.7        & 18.9            & 10.7           & 17.3    & 10.4          & \textbf{9.9}  & 36.2       & 32.2      & 22.9      \\
+ro & 45.7         & 34.7        & 46.7          & 36.9        & 21.3            & 15.0           & 20.1    & 14.8          & \textbf{12.6} & 28.5       & 16.2      & 17.5      \\
+mt & 66.3         & 60.2        & 62.0          & 56.0        & 47.4            & 36.1           & 46.6    & \textbf{35.9} & 36.1          & 43.3       & 34.7      & 37.5      \\
+tt & 68.2         & 63.9        & 65.1          & 60.8        & 46.2            & 34.7           & 48.4    & 37.4          & \textbf{35.5} & 49.1       & 45.6      & 35.3      \\
+fi & 58.8         & 55.6        & 53.8          & 48.3        & 36.8            & 29.9           & 36.8    & 29.0          & \textbf{27.1} & 43.1       & 34.0      & 37.2      \\
+sl & 62.9         & 56.0        & 60.5          & 54.6        & 43.5            & 29.0           & 40.6    & \textbf{26.1} & 27.4          & 33.4       & 26.1      & 23.9      \\
+pl & 62.3         & 59.3        & 60.2          & 56.0        & 36.1            & 27.3           & 32.8    & \textbf{25.7} & 27.1          & 51.8       & 49.9      & 48.1       \\
+\midrule
+Avg & 58.0 &	51.1&	53.2&	46.5&	33.6&	23.9&	31.4&	\textbf{22.2}&	22.3&	39.5&	31.7&	32.4
+\\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table*}

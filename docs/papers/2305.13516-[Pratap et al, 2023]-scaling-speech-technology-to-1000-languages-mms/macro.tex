@@ -1,0 +1,131 @@
+% \newcommand{\wvz}{wav2vec-U}
+% \newcommand{\wvpp}{wav2vec 2.0}
+% \newcommand{\wvppbase}{\textsc{Base}}
+% \newcommand{\wvpplarge}{\textsc{Large}}
+
+% \newcommand{\vox}{Libri-Light}
+% \newcommand{\libri}{Librispeech}
+% \newcommand{\libril}{Libri-light}
+% \newcommand{\voxsz}{LL-60k}
+% \newcommand{\librisz}{LS-960}
+% \newcommand{\libriunsz}{LS-860}
+% \newcommand{\devother}{\textsc{dev-other}}
+
+
+\definecolor{metagray}{RGB}{28,43,51}
+\definecolor{metablue}{RGB}{0,75,185}
+\definecolor{metaorange}{RGB}{250, 135, 25}
+\definecolor{metadarkblue}{RGB}{0,30,110}
+
+
+
+
+% dataset names etc
+\newcommand{\GRN}{MMS-unlab} % Global Recordings network
+\newcommand{\MMS}{MMS-lab} %New testament corpus
+\newcommand{\MMSU}{MMS-lab-U} %New testament corpus
+\newcommand{\MMSboth}{MMS-lab+unlab} % both0
+\newcommand{\MMSUboth}{MMS-lab-U+unlab} % both
+
+\newcommand{\modelname}{MMS}
+\newcommand{\modelnameb}[1]{\modelname{} {(#1B)}}
+
+% language counts
+\newcommand{\numptlang}{1,406}          % Number of pretraining languages
+\newcommand{\numgrnlang}{3,809}         % Number of lang in GRN dataset
+\newcommand{\nummmslang}{1,107}         % Number of lang in MMS datast
+\newcommand{\nummmsulang}{1,362}         % Number of lang in MMS-U datast
+\newcommand{\numlidlang}{4,017}  % Number of lang for LID models
+
+\newcommand{\numgrnhrs}{7.7K} % Number of hours in GRN dataset
+\newcommand{\nummmshrs}{44.7K}  % Number of hours in MMS dataset
+\newcommand{\nummmshrsrd}{45K}  % Number of hours in MMS dataset rounded
+\newcommand{\nummmsuhrs}{55K} % Number of hours in MMS-U dataset
+
+% comments
+\newcommand{\ma}[1]{{\color{orange}#1}}
+\newcommand{\vin}[1]{{\color{blue}#1}}
+\newcommand{\xz}[1]{{\color{magenta}#1}}
+\newcommand{\zni}[1]{{\color{green}#1}}
+\newcommand{\atj}[1]{{\color{violet}#1}}
+\newcommand{\refs}[1]{{\textsection\ref{#1}}}
+\newcommand{\bs}[1]{{\color{cyan}BS: #1}}
+\newcommand{\bsedit}[1]{{\color{cyan}#1}}
+\newcommand{\wh}[1]{{\color{red}WN: #1}}
+\newcommand{\adios}[1]{{\color{brown}YA: #1}}
+\newcommand{\arb}[1]{{\color{red}#1}}
+% \renewcommand{\ma}[1]{} %uncomment to hide comments
+
+
+
+% % Macros
+% \newcommand{\tsum}[3]{{\left[#1\right]}_{#2}^{#3}}
+\DeclareMathOperator*{\argmax}{arg\,max} % thin space, limits underneath in displays
+
+\newcommand{\ci}[1]{{\tiny $\pm$ #1}}
+
+% Symbols for spaces, sets and manifolds
+\newcommand{\Inp}{\mathcal{X}}
+\newcommand{\Feat}{\mathcal{Z}}
+\newcommand{\QFeat}{\mathcal{Q}}
+\newcommand{\Phonr}{\mathcal{P}^r}
+\newcommand{\Phong}{\mathcal{P}^g}
+\newcommand{\Context}{\mathcal{C}}
+\newcommand{\Seg}{\mathcal{S}}
+
+\newcommand{\Star}{\langle \ast \rangle}
+
+
+
+\newcommand{\Alphabet}{\mathcal{A}}
+\newcommand{\CollapseFunc}{\mathcal{B}}
+\newcommand{\Blank}{\langle b \rangle}
+
+\newcommand{\R}{\mathbb{R}}
+
+
+\newcommand{\E}{\mathop{\mathbb{E}}}
+
+
+
+
+\newcommand{\y}{Y}
+\newcommand{\x}{X}
+\newcommand{\ze}{z}
+\newcommand{\zq}{q}
+\newcommand{\zqt}{\tilde{q}}
+\newcommand{\s}{S}
+
+\newcommand{\cc}{c}
+% \newcommand{\id}{i}
+% \newcommand{\sss}{s}
+% \newcommand{\p}{P}
+% \newcommand{\pr}{P^r}
+% \newcommand{\pbest}{\hat{\p}}
+% \newcommand{\pp}{p}
+% \newcommand{\prand}{\tilde{P}}
+
+% \newcommand{\gen}{$\mathcal{G}$}
+% \newcommand{\genm}{\mathcal{G}}
+% \newcommand{\dis}{$\mathcal{C}$}
+% \newcommand{\dism}{\mathcal{C}}
+
+% \newcommand{\gen}{$G$}
+% \newcommand{\genm}{G}
+% \newcommand{\dis}{$D$}
+% \newcommand{\dism}{D}
+
+
+\newcommand{\e}{\mathbf{e}}
+% \newcommand{\lll}{\mathbf{l}}
+% \newcommand{\Lmlm}{\mathcal{L}_{m}}
+% \newcommand{\Ld}{\mathcal{L}_{d}}
+% \newcommand{\Lf}{\mathcal{L}_{f}}
+
+\renewcommand{\sectionautorefname}{\textsection} 
+\renewcommand{\subsectionautorefname}{\textsection} 
+\renewcommand{\subsubsectionautorefname}{\textsection} 
+
+\newcommand{\Enot}[1]{\num[exponent-product = \times]{#1}}
+
+\newcommand{\shellcmd}[1]{\indent\texttt{\footnotesize #1}}

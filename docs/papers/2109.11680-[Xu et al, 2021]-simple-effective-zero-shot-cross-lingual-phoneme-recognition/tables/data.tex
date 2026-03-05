@@ -1,0 +1,57 @@
+\begin{table}[t]
+\caption{Splits of CommonVoice (CV) and BABEL (BB). The 6 BABEL languages of \cite{gaozero} are bolded. 
+% \ma{Can you please use the full language name (+abbreviation if later used in results) in the table? To save space, we can move Table 5 into the appendix.}
+% \ma{Please also make clear here which languages BB-6/BB-19/CV-21 exactly denotes since you use these terms later on.}
+\label{tab:data}}
+\centering
+% \begin{tabular}{@{}cll@{}}
+% \toprule
+% \textbf{Dataset}    & \textbf{Split} & \textbf{Languages}           \\
+% \midrule
+% \multirow{5}{*}{CV} & \multirow{2}{*}{train} & eo,lt,cy,ta,sv-SE,de,en,as,hi,or,fa,ja,id,ca, \\
+%                     &                        & es,fr,pt,ar,zh-CN,zh-TW,tr,et,hu,ru,cs        \\
+%                     & dev                    & it                                            \\
+%                     & \multirow{2}{*}{test}  & eu,ia,lv,ka,ga-IE,nl,el,pa-IN,ro,mt,zh-HK,    \\
+%                     &                        & tt,fi,sl,pl,ky                                \\
+% \midrule
+% \multirow{4}{*}{BB} & \multirow{2}{*}{train} & am,bn,ceb,ka,ht,jv,mn,sw,ta,vi,as,luo,gn,     \\
+%                     &                        & ig,kk,ps,tl,te,tr,zu,                         \\
+%                     & dev                    & CV-it                                         \\
+%                     & test                   & yue,lo                    \\
+% \bottomrule
+
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Split}         & \textbf{Languages}                                   \\
+\midrule
+\multicolumn{2}{l}{CommonVoice (CV)} \\
+% \midrule
+\multirow{7}{*}{train} & Esperanto(eo), Lithuanian(lt), Welsh(cy), Tamil(ta),    \\
+                       & Swedish(sv-SE), German(de), English(en), Oriya(or),  \\
+                       & Hindi(hi), Persian(fa), Japanese(ja), Assamese(as),       \\
+                       & Indonesian(id), Catalan(ca), Spanish(es), French(fr),   \\
+                       & Portuguese(pt), Arabic(ar), Chinese(zh-CN),            \\
+                       & Chinese(zh-TW), Turkish(tr), Estonian(et),             \\
+                       & Hungarian(hu), Russian(ru), Czech(cs)                  \\
+\cmidrule(lr){2-2}
+dev                    & Italian(it)                                          \\
+\cmidrule(lr){2-2}
+\multirow{4}{*}{test}  & Basque(eu), Interlingua(ia), Latvian(lv), Georgian(ka), \\
+                       & Irish(ga-IE), Dutch(nl), Greek(el), Punjabi(pa-IN),     \\
+                       & Romanian(ro), Maltese(mt), Chinese(zh-HK), Tatar(tt),   \\
+                       & Finnish(fi), Slovenian(sl), Polish(pl), Kirghiz(ky)     \\
+\midrule
+\multicolumn{2}{l}{BABEL (BB)} \\
+% \midrule
+\multirow{5}{*}{train} & \textbf{Amharic(am)}, \textbf{Bengali(bn)}, Cebuano(ceb), Igbo(ig),  \\
+                       & Haitian(ht), \textbf{Javanese(jv)}, Mongolian(mn), Swahili(sw),  \\
+                       & Tamil(ta), \textbf{Vietnamese(vi)}, Assamese(as), Dholuo(luo),   \\
+                       & Guarani(gn), Kazakh(kk), Pashto(ps), \textbf{Georgian(ka)},         \\
+                       & Tagalog(tl), Telugu(te), Turkish(tr), \textbf{Zulu(zu)}          \\
+\cmidrule(lr){2-2}
+dev                    & CV-Italian(it)                                       \\
+\cmidrule(lr){2-2}
+test                   & Cantonese(yue), Lao(lo)     \\
+\bottomrule
+\end{tabular}
+\end{table}

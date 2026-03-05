@@ -1,0 +1,84 @@
+\section{Cross-lingual Self-supervised Speech Representation Learning}
+\label{sec:pretrain}
+
+As a first step, we train a self-supervised model of speech representations on the data outlined above as well as other existing public corpora. 
+We use wav2vec 2.0 for pre-training on unlabeled data which we later use as the basis for several downstream speech tasks (\citealt{baevski2020wav};~\textsection\ref{sec:pretrain-w2v}).
+The resulting models were pre-trained on \numptlang{} languages which is over four times the number of languages of known prior work~(\citealt{zhang2023usm};~\textsection\ref{sec:pretrain-setup}).
+The increased language coverage results in better performance for both ASR and LID compared to XLS-R (\citealt{babu22_interspeech};~\textsection\ref{sec:pretrain-results}) which covered 128 languages and is publicly available.
+
+
+\subsection{Method: wav2vec 2.0 and XLS-R}
+\label{sec:pretrain-w2v}
+
+Our work builds on~\citet{babu22_interspeech} who pretrain wav2vec models on data from multiple languages.
+The wav2vec project created a series of models for learning self-supervised speech representations~\citep{schneider2019wav2vec,baevski2019vqwav2vec,baevski2020wav} from unlabeled speech data.
+The resulting models can then be used to solve downstream speech tasks by fine-tuning them on labeled data or by tackling these tasks without labeled data using unsupervised learning~\citep{baevski2021unsupervised,liu2022endtoend}.
+
+The most prominent one is wav2vec 2.0~\citep{baevski2020wav} which enables building speech recognition models with only ten minutes of labeled data and even no labeled data at all~\citep{baevski2021unsupervised}.
+The basic architecture of wav2vec 2.0 is as follows: a convolutional feature encoder $f: \Inp \mapsto \Feat$ maps raw audio~$\Inp$ to latent speech representations $\ze_1, \dots, \ze_T$ which are input to a Transformer $g: \Feat \mapsto \Context$ to output context representations $\cc_1, \dots, \cc_T$~\citep{baevski2019vqwav2vec}.
+Each $\ze_t$ represents 25ms of audio strided by 20ms and the Transformer architecture follows BERT~\citep{vaswani2017transformer,devlin2018bert}.
+
+During training the feature encoder representations are discretized to $\zq_1, \dots, \zq_T$ with a quantization module $\Feat \mapsto \QFeat$ to represent the targets in the objective.
+The quantization module uses a Gumbel softmax to choose entries form the codebooks and the chosen entries are concatenated~\citep{jegou2011ieee,jang2016gumbel,baevski2019vqwav2vec}.
+
+The model is trained by solving a contrastive task over masked feature encoder outputs.
+At training time, spans of ten time steps with random starting indices are masked.
+The objective requires identifying the true quantized latent $\zq_t$ for a masked time-step within a set of $K=100$ distractors sampled from other masked time steps.
+The objective is augmented by a codebook diversity penalty to encourage the model to use all codebook entries~\citep{dieleman2018challenge}.
+
+XLSR and XLS-R train wav2vec 2.0 on many different languages from several datasets to obtain cross-lingual representations~\citep{conneau2020unsupervised,babu22_interspeech}.
+In order to balance the training data, two data sampling steps are performed.
+First, for each dataset, we sample the data for the different languages $L$ from a distribution $p_l\sim\left(\frac{n_l}{N}\right)^{\beta_L}$ where $l=1,\ldots,L$, $n_l$ is the amount of unlabeled data for each language in the dataset, $N$ is the total amount of training in the dataset, and $\beta_L$ is the upsampling factor which controls the trade-off between high- and low-resource languages during pretraining.
+Second, we balance the different datasets by treating each dataset as a language in the above sampling scheme with a sampling parameter $\beta_D$.
+
+
+\insertPretrainSetup
+
+\subsection{Pre-training Setup}
+\label{sec:pretrain-setup}
+
+\paragraph{Hyperparameters.}
+We largely follow prior work in training cross-lingual wav2vec 2.0 models~\citep{conneau2020unsupervised,babu22_interspeech} and use the wav2vec 2.0 implementation available in fairseq~\citep{ott2019fairseq} to train models with roughly 300M and 1B parameters (\autoref{tab:pretrain-models}).
+To make efficient use of GPU memory, we use a fully sharded backend~\citep{rajbhandari2021zero} as well as activation checkpointing~\citep{chen20216checkpointing} implemented in FairScale~\citep{FairScale2021}. 
+
+Our models are optimized with Adam~\citep{kingma2015adam} and the learning rate is warmed up for the first 32K steps followed by polynomial decay to zero for the remainder of training. 
+Training audio sequences are cropped to a maximum of 320K samples, or 20 seconds, and all models were pre-trained for a total of one million updates on A100 GPUs with 80GB of memory.
+The \modelnameb{0.3} model was trained with an effective batch size of 2.3 hours of data across 48 GPUs and the \modelnameb{1} model was trained with an effective batch size of 3.5 hours on 64 GPUs.
+
+\paragraph{Data.}
+The pre-training data covers about 491K hours in \numptlang{} languages. 
+This data is drawn from six training corpora with different characteristics, including the corpora used in XLS-R~\citep{babu22_interspeech}: 
+
+
+\begin{itemize}
+    \item \MMSU: \nummmsulang{} languages comprising \nummmsuhrs{} hours (\textsection\ref{sec:data-paired}). 
+    \item Multilingual Librispech (MLS): 8 European languages of read books totaling 50K hours~\citep{pratap2020mls}
+    \item CommonVoice (CV): 89 languages totaling 8.8 hours of read Wikipedia text; we use v9.0 of the corpus~\citep{ardila2019common})
+    \item VoxLingua-107 (VL): 107 languages totaling 5.3K hours of YouTube content~\citep{valk2020voxlingua}
+    \item BABEL (BBL): 17 African and Asian languages totaling about 1K hours of conversational telephone data~\citep{gales2014babel}
+    \item VoxPopuli (VP): 371K hours of unlabeled speech data in 23 languages derived from European Parliament event recordings~\citep{wang2021voxpopuli}
+
+\end{itemize}
+
+Pre-training only uses the speech audio and none of the transcriptions and we balance the data following the strategy outlined in~\textsection\ref{sec:pretrain-w2v} using $\beta_L = \beta_D = 0.5$
+
+
+\subsection{Comparison to XLS-R}
+\label{sec:pretrain-results}
+
+\insertPretrainComparisonASR
+
+To better understand how the {\modelname} models compare to XLS-R we fine-tuned both for automatic speech recognition on the 61 languages of the FLEURS benchmark for which \MMS{} provides training data.
+Models are evaluated without a language model and we report the average character error rate (CER) on FLEURS development data over all languages.
+
+\autoref{fig:pretrain-comparison-asr} shows that the {\modelname} models perform better: for the 300B size, {\modelname} has 0.6 lower CER than XLS-R, and for the 1B size, the difference is 0.7 CER.
+More capacity helps to improve performance: 
+for XLS-R the error rate decreases by 3.2 CER absolute when scaling the number of parameters from 300M to 1B and for \MMS{} there is a 3.0 CER improvement.
+
+\modelname{} pre-trains on over ten times the number of languages of XLS-R and this improves performance, particularly on low resource languages (\autoref{fig:pretrain-xlsr-mms-perlang}) such as Amharic (amh), Lao (lao) or Malayalam (mal).
+Compared to XLS-R, the pre-training data of \modelname{} covers the following languages which improve: Chewa (nya), Fulah (ful) and Oromo (orm).
+However, improvements at low resource languages result in a small degradation in some of the high-resource languages such as English (eng) or Spanish (spa) but there are also other languages such as Tajik (tgjk) or Welsh (cym) which perform less well.
+
+\insertPretainXLSRvsMMS
+
+Equipped with this new pre-trained model we now investigate the use of \MMS{} and \GRN{} for several downstream tasks.

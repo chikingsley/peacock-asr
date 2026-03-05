@@ -1,0 +1,22 @@
+\begin{table}[t]
+\begin{center}
+    
+\caption{Unsupervised ASR (w2v-U) vs. zero-shot ASR (This work). Results are in terms of phoneme error rate (PER) on MLS.
+\label{tab:mls_res}
+% 1. change the top 2 rows to the numbers on test
+% 2. change row 3 to intersection lexicon
+}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lcccccc|c@{}}
+\toprule
+            & de             & nl    & fr             & es             & it             & pt    & Avg \\ 
+\midrule
+w2v-U \cite{baevski2021unsupervised}      & 21.6          & 25.0 & 27.7          & 20.2          & 31.2          & 36.0 & 27.0 \\
++ n-gram LM                                           & 16.2          & 17.8 & 26.5          & 18.1          & 28.6          & 30.6 & 23.0 \\
+\midrule
+This work   & 23.8          & 38.0 & 31.0          & 28.7          & 33.5          & 45.0 & 33.3 \\
++ n-gram LM                                           & 14.8 & 26.0 & 26.4 & 12.3 & 21.7 & 36.5 & 22.9 \\ 
+\bottomrule
+\end{tabular}
+\end{center}
+\end{table}

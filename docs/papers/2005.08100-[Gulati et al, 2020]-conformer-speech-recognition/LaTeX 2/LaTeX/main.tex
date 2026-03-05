@@ -1,0 +1,43 @@
+\documentclass[a4paper]{article}
+
+\usepackage{INTERSPEECH2020}
+\usepackage{color}
+\usepackage{multirow}
+\usepackage{makecell}
+
+\title{Improving Convolutional Neural Networks for Speech Recognition}
+\name{Author Name$^1$, Co-author Name$^2$}
+%The maximum number of authors in the author list is twenty. If the number of contributing authors is more than twenty, they should be listed in a footnote or in acknowledgement section, as appropriate.
+\address{
+  $^1$Author Affiliation\\
+  $^2$Co-author Affiliation}
+\email{author@university.edu, coauthor@company.com}
+
+\newcommand{\conv}{\mathrm{Conv}}
+\newcommand{\convblock}{\mathrm{ConvBlock}}
+\newcommand{\zhengdong}[1]{\textbf{\textcolor{blue}{Zhengdong: #1}}}
+\newcommand{\comment}{\textcolor{red}}
+\begin{document}
+
+\maketitle
+% 
+\begin{abstract}
+Convolutional neural network (CNN) based architectures has shown promising results for speech recognition, albeit still slightly behind other state-of-the-art methods. In this paper, we study how to bridge this gap and achieve even better word error rate via a novel CNN-RNN-transducer architecture. Our network features a fully convolutional encoder that incorporates global context information into each convolution layer by adding squeeze-and-excitation modules. In addition, the network progressively downsamples the input sequence so that a large portion of the computation at much lower temporal resolution while maintaining the word error rate (WER). We also carefully examine the depth, width and filter size inside the network, and our final encoder design achieves much better parameter efficiency compared with existing CNN based ASR networks. On the LibriSpeech test-clean/test-other dataset, our model achieves a new state-of-the-art WER of 2.1/4.6 without external language model (LM) and 1.9/4.1 with LM. 
+
+\end{abstract}
+\noindent\textbf{Index Terms}: speech recognition, CNN
+
+\input{LaTeX/00_intro.tex}
+\input{LaTeX/01_model.tex}
+\input{LaTeX/02_exp.tex}
+
+\section{Conclusion}
+In this paper we revisited CNNs for end-to-end speech recognition. We found 1D squeeze and excitation to be very effective for aggregating contextual information. We also studied the   
+
+\section{Acknowledgements}
+
+\bibliographystyle{IEEEtran}
+
+\bibliography{mybib}
+
+\end{document}

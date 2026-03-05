@@ -1,0 +1,15 @@
+\BOOKMARK [1][-]{section.1}{ Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{ Audio Acquisition}{}% 2
+\BOOKMARK [1][-]{section.3}{ Manual Annotation}{}% 3
+\BOOKMARK [2][-]{subsection.3.1}{ Manual Scoring Metrics}{section.3}% 4
+\BOOKMARK [2][-]{subsection.3.2}{ The Multiple Canonical Phone Sequences Problem}{section.3}% 5
+\BOOKMARK [2][-]{subsection.3.3}{ Scoring Workflow}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.4}{ Score Distribution}{section.3}% 7
+\BOOKMARK [1][-]{section.4}{ The Kaldi Recipe}{}% 8
+\BOOKMARK [2][-]{subsection.4.1}{ Pipeline}{section.4}% 9
+\BOOKMARK [2][-]{subsection.4.2}{ Alignment Graph Building without Lexicon}{section.4}% 10
+\BOOKMARK [2][-]{subsection.4.3}{ Supervised Training and Data Balancing}{section.4}% 11
+\BOOKMARK [2][-]{subsection.4.4}{ Results}{section.4}% 12
+\BOOKMARK [1][-]{section.5}{ Conclusions}{}% 13
+\BOOKMARK [1][-]{section.6}{ Acknowledgements}{}% 14
+\BOOKMARK [1][-]{section.7}{ References}{}% 15
