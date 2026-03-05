@@ -7,7 +7,7 @@ Best single PCC: **0.6900** | Stochastic mean: **0.6704 ± 0.0121** (xlsr-espeak
 - [ ] Track05 closeout: generate missing `original` backend scalar variant caches
       (`gop_sf`, `logit_margin`) under `.cache/features/original__checkpoint-8000_/`
 - [ ] Track05 closeout: run `sweep-alpha` on `original` backend and append results to
-      `docs/EXPERIMENTS.md` + `docs/research/track05_paper/*`
+      `docs/research/EXPERIMENTS.md` + `projects/P001-gop-baselines/docs/*`
 - [ ] Track05 claim lock: decide final statement after `original` sweep
       (`scorer variant gain` vs `stack-specific/noise-limited`)
 - [x] Pull LibriSpeech alignments subset (`train_clean_100`, `dev_clean`, `test_clean`)
@@ -56,7 +56,7 @@ Once caching enables fast iteration, swap in better phoneme models.
 - [x] ZIPA (2505.23170) — saved to docs/papers/
 - [x] POWSM (2510.24992) — saved to docs/papers/
 - [x] PRiSM (2601.14046) — saved to docs/papers/
-- [x] CTC-based-GOP (2507.16838v3) — saved to docs/papers/
+- [x] CTC-based-GOP (2507.16838) — saved to docs/papers/
 - [ ] Xu et al. 2022 — wav2vec2-xlsr-53-espeak-cv-ft paper (arXiv: 2109.11680)
 - [ ] Allosaurus (ICASSP 2020) — universal phone recognizer
 - [ ] Enhancing GOP with Phonological Knowledge (2506.02080)

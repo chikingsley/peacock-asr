@@ -41,16 +41,16 @@ Notes:
 
 | # | Paper | Key Result | Status |
 |---|---|---|---|
-| [1] | Ryu et al. (2025) "English Pronunciation Evaluation without Complex Joint Training" | Phi-4 LoRA: Accuracy PCC 0.656-0.675 (LoRA), 0.743 (Unfreeze, epoch 4), sentence-level | PDF local: `papers/2509.02915_lora_pronunciation_assessment.pdf` |
-| [2] | Fu et al. (2024) "Pronunciation Assessment with Multi-modal Large Language Models" | Data2vec2+Qwen MLLM: Fluency PCC 0.777, Accuracy PCC 0.713, sentence-level | PDF local: `papers/2407.09209v2.pdf` |
-| [3] | Wang et al. (2025) "Exploring the Potential of LMMs for Pronunciation Assessment" | GPT-4o zero-shot: near-zero PCC; integration with traditional methods recommended | PDF local: `papers/2503.11229.pdf` |
-| [4] | Fang et al. (2025) "Beyond Modality Limitations: Unified MLLM for Speaking Assessment" | SFMT curriculum: PCC 0.783 -> 0.846 holistic with MLLM | PDF local: `papers/2508.12591.pdf` |
-| [5] | Yang et al. (2025) "Fine-Tuning LMMs for Automatic Pronunciation Assessment" | Qwen2-Audio-7B fine-tuned: sentence-level Accuracy PCC ~0.77 | PDF local: `papers/2509.15701.pdf` |
-| [6] | Parikh et al. (2026) "Zero-Shot Speech LLMs for Multi-Aspect Evaluation of L2 Speech" | Qwen2-Audio-7B zero-shot: strong ±2 tolerance agreement, poor PCC | PDF local: `papers/2601.16230.pdf` |
-| [7] | Chen et al. (2024) "MultiPA: Multi-task Pronunciation Assessment for Open Response" | MultiPA multi-task: Fluency 0.772, Accuracy 0.705 | PDF local: `papers/2308.12490_multipa_open_response.pdf` |
-| [8] | Chen et al. (2025) "Read to Hear: Zero-Shot Pronunciation Assessment via TextPA" | TextPA zero-shot via text descriptors: competitive PCC at lower cost than audio LLMs | PDF local: `papers/2509.14187_read_to_hear_zero_shot_pronunciation.pdf` |
-| [9] | Yan et al. (2025) "HiPPO: Hierarchical Pronunciation Assessment" | HiPPO (Mamba): ~0.83 utterance-level PCC; non-LLM SOTA | PDF local: `papers/2512.04964_hippo_hierarchical_pronunciation_assessment.pdf` |
-| [10] | Kim et al. (2022) "Automatic Pronunciation Assessment using SSL" | SSL (wav2vec2 + HuBERT): fine-tuned CTC + BLSTM for pronunciation scoring | PDF local: `papers/2204.03863.pdf` |
+| [1] | Ryu et al. (2025) "English Pronunciation Evaluation without Complex Joint Training" | Phi-4 LoRA: Accuracy PCC 0.656-0.675 (LoRA), 0.743 (Unfreeze, epoch 4), sentence-level | PDF local: `papers/[Ahn et al, 2025]-lora-mllm-apa-mdd-joint.pdf` |
+| [2] | Fu et al. (2024) "Pronunciation Assessment with Multi-modal Large Language Models" | Data2vec2+Qwen MLLM: Fluency PCC 0.777, Accuracy PCC 0.713, sentence-level | PDF local: `papers/[Fu et al, 2024]-pronunciation-assessment-multimodal-llm.pdf` |
+| [3] | Wang et al. (2025) "Exploring the Potential of LMMs for Pronunciation Assessment" | GPT-4o zero-shot: near-zero PCC; integration with traditional methods recommended | PDF local: `papers/[Wang et al, 2025]-lmm-pronunciation-assessment-gpt4o.pdf` |
+| [4] | Fang et al. (2025) "Beyond Modality Limitations: Unified MLLM for Speaking Assessment" | SFMT curriculum: PCC 0.783 -> 0.846 holistic with MLLM | PDF local: `papers/[Fang et al, 2025]-mllm-automated-speaking-assessment-sfmt.pdf` |
+| [5] | Yang et al. (2025) "Fine-Tuning LMMs for Automatic Pronunciation Assessment" | Qwen2-Audio-7B fine-tuned: sentence-level Accuracy PCC ~0.77 | PDF local: `papers/[Wang et al, 2025]-fine-tuning-lmm-automatic-pronunciation-assessment.pdf` |
+| [6] | Parikh et al. (2026) "Zero-Shot Speech LLMs for Multi-Aspect Evaluation of L2 Speech" | Qwen2-Audio-7B zero-shot: strong ±2 tolerance agreement, poor PCC | PDF local: `papers/[Parikh et al, 2026]-zero-shot-speech-llms-l2-multi-aspect-evaluation.pdf` |
+| [7] | Chen et al. (2024) "MultiPA: Multi-task Pronunciation Assessment for Open Response" | MultiPA multi-task: Fluency 0.772, Accuracy 0.705 | PDF local: `papers/[Chen et al, 2023]-multipa-multitask-open-response-pronunciation.pdf` |
+| [8] | Chen et al. (2025) "Read to Hear: Zero-Shot Pronunciation Assessment via TextPA" | TextPA zero-shot via text descriptors: competitive PCC at lower cost than audio LLMs | PDF local: `papers/[Chen et al, 2025]-textpa-zero-shot-pronunciation-llm.pdf` |
+| [9] | Yan et al. (2025) "HiPPO: Hierarchical Pronunciation Assessment" | HiPPO (Mamba): ~0.83 utterance-level PCC; non-LLM SOTA | PDF local: `papers/[Yan et al, 2025]-hippo-hierarchical-apa-unscripted-speech.pdf` |
+| [10] | Kim et al. (2022) "Automatic Pronunciation Assessment using SSL" | SSL (wav2vec2 + HuBERT): fine-tuned CTC + BLSTM for pronunciation scoring | PDF local: `papers/[Kim et al, 2022]-ssl-pronunciation-assessment-wav2vec-hubert.pdf` |
 | [11] | Gong et al. (2022) "GOPT: Transformer-Based Pronunciation Assessment" | GOPT: phone-level PCC 0.612 (original Kaldi features); our adaptation: 0.677 | See Track 05 workspace |
 
 ---

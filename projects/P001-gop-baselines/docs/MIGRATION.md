@@ -6,7 +6,7 @@ Consolidate GOP baseline work into `P001` while preserving reproducibility.
 
 ## Current Canonical Inputs (legacy paths)
 
-- Docs: `docs/research/track05_paper/`
+- Docs: `projects/P001-gop-baselines/docs/`
 - Run specs:
   - `runs/track05_phase1_baseline.yaml`
   - `runs/track05_phase2_logit_scalar.yaml`
@@ -21,6 +21,7 @@ Consolidate GOP baseline work into `P001` while preserving reproducibility.
   - `projects/P001-gop-baselines/experiments/track05_phase2_logit_scalar.yaml`
 - Moved into project workspace:
   - `projects/P001-gop-baselines/docs/RUNBOOK.md`
+  - `projects/P001-gop-baselines/docs/{README.md,ABLATION_PLAN.md,EVIDENCE_LEDGER.md,PAPER_CLOSE_CHECKLIST.md,manuscript.md,refs.bib}`
 - Compatibility note:
   - `projects/P001-gop-baselines/experiments/COMPATIBILITY.md`
 - Legacy `runs/*.yaml` files remain in place by policy.

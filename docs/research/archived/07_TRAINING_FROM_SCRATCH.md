@@ -90,16 +90,16 @@ POWSM trained a Whisper-style model (350M params) on multiple tasks:
 
 ### Models trained from scratch on phonemes
 
-    2505.23170-ZIPA (root)
+    family-of-efficient-models-for-multilingual-phone-recognition__zhu__2505.23170 (root)
     "ZIPA: Efficient Multilingual Phone Recognition"
     Zipformer trained from scratch on 17K hours. Our reference
     for what from-scratch training looks like.
 
-    2510.24992-POWSM (root)
+    phonetic-open-whisper-style-speech-foundation-model__li__2510.24992 (root)
     "POWSM: A Phonetic Open Whisper-Style Speech Foundation Model"
     Multi-task phonetic model. Alternative architecture to CTC-only.
 
-    2601.14046-PRiSM (root)
+    benchmarking-phone-realization-in-speech-models__bharadwaj__2601.14046 (root)
     "PRiSM: Benchmarking Phone Realization in Speech Models"
     Benchmark comparing encoder-CTC vs other approaches for phone
     recognition. Finding: encoder-CTC is most stable.

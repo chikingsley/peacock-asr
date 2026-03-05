@@ -35,15 +35,15 @@ Process:
 
 Papers (PDFs in `./papers/`):
 
-- `2111.08191.pdf` — CoCA-MDD: only paper directly on streaming + pronunciation
-- `2602.11298_voxtral_realtime.pdf` — Voxtral: streaming ASR, vLLM serving, word boundaries
-- `2410.00037_moshi.pdf` — Moshi: full-duplex speech, real-time by design
-- `2602.11072_hibiki_zero.pdf` — Hibiki Zero: simultaneous streaming translation via GRPO
-- `2502.03382_hibiki_streaming_translation.pdf` — Hibiki: decoder-only simultaneous translation
-- `2509.08753_delayed_streams_modeling.pdf` — delayed-stream seq2seq formulation
-- `2602.12241_moonshine_v2_streaming_asr.pdf` — Moonshine v2: ergodic sliding-window ASR
-- `2601.22779_streaming_asr_decoder_llm.pdf` — streaming ASR with decoder-only LLM
-- `2509.14128_canary1b2_parakeet_tdt.pdf` — Canary 1B v2 / Parakeet-TDT
+- `[Shi et al, 2021]-coca-mdd-streaming-coupled-cross-attention.pdf` — CoCA-MDD: only paper directly on streaming + pronunciation
+- `[Nachmani et al, 2026]-voxtral-realtime-streaming-asr.pdf` — Voxtral: streaming ASR, vLLM serving, word boundaries
+- `[Defossez et al, 2024]-moshi-speech-text-foundation-model-for-realtime-dialogue.pdf` — Moshi: full-duplex speech, real-time by design
+- `[Labiausse et al, 2026]-simultaneous-speech-to-speech-translation-without-aligned-data.pdf` — Hibiki Zero: simultaneous streaming translation via GRPO
+- `[Labiausse et al, 2025]-high-fidelity-simultaneous-speech-to-speech-translation.pdf` — Hibiki: decoder-only simultaneous translation
+- `[Zeghidour et al, 2025]-streaming-seq2seq-with-delayed-streams-modeling.pdf` — delayed-stream seq2seq formulation
+- `[Kudlur et al, 2026]-moonshine-v2-ergodic-streaming-encoder-asr.pdf` — Moonshine v2: ergodic sliding-window ASR
+- `[Wan et al, 2026]-streaming-speech-recognition-with-decoder-only-llms-and-latency-optimization.pdf` — streaming ASR with decoder-only LLM
+- `[Sekoyan et al, 2025]-canary-parakeet-efficient-multilingual-asr-and-ast.pdf` — Canary 1B v2 / Parakeet-TDT
 
 Key references (in `./refs.bib`):
 

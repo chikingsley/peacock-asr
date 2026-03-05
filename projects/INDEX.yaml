@@ -7,7 +7,8 @@ projects:
     root: projects/P001-gop-baselines
     wandb_project: peacock-asr-p001-gop-baselines
     active_paths:
-      - docs/research/track05_paper
+      - projects/P001-gop-baselines/docs
+      - projects/P001-gop-baselines/experiments
       - runs/track05_phase1_baseline.yaml
       - runs/track05_phase2_logit_scalar.yaml
   - id: P002

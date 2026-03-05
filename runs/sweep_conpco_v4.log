@@ -405,3 +405,547 @@ wandb: 🚀 View run at https://wandb.ai/peacockery/peacock-asr-runs/runs/94aglv
 Consider using one of the following signatures instead:
 	addmm_(Tensor mat1, Tensor mat2, *, Number beta = 1, Number alpha = 1) (Triggered internally at /pytorch/torch/csrc/utils/python_arg_parser.cpp:1862.)
   dist.addmm_(1, -2, x, y.t())
+Device: cuda
+Loading train set...
+Loading test set...
+Total params: 460.5K, Trainable: 460.5K
+margin: 1.0
+lambda_d_phn: 0.5
+lambda_t_phn: 0.1
+Epoch   0 | LR 0.000950 | Phone PCC 0.2572 | Utt Total PCC 0.1222 | Best PCC 0.2572 (ep0)
+Epoch   1 | LR 0.001000 | Phone PCC 0.2722 | Utt Total PCC 0.1886 | Best PCC 0.2722 (ep1)
+Epoch   2 | LR 0.001000 | Phone PCC 0.2915 | Utt Total PCC 0.6650 | Best PCC 0.2915 (ep2)
+Epoch   3 | LR 0.001000 | Phone PCC 0.3226 | Utt Total PCC 0.7026 | Best PCC 0.3226 (ep3)
+Epoch   4 | LR 0.001000 | Phone PCC 0.3484 | Utt Total PCC 0.7155 | Best PCC 0.3484 (ep4)
+Epoch   5 | LR 0.001000 | Phone PCC 0.3777 | Utt Total PCC 0.7211 | Best PCC 0.3777 (ep5)
+Epoch   6 | LR 0.001000 | Phone PCC 0.4053 | Utt Total PCC 0.7350 | Best PCC 0.4053 (ep6)
+Epoch   7 | LR 0.001000 | Phone PCC 0.4379 | Utt Total PCC 0.7434 | Best PCC 0.4379 (ep6)
+Epoch   8 | LR 0.001000 | Phone PCC 0.4097 | Utt Total PCC 0.7425 | Best PCC 0.4379 (ep6)
+Epoch   9 | LR 0.001000 | Phone PCC 0.5115 | Utt Total PCC 0.7550 | Best PCC 0.5115 (ep9)
+Epoch  10 | LR 0.001000 | Phone PCC 0.5588 | Utt Total PCC 0.7625 | Best PCC 0.5588 (ep10)
+Epoch  11 | LR 0.001000 | Phone PCC 0.5590 | Utt Total PCC 0.7631 | Best PCC 0.5590 (ep10)
+Epoch  12 | LR 0.001000 | Phone PCC 0.5791 | Utt Total PCC 0.7669 | Best PCC 0.5791 (ep12)
+Epoch  13 | LR 0.001000 | Phone PCC 0.5773 | Utt Total PCC 0.7606 | Best PCC 0.5791 (ep12)
+Epoch  14 | LR 0.001000 | Phone PCC 0.6028 | Utt Total PCC 0.7638 | Best PCC 0.6028 (ep14)
+Epoch  15 | LR 0.001000 | Phone PCC 0.6036 | Utt Total PCC 0.7665 | Best PCC 0.6036 (ep15)
+Epoch  16 | LR 0.001000 | Phone PCC 0.6083 | Utt Total PCC 0.7726 | Best PCC 0.6083 (ep16)
+Epoch  17 | LR 0.001000 | Phone PCC 0.5938 | Utt Total PCC 0.7705 | Best PCC 0.6083 (ep16)
+Epoch  18 | LR 0.001000 | Phone PCC 0.5758 | Utt Total PCC 0.7661 | Best PCC 0.6083 (ep16)
+Epoch  19 | LR 0.001000 | Phone PCC 0.6106 | Utt Total PCC 0.7752 | Best PCC 0.6106 (ep16)
+Epoch  20 | LR 0.001000 | Phone PCC 0.6113 | Utt Total PCC 0.7784 | Best PCC 0.6113 (ep20)
+Epoch  21 | LR 0.001000 | Phone PCC 0.6144 | Utt Total PCC 0.7820 | Best PCC 0.6144 (ep20)
+Epoch  22 | LR 0.001000 | Phone PCC 0.6119 | Utt Total PCC 0.7799 | Best PCC 0.6144 (ep20)
+Epoch  23 | LR 0.001000 | Phone PCC 0.6248 | Utt Total PCC 0.7693 | Best PCC 0.6248 (ep23)
+Epoch  24 | LR 0.001000 | Phone PCC 0.6117 | Utt Total PCC 0.7770 | Best PCC 0.6248 (ep23)
+Epoch  25 | LR 0.001000 | Phone PCC 0.6155 | Utt Total PCC 0.7733 | Best PCC 0.6248 (ep23)
+Epoch  26 | LR 0.001000 | Phone PCC 0.6374 | Utt Total PCC 0.7848 | Best PCC 0.6374 (ep26)
+Epoch  27 | LR 0.001000 | Phone PCC 0.6163 | Utt Total PCC 0.7805 | Best PCC 0.6374 (ep26)
+Epoch  28 | LR 0.001000 | Phone PCC 0.6147 | Utt Total PCC 0.7779 | Best PCC 0.6374 (ep26)
+Epoch  29 | LR 0.001000 | Phone PCC 0.6417 | Utt Total PCC 0.7840 | Best PCC 0.6417 (ep29)
+Epoch  30 | LR 0.001000 | Phone PCC 0.6471 | Utt Total PCC 0.7895 | Best PCC 0.6471 (ep30)
+Epoch  31 | LR 0.001000 | Phone PCC 0.6539 | Utt Total PCC 0.7890 | Best PCC 0.6539 (ep31)
+Epoch  32 | LR 0.001000 | Phone PCC 0.6516 | Utt Total PCC 0.7872 | Best PCC 0.6539 (ep31)
+Epoch  33 | LR 0.001000 | Phone PCC 0.6600 | Utt Total PCC 0.7870 | Best PCC 0.6600 (ep33)
+Epoch  34 | LR 0.001000 | Phone PCC 0.6578 | Utt Total PCC 0.7880 | Best PCC 0.6600 (ep33)
+Epoch  35 | LR 0.001000 | Phone PCC 0.6605 | Utt Total PCC 0.7893 | Best PCC 0.6605 (ep33)
+Epoch  36 | LR 0.001000 | Phone PCC 0.6669 | Utt Total PCC 0.7980 | Best PCC 0.6669 (ep36)
+Epoch  37 | LR 0.001000 | Phone PCC 0.6529 | Utt Total PCC 0.7794 | Best PCC 0.6669 (ep36)
+Epoch  38 | LR 0.001000 | Phone PCC 0.6568 | Utt Total PCC 0.7927 | Best PCC 0.6669 (ep36)
+Epoch  39 | LR 0.001000 | Phone PCC 0.6622 | Utt Total PCC 0.7879 | Best PCC 0.6669 (ep36)
+Epoch  40 | LR 0.001000 | Phone PCC 0.6599 | Utt Total PCC 0.7949 | Best PCC 0.6669 (ep36)
+Epoch  41 | LR 0.001000 | Phone PCC 0.6640 | Utt Total PCC 0.7884 | Best PCC 0.6669 (ep36)
+Epoch  42 | LR 0.001000 | Phone PCC 0.6713 | Utt Total PCC 0.7879 | Best PCC 0.6713 (ep36)
+Epoch  43 | LR 0.001000 | Phone PCC 0.6581 | Utt Total PCC 0.7908 | Best PCC 0.6713 (ep36)
+Epoch  44 | LR 0.001000 | Phone PCC 0.6703 | Utt Total PCC 0.7967 | Best PCC 0.6713 (ep36)
+Epoch  45 | LR 0.001000 | Phone PCC 0.6400 | Utt Total PCC 0.7890 | Best PCC 0.6713 (ep36)
+Epoch  46 | LR 0.001000 | Phone PCC 0.6588 | Utt Total PCC 0.7936 | Best PCC 0.6713 (ep36)
+Epoch  47 | LR 0.000100 | Phone PCC 0.6712 | Utt Total PCC 0.7912 | Best PCC 0.6713 (ep36)
+Epoch  48 | LR 0.000100 | Phone PCC 0.6728 | Utt Total PCC 0.7941 | Best PCC 0.6728 (ep36)
+Epoch  49 | LR 0.000100 | Phone PCC 0.6764 | Utt Total PCC 0.7953 | Best PCC 0.6764 (ep49)
+Epoch  50 | LR 0.000100 | Phone PCC 0.6764 | Utt Total PCC 0.7944 | Best PCC 0.6764 (ep49)
+Epoch  51 | LR 0.000100 | Phone PCC 0.6747 | Utt Total PCC 0.7953 | Best PCC 0.6764 (ep49)
+Epoch  52 | LR 0.000100 | Phone PCC 0.6726 | Utt Total PCC 0.7950 | Best PCC 0.6764 (ep49)
+Epoch  53 | LR 0.000100 | Phone PCC 0.6747 | Utt Total PCC 0.7945 | Best PCC 0.6764 (ep49)
+Epoch  54 | LR 0.000100 | Phone PCC 0.6742 | Utt Total PCC 0.7947 | Best PCC 0.6764 (ep49)
+Epoch  55 | LR 0.000100 | Phone PCC 0.6707 | Utt Total PCC 0.7942 | Best PCC 0.6764 (ep49)
+Epoch  56 | LR 0.000100 | Phone PCC 0.6735 | Utt Total PCC 0.7931 | Best PCC 0.6764 (ep49)
+Epoch  57 | LR 0.000100 | Phone PCC 0.6727 | Utt Total PCC 0.7933 | Best PCC 0.6764 (ep49)
+Epoch  58 | LR 0.000100 | Phone PCC 0.6694 | Utt Total PCC 0.7934 | Best PCC 0.6764 (ep49)
+Epoch  59 | LR 0.000100 | Phone PCC 0.6704 | Utt Total PCC 0.7926 | Best PCC 0.6764 (ep49)
+Epoch  60 | LR 0.000010 | Phone PCC 0.6710 | Utt Total PCC 0.7913 | Best PCC 0.6764 (ep49)
+Epoch  61 | LR 0.000010 | Phone PCC 0.6702 | Utt Total PCC 0.7921 | Best PCC 0.6764 (ep49)
+Epoch  62 | LR 0.000010 | Phone PCC 0.6705 | Utt Total PCC 0.7926 | Best PCC 0.6764 (ep49)
+Epoch  63 | LR 0.000010 | Phone PCC 0.6706 | Utt Total PCC 0.7927 | Best PCC 0.6764 (ep49)
+Epoch  64 | LR 0.000010 | Phone PCC 0.6708 | Utt Total PCC 0.7926 | Best PCC 0.6764 (ep49)
+Epoch  65 | LR 0.000010 | Phone PCC 0.6709 | Utt Total PCC 0.7926 | Best PCC 0.6764 (ep49)
+Epoch  66 | LR 0.000010 | Phone PCC 0.6717 | Utt Total PCC 0.7924 | Best PCC 0.6764 (ep49)
+Epoch  67 | LR 0.000010 | Phone PCC 0.6720 | Utt Total PCC 0.7931 | Best PCC 0.6764 (ep49)
+Epoch  68 | LR 0.000010 | Phone PCC 0.6711 | Utt Total PCC 0.7930 | Best PCC 0.6764 (ep49)
+Epoch  69 | LR 0.000010 | Phone PCC 0.6714 | Utt Total PCC 0.7931 | Best PCC 0.6764 (ep49)
+Epoch  70 | LR 0.000010 | Phone PCC 0.6714 | Utt Total PCC 0.7930 | Best PCC 0.6764 (ep49)
+Epoch  71 | LR 0.000001 | Phone PCC 0.6700 | Utt Total PCC 0.7927 | Best PCC 0.6764 (ep49)
+Epoch  72 | LR 0.000001 | Phone PCC 0.6704 | Utt Total PCC 0.7927 | Best PCC 0.6764 (ep49)
+Epoch  73 | LR 0.000001 | Phone PCC 0.6705 | Utt Total PCC 0.7927 | Best PCC 0.6764 (ep49)
+Epoch  74 | LR 0.000001 | Phone PCC 0.6705 | Utt Total PCC 0.7927 | Best PCC 0.6764 (ep49)
+Epoch  75 | LR 0.000001 | Phone PCC 0.6707 | Utt Total PCC 0.7927 | Best PCC 0.6764 (ep49)
+Epoch  76 | LR 0.000001 | Phone PCC 0.6707 | Utt Total PCC 0.7927 | Best PCC 0.6764 (ep49)
+Epoch  77 | LR 0.000001 | Phone PCC 0.6708 | Utt Total PCC 0.7928 | Best PCC 0.6764 (ep49)
+Epoch  78 | LR 0.000001 | Phone PCC 0.6709 | Utt Total PCC 0.7928 | Best PCC 0.6764 (ep49)
+Epoch  79 | LR 0.000001 | Phone PCC 0.6709 | Utt Total PCC 0.7928 | Best PCC 0.6764 (ep49)
+Epoch  80 | LR 0.000001 | Phone PCC 0.6709 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  81 | LR 0.000001 | Phone PCC 0.6708 | Utt Total PCC 0.7928 | Best PCC 0.6764 (ep49)
+Epoch  82 | LR 0.000000 | Phone PCC 0.6709 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  83 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  84 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  85 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  86 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  87 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  88 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)wandb: updating run metadata
+wandb: uploading history steps 99-99, summary, console lines 104-104
+wandb: 
+wandb: Run history:
+wandb:                best/epoch ▁▁▂▂▂▃▃▃▃▃▄▅▅▆▆▆▆▆██████████████████████
+wandb:              best/phn_mse █▇▇▆▄▃▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:              best/phn_pcc ▁▂▂▃▆▇▇▇▇▇▇▇▇███████████████████████████
+wandb:         best/phn_pcc_ever ▁▂▃▃▆▇▇▇▇▇██████████████████████████████
+wandb:                     epoch ▁▁▁▁▁▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▅▅▆▆▆▆▆▆▆▇▇███
+wandb:                        lr ████████████████████▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:              test/phn_mse █▆▆▆▅▄▂▂▃▂▂▂▃▂▁▁▁▁▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:              test/phn_pcc ▁▂▃▄▄▆▆▇▇▇▇▇▇▇▇██████▇██████████████████
+wandb:     test/utt_accuracy_pcc ▁▇▇▇▇████▇██████████████████████████████
+wandb: test/utt_completeness_pcc ▂▃▃▃▃▃▃▃▂▁▄▁▃▆▅▄▅▄▄▆▇▇▇█████████████████
+wandb:                       +12 ...
+wandb: 
+wandb: Run summary:
+wandb:                best/epoch 49
+wandb:              best/phn_mse 0.07456
+wandb:              best/phn_pcc 0.67644
+wandb:         best/phn_pcc_ever 0.67644
+wandb:                     epoch 99
+wandb:                        lr 0.0
+wandb:              test/phn_mse 0.0761
+wandb:              test/phn_pcc 0.67099
+wandb:     test/utt_accuracy_pcc 0.76436
+wandb: test/utt_completeness_pcc 0.82846
+wandb:                       +12 ...
+wandb: 
+wandb: 🚀 View run reproduce-conpco-ON-seed44 at: https://wandb.ai/peacockery/peacock-asr-runs/runs/94aglvtf
+wandb: ⭐️ View project at: https://wandb.ai/peacockery/peacock-asr-runs
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20260304_180734-94aglvtf/logs
+
+Epoch  89 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  90 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  91 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  92 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  93 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  94 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  95 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  96 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  97 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  98 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+Epoch  99 | LR 0.000000 | Phone PCC 0.6710 | Utt Total PCC 0.7929 | Best PCC 0.6764 (ep49)
+
+Done. Best MSE epoch: 49
+  PCC at best-MSE epoch: 0.6764  (this is what the paper reports)
+  Best PCC ever seen:    0.6764
+Target: ~0.743 (ConPCO paper, 5-seed mean)
+2026-03-04 19:02:13,686 - wandb.wandb_agent - INFO - Cleaning up finished run: 94aglvtf
+2026-03-04 19:02:14,413 - wandb.wandb_agent - INFO - Agent received command: run
+2026-03-04 19:02:14,413 - wandb.wandb_agent - INFO - Agent starting run with config:
+	batch-size: 25
+	clap-t2a: 0.5
+	conpco: on
+	embed-dim: 24
+	heads: 1
+	lr: 0.001
+	n-epochs: 100
+	p-depth: 3
+	pco-ld: 0.5
+	pco-lt: 0.1
+	pco-mg: 1
+	seed: 55
+	ssl-drop: 0.2
+	tag: v4
+	u-depth: 1
+	w-depth: 2
+	wandb-project: peacock-asr-runs
+2026-03-04 19:02:14,417 - wandb.wandb_agent - INFO - About to run command: /usr/bin/env uv run runs/reproduce_conpco.py --batch-size=25 --clap-t2a=0.5 --conpco=on --embed-dim=24 --heads=1 --lr=0.001 --n-epochs=100 --p-depth=3 --pco-ld=0.5 --pco-lt=0.1 --pco-mg=1 --seed=55 --ssl-drop=0.2 --tag=v4 --u-depth=1 --w-depth=2 --wandb-project=peacock-asr-runs
+2026-03-04 19:02:19,430 - wandb.wandb_agent - INFO - Running runs: ['ylumkwmc']
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from /home/simon/.netrc.
+wandb: Currently logged in as: cheez2012 (peacockery) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: WARNING Ignoring project 'peacock-asr-runs' when running a sweep.
+wandb: setting up run ylumkwmc
+wandb: Tracking run with wandb version 0.25.0
+wandb: Run data is saved locally in /home/simon/github/peacock-asr/wandb/run-20260304_190219-ylumkwmc
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run reproduce-conpco-ON-seed55
+wandb: ⭐️ View project at https://wandb.ai/peacockery/peacock-asr-runs
+wandb: 🧹 View sweep at https://wandb.ai/peacockery/peacock-asr-runs/sweeps/n7kj97kc
+wandb: 🚀 View run at https://wandb.ai/peacockery/peacock-asr-runs/runs/ylumkwmc
+/home/simon/github/peacock-asr/references/ConPCO/src/models/conPCO_norm.py:24: UserWarning: This overload of addmm_ is deprecated:
+	addmm_(Number beta, Number alpha, Tensor mat1, Tensor mat2)
+Consider using one of the following signatures instead:
+	addmm_(Tensor mat1, Tensor mat2, *, Number beta = 1, Number alpha = 1) (Triggered internally at /pytorch/torch/csrc/utils/python_arg_parser.cpp:1862.)
+  dist.addmm_(1, -2, x, y.t())
+Device: cuda
+Loading train set...
+Loading test set...
+Total params: 460.5K, Trainable: 460.5K
+margin: 1.0
+lambda_d_phn: 0.5
+lambda_t_phn: 0.1
+Epoch   0 | LR 0.000950 | Phone PCC 0.2908 | Utt Total PCC 0.1680 | Best PCC 0.2908 (ep0)
+Epoch   1 | LR 0.001000 | Phone PCC 0.2957 | Utt Total PCC 0.4735 | Best PCC 0.2957 (ep1)
+Epoch   2 | LR 0.001000 | Phone PCC 0.3355 | Utt Total PCC 0.7036 | Best PCC 0.3355 (ep2)
+Epoch   3 | LR 0.001000 | Phone PCC 0.3688 | Utt Total PCC 0.7282 | Best PCC 0.3688 (ep3)
+Epoch   4 | LR 0.001000 | Phone PCC 0.4062 | Utt Total PCC 0.7463 | Best PCC 0.4062 (ep4)
+Epoch   5 | LR 0.001000 | Phone PCC 0.4482 | Utt Total PCC 0.7608 | Best PCC 0.4482 (ep5)
+Epoch   6 | LR 0.001000 | Phone PCC 0.5187 | Utt Total PCC 0.7592 | Best PCC 0.5187 (ep6)
+Epoch   7 | LR 0.001000 | Phone PCC 0.5545 | Utt Total PCC 0.7643 | Best PCC 0.5545 (ep7)
+Epoch   8 | LR 0.001000 | Phone PCC 0.5730 | Utt Total PCC 0.7725 | Best PCC 0.5730 (ep8)
+Epoch   9 | LR 0.001000 | Phone PCC 0.5629 | Utt Total PCC 0.7672 | Best PCC 0.5730 (ep8)
+Epoch  10 | LR 0.001000 | Phone PCC 0.5939 | Utt Total PCC 0.7750 | Best PCC 0.5939 (ep10)
+Epoch  11 | LR 0.001000 | Phone PCC 0.5851 | Utt Total PCC 0.7679 | Best PCC 0.5939 (ep10)
+Epoch  12 | LR 0.001000 | Phone PCC 0.5839 | Utt Total PCC 0.7765 | Best PCC 0.5939 (ep10)
+Epoch  13 | LR 0.001000 | Phone PCC 0.6098 | Utt Total PCC 0.7786 | Best PCC 0.6098 (ep13)
+Epoch  14 | LR 0.001000 | Phone PCC 0.6115 | Utt Total PCC 0.7843 | Best PCC 0.6115 (ep13)
+Epoch  15 | LR 0.001000 | Phone PCC 0.6164 | Utt Total PCC 0.7835 | Best PCC 0.6164 (ep13)
+Epoch  16 | LR 0.001000 | Phone PCC 0.6127 | Utt Total PCC 0.7810 | Best PCC 0.6164 (ep13)
+Epoch  17 | LR 0.001000 | Phone PCC 0.6229 | Utt Total PCC 0.7809 | Best PCC 0.6229 (ep17)
+Epoch  18 | LR 0.001000 | Phone PCC 0.6269 | Utt Total PCC 0.7876 | Best PCC 0.6269 (ep18)
+Epoch  19 | LR 0.001000 | Phone PCC 0.6184 | Utt Total PCC 0.7872 | Best PCC 0.6269 (ep18)
+Epoch  20 | LR 0.001000 | Phone PCC 0.6289 | Utt Total PCC 0.7849 | Best PCC 0.6289 (ep18)
+Epoch  21 | LR 0.001000 | Phone PCC 0.6294 | Utt Total PCC 0.7862 | Best PCC 0.6294 (ep18)
+Epoch  22 | LR 0.001000 | Phone PCC 0.6222 | Utt Total PCC 0.7862 | Best PCC 0.6294 (ep18)
+Epoch  23 | LR 0.001000 | Phone PCC 0.6357 | Utt Total PCC 0.7810 | Best PCC 0.6357 (ep18)
+Epoch  24 | LR 0.001000 | Phone PCC 0.6292 | Utt Total PCC 0.7866 | Best PCC 0.6357 (ep18)
+Epoch  25 | LR 0.001000 | Phone PCC 0.6414 | Utt Total PCC 0.7878 | Best PCC 0.6414 (ep25)
+Epoch  26 | LR 0.001000 | Phone PCC 0.6436 | Utt Total PCC 0.7804 | Best PCC 0.6436 (ep26)
+Epoch  27 | LR 0.001000 | Phone PCC 0.6410 | Utt Total PCC 0.7840 | Best PCC 0.6436 (ep26)
+Epoch  28 | LR 0.001000 | Phone PCC 0.6340 | Utt Total PCC 0.7768 | Best PCC 0.6436 (ep26)
+Epoch  29 | LR 0.001000 | Phone PCC 0.6520 | Utt Total PCC 0.7814 | Best PCC 0.6520 (ep29)
+Epoch  30 | LR 0.001000 | Phone PCC 0.6519 | Utt Total PCC 0.7864 | Best PCC 0.6520 (ep30)
+Epoch  31 | LR 0.001000 | Phone PCC 0.6596 | Utt Total PCC 0.7895 | Best PCC 0.6596 (ep30)
+Epoch  32 | LR 0.001000 | Phone PCC 0.6386 | Utt Total PCC 0.7729 | Best PCC 0.6596 (ep30)
+Epoch  33 | LR 0.001000 | Phone PCC 0.6607 | Utt Total PCC 0.7862 | Best PCC 0.6607 (ep33)
+Epoch  34 | LR 0.001000 | Phone PCC 0.6625 | Utt Total PCC 0.7856 | Best PCC 0.6625 (ep33)
+Epoch  35 | LR 0.001000 | Phone PCC 0.6613 | Utt Total PCC 0.7923 | Best PCC 0.6625 (ep33)
+Epoch  36 | LR 0.001000 | Phone PCC 0.6568 | Utt Total PCC 0.7909 | Best PCC 0.6625 (ep33)
+Epoch  37 | LR 0.001000 | Phone PCC 0.6548 | Utt Total PCC 0.7888 | Best PCC 0.6625 (ep33)
+Epoch  38 | LR 0.001000 | Phone PCC 0.6657 | Utt Total PCC 0.7850 | Best PCC 0.6657 (ep33)
+Epoch  39 | LR 0.001000 | Phone PCC 0.6550 | Utt Total PCC 0.7837 | Best PCC 0.6657 (ep33)
+Epoch  40 | LR 0.001000 | Phone PCC 0.6618 | Utt Total PCC 0.7848 | Best PCC 0.6657 (ep33)
+Epoch  41 | LR 0.001000 | Phone PCC 0.6679 | Utt Total PCC 0.7898 | Best PCC 0.6679 (ep33)
+Epoch  42 | LR 0.001000 | Phone PCC 0.6573 | Utt Total PCC 0.7866 | Best PCC 0.6679 (ep33)
+Epoch  43 | LR 0.001000 | Phone PCC 0.6652 | Utt Total PCC 0.7919 | Best PCC 0.6679 (ep43)
+Epoch  44 | LR 0.001000 | Phone PCC 0.6468 | Utt Total PCC 0.7918 | Best PCC 0.6679 (ep43)
+Epoch  45 | LR 0.001000 | Phone PCC 0.6704 | Utt Total PCC 0.7934 | Best PCC 0.6704 (ep45)
+Epoch  46 | LR 0.001000 | Phone PCC 0.6640 | Utt Total PCC 0.7859 | Best PCC 0.6704 (ep45)
+Epoch  47 | LR 0.001000 | Phone PCC 0.6073 | Utt Total PCC 0.7710 | Best PCC 0.6704 (ep45)
+Epoch  48 | LR 0.001000 | Phone PCC 0.6496 | Utt Total PCC 0.7809 | Best PCC 0.6704 (ep45)
+Epoch  49 | LR 0.001000 | Phone PCC 0.6708 | Utt Total PCC 0.7805 | Best PCC 0.6708 (ep49)
+Epoch  50 | LR 0.001000 | Phone PCC 0.6722 | Utt Total PCC 0.7896 | Best PCC 0.6722 (ep49)
+Epoch  51 | LR 0.001000 | Phone PCC 0.6627 | Utt Total PCC 0.7864 | Best PCC 0.6722 (ep49)
+Epoch  52 | LR 0.001000 | Phone PCC 0.6597 | Utt Total PCC 0.7761 | Best PCC 0.6722 (ep49)
+Epoch  53 | LR 0.001000 | Phone PCC 0.6667 | Utt Total PCC 0.7862 | Best PCC 0.6722 (ep49)
+Epoch  54 | LR 0.001000 | Phone PCC 0.6604 | Utt Total PCC 0.7891 | Best PCC 0.6722 (ep49)
+Epoch  55 | LR 0.001000 | Phone PCC 0.6704 | Utt Total PCC 0.7763 | Best PCC 0.6722 (ep49)
+Epoch  56 | LR 0.001000 | Phone PCC 0.6680 | Utt Total PCC 0.7952 | Best PCC 0.6722 (ep49)
+Epoch  57 | LR 0.001000 | Phone PCC 0.6657 | Utt Total PCC 0.7974 | Best PCC 0.6722 (ep49)
+Epoch  58 | LR 0.001000 | Phone PCC 0.6609 | Utt Total PCC 0.7886 | Best PCC 0.6722 (ep49)
+Epoch  59 | LR 0.001000 | Phone PCC 0.6535 | Utt Total PCC 0.7872 | Best PCC 0.6722 (ep49)
+Epoch  60 | LR 0.000100 | Phone PCC 0.6489 | Utt Total PCC 0.7930 | Best PCC 0.6722 (ep49)
+Epoch  61 | LR 0.000100 | Phone PCC 0.6722 | Utt Total PCC 0.7927 | Best PCC 0.6722 (ep49)
+Epoch  62 | LR 0.000100 | Phone PCC 0.6719 | Utt Total PCC 0.7932 | Best PCC 0.6722 (ep62)
+Epoch  63 | LR 0.000100 | Phone PCC 0.6680 | Utt Total PCC 0.7922 | Best PCC 0.6722 (ep62)
+Epoch  64 | LR 0.000100 | Phone PCC 0.6704 | Utt Total PCC 0.7922 | Best PCC 0.6722 (ep62)
+Epoch  65 | LR 0.000100 | Phone PCC 0.6682 | Utt Total PCC 0.7923 | Best PCC 0.6722 (ep62)
+Epoch  66 | LR 0.000100 | Phone PCC 0.6659 | Utt Total PCC 0.7935 | Best PCC 0.6722 (ep62)
+Epoch  67 | LR 0.000100 | Phone PCC 0.6669 | Utt Total PCC 0.7925 | Best PCC 0.6722 (ep62)
+Epoch  68 | LR 0.000100 | Phone PCC 0.6666 | Utt Total PCC 0.7893 | Best PCC 0.6722 (ep62)
+Epoch  69 | LR 0.000100 | Phone PCC 0.6668 | Utt Total PCC 0.7910 | Best PCC 0.6722 (ep62)
+Epoch  70 | LR 0.000100 | Phone PCC 0.6645 | Utt Total PCC 0.7921 | Best PCC 0.6722 (ep62)
+Epoch  71 | LR 0.000100 | Phone PCC 0.6680 | Utt Total PCC 0.7917 | Best PCC 0.6722 (ep62)
+Epoch  72 | LR 0.000100 | Phone PCC 0.6686 | Utt Total PCC 0.7922 | Best PCC 0.6722 (ep62)
+Epoch  73 | LR 0.000010 | Phone PCC 0.6679 | Utt Total PCC 0.7912 | Best PCC 0.6722 (ep62)
+Epoch  74 | LR 0.000010 | Phone PCC 0.6686 | Utt Total PCC 0.7909 | Best PCC 0.6722 (ep62)
+Epoch  75 | LR 0.000010 | Phone PCC 0.6680 | Utt Total PCC 0.7911 | Best PCC 0.6722 (ep62)
+Epoch  76 | LR 0.000010 | Phone PCC 0.6681 | Utt Total PCC 0.7909 | Best PCC 0.6722 (ep62)
+Epoch  77 | LR 0.000010 | Phone PCC 0.6693 | Utt Total PCC 0.7914 | Best PCC 0.6722 (ep62)
+Epoch  78 | LR 0.000010 | Phone PCC 0.6702 | Utt Total PCC 0.7912 | Best PCC 0.6722 (ep62)
+Epoch  79 | LR 0.000010 | Phone PCC 0.6691 | Utt Total PCC 0.7914 | Best PCC 0.6722 (ep62)
+Epoch  80 | LR 0.000010 | Phone PCC 0.6681 | Utt Total PCC 0.7911 | Best PCC 0.6722 (ep62)
+Epoch  81 | LR 0.000010 | Phone PCC 0.6698 | Utt Total PCC 0.7914 | Best PCC 0.6722 (ep62)
+Epoch  82 | LR 0.000010 | Phone PCC 0.6700 | Utt Total PCC 0.7912 | Best PCC 0.6722 (ep62)
+Epoch  83 | LR 0.000010 | Phone PCC 0.6701 | Utt Total PCC 0.7911 | Best PCC 0.6722 (ep62)
+Epoch  84 | LR 0.000001 | Phone PCC 0.6700 | Utt Total PCC 0.7911 | Best PCC 0.6722 (ep62)
+Epoch  85 | LR 0.000001 | Phone PCC 0.6699 | Utt Total PCC 0.7912 | Best PCC 0.6722 (ep62)
+Epoch  86 | LR 0.000001 | Phone PCC 0.6699 | Utt Total PCC 0.7913 | Best PCC 0.6722 (ep62)
+Epoch  87 | LR 0.000001 | Phone PCC 0.6701 | Utt Total PCC 0.7913 | Best PCC 0.6722 (ep62)
+Epoch  88 | LR 0.000001 | Phone PCC 0.6701 | Utt Total PCC 0.7913 | Best PCC 0.6722 (ep62)wandb: updating run metadata
+wandb: uploading wandb-summary.json; uploading config.yaml; uploading output.log
+wandb: 
+wandb: Run history:
+wandb:                best/epoch ▁▁▂▂▂▂▂▃▃▃▄▄▄▄▅▅▅▅▆▆▆▆▆▆▆▆██████████████
+wandb:              best/phn_mse █▇▆▄▄▃▃▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:              best/phn_pcc ▁▂▂▃▄▆▆▇▇▇▇▇▇▇▇▇████████████████████████
+wandb:         best/phn_pcc_ever ▁▄▅▆▆▆▆▇▇▇▇▇▇▇▇█████████████████████████
+wandb:                     epoch ▁▁▁▁▁▂▂▂▃▃▃▃▃▃▄▄▄▄▄▄▅▅▅▅▅▅▅▆▆▆▆▇▇▇▇▇▇▇██
+wandb:                        lr ███████████████████████▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁
+wandb:              test/phn_mse █▇▆▃▃▃▂▄▂▂▂▁▂▁▁▂▁▂▁▂▁▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:              test/phn_pcc ▁▂▂▃▃▄▅▅▅▅▆▆▆▇▇▇▇▇█▇█▇██▇█▇█████████████
+wandb:     test/utt_accuracy_pcc ▁▅▅▅▆▆▅▄▆▃▇▅▄▅▆▇▁▅▇▅█▇██▇██▇▇▇▇▇▇▇▇▇▇▇▇▇
+wandb: test/utt_completeness_pcc ▂▂▃▁▆▃▄▅▅▆▆▆▆▆▇▇▆▇▇██▆▆▆▇▆▇▇▆▇▇▇▇▇▇▇▇▇▇▇
+wandb:                       +12 ...
+wandb: 
+wandb: Run summary:
+wandb:                best/epoch 62
+wandb:              best/phn_mse 0.07553
+wandb:              best/phn_pcc 0.67187
+wandb:         best/phn_pcc_ever 0.67219
+wandb:                     epoch 99
+wandb:                        lr 0.0
+wandb:              test/phn_mse 0.07635
+wandb:              test/phn_pcc 0.67012
+wandb:     test/utt_accuracy_pcc 0.76232
+wandb: test/utt_completeness_pcc 0.66558
+wandb:                       +12 ...
+wandb: 
+wandb: 🚀 View run reproduce-conpco-ON-seed55 at: https://wandb.ai/peacockery/peacock-asr-runs/runs/ylumkwmc
+wandb: ⭐️ View project at: https://wandb.ai/peacockery/peacock-asr-runs
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20260304_190219-ylumkwmc/logs
+
+Epoch  89 | LR 0.000001 | Phone PCC 0.6701 | Utt Total PCC 0.7913 | Best PCC 0.6722 (ep62)
+Epoch  90 | LR 0.000001 | Phone PCC 0.6700 | Utt Total PCC 0.7913 | Best PCC 0.6722 (ep62)
+Epoch  91 | LR 0.000001 | Phone PCC 0.6702 | Utt Total PCC 0.7912 | Best PCC 0.6722 (ep62)
+Epoch  92 | LR 0.000001 | Phone PCC 0.6701 | Utt Total PCC 0.7912 | Best PCC 0.6722 (ep62)
+Epoch  93 | LR 0.000001 | Phone PCC 0.6702 | Utt Total PCC 0.7912 | Best PCC 0.6722 (ep62)
+Epoch  94 | LR 0.000001 | Phone PCC 0.6701 | Utt Total PCC 0.7911 | Best PCC 0.6722 (ep62)
+Epoch  95 | LR 0.000000 | Phone PCC 0.6701 | Utt Total PCC 0.7911 | Best PCC 0.6722 (ep62)
+Epoch  96 | LR 0.000000 | Phone PCC 0.6701 | Utt Total PCC 0.7911 | Best PCC 0.6722 (ep62)
+Epoch  97 | LR 0.000000 | Phone PCC 0.6701 | Utt Total PCC 0.7912 | Best PCC 0.6722 (ep62)
+Epoch  98 | LR 0.000000 | Phone PCC 0.6701 | Utt Total PCC 0.7911 | Best PCC 0.6722 (ep62)
+Epoch  99 | LR 0.000000 | Phone PCC 0.6701 | Utt Total PCC 0.7911 | Best PCC 0.6722 (ep62)
+
+Done. Best MSE epoch: 62
+  PCC at best-MSE epoch: 0.6719  (this is what the paper reports)
+  Best PCC ever seen:    0.6722
+Target: ~0.743 (ConPCO paper, 5-seed mean)
+2026-03-04 19:57:28,546 - wandb.wandb_agent - INFO - Cleaning up finished run: ylumkwmc
+2026-03-04 19:57:29,114 - wandb.wandb_agent - INFO - Agent received command: run
+2026-03-04 19:57:29,114 - wandb.wandb_agent - INFO - Agent starting run with config:
+	batch-size: 25
+	clap-t2a: 0.5
+	conpco: on
+	embed-dim: 24
+	heads: 1
+	lr: 0.001
+	n-epochs: 100
+	p-depth: 3
+	pco-ld: 0.5
+	pco-lt: 0.1
+	pco-mg: 1
+	seed: 66
+	ssl-drop: 0.2
+	tag: v4
+	u-depth: 1
+	w-depth: 2
+	wandb-project: peacock-asr-runs
+2026-03-04 19:57:29,115 - wandb.wandb_agent - INFO - About to run command: /usr/bin/env uv run runs/reproduce_conpco.py --batch-size=25 --clap-t2a=0.5 --conpco=on --embed-dim=24 --heads=1 --lr=0.001 --n-epochs=100 --p-depth=3 --pco-ld=0.5 --pco-lt=0.1 --pco-mg=1 --seed=66 --ssl-drop=0.2 --tag=v4 --u-depth=1 --w-depth=2 --wandb-project=peacock-asr-runs
+2026-03-04 19:57:34,140 - wandb.wandb_agent - INFO - Running runs: ['oydmwgmz']
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from /home/simon/.netrc.
+wandb: Currently logged in as: cheez2012 (peacockery) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: WARNING Ignoring project 'peacock-asr-runs' when running a sweep.
+wandb: setting up run oydmwgmz
+wandb: Tracking run with wandb version 0.25.0
+wandb: Run data is saved locally in /home/simon/github/peacock-asr/wandb/run-20260304_195734-oydmwgmz
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run reproduce-conpco-ON-seed66
+wandb: ⭐️ View project at https://wandb.ai/peacockery/peacock-asr-runs
+wandb: 🧹 View sweep at https://wandb.ai/peacockery/peacock-asr-runs/sweeps/n7kj97kc
+wandb: 🚀 View run at https://wandb.ai/peacockery/peacock-asr-runs/runs/oydmwgmz
+/home/simon/github/peacock-asr/references/ConPCO/src/models/conPCO_norm.py:24: UserWarning: This overload of addmm_ is deprecated:
+	addmm_(Number beta, Number alpha, Tensor mat1, Tensor mat2)
+Consider using one of the following signatures instead:
+	addmm_(Tensor mat1, Tensor mat2, *, Number beta = 1, Number alpha = 1) (Triggered internally at /pytorch/torch/csrc/utils/python_arg_parser.cpp:1862.)
+  dist.addmm_(1, -2, x, y.t())
+Device: cuda
+Loading train set...
+Loading test set...
+Total params: 460.5K, Trainable: 460.5K
+margin: 1.0
+lambda_d_phn: 0.5
+lambda_t_phn: 0.1
+Epoch   0 | LR 0.000950 | Phone PCC 0.2545 | Utt Total PCC 0.1293 | Best PCC 0.2545 (ep0)
+Epoch   1 | LR 0.001000 | Phone PCC 0.2932 | Utt Total PCC 0.3399 | Best PCC 0.2932 (ep1)
+Epoch   2 | LR 0.001000 | Phone PCC 0.3219 | Utt Total PCC 0.6746 | Best PCC 0.3219 (ep2)
+Epoch   3 | LR 0.001000 | Phone PCC 0.3508 | Utt Total PCC 0.7016 | Best PCC 0.3508 (ep3)
+Epoch   4 | LR 0.001000 | Phone PCC 0.3809 | Utt Total PCC 0.7201 | Best PCC 0.3809 (ep4)
+Epoch   5 | LR 0.001000 | Phone PCC 0.4131 | Utt Total PCC 0.7356 | Best PCC 0.4131 (ep5)
+Epoch   6 | LR 0.001000 | Phone PCC 0.4455 | Utt Total PCC 0.7382 | Best PCC 0.4455 (ep5)
+Epoch   7 | LR 0.001000 | Phone PCC 0.5269 | Utt Total PCC 0.7573 | Best PCC 0.5269 (ep7)
+Epoch   8 | LR 0.001000 | Phone PCC 0.5002 | Utt Total PCC 0.7512 | Best PCC 0.5269 (ep8)
+Epoch   9 | LR 0.001000 | Phone PCC 0.5315 | Utt Total PCC 0.7544 | Best PCC 0.5315 (ep8)
+Epoch  10 | LR 0.001000 | Phone PCC 0.5822 | Utt Total PCC 0.7657 | Best PCC 0.5822 (ep10)
+Epoch  11 | LR 0.001000 | Phone PCC 0.5792 | Utt Total PCC 0.7514 | Best PCC 0.5822 (ep10)
+Epoch  12 | LR 0.001000 | Phone PCC 0.5885 | Utt Total PCC 0.7685 | Best PCC 0.5885 (ep12)
+Epoch  13 | LR 0.001000 | Phone PCC 0.5994 | Utt Total PCC 0.7706 | Best PCC 0.5994 (ep13)
+Epoch  14 | LR 0.001000 | Phone PCC 0.5892 | Utt Total PCC 0.7694 | Best PCC 0.5994 (ep13)
+Epoch  15 | LR 0.001000 | Phone PCC 0.6056 | Utt Total PCC 0.7750 | Best PCC 0.6056 (ep13)
+Epoch  16 | LR 0.001000 | Phone PCC 0.5934 | Utt Total PCC 0.7714 | Best PCC 0.6056 (ep13)
+Epoch  17 | LR 0.001000 | Phone PCC 0.5956 | Utt Total PCC 0.7716 | Best PCC 0.6056 (ep13)
+Epoch  18 | LR 0.001000 | Phone PCC 0.6165 | Utt Total PCC 0.7777 | Best PCC 0.6165 (ep18)
+Epoch  19 | LR 0.001000 | Phone PCC 0.6149 | Utt Total PCC 0.7739 | Best PCC 0.6165 (ep19)
+Epoch  20 | LR 0.001000 | Phone PCC 0.6151 | Utt Total PCC 0.7769 | Best PCC 0.6165 (ep20)
+Epoch  21 | LR 0.001000 | Phone PCC 0.6210 | Utt Total PCC 0.7786 | Best PCC 0.6210 (ep20)
+Epoch  22 | LR 0.001000 | Phone PCC 0.6196 | Utt Total PCC 0.7808 | Best PCC 0.6210 (ep20)
+Epoch  23 | LR 0.001000 | Phone PCC 0.6213 | Utt Total PCC 0.7840 | Best PCC 0.6213 (ep23)
+Epoch  24 | LR 0.001000 | Phone PCC 0.6244 | Utt Total PCC 0.7799 | Best PCC 0.6244 (ep24)
+Epoch  25 | LR 0.001000 | Phone PCC 0.6296 | Utt Total PCC 0.7840 | Best PCC 0.6296 (ep25)
+Epoch  26 | LR 0.001000 | Phone PCC 0.6337 | Utt Total PCC 0.7832 | Best PCC 0.6337 (ep26)
+Epoch  27 | LR 0.001000 | Phone PCC 0.6288 | Utt Total PCC 0.7856 | Best PCC 0.6337 (ep26)
+Epoch  28 | LR 0.001000 | Phone PCC 0.6407 | Utt Total PCC 0.7838 | Best PCC 0.6407 (ep28)
+Epoch  29 | LR 0.001000 | Phone PCC 0.6428 | Utt Total PCC 0.7873 | Best PCC 0.6428 (ep28)
+Epoch  30 | LR 0.001000 | Phone PCC 0.6422 | Utt Total PCC 0.7824 | Best PCC 0.6428 (ep28)
+Epoch  31 | LR 0.001000 | Phone PCC 0.6299 | Utt Total PCC 0.7792 | Best PCC 0.6428 (ep28)
+Epoch  32 | LR 0.001000 | Phone PCC 0.6428 | Utt Total PCC 0.7797 | Best PCC 0.6428 (ep32)
+Epoch  33 | LR 0.001000 | Phone PCC 0.6499 | Utt Total PCC 0.7875 | Best PCC 0.6499 (ep32)
+Epoch  34 | LR 0.001000 | Phone PCC 0.6285 | Utt Total PCC 0.7819 | Best PCC 0.6499 (ep32)
+Epoch  35 | LR 0.001000 | Phone PCC 0.6584 | Utt Total PCC 0.7907 | Best PCC 0.6584 (ep35)
+Epoch  36 | LR 0.001000 | Phone PCC 0.6568 | Utt Total PCC 0.7925 | Best PCC 0.6584 (ep35)
+Epoch  37 | LR 0.001000 | Phone PCC 0.6636 | Utt Total PCC 0.7934 | Best PCC 0.6636 (ep37)
+Epoch  38 | LR 0.001000 | Phone PCC 0.6565 | Utt Total PCC 0.7970 | Best PCC 0.6636 (ep37)
+Epoch  39 | LR 0.001000 | Phone PCC 0.6655 | Utt Total PCC 0.7927 | Best PCC 0.6655 (ep39)
+Epoch  40 | LR 0.001000 | Phone PCC 0.6550 | Utt Total PCC 0.7928 | Best PCC 0.6655 (ep39)
+Epoch  41 | LR 0.001000 | Phone PCC 0.6555 | Utt Total PCC 0.7947 | Best PCC 0.6655 (ep39)
+Epoch  42 | LR 0.001000 | Phone PCC 0.6657 | Utt Total PCC 0.7958 | Best PCC 0.6657 (ep39)
+Epoch  43 | LR 0.001000 | Phone PCC 0.6680 | Utt Total PCC 0.7962 | Best PCC 0.6680 (ep43)
+Epoch  44 | LR 0.001000 | Phone PCC 0.6515 | Utt Total PCC 0.7984 | Best PCC 0.6680 (ep43)
+Epoch  45 | LR 0.001000 | Phone PCC 0.6635 | Utt Total PCC 0.8001 | Best PCC 0.6680 (ep43)
+Epoch  46 | LR 0.001000 | Phone PCC 0.6660 | Utt Total PCC 0.8009 | Best PCC 0.6680 (ep43)
+Epoch  47 | LR 0.001000 | Phone PCC 0.6658 | Utt Total PCC 0.7950 | Best PCC 0.6680 (ep43)
+Epoch  48 | LR 0.001000 | Phone PCC 0.6426 | Utt Total PCC 0.7873 | Best PCC 0.6680 (ep43)
+Epoch  49 | LR 0.001000 | Phone PCC 0.6496 | Utt Total PCC 0.7882 | Best PCC 0.6680 (ep43)
+Epoch  50 | LR 0.001000 | Phone PCC 0.6538 | Utt Total PCC 0.7973 | Best PCC 0.6680 (ep43)
+Epoch  51 | LR 0.001000 | Phone PCC 0.6538 | Utt Total PCC 0.7992 | Best PCC 0.6680 (ep43)
+Epoch  52 | LR 0.001000 | Phone PCC 0.6516 | Utt Total PCC 0.7958 | Best PCC 0.6680 (ep43)
+Epoch  53 | LR 0.001000 | Phone PCC 0.6490 | Utt Total PCC 0.7981 | Best PCC 0.6680 (ep43)
+Epoch  54 | LR 0.000100 | Phone PCC 0.6400 | Utt Total PCC 0.7919 | Best PCC 0.6680 (ep43)
+Epoch  55 | LR 0.000100 | Phone PCC 0.6616 | Utt Total PCC 0.8008 | Best PCC 0.6680 (ep43)
+Epoch  56 | LR 0.000100 | Phone PCC 0.6634 | Utt Total PCC 0.8006 | Best PCC 0.6680 (ep43)
+Epoch  57 | LR 0.000100 | Phone PCC 0.6595 | Utt Total PCC 0.8012 | Best PCC 0.6680 (ep43)
+Epoch  58 | LR 0.000100 | Phone PCC 0.6627 | Utt Total PCC 0.8014 | Best PCC 0.6680 (ep43)
+Epoch  59 | LR 0.000100 | Phone PCC 0.6594 | Utt Total PCC 0.8027 | Best PCC 0.6680 (ep43)
+Epoch  60 | LR 0.000100 | Phone PCC 0.6611 | Utt Total PCC 0.8031 | Best PCC 0.6680 (ep43)
+Epoch  61 | LR 0.000100 | Phone PCC 0.6641 | Utt Total PCC 0.8028 | Best PCC 0.6680 (ep43)
+Epoch  62 | LR 0.000100 | Phone PCC 0.6616 | Utt Total PCC 0.8012 | Best PCC 0.6680 (ep43)
+Epoch  63 | LR 0.000100 | Phone PCC 0.6581 | Utt Total PCC 0.8015 | Best PCC 0.6680 (ep43)
+Epoch  64 | LR 0.000100 | Phone PCC 0.6608 | Utt Total PCC 0.8019 | Best PCC 0.6680 (ep43)
+Epoch  65 | LR 0.000010 | Phone PCC 0.6599 | Utt Total PCC 0.8023 | Best PCC 0.6680 (ep43)
+Epoch  66 | LR 0.000010 | Phone PCC 0.6608 | Utt Total PCC 0.8027 | Best PCC 0.6680 (ep43)
+Epoch  67 | LR 0.000010 | Phone PCC 0.6607 | Utt Total PCC 0.8027 | Best PCC 0.6680 (ep43)
+Epoch  68 | LR 0.000010 | Phone PCC 0.6604 | Utt Total PCC 0.8026 | Best PCC 0.6680 (ep43)
+Epoch  69 | LR 0.000010 | Phone PCC 0.6611 | Utt Total PCC 0.8027 | Best PCC 0.6680 (ep43)
+Epoch  70 | LR 0.000010 | Phone PCC 0.6607 | Utt Total PCC 0.8026 | Best PCC 0.6680 (ep43)
+Epoch  71 | LR 0.000010 | Phone PCC 0.6602 | Utt Total PCC 0.8023 | Best PCC 0.6680 (ep43)
+Epoch  72 | LR 0.000010 | Phone PCC 0.6617 | Utt Total PCC 0.8025 | Best PCC 0.6680 (ep43)
+Epoch  73 | LR 0.000010 | Phone PCC 0.6603 | Utt Total PCC 0.8021 | Best PCC 0.6680 (ep43)
+Epoch  74 | LR 0.000010 | Phone PCC 0.6605 | Utt Total PCC 0.8024 | Best PCC 0.6680 (ep43)
+Epoch  75 | LR 0.000010 | Phone PCC 0.6596 | Utt Total PCC 0.8023 | Best PCC 0.6680 (ep43)
+Epoch  76 | LR 0.000001 | Phone PCC 0.6594 | Utt Total PCC 0.8025 | Best PCC 0.6680 (ep43)
+Epoch  77 | LR 0.000001 | Phone PCC 0.6597 | Utt Total PCC 0.8025 | Best PCC 0.6680 (ep43)
+Epoch  78 | LR 0.000001 | Phone PCC 0.6600 | Utt Total PCC 0.8025 | Best PCC 0.6680 (ep43)
+Epoch  79 | LR 0.000001 | Phone PCC 0.6600 | Utt Total PCC 0.8025 | Best PCC 0.6680 (ep43)
+Epoch  80 | LR 0.000001 | Phone PCC 0.6600 | Utt Total PCC 0.8024 | Best PCC 0.6680 (ep43)
+Epoch  81 | LR 0.000001 | Phone PCC 0.6599 | Utt Total PCC 0.8024 | Best PCC 0.6680 (ep43)
+Epoch  82 | LR 0.000001 | Phone PCC 0.6597 | Utt Total PCC 0.8024 | Best PCC 0.6680 (ep43)
+Epoch  83 | LR 0.000001 | Phone PCC 0.6598 | Utt Total PCC 0.8024 | Best PCC 0.6680 (ep43)
+Epoch  84 | LR 0.000001 | Phone PCC 0.6598 | Utt Total PCC 0.8025 | Best PCC 0.6680 (ep43)
+Epoch  85 | LR 0.000001 | Phone PCC 0.6600 | Utt Total PCC 0.8024 | Best PCC 0.6680 (ep43)
+Epoch  86 | LR 0.000001 | Phone PCC 0.6599 | Utt Total PCC 0.8024 | Best PCC 0.6680 (ep43)
+Epoch  87 | LR 0.000000 | Phone PCC 0.6601 | Utt Total PCC 0.8023 | Best PCC 0.6680 (ep43)
+Epoch  88 | LR 0.000000 | Phone PCC 0.6601 | Utt Total PCC 0.8023 | Best PCC 0.6680 (ep43)wandb: updating run metadata
+wandb: uploading output.log; uploading wandb-summary.json; uploading config.yaml
+wandb: 
+wandb: Run history:
+wandb:                best/epoch ▁▂▂▂▂▃▄▄▄▄▅▅▅▅▅▇▇▇▇▇████████████████████
+wandb:              best/phn_mse ██▇▃▃▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:              best/phn_pcc ▁▃▆▆▆▇▇▇▇▇▇▇▇▇██████████████████████████
+wandb:         best/phn_pcc_ever ▁▂▃▃▆▇▇▇▇▇▇▇▇▇▇█████████████████████████
+wandb:                     epoch ▁▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▆▆▆▆▆▆▆▆▇▇▇███
+wandb:                        lr ███████████████████████▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:              test/phn_mse ██▇▄▃▄▂▂▂▂▂▂▂▄▁▁▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:              test/phn_pcc ▁▂▃▄▄▇▇▇▇▇▇▇▇██▇████████████████████████
+wandb:     test/utt_accuracy_pcc ▁▇▇█▇███████████████████████████████████
+wandb: test/utt_completeness_pcc ▁▅▅▃▅▄▄▇▆▅▅▇█▇▇█▆▅▆█████████████████████
+wandb:                       +12 ...
+wandb: 
+wandb: Run summary:
+wandb:                best/epoch 43
+wandb:              best/phn_mse 0.07592
+wandb:              best/phn_pcc 0.66802
+wandb:         best/phn_pcc_ever 0.66802
+wandb:                     epoch 99
+wandb:                        lr 0.0
+wandb:              test/phn_mse 0.07869
+wandb:              test/phn_pcc 0.66008
+wandb:     test/utt_accuracy_pcc 0.77397
+wandb: test/utt_completeness_pcc 0.81651
+wandb:                       +12 ...
+wandb: 
+wandb: 🚀 View run reproduce-conpco-ON-seed66 at: https://wandb.ai/peacockery/peacock-asr-runs/runs/oydmwgmz
+wandb: ⭐️ View project at: https://wandb.ai/peacockery/peacock-asr-runs
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20260304_195734-oydmwgmz/logs
+
+Epoch  89 | LR 0.000000 | Phone PCC 0.6601 | Utt Total PCC 0.8023 | Best PCC 0.6680 (ep43)
+Epoch  90 | LR 0.000000 | Phone PCC 0.6601 | Utt Total PCC 0.8023 | Best PCC 0.6680 (ep43)
+Epoch  91 | LR 0.000000 | Phone PCC 0.6601 | Utt Total PCC 0.8023 | Best PCC 0.6680 (ep43)
+Epoch  92 | LR 0.000000 | Phone PCC 0.6601 | Utt Total PCC 0.8023 | Best PCC 0.6680 (ep43)
+Epoch  93 | LR 0.000000 | Phone PCC 0.6601 | Utt Total PCC 0.8023 | Best PCC 0.6680 (ep43)
+Epoch  94 | LR 0.000000 | Phone PCC 0.6601 | Utt Total PCC 0.8023 | Best PCC 0.6680 (ep43)
+Epoch  95 | LR 0.000000 | Phone PCC 0.6601 | Utt Total PCC 0.8024 | Best PCC 0.6680 (ep43)
+Epoch  96 | LR 0.000000 | Phone PCC 0.6601 | Utt Total PCC 0.8024 | Best PCC 0.6680 (ep43)
+Epoch  97 | LR 0.000000 | Phone PCC 0.6601 | Utt Total PCC 0.8023 | Best PCC 0.6680 (ep43)
+Epoch  98 | LR 0.000000 | Phone PCC 0.6601 | Utt Total PCC 0.8024 | Best PCC 0.6680 (ep43)
+Epoch  99 | LR 0.000000 | Phone PCC 0.6601 | Utt Total PCC 0.8024 | Best PCC 0.6680 (ep43)
+
+Done. Best MSE epoch: 43
+  PCC at best-MSE epoch: 0.6680  (this is what the paper reports)
+  Best PCC ever seen:    0.6680
+Target: ~0.743 (ConPCO paper, 5-seed mean)
+2026-03-04 21:24:17,317 - wandb.wandb_agent - INFO - Cleaning up finished run: oydmwgmz
+2026-03-04 21:24:18,157 - wandb.wandb_agent - INFO - Agent received command: run
+2026-03-04 21:24:18,157 - wandb.wandb_agent - INFO - Agent starting run with config:
+	batch-size: 25
+	clap-t2a: 0.5
+	conpco: off
+	embed-dim: 24
+	heads: 1
+	lr: 0.001
+	n-epochs: 100
+	p-depth: 3
+	pco-ld: 0.5
+	pco-lt: 0.1
+	pco-mg: 1
+	seed: 22
+	ssl-drop: 0.2
+	tag: v4
+	u-depth: 1
+	w-depth: 2
+	wandb-project: peacock-asr-runs
+2026-03-04 21:24:18,158 - wandb.wandb_agent - INFO - About to run command: /usr/bin/env uv run runs/reproduce_conpco.py --batch-size=25 --clap-t2a=0.5 --conpco=off --embed-dim=24 --heads=1 --lr=0.001 --n-epochs=100 --p-depth=3 --pco-ld=0.5 --pco-lt=0.1 --pco-mg=1 --seed=22 --ssl-drop=0.2 --tag=v4 --u-depth=1 --w-depth=2 --wandb-project=peacock-asr-runs
+2026-03-04 21:24:23,184 - wandb.wandb_agent - INFO - Running runs: ['sb9skkf6']
+wandb: [wandb.login()] Loaded credentials for https://api.wandb.ai from /home/simon/.netrc.
+wandb: Currently logged in as: cheez2012 (peacockery) to https://api.wandb.ai. Use `wandb login --relogin` to force relogin
+wandb: WARNING Ignoring project 'peacock-asr-runs' when running a sweep.
+wandb: setting up run sb9skkf6
+wandb: Tracking run with wandb version 0.25.0
+wandb: Run data is saved locally in /home/simon/github/peacock-asr/wandb/run-20260304_212423-sb9skkf6
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run reproduce-conpco-OFF-seed22
+wandb: ⭐️ View project at https://wandb.ai/peacockery/peacock-asr-runs
+wandb: 🧹 View sweep at https://wandb.ai/peacockery/peacock-asr-runs/sweeps/n7kj97kc
+wandb: 🚀 View run at https://wandb.ai/peacockery/peacock-asr-runs/runs/sb9skkf6

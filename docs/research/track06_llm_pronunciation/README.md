@@ -38,17 +38,16 @@ Process:
 
 Papers (PDFs in `./papers/`):
 
-- `2509.02915_lora_pronunciation_assessment.pdf` — Phi-4 LoRA (KEY paper)
-- `2509.02915.pdf` — same paper, end_to_end_assessment copy
-- `2407.09209v2.pdf` — Fu et al.: MLLM pronunciation with Data2vec2+Qwen
-- `2503.11229.pdf` — Wang et al.: GPT-4o zero-shot for pronunciation (Microsoft)
-- `2508.12591.pdf` — Fang et al.: unified MLLM for speaking assessment (SFMT)
-- `2509.15701.pdf` — fine-tuning Qwen2-Audio-7B for APA, multi-granularity
-- `2601.16230.pdf` — Parikh et al.: zero-shot Qwen2-Audio for L2 evaluation
-- `2308.12490_multipa_open_response.pdf` — Chen et al.: MultiPA multi-task model
-- `2509.14187_read_to_hear_zero_shot_pronunciation.pdf` — Chen et al.: TextPA zero-shot
-- `2512.04964_hippo_hierarchical_pronunciation_assessment.pdf` — Yan et al.: HiPPO
-- `2204.03863.pdf` — Kim et al.: SSL-based APA (bridge paper)
+- `[Ahn et al, 2025]-lora-mllm-apa-mdd-joint.pdf` — Phi-4 LoRA (KEY paper)
+- `[Fu et al, 2024]-pronunciation-assessment-multimodal-llm.pdf` — Fu et al.: MLLM pronunciation with Data2vec2+Qwen
+- `[Wang et al, 2025]-lmm-pronunciation-assessment-gpt4o.pdf` — Wang et al.: GPT-4o zero-shot for pronunciation (Microsoft)
+- `[Fang et al, 2025]-mllm-automated-speaking-assessment-sfmt.pdf` — Fang et al.: unified MLLM for speaking assessment (SFMT)
+- `[Wang et al, 2025]-fine-tuning-lmm-automatic-pronunciation-assessment.pdf` — fine-tuning Qwen2-Audio-7B for APA, multi-granularity
+- `[Parikh et al, 2026]-zero-shot-speech-llms-l2-multi-aspect-evaluation.pdf` — Parikh et al.: zero-shot Qwen2-Audio for L2 evaluation
+- `[Chen et al, 2023]-multipa-multitask-open-response-pronunciation.pdf` — Chen et al.: MultiPA multi-task model
+- `[Chen et al, 2025]-textpa-zero-shot-pronunciation-llm.pdf` — Chen et al.: TextPA zero-shot
+- `[Yan et al, 2025]-hippo-hierarchical-apa-unscripted-speech.pdf` — Yan et al.: HiPPO
+- `[Kim et al, 2022]-ssl-pronunciation-assessment-wav2vec-hubert.pdf` — Kim et al.: SSL-based APA (bridge paper)
 
 Key references (in `./refs.bib`):
 

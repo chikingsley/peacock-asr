@@ -140,7 +140,7 @@ Streaming before the backbone question is resolved would be premature.
 
 |Track|Question|Workspace|
 |---|----------|-----------|
-|05|Does GOP-SF + GOPT beat published methods?|`track05_paper/`|
+|05|Does GOP-SF + GOPT beat published methods?|`projects/P001-gop-baselines/docs/`|
 |06|Can an LLM score pronunciation without GOP?|`track06_llm_pronunciation/`|
 |07|Can we train a CTC model from scratch?|`track07_training_from_scratch/`|
 |08|Can GOP-SF work in real-time?|`track08_realtime_streaming/`|

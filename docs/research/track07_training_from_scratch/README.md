@@ -41,15 +41,15 @@ Key external references:
 
 Papers (PDFs in `./papers/`):
 
-- `2505.23170_zipa_multilingual_phone_recognition.pdf` — ZIPA (Zipformer from scratch)
-- `2510.24992_powsm_phonetic_open_whisper_style_speech_foundation_model.pdf` — POWSM (multi-task)
-- `2601.14046_prism_benchmarking_phone_realization_in_speech_models.pdf` — PRiSM benchmark
-- `2109.11680_simple_effective_zero_shot_cross_lingual_phoneme_recognition.pdf` — wav2vec2 zero-shot
-- `2305.13516_scaling_speech_technology_to_1000_languages_mms.pdf` — MMS scaling
-- `2507.14346.pdf` — phoneme similarity modeling
-- `2508.03937.pdf` — LCS-CTC soft alignments
-- `2005.08100_conformer_convolution_augmented_transformer.pdf` — Conformer (Gulati 2020)
-- `2204.03067_byt5_massively_multilingual_g2p.pdf` — multilingual G2P for data labeling
+- `[Zhu et al, 2025]-family-of-efficient-models-for-multilingual-phone-recognition.pdf` — ZIPA (Zipformer from scratch)
+- `[Li et al, 2025]-phonetic-open-whisper-style-speech-foundation-model.pdf` — POWSM (multi-task)
+- `[Bharadwaj et al, 2026]-benchmarking-phone-realization-in-speech-models.pdf` — PRiSM benchmark
+- `[Xu et al, 2021]-simple-effective-zero-shot-cross-lingual-phoneme-recognition.pdf` — wav2vec2 zero-shot
+- `[Pratap et al, 2023]-scaling-speech-technology-to-1000-languages-mms.pdf` — MMS scaling
+- `[Zhou et al, 2025]-phonetic-error-detection-similarity-modeling.pdf` — phoneme similarity modeling
+- `[Ye et al, 2025]-lcs-ctc-phonetic-transcription-alignment.pdf` — LCS-CTC soft alignments
+- `[Gulati et al, 2020]-conformer-speech-recognition.pdf` — Conformer (Gulati 2020)
+- `[Zhu et al, 2022]-byt5-massively-multilingual-g2p.pdf` — multilingual G2P for data labeling
 
 Status: stub — architecture identified, no experiments started.
 
