@@ -1,0 +1,21 @@
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{l r r}
+  \toprule
+  Model & Latency (ms) & Compute Load (\%) \\
+  \midrule
+  \rowcolor{black!10} Moonshine Tiny & 27 & 5.91 \\
+  \rowcolor{black!10} Moonshine Base & 44 & 7.34 \\
+  \rowcolor{black!10} Moonshine v2 Tiny & 50 & 8.03 \\
+  \rowcolor{black!10} Moonshine v2 Small & 148 & 17.97 \\
+  \rowcolor{black!10} Moonshine v2 Medium & 258 & 28.95 \\
+  Whisper Tiny & 289 & 8.46 \\
+  Whisper Base & 553 & 16.19 \\
+  Whisper Small & 1940 & 56.84 \\
+  Whisper Large v3 & 11286 & 330.65 \\
+  \bottomrule
+  \end{tabular}
+  \caption{Empirical response latency and compute load comparison for Moonshine and Whisper models. These values reflect the amount of time taken between the end of a speech utterance and the returned transcript in a real-time, live transcription scenario running on an Apple MacBook M3.}
+  \label{tab:latency-comparison}
+\end{table}

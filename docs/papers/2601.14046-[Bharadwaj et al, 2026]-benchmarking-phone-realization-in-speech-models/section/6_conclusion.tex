@@ -1,0 +1,34 @@
+\section{Conclusion}
+We introduce \bench, the first standardized benchmark to measure capabilities of PR systems on transcription task and downstream task performance.
+We also open-source our datasets in an easy-to-use format with our toolkit.
+Our evaluations reveal that models behave differently on PR and on downstream applications.
+Therefore, we recommend that models be benchmarked in both categories to make comparisons.
+Our results and analysis show that 
+PR for seen language benefits from outputs grounded in familiar patterns, whereas unseen languages' rely on multilingual training and learned phonological patterns. 
+Broad and diverse language coverage, along with encoder-CTC architectures, improves stability across tasks, 
+while LALMs currently lag behind specialized PR models.
+Together, these findings highlight the value of \bench as a framework for evaluating PR systems across diverse languages, tasks, and architectures.
+
+\section*{Limitations}
+% Jian:
+% Since this is a benchmark paper, the limitations would be about the benchmark itself, such as the subjective nature of phone transcription, and the limited coverage of langauge, making it potentially biased. For the hidden probing, I think the current phrasing can be tone down a little bit? Rather than calling into question the need for phonetic transcripts, maybe reflect the limitation of phonetic transcripts or the IPA system.
+While \bench evaluates PR systems across a range of intrinsic and extrinsic settings, it is constrained by the availability of curated datasets. As a result, coverage of languages, dialects, accents, and speaking styles remains incomplete and may reflect biases present in the underlying corpora.
+
+In addition, phonetic transcription does not constitute a single objective ground truth: it depends on annotation guidelines, annotator judgments, and the chosen phone inventory. The IPA-based interface may also miss or normalize away language-specific or gradient phonetic phenomena.
+
+Both intrinsic and extrinsic evaluations are necessary to assess PR systems, but each has limitations. Transcript probes align with linguistic features, yet they may also overfit to spurious cues (e.g., sequence length) when datasets are biased or transcripts are noisy due to low PR quality.
+For representation probes, phonetic information may be distributed across different layers, and performance can depend on the chosen fusion or pooling strategy.
+Models may benefit from task-specific decoding hyperparameters and prompts, whereas we use default settings and prompts that only contain key instructions. 
+Our goal is to assess fundamental phonetic capabilities and provide comparative insights; we do not claim that the reported results reflect the best possible performance achievable for each model.
+
+\subsection*{Ethics Statement}
+All data used in this work are ethically sourced, either through permissive licensing or with proper consent. 
+Speech datasets, particularly those involving pathological speech, may contain sensitive personal information, and we strictly adhere to the licenses and usage conditions associated with each dataset.
+PR systems may be misapplied in ways that unfairly label speakers without appropriate expert supervision, especially in educational, clinical, demographic, or geographic contexts.
+We introduce \bench with the goal of supporting responsible and rigorous research, and we encourage its use to advance speech technologies that consider linguistic and cultural diversity regardless of resource availability.
+
+\subsection*{The Use of LLMs}
+We acknowledge the use of large language models (LLMs) to assist with refinement of the writing, including grammar correction and clarity improvements.
+We also used LLMs as coding assistants.
+All the code was then verified by authors.
+All conceptual, methodological, and experimental work was done independently by the authors.

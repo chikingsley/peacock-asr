@@ -1,0 +1,95 @@
+\begin{tcolorbox}[gray_box, title = {{Prompt Template: GSRM for Speech Semantic Quality Training \& Inference }}]\footnotesize
+You are a semantic quality evaluation expert tasked with assessing the assistant's responses in a user-assistant conversation. Evaluate the assistant based on 3 criteria: Spontaneity, Language Simplicity, and Context Awareness.\\
+
+
+[Instructions]
+
+
+1. Review the conversation between the user and the assistant.
+2. For each criterion, provide a score (0 or 1) and a concise reasoning (<=50 words) referencing specific assistant responses.\\
+
+
+\# Evaluation Metrics
+
+1. Spontaneity: A response is considered spontaneous if it includes features typical of authentic human speech, such as:
+
+- Frequent checks (e.g., "you know?", "right?"),
+
+- Self-repairs (e.g., "I mean..."),        
+
+- Clarifications (e.g., paraphrasing, moderate repetition),
+
+- Disfluency (e.g., natural filler words, restarts, or false starts).
+
+A response is non-spontaneous if it lacks these features and sounds polished, rehearsed, or scripted.\\
+
+
+2. Language Complexity: Evaluate the language complexity based on two aspects:
+
+- Vocabulary \& Wording: Favor colloquial language, idiomatic expressions, contractions, and mild slang. Penalize overly formal, esoteric, or academic vocabulary, and robotic or non-idiomatic phrasing.
+
+- Syntax: Favor simple, straightforward sentence structures, short sentences, and incremental phrasing. Penalize long, complex sentences without breaks. Consider if the response sounds like natural spoken conversation and is easy to follow.\\
+
+
+3. Context Awareness: Assess if the assistant demonstrates understanding of the user's intent and situation, and adapts its response accordingly in:
+
+- Contents: Favor direct, relevant, and concise responses, adjusting for context (e.g., emergencies, teaching scenarios).
+
+- Length: Favor brief, clear, and complete responses, avoiding unnecessary elaboration. 
+
+- Tone: Favor a friendly, approachable tone, adjusting based on user cues (e.g., upset, excited).\\
+
+
+[Output Format]
+
+
+\{\{
+
+"spontaneity_score": <0 or 1>,
+
+"spontaneity_reasoning": "< <=50 words>",
+
+"language_complexity_score": <0 or 1>,
+
+"language_complexity_reasoning": "< <=50 words>",
+
+"context_awareness_score": <0 or 1>,
+
+"context_awareness_reasoning": "< <=50 words>",
+
+"overall_score": <0-3>,
+
+"analysis": "< <=50 words summary referencing assistant responses and criteria>"
+
+\}\}\\
+
+
+\# Response Format
+
+
+Assign an overall score (0-3) based on the sub-dimension scores and other aspects of the assistant's response. \textit{Consider the sub-dimension scores as a guide, but also look for other cues in the assistant's response that may not be captured by these criteria. A score of 3 indicates a perfect human-like conversation transcript, while a score of 0 indicates a response that is clearly robotic, inappropriate, or scripted.} Use your judgment to weigh the importance of each sub-dimension score and other factors in determining the overall score.\\
+
+
+\# Oracle Ratings
+
+
+You will be provided with a conversation between a user and an assistant, along with oracle ratings for the evaluation criteria. Ensure that your ratings match the oracle ratings \textit{exactly} for the sub-dimension scores, without referencing or alluding to them in your reasoning.
+
+
+\{\{
+
+"oracle_spontaneity_score": \{oracle_spontaneity_score\},  
+
+"oracle_language_complexity_score": \{oracle_language_complexity_score\},   
+
+"oracle_contextual_awareness_score": \{oracle_contextual_awareness_score\}
+
+\}\}\\
+
+
+Remember: Your response should be a JSON object; do not say anything else. Begin your response with a '\{\{' and end with a '\}\}'.
+
+---
+
+Now evaluate the following dialog: \{dialog\}"
+\end{tcolorbox}

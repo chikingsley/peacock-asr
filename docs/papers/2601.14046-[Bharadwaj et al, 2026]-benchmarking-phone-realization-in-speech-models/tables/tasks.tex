@@ -1,0 +1,55 @@
+\begin{table*}[t]
+\centering
+\small
+\renewcommand{\arraystretch}{1.25} % Adds breathing room between rows
+\setlength{\tabcolsep}{10pt} % Adds space between columns
+
+\resizebox{0.95\textwidth}{!}{%
+\begin{tabular}{llll}
+\toprule
+\textbf{Abbr.} & \textbf{Task} & \textbf{Dataset} & \textbf{Lang.} \\
+\midrule
+
+\rowcolor{colorint!10}
+\multicolumn{4}{l}{\textbf{Intrinsic: Core Capability} (Metrics $\downarrow$ Lower is better)} \\
+\addlinespace[0.1cm]
+
+\multicolumn{4}{l}{\hspace{0.3cm}\textit{Phone Recognition (PFER)}} \\
+\texttt{PR-tmt} & Variation of Seen Language & TIMIT \cite{garofolo1993timit} & English \\
+\texttt{PR-arc} & Variation of Seen Language & L2-ARCTIC Perceived \cite{zhao2018l2arctic} & English \\
+\texttt{PR-saa} & Variation of Seen Language & Speech Accent Archive \cite{gmuspeechaccentarchive} & English \\
+\texttt{PR-drc} & Unseen Languages & DoReCo \cite{paschen2020doreco} & 45 langs \\
+\texttt{PR-vox} & Unseen Languages & VoxAngeles \cite{chodroff2024voxangeles} & 95 langs \\
+\texttt{PR-tsm} & Unseen Languages & Tusom2021 \cite{mortensen2021tusom2021} & Tusom \\
+
+\addlinespace[0.1cm]
+\midrule
+\rowcolor{colorext!10}
+\multicolumn{4}{l}{\textbf{Extrinsic: Downstream Utility} (Metrics $\uparrow$ Higher is better)} \\
+\addlinespace[0.1cm]
+
+\multicolumn{4}{l}{\hspace{0.3cm}\textit{Pathological Speech: Dysarthria Intelligibility Prediction ($\tau$) \& Child Speech Disorder Detection (F1)}} \\
+\texttt{DYS-ez} & Dysarthria Intelligibility Prediction & EasyCall \cite{turrisi21_interspeech} & Italian \\
+\texttt{DYS-ua} & Dysarthria Intelligibility Prediction & UASpeech \cite{kim08c_interspeech} & English \\
+\texttt{CSD-us} & Child Speech Disorder Detection & UltraSuite \cite{eshky2018ultrasuite} & English \\
+
+\addlinespace[0.2cm]
+\multicolumn{4}{l}{\hspace{0.3cm}\textit{L2 Speech: L1 Classification (F1) \& L2 Assessment ($\tau$)}} \\
+\texttt{L1-eda} & L1 Classification & EdAcc \cite{sanabria2023edacc} & English \\
+\texttt{L1-arc} & L1 Classification & \citet{kominek04_ssw} \& \citet{zhao2018l2arctic} & English\\
+\texttt{L2-so} & L2 Assessment & Speechocean762 \cite{zhang2021speechocean762} & English\\
+
+\addlinespace[0.2cm]
+\multicolumn{4}{l}{\hspace{0.3cm}\textit{Multilingual: Lang. ID (F1), Geolocation (Recall@1) \& Phone Inventory Induction (F1-PI)}} \\
+\texttt{LID-fl} & Lang. ID (LID) & FLEURS-24 \cite{conneau2023fleurs} & 24 langs \\
+\texttt{GEO-v}  & Speech Geolocation & Vaani \cite{vaani2025} & Hindi Dialects \\
+\texttt{PI-drc} & Phone Inventory Induction & DoReCo \cite{paschen2020doreco} & 45 langs \\
+
+\bottomrule
+\end{tabular}
+}
+\caption{
+List of evaluation tasks. \colorbox{colorint!10}{Blue} denotes core capabilities, where lower scores are better. \colorbox{colorext!10}{Yellow} denotes downstream utility, where higher scores are better. \textit{F1-PI} is described in \autoref{appendix:phoneinv}. See \autoref{appendix:datadetails} for license details.
+}
+\label{tab:evaltasks}
+\end{table*}

@@ -1,0 +1,650 @@
+\section{GSRM Demo Examples} \label{sec:demo}
+We present demo examples to illustrate how GSRM analyzes spoken responses and produces interpretable judgments of human-likeness. Given any audio clip, the model generates an evidence log that explicitly grounds its judgments in acoustic cues such as pitch variation, pitch slope, intensity, and duration, and aggregates these signals into sub-metric ratings and an overall score. Across examples with increasing ground-truth human-likeness ratings, the model exhibits consistent behavior: lower-rated samples tend to show unstable expressiveness, exaggerated pitch variation, or uneven pacing, while higher-rated samples demonstrate more coherent intonation, appropriate expressive intensity, and smoother temporal dynamics. 
+
+\begin{tcolorbox}[blue_box, title = {{Audio Sample 1 : Ground-truth Human-likeness Rating = 2.0}}]\footnotesize
+[Evidence log]
+
+\#\# Transcript: ``oh, that's so sweet."
+
+[Inferred context]  
+
+The context inferred is celebration, as the phrase ``oh, that's so sweet" suggests a positive reaction to something delightful or heartwarming.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The audio exhibits expressive intensity with high pitch variation and high falling pitch slopes, particularly in the vowels /\IPA{o}/ in ``oh" and /\IPA{iː}/ in ``sweet," indicating a dynamic and engaging delivery.
+
+
+[Potential Issue]  
+
+No notable issues detected.
+
+
+\#\# Transcript: ``i think i just had a tiny bit of fun imagining that puppy's adventures."
+
+[Inferred context]  
+
+The context inferred is a neutral statement, as the transcript describes a personal experience of imagining a puppy's adventures without any emotional cues.  
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.  
+
+
+[Positive]  
+
+The audio exhibits varied intonation with high pitch variation and clear pitch slopes, particularly in the vowels /\IPA{a}/ in ``i" and /\IPA{æ}/ in ``had," indicating expressive intensity.  
+
+
+[Potential Issue]  
+
+There are potential intonation problems due to the extremely high pitch in the vowel /\IPA{ɪ}/ in ``think," which may lead to unstable expressiveness.
+
+
+\#\# Transcript: ``did i get it right?"
+
+[Inferred context]  
+
+The context inferred is a question, as indicated by the transcript ``did i get it right?" which typically seeks confirmation or clarification.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The audio demonstrates good expressive intensity with clear pitch slopes and moderate pitch variation across the vowels, contributing to a natural and engaging delivery.
+
+
+[Potential Issue]  
+
+No notable issues detected.
+
+
+\#\# Transcript: ``i'm all ears."
+
+[Inferred context]  
+
+The phrase ``I'm all ears" suggests an empathetic context, indicating the speaker is ready to listen attentively.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The vowel /\IPA{iː}/ in ``ears" shows varied intonation with high pitch variation and a high rising pitch slope, contributing to expressive intensity.
+
+
+[Potential Issue]  
+
+The vowel /\IPA{ɔː}/ in ``all" has very low pitch variation and intensity variation, which may lead to flat intonation and reduced expressiveness.
+
+
+\#\# Transcript: ``so the puppy was found by a kind family."
+
+[Inferred context]  
+
+The context inferred is a neutral statement, as the transcript describes a factual event about a puppy being found by a kind family.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The audio exhibits good expressive intensity with high pitch variation and clear pitch slopes in vowels like /\IPA{o}/ in ``so" and /\IPA{ʌ}/ in ``was," contributing to a dynamic delivery.
+
+
+[Potential Issue]  
+
+The vowel /\IPA{iː}/ in ``family" shows very low intensity and low rising pitch slope, which may indicate mispronunciation or weak articulation.
+
+
+\#\# Transcript: ``they gave him a warm bath, a cozy bed, and lots of love."
+
+[Inferred context]  
+
+The context inferred is a celebration or expression of care, as the transcript describes giving someone a warm bath, a cozy bed, and lots of love.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The audio demonstrates good expressive intensity, with varied pitch slopes and moderate to high intensity in vowels like /\IPA{e}/ in ``gave" and /\IPA{ɒ}/ in ``lots," contributing to a lively and engaging delivery.
+
+
+[Potential Issue]  
+
+There are potential pacing issues, as the very high duration of vowels like /\IPA{æ}/ in ``bath" and /\IPA{ɛ}/ in ``bed" may suggest uneven pacing.
+
+
+\#\# Transcript: ``he settled in quickly and became a beloved member of the family."
+
+[Inferred context]
+
+The context inferred is a neutral statement, as the transcript describes a factual situation about someone becoming a beloved member of a family.
+
+
+[NSVs/fillers]
+
+No NSVs/fillers detected.
+
+
+[Positive]
+
+The audio exhibits good expressive intensity with consistent high falling pitch slopes across most vowels, such as /\IPA{ə}/ in ``a" and /\IPA{ʌ}/ in ``of," indicating a clear and expressive delivery.
+
+
+[Potential Issue]
+
+There are potential pacing issues, as evidenced by the very high duration of the vowel /\IPA{ʌ}/ in ``love" compared to other vowels, which may suggest uneven pacing. \\
+
+[Summary Explaining the Ratings]
+
+The audio recordings exhibit a range of expressive qualities, with some strengths in expressiveness and intonation, but also some areas that could be improved. The expressiveness is generally dynamic, with varied pitch and intensity, although there are instances where expressiveness could be more stable. Intonation is mostly clear, but there are occasional issues with pitch variation that affect the naturalness of the delivery. The pacing is generally natural, but there are moments where it becomes uneven. No non-speech vocalizations or fillers were detected, and there are no clear mispronunciations, although some articulation could be stronger.
+
+
+expressive\_intensity: The audio demonstrates a good level of expressive intensity, with high pitch variation and clear pitch slopes in several instances, such as in ``oh, that's so sweet" and ``they gave him a warm bath." However, there are moments where expressiveness could be more consistent, such as in ``i think i just had a tiny bit of fun imagining that puppy's adventures," where the pitch in ``think" is extremely high. Therefore, a rating of 3 is appropriate.
+
+
+expressive\_correctness: The expressiveness is generally appropriate and correct for the context, with the delivery matching the inferred emotional tone of the statements. For example, the phrase ``oh, that's so sweet" is delivered with a positive and engaging tone. However, the instability in expressiveness in some parts, like the high pitch in ``think," slightly detracts from the overall correctness. Thus, a rating of 4 is suitable.
+
+
+intonation: The intonation is mostly clear and contributes to a natural delivery, with good pitch variation in many parts. However, there are some issues, such as the flat intonation in ``i'm all ears" due to low pitch variation in ``all." These minor issues suggest a rating of 4.
+
+
+nsvs\_and\_fillers: No non-speech vocalizations or fillers were detected throughout the audio, indicating a clean and natural delivery in this aspect. Therefore, a rating of 5 is warranted.
+
+
+mispronunciation: There are no clear mispronunciations detected, although some articulation could be stronger, such as in ``family." However, this does not constitute a mispronunciation. Thus, a rating of 2 is appropriate.
+
+
+pacing: The pacing is generally natural, but there are moments of uneven pacing, such as the high duration of vowels in ``bath" and ``bed," which suggest potential pacing issues. Therefore, a rating of 3 is fitting.
+
+
+overall\_score: Taking into account all factors, including expressiveness, intonation, and pacing, the overall human likeness of the audio is somewhat limited by the inconsistencies in expressiveness and pacing. Therefore, an overall score of 2 is appropriate. \\
+
+
+[Final Ratings]
+
+expressive\_intensity: 3.0  
+
+expressive\_correctness: 4.0  
+
+intonation: 4.0  
+
+nsvs\_and\_fillers: 5.0  
+
+mispronunciation: 2  
+
+pacing: 3.0  
+
+overall\_score: 2.0
+\end{tcolorbox}
+
+
+
+
+\begin{tcolorbox}[blue_box, title = {{Audio Sample 2 : Ground-truth Human-likeness Rating = 3.0}}]\footnotesize
+[Evidence log]
+
+\#\# Transcript: ``the capital of france is paris."
+
+[Inferred context]  
+
+No clear context inferred.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The vowel /\IPA{æ}/ in ``France" shows varied intonation with very high pitch variation and a high falling pitch slope, indicating expressive intensity.
+
+
+[Potential Issue]  
+
+The vowel /\IPA{ɪ}/ in ``is" has very low intensity and very high intensity variation, which may suggest pacing issues or unstable expressiveness.
+
+
+\#\# Transcript: ``the capital of germany is berlin."
+
+[Inferred context]  
+
+No clear context inferred.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The audio demonstrates varied intonation with high falling pitch slopes across vowels, contributing to a dynamic delivery.
+
+
+[Potential Issue]  
+
+The low pitch and high pitch variation in the vowel /\IPA{ɪ}/ in ``is" may indicate unstable expressiveness, and the very low intensity variation in the vowel /\IPA{ɛ}/ in ``Germany" suggests a lack of emphasis.
+
+
+\#\# Transcript: ``sounds like fun."
+
+[Inferred context]  
+
+The context inferred is a celebration, as the phrase ``sounds like fun" suggests excitement or enjoyment.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The audio exhibits expressive intensity with high pitch variation and clear pitch slopes, particularly in the vowels /\IPA{a}/ and /\IPA{ʌ}/, indicating a lively and engaging delivery.
+
+
+[Potential Issue]  
+
+The very high pitch variation and intensity in the vowel /\IPA{ʌ}/ in ``fun" may suggest slightly exaggerated expressiveness, potentially leading to unstable intonation.
+
+
+\#\# Transcript: ``i'll go when you're ready."
+
+[Inferred context]  
+
+The context inferred is instruction, as the sentence ``i'll go when you're ready" suggests a commitment to wait for someone's readiness.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The audio exhibits varied intonation with high falling pitch slopes in several vowels, such as /\IPA{a}/ in ``I'll" and /\IPA{o}/ in ``go," indicating expressive intensity.
+
+
+[Potential Issue]  
+
+There is a potential issue with expressive correctness due to the very high intensity variation in the vowel /\IPA{a}/ in ``I'll," which may suggest unstable expressiveness.
+
+
+\#\# Transcript: ``three."
+
+[Inferred context]  
+
+No clear context inferred.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The high falling pitch slope and moderate pitch variation in both vowels suggest good expressive intensity and intonation.
+
+
+[Potential Issue]  
+
+The very high duration of the vowel /\IPA{iː}/ in ``three" may indicate slow pacing.
+
+
+\#\# Transcript: ``got it."
+
+[Inferred context]  
+
+No clear context inferred.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The high Pitch Variation and clear high falling Pitch Slope of the vowel /\IPA{ɒ}/ in ``got" suggest expressive intensity and good emphasis.
+
+
+[Potential Issue]  
+
+The very high Pitch Variation may indicate unstable or exaggerated expressiveness, potentially affecting expressive correctness.
+
+
+\#\# Transcript: ``let's start fresh."
+
+[Inferred context]  
+
+The context inferred is instruction, as the phrase ``let's start fresh" suggests initiating a new beginning or process.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The audio exhibits expressive intensity with high pitch variation and clear pitch slopes, particularly in the vowels /\IPA{ɛ}/ and /\IPA{ɑː}/, indicating a dynamic delivery.
+
+
+[Potential Issue]  
+
+The vowel /\IPA{ɛ}/ in ``fresh" shows low pitch and mid intensity, which may lead to a slightly flat intonation compared to the rest of the sentence.
+
+
+\#\# Transcript: ``what's the first number?"
+
+[Inferred context]  
+
+The context inferred is a question, as indicated by the transcript ``what's the first number?" which typically seeks information.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The audio demonstrates good expressive intensity with moderate to high pitch variation and clear pitch slopes, particularly in the vowels /\IPA{ʌ}/ in ``what's" and /\IPA{ɜ˞}/ in ``first."
+
+
+[Potential Issue]  
+
+The vowel /\IPA{ə}/ in ``the" shows a high falling pitch slope with low intensity, which may suggest a lack of emphasis or potential mispronunciation.
+
+
+\#\# Transcript: ``three, six, 11, 21."
+
+[Inferred context]  
+
+No clear context inferred.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The vowel /\IPA{ɪ}/ in ``six" shows varied intonation with high pitch variation and a high falling pitch slope, indicating expressive intensity.
+
+
+[Potential Issue]  
+
+The vowel /\IPA{iː}/ in ``three" has very low intensity and very high intensity variation, suggesting potential mispronunciation or unstable expressiveness. \\
+
+[Summary Explaining the Ratings]
+
+The audio recordings exhibit a range of expressive intensity, with some instances of high pitch variation and clear pitch slopes contributing to a dynamic delivery. However, there are also moments of unstable expressiveness and potential pacing issues, particularly in the vowels of certain words. The intonation is generally varied, but there are instances where it may lead to instability or flatness. The absence of non-speech vocalizations and fillers is a positive aspect, contributing to the naturalness of the speech. Mispronunciation is present, as indicated by low intensity and potential issues in certain vowels. The pacing is mostly natural, though there are moments of slow pacing. Overall, the audio demonstrates a moderate level of human likeness, with room for improvement in stability and pronunciation.
+
+
+expressive\_intensity: The audio shows varied expressive intensity, with high pitch variation and clear pitch slopes in several instances, such as in ``France" and ``fun." However, there are also moments of exaggerated expressiveness, leading to a moderate rating. Rating: 3.0
+
+
+expressive\_correctness: While the expressiveness is generally appropriate, there are instances of unstable expressiveness, such as in ``is" and ``I'll," which affect the correctness. The expressiveness is mostly suitable for the context, but there are occasional issues. Rating: 3.0
+
+
+intonation: The intonation is varied, with high pitch variation contributing to a dynamic delivery. However, there are moments of instability, such as in ``got" and ``fresh," which affect the overall quality. Rating: 3.0
+
+
+nsvs\_and\_fillers: The absence of non-speech vocalizations and fillers is a positive aspect, contributing to the naturalness of the speech. Rating: 4.0
+
+
+mispronunciation: There are instances of potential mispronunciation, such as in ``the" and ``three," which affect the clarity of the speech. Rating: 1.0
+
+
+pacing: The pacing is mostly natural, but there are moments of slow pacing, such as in ``three," which affect the overall flow. Rating: 3.0
+
+
+overall\_score: Taking into account the varied expressiveness, intonation, absence of fillers, presence of mispronunciation, and pacing issues, the overall human likeness of the audio is moderate. Rating: 3.0 \\
+
+
+[Final Ratings]
+
+expressive\_intensity: 3.0  
+
+expressive\_correctness: 3.0  
+
+intonation: 3.0  
+
+nsvs\_and\_fillers: 4.0  
+
+mispronunciation: 1.0  
+
+pacing: 3.0  
+
+overall\_score: 3.0
+
+\end{tcolorbox}
+
+
+
+
+\begin{tcolorbox}[blue_box, title = {{Audio Sample 3 : Ground-truth Human-likeness Rating = 4.0}}]\footnotesize
+[Evidence log]
+
+\#\# Transcript: ``so there's this woman and she's at a garage sale, right?"
+
+[Inferred context]  
+
+The context appears to be a neutral statement, as the transcript describes a scenario without emotional cues.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The audio demonstrates varied intonation with high pitch variation in vowels like /\IPA{ɪ}/ in ``this" and /\IPA{e}/ in ``sale," contributing to expressive intensity.
+
+
+[Potential Issue]  
+
+There are potential pacing issues, as the vowel /\IPA{æ}/ in ``and" has low intensity and high intensity variation, which may indicate uneven pacing.
+
+
+\#\# Transcript: ``she finds this old painting that she's really drawn to."
+
+[Inferred context]  
+
+The context inferred is a neutral statement, as the transcript describes an observation about a painting without emotional cues.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The audio demonstrates expressive intensity with high pitch variation and clear pitch slopes in vowels like /\IPA{iː}/ in ``she" and /\IPA{a}/ in ``finds," contributing to a dynamic delivery.
+
+
+[Potential Issue]  
+
+The vowel /\IPA{o}/ in ``old" shows very low pitch variation and low intensity, which may indicate a flat intonation or lack of emphasis in that part of the sentence.
+
+
+\#\# Transcript: ``she buys it for a few bucks and takes it home."
+
+[Inferred context]  
+
+No clear context inferred.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The audio demonstrates varied intonation with high falling pitch slopes in most vowels, contributing to expressive intensity.
+
+
+[Potential Issue]  
+
+The vowel /\IPA{æ}/ in ``and" shows very high intensity variation, which may indicate unstable expressiveness or pacing issues.
+
+
+\#\# Transcript: ``as she's cleaning it, she notices something weird."
+
+[Inferred context]  
+
+The context inferred is a neutral statement, as the transcript describes an observation without emotional cues.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The audio exhibits varied intonation with high pitch variation and clear pitch slopes in vowels like /\IPA{o}/ in ``notices" and /\IPA{ʌ}/ in ``something," contributing to expressive intensity.
+
+
+[Potential Issue]  
+
+There are potential pacing issues, as the duration of vowels like /\IPA{iː}/ in ``weird" is long, while others like /\IPA{æ}/ in ``as" are very low, indicating inconsistent pacing.
+
+
+\#\# Transcript: ``there's this small compartment hidden behind the canvas."
+
+[Inferred context]  
+
+No clear context inferred.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The varied intonation, particularly the high rising pitch slope in ``small" and ``compartment," suggests expressive intensity and good emphasis.
+
+
+[Potential Issue]  
+
+The very low intensity variation in ``there's" and low pitch variation in ``canvas" may indicate flat intonation and lack of expressiveness in parts of the sentence.
+
+
+\#\# Transcript: ``she opens it and finds a note from the artist."
+
+[Inferred context]  
+
+No clear context inferred.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The varied intonation, particularly the high rising pitch in ``opens" and mid rising pitch in ``artist," contributes to a dynamic and engaging delivery.
+
+
+[Potential Issue]  
+
+The very low intensity in ``and" and low intensity in ``the" may lead to a flat delivery in parts of the sentence, potentially affecting expressiveness.
+
+
+\#\# Transcript: ``it's a pretty cool story."
+
+[Inferred context]  
+
+The context inferred is a neutral statement, as the transcript ``it's a pretty cool story" suggests a simple sharing of information without emotional cues.
+
+
+[NSVs/fillers]  
+
+No NSVs/fillers detected.
+
+
+[Positive]  
+
+The audio demonstrates good expressive intensity with high falling pitch slopes across vowels, particularly in ``it" and ``pretty," indicating a clear and engaging delivery.
+
+
+[Potential Issue]  
+
+There is a potential issue with expressive correctness, as the very high intensity variation in ``it's" may suggest an exaggerated or inconsistent expressiveness. \\
+
+[Summary Explaining the Ratings]
+
+The audio recordings demonstrate a high level of expressive intensity, with varied intonation and pitch variation contributing to a dynamic delivery. However, there are some issues with pacing and potential mispronunciations that affect the overall quality. The absence of non-speech vocalizations and fillers is a positive aspect, but the presence of mispronunciations detracts from the overall human likeness. The pacing is somewhat inconsistent, with variations in intensity and duration of vowels, which could affect the natural flow of the speech.
+
+
+expressive\_intensity: The audio consistently shows high expressive intensity, with varied intonation and pitch variation across most sentences. This is evident in the high pitch variation in vowels like /\IPA{ɪ}/ in ``this" and /\IPA{e}/ in ``sale," as well as the high falling pitch slopes in ``opens" and ``artist." These features contribute to a dynamic and engaging delivery. Rating: 5.0
+
+
+expressive\_correctness: The expressiveness is appropriate and correct for the context, with the varied intonation and pitch slopes aligning well with the neutral statements being made. There is a slight issue with the very high intensity variation in ``it's," which may suggest exaggerated expressiveness, but overall, the expressiveness is suitable. Rating: 5.0
+
+
+intonation: The intonation quality is strong, with varied pitch slopes and high pitch variation contributing to a clear and engaging delivery. The high rising pitch slope in ``small" and ``compartment" and the high falling pitch slopes in ``it" and ``pretty" are examples of effective intonation. Rating: 5.0
+
+
+nsvs\_and\_fillers: There are no non-speech vocalizations or fillers detected in the audio, which contributes to a clean and professional delivery. This absence is a positive aspect of the recordings. Rating: 5.0
+
+
+mispronunciation: There is evidence of mispronunciation in the audio, which affects the clarity and naturalness of the speech. This is a significant issue that detracts from the overall quality. Rating: 1
+
+
+pacing: The pacing is somewhat inconsistent, with variations in intensity and duration of vowels indicating uneven pacing. For example, the vowel /\IPA{æ}/ in ``and" shows high intensity variation, and the duration of vowels like /\IPA{iː}/ in ``weird" is long, while others like /\IPA{æ}/ in ``as" are very low. These issues affect the natural flow of the speech. Rating: 4.0
+
+
+overall\_score: Taking into account the high expressive intensity, appropriate expressiveness, strong intonation, absence of fillers, presence of mispronunciations, and inconsistent pacing, the overall human likeness of the audio is good but not perfect. The mispronunciations and pacing issues prevent a higher rating. Rating: 4.0 \\
+
+
+[Final Ratings]
+
+expressive\_intensity: 5.0
+
+expressive\_correctness: 5.0
+
+intonation: 5.0
+
+nsvs\_and\_fillers: 5.0
+
+mispronunciation: 1
+
+pacing: 4.0
+
+overall\_score: 4.0
+\end{tcolorbox}

@@ -1,0 +1,100 @@
+% Empty ICML-style document shell
+\documentclass[nohyperref]{article}
+
+% Recommended, but optional, packages for figures and better typesetting:
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs} % for professional tables
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage[dvipsnames,table]{xcolor}
+
+% Explicit RGB colors (portable across xcolor drivers / name sets)
+\definecolor{msMagenta}{RGB}{204,0,153}
+\definecolor{msCyan}{RGB}{0,190,230}
+\definecolor{msOrange}{RGB}{255,140,0}
+\definecolor{msGreen}{RGB}{0,153,76}
+
+\newcommand{\tbd}[1]{\textcolor{red}{#1}}
+
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\pgfplotsset{compat=1.18}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, shapes.misc, fit, calc}
+
+% hyperref makes hyperlinks in the resulting PDF.
+\usepackage{hyperref}
+
+% If accepted, use the following line for the camera-ready submission:
+\usepackage[accepted]{icml2022}
+% Avoid missing Courier metrics in minimal TeX installs.
+\renewcommand{\ttdefault}{cmtt}
+
+% The \icmltitle you define below is probably too long as a header.
+% Therefore, a short form for the running title is supplied here:
+\icmltitlerunning{Moonshine v2}
+
+\begin{document}
+
+\twocolumn[
+  \icmltitle{Moonshine v2: Ergodic Streaming Encoder ASR for Latency-Critical Speech Applications}
+
+  \begin{icmlauthorlist}
+    \icmlauthor{Manjunath Kudlur}{}
+    \icmlauthor{Evan King}{}
+    \icmlauthor{James Wang}{}
+    \icmlauthor{Pete Warden}{}
+  \end{icmlauthorlist}
+
+  \begin{center}
+    \href{https://moonshine.ai}{Moonshine AI}
+  \end{center}
+
+  \icmlcorrespondingauthor{Manjunath Kudlur}{keveman@moonshine.ai}
+
+  \icmlkeywords{Keywords}
+
+  \vskip 0.3in
+]
+
+\printAffiliationsAndNotice{}
+
+\begin{abstract}
+Latency-critical speech applications—including live transcription, voice
+commands, and real-time translation—demand low time-to-first-token (TTFT) and
+high transcription accuracy, particularly on resource-constrained edge devices.
+Full-attention Transformer encoders remain a strong accuracy baseline for
+automatic speech recognition (ASR) because every frame can directly attend to
+every other frame, which resolves otherwise locally ambiguous acoustics using
+distant lexical context. However, this global dependency incurs quadratic
+complexity in sequence length, inducing an inherent
+\,``encode-the-whole-utterance''\, latency profile. For streaming use cases,
+this causes TTFT to grow linearly with utterance length as the encoder must
+process the entire prefix before any decoder token can be emitted. To better
+meet the needs of on-device, streaming ASR use cases we introduce Moonshine v2,
+an ergodic streaming-encoder ASR model that employs sliding-window
+self-attention to achieve bounded, low-latency inference while preserving strong
+local context. Our models achieve state of the art word error rates across
+standard benchmarks, attaining accuracy on-par with models 6x their size while
+running significantly faster. These results demonstrate that carefully designed local
+attention is competitive with the accuracy of full attention at a fraction of
+the size and latency cost, opening new possibilities for interactive speech
+interfaces on edge devices.
+\end{abstract}
+
+\input{sections/introduction.tex}
+
+\input{sections/motivation.tex}
+
+\input{sections/approach.tex}
+
+\input{sections/evaluation.tex}
+
+\input{sections/conclusion.tex}
+
+\bibliographystyle{icml2022}
+\bibliography{paper}
+
+\end{document}

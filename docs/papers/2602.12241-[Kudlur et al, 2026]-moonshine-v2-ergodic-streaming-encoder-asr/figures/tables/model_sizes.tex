@@ -1,0 +1,18 @@
+\begin{table*}[t]
+    \centering
+    \small
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabular}{l c c c r r r r r}
+    \toprule
+    & \multicolumn{3}{c}{Architecture} & \multicolumn{5}{c}{Params (M)} \\
+    \cmidrule(lr){2-4} \cmidrule(lr){5-9}
+    Model & Enc dim & Dec dim & Layers (Enc/Dec) & Pre & Enc & Adap & Dec & Total \\
+    \midrule
+    Tiny   & 320 & 320 & 6/6   & 2.08 & 7.39 & 1.31 & 22.80 & 33.57 \\
+    Small & 620 & 512 & 10/10 & 7.74 & 43.49 & 2.86 & 69.27 & 123.36 \\
+    Medium & 768 & 640 & 14/14 & 11.86 & 93.66 & 3.64 & 135.77 & 244.93 \\
+    \bottomrule
+    \end{tabular}
+    \caption{Moonshine v2 model architecture sizes and parameter breakdown by block.}
+    \label{tab:model-sizes}
+\end{table*}

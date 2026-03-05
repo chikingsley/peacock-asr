@@ -1,0 +1,111 @@
+\begin{thebibliography}{10}
+
+\bibitem{gop1}
+Silke~M Witt and Steve~J Young,
+\newblock ``Phone-level pronunciation scoring and assessment for interactive language learning,''
+\newblock in {\em Speech Communication}. 2000, vol.~30, pp. 95--108, Elsevier.
+
+\bibitem{cnn-rnn-ctc}
+Wai-Kim Leung, Xunying Liu, and Helen Meng,
+\newblock ``Cnn-rnn-ctc based end-to-end mispronunciation detection and diagnosis,''
+\newblock {\em ICASSP 2019}, pp. 8132--8136, 2019.
+
+\bibitem{ctc}
+Alex Graves, Santiago Fern\'{a}ndez, Faustino Gomez, and J\"{u}rgen Schmidhuber,
+\newblock ``Connectionist temporal classification: labelling unsegmented sequence data with recurrent neural networks,''
+\newblock in {\em Proc. ICML 2006}, 2006.
+
+\bibitem{sed-mdd}
+Yiqing Feng, Guanyu Fu, Qingcai Chen, and Kai Chen,
+\newblock ``Sed-mdd: Towards sentence dependent end-to-end mispronunciation detection and diagnosis,''
+\newblock {\em ICASSP 2020}, pp. 3492--3496, 2020.
+
+\bibitem{attn}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan~N. Gomez, \L{}ukasz Kaiser, and Illia Polosukhin,
+\newblock ``Attention is all you need,''
+\newblock in {\em Proceedings of the 31st International Conference on Neural Information Processing Systems}, 2017, NIPS'17.
+
+\bibitem{AFullText-Dependent}
+Kaiqi Fu, Jones Lin, Dengfeng Ke, Yanlu Xie, Jinsong Zhang, and Binghuai Lin,
+\newblock ``A full text-dependent end to end mispronunciation detection and diagnosis with easy data augmentation techniques,''
+\newblock {\em in Proc. Interspeech 2021}.
+
+\bibitem{APL}
+Wenxuan Ye, Shaoguang Mao, Frank Soong, Wenshan Wu, Yan Xia, Jonathan Tien, and Zhiyong Wu,
+\newblock ``An approach to mispronunciation detection and diagnosis with acoustic, phonetic and linguistic (apl) embeddings,''
+\newblock in {\em ICASSP}, 2022, pp. 6827--6831.
+
+\bibitem{related_peng21e_interspeech}
+Linkai Peng, Kaiqi Fu, Binghuai Lin, Dengfeng Ke, and Jinsong Zhan,
+\newblock ``{A Study on Fine-Tuning wav2vec2.0 Model for the Task of Mispronunciation Detection and Diagnosis},''
+\newblock in {\em Proc. Interspeech 2021}, pp. 4448--4452.
+
+\bibitem{gcnmdd}
+Bi-Cheng Yan, Hsin-Wei Wang, Yi-Cheng Wang, and Berlin Chen,
+\newblock ``Effective graph-based modeling of articulation traits for mispronunciation detection and diagnosis,''
+\newblock in {\em ICASSP}, 2023, pp. 1--5.
+
+\bibitem{text-aware}
+Peng Linkai, Yingming Gao, Binghuai Lin, Dengfeng Ke, Yanlu Xie, and Jinsong Zhang,
+\newblock ``Text-aware end-to-end mispronunciation detection and diagnosis,'' 06 2022.
+
+\bibitem{multilingualmdd}
+Yassine~El Kheir, Shammur~Absar Chowdhury, and Ahmed Ali,
+\newblock ``L1-aware multilingual mispronunciation detection framework,''
+\newblock in {\em ICASSP}, 2024.
+
+\bibitem{join_mdd_apa}
+Hyungshin Ryu, Sunhee Kim, and Minhwa Chung,
+\newblock ``A joint model for pronunciation assessment and mispronunciation detection and diagnosis with multi-task learning,''
+\newblock in {\em Proc. Interspeech}, 2023, pp. 4476--4480.
+
+\bibitem{multiview}
+Yassine {EL Kheir}, Shammur Chowdhury, and Ahmed Ali,
+\newblock ``Multi-view multi-task representation learning for mispronunciation detection,''
+\newblock in {\em 9th Workshop on Speech and Language Technology in Education (SLaTE)}, 2023, pp. 86--90.
+
+\bibitem{rag-llm}
+Yunfan Gao, Yun Xiong, Xinyu Gao, Kangxiang Jia, Jinliu Pan, Yuxi Bi, Yi~Dai, Jiawei Sun, Meng Wang, and Haofen Wang,
+\newblock ``Retrieval-augmented generation for large language models: A survey,'' 2024.
+
+\bibitem{asr-retrival}
+Anas~Mohammed Alhumud, Muhammad AL-Qurishi, Yasser~Omar Alomar, Ali Alzahrani, and Riad Souissi,
+\newblock ``Improving automated speech recognition using retrieval-based voice conversion,''
+\newblock in {\em The Second Tiny Papers Track at ICLR 2024}, 2024.
+
+\bibitem{vc-retrival}
+Matthew Baas, Benjamin {van Niekerk}, and Herman Kamper,
+\newblock ``Voice conversion with just nearest neighbors,''
+\newblock in {\em Interspeech 2023}, 2023, pp. 2053--2057.
+
+\bibitem{slat2025}
+{Xing Wei and Wenwei Dong and Catia Cucchiarini and Roeland {van Hout} and Helmer Strik},
+\newblock ``{Leveraging Articulatory Information to Enhance End-to-End Models for L2 Mispronunciation Detection and Diagnosis},''
+\newblock in {\em {10th Workshop on Speech and Language Technology in Education (SLaTE)}}, {2025}, pp. {76--80}.
+
+\bibitem{joint-align}
+Binghuai Lin and Liyuan Wang,
+\newblock ``Phoneme mispronunciation detection by jointly learning to align,''
+\newblock in {\em ICASSP}, 2022, pp. 6822--6826.
+
+\bibitem{L2arctic}
+Guanlong Zhao, Sinem Sonsaat, Alif Silpachai, Ivana Lucic, Evgeny Chukharev-Hudilainen, John Levis, and Ricardo Gutierrez-Osuna,
+\newblock ``{L2-ARCTIC: A Non-native English Speech Corpus},''
+\newblock in {\em Proc. Interspeech}, 2018.
+
+\bibitem{hubert}
+Wei-Ning Hsu, Benjamin Bolte, Yao-Hung~Hubert Tsai, Kushal Lakhotia, Ruslan Salakhutdinov, and Abdelrahman Mohamed,
+\newblock ``Hubert: Self-supervised speech representation learning by masked prediction of hidden units,''
+\newblock {\em IEEE/ACM Trans. Audio, Speech and Lang. Proc.}, vol. 29, pp. 3451–3460, Oct. 2021.
+
+\bibitem{data2vec}
+Alexei Baevski, Wei-Ning Hsu, Qiantong Xu, Arun Babu, Jiatao Gu, and Michael Auli,
+\newblock ``Data2vec: A general framework for self-supervised learning in speech, vision and language,''
+\newblock in {\em ICML}, 2022, pp. 1298--1312.
+
+\bibitem{wav2vec2}
+Alexei Baevski, Yuhao Zhou, and Michael~Auli Abdelrahman~Mohamed,
+\newblock ``wav2vec 2.0: A framework for self-supervised learning of speech representations,''
+\newblock {\em NeurIPS}, vol. 33, 2020.
+
+\end{thebibliography}

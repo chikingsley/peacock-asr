@@ -1,0 +1,37 @@
+\UseRawInputEncoding
+\begin{table*}[t]
+\centering
+
+\setlength{\tabcolsep}{3pt}
+\small
+\begin{tabular}{llccccccc} 
+\toprule[1pt]
+\multirow{2}{*}{\textbf{Audio Encoders}} & \multirow{2}{*}{\textbf{LLMs}}& \multicolumn{4}{c}{\textbf{Mispronunciation Detection}} & \multicolumn{3}{c}{\textbf{Suggestion Generation}} \\ 
+\cmidrule(lr){3-6} \cmidrule(lr){7-9}
+ & & \textbf{Precision} $\uparrow$ & \textbf{Recall} $\uparrow$ & \textbf{F1} $\uparrow$ & \textbf{EWR} $\downarrow$ & \textbf{BLEU-2} $\uparrow$ & \textbf{ROUGE-L} $\uparrow$ & \textbf{BERTScore} $\uparrow$ \\ 
+\midrule[0.5pt]
+\multicolumn{2}{c}{\textbf{ASR+LLM Cascade SOTA}} \\
+\midrule[0.5pt]
+\multicolumn{2}{c}{Wav2vec2 Base + Llama-3.1-8B}       & \textbf{53.8} & 17.8 & 26.8 & 1.1 & \,\,\,7.3  & 15.0 & 83.0 \\
+\midrule[0.5pt]
+\multicolumn{2}{c}{\textbf{Existing ALM SOTA}} \\
+\midrule[0.5pt]
+\multicolumn{2}{c}{ GPT-4o-Audio}        & 52.7 & 41.3 & 46.3 & 0.2 & 10.9 & 22.3 & 86.0 \\
+\midrule[0.5pt]
+\multicolumn{2}{c}{\textbf{Instruction-Tuned ALMs}} \\
+\midrule[0.5pt]
+Whisper Small     & Mistral-7B    & 50.5 & 65.5 & 57.1 & 0.0   & 17.4 & 25.9 & 85.7 \\
+Whisper Medium    & Mistral-7B     & 51.6 & 78.2 & 62.1 & 0.0   & 19.7 & 30.7 & 87.2 \\
+Whisper Large     & Mistral-7B    & 50.6 & 81.8 & 62.5 & 0.0   & 20.1 & 30.5 & 87.2 \\
+\midrule[0.5pt]
+Whisper Small     & Llama-3.1-8B       & 49.7 & 68.2 & 57.5 & 0.0   & 17.2 & 25.4 & 85.5 \\
+Whisper Medium    & Llama-3.1-8B       & 51.2 & 78.3 & 61.9 & 0.0   & \textbf{20.4} & \textbf{31.9} & \textbf{87.4} \\
+Whisper Large     & Llama-3.1-8B    & 48.9 & \textbf{87.7} & \textbf{62.8} & 0.0   & 20.0 & 30.5 & 87.3 \\
+\bottomrule[1pt]
+\end{tabular}
+\caption{Performance comparisons of our instruction-tuned ALMs with the state-of-the-art baselines in Section \ref{sec:asr+llm} and Section \ref{sec:alms} on mispronunciation detection and suggestion generation. It is noted that our instruction-tuned ALMs significantly outperform the baselines, even including GPT-4o-Audio. Besides, with the same LLM backbone, the ALM with a larger-sized audio encoder tends to perform better.}
+% \caption{Evaluation Results for Instruction Tuning ALMs and comparison with baselines}
+\label{tab:all_result}
+\vspace{-2mm}
+\end{table*}
+

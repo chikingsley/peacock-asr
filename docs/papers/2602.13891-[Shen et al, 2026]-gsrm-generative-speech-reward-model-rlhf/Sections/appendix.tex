@@ -1,0 +1,145 @@
+\begingroup
+\hypersetup{linkcolor=darkblue} % Set link color
+\addtocontents{toc}{\protect\StartAppendixEntries}
+\listofatoc
+\endgroup
+
+\input{Sections/related}
+\input{Sections/demo}
+\input{Sections/settings}
+\input{Sections/rlhf_details}
+
+
+\section{Additional Results}
+\subsection{Correlation Between Sub-Metrics and Human-Likeness.} \label{sec:data_analysis}
+
+\begin{figure}[h]
+    \centering
+    \begin{tabular}{rl}
+    \subfloat[ConvTTS Dataset]{%
+        \includegraphics[width=0.5\textwidth]{Figures/human_pcc_eval.pdf}
+    } &
+    \subfloat[FDX-Conv Dataset]{%
+        \includegraphics[width=0.5\textwidth]{Figures/human_pcc_ood.pdf}
+    }
+    \end{tabular}
+\caption{\textbf{Inter-Rater Consistency of Human Likeness Ratings.} }
+\label{fig:human_pcc}
+\vspace{-1em}
+\end{figure}
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=1.0\textwidth]{Figures/sub_metrics_pcc_eval.pdf}
+\caption{\textbf{Correlation Between Sub-Metrics and Human-Likeness Ratings} }
+\label{fig:submetric_pcc}
+\end{figure*}
+We further analyze how individual sub-metrics relate to the overall human-likeness score. For each sub-metric, we compute the Pearson correlation coefficient between the sub-metric ratings and the corresponding human-likeness ratings. The results shown in Figure~\ref{fig:submetric_pcc} indicate that \emph{intonation} and \emph{pacing} exhibit strong correlations with human-likeness, while \emph{expressive intensity} and \emph{expressive correctness} show moderate correlations. In contrast, \emph{non-speech vocalizations and fillers} and \emph{mispronunciation} exhibit relatively weak correlations with the overall human-likeness score.
+
+
+\subsection{Training GSRM via Reinforcement Learning} \label{sec:gsrm_rl}
+GSRM performs a speech-in, text-out reasoning task. Since reinforcement learning has been shown to be effective for improving reasoning capabilities in large language models, we investigate whether reinforcement learning can further enhance GSRM’s performance on speech naturalness prediction. A common training paradigm for reasoning-oriented LLMs consists of a small-scale supervised fine-tuning (SFT) warm-up stage followed by large-scale reinforcement learning~\cite{guo2025deepseek, shen2025satori}. We follow this paradigm by first fine-tuning Qwen2.5-Omni-7B with 500 supervised samples. We then apply reinforcement learning using GRPO~\cite{guo2025deepseek} on the remaining 4,079 samples.
+
+A key challenge in reinforcement learning is reward design. We consider two reward modeling strategies. The first uses the negative $\ell_2$ distance between the predicted score $\hat{y}$ and the ground-truth rating $y^*$, defined as $-\lVert y^* - \hat{y} \rVert$. The second uses an RBF kernel to measure similarity between $\hat{y}$ and $y^*$, defined as $\exp\!\left(-\frac{(y^* - \hat{y})^2}{2\sigma^2}\right)$. Models trained with these two reward formulations are evaluated on the out-of-domain (OOD) test set and compared against a GSRM trained using full supervised fine-tuning on all 4,579 samples.
+
+The comparison results are shown in Table~\ref{table:gsrm-rl-results}. Notably, when trained with the $\ell_2$-distance reward, the model collapses to predicting nearly constant scores across different inputs. This behavior indicates reward hacking: rather than accurately matching human ratings, the model converges to a conservative prediction strategy that minimizes expected penalty. In contrast, the nonlinear RBF-kernel reward mitigates this issue and yields modest improvements over the warm-up SFT model. However, the RL-trained models still underperform the model trained with full supervised fine-tuning.
+
+Based on these observations, we hypothesize that the base model Qwen2.5-Omni-7B lacks sufficient prior knowledge for analyzing paralinguistic cues and judging speech naturalness. Supervised fine-tuning therefore plays a critical role as a knowledge injection stage, enabling the model to acquire the necessary skills for speech evaluation. While incorporating reinforcement learning alone is insufficient in this case, a promising direction for future work is to introduce substantial amounts of speech judgment data during pre-training or mid-training stages, which we leave for future investigation.
+
+\begin{table}[!t]
+\centering
+\caption{\textbf{OOD Performance of GSRM Trained with Reinforcement Learning.} Comparison of supervised fine-tuning and reinforcement learning strategies for training GSRM, evaluated on the out-of-domain test set.}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{l c c c}
+\toprule[1.5pt]
+\textbf{Method} 
+& {\textbf{Pearson} $\uparrow$}
+& {\textbf{Spearman} $\uparrow$}
+& {\textbf{MSE} $\downarrow$} \\
+\midrule
+GSRM + Full SFT
+& 0.465 & 0.427 & 0.230  \\
+GSRM + Warm-up SFT
+& 0.249 & 0.248 & 0.275  \\
+GSRM + RL (L2 Distance) 
+& 0.012 & 0.015 & 0.435  \\
+GSRM + RL (RBF Kernel) 
+& 0.270 & 0.259 & 0.272  \\
+\bottomrule
+\end{tabular}
+\label{table:gsrm-rl-results}
+\end{table}
+
+
+\subsection{Results of GSRM for Speech Semantic Judge}
+\label{sec: gtrm results}
+
+\begin{table}[thb]
+\centering
+\caption{\textbf{Main Results of GSRM for Speech Semantic Judge.} Pearson correlation coefficients between ground-truth scores and different scoring strategies for speech semantic reward model trained with and without CoT reasoning, evaluated in-distribution (ID) and out-of-distribution (OOD).}
+\label{tab: gtrm results}
+\begin{tabular}{lccc|ccc}
+\toprule
+& \multicolumn{3}{c|}{\textbf{ID}} & \multicolumn{3}{c}{\textbf{OOD}} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+\textbf{Setup} & Mean & Median & Rounded Mean & Mean & Median & Rounded Mean \\
+\midrule
+without CoT reasoning
+  & 0.803 & 0.810 & 0.810
+  & 0.706 & 0.677 & 0.659 \\
+with CoT reasoning
+  & \textbf{0.886} & 0.874 & 0.884
+  & 0.834 & 0.835 & \textbf{0.837} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As discussed in Section \ref{sec: gsrm training}, we trained two semantic reward models, our proposed model: a generative reward model with CoT reasoning and a baseline without any CoT reasoning that only predicts the naturalness score.  We evaluate these two models on an in-domain evaluation set of 100 samples and an OOD dataset of 130 samples. We extract a final score for each dialogue using standard nucleus sampling with temperature of 1.0 and top-$p=0.6$. For each dialogue, we sample 10 independent predictions and then apply an aggregation rule to obtain a single scalar score. As shown in Table~\ref{tab: gtrm results}, our proposed method achieves the strongest performance, with superior generalization on OOD data. After aggregating the 10 predictions into a single score we compute the pearson correlation coefficient against the ground-turth score. Among aggregation strategies, the rounded mean works particularly well, similar to the audio naturalness GSRM discussed in the main text. The results also highlight the benefits of training with chain-of-thought (CoT) reasoning: it not only improves score prediction on in-domain data but also substantially enhances OOD generalization, addressing a common failure mode of classical regression-based reward modeling.
+
+\begin{figure}[!thb]
+  \centering
+  \subfloat[without CoT reasoning]{
+    \includegraphics[width=0.48\linewidth]{Figures/sft0_indomain_confusion.png}
+  }
+  \hfill
+  \subfloat[with CoT reasoning]{
+    \includegraphics[width=0.48\linewidth]{Figures/sft2_indomain_confusion.png}
+  }
+  \caption{\textbf{Confusion matrix of predictions from models evaluated on in-domain eval data.}}
+  \label{fig: confusion matrix indomain}
+\end{figure}
+
+\begin{figure}[!thb]
+  \centering
+  \subfloat[without CoT reasoning]{
+    \includegraphics[width=0.48\linewidth]{Figures/sft0_l4_ood_confusion.png}
+  }
+  \hfill
+  \subfloat[with CoT reasoning]{
+    \includegraphics[width=0.48\linewidth]{Figures/sft2_l4_ood_confusion.png}
+  }
+  \caption{\textbf{Confusion matrix of predictions from models evaluated on OOD eval data.}}
+  \label{fig: confusion matrix ood}
+\end{figure}
+
+\begin{figure}[!thb]
+  \centering
+  % Three subfigures side by side
+  \subfloat[Language complexity confusion matrix]{
+    \includegraphics[width=0.3\linewidth]{Figures/language_complexity_confusion.png}
+  }
+  \hfill
+  \subfloat[Spontaneity confusion matrix]{
+    \includegraphics[width=0.3\linewidth]{Figures/spontaneity_confusion.png}
+  }
+  \hfill
+  \subfloat[Contextual awareness confusion matrix]{
+    \includegraphics[width=0.3\linewidth]{Figures/contextual_awareness_confusion.png}
+  }
+  \caption{\textbf{Confusion matrices on predictions of sub-dimension scores from model trained with CoT reasoning.}}
+  \label{fig: subdimension confusion matrices}
+\end{figure}
+
+The confusion matrices presented in Figures~\ref{fig: confusion matrix indomain} and~\ref{fig: confusion matrix ood} demonstrate that incorporating CoT reasoning enables the reward model to achieve substantially higher accuracy, particularly for samples at the extremes of the naturalness spectrum (i.e., scores of 0 and 3). Notably, this improvement persists even on out-of-distribution (OOD) data, despite the limited number of samples with low naturalness scores.
+
+Finally, Figure~\ref{fig: subdimension confusion matrices} illustrates the performance of our model, trained with CoT reasoning, in predicting sub-dimension scores for language complexity, spontaneity, and contextual awareness. The model achieves an agreement rate exceeding 85\% for both language complexity and spontaneity. However, its performance in identifying a lack of contextual awareness, particularly in lower-quality samples, remains an area for improvement. We anticipate that incorporating additional negative samples targeting this sub-dimension in future training iterations will further enhance the model’s predictive capabilities.

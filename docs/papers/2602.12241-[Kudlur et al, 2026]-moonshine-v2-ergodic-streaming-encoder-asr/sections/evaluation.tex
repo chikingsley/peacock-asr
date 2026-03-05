@@ -1,0 +1,80 @@
+\section{Evaluation \& Results}
+\label{sec:evaluation}
+We trained three model sizes (Table~\ref{tab:model-sizes}) and evaluate them on
+standard ASR benchmarks and latency-sensitive streaming scenarios.
+
+\input{figures/tables/model_sizes.tex}
+
+\noindent\textbf{Note on parameter distribution.} The decoder has substantially more parameters than the encoder, largely because each decoder layer includes additional cross-attention projection matrices (in addition to self-attention), and because our decoder uses SwiGLU feed-forward blocks while the encoder does not.
+
+\subsection{Experimental setup}
+\subsubsection{Training.}
+\paragraph{Data.} We use the same data sources and preprocessing pipeline as in the original
+Moonshine work~\citep{jeffries2024moonshinespeechrecognitionlive} (see their
+Section~3.2, \emph{Training data collection \& preprocessing}). Relative to that
+setup (\,$\approx$200K hours total), we add an additional 100K hours of
+internally prepared speech data, for a total of roughly 300K hours.
+
+\paragraph{Tokenizer \& optimization. }We use the same tokenizer as in the original Moonshine
+work~\citep{jeffries2024moonshinespeechrecognitionlive}. We also use the same
+optimizer (Schedule-Free;~\citep{defazio2024roadscheduled}) with a starting
+learning rate of $2\times10^{-3}$. Training was run for 400K steps with an
+effective batch size of 512 on a cluster of 8 NVIDIA H100 GPUs.
+
+\subsubsection{Implementation.}
+We evaluate accuracy using the implementation in the Transformers
+library~\citep{wolf2020transformers}. Note that this code path does not yet
+perform fully efficient streaming; it relies on the flash-attention backend's
+sliding-window attention when available. We measure latency separately
+using our own library implementation of Moonshine in C++, which leverages the ONNX
+runtime on CPU.~\footnote{https://github.com/moonshine-ai/moonshine}
+
+\subsubsection{Benchmarks.}
+We evalute the performance of Moonshine v2 using the following benchmarks.
+
+\paragraph{Word error rate (WER).} We evaluate the WER of Moonshine v2 variants against similarly-sized models on the Open ASR leaderboard~\citep{srivastav2025open}.
+
+\paragraph{Time-to-first-token (TTFT).} We empirically establish the latency differences between full and sliding window attention by comparing TTFT measurements of the original Moonshine~\citep{jeffries2024moonshinespeechrecognitionlive} full attention encoder to the Moonshine v2 sliding window encoder.
+
+\paragraph{Response latency.} We perform empirical latency evaluations between Moonshine v2, the original Moonshine models, and the OpenAI Whisper models~\citep{radford2022robustspeechrecognitionlargescale} (as implemented in faster-whisper~\footnote{https://github.com/SYSTRAN/faster-whisper}). ASR models like Whisper were originally intended for offline processing scenarios, where the overall throughput of the system is important. Since our use case targets online processing applications (e.g., live captioning), we measure the real-time \emph{response latency} rather than throughput. We define this as the amount of time taken between detecting the end of a speech segment in an audio stream (via a voice activity detection (VAD) model) and the transcript text being returned. This is representative of, e.g,. the amount of time an embedded voice command system might take to detect a command after a typical utterance. We compare against Whisper because it has been adopted in embedded applications (via, e.g., whisper.cpp) despite its original design intent as an offline model, and against the original Moonshine models since they were designed for real-time use cases.
+
+\paragraph{Compute cost.} We empirically measure compute cost by totalling the duration of the audio processing times for each model, and then expressing that as a percentage of the total audio duration. This is the inverse of the commonly used real-time factor (RTF) metric, but it reflects the compute load required for a real-time application.
+
+We run empirical evaluations on an Apple M3.
+
+\subsection{Results}
+Table~\ref{tab:open-asr-results} reports WERs for individual datasets. We include it
+for completeness, but the more informative view is the accuracy--parameter
+tradeoff in Figure~\ref{fig:open-asr-avg-scatter}. That plot shows Pareto
+frontiers in parameter count versus accuracy. The NVIDIA and Moonshine models
+lie on a similar frontier and sit above OpenAI's. Moonshine fills the lower end
+of the frontier (in parameter count), which is precisely the region we target:
+efficient ASR models for 0.1--1 TOPs and memory-constrained edge processors
+(e.g., sub-1~GB). NVIDIA's models, by contrast, are optimized for GPUs with tens
+of GB of memory and multi-PFLOP compute.
+
+% Table~\ref{tab:ttft-wer-comparison} reports TTFT, parameter count, and average WER on Open ASR 
+% benchmarks for Moonshine v2 and Whisper models. Note that while Whisper models employ full attention
+% in the encoder, they have a fixed TTFT since all inputs are padded to 30 seconds before encoding. 
+% This table shows that Moonshine v2 models attain significantly lower fixed TTFT latency than Whisper models
+% while achieving WER on par with significantly larger models. Moonshine v2 Medium, for instance, is 6x smaller than
+% Whisper Large v3 but achieves effectively the same English transcription accuracy with 16x faster encoding.
+
+Figure~\ref{fig:ttft-vs-moonshine} shows the differences in TTFT between full attention and sliding-window attention encoders by comparing the original Moonshine models with Moonshine v2. For longer utterances, even the largest Moonshine v2 achieves lower TTFT to the smaller Moonshine v1 models.
+
+\input{figures/tables/latency.tex}
+
+Table~\ref{tab:latency-comparison} compares the response latency between Moonshine, Moonshine v2, and Whisper models. The Moonshine v2 models demonstrate substantially lower latency than comparable Whisper models: Moonshine v2 Tiny achieves 50~ms latency (5.8x faster than Whisper Tiny), Moonshine v2 Small achieves 148~ms (13.1x faster than Whisper Small), and Moonshine v2 Medium achieves 258~ms (43.7x faster than Whisper Large v3), while also requiring less compute load on the same hardware.
+
+\input{figures/tables/open_asr.tex}
+
+\input{figures/plots/open_asr_avg_scatter.tex}
+
+% \input{figures/tables/ttft_wer.tex}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/plots/ttft_moonshine.pdf}
+    \caption{Time to first token (TTFT) versus input audio duration for Moonshine and Moonshine v2 models. The original Moonshine models use a full-attention encoder, which results in TTFT latency that grows with input audio duration. Sliding window attention in the Moonshine v2 encoder results in a fixed encoding latency, regardless of audio duration.}
+    \label{fig:ttft-vs-moonshine}
+\end{figure}

@@ -1,0 +1,67 @@
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=\columnwidth,
+      height=0.65\columnwidth,
+      xlabel={Audio processed (s)},
+      ylabel={TTFT (ms)},
+      xmin=0, xmax=10,
+      ymin=0, ymax=700,
+      grid=both,
+      legend columns=2,
+      legend style={font=\scriptsize, draw=none},
+      legend to name=ttftlegend,
+    ]
+
+    % Back-of-the-envelope TTFT for a 100M-parameter full-attention encoder.
+    % Compute is measured in primitive operations where 1 MAC = 2 operations.
+    %
+    % Assumptions (explicit so the plot is reproducible and interpretable):
+    %   - 50 Hz encoder frame rate => T = 50 * x frames for x seconds.
+    %   - Total encoder parameters P = 100M.
+    %   - Transformer has L = 12 layers and model dimension d = 768.
+    %   - Non-attention term (no SwiGLU): ops_nonattn = c * 2 * P * T with c = 3.
+    %   - Attention mixing term: ops_attn = 4 * d * L * T^2.
+    %   - Total ops: ops_total(x) = 6*P*T + 4*d*L*T^2.
+    %       = 6*(1e8)*(50x) + 4*768*12*(50x)^2
+    %       = 3.0e10 * x + 9.216e7 * x^2.
+    %   - Hardware peak throughput: X TOPS = X * 1e12 ops/s.
+    %       TTFT_ms(x, X) = 1e3 * ops_total(x) / (X * 1e12)
+    %                     = (30*x + 0.09216*x^2) / X.
+    %   - Sliding-window attention TTFT (constant) for window w=20 frames:
+    %       ops_total_sw = 6*P*T + 4*d*L*T*w, with T=w.
+    %       TTFT_ms_sw = 1e3 * ops_total_sw / (0.1 * 1e12)
+    %                 = 120.147456 ms.
+
+    \addplot[very thick, color=msMagenta] expression[domain=0:10, samples=101]{(30*x + 0.09216*x^2)/0.1};
+    \addlegendentry{0.1 TOPS}
+
+    \addplot[very thick, color=msCyan] expression[domain=0:10, samples=101]{(30*x + 0.09216*x^2)/0.5};
+    \addlegendentry{0.5 TOPS}
+
+    \addplot[very thick, color=msOrange] expression[domain=0:10, samples=101]{(30*x + 0.09216*x^2)/1};
+    \addlegendentry{1 TOPS}
+
+    \addplot[msMagenta, very thick, dashdotdotted] coordinates {(0,120.15) (10,120.15)};
+    \addlegendentry{0.1 TOPS (sliding window, $w{=}20$)}
+
+    \addplot[black!70, dashed, thick] coordinates {(0,250) (10,250)};
+    \addlegendentry{250 ms voice-delay limit}
+
+    \end{axis}
+  \end{tikzpicture}
+
+  \vspace{-0.3em}
+  \ref{ttftlegend}
+
+  \caption{Illustrative time-to-first-token (TTFT) for a \emph{full-attention}
+  encoder as a function of audio length, for processors with different peak
+  throughput (TOPS). The estimate includes both a linear non-attention term and
+  a quadratic self-attention mixing term. The dotted horizontal line shows a 0.1~TOPS 
+  sliding-window encoder with $w=20$ frames.
+  The dashed line indicates a 250~ms one-way delay limit often used as a
+  practical upper bound for acceptable interactive voice in private
+  networks~\citep{cisco_delay_details}.}
+  \label{fig:ttft_full_attention}
+\end{figure}

@@ -1,0 +1,32 @@
+\begin{table*}[tb!]
+\centering
+\resizebox{0.85\textwidth}{!}{%
+\begin{tabular}{ll ccc >{\columncolor{colorint!10}}c ccc >{\columncolor{colorint!10}}c}
+\toprule
+ & & \multicolumn{4}{c}{\textbf{Variation of Seen Language}} &
+ \multicolumn{4}{c}{\textbf{Unseen Languages}} \\
+\cmidrule(lr){3-6} \cmidrule(lr){7-10}
+
+\textbf{Model} &  &
+{\texttt{PR-tmt} } & {\texttt{PR-arc} } & {\texttt{PR-saa} }  & Avg. & {\texttt{PR-drc} } & {\texttt{PR-vox} } & {\texttt{PR-tsm} } & Avg. \\
+\midrule
+
+MultiIPA$^*$          & & 16.3 & 15.5 & 13.8 & 15.2 & 18.3 & 15.2 & 30.5 & 21.3 \\
+\lvsixty       & & 13.2 & 10.9 & \wpad9.4 & 11.2 & 17.8 & 15.7 & 24.9 & 19.5 \\
+\xlsrf         & & 13.5 & \wpad9.9 & \wpad9.0  & 10.8 & 17.3 & \textbf{13.9} & 31.9 & 21.0 \\
+\zipactc       & & \textbf{13.1} & \textbf{\wpad9.7} & \wpad9.0 & \textbf{10.6} & 18.0 & 17.0 & 23.7  & 19.6 \\
+\zipactcns     & & \textbf{13.1} & \textbf{\wpad9.7} & \textbf{\wpad8.9} & \textbf{10.6} & \textbf{16.8} & 17.1 & 23.1  & 19.0 \\
+\powsm         & & 13.7 & 11.3 & 27.6 & 17.5 & 17.1 & 17.1 & \textbf{22.0} & \textbf{18.7} \\
+\powsmctc      & & \textbf{13.1} & 10.3 & 10.0 & 11.1 & 18.1 &  15.3 & 32.2 & 21.9 \\
+\midrule
+Gemini 2.5 Flash$^{**}$    & & 15.2 & 12.7 & 13.2 & 13.7 & 105.3\wpad & 19.7 & 36.3  & 53.8 \\
+Qwen3-Omni-Instruct$^{**}$     & & 15.1 & 11.9 & \wpad9.1 & 12.0 & 150.2\wpad & 49.0 & 117.1\wpad  & 105.4\textcolor{colorint!10}{0} \\
+
+\bottomrule
+\end{tabular}
+}
+\vspace{-5pt}
+\caption{PFER of the intrinsic evaluation ($\downarrow$). $^*$English is included during pretraining but not fine-tuning. $^{**}$Some of the ``unseen languages'' may have appeared in the training data. See \autoref{sec:prperf} for details.}
+\label{tab:phonebench:int-results}
+\vspace{-5pt}
+\end{table*}

@@ -1,0 +1,104 @@
+\documentclass{article}
+
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{xspace}
+
+\usepackage{hyperref}
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+\usepackage[preprint]{icml2026}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage[capitalize,noabbrev]{cleveref}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% THEOREMS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\usepackage[textsize=tiny]{todonotes}
+
+% Miscellaneous new commands
+\newcommand{\ours}{Hibiki-Zero\xspace}
+\newcommand{\red}{\textcolor{red}}
+\newcommand{\ensuremathmode}[1]{%
+  \ifmmode
+    #1% Already in math mode, use as is
+  \else
+    $#1$% Not in math mode, wrap with dollar signs
+  \fi
+}
+\newcommand{\softmax}{\mathrm{softmax}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\E}{\mathbb{E}}
+\newcommand{\proba}[1]{\mathbb{P}\left[#1\right]}
+\newcommand{\waveform}{\ensuremathmode{x}}
+\newcommand{\dims}{D}
+\newcommand{\numsamples}{L}
+\newcommand{\numtokens}{S}
+\newcommand{\numquantizers}{\ensuremathmode{Q}}
+\newcommand{\cardaudio}{\ensuremathmode{N_A}}
+\newcommand{\cardtext}{\ensuremathmode{N_W}}
+\newcommand{\acousticdelay}{\ensuremathmode{\tau}}
+\newcommand{\yescheck}{\ding{51}}
+\newcommand{\nocheck}{\ding{55}}
+
+\begin{document}
+
+\twocolumn[
+\icmltitle{Simultaneous Speech-to-Speech Translation Without Aligned Data}
+
+\icmlsetsymbol{equal}{*}
+
+\begin{icmlauthorlist}
+\icmlauthor{Tom Labiausse}{kyutai}
+\icmlauthor{Romain Fabre}{kyutai}
+\icmlauthor{Yannick Est\`eve}{lia}
+\icmlauthor{Alexandre D\'efossez}{kyutai,gradium}
+\icmlauthor{Neil Zeghidour}{gradium}
+\end{icmlauthorlist}
+
+\icmlaffiliation{kyutai}{Kyutai, Paris, France}
+\icmlaffiliation{gradium}{Gradium, Paris, France}
+\icmlaffiliation{lia}{LIA, University of Avignon, France}
+
+\icmlcorrespondingauthor{\\ \ours{}}{hibiki@kyutai.org}
+
+\vskip 0.3in
+]
+
+\printAffiliationsAndNotice{}  % no special notice (required even if empty)
+
+\begin{abstract}
+Simultaneous speech translation requires translating source speech into a target language in real-time while handling non-monotonic word dependencies. Traditional approaches rely on supervised training with word-level aligned data, which is difficult to collect at scale and thus depends on synthetic alignments using language-specific heuristics that are suboptimal. We propose \ours{}, which eliminates the need for word-level alignments entirely. This fundamentally simplifies the training pipeline and enables seamless scaling to diverse languages with varying grammatical structures, removing the bottleneck of designing language-specific alignment heuristics. We first train on sentence-level aligned data to learn speech translation at high latency, then apply a novel reinforcement learning strategy using GRPO to optimize latency while preserving translation quality. \ours{} achieves state-of-the-art performance in translation accuracy, latency, voice transfer, and naturalness across five X-to-English tasks.  Moreover, we demonstrate that our model can be adapted to support a new input language with less than 1000h of speech. We provide examples, model weights, inference code\footnote{\href{https://github.com/kyutai-labs/hibiki-zero}{github.com/kyutai-labs/hibiki-zero}} and we release a benchmark containing 45h of multilingual data for speech translation evaluation.\footnote{\href{https://huggingface.co/collections/kyutai/hibiki-zero}{huggingface.co/collections/kyutai/hibiki-zero}}
+\end{abstract}
+
+\input{sections/introduction}
+\input{sections/related}
+\input{sections/method}
+\input{sections/experiments}
+\input{sections/conclusion}
+
+\bibliography{references}
+\bibliographystyle{icml2026}
+
+\newpage
+\appendix
+\onecolumn
+\input{sections/appendix}
+
+\end{document}

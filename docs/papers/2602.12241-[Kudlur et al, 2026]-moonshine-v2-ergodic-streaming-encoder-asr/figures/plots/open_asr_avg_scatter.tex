@@ -1,0 +1,253 @@
+\begin{figure*}[t]
+  \centering
+  \small
+  \pgfplotstableread[col sep=comma]{
+params,wer
+2500,5.63
+8000,5.74
+2000,6.00
+5600,6.02
+600,6.05
+600,6.32
+1000,6.35
+2600,6.40
+1000,6.50
+245,6.65
+1550,6.67
+1100,7.01
+3000,7.05
+1100,7.12
+180,7.12
+1000,7.15
+756,7.21
+1000,7.23
+1100,7.40
+1000,7.42
+1000,7.43
+1550,7.44
+110,7.49
+600,7.50
+756,7.52
+600,7.69
+809,7.77
+809,7.83
+1550,7.83
+123,7.84
+756,7.92
+1550,7.94
+769,8.09
+1000,8.12
+1000,8.25
+8000,8.52
+166,8.57
+244,8.59
+394,8.77
+61,9.99
+74,10.32
+19,10.61
+34,12.01
+27,12.65
+39,12.81
+} \openasravgall
+
+  \pgfplotstableread[col sep=comma]{
+params,wer,label
+34,12.01,Moonshine v2 Tiny
+123,7.84,Moonshine v2 Small
+245,6.65,Moonshine v2 Medium
+} \moonshinevTwo
+
+  \pgfplotstableread[col sep=comma]{
+params,wer
+1550,7.44
+809,7.83
+1550,7.83
+1550,7.94
+769,8.09
+244,8.59
+74,10.32
+39,12.81
+} \openaiModels
+
+  \pgfplotstableread[col sep=comma]{
+params,wer
+2500,5.63
+600,6.05
+600,6.32
+1000,6.35
+1000,6.50
+1100,7.01
+1100,7.12
+180,7.12
+1000,7.15
+1100,7.40
+110,7.49
+600,7.50
+600,7.69
+} \nvidiaModels
+
+  \pgfplotstableread[col sep=comma]{
+params,acc
+34,87.99
+123,92.16
+245,93.35
+} \moonshineFrontier
+
+  \pgfplotstableread[col sep=comma]{
+params,acc
+39,87.19
+74,89.68
+244,91.41
+769,91.91
+809,92.17
+1550,92.56
+} \openaiFrontier
+
+  \pgfplotstableread[col sep=comma]{
+params,acc
+110,92.51
+180,92.88
+600,93.95
+2500,94.37
+} \nvidiaFrontier
+
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=\textwidth,
+      height=0.45\textwidth,
+      xmode=log,
+      log basis x=10,
+      xmin=10,
+      xmax=10000,
+      ymin=86,
+      ymax=95,
+      xlabel={Parameters (M, log scale)},
+      ylabel={Accuracy (100 - WER, \%)},
+      grid=both,
+      major grid style={line width=0.2pt, draw=gray!30},
+      minor grid style={line width=0.1pt, draw=gray!15},
+      tick align=outside,
+      tick style={line width=0.2pt},
+      legend style={draw=none, font=\scriptsize, at={(0.02,0.98)}, anchor=north west},
+      legend cell align=left,
+    ]
+      \addplot[
+        only marks,
+        mark=*,
+        mark size=1.6pt,
+        color=black!35
+      ] table[x=params, y expr=100-\thisrow{wer}] {\openasravgall};
+      \addlegendentry{Other models}
+
+      \addplot[
+        no marks,
+        line width=0.8pt,
+        color=msCyan
+      ] table[x=params, y=acc] {\moonshineFrontier};
+
+      \addplot[
+        no marks,
+        line width=0.8pt,
+        color=msOrange
+      ] table[x=params, y=acc] {\openaiFrontier};
+
+      \addplot[
+        no marks,
+        line width=0.8pt,
+        color=msGreen
+      ] table[x=params, y=acc] {\nvidiaFrontier};
+
+      \addplot[
+        only marks,
+        mark=*,
+        mark size=2.6pt,
+        color=msCyan,
+        nodes near coords,
+        point meta=explicit symbolic,
+        every node near coord/.append style={font=\scriptsize, yshift=2pt, anchor=south, text=msCyan}
+      ] table[x=params, y expr=100-\thisrow{wer}, meta=label] {\moonshinevTwo};
+      \addlegendentry{Moonshine v2}
+
+      \addplot[
+        only marks,
+        mark=triangle*,
+        mark size=2.2pt,
+        color=msOrange
+      ] table[x=params, y expr=100-\thisrow{wer}] {\openaiModels};
+      \addlegendentry{OpenAI}
+
+      \addplot[
+        only marks,
+        mark=square*,
+        mark size=2.2pt,
+        color=msGreen
+      ] table[x=params, y expr=100-\thisrow{wer}] {\nvidiaModels};
+      \addlegendentry{NVIDIA}
+
+      \addplot[
+        only marks,
+        mark=*,
+        mark size=2.8pt,
+        color=msGreen,
+        nodes near coords,
+        point meta=explicit symbolic,
+        every node near coord/.append style={
+          font=\scriptsize,
+          anchor=west,
+          xshift=2pt,
+          text=msGreen
+        }
+      ] coordinates {(2500,94.37) [nvidia/canary-qwen-2.5b]};
+
+      \addplot[
+        only marks,
+        mark=*,
+        mark size=2.8pt,
+        color=msGreen,
+        nodes near coords,
+        point meta=explicit symbolic,
+        every node near coord/.append style={
+          font=\scriptsize,
+          anchor=west,
+          xshift=5pt,
+          yshift=1pt,
+          text=msGreen
+        }
+      ] coordinates {(600,93.95) [nvidia/parakeet-tdt-0.6b-v2]};
+
+      \addplot[
+        only marks,
+        mark=*,
+        mark size=2.8pt,
+        color=msOrange,
+        nodes near coords,
+        point meta=explicit symbolic,
+        every node near coord/.append style={
+          font=\scriptsize,
+          anchor=west,
+          xshift=2pt,
+          text=msOrange
+        }
+      ] coordinates {(1550,92.56) [openai/whisper-large-v3]};
+
+      \addplot[
+        only marks,
+        mark=*,
+        mark size=2.8pt,
+        color=msOrange,
+        nodes near coords,
+        point meta=explicit symbolic,
+        every node near coord/.append style={
+          font=\scriptsize,
+          anchor=north east,
+          xshift=-2pt,
+          yshift=-1pt,
+          text=msOrange
+        }
+      ] coordinates {(809,92.17) [openai/whisper-large-v3-turbo]};
+    \end{axis}
+  \end{tikzpicture}
+  \vspace{-16pt}
+  \caption{Accuracy vs. parameter count on Open ASR leaderboard averages.}
+  \label{fig:open-asr-avg-scatter}
+\end{figure*}

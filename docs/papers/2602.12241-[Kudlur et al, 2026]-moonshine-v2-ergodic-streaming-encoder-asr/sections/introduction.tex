@@ -1,0 +1,51 @@
+\section{Introduction}
+
+Modern automatic speech recognition (ASR) systems are separated into two
+deployment paradigms: cloud-based models that leverage server-scale compute and
+edge models that run locally on resource-constrained devices. While cloud ASR
+can achieve excellent accuracy by utilizing large models and extensive
+computational resources, edge ASR is essential for applications where network
+connectivity is unreliable or unavailable, such as offline voice assistants,
+medical dictation in remote settings, real-time captioning for accessibility,
+and privacy-sensitive voice commands on mobile devices. Edge deployment also
+eliminates network round-trip latency and reduces privacy concerns by keeping
+audio data on-device.
+
+In edge use cases, latency and transcription quality are the two key---and often
+competing---constraints. Achieving human-perceivable real-time performance
+requires minimizing time-to-first-token (TTFT) and maintaining low per-token
+latency, while simultaneously delivering word error rates (WERs) competitive
+with cloud-based alternatives. Balancing these competing objectives on devices
+with limited memory, compute, and power budgets remains a central challenge in
+practical ASR deployment.
+
+Existing edge ASR models leverage a full-attention encoder architecture, which
+allows every frame to directly attend to every other frame in a sequence of
+speech audio. This enables powerful contextual disambiguation as it resolves
+locally ambiguous acoustics using distant lexical information that occurs
+earlier or later in a chunk of speech audio. However, full attention also
+introduces quadratic complexity in sequence length and imposes an inherent
+``encode-the-whole-utterance'' latency profile: in streaming scenarios, the
+encoder must process the entire prefix (or wait for the complete utterance)
+before decoder tokens can be emitted, resulting in high TTFT that scales
+linearly with utterance length. In practical applications, this reduces system
+responsiveness and limits interactivity.
+
+In this paper, we introduce Moonshine v2, a family of ergodic streaming encoder
+ASR models designed specifically for latency-critical edge applications.
+Moonshine v2 models employ sliding-window attention in a position-free encoder
+to enable low-latency streaming inference while maintaining state-of-the-art
+accuracy on standard benchmarks. We train three variants of increasing size---
+tiny, small, and medium---and show that the models achieve transcription quality and
+speed on-par with models 6x their size while running significantly faster (i.e., Whisper Large v3). 
+We release the models under a permissive license, encouraging community adoption for on-device, 
+latency-critical ASR applications.
+
+The paper is structured as follows. Section~\ref{sec:motivation} analyzes the
+latency-accuracy trade-offs inherent in full-attention encoders and motivates
+our sliding window approach. Section~\ref{sec:approach} details the Moonshine v2
+architecture, including the audio preprocessor, sliding-window encoder, adapter,
+and decoder components. Section~\ref{sec:evaluation} presents our experimental
+setup and benchmark results across standard ASR datasets. Finally,
+Section~\ref{sec:conclusion} discusses implications and future directions for
+ergodic streaming ASR.

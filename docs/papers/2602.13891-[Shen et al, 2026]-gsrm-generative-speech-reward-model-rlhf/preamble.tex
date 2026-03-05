@@ -1,0 +1,208 @@
+% \usepackage{colortbl}        % Loads colortbl for \arrayrulecolor
+
+\usepackage{microtype}      % microtypography
+\usepackage{graphicx}
+\usepackage{booktabs}       % professional-quality tables
+%New algorithm package
+%\newcommand{\theHalgorithm}{\arabic{algorithm}}
+\usepackage[ruled,algo2e]{algorithm2e}
+\usepackage{algorithm}
+\usepackage{comment}
+\usepackage{nicefrac} 
+
+% For theorems and such
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{comment}
+\usepackage{cleveref}
+\usepackage{minitoc}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% THEOREMS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+
+\usepackage[textsize=tiny]{todonotes}
+% New packages
+\usepackage[labelfont=it,font+=smaller]{caption}
+\usepackage[labelfont=it]{subcaption}
+\usepackage{makecell}
+\usepackage{arydshln}
+\usepackage{multirow}
+\newcommand{\smh}[1]{{\bf \color{blue} smh: #1}}
+\newcommand{\bu}[1]{{\bf \color{violet} bu: #1}}
+\newcommand{\jon}[1]{{\bf \color{red} jon: #1}}
+\definecolor{lightblue}{rgb}{0.7725490196, 0.89019607843, 0.9294117647}
+\definecolor{darkblue}{rgb}{0.11764705882, 0.11764705882, 0.54509803921}
+\usepackage{rotating}
+\input{defns}
+
+\renewcommand{\E}{\mathbb{E}}
+
+\usepackage{enumitem}
+
+\usepackage{dashrule}
+
+%%% Color box %%%
+
+\usepackage{tcolorbox}\tcbuselibrary{skins}
+\tcbuselibrary{breakable}
+
+\tcbset{gray_box/.style={
+    enhanced,
+    breakable,
+    size=fbox,
+    boxrule=2pt,
+    arc=2mm,
+    auto outer arc,
+    left=1pt,
+    right=1pt,
+    top=1pt,
+    bottom=1pt,
+}}
+
+\tcbset{red_box/.style={
+    enhanced,
+    size=fbox,
+    boxrule=2pt,
+    arc=2mm,
+    auto outer arc,
+    left=1pt,
+    right=1pt,
+    top=1pt,
+    bottom=1pt,
+    colback=red!10,
+    colframe=red!75!black,
+    coltitle=white, 
+}}
+
+\tcbset{
+    brown_box/.style={
+        enhanced,
+        colback=brown!10,
+        colframe=brown!80!black,
+        coltitle=white,
+        arc=2mm,
+        auto outer arc,
+        left=1pt,
+        right=1pt,
+        top=1pt,
+        bottom=1pt,
+        boxrule=2pt,
+    }
+}
+
+\definecolor{green_color}{RGB}{0, 150, 0}
+\tcbset{green_box/.style={
+    enhanced,
+    breakable,
+    size=fbox,
+    boxrule=2pt,
+    arc=2mm,
+    auto outer arc,
+    left=1pt,
+    right=1pt,
+    top=1pt,
+    bottom=1pt,
+    colback=green!8,
+    colframe=green_color,
+    coltitle=white, 
+}}
+
+\definecolor{blue_color}{RGB}{8, 104, 172}
+\tcbset{blue_box/.style={
+    enhanced,
+    breakable,
+    size=fbox,
+    boxrule=2pt,
+    arc=2mm,
+    auto outer arc,
+    left=1pt,
+    right=1pt,
+    top=1pt,
+    bottom=1pt,
+    colback=blue!5,
+    colframe=blue_color,
+    coltitle=white, 
+}}
+%%%%%%
+
+%\LetLtxMacro{\oldeqref}{\eqref}
+\RenewDocumentCommand\eqref{D<>{Eq.}om}{%
+\IfNoValueTF{#2}
+{#1~\oldeqref{#3}}
+{(#2 #1~\textup{\ref{#3}})}%
+}
+
+\usepackage{scrwfile}
+\TOCclone[\appendixname]{toc}{atoc}
+\newcommand\StartAppendixEntries{}
+\AfterTOCHead[toc]{%
+  \renewcommand\StartAppendixEntries{\value{tocdepth}=-10000\relax}%
+}
+\AfterTOCHead[atoc]{%
+  \edef\maintocdepth{\the\value{tocdepth}}%
+  \value{tocdepth}=-10000\relax%
+  \renewcommand\StartAppendixEntries{\value{tocdepth}=\maintocdepth\relax}%
+}
+
+
+
+\usepackage{booktabs}
+\usepackage{siunitx}
+\sisetup{
+  detect-weight=true,
+  detect-inline-weight=math,
+  table-number-alignment=center,
+  round-mode=places,
+  round-precision=3
+}
+
+% % XeLaTeX / LuaLaTeX
+% \usepackage{fontspec}
+% \setmainfont{Times New Roman} % or Latin Modern Roman
+
+
+% % Pick an IPA-capable font that exists on Overleaf
+% \newfontfamily\ipafont{Noto Serif} % usually available
+% % alternatives if needed:
+% % \newfontfamily\ipafont{DejaVu Serif}
+% % \newfontfamily\ipafont{Libertinus Serif}
+
+% \newcommand{\IPA}[1]{{\ipafont #1}}
+
+% XeLaTeX IPA support (without changing the paper's main fonts)
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX}
+
+% Put the .ttf files under fonts/ in your project
+\newfontfamily\ipafont[
+  Path=Fonts/,
+  UprightFont=Charis-Regular.ttf,
+  BoldFont=Charis-Bold.ttf,
+  ItalicFont=Charis-Italic.ttf,
+  BoldItalicFont=Charis-BoldItalic.ttf
+]{Charis-Regular.ttf}
+
+\newcommand{\IPA}[1]{{\ipafont #1}}
+
+
+
+
+\makeatletter
+\@ifundefined{BreakableUnderscore}{}{%
+  \let\BreakableUnderscore\relax
+}
+\makeatother
+\usepackage[strings]{underscore}

@@ -1,0 +1,165 @@
+\documentclass{article}
+\usepackage[preprint]{neurips_2025}
+
+% \usepackage{natbib}
+\usepackage{natbib} % Or your preferred natbib options
+\usepackage[colorlinks=true, citecolor=blue, linkcolor=blue, urlcolor=blue, anchorcolor=blue]{hyperref}
+\bibliographystyle{plainnat}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{breakurl}     % hyperlinks
+% \usepackage{url}            % simple URL typesetting
+\usepackage{listings}
+% \renewcommand{\lstlistingname}{} % remove "Listing"
+% \renewcommand{\thelstlisting}{}  % remove the number
+\usepackage{caption}
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{listings}
+\usepackage{placeins}
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{xurl}
+\usepackage{amssymb}
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{enumitem}
+\usepackage{wrapfig}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{multirow}
+\usepackage[most]{tcolorbox}
+\usepackage[normalem]{ulem}
+\usepackage{xspace}
+\usepackage{float}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage[normalem]{ulem}
+\usepackage{soul}   % For highlighting (\hl) which provides the background and wraps
+\usepackage{svg}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{adjustbox}
+\usepackage{makecell}
+\usepackage{pifont}
+\usepackage{pdflscape}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+\usepackage{xcolor}
+% bib color
+% \hypersetup{
+%   colorlinks=true,
+%   citecolor=Violet,
+%   linkcolor=Red,
+%   urlcolor=Blue
+% }
+
+
+\useunder{\uline}{\ul}{}
+
+% Define your desired grey background color
+% You can adjust the '0.9' (90% black = light grey). 0.0 is black, 1.0 is white.
+% Common values: 0.95 (very light), 0.9, 0.85
+\definecolor{mygreybg}{gray}{0.95}
+
+% Set this as the highlight color for the \hl command
+\sethlcolor{mygreybg}
+\newcommand{\greyredblockmono}[1]{%
+  \textcolor{red}{\texttt{\hl{#1}}}%
+}
+\newcommand{\greyblockmono}[1]{%
+  {\texttt{\hl{#1}}}%
+}
+
+\newcommand{\bt}{\textasciigrave}
+% \hypersetup{colorlinks,urlcolor=blue}
+
+\newcommand{\gui}[1]{{\color{red}[\textbf{G}:#1]}}
+
+
+\title{Voxtral Realtime}
+
+\begin{document}
+\maketitle
+\vspace{-0.1in}
+\begin{center}
+\vspace{-45pt}
+\centering
+\includegraphics[width=0.8\linewidth,keepaspectratio]{images/header.jpeg}
+\end{center}
+
+\begin{abstract}
+\input{abstract.tex}
+\end{abstract}
+\begin{center}
+
+\begin{tabular}{@{} l l @{}}
+\small{\textbf{Webpage:}}  & \scriptsize{\url{https://mistral.ai/news/voxtral-transcribe-2}} \\
+{\small{\textbf{Model weights:}}}  & \scriptsize{\url{https://huggingface.co/mistralai/Voxtral-Mini-4B-Realtime-2602}} \\
+\end{tabular}
+\end{center}
+
+
+\vspace{-0.3cm}
+
+% \gui{I would try to add a nice figure with results in the first page, maybe something that compares with Whisper (which we should definitely include in the evals because so many people are asking how it compares with Whisper) -- maybe the current Figure 2, prettyfied}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/fleurs_latency.pdf}
+    \caption{\textbf{Voxtral Realtime approaches offline accuracy at sub-second latency.} Macro-average word error-rate (WER) vs. delay on the FLEURS multilingual benchmark for realtime and offline models. Lower is better. At 480\,ms delay, Voxtral Realtime is competitive with Scribe v2 Realtime, the leading realtime API model, as well as Whisper, the most popular open-source offline model. It surpasses both baselines at 960\,ms delay, approaching the performance of Voxtral Mini Transcribe V2, a state-of-the-art offline transcription model.}
+    \label{fig:fleurs-latency}
+\end{figure}
+
+\section{Introduction}
+\input{introduction.tex}
+
+% \section{Related Works}
+% \input{related_works}
+
+\section{Modeling}
+\input{modeling.tex}
+
+\section{Training} \label{sec:training}
+\input{training.tex}
+
+\section{Inference and Serving in vLLM}
+\input{inference.tex}
+
+\section{Results}
+\input{results.tex}
+
+\section{Analysis}
+\input{ablations.tex}
+
+\section{Conclusion}
+\input{conclusion}
+
+\subsection*{Core contributors}
+
+Alexander H. Liu, Andy Ehrenberg, Andy Lo, Chen-Yo Sun, Guillaume Lample, Jean-Malo Delignon, Khyathi Raghavi Chandu, Patrick von Platen, Pavankumar Reddy Muddireddy, Rohin Arora, Sanchit Gandhi, Sandeep Subramanian, Soham Ghosh, Srijan Mishra.
+
+\subsection*{Contributors}
+
+Abhinav Rastogi, Adrien Sadé, Alan Jeffares, Albert Jiang, Alexandre Cahill, Alexandre Gavaudan, Alexandre Sablayrolles, Amélie Héliou, Amos You, Andrew Bai, Angele Lenglemetz, Anmol Agarwal, Anton Eliseev, Antonia Calvi, Arjun Majumdar, Avi Sooriyarachchi, Baptiste Bout, Baptiste Rozière, Baudouin De Monicault, Benjamin Tibi, Charlotte Cronjäger, Clémence Lanfranchi, Connor Chen, Corentin Barreau, Corentin Sautier, Cyprien Courtot, Darius Dabert, Diego de las Casas, Elizaveta Demyanenko, Elliot Chane-Sane, Enguerrand Paquin, Etienne Goffinet, Fabien Niel, Faruk Ahmed, Federico Baldassarre, Gabrielle Berrada, Gaëtan Ecrepont, Gauthier Guinet, Genevieve Hayes, Georgii Novikov, Giada Pistilli, Guillaume Kunsch, Guillaume Martin, Guillaume Raille, Gunjan Dhanuka, Gunshi Gupta, Han Zhou, Harshil Shah, Hope McGovern, Hugo Thimonier, Indraneel Mukherjee, Irene Zhang, Jaeyoung Kim, Jan Ludziejewski, Jason Rute, Joachim Studnia, John Harvill, Jonas Amar, Joséphine Delas, Josselin Somerville Roberts, Julien Tauran, Karmesh Yadav, Kartik Khandelwal, Kilian Tep, Kush Jain, Laurence Aitchison, Laurent Fainsin, Léonard Blier, Lingxiao Zhao, Louis Martin, Lucile Saulnier, Luyu Gao, Maarten Buyl, Manan Sharma, Margaret Jennings, Marie Pellat, Mark Prins, Martin Alexandre, Mathieu Poirée, Mathilde Guillaumin, Matthieu Dinot, Matthieu Futeral, Maxime Darrin, Maximilian Augustin, Mert Unsal, Mia Chiquier, Minh-Quang Pham, Nathan Grinsztajn, Neha Gupta, Olivier Bousquet, Olivier Duchenne, Patricia Wang, Paul Jacob, Paul Wambergue, Paula Kurylowicz, Philippe Pinel, Philomène Chagniot, Pierre Stock, Piotr Miłoś, Prateek Gupta, Pravesh Agrawal, Quentin Torroba, Ram Ramrakhya, Rishi Shah, Romain Sauvestre, Roman Soletskyi, Rosalie Millner, Rupert Menneer, Sagar Vaze, Samuel Barry, Samuel Humeau, Sean Cha, Shashwat Verma, Siddhant Waghjale, Siddharth Gandhi, Simon Lepage, Sumukh Aithal, Szymon Antoniak, Teven Le Scao, Théo Cachet, Theo Simon Sorg, Thibaut Lavril, Thomas Chabal, Thomas Foubert, Thomas Robert, Thomas Wang, Tim Lawson, Tom Bewley, Tom Edwards, Tyler Wang, Umar Jamil, Umberto Tomasini, Valeriia Nemychnikova, Van Phung, Vedant Nanda, Victor Jouault, Vincent Maladière, Virgile Richard, Vladislav Bataev, Wassim Bouaziz, Wen-Ding Li, William Havard, William Marshall, Xinghui Li, Xingran Guo, Xinyu Yang, Yannic Neuhaus, Yassine El Ouahidi, Yassir Bendou, Yihan Wang, Yimu Pan, Zaccharie Ramzi, Zhenlin Xu.
+
+\subsection{Acknowledgements}
+
+We would like to thank Joshua Deng, Yu Luo from Meta AI, and Nick Hill, Nicolò Lucchesi, Chen Zhang, Cyrus Leung, and Roger Wang from the vLLM team for their support and contributions in integrating Voxtral Realtime to the vLLM framework.
+
+We are grateful to Salvatore Sanfilippo, Awni Hannun, Prince Canuma, TrevorS, Eustache Le Bihan and the open-source community for their contributions of Voxtral Realtime to additional frameworks.
+
+\clearpage
+
+\bibliography{ref}
+
+\clearpage
+
+\appendix
+\input{appendix}
+
+\end{document}

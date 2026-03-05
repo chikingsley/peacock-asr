@@ -1,0 +1,26 @@
+\begin{table}[!t]
+\centering
+\footnotesize
+\captionsetup{font=small}
+\caption{\textbf{Human A/B Evaluation Results for Online RLHF.} Pairwise preference outcomes comparing the RLHF-trained model against the base model across speech quality dimensions.}
+\vspace{-0.5em}
+\setlength{\tabcolsep}{3.3pt}
+\begin{tabular}{l c c c c}
+\toprule[1.5pt]
+\textbf{Outcome} 
+& \textbf{Tone} 
+& \textbf{Pacing} 
+& \textbf{Intonation} 
+& \textbf{Naturalness} \\
+\midrule
+Ties 
+& 8\%  & 30\% & 18\%  & 6\%  \\
+Base Model Wins 
+& 18\%  & 10\%  & 16\%  & 12\%  \\
+\textbf{RLHF Model Wins} 
+& \textbf{74\%} & \textbf{60\%} & \textbf{66\%} & \textbf{82\%} \\
+\bottomrule
+\end{tabular}
+\label{table:rlhf-results}
+\vspace{-1em}
+\end{table}

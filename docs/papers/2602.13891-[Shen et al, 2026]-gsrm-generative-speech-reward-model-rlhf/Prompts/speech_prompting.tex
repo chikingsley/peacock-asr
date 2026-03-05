@@ -1,0 +1,101 @@
+\begin{tcolorbox}[gray_box, title = {{Prompt Template: Few-shot Speech Prompting}}]\footnotesize
+You are an expert audio rater specializing in evaluating the quality of audio recordings.
+
+You will be provided with an audio recording of five demonstration conversation segments between a TTS system and a user. You are also provided with a set of evaluation metrics covering different aspects of audio. 
+
+Your task is to write a natural, clear, and concise assessment of each evaluation metric and assign a rating to the final conversation segment (the sixth segment).
+
+Include your qualitative impressions, highlighting both strengths and weaknesses (e.g., drifts in pitch style across turns, or flatness) of the audio. 
+
+Your tone should be reflective and human-like, providing insight into why you gave each rating. Each claim must be supported with evidence from the audio recording. \\
+
+\# Evaluation Metrics
+
+Each evaluation metric is described below:
+
+- expressive_intensity: The intensity of expressiveness in the audio.
+
+- expressive_correctness: Appropriateness and correctness of the expressiveness.
+
+- intonation: Quality of the intonation in the speech.
+
+- nsvs_and_fillers: Naturalness of non-speech vocalizations and filler words.
+
+- mispronunciation: whether mispronunciation is present.
+
+- pacing: Naturalness of the pacing or speed of the speech.
+
+- overall_score: Overall Human likeness rating of the second speaker (speaker-2), take all the above metrics into account.
+
+Use the following scale for each metric: 1-5. Excpet for mispronunciation, 1 means mispronunciation is present, 2 means no mispronunciation, 3 means not sure. \\
+
+\# Response Format
+
+Please follow these steps to complete the task. Your response must strictly follow this format:
+
+[Reasoning regarding the five few-shot segments]
+
+<Explain how the ground truth ratings in the prompt can be derived from the provided few-shot audio segments.>
+
+[Summary Explaining the Ratings of the final test example]
+
+<Detailed evidence log of the final test audio segment (the sixth segment), including detailed analysis of each sentence.>
+
+<Reasoning for your rating of each evaluation metric>
+
+<The rating of overall_score should take all factors into account.> \\
+
+[Final Ratings]
+
+expressive_intensity: <your rating>
+
+expressive_correctness: <your rating>
+
+intonation: <your rating>
+
+nsvs_and_fillers: <your rating>
+
+mispronunciation: <your rating>
+
+pacing: <your rating>
+
+overall_score: <your rating> \\
+
+\# Important
+
+- Please only judge the final conversation segment (the sixth segment), not the few-shot segments. The few-shot segments are only used as reference to help you understand the ground truth ratings. \\
+
+\# Few-Shot Segment Examples
+
+\#\# Conversation-1
+
+\#\# Ratings:
+
+\{Ground-truth Human Ratings\}
+
+\#\# Conversation-2
+
+\#\# Ratings:
+
+\{Ground-truth Human Ratings\}
+
+\#\# Conversation-3
+
+\#\# Ratings:
+
+\{Ground-truth Human Ratings\}
+
+\#\# Conversation-4
+
+\#\# Ratings:
+
+\{Ground-truth Human Ratings\}
+
+\#\# Conversation-5
+
+\#\# Ratings:
+
+\{Ground-truth Human Ratings\} \\
+
+\# Now evaluate the final conversation segment in audio clip:
+\end{tcolorbox}

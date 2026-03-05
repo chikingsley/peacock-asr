@@ -1,0 +1,67 @@
+% MODEL NAMES
+\newcommand{\lvsixty}{W2V2P-LV60\xspace}
+\newcommand{\xlsrf}{W2V2P-XLSR53\xspace}
+\newcommand{\mipa}{MultiIPA\xspace}
+\newcommand{\zipactc}{ZIPA-CTC\xspace}
+\newcommand{\zipactcns}{ZIPA-CTC-NS\xspace}
+\newcommand{\powsm}{POWSM\xspace}
+\newcommand{\powsmctc}{POWSM-CTC\xspace}
+\newcommand{\gemini}{Gemini 2.5 Flash\xspace}
+\newcommand{\wavlm}{WavLM\xspace}
+\newcommand{\whisper}{Whisper\xspace}
+\newcommand{\qweni}{Qwen3-Omni-Instruct\xspace}
+\newcommand{\aft}{AudioFlamingo3\xspace}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% DATASETS
+\newcommand{\ez}{\texttt{DYS-ez}\xspace}
+\newcommand{\ua}{\texttt{DYS-ua}\xspace}
+\newcommand{\us}{\texttt{CSD-us}\xspace}
+\newcommand{\eda}{\texttt{L1-eda}\xspace}
+\newcommand{\larc}{\texttt{L1-arc}\xspace}
+\newcommand{\spo}{\texttt{L2-so}\xspace}
+\newcommand{\fl}{\texttt{LID-fl}\xspace}
+\newcommand{\geov}{\texttt{GEO-v}\xspace}
+\newcommand{\pinv}{\texttt{PI-drc}\xspace}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\newcommand{\wontfix}{\rlap{$\square$}{\large\hspace{1pt}\xmark}}
+
+% Proper IPA
+\newcommand{\ipa}[1]{\textipa{#1}}
+\newcommand{\undertie}{\textipa{\textundertie}}  % proper undertie glyph
+
+% Aligning numbers in table, and cloring
+\newcommand{\wpad}{\textcolor{white!0}{0}}
+\definecolor{colorint}{RGB}{100, 143, 255}
+\definecolor{colorext}{RGB}{255, 176, 0}
+
+% Form section into 
+\renewcommand{\sectionautorefname}{\S}
+\renewcommand{\subsectionautorefname}{\S}
+\renewcommand{\subsubsectionautorefname}{\S}
+
+
+\newcommand{\bench}{PRiSM\xspace}
+\newcommand{\ms}[2]{#1~{\scriptsize$\pm$#2}}
+\newcommand{\mm}[2]{#1} % use to only show mean
+
+\newtcolorbox{promptbox}[2][]{%
+  enhanced,
+  breakable,
+  colback=black!1,
+  colframe=black!35,
+  boxrule=0.5pt,
+  arc=2pt,
+  left=6pt,
+  right=6pt,
+  top=6pt,
+  bottom=6pt,
+  fonttitle =\bfseries,
+  title ={#2},
+  #1
+}
+
+
+%%

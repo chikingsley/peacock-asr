@@ -1,0 +1,512 @@
+%%
+%% Common definitions
+%% Only contains the definitions, not formatting information
+%%
+
+\usepackage{xspace}
+\usepackage{bbm}
+%\usepackage{mathrsfs}
+%% \usepackage{semantic}
+%% \usepackage{bm}
+\input{mathlig}
+\usepackage{mathtools}
+\usepackage{relsize}
+\usepackage{mathrsfs}
+\usepackage{dsfont}
+%% Inner product
+\DeclarePairedDelimiterX{\inp}[2]{\langle}{\rangle}{#1, #2}
+\makeatletter
+\newcommand*\bigcdot{\mathpalette\bigcdot@{.5}}
+\newcommand*\bigcdot@[2]{\mathbin{\vcenter{\hbox{\scalebox{#2}{$\m@th#1\bullet$}}}}}
+\makeatother
+
+%% Small spacing
+\newcommand{\muspace}{\mspace{1mu}}
+
+%% |
+\DeclareRobustCommand{\scond}{\mathchoice{\muspace\vert\muspace}{\vert}{\vert}{\vert}}
+\mathlig{|}{\scond}
+\newcommand{\cond}{\mathchoice{\,\vert\,}{\mspace{2mu}\vert\mspace{2mu}}{\vert}{\vert}}
+\newcommand{\bigcond}{\,\big\vert\,}
+
+%% :
+\DeclareRobustCommand{\discint}{\mathchoice{\mspace{-1.5mu}:\mspace{-1.5mu}}{\mspace{-1.5mu}:\mspace{-1.5mu}}{:}{:}}
+\mathlig{::}{\discint}
+\newcommand{\suchthat}{\mathchoice{\colon}{\colon}{:\mspace{1mu}}{:}}
+\newcommand{\mappingfrom}{\colon}
+
+%% A few operator definitions
+\def\tr{\mathop{\rm tr}\nolimits}%
+\def\var{\mathop{\rm Var}\nolimits}%
+\def\Var{\mathop{\rm Var}\nolimits}%
+\def\cov{\mathop{\rm Cov}\nolimits}%
+\def\Cov{\mathop{\rm Cov}\nolimits}%
+\def\diag{\mathop{\rm diag}\nolimits}%
+\def\Re{\mathop{\rm Re}\nolimits}%
+\def\Im{\mathop{\rm Im}\nolimits}%
+\def\rank{\mathop{\rm rank}\nolimits}%
+\def\essinf{\mathop{\rm ess\,inf}}%
+\def\sgn{\mathop{\rm sgn}\nolimits}%
+\def\erfc{\mathop{\rm erfc}\nolimits}%
+\def\co{\mathop{\rm co}\nolimits}%
+
+%% Mathcal (discrete sets)
+\newcommand{\Ac}{\mathcal{A}}
+\newcommand{\Bc}{\mathcal{B}}
+\newcommand{\Cc}{\mathcal{C}}
+\newcommand{\cc}{\text{\footnotesize $\mathcal{C}$} }
+\newcommand{\Dc}{\mathcal{D}}
+\newcommand{\Ec}{\mathcal{E}}
+\newcommand{\Fc}{\mathcal{F}}
+\newcommand{\Gc}{\mathcal{G}}
+\newcommand{\Hc}{\mathcal{H}}
+\newcommand{\Ic}{\mathcal{I}}
+\newcommand{\Jc}{\mathcal{J}}
+\newcommand{\Kc}{\mathcal{K}}
+\newcommand{\Lc}{\mathcal{L}}
+\newcommand{\Mc}{\mathcal{M}}
+\newcommand{\Nc}{\mathcal{N}}
+\newcommand{\Pc}{\mathcal{P}}
+\newcommand{\Qc}{\mathcal{Q}}
+\newcommand{\Rc}{\mathcal{R}}
+\newcommand{\Sc}{\mathcal{S}}
+\newcommand{\Tc}{\mathcal{T}}
+\newcommand{\Uc}{\mspace{1.5mu}\mathcal{U}}
+\newcommand{\Vc}{\mathcal{V}}
+\newcommand{\Wc}{\mathcal{W}}
+\newcommand{\Xc}{\mathcal{X}}
+\newcommand{\Yc}{\mathcal{Y}}
+\newcommand{\Zc}{\mathcal{Z}}
+
+%% Mathcal bold (random discrete sets)
+\newcommand{\Acb}{\boldsymbol{\mathcal{A}}}
+\newcommand{\Bcb}{\boldsymbol{\mathcal{B}}}
+\newcommand{\Ccb}{\boldsymbol{\mathcal{C}}}
+\newcommand{\Dcb}{\boldsymbol{\mathcal{D}}}
+\newcommand{\Ecb}{\boldsymbol{\mathcal{E}}}
+\newcommand{\Fcb}{\boldsymbol{\mathcal{F}}}
+\newcommand{\Gcb}{\boldsymbol{\mathcal{G}}}
+\newcommand{\Hcb}{\boldsymbol{\mathcal{H}}}
+\newcommand{\Jcb}{\boldsymbol{\mathcal{J}}}
+\newcommand{\Kcb}{\boldsymbol{\mathcal{K}}}
+\newcommand{\Ncb}{\boldsymbol{\mathcal{N}}}
+\newcommand{\Pcb}{\boldsymbol{\mathcal{P}}}
+\newcommand{\Qcb}{\boldsymbol{\mathcal{Q}}}
+\newcommand{\Rcb}{\boldsymbol{\mathcal{R}}}
+\newcommand{\Scb}{\boldsymbol{\mathcal{S}}}
+\newcommand{\Tcb}{\boldsymbol{\mathcal{T}}}
+\newcommand{\Ucb}{\boldsymbol{\mathcal{U}}}
+\newcommand{\Vcb}{\boldsymbol{\mathcal{V}}}
+\newcommand{\Wcb}{\boldsymbol{\mathcal{W}}}
+\newcommand{\Xcb}{\boldsymbol{\mathcal{X}}}
+\newcommand{\Ycb}{\boldsymbol{\mathcal{Y}}}
+\newcommand{\Zcb}{\boldsymbol{\mathcal{Z}}}
+
+
+%% Script sets: Capacity region, set of probs, achievable rate region, etc.
+\newcommand{\Ar}{\mathscr{A}}
+\newcommand{\Cr}{\mathscr{C}}
+\newcommand{\Dr}{\mathscr{D}}
+\renewcommand{\Pr}{\mathscr{P}}
+\newcommand{\Rr}{\mathscr{R}}
+\newcommand{\Ur}{\mathscr{U}}
+\newcommand{\Kr}{\mathscr{K}}
+\newcommand{\Gr}{\mathscr{G}}
+\newcommand{\Sr}{\mathscr{S}}
+
+%% Boldface vectors
+%%
+\newcommand{\Lv}{{\bf L}}
+\newcommand{\Xv}{{\bf X}}
+\newcommand{\Yv}{{\bf Y}}
+\newcommand{\Zv}{{\bf Z}}
+\newcommand{\Uv}{{\bf U}}
+\newcommand{\Wv}{{\bf W}}
+\newcommand{\Vv}{{\bf V}}
+\newcommand{\Sv}{{\bf S}}
+\newcommand{\av}{{\bf a}}
+\newcommand{\bv}{{\bf b}}
+\newcommand{\cv}{{\bf c}}
+\newcommand{\fv}{{\bf f}}
+\newcommand{\gv}{{\bf g}}
+\newcommand{\lv}{{\boldsymbol l}}
+\newcommand{\mv}{{\bf m}}
+\newcommand{\xv}{{\bf x}}
+\newcommand{\yv}{{\bf y}}
+\newcommand{\zv}{{\bf z}}
+\newcommand{\uv}{{\bf u}}
+\newcommand{\vv}{{\bf v}}
+\newcommand{\sv}{{\bf s}}
+\newcommand{\alphav}{{\boldsymbol \alpha}}
+\newcommand{\betav}{{\boldsymbol \beta}}
+\newcommand{\gammav}{{\boldsymbol \gamma}}
+\newcommand{\lambdav}{{\boldsymbol \lambda}}
+\newcommand{\muv}{{\boldsymbol \mu}}
+\newcommand{\nuv}{{\boldsymbol \nu}}
+\newcommand{\onev}{{\boldsymbol 1}}
+
+\newcommand{\ph}{{\hat{p}}}
+\newcommand{\qh}{{\hat{q}}}
+\newcommand{\pemp}{\ph_{\mathrm{emp}}}
+\newcommand{\qemp}{q_{\mathrm{emp}}}
+\newcommand{\memp}{\hat{m}_{\mathrm{emp}}}
+
+\newcommand{\xbayes}{\hat{x}^*_{\Lambdab}}
+\newcommand{\sbayes}{\hat{s}^*_{\Lb}}
+
+%% Boldface vectors and more (added by Jongha)
+%%
+
+\newcommand{\cb}{{\mathbf c}}
+\newcommand{\Cb}{{\mathbf C}}
+\newcommand{\eb}{{\mathbf e}}
+\newcommand{\hb}{{\mathbf h}}
+\newcommand{\Lb}{{\mathbf L}}
+\newcommand{\pb}{{\mathbf p}}
+\newcommand{\Pb}{{\mathbf P}}
+\newcommand{\qb}{{\mathbf q}}
+\newcommand{\Qb}{{\mathbf Q}}
+\newcommand{\rb}{{\mathbf r}}
+\newcommand{\Sb}{{\mathbf S}}
+\newcommand{\tb}{\mathbf{t}}
+\newcommand{\ub}{{\mathbf u}}
+\newcommand{\Ub}{{\mathbf U}}
+\newcommand{\vb}{{\mathbf v}}
+\newcommand{\Vb}{{\mathbf V}}
+\newcommand{\wb}{{\mathbf w}}
+\newcommand{\Wb}{{\mathbf W}}
+\newcommand{\wbh}{\hat{\wb}}
+\newcommand{\xb}{{\mathbf x}}
+\newcommand{\Xb}{{\mathbf X}}
+\newcommand{\yb}{{\mathbf y}}
+\newcommand{\Yb}{\mathbf{Y}}
+\newcommand{\zb}{{\mathbf z}}
+\newcommand{\Zb}{{\mathbf Z}}
+
+\newcommand{\chib}{\boldsymbol{\chi}}
+\newcommand{\chibh}{\hat{\chib}}
+
+% For DUDE
+\newcommand{\rhob}{\boldsymbol{\rho}}
+\newcommand{\Lbar}{\bar{\Lb}}
+\newcommand{\Lambdab}{\boldsymbol{\Lambda}}
+\newcommand{\Lambdabar}{\bar{\Lambdab}}
+
+% For online learning?
+\newcommand{\regret}{\mathsf{Reg}}
+\newcommand{\Rbar}{\overline{\regret}}
+\newcommand{\redundancy}{\mathsf{Red}}
+
+%% Acronyms
+%%
+\newcommand{\whp}{\textnormal{w.h.p. }}
+\newcommand{\wrt}{\textnormal{w.r.t. }}
+\newcommand{\nn}{\textnormal{-NN}}
+\newcommand{\knn}{k\nn}
+
+
+
+%% Hats
+\newcommand{\Kh}{{\hat{K}}}
+\newcommand{\Lh}{{\hat{L}}}
+\newcommand{\Mh}{{\hat{M}}}
+\newcommand{\Rh}{{\hat{R}}}
+\newcommand{\Sh}{{\hat{S}}}
+\newcommand{\Uh}{{\hat{U}}}
+\newcommand{\Vh}{{\hat{V}}}
+\newcommand{\Wh}{{\hat{W}}}
+\newcommand{\Xh}{{\hat{X}}}
+\newcommand{\Yh}{{\hat{Y}}}
+\newcommand{\Zh}{{\hat{Z}}}
+\renewcommand{\dh}{{\hat{d}}}
+\newcommand{\kh}{{\hat{k}}}
+\newcommand{\lh}{{\hat{l}}}
+\newcommand{\mh}{{\hat{m}}}
+\newcommand{\sh}{{\hat{s}}}
+\newcommand{\uh}{{\hat{u}}}
+\newcommand{\vh}{{\hat{v}}}
+\newcommand{\wh}{{\hat{w}}}
+\newcommand{\xh}{{\hat{x}}}
+\newcommand{\yh}{{\hat{y}}}
+\newcommand{\zh}{{\hat{z}}}
+\newcommand{\gh}{{\hat{g}}}
+
+%% Tildes
+\newcommand{\At}{{\tilde{A}}}
+\newcommand{\Ct}{{\tilde{C}}}
+\newcommand{\Kt}{{\tilde{K}}}
+\newcommand{\Lt}{{\tilde{L}}}
+\newcommand{\Mt}{{\tilde{M}}}
+\newcommand{\Nt}{{\tilde{N}}}
+\newcommand{\Qt}{{\tilde{Q}}}
+\newcommand{\Rt}{{\tilde{R}}}
+\newcommand{\St}{{\tilde{S}}}
+\newcommand{\Ut}{{\tilde{U}}}
+\newcommand{\Vt}{{\tilde{V}}}
+\newcommand{\Wt}{{\tilde{W}}}
+\newcommand{\Xt}{{\tilde{X}}}
+\newcommand{\Yt}{{\tilde{Y}}}
+\newcommand{\Zt}{{\tilde{Z}}}
+\newcommand{\bt}{{\tilde{b}}}
+\newcommand{\dt}{{\tilde{d}}}
+\newcommand{\kt}{{\tilde{k}}}
+\newcommand{\lt}{{\tilde{l}}}
+\newcommand{\mt}{{\tilde{m}}}
+\newcommand{\pt}{{\tilde{p}}}
+\newcommand{\rt}{{\tilde{r}}}
+\newcommand{\std}{{\tilde{s}}}  % to avoid clash with soul.sty
+\newcommand{\ut}{{\tilde{u}}}
+\newcommand{\vt}{{\tilde{v}}}
+\newcommand{\wt}{{\tilde{w}}}
+\newcommand{\xt}{{\tilde{x}}}
+\newcommand{\yt}{{\tilde{y}}}
+\newcommand{\zt}{{\tilde{z}}}
+\newcommand{\gt}{{\tilde{g}}}
+
+%% Greek
+\def\a{\alpha}
+\def\b{\beta}
+\def\g{\gamma}
+\def\d{\delta}
+\def\e{\epsilon}
+\def\eps{\epsilon}
+% \def\l{\lambda}
+\def\th{\theta}
+\def\Th{\Theta}
+
+%% Probability and expectation
+\DeclareMathOperator\E{\mathsf{E}}
+\let\P\relax
+\DeclareMathOperator\P{\mathsf{P}}
+\DeclareMathOperator\Q{\mathsf{Q}}
+\DeclareMathOperator\Prob{\mathrm{Pr}}
+
+%% Gaussian capacity, rate-dist, binary entropy
+%\DeclareMathOperator\C{\textsf{C}}
+\DeclareMathOperator\R{\mathsf{R}}
+%\DeclareMathOperator\C{C}
+%\DeclareMathOperator\R{R}
+
+%% Error symbol
+\def\error{\mathrm{e}}
+
+%% Probability distributions
+%%\newcommand{\Br}{\mathrm{Bern}}
+\newcommand{\Bern}{\mathrm{Bern}}
+\newcommand{\Geom}{\mathrm{Geom}}
+\newcommand{\Poisson}{\mathrm{Poisson}}
+\newcommand{\Exp}{\mathrm{Exp}}
+%%\newcommand{\Norm}{\mathrm{N}}
+\newcommand{\N}{\mathrm{N}}
+\newcommand{\Unif}{\mathrm{Unif}}
+\newcommand{\Binom}{\mathrm{Binom}}
+%% Misc
+\newcommand\eg{e.g.,\xspace}
+\newcommand\ie{i.e.,\xspace}
+\def\textiid{i.i.d.\@\xspace}
+\newcommand\iid{\ifmmode\text{ i.i.d. } \else \textiid \fi}
+\let\textand\and
+%\renewcommand\and{\ifmmode{\text{ and }}{\textand}}
+\let\textor\or
+%\renewcommand\or{\ifmmode{\text{ or }}{\textor}}
+\newcommand{\geql}{\succeq}
+\newcommand{\leql}{\preceq}
+\newcommand{\Complex}{\mathbb{C}}
+\newcommand{\Ff}{\mathbb{F}}
+\newcommand{\Zz}{\mathbb{Z}}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Natural}{\mathbb{N}}
+\newcommand{\Integer}{\mathbb{Z}}
+\newcommand{\Rational}{\mathbb{Q}}
+\newcommand{\ones}{\mathds{1}}
+%\newcommand{\defeq}{=}
+\newcommand{\carddot}{\mathchoice{\!\cdot\!}{\!\cdot\!}{\cdot}{\cdot}}
+
+%%-------------------------------------------------------
+%% Fractions
+%%
+% \newcommand{\sfrac}[2]{\mbox{\small$\displaystyle\frac{#1}{#2}$}}
+\newcommand{\half}{\frac{1}{2}}%\sfrac{1}{2}
+
+%%-------------------------------------------------------
+%% Cups and caps
+%%
+\def\medcupmath{\mbox{\small$\displaystyle\bigcup$}}
+\def\medcuptext{\raisebox{1pt}{\small$\textstyle\bigcup$}}
+\def\medcup{\mathop{\mathchoice{\medcupmath}{\medcuptext}{\bigcup}{\bigcup}}}
+
+\def\medcapmath{\raisebox{0.5pt}{\small$\displaystyle\bigcap$}}
+\def\medcaptext{\raisebox{1pt}{\small$\textstyle\bigcap$}}
+\def\medcap{\mathop{\mathchoice{\medcapmath}{\medcaptext}{\bigcap}{\bigcap}}}
+
+
+%%-------------------------------------------------------
+%% Products
+%%
+\def\medtimesmath{\mbox{\small$\displaystyle\bigtimes$}}
+\def\medtimestext{\raisebox{1pt}{\small$\textstyle\bigtimes$}}
+\def\medtimes{\mathop{\mathchoice{\medtimesmath}{\medtimestext}{\bigtimes}{\bigtimes}}}
+
+
+%%--------------------------------------------------------
+%% Spacing
+%%
+\def\mathllap{\mathpalette\mathllapinternal}
+\def\mathllapinternal#1#2{%
+  \llap{$\mathsurround=0pt#1{#2}$}}
+
+\def\mathrlap{\mathpalette\mathrlapinternal}
+\def\mathrlapinternal#1#2{%
+  \rlap{$\mathsurround=0pt#1{#2}$}}
+
+\def\clap#1{\hbox to 0pt{\hss#1\hss}}
+\def\mathclap{\mathpalette\mathclapinternal}
+\def\mathclapinternal#1#2{%
+  \clap{$\mathsurround=0pt#1{#2}$}}
+
+%% For lecture notes
+\def\labelitemi{$\bullet$}
+\def\labelitemii{$\bullet$}
+%\def\labelitemii{$\circ$}
+
+%%-------------------------------------------------------
+%% Stackrel
+%%
+
+\let\oldstackrel\stackrel
+\renewcommand{\stackrel}[2]{\oldstackrel{\mathclap{#1}}{#2}}
+
+%-------------------------------------------------------------------------
+% Interchapter macros
+
+% Relative entropy and f-divergence
+\DeclarePairedDelimiterX{\infdivx}[2]{(}{)}{%
+  #1\;\delimsize\|\;#2%
+}
+\newcommand{\D}{D\infdivx*}
+\newcommand{\Df}{D_f\infdivx*}
+% Total variation distance
+\def\dtv{\delta}
+
+%-------------------------------------------------------------------------
+% Overline
+\newcommand{\Hbar}{H\mathllap{\overline{\vphantom{H}\hphantom{\rule{6.9pt}{0pt}}}\mspace{0.7mu}}}
+\newcommand{\Dbar}{D\mathllap{\overline{\vphantom{D}\hphantom{\rule{0.7em}{0pt}}}\mspace{0.7mu}}\divx}
+\newcommand{\Gbar}{G\mathllap{\overline{\vphantom{G}\hphantom{\rule{6.25pt}{0pt}}}\mspace{1.1mu}}}
+\renewcommand{\hbar}{h\mathllap{\overline{\vphantom{h}\hphantom{\rule{4.6pt}{0pt}}}\mspace{0.77mu}}}
+
+%------------------------------------
+% URL tilde
+\catcode`~=11 % make LaTeX treat tilde (~) like a normal character
+\newcommand{\urltilde}{\kern -.06em\lower -.06em\hbox{~}\kern .02em}
+\catcode`~=13 % revert back to treating tilde (~) as an active character
+
+%------------------------------------
+% Hyphenation
+\hyphenation{Gauss-ian}
+\hyphenation{qua-dra-tic}
+\hyphenation{Vis-wa-nath}
+\hyphenation{non-trivial}
+\hyphenation{multi-letter}
+\hyphenation{Gauss-ian}
+\hyphenation{super-posi-tion}
+\hyphenation{de-cod-er}
+\hyphenation{Nara-yan}
+\hyphenation{multi-message}
+\hyphenation{Dimi-tris}
+\hyphenation{Pol-ty-rev}
+\hyphenation{multi-cast}
+\hyphenation{multi-user}
+\hyphenation{multi-plex-ing}
+\hyphenation{bi-directional}
+\hyphenation{comput}
+
+%------------------------------------
+% Added by J. Ryu
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\newcommand{\ind}[1]{\ones_{#1}}
+\newcommand{\indi}[1]{\ones_{\{#1\}}}
+
+% \DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+% \DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiterX{\norm}[1]{\lVert}{\rVert}{#1}
+\DeclarePairedDelimiterX{\abs}[1]{\lvert}{\rvert}{#1}
+
+\usepackage{xparse}
+
+\newcommand*\diff{\mathop{}\!\mathrm{d}}
+\newcommand*\Diff[1]{\mathop{}\!\mathrm{d^#1}}
+\let\oldpartial\partial
+\renewcommand*{\partial}{\mathop{}\!\oldpartial}
+%
+% \DeclarePairedDelimiterX{\set}[1]{\{}{\}}{\setargs{#1}}
+% \NewDocumentCommand{\setargs}{>{\SplitArgument{1}{;}}m}
+% {\setargsaux#1}
+% \NewDocumentCommand{\setargsaux}{mm}
+% {\IfNoValueTF{#2}{#1} {#1\,\delimsize|\,\mathopen{}#2}}%{#1\:;\:#2}
+
+% Swap the definition of \abs* and \norm*, so that \abs
+% and \norm resizes the size of the brackets, and the
+% starred version does not.
+% \makeatletter
+% \let\oldabs\abs
+% \def\abs{\@ifstar{\oldabs}{\oldabs*}}
+% %
+% \let\oldnorm\norm
+% \def\norm{\@ifstar{\oldnorm}{\oldnorm*}}
+% %
+% \let\oldset\set
+% \def\set{\@ifstar{\oldset}{\oldset*}}
+% \makeatother
+
+\newcommand{\vle}{\rotatebox[origin=c]{90}{$\ge$}}
+
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
+
+% \newcommand{\defeq}{\vcentcolon{=}}
+% \newcommand{\eqdef}{=\vcentcolon{}}
+\newcommand{\defeq}{\mathrel{\mathop{:}}=}
+\newcommand{\eqdef}{\mathrel{\mathop{=}}:}
+\newcommand{\defeqdef}{\vcentcolon{=}\vcentcolon}
+\newcommand{\parallelsum}{\mathbin{\!/\mkern-5mu/\!}}
+\newcommand{\supp}{\textnormal{supp}}
+
+%% Emojis
+%%
+
+%% Footnote w/o tag
+%%
+\newcommand\blfootnote[1]{%
+  \begingroup
+  \renewcommand\thefootnote{}\footnote{#1}%
+  \addtocounter{footnote}{-1}%
+  \endgroup
+}
+
+%% Excerpted from braket.sty
+%%
+\def\bra#1{\mathinner{\langle{#1}|}}
+\def\ket#1{\mathinner{|{#1}\rangle}}
+\def\braket#1{\mathinner{\langle{#1}\rangle}}
+\def\Bra#1{\left\langle#1\right|}
+\def\Ket#1{\left|#1\right\rangle}
+
+%% For consistent typography
+% \newcommand\keyword{\textsf}
+
+\newcommand{\revision}[1]{\textcolor{blue}{#1}}
+
+% Command \coloredmidrule consists of 3 rules (top colour white, middle colour black, bottom colour tablerowcolor)
+\colorlet{tablerowcolor}{lightblue}
+\newcommand{\coloredmidrule}{\arrayrulecolor{white}\specialrule{\aboverulesep}{0pt}{0pt}%
+            \arrayrulecolor{black}\specialrule{\lightrulewidth}{0pt}{0pt}%
+            \arrayrulecolor{tablerowcolor}\specialrule{\belowrulesep}{0pt}{0pt}%
+            \arrayrulecolor{black}}
+\newcommand{\coloredmidrulecw}{\arrayrulecolor{tablerowcolor}\specialrule{\aboverulesep}{0pt}{0pt}%
+            \arrayrulecolor{black}\specialrule{\heavyrulewidth}{0pt}{0pt}%
+            \arrayrulecolor{white}\specialrule{\belowrulesep}{0pt}{0pt}%
+            \arrayrulecolor{black}}
+% Command \coloredbottomline consists of 2 rules (top colour
+\newcommand{\coloredbottomrule}{\arrayrulecolor{tablerowcolor}\specialrule{\aboverulesep}{0pt}{0pt}%
+            \arrayrulecolor{black}\specialrule{\heavyrulewidth}{0pt}{\belowbottomsep}}%

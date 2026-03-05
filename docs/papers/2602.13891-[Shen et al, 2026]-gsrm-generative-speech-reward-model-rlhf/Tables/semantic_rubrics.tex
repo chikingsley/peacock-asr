@@ -1,0 +1,22 @@
+\begin{table*}[h]
+\centering
+\footnotesize
+\renewcommand{\arraystretch}{1}  % add vertical breathing room
+\setlength{\tabcolsep}{10pt}
+\captionsetup{font=small}
+
+\caption{\textbf{Annotation Rubric for Speech Semantic Quality.}
+Each dialog transcript is evaluated along multiple sub-dimensions that capture different aspects of speech semantic quality.}
+\vspace{-0.6em}
+
+\begin{tabular}{p{4.3cm} p{11.4cm}}
+\toprule
+\textbf{Sub-metric} & \textbf{Description} \\
+\midrule
+\textbf{Language Complexity} & For language complexity, consider two main aspects: \textbf{1. Vocabulary \& Wording} -- Favor responses that use colloquial language, idiomatic expressions, contractions (e.g., “can’t”, “it’s”), deixis (e.g., “this”, “that”, “here”), and, where appropriate, mild slang. Penalize responses that use overly formal, esoteric, or academic vocabulary, as well as robotic or non-idiomatic phrasing. \textbf{2. Syntax} -- Favor simple, straightforward sentence structures. Look for short sentences, frequent pauses, and incremental phrasing (e.g., “Yeah, and then…”), which contribute to a natural rhythm and pacing. Penalize sentences that are too long without breaks, or that use unnecessarily complex syntax. Consider the following questions --- Does the assistant’s response sound like something a real person would say in a casual spoken conversation? Is the language accessible and easy to follow in verbal conversation? Are there any words, phrases, or sentence structures that feel unnatural, overly formal, or robotic for spoken dialog? \\
+\textbf{Contextual Awareness} & Consider three main aspects: \textbf{1. Contents} -- Favor responses that are straightforward and direct, frontloading key information. Penalize responses that are off-topic, irrelevant, circuitous, indirect, or simply repeat the user’s query. Adjust for context: In emergencies or urgent situations, concise and directive speech is preferred. In teaching scenarios or when the user requests details, more elaborate explanations are appropriate. \textbf{2. Length} -- Favor brief responses that are clear and complete, while avoiding unnecessary terseness. Penalize responses that are long-winded or contain unnecessary elaboration. \textbf{3. Tone} -- Favor a friendly, approachable, and engaging tone by default. Adjust tone based on user cues: If the user is upset, the assistant should soften its tone and convey understanding or empathy. If the user is excited, the assistant should respond with enthusiasm. Always match the tone to the context and user sentiment \\
+\textbf{Spontaneity} & A response is considered \textbf{spontaneous} if it includes one or more of the following features, which are typical of authentic, on-the-fly human speech (as long as they do not significantly harm clarity or delivery, e.g., by making the response confusing or incoherent): \textbf{Frequent checks:} Phrases like “you know?”, “right?”, or similar, used to engage or check understanding. \textbf{Self-repairs:} Corrections or adjustments to previous statements, e.g., “I mean...”. \textbf{Clarifications:} Paraphrasing, moderate repetition, or rephrasing to ensure the message is easy to understand. \textbf{Disfluency:} Natural filler words (“like”, “well”, “hmm”, "so"), restarts, or false starts. A response is considered \textbf{non-spontaneous} if it lacks these features and instead sounds polished, rehearsed, or as if being read from a script.\\
+\bottomrule
+\end{tabular}
+\label{table:semantic_rubric}
+\end{table*}

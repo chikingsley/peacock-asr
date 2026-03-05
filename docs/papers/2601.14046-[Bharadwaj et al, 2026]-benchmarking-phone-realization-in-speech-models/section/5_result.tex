@@ -1,0 +1,43 @@
+\section{Results and Discussion}
+\autoref{tab:phonebench:int-results} presents PR performance, and \autoref{tab:phonebench:ext-results} presents a comprehensive breakdown of downstream evaluations.
+In general, \zipactcns performs well in all settings, while \whisper excels in RP.
+LALMs generally remain less competitive.
+
+\input{tables/intrinsic}
+\input{tables/extrinsic}
+
+\subsection{Intrinsic Evaluation}
+\label{sec:prperf}
+We observe a consistent trend for language variation: CTC-based models generally outperform LALMs, followed by AED models. 
+For \mipa, English appears during pretraining but not finetuning, highlighting the importance of language coverage in PR data. 
+On \texttt{PR-saa}, \powsm performs poorly likely due to decoder search on long speech sequences; meanwhile, a text-based G2P model \cite{zhu2022charsiu-g2p} achieves a PFER of 10.2, beating \gemini despite modeling only canonical pronunciations.
+
+For unseen languages, AED and CTC models show comparable performance, whereas LALMs perform poorly, sometimes producing repeated or degenerate outputs indicative of limited training exposure \cite{neuraltextdegen}. 
+Performance also varies across datasets, and language-wise breakdowns reveal heterogeneous behavior. 
+\powsm outperforms \powsmctc and exhibits performance comparable to ZIPAs, suggesting that incorporating a degree of language modeling may improve generalization by capturing shared phonological patterns, as further analyzed in \autoref{sec:analysis_noise}.
+
+These trends show that \textbf{variation in seen languages benefits from outputs grounded in known patterns}, whereas \textbf{unseen languages benefit from multilingual training and learned phonological patterns}.
+
+
+%========================================================================================================================================================
+
+\subsection{Extrinsic Evaluations}
+\label{sec:extrinsic}
+For transcript probe, ZIPAs and \xlsrf are generally competitive. 
+ZIPAs perform well on pathological speech, likely due to their normalized, smaller vocabularies, which approximate broad transcription known to be reliable for speech disorders \cite{shriberg1991reliability}, 
+while \xlsrf benefits from diverse pretraining data. 
+Multilingual training further improves performance, especially on multilingual tasks.
+We discuss \pinv in \autoref{sec:analysis_phoneinv} as an example.
+\whisper's strength in representation probe  suggests that large-scale ASR pretraining produces representations that retain phonetic information. 
+
+A trade-off of TP and RP emerges among specialized PR models: for example, Wav2Vec2Phs achieve strong TP results on L2 speech but show limited gains on RP, whereas ZIPAs underperform on TP yet excel on RP. 
+Task category also influences their relative performance: Pathological speech benefits more from RP, L2 speech falls in the middle, and multilingual tasks tend to favor TP. 
+We hypothesize that transcripts act as a structured bottleneck: pathological speech relies on features such as timbre and prosody, whereas multilingual settings benefit less from acoustic detail.
+We investigate the behavior of TP on \geov in \autoref{sec:analysis_geo}.
+
+LALMs show task-dependent performance. Notably, \qweni achieves competitive TP on pathological speech, but they generally perform poorly in zero-shot settings and underperform on languages other than English (\ez). An exception is L2 speech, where the gap is smaller, explored in \autoref{sec:mallm}.
+
+Overall, our results highlight the \textbf{importance of evaluating PR systems with a combination of intrinsic and extrinsic tasks}. 
+Intrinsic evaluation alone may not fully capture phonetic capabilities, while extrinsic evaluation reveals that relative performance on TP and RP is task-dependent. 
+\textbf{Multilingual pretraining and fine-tuning improve performance} across model families, and \textbf{encoder-CTC based architectures provide more stable PR performance} in new domains. 
+In contrast, \textbf{LALMs remain limited} in phone recognition and related tasks.

@@ -1,0 +1,18 @@
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Method} & \textbf{SR} $\uparrow$ & \textbf{UU} $\uparrow$ & \textbf{OE} $\uparrow$ \\
+\midrule
+(a) Wav2vec2 Base+Llama-3.1-8B             & 1.80 & 2.50 & 1.90 \\
+(b) Qwen2-Audio                              & 2.12 & 2.83 & 2.26 \\
+(c) GPT-4o-Audio                             & 2.88 & 3.51 & 3.07 \\
+(d) Whisper Large+Llama-3.1-8B             & \textbf{3.80} & \textbf{3.81} & \textbf{3.73} \\
+\bottomrule
+\end{tabular}
+\caption{Performance comparisons of our instruction-tuned ALMs with the baselines in Section~\ref{sec:asr+llm}
+and Section~\ref{sec:alms} by human evaluations. Here \textbf{SR} refers to suggestion relevance, \textbf{UU} refers to user understandability, and \textbf{OE} refers to overall evaluation.}
+\label{tab:human_eval}
+\vspace{-2mm}
+\end{table}

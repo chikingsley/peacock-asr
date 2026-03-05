@@ -1,0 +1,55 @@
+\section{Experiments} 
+\input{Tables/main_results}
+\subsection{Settings.} \label{sec:exp_setting}
+\textbf{Implementation Details.} We adopt Qwen2.5-Omni-7B~\cite{xu2025qwen2} as the base model for GSRM due to its strong speech understanding capabilities and efficient inference. We synthesize SFT data using the ConvTTS training set. For each audio sample, we average the ratings across annotators and round the result to the nearest integer to obtain a single target score. For reasoning synthesis, we employ GPT-4o~\cite{hurst2024gpt} due to its strong text reasoning and instruction-following capabilities. This process yields 4,579 training examples, each consisting of a raw audio input paired with a synthesized CoT trajectory. We fine-tune the model with full-parameter training for 10 epochs. Additional details are provided in Appendix~\ref{sec:app-setting}.
+
+
+\textbf{Benchmark and Evaluation.} We evaluate GSRM on both the in-domain ConvTTS test set and the OOD FDX-Conv dataset. Since the ultimate goal of GSRM is to serve as a proxy for human judgment, we focus on measuring consistency between model predictions and human ratings. For each test sample, GSRM generates multiple predictions via random sampling. The final model prediction is obtained by averaging these outputs, which is then compared against the averaged human rating. We report three evaluation metrics: (1) Pearson correlation coefficient (PCC), which measures linear agreement between model predictions and human ratings; (2) Spearman correlation, which captures rank-order consistency and is robust to nonlinear relationships; and (3) mean squared error (MSE), which measures the squared deviation between predictions and human ratings. Unless otherwise stated, all main results are reported using average rating over 16 inference samples per test instance.
+
+\textbf{Baseline Methods.}
+In addition to the baselines introduced in Section~\ref{sec:pilot_studies}, we compare GSRM against several established naturalness predictors: (1) NISQA~\cite{mittag2021nisqa}, a CNN-based model for predicting speech naturalness and related perceptual attributes such as noisiness and loudness; (2) UTMOSv2~\cite{baba2024utmosv2}, which combines self-supervised speech representations with spectrogram features to estimate naturalness; and (3) a WavLLM-based regressor, which is fine-tuned on our training data using the WavLLM~\cite{hu2024wavllm}, a self-supervised speech model pre-trained on 94k hours of audio. (4) an AES-based regressor, also fine-tuned on our training data, using the AES Transformer~\cite{tjandra2025meta}, a state-of-the-art model for audio aesthetics assessment.
+
+\subsection{Main Results} \label{sec:main_results}
+\textbf{Baseline Comparison.}
+The main results are summarized in Table~\ref{table:main-results}. We first observe that existing naturalness predictors struggle to reliably assess speech naturalness, with many methods exhibiting near-zero or even negative model–human correlation on the evaluation datasets. Also, acoustic feature prompting with GPT-4o consistently outperforms speech prompting using Gemini-2.5-Pro, highlighting the effectiveness of explicitly extracted acoustic features for naturalness judgment. While the AES-based predictor achieves competitive performance, its generalization ability on the OOD dataset remains limited. In contrast, GSRM achieves a PCC of $0.465$ on the FDX-Conv OOD set, approaching human inter-rater consistency and substantially outperforming all baseline methods.
+
+
+\textbf{Scaling Behavior of GSRM.}
+\begin{figure}[!t]
+    \centering
+    \begin{tabular}{rl}
+    \subfloat[Scaling Training Data Size]{%
+        \includegraphics[width=0.5\textwidth]{Figures/scaling_data_size.pdf}
+    } &
+    \subfloat[Scaling Test-time Compute]{%
+        \includegraphics[width=0.5\textwidth]{Figures/scaling_test_time_compute.pdf}
+    }
+    \end{tabular}
+\caption{\textbf{Scaling Behavior of GSRM.} The y-axis reports PCC performance on the FDX-Conv OOD set.}
+\label{fig:scaling_behavior}
+\vspace{-1em}
+\end{figure}
+We further analyze the scaling behavior of GSRM along two dimensions: training data scale and test-time computation. First, we train GSRM with increasing amounts of data ($\{500, 1000, 2000, 3000, 4579\}$ samples) and evaluate its PCC on the FDX-Conv OOD set. As shown in Figure~\ref{fig:scaling_behavior}(a), performance improves steadily with larger training sets, indicating that GSRM can further benefit from more diverse and large-scale human-annotated data. Next, using the model trained on the full dataset, we vary the number of test-time inference samples $K \in \{1, 2, 4, 8, 16\}$ and average the resulting predictions. Figure~\ref{fig:scaling_behavior}(b) shows that PCC increases monotonically as $K$ grows, demonstrating that test-time scaling effectively reduces prediction variance. The most significant gains occur in the low budget regime ($K=1$ to $K=4$), suggesting that robust naturalness prediction can be achieved with a reasonable inference cost.
+
+\subsection{Analysis} \label{sec:analysis}
+In this section, we conduct ablation studies to examine the contribution of evidence log, individual acoustic features and evaluation sub-metrics to naturalness prediction.
+
+\textbf{Ablation of Evidence Log.}
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=0.75\textwidth]{Figures/ablation_combined.pdf}
+\caption{\textbf{Ablation Studies of Impact of Sub-metrics and Acoustic Features to Naturalness Prediction.} }
+\label{fig:ablation_feature_submetric}
+\vspace{-1em}
+\end{figure}
+As illustrated in Figure~\ref{fig:teaser}, GSRM’s CoT trajectories consist of both an utterance-level evidence log and a global judgment over the entire audio. To isolate the contribution of the evidence log, we ablate it and train GSRM using only the global judgment CoT. As shown in Figure~\ref{fig:ablation_feature_submetric}, removing the evidence log results in a PCC drop of approximately $0.08$. This degradation aligns with our intuition: the utterance-level evidence log captures fine-grained local prosodic patterns, which provide essential context for judging overall speech naturalness.
+
+\textbf{Ablation of Acoustic Feature.}
+While evidence log is crucial, acoustic features provide the foundation for generating such evidence log. To assess the importance of different feature groups, we independently ablate pitch-, intensity-, and duration-related features during CoT synthesis and retrain GSRM under each condition. The resulting models are evaluated on the FDX-Conv OOD set. Figure~\ref{fig:ablation_feature_submetric} shows that pitch-based features are the most critical for naturalness prediction, with PCC dropping by more than $0.12$ when pitch information is removed. Duration features exhibit a moderate impact, while intensity-based features contribute comparatively less. These findings align with prior observations that pitch dynamics are a dominant cue in human perception of speech naturalness.
+
+\textbf{Ablation of Sub-metric.}
+We next analyze the importance of individual sub-metrics. We keep the acoustic feature log fixed but ablate each sub-metric during CoT synthesis. For example, when the \emph{intonation} sub-metric is removed, GSRM is no longer allowed to reason about intonation when inferring the overall human-likeness score. Figure~\ref{fig:ablation_feature_submetric} indicate that intonation and pacing are the most influential sub-metrics for predicting naturalness, while non-speech vocalizations and fillers (NSVS) contribute the least. These trends are consistent with the correlation analysis of human ratings in Figure~\ref{fig:submetric_pcc}, where intonation and pacing exhibit the highest correlation with human-likeness, and NSVS and mispronunciation show the weakest correlations.
+
+\subsection{Results in the Wild: GSRM for Online RLHF}
+\input{Tables/rlhf}
+Finally, we evaluate the effectiveness of GSRM in improving the naturalness of speech generation in an in-house speech LLM through online RLHF. We start from an in-house speech LLM trained with supervised fine-tuning (SFT), which serves as the base model. We then curate an RL training set consisting of 9.2k speech prompts. For each prompt, the model is asked to generate a single-turn speech response, which is subsequently evaluated by GSRM along multiple sub-dimensions. Additional details of the online RLHF training are provided in Appendix~\ref{sec:rlhf_details}. After training, we compare the RLHF-trained model with the base SFT model. Specifically, both models generate speech responses for a held-out test prompt set, and human raters conduct A/B evaluations across multiple dimensions, including tone, pacing, intonation, and overall naturalness. Each speech sample is evaluated by five independent human raters to ensure robustness. Table~\ref{table:rlhf-results} demonstrate that the RLHF-trained model outperforms the base model in terms of overall naturalness, winning the A/B comparisons on 82\% of the test samples. Moreover, RLHF training with GSRM consistently improves speech generation quality across other sub-dimensions, further highlighting the effectiveness of GSRM as a reward signal for online RLHF.

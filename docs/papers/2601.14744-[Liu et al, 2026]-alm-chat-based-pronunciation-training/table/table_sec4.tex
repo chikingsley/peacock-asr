@@ -1,0 +1,183 @@
+\begin{table*}[t]
+\centering
+
+\setlength{\tabcolsep}{3pt}
+\small
+\begin{tabular}{llccccccc} 
+\toprule[1pt]
+\multirow{2}{*}{\textbf{ASR Models}} & \multirow{2}{*}{\textbf{LLMs}}& \multicolumn{4}{c}{\textbf{Mispronunciation Detection}} & \multicolumn{3}{c}{\textbf{Suggestion Generation}} \\ 
+\cmidrule(lr){3-6} \cmidrule(lr){7-9}
+ &  & \textbf{Precision} $\uparrow$ & \textbf{Recall} $\uparrow$ & \textbf{F1} $\uparrow$ & \textbf{EWR} $\downarrow$ & \textbf{BLEU-2} $\uparrow$ & \textbf{ROUGE-L} $\uparrow$ & \textbf{BERTScore} $\uparrow$ \\ 
+\midrule[0.5pt]
+Whisper Small     & Mistral-7B     & \textbf{53.6} & \,\,\,\textbf{4.9} & \,\,\,\textbf{9.0}  & 0.3 & 4.5 & \,\,\,7.0 & \textbf{79.8} \\
+Whisper Medium    & Mistral-7B     & 48.2 & \,\,\,4.0  & \,\,\,7.4  & 0.3 & \textbf{4.6} & \,\,\,\textbf{7.1} & \textbf{79.8} \\
+Whisper Large     & Mistral-7B     & 48.9 & \,\,\,3.4  & \,\,\,6.4  & \textbf{0.1} & 4.1 & \,\,\,6.1 & 79.5 \\
+\midrule[0.5pt]
+Wav2vec2 Base     & Mistral-7B     & \textbf{52.8} & \,\,\,\textbf{6.8}  & \textbf{12.1} & 0.4 & \textbf{5.0} & \,\,\,\textbf{8.5} & \textbf{80.5} \\
+Wav2vec2 Large    & Mistral-7B     & 51.2 & \,\,\,4.5  & \,\,\,8.3  & \textbf{0.3} & 4.7 & \,\,\,7.2 & 79.9 \\
+% \midrule
+% Whisper Small     & Mistral-7B-v0.3    & 57.0 & 45.7 & 49.0 & 47.3 & 2.8 & 12.2 & 23.9 & 85.9  \\
+% Whisper Medium    & Mistral-7B-v0.3    & 56.3 & 45.1 & 47.8 & 46.4 & 2.4 & 11.9 & 23.3 & 85.9 \\
+% Wav2vec2 Base     & Mistral-7B-v0.3    & 55.0 & 43.2 & 51.6 & 47.4 & 4.5 & 12.4 & 23.8 & 85.9 \\
+% Wav2vec2 Large    & Mistral-7B-v0.3    & 56.3 & 44.9 & 47.7 & 46.3 & 2.6 & 12.0 & 23.4 & 85.8 \\
+\midrule
+Whisper Small     & Llama-3.1-8B        & \textbf{53.3} & \textbf{12.1} & \textbf{19.7} & 0.9 & \textbf{6.6} & \textbf{12.8} & \textbf{82.1} \\
+Whisper Medium    & Llama-3.1-8B        & 51.9 & 10.2 & 17.0 & 1.0 & 5.8 & 11.5 & 81.7 \\
+Whisper Large     & Llama-3.1-8B       & 52.8 & \,\,\,8.4  & 14.5 & \textbf{0.7} & 5.5 & 10.7 & 81.4 \\
+\midrule[0.5pt]
+Wav2vec2 Base     & Llama-3.1-8B       & 53.8 & \textbf{17.8} & \textbf{26.8} & 1.1 & \textbf{7.3} & \textbf{15.0} & \textbf{83.0} \\
+Wav2vec2 Large    & Llama-3.1-8B     & \textbf{57.9} & 11.8 & 19.6 & \textbf{0.7} & 6.3 & 11.9 & 81.8 \\
+\bottomrule[1pt]
+\end{tabular}
+\caption{Performance comparisons of different cascaded ASR+LLM frameworks on mispronunciation detection and suggestion generation. Results show that, with the same LLM, using a small ASR model often leads to better performance. Overall, the cascaded ASR+LLM framework struggles with this task.\looseness=-1}
+% \caption{Performance comparisons for cascaded ASR+LLM framework using various ASR models and LLMs on mispronunciation detection and suggestion generation. We bold the best F1 score among various sizes of ASR models given the same LLM.}
+\label{tab:cascade_asr_llm_eval_result}
+
+\vspace{-2mm}
+\end{table*}
+
+% \begin{table*}[h!]
+% \centering
+
+% \setlength{\tabcolsep}{3pt}
+% \small
+% \begin{tabular}{llccccc|ccc} 
+% \toprule[1pt]
+% \multirow{2}{*}{\textbf{ASR Models}} & \multirow{2}{*}{\textbf{LLMs}}& \multicolumn{5}{c}{\textbf{Mispronunciation Detection}} & \multicolumn{3}{c}{\textbf{Suggestion Generation}} \\ 
+% \cmidrule(lr){3-7} \cmidrule(lr){8-10}
+%  & & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{EWR} & \textbf{BLEU-2} & \textbf{ROUGE-L} & \textbf{BERTScore} \\ 
+% \midrule[0.5pt]
+% Whisper Small     & Mistral-7B    & 59.9 & 53.6 & \,\,\,4.9  & \,\,\,\textbf{9.0}  & 0.3 & 4.5 & \,\,\,7.0 & 79.8 \\
+% Whisper Medium    & Mistral-7B    & 59.5 & 48.2 & \,\,\,4.0  & \,\,\,7.4  & 0.3 & 4.6 & \,\,\,7.1 & 79.8 \\
+% Whisper Large     & Mistral-7B    & 59.5 & 48.9 & \,\,\,3.4  & \,\,\,6.4  & 0.1 & 4.1 & \,\,\,6.1 & 79.5 \\
+% \midrule[0.5pt]
+% Wav2vec2 Base     & Mistral-7B    & 59.6 & 52.8 & \,\,\,6.8  & \textbf{12.1} & 0.4 & 5.0 & \,\,\,8.5 & 80.5 \\
+% Wav2vec2 Large    & Mistral-7B    & 59.7 & 51.2 & \,\,\,4.5  & \,\,\,8.3  & 0.3 & 4.7 & \,\,\,7.2 & 79.9 \\
+% % \midrule
+% % Whisper Small     & Mistral-7B-v0.3    & 57.0 & 45.7 & 49.0 & 47.3 & 2.8 & 12.2 & 23.9 & 85.9  \\
+% % Whisper Medium    & Mistral-7B-v0.3    & 56.3 & 45.1 & 47.8 & 46.4 & 2.4 & 11.9 & 23.3 & 85.9 \\
+% % Wav2vec2 Base     & Mistral-7B-v0.3    & 55.0 & 43.2 & 51.6 & 47.4 & 4.5 & 12.4 & 23.8 & 85.9 \\
+% % Wav2vec2 Large    & Mistral-7B-v0.3    & 56.3 & 44.9 & 47.7 & 46.3 & 2.6 & 12.0 & 23.4 & 85.8 \\
+% \midrule
+% Whisper Small     & Llama-3.1-8B       & 60.5 & 53.3 & 12.1 & \textbf{19.7} & 0.9 & 6.6 & 12.8 & 82.1 \\
+% Whisper Medium    & Llama-3.1-8B       & 60.2 & 51.9 & 10.2 & 17.0 & 1.0 & 5.8 & 11.5 & 81.7 \\
+% Whisper Large     & Llama-3.1-8B       & 60.2 & 52.8 & \,\,\,8.4  & 14.5 & 0.7 & 5.5 & 10.7 & 81.4 \\
+% \midrule[0.5pt]
+% Wav2vec2 Base     & Llama-3.1-8B       & 61.0 & 53.8 & 17.8 & \textbf{26.8} & 1.1 & \textbf{7.3} & \textbf{15.0} & \textbf{83.0} \\
+% Wav2vec2 Large    & Llama-3.1-8B       & 61.1 & 57.9 & 11.8 & 19.6 & 0.7 & 6.3 & 11.9 & 81.8 \\
+% \bottomrule[1pt]
+% \end{tabular}
+% \caption{Performance comparisons for cascaded ASR+LLM framework using various ASR models and LLMs on mispronunciation detection and suggestion generation. We bold the best F1 score among various sizes of ASR models given the same LLM.}
+% \label{tab:cascade_asr_llm_eval_result}
+% \end{table*}
+
+
+% \begin{table*}[h!]
+% \centering
+% \caption{Mispronunciation Detection Results for Whisper-small and Different LLMs}
+% \setlength{\tabcolsep}{3pt}
+% \small
+% \begin{tabular}{l|c|ccccc} 
+% \toprule
+% \textbf{ASR Models} & \textbf{LLMs} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{EWR} \\
+% \midrule[0.5pt]
+% Whisper Small     & Mistral-7B-v0.1  & 55.2   & 40.9    & 38.9 & 39.8 & 2.5 \\
+% Whisper Medium    & Mistral-7B-v0.1  & 55.4   & 41.5    & 39.3 & 40.4 & 1.8 \\
+% Wav2vec2 Base     & Mistral-7B-v0.1  & 54.9   & 39.4    & 37.5 & 38.4 & 4.3 \\
+% Wav2vec2 Large    & Mistral-7B-v0.1  & 55.4   & 41.3    & 38.6 & 39.9 & 2.1 \\
+% \midrule[0.5pt]
+% Whisper Small     & Llama-3.1-8B       & 62.2   & 55.5    & 14.0 & 22.4 & 0.8 \\
+% Whisper Medium    & Llama-3.1-8B       & 62.2   & 57.1    & 11.7 & 19.5 & 0.6 \\
+% Wav2vec2 Base     & Llama-3.1-8B       & 63.4   & 55.6    & 25.3 & 34.7 & 1.4 \\
+% Wav2vec2 Large    & Llama-3.1-8B       & 63.2   & 61.8    & 13.9 & 22.7 & 0.8 \\
+% \bottomrule
+% \end{tabular}
+
+% \label{tab:asr_llm_only_word_eval}
+% \end{table*}
+
+% \begin{table*}[h!]
+% \centering
+% \caption{Mispronunciation Detection Results for Whisper-small and Different LLMs}
+% \setlength{\tabcolsep}{3pt}
+% \small
+% \begin{tabular}{cccccccccc} 
+% \toprule
+% \multirow{2}{*}{\textbf{ASR Models}} & \multirow{2}{*}{\textbf{LLMs}}& \multicolumn{5}{c}{\textbf{Mispronunciation Detection}} & \multicolumn{3}{c}{\textbf{Suggestion Generation}} \\ 
+% \cmidrule(lr){3-7} \cmidrule(lr){8-10}
+%  & & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{EWR} & \textbf{BLEU-2} & \textbf{Rouge-L} & \textbf{BERTScore} \\ 
+% \midrule
+
+% Whisper Small     & Mistral-7B-v0.1    & 58.2 & 37.4 & 8.2 & 13.5 & 2.3 & 4.8 & 9.3  & 81.0 \\
+% Whisper Medium    & Mistral-7B-v0.1    & 58,7 & 39.5 & 6.9 & 11.8 & 1.8 & 4.7 & 8.5  & 80.6 \\
+% Wav2vec2 Base     & Mistral-7B-v0.1    & 55.9 & 27.5 & 9.0 & 13.6 & 5.4 & 6.1 & 13.0 & 82.3 \\
+% Wav2vec2 Large    & Mistral-7B-v0.1    & 58.2 & 36.5 & 7.8 & 12.9 & 2.5 & 5.1 & 9.4  & 81.0 \\
+% \midrule
+% Whisper Small     & Mistral-7B-v0.3    & 55.7 & 29.1 & 12.2 & 17.1 & 7.2  & 7.0 & 13.5 & 82.4 \\
+% Whisper Medium    & Mistral-7B-v0.3    & 57.2 & 34.5 & 12.7 & 18.6 & 5.5  & 6.0 & 11.9 & 81.9\\
+% Wav2vec2 Base     & Mistral-7B-v0.3    & 53.8 & 27.0 & 15.7 & 19.9 & 11.2 & 8.7 & 16.6 & 83.7 \\
+% Wav2vec2 Large    & Mistral-7B-v0.3    & 56.7 & 31.4 & 11.3 & 16.6 & 6.1  & 6.7 & 12,7 & 82.2\\
+% \midrule
+% Whisper Small     & Llama-3.1-8B       & 55.2 & 23.0 & 7.4 & 11.2 & 6.2 & 5.4 & 13.9 & 83.0\\
+% Whisper Medium    & Llama-3.1-8B       & 56.0 & 26.4 & 8.0 & 12.3 & 5.2 & 5.3 & 13.8 & 82.8 \\
+% Wav2vec2 Base     & Llama-3.1-8B       & 52.6 & 15.8 & 7.0 & 9.7 & 11.5 & 7.4 & 16.6 & 83.6\\
+% Wav2vec2 Large    & Llama-3.1-8B       & 55.5 & 24.4 & 7.7 & 11.7 & 5.8 & 6.0 & 14.4 & 83.0 \\
+% \bottomrule
+% \end{tabular}
+
+% \label{tab:asr_llm_only_word_eval}
+% \end{table*}% \begin{table*}[h!]
+% \centering
+% \caption{Mispronunciation Detection Results for Whisper-small and Different LLMs}
+% \setlength{\tabcolsep}{3pt}
+% \small
+% \begin{tabular}{l|c|ccccc} 
+% \toprule
+% \textbf{ASR Models} & \textbf{LLMs} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{EWR} \\
+% \midrule[0.5pt]
+% Whisper Small     & Mistral-7B-v0.1  & 55.2   & 40.9    & 38.9 & 39.8 & 2.5 \\
+% Whisper Medium    & Mistral-7B-v0.1  & 55.4   & 41.5    & 39.3 & 40.4 & 1.8 \\
+% Wav2vec2 Base     & Mistral-7B-v0.1  & 54.9   & 39.4    & 37.5 & 38.4 & 4.3 \\
+% Wav2vec2 Large    & Mistral-7B-v0.1  & 55.4   & 41.3    & 38.6 & 39.9 & 2.1 \\
+% \midrule[0.5pt]
+% Whisper Small     & Llama-3.1-8B       & 62.2   & 55.5    & 14.0 & 22.4 & 0.8 \\
+% Whisper Medium    & Llama-3.1-8B       & 62.2   & 57.1    & 11.7 & 19.5 & 0.6 \\
+% Wav2vec2 Base     & Llama-3.1-8B       & 63.4   & 55.6    & 25.3 & 34.7 & 1.4 \\
+% Wav2vec2 Large    & Llama-3.1-8B       & 63.2   & 61.8    & 13.9 & 22.7 & 0.8 \\
+% \bottomrule
+% \end{tabular}
+
+% \label{tab:asr_llm_only_word_eval}
+% \end{table*}
+
+% \begin{table*}[h!]
+% \centering
+% \caption{Mispronunciation Detection Results for Whisper-small and Different LLMs}
+% \setlength{\tabcolsep}{3pt}
+% \small
+% \begin{tabular}{cccccccccc} 
+% \toprule
+% \multirow{2}{*}{\textbf{ASR Models}} & \multirow{2}{*}{\textbf{LLMs}}& \multicolumn{5}{c}{\textbf{Mispronunciation Detection}} & \multicolumn{3}{c}{\textbf{Suggestion Generation}} \\ 
+% \cmidrule(lr){3-7} \cmidrule(lr){8-10}
+%  & & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{EWR} & \textbf{BLEU-2} & \textbf{Rouge-L} & \textbf{BERTScore} \\ 
+% \midrule
+
+% Whisper Small     & Mistral-7B-v0.1    & 58.2 & 37.4 & 8.2 & 13.5 & 2.3 & 4.8 & 9.3  & 81.0 \\
+% Whisper Medium    & Mistral-7B-v0.1    & 58,7 & 39.5 & 6.9 & 11.8 & 1.8 & 4.7 & 8.5  & 80.6 \\
+% Wav2vec2 Base     & Mistral-7B-v0.1    & 55.9 & 27.5 & 9.0 & 13.6 & 5.4 & 6.1 & 13.0 & 82.3 \\
+% Wav2vec2 Large    & Mistral-7B-v0.1    & 58.2 & 36.5 & 7.8 & 12.9 & 2.5 & 5.1 & 9.4  & 81.0 \\
+% \midrule
+% Whisper Small     & Mistral-7B-v0.3    & 55.7 & 29.1 & 12.2 & 17.1 & 7.2  & 7.0 & 13.5 & 82.4 \\
+% Whisper Medium    & Mistral-7B-v0.3    & 57.2 & 34.5 & 12.7 & 18.6 & 5.5  & 6.0 & 11.9 & 81.9\\
+% Wav2vec2 Base     & Mistral-7B-v0.3    & 53.8 & 27.0 & 15.7 & 19.9 & 11.2 & 8.7 & 16.6 & 83.7 \\
+% Wav2vec2 Large    & Mistral-7B-v0.3    & 56.7 & 31.4 & 11.3 & 16.6 & 6.1  & 6.7 & 12,7 & 82.2\\
+% \midrule
+% Whisper Small     & Llama-3.1-8B       & 55.2 & 23.0 & 7.4 & 11.2 & 6.2 & 5.4 & 13.9 & 83.0\\
+% Whisper Medium    & Llama-3.1-8B       & 56.0 & 26.4 & 8.0 & 12.3 & 5.2 & 5.3 & 13.8 & 82.8 \\
+% Wav2vec2 Base     & Llama-3.1-8B       & 52.6 & 15.8 & 7.0 & 9.7 & 11.5 & 7.4 & 16.6 & 83.6\\
+% Wav2vec2 Large    & Llama-3.1-8B       & 55.5 & 24.4 & 7.7 & 11.7 & 5.8 & 6.0 & 14.4 & 83.0 \\
+% \bottomrule
+% \end{tabular}
+
+% \label{tab:asr_llm_only_word_eval}
+% \end{table*}

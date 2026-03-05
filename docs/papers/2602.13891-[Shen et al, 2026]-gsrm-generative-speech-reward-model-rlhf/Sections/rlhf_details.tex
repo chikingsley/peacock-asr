@@ -1,0 +1,110 @@
+\section{Details of Online RLHF for Speech LLM} \label{sec:rlhf_gtrm}
+
+
+\subsection{GSRM for Speech Semantic Judge} \label{sec:semantic_judge}
+\input{Tables/semantic_rubrics}
+We extend GSRM to evaluate semantic aspects of speech naturalness across dimensions such as language complexity, contextual awareness, and spontaneity, as detailed in Table \ref{table:semantic_rubric}. A model’s response may sound aesthetically natural—with near-perfect pacing and intonation—yet still fail semantically, for example by ignoring conversational context, responding with inappropriate affect (e.g., being overly cheerful or rude to a sad query), or drifting completely off-topic. Similarly, responses that are excessively verbose or overly formal can undermine both spontaneity and the perceived naturalness of language complexity. Importantly, these failure modes can be identified purely from the text transcript.
+
+\textbf{Label and CoT Generation.} In contrast to Section~\ref{sec:human_data} where GSRM for audio naturalness required human annotations for dialogue-level dimension scores, we use advanced text-only reasoning models that are carefully prompted to produce binary scores for each dimension of semantic naturalness. We initially experimented with several frontier models, including Gemini 2.5 Pro, GPT-4o, and Llama 3.1, and ensembled their predictions to derive a final dimension-level score for each dialogue. However, we ultimately converged on GPT-OSS-120B \citep{agarwal2025gpt}, which produced labels that best matched our internally curated golden labels across dimensions.
+
+To reduce variance in the judge’s labels and approximate multi-rater human evaluation, we sample 10 independent judgments per dialogue per dimension and then take the majority vote as the final dimension score. Rather than simply summing these dimension scores into a single naturalness metric, we further prompt GPT-OSS-120B to consider the oracle per-dimension scores and the dialogue context to produce a final semantic naturalness score between 0 and 3 along with a CoT reasoning as shown in the prompt template below.  
+
+\input{Prompts/gtrm_sft}
+
+\textbf{Training and Evaluation.}
+\label{sec: gsrm training} We fine-tuned a Qwen-2.5-Omni-7B model to predict sub-dimension scores, the overall naturalness score, and chain-of-thought (CoT) reasoning traces from user-assistant dialogue transcriptions. As an ablation to understand the impact of including CoT reasoning, we also trained a model to directly predict the overall naturalness score without generating CoT traces, similar to direct score predictor in Section~\ref{sec:pilot_studies}.
+
+Labels and CoT reasoning traces were generated in-house on samples produced by an ensemble of different audio foundation models, using audio prompts designed to elicit emotional responses. Our training dataset consisted of 11,000 such samples. In-domain (on-policy) evaluation was performed on 100 samples from the same distribution as the training set, while for out-of-domain (OOD) evaluation, we collected labels on 130 samples from the FDX-Conv dataset described in Section~\ref{sec:human_data}.
+
+All models were trained for 250 steps with a batch size of 512. The model trained with chain-of-thought (CoT) reasoning converged rapidly, reaching convergence within 95 steps. In contrast, the direct score predictor baseline required approximately 200 steps to converge. As will be discussed in Section \ref{sec: gtrm results}, incorporating CoT reasoning leads to faster convergence, substantially improved generalization, and stronger correlation with ground-truth semantic labels. These results highlight the effectiveness of framing semantic reward modeling as a generative task.
+
+\subsection{Applying GSRM to Online RLHF} \label{sec:rlhf_details}
+\textbf{Base Model and RLHF Data.} The base model is an in-house full-duplex speech LLM capable of listening and speaking simultaneously. While the user is speaking, the model can continuously generate spoken responses while understanding the user’s input. The model is trained on a large-scale speech corpus through a pre-training stage followed by supervised fine-tuning (SFT). The goal of RLHF training is to reduce the gap in naturalness between the speech LLM and human speech. To incentivize the generation of more natural speech, we curate an RLHF training dataset consisting of 9.2K samples, where the speech prompts were collected by voice actors who are instructed to choose a category from intelligence, steer ability, and emotional well being.
+
+\textbf{RL Training.}
+We adopt GRPO~\cite{guo2025deepseek} as our online reinforcement learning algorithm, which removes the critic from PPO~\cite{schulman2017proximal} and estimates the value function by averaging rewards within a group. For each input prompt, the speech LLM generates four candidate responses, which are then scored by GSRM. Specifically, GSRM evaluates each response across all sub-dimensions listed in Table~\ref{table:rubric}, together with language complexity as a semantic metric. Each sub-metric is scored on a 5-point Likert scale, and the final reward is obtained by uniformly averaging all sub-metric scores. To reduce variance in reward estimation, we run GSRM inference 20 times per response, producing eight independent judgments, and use their average as the final reward. We use a policy learning rate of $4\times10^{-7}$. The batch size is set to 320, the maximum sequence length is 8192, and the KL coefficient is set to $1\times10^{-2}$. The Speech LLM is trained for up to 2000 steps.
+
+\textbf{Evaluation.}
+For evaluation, we randomly sample 50 audio prompts from an in-house evaluation dataset. The prompts span multiple categories, including chitchat, paralinguistics, steerability, and emotional well-being. These speech prompts are collected from human volunteers, who record their own spoken questions corresponding to each category. For each prompt, both the RLHF-trained model and the base model generate speech responses. Human raters then perform A/B evaluations on the paired responses across multiple dimensions, including tone, pacing, intonation, and overall naturalness using the rubric shown below.
+
+Each response pair is generated from the same prompt and evaluated independently by five different reviewers. To ensure consistency, we perform quality checks to verify that the pairwise preferences align with the preferences derived from comparing the absolute naturalness scores. For each response pair, we determine the final overall naturalness preference by removing outlier ratings and applying a majority vote across the reviewers. The win rate for each model is then calculated as the total number of wins (as determined by the overall preference) divided by the total number of evaluated samples.  
+
+For the intermediate sub-dimensions, we determine model preference by directly comparing the absolute scores. A preference ranking is only requested in the event of a tie. These intermediate questions are designed to guide the rater toward an informed final decision, while remaining concise to minimize the cognitive load associated with completing multiple annotations in one sitting.
+
+
+
+\begin{tcolorbox}[gray_box, title = {{Aesthetic Naturalness Human Evaluation Rubric }}]\footnotesize
+\textbf{Rater instructions (as shown in the UI).}
+\emph{``You will be presented with two different recordings of a turn
+from a dialog between a human talking to an AI chat bot. Please listen
+carefully to the conversation and then answer the questions below.
+After listening, you are asked a series of multiple-choice questions
+comparing the two responses regarding the AI chat bot (the answering
+voice, not the asking voice). Do not overthink your response; choose
+the option that best matches your observation.''}
+%--------------------
+\subsubsection*{Dimension 1: Pace}
+\emph{Prompt.} ``Did response A/B maintain an organic, natural
+\textbf{pace}? Think about the length of pauses and the usage of filler
+words (e.g., `uhm', `uh') and similar nonverbal cues.''
+\noindent\emph{Per-response scale (A and B, separately):}
+\begin{itemize}[leftmargin=1.2em, nosep]
+  \item[1] Yes, natural flow, indistinguishable from a human.
+  \item[0] No, pacing was jarring or hard to listen to.
+\end{itemize}
+\noindent\emph{Tiebreaker (pairwise preference, only if A and B are rated the same):} \quad -1 Prefer audio A \quad 1 Prefer audio B
+%--------------------
+\subsubsection*{Dimension 2: Intonation}
+\emph{Prompt.} ``How appropriate was response A/B's \textbf{intonation}
+(pitch curve)? Was it jarring, or indistinguishable from a human?''
+\noindent\emph{Per-response scale (A and B, separately):}
+\begin{itemize}[leftmargin=1.2em, nosep]
+  \item[1] Indistinguishable from a human.
+  \item[0] Clearly jarring / sounds like a robot.
+\end{itemize}
+\noindent\emph{Tiebreaker (pairwise preference, only if A and B are rated the same):} \quad -1 Prefer audio A \quad 1 Prefer audio B
+%--------------------
+\subsubsection*{Dimension 3: Emotion and Tone}
+\emph{Prompt.} ``Did response A/B's \textbf{emotion and tone} fit the
+situation and context of the dialogue?''
+\noindent\emph{Clarification shown.} ``For example, the assistant should
+match the user’s perceived emotional state; it should not be too
+cheerful, energetic, lethargic, or disrespectful given the user’s
+content and tone.''
+\noindent\emph{Per-response scale (A and B, separately):}
+\begin{itemize}[leftmargin=1.2em, nosep]
+  \item[1] Yes, appropriate (``nailed it'').
+  \item[0] Not appropriate (e.g., too cheerful, bored, or disrespectful).
+\end{itemize}
+\noindent\emph{Tiebreaker (pairwise preference, only if A and B are rated the same):} \quad -1 Prefer audio A \quad 1 Prefer audio B
+%--------------------
+\subsubsection*{Dimension 4: Overall Naturalness and Preference}
+\textbf{Pairwise preference (A vs.\ B).}
+\emph{Prompt.} ``Which response appears more natural / human-like?''
+\noindent\emph{Scale:}
+\begin{itemize}[leftmargin=1.2em, nosep]
+  \item[1] Strongly prefer audio A.
+  \item[2] Slightly prefer audio A.
+  \item[3] No clear preference (undecided).
+  \item[4] Slightly prefer audio B.
+  \item[5] Strongly prefer audio B.
+  \item[X] Technical difficulty.
+  \item[X] Skip.
+\end{itemize}
+\textbf{Absolute naturalness for each response.}
+\emph{Prompt.} ``Was the response for audio A/B natural / human-like?''
+\noindent\emph{Per-response scale (A and B, separately):}
+\begin{itemize}[leftmargin=1.2em, nosep]
+  \item[5] Indistinguishable from a human, even for a trained ear.
+  \item[4] Sounds like a human for most listeners.
+  \item[3] Somewhat natural, but sometimes unnatural.
+  \item[2] Barely human; could tell it is a robot.
+  \item[1] Clearly recognizable as a robot.
+  \item[X] Technical difficulty.
+  \item[X] Skip.
+\end{itemize}
+\textbf{Free-text rationale.}
+For each response, raters provide a brief explanation of their choice,
+e.g., commenting on over-acting, mismatch between tone and context,
+unnatural pauses, excessive sighs, or other artifacts.
+\end{tcolorbox}

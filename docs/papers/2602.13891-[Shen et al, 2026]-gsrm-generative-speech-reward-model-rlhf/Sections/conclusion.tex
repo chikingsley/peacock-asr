@@ -1,0 +1,18 @@
+\section{Concluding Remarks}
+We introduced the \emph{Generative Speech Reward Model}, a reasoning-centric reward model tailored for speech naturalness evaluation and reinforcement learning from human feedback (RLHF). Our empirical results demonstrate that GSRM substantially outperforms existing speech naturalness predictors. Importantly, we also show that GSRM can serve as an effective verifier to improve the generation quality of a speech language model. Looking ahead, we view GSRM as a foundational component for future speech alignment systems. Beyond naturalness, the framework can be naturally extended to evaluate and optimize additional speech attributes, such as emotional expressivity, style consistency, and speaker similarity. More broadly, a promising future direction is to explore advanced speech RLHF paradigms that jointly co-evolve the GSRM and the generator within a unified RL framework, as has proven successful in reasoning domains~\cite{zha2025rl}.
+
+
+\section*{Acknowledgment}
+The authors are listed according to their respective contribution roles.
+
+\textbf{Core Contributors.}
+Among the four core contributors, Maohao and Naoyuki jointly initiated the high-level idea of training GSRM for speech RLHF. Osama proposed the acoustic feature extraction method, and Maohao suggested that acoustic features are essential for GSRM. Tejas extended the GSRM framework to the semantic judge setting and conducted the human evaluation. All core contributors were directly involved in the implementation of both the GSRM training pipeline and the speech LLM RLHF pipeline.
+
+\textbf{Contributors.}
+Yancheng contributed to the acoustic feature extraction pipeline. Kateřina, Ruiming, and Niko provided support for the RL training infrastructure. Anfeng and Yashesh contributed to the development of the regressor-based baseline methods.
+
+\textbf{Project Leads.}
+Gregory, Qing, and Jilong served as the senior supervisors of this project. Jilong served as Maohao’s internship manager, providing the necessary resources and overseeing the entire project.
+
+\textbf{Data Support.}
+The authors would like to thank Wei-Ning Hsu and Ann Lee for their support with the dataset.

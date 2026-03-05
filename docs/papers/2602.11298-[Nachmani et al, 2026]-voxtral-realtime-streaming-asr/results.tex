@@ -1,0 +1,53 @@
+\begin{table}[t]
+\centering
+\caption{
+\textbf{Macro-average WER (\%) across benchmark categories.}. English Short and Long results are averaged across tasks; MCV and FLEURS results are averaged across languages. The definition of "target delay" differs across Realtime APIs and is a function of the audio input. Hence, we omit the delay for the APIs. \textbf{Bold} indicates the best realtime result. \textemdash{} indicates that the multilingual task is unsupported for a mono or bilingual model.}
+\label{tab:results}
+\begin{tabular}{lccccc}
+\toprule
+& & \multicolumn{4}{c}{\textbf{WER (\%)}} \\
+\cmidrule(lr){3-6}
+\textbf{Model} & \textbf{Delay (ms)} & \textbf{En-Short} & \textbf{En-Long} & \textbf{FLEURS} & \textbf{MCV} \\
+\midrule
+
+\multicolumn{6}{l}{\textit{Offline}} \\
+\cmidrule(lr){1-6}
+Whisper & \textemdash{} & 8.39 & 7.97 & 8.23 & 14.25 \\
+Voxtral Mini Transcribe V2 & \textemdash{} & 7.27 & 7.11 & 5.90 & 8.07 \\
+
+\addlinespace[0.6em]
+\multicolumn{6}{l}{\textit{Realtime API}} \\
+\cmidrule(lr){1-6}
+GPT-4o mini Transcribe & \textemdash{} & 7.93 & 7.97 & 7.95 & 12.85 \\
+Scribe v2 Realtime & \textemdash{} & \textbf{7.33} & 7.43 & 8.34 & 20.85 \\
+
+\addlinespace[0.6em]
+\multicolumn{6}{l}{\textit{Realtime Open-Source}} \\
+\cmidrule(lr){1-6}
+DSM 1B En-Fr & 500 & 12.26 & 13.83 & \textemdash{} & \textemdash{} \\
+DSM 2.6B En & 2500 & 8.11 & 7.72 & \textemdash{} & \textemdash{} \\
+\addlinespace
+
+\multirow[t]{2}{*}{Nemotron Streaming} & 560  & 9.59 & 14.29 & \textemdash{} & \textemdash{} \\
+ & 1120 & 9.41 & 13.02 & \textemdash{} & \textemdash{} \\
+\addlinespace
+
+\multirow[t]{4}{*}{Voxtral Realtime} & 240  & 9.95 & 9.29 & 10.80 & 19.22 \\
+ & 480  & 8.47 & 7.73 & 8.72 & 15.24 \\
+ & 960  & 7.94 & 7.13 & 7.70 & 11.99 \\
+ & 2400 & 7.72 & \textbf{6.93} & \textbf{6.73} & \textbf{10.47} \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+We evaluate Voxtral Realtime across English and multilingual benchmarks, comparing against offline systems, realtime APIs, and open-source streaming models. Figure~\ref{fig:fleurs-latency} illustrates the latency--accuracy trade-off of Voxtral Realtime on the FLEURS multilingual benchmark over 13 languages. Full results for each language are presented in Table~\ref{tab:fleurs}. % As the target streaming delay increases, the model exhibits a smooth and monotonic reduction in word error rate (WER), demonstrating its ability to effectively trade latency for additional acoustic context within a fully streaming setting.
+
+At a delay of 480\,ms, Voxtral Realtime approaches the accuracy of Scribe v2 Realtime, the industry-leading realtime API model, as well as Whisper \citep{radford2023whisper}, the most widely adopted offline ASR system. Increasing the delay to 960\,ms further closes the gap, with Voxtral Realtime surpassing past both Scribe v2 Realtime and Whisper. At a higher delay of 2400\,ms, the model continues to improve, achieving accuracy within 1\% of Voxtral Mini Transcribe V2, a state-of-the-art offline transcription model.
+
+Table~\ref{tab:results} reports macro-average WER across four benchmark categories: English short-form, English long-form, FLEURS, and Mozilla Common Voice (MCV). English results are macro-averaged across tasks, while FLEURS and MCV results are averaged across languages. Full results for each task are presented in Appendix~\ref{sec:appendix}.
+
+Across all benchmark categories, Voxtral Realtime substantially outperforms existing open-source streaming baselines at comparable latencies. Prior natively streaming approaches such as DSM achieve competitive accuracy only at substantially higher delays, while Nemotron Streaming \citep{noroozi2024nemotron} exhibits a more limited latency--accuracy trade-off and reduced robustness, particularly in long-form settings. In contrast, Voxtral Realtime consistently improves as latency increases and maintains strong performance across distributions. Notably, Voxtral Realtime supports 13 languages, while other recent open-source models such as DSM support only English and French. % is the only open-source streaming model to support languages beyond English and French <todo: is this true? or should we word it a bit more lightly - Voxtral Realtime supports 13 languages while other recent OSS models like A and B support only English and French>. %, as reflected by the absence of FLEURS and MCV results for DSM and Nemotron.
+
+Taken together, these results demonstrate that Voxtral Realtime achieves offline-level transcription quality at sub-second latency with a natively streaming architecture.

@@ -1,0 +1,91 @@
+\begin{tcolorbox}[gray_box, title = {{Prompt Template: Synthesizing Utterence-level Evidence Log}}]\footnotesize
+You are an expert audio rater specializing in evaluating the quality of audio recordings. Your are given,
+
+- A transcript of a spoken sentence.
+
+- Acoustic features describing each vowel in the sentence.
+
+- Evaluation metrics you must judge.
+
+Your goal is to produce an analysis:
+
+[Inferred context]: 
+
+question/empathetic/apology/celebration/instruction/neutral statement. If no clear context exists, say: “No clear context inferred.”
+
+[NSVs/fillers]: 
+
+List any non-speech vocalizations (NSVs) or filler words (laugh, yeah, Aww, uh, hmm, etc.) that are present in the audio. If none exist, say: “No NSVs/fillers detected.”
+
+[Positive]: 
+
+Highlight the most positive aspects of the audio: expressive intensity, good emphasis, varied intonation, natural fillers/laughs, pleasant timbre. If no clear positive aspects exist, say: “No positive aspects detected.”
+
+[Potential Issue]: 
+
+Point out any potential issues: sharp pitch changes, intonation problems, pacing issues, speaker style changes, expressive incorrectness, mispronunciation, flat intonation, unnatural pauses, or any other issues. If no clear issue exists, say: “No notable issues detected.” \\
+
+\# Evaluation Metrics
+
+Each evaluation metric is described below:
+
+- expressive_intensity: The intensity of expressiveness in the audio.
+
+- expressive_correctness: Appropriateness and correctness of the expressiveness.
+
+- intonation: Quality of the intonation in the speech.
+
+- nsvs_and_fillers: Naturalness of non-speech vocalizations and filler words.
+
+- mispronunciation: whether mispronunciation is present.
+
+- pacing: Naturalness of the pacing or speed of the speech. \\
+
+\# The system responses and acoustic features:
+
+\{Acoustic features\} \\
+
+\# Instructions
+
+When evaluating the audio, you must rely on the provided acoustic features—Pitch, Pitch Variation, Pitch Slope, Intensity, and Intensity Variation—as your primary evidence. 
+
+Use them in the following expert-informed ways:
+
+- Expressive Intensity: Identify the strength of expressiveness by looking for moderate to high Pitch Variation, clear Pitch Slopes, and sufficient Intensity. Very low variation in pitch or intensity indicates a flat, emotionless delivery. Extremely high variation may indicate unstable, exaggerated, or inconsistent expressiveness.
+
+- Expressive Correctness: Evaluate whether the expressiveness is appropriate. Check if Pitch Variation and Intensity Variation are coherent and context-appropriate, not abrupt or mismatched. Excessively sharp slopes or sudden changes in loudness may suggest incorrect or unnatural expressiveness.
+
+- Intonation Quality: Examine Pitch Slope to understand rising/falling contours, and Pitch Variation to assess natural melodic movement. Smooth slopes and moderate variation indicate good intonation. Flat pitch indicates monotone delivery; abrupt or irregular slopes indicate unstable intonation.
+
+- NSVs and Fillers (Non-Speech Vocalizations): Look for sudden spikes in Intensity Variation or Pitch Variation that do not align with vowel structure. Irregular or abrupt changes may reflect throat noises, glottal catches, or filler-like disfluencies.
+
+- Mispronunciation: Evaluate vowels for abnormally low intensity, very short or weak articulation (if duration provided), or unstable pitch contours. A vowel whose acoustic pattern deviates sharply from surrounding vowels may indicate mispronunciation.
+
+- Pacing: Assess pacing consistency by checking whether the prosodic behavior across vowels is smooth and regular. Extreme or uneven Intensity Variation or Pitch Variation may reflect rushed or unnatural pacing. If duration is given, long durations imply slow pacing; short durations imply fast pacing. \\
+
+\# Response Format
+
+Your response must strictly follow this format:
+
+[Inferred context]
+
+<one concise sentence describing the inferred context, referencing the transcripts as evidence.> OR ``No clear context inferred."
+
+[NSVs/fillers]
+
+<one concise sentence listing any NSVs/fillers, referencing the transcripts and features as evidence.> OR ``No NSVs/fillers detected."
+
+[Positive]
+
+<one concise sentence highlighting positive aspects of the evaluation metrics, referencing the features as evidence.> OR ``No positive aspects detected."
+
+[Potential Issue]
+
+<one concise sentence describing weaknesses, referencing the features as evidence.> OR ``No notable issues detected." \\
+
+\# Important
+
+- Always refer specifically to the words and vowels in the transcript as evidence. Do Not say something too generic without referencing the features.
+
+- Although always use features and transcripts as evidence, Do Not explicitly mention something like ``Based on the features and transcripts, I judge the audio as follows:" in your response.
+\end{tcolorbox}

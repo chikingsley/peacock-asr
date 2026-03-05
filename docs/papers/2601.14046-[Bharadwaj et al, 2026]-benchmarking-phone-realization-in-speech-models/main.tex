@@ -1,0 +1,114 @@
+\documentclass[11pt]{article}
+\usepackage[preprint]{acl}
+% \usepackage{emoji} % place this before times
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{inconsolata}
+\usepackage{tikz}
+\usepackage{colortbl,xcolor} % table coloring, place before arydshln
+\usepackage{arydshln} % dashed lines in tables
+\usepackage{amsmath}
+\usepackage{amssymb} % for \checkmark
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{cleveref}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{fontawesome5}
+\usepackage{subcaption}
+\usepackage[most]{tcolorbox} % prompt boxes
+
+
+\usetikzlibrary{positioning, arrows, shapes.multipart}
+% IPA
+% for LuaLaTeX
+% \usepackage{fontspec} 
+% for pdfLaTeX
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{tipa}
+\usepackage{xspace}
+\usepackage{soul}
+
+\usepackage{enumitem,amssymb}
+\newlist{todolist}{itemize}{2}
+\setlist[todolist]{label=$\square$}
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+\newcommand{\done}{\rlap{$\square$}{\raisebox{2pt}{\large\hspace{1pt}\cmark}}%
+\hspace{-2.5pt}}
+
+\input{section/defs}
+
+
+\title{
+\raisebox{-0.5em}{
+    \includegraphics[width=1.3cm]{figures/phonebench_prism.pdf}
+}\hspace{-0.2em}
+PRiSM: Benchmarking Phone Realization in Speech Models
+}
+
+% Author list
+\author{
+  \textbf{Shikhar Bharadwaj\thanks{Equal contribution.}\textsuperscript{1}} \quad
+  \textbf{Chin-Jou Li$^*$\textsuperscript{1}}\quad
+  \textbf{Yoonjae Kim$^*$\textsuperscript{2}}\quad
+  \textbf{Kwanghee Choi\textsuperscript{3}}\quad
+  \textbf{Eunjung Yeo\textsuperscript{3}}\\
+  \textbf{Ryan Soh-Eun Shim\textsuperscript{4}}\quad
+  \textbf{Hanyu Zhou\textsuperscript{1}}\quad
+  \textbf{Brendon Boldt\textsuperscript{1}}\quad
+  \textbf{Karen Rosero Jacome\textsuperscript{1}}\\
+  \textbf{Kalvin Chang\textsuperscript{5}}\quad
+  \textbf{Darsh Agrawal\textsuperscript{1}}\quad
+  \textbf{Keer Xu\textsuperscript{1}}\quad
+  \textbf{Chao-Han Huck Yang\textsuperscript{6}}\\
+  \textbf{Jian Zhu\textsuperscript{7}}\quad
+  \textbf{Shinji Watanabe\textsuperscript{1}}\quad
+  \textbf{David R. Mortensen\textsuperscript{1}}
+  \\
+  \textsuperscript{1}CMU\quad
+  \textsuperscript{2}Gwangju Institute of Science and Technology\quad
+  \textsuperscript{3}UT Austin\quad
+  \textsuperscript{4}LMU Munich\\
+  \textsuperscript{5}UC Berkeley\quad
+  \textsuperscript{6}NVIDIA\quad
+  \textsuperscript{7}UBC\\
+  \texttt{\{sbharad2,chinjoul,dmortens\}@andrew.cmu.edu, rladbswo12@gm.gist.ac.kr}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Phone recognition (PR) serves as the atomic interface for language-agnostic modeling for cross-lingual speech processing and phonetic analysis. 
+Despite prolonged efforts in developing PR systems, current evaluations only measure surface-level transcription accuracy.
+We introduce \bench, the first open-source benchmark designed to expose blind spots in phonetic perception through intrinsic and extrinsic evaluation of PR systems. 
+\bench standardizes transcription-based evaluation and assesses downstream utility in clinical, educational, and multilingual settings with transcription and representation probes. 
+We find that 
+diverse language exposure during training is key to PR performance, encoder-CTC models are the most stable, and specialized PR models still outperform Large Audio Language Models. 
+\bench releases code, recipes, and datasets to move the field toward multilingual speech models with robust phonetic ability\footnote{\url{https://github.com/changelinglab/prism}}.
+
+\end{abstract}
+
+\input{section/1_intro}
+\input{section/2_background}
+\input{section/3_design}
+\input{section/4_experiment}
+\input{section/5_result}
+\input{section/5p5_analysis}
+\input{section/6_conclusion}
+
+\section{Acknowledgement}
+We thank Jinchuan and Haoran for their support with vLLM, and Brian Yan and Brian Cho for helpful discussions.
+This work was supported by National Science Foundation grant \#2504019.
+This work was supported by Institute of Information \& communications Technology Planning \& Evaluation (IITP) grant funded by the Korea government(MSIT) (RS-2022-00143911, AI Excellence Global Innovative Leader Education Program).
+We also acknowledge the Delta and DeltaAI systems, and support from the NVIDIA Academic Hardware Grant Program 2025.
+This work used the Delta and DeltaAI systems at NCSA through allocations CIS210014 and IRI120008P from the Advanced Cyberinfrastructure Coordination Ecosystem: Services \& Support (ACCESS) program.
+
+\bibliography{custom}
+\appendix
+\input{section/7_appendix}
+
+\end{document}

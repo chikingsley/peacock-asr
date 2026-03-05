@@ -1,0 +1,159 @@
+\begin{thebibliography}{31}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Barrot(2023)}]{barrot2023using}
+Jessie~S Barrot. 2023.
+\newblock Using {ChatGPT} for second language writing: Pitfalls and potentials.
+\newblock \emph{Assessing Writing}, 57:100745.
+
+\bibitem[{Beckman and Hirschberg(1994)}]{beckman1994tobi}
+Mary~E Beckman and Julia Hirschberg. 1994.
+\newblock The tobi annotation conventions.
+\newblock \emph{Ohio State University}.
+
+\bibitem[{Bernard and Titeux(2021)}]{Bernard2021}
+Mathieu Bernard and Hadrien Titeux. 2021.
+\newblock \href {https://doi.org/10.21105/joss.03958} {Phonemizer: Text to phones transcription for multiple languages in python}.
+\newblock \emph{Journal of Open Source Software}, 6(68):3958.
+
+\bibitem[{C~Meniado(2023)}]{c2023impact}
+Joel C~Meniado. 2023.
+\newblock The impact of {ChatGPT} on english language teaching, learning, and assessment: A rapid review of literature.
+\newblock \emph{Arab World English Journals (AWEJ) Volume}, 14.
+
+\bibitem[{Chao et~al.(2022)Chao, Lo, Wu, Sung, and Chen}]{chao20223m}
+Fu-An Chao, Tien-Hong Lo, Tzu-I Wu, Yao-Ting Sung, and Berlin Chen. 2022.
+\newblock {3M}: An effective multi-view, multi-granularity, and multi-aspect modeling approach to english pronunciation assessment.
+\newblock In \emph{Proc. APSIPA ASC 2022}, pages 575--582. IEEE.
+
+\bibitem[{Chen et~al.(2024)Chen, Yu, and Hirschberg}]{chen2023multipa}
+Yu-Wen Chen, Zhou Yu, and Julia Hirschberg. 2024.
+\newblock {MultiPA}: a multi-task speech pronunciation assessment model for open response scenarios.
+\newblock In \emph{Proc. INTERSPEECH 2024}, pages 297--301.
+
+\bibitem[{Chu et~al.(2023)Chu, Xu, Zhou, Yang, Zhang, Yan, Zhou, and Zhou}]{chu2023qwen}
+Yunfei Chu, Jin Xu, Xiaohuan Zhou, Qian Yang, Shiliang Zhang, Zhijie Yan, Chang Zhou, and Jingren Zhou. 2023.
+\newblock Qwen-audio: Advancing universal audio understanding via unified large-scale audio-language models.
+\newblock \emph{arXiv preprint arXiv:2311.07919}.
+
+\bibitem[{Deshmukh et~al.(2024)Deshmukh, Alharthi, Elizalde, Gamper, Ismail, Singh, Raj, and Wang}]{deshmukh2024pam}
+Soham Deshmukh, Dareen Alharthi, Benjamin Elizalde, Hannes Gamper, Mahmoud~Al Ismail, Rita Singh, Bhiksha Raj, and Huaming Wang. 2024.
+\newblock {PAM}: Prompting audio-language models for audio quality assessment.
+\newblock In \emph{Proc. INTERSPEECH 2024}.
+
+\bibitem[{Do et~al.(2023)Do, Kim, and Lee}]{do2023hierarchical}
+Heejin Do, Yunsu Kim, and Gary~Geunbae Lee. 2023.
+\newblock Hierarchical pronunciation assessment with multi-aspect attention.
+\newblock In \emph{Proc. ICASSP 2023}. IEEE.
+
+\bibitem[{Elizalde et~al.(2023)Elizalde, Deshmukh, Al~Ismail, and Wang}]{elizalde2023clap}
+Benjamin Elizalde, Soham Deshmukh, Mahmoud Al~Ismail, and Huaming Wang. 2023.
+\newblock {CLAP}: Learning audio concepts from natural language supervision.
+\newblock In \emph{Proc. ICASSP 2023}. IEEE.
+
+\bibitem[{Gong et~al.(2022)Gong, Chen, Chu, Chang, and Glass}]{gong2022transformer}
+Yuan Gong, Ziyi Chen, Iek-Heng Chu, Peng Chang, and James Glass. 2022.
+\newblock Transformer-based mmulti-aspect multi-granularity non-native english speaker ppronunciation assessment.
+\newblock In \emph{Proc. ICASSP 2022}, pages 7262--7266. IEEE.
+
+\bibitem[{Kim et~al.(2022)Kim, Jeon, Seo, and Kim}]{kim2022automatic}
+Eesung Kim, Jae-Jin Jeon, Hyeji Seo, and Hoon Kim. 2022.
+\newblock Automatic pronunciation assessment using self-supervised speech representation learning.
+\newblock In \emph{Proc. INTERSPEECH 2022}, pages 1411--1415.
+
+\bibitem[{Kim and Park(2023)}]{kim2023young}
+Sol Kim and Seon-Ho Park. 2023.
+\newblock Young korean {EFL} learners' perception of role-playing scripts: {ChatGPT} vs. textbooks.
+\newblock \emph{Journal of English Language and Linguistics}, 23:1136--1153.
+
+\bibitem[{Lee et~al.(2023)Lee, Hsia, Tsoy, Choi, Hou, and Ni}]{lee2023visionary}
+Hyungmin Lee, Chen-Chun Hsia, Aleksandr Tsoy, Sungmin Choi, Hanchao Hou, and Shiguang Ni. 2023.
+\newblock {VisionARy}: Exploratory research on contextual language learning using {AR} glasses with {ChatGPT}.
+\newblock In \emph{Proceedings of the 15th biannual conference of the Italian SIGCHI chapter}, pages 1--6.
+
+\bibitem[{Lin and Wang(2021)}]{lin2021deep}
+Binghuai Lin and Liyuan Wang. 2021.
+\newblock Deep feature transfer learning for automatic pronunciation assessment.
+\newblock In \emph{Proc. INTERSPEECH 2021}, pages 4438--4442.
+
+\bibitem[{Lin and Wang(2022)}]{lin2023exploiting}
+Binghuai Lin and Liyuan Wang. 2022.
+\newblock Exploiting information from native data for non-native automatic pronunciation assessment.
+\newblock In \emph{Proc. SLT 2022}, pages 708--714. IEEE.
+
+\bibitem[{Liu et~al.(2023{\natexlab{a}})Liu, Shi, and Wang}]{liu2023zero}
+Hongfu Liu, Mingqian Shi, and Ye~Wang. 2023{\natexlab{a}}.
+\newblock Zero-shot automatic pronunciation assessment.
+\newblock In \emph{Proc. INTERSPEECH 2023}, pages 1009--1013.
+
+\bibitem[{Liu et~al.(2023{\natexlab{b}})Liu, Fu, Tian, Shi, Li, Ma, and Lee}]{liu2023asr}
+Wei Liu, Kaiqi Fu, Xiaohai Tian, Shuju Shi, Wei Li, Zejun Ma, and Tan Lee. 2023{\natexlab{b}}.
+\newblock An {ASR-free} fluency scoring approach with self-supervised learning.
+\newblock In \emph{Proc. ICASSP 2023}. IEEE.
+
+\bibitem[{Lo et~al.(2024)Lo, Yu, Xu, Ng, and Jong}]{lo2024exploring}
+Chung~Kwan Lo, Philip Leung~Ho Yu, Simin Xu, Davy Tsz~Kit Ng, and Morris Siu-yung Jong. 2024.
+\newblock Exploring the application of {ChatGPT} in {ESL/EFL} education and related research issues: a systematic review of empirical studies.
+\newblock \emph{Smart Learning Environments}, 11(1):50.
+
+\bibitem[{Mizumoto and Eguchi(2023)}]{mizumoto2023exploring}
+Atsushi Mizumoto and Masaki Eguchi. 2023.
+\newblock Exploring the potential of using an {AI} language model for automated essay scoring.
+\newblock \emph{Research Methods in Applied Linguistics}, 2(2):100050.
+
+\bibitem[{Radford et~al.(2023)Radford, Kim, Xu, Brockman, McLeavey, and Sutskever}]{radford2023robust}
+Alec Radford, Jong~Wook Kim, Tao Xu, Greg Brockman, Christine McLeavey, and Ilya Sutskever. 2023.
+\newblock Robust speech recognition via large-scale weak supervision.
+\newblock In \emph{Proc. ICML 2023}, pages 28492--28518.
+
+\bibitem[{Smith et~al.(1981)Smith, Waterman et~al.}]{smith1981identification}
+Temple~F Smith, Michael~S Waterman, and 1 others. 1981.
+\newblock Identification of common molecular subsequences.
+\newblock \emph{Journal of molecular biology}, 147(1):195--197.
+
+\bibitem[{Tang et~al.(20234)Tang, Yu, Sun, Chen, Tan, Li, Lu, Ma, and Zhang}]{tang2023salmonn}
+Changli Tang, Wenyi Yu, Guangzhi Sun, Xianzhao Chen, Tian Tan, Wei Li, Lu~Lu, Zejun Ma, and Chao Zhang. 20234.
+\newblock {SALMONN}: Towards generic hearing abilities for large language models.
+\newblock \emph{Proc. ICLR 2024}.
+
+\bibitem[{Wang et~al.(2025{\natexlab{a}})Wang, He, Liu, Deng, Wei, and Zhao}]{wang2025exploring}
+Ke~Wang, Lei He, Kun Liu, Yan Deng, Wenning Wei, and Sheng Zhao. 2025{\natexlab{a}}.
+\newblock Exploring the potential of large multimodal models as effective alternatives for pronunciation assessment.
+\newblock \emph{arXiv preprint arXiv:2503.11229}.
+
+\bibitem[{Wang et~al.(2025{\natexlab{b}})Wang, Yu, Yang, Tang, Li, Zhuang, Chen, Tian, Zhang, Sun et~al.}]{wang2025enabling}
+Siyin Wang, Wenyi Yu, Yudong Yang, Changli Tang, Yixuan Li, Jimin Zhuang, Xianzhao Chen, Xiaohai Tian, Jun Zhang, Guangzhi Sun, and 1 others. 2025{\natexlab{b}}.
+\newblock Enabling auditory large language models for automatic speech quality evaluation.
+\newblock In \emph{Proc. ICASSP 2025}. IEEE.
+
+\bibitem[{Wang et~al.(2023)Wang, Mao, Wu, Xia, Deng, and Tien}]{wang2023assessing}
+Zhiyi Wang, Shaoguang Mao, Wenshan Wu, Yan Xia, Yan Deng, and Jonathan Tien. 2023.
+\newblock Assessing phrase break of {ESL} speech with pre-trained language models and large language models.
+\newblock In \emph{Proc. INTERSPEECH 2023}, pages 4194--4198.
+
+\bibitem[{Wu et~al.(2025)Wu, Xu, Chen, and Meng}]{wu2025integrating}
+Minglin Wu, Jing Xu, Xueyuan Chen, and Helen Meng. 2025.
+\newblock Integrating potential pronunciations for enhanced mispronunciation detection and diagnosis ability in llms.
+\newblock In \emph{Proc. ICASSP 2025}. IEEE.
+
+\bibitem[{Xu et~al.(2021)Xu, Baevski, and Auli}]{xu2021simple}
+Qiantong Xu, Alexei Baevski, and Michael Auli. 2021.
+\newblock Simple and effective zero-shot cross-lingual phoneme recognition.
+\newblock In \emph{Proc. INTERSPEECH 2021}, pages 2113--2117.
+
+\bibitem[{Yan et~al.(2025)Yan, Wang, Li, Lin, Wang, Chao, and Chen}]{yan2025conpco}
+Bi-Cheng Yan, Yi-Cheng Wang, Jiun-Ting Li, Meng-Shin Lin, Hsin-Wei Wang, Wei-Cheng Chao, and Berlin Chen. 2025.
+\newblock {ConPCO}: Preserving phoneme characteristics for automatic pronunciation assessment leveraging contrastive ordinal regularization.
+\newblock In \emph{Proc. ICASSP 2025}. IEEE.
+
+\bibitem[{Zhang et~al.(2021)Zhang, Zhang, Wang, Yan, Song, Huang, Li, Povey, and Wang}]{zhang2021speechocean762}
+Junbo Zhang, Zhiwen Zhang, Yongqing Wang, Zhiyong Yan, Qiong Song, Yukai Huang, Ke~Li, Daniel Povey, and Yujun Wang. 2021.
+\newblock Speechocean762: An open-source non-native {English} speech corpus for pronunciation assessment.
+\newblock In \emph{Proc. INTERSPEECH 2021}, pages 3710--3714.
+
+\bibitem[{Zhu et~al.(2022)Zhu, Zhang, and Jurgens}]{zhu2022phone}
+Jian Zhu, Cong Zhang, and David Jurgens. 2022.
+\newblock Phone-to-audio alignment without text: A semi-supervised approach.
+\newblock In \emph{Proc. ICASSP 2022}, pages 8167--8171. IEEE.
+
+\end{thebibliography}

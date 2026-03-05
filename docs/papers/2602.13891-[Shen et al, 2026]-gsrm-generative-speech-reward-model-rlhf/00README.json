@@ -1,0 +1,97 @@
+{
+   "sources" : [
+      {
+         "usage" : "toplevel",
+         "filename" : "paper.tex"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "Figures/GSRM.pdf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "Figures/ablation_feature.pdf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "Figures/ablation_submetric.pdf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "Fonts/Charis-Bold.ttf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "Fonts/Charis-BoldItalic.ttf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "Fonts/Charis-Italic.ttf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "Fonts/Charis-Medium.ttf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "Fonts/Charis-MediumItalic.ttf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "Fonts/Charis-Regular.ttf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "Fonts/Charis-SemiBold.ttf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "Fonts/Charis-SemiBoldItalic.ttf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "Makefile"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "algorithmic.sty"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "assets/Optimistic.ttf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "assets/nice_plot.py"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "assets/optimistic.tfm"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "assets/plainnat.bst"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "assets/plot_demo.pdf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "latexmkrc"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "paper.bbl"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "paper.bib"
+      }
+   ],
+   "spec_version" : 1,
+   "texlive_version" : "2025",
+   "process" : {
+      "compiler" : "xelatex"
+   }
+}

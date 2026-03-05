@@ -1,0 +1,46 @@
+\begin{table*}[t]
+\centering
+
+\label{tab:combined_results}
+\setlength{\tabcolsep}{6pt}
+\small
+\begin{tabular}{lccccccc}
+\toprule[1pt]
+\multirow{2}{*}{\textbf{ALMs}} & \multicolumn{4}{c}{\textbf{Mispronunciation Detection}} & \multicolumn{3}{c}{\textbf{Suggestion Generation}} \\ 
+\cmidrule(lr){2-5} \cmidrule(lr){6-8}
+ & \textbf{Precision} $\uparrow$ & \textbf{Recall} $\uparrow$ & \textbf{F1} $\uparrow$ & \textbf{EWR} $\downarrow$ & \textbf{BLEU-2} $\uparrow$ & \textbf{ROUGE-L} $\uparrow$ & \textbf{BERTScore} $\uparrow$\\ 
+\midrule[0.5pt]
+Qwen-Audio   & 50.4 & 18.7 & 27.2 & 0.7 & \,\,\,3.9 & 11.8 & 82.7 \\ % without 
+% Qwen2-Audio  & 57.3 & 41.3 & 17.3 & 24.4 & 1.7 & 7.4  & 18.1 & 82.8 \\
+Qwen2-Audio   & 41.7 & 22.0 & 28.8 & 2.0 & \,\,\,6.9 & 18.3 & 82.9 \\
+GPT-4o-Audio & \textbf{52.7} & \textbf{41.3} & \textbf{46.3} & \textbf{0.2} & \textbf{10.9} & \textbf{22.3} & \textbf{86.0} \\
+% GPT-4o-Audio$*$  & 60.2 & 50.9 & 41.5 & 45.7 & 0.2 & \textbf{11.1} & 22.1 &  \textbf{86.0} \\
+\bottomrule[1pt]
+\end{tabular}
+\caption{Performance comparisons of existing ALMs on mispronunciation detection and suggestion generation under one-shot evaluation, which indicates the use of a one-shot multimodal demonstration (audio and text), and slightly improves performance. While open-source ALMs outperform cascaded ASR+LLM frameworks, they remain suboptimal compared to GPT-4o-Audio.\looseness=-1}
+\label{tab:alms_eval_result}
+\vspace{-2mm}
+\end{table*}
+
+% \begin{table*}[h!]
+% \centering
+
+% \label{tab:combined_results}
+% \setlength{\tabcolsep}{6pt}
+% \small
+% \begin{tabular}{lccccc|ccc}
+% \toprule[1pt]
+% \multirow{2}{*}{\textbf{ALMs}} & \multicolumn{5}{c}{\textbf{Mispronunciation Detection}} & \multicolumn{3}{c}{\textbf{Suggestion Generation}} \\ 
+% \cmidrule(lr){2-6} \cmidrule(lr){7-9}
+%  & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1} & \textbf{EWR} & \textbf{BLEU-2} & \textbf{ROUGE-L} & \textbf{BERTScore} \\ 
+% \midrule[0.5pt]
+% Qwen-Audio  & 59.6 & 50.4 & 18.7 & 27.2 & 0.7 & \,\,\,3.9 & 11.8 & 82.7 \\ % without 
+% % Qwen2-Audio  & 57.3 & 41.3 & 17.3 & 24.4 & 1.7 & 7.4  & 18.1 & 82.8 \\
+% Qwen2-Audio  & 56.8 & 41.7 & 22.0 & 28.8 & 2.0 & \,\,\,6.9 & 18.3 & 82.9 \\
+% GPT-4o-Audio$*$ & 61.3 & 52.7 & 41.3 & \textbf{46.3} & 0.2 & 10.9 & \textbf{22.3} & \textbf{86.0} \\
+% % GPT-4o-Audio$*$  & 60.2 & 50.9 & 41.5 & 45.7 & 0.2 & \textbf{11.1} & 22.1 &  \textbf{86.0} \\
+% \bottomrule[1pt]
+% \end{tabular}
+% \caption{Evaluation Results for ALMs}
+% \label{tab:alms_eval_result}
+% \end{table*}

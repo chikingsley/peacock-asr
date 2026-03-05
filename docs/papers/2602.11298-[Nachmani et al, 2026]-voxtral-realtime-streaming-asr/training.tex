@@ -1,0 +1,26 @@
+\subsection{Target Construction} \label{sec:target-construction}
+
+Training a streaming ASR model requires supervision that aligns a continuous audio stream with a discrete text stream. We leverage $(\text{audio}, \text{text}, \text{word-level timestamps})$ tuples to build frame-synchronous target sequences for the language decoder.
+
+In addition to the base subword vocabulary, we introduce two special symbols: a padding token \texttt{[P]} and a word-boundary token \texttt{[W]}. Training targets are constructed such that the decoder emits exactly one token per downsampled audio frame (80\,ms). For frames in which no text emission is warranted--either because no word is currently underway or because the current word is acoustically incomplete--the target token is \texttt{[P]}. Once a word has been fully observed and the specified target delay has elapsed, a \texttt{[W]} token is emitted to mark the onset of text generation, followed by the subword tokens corresponding to the word itself.
+
+When consecutive words share the same emission frame, no additional \texttt{[W]} token is inserted; the subword tokens of the next word follow directly. We demonstrate in Section~\ref{sec:word-grouping} that this grouping is crucial for retaining the text-modeling capabilities of the language decoder.
+
+This target construction induces an implicit alignment between the audio and text streams. The emission frame of the \texttt{[W]} token defines a grouping point that associates a segment of the audio stream with the subsequent text tokens. The model learns this alignment end-to-end from data, without relying on forced alignments or explicit decoding policies. At inference time, the same learned mechanism governs whether the decoder emits a non-emitting token or initiates text generation at each audio frame.
+
+\subsection{Delay Sampling}
+
+During training, the target delay $\tau$ is sampled uniformly from 80\,ms to 2400\,ms in 80\,ms increments (i.e., 1 to 30 adapter frames). This exposes the model to a range of latency-accuracy tradeoffs, enabling a single model to operate at any delay within this range at inference time via the Ada RMS-Norm conditioning mechanism (Section~\ref{sec:lang-dec}).
+
+\subsection{Optimization}
+
+We initialize the encoder and adapter randomly and the decoder from Ministral 3B \citep{liu2026ministral3}. Training proceeds in two phases:
+
+\begin{enumerate}
+    \item \textbf{Encoder warm-up (5\% of training):} The decoder is frozen and only the encoder and adapter are trained. This prevents the randomly initialized encoder from destabilizing the pre-trained decoder representations before it has learned to produce useful audio embeddings.
+    \item \textbf{End-to-end (95\% of training):} The full model is trained jointly.
+\end{enumerate}
+
+We use the AdamW optimizer \citep{loshchilov2019adamw} with a batch size of 370\,hours. For the encoder warm-up, we use a learning rate of $4 \times 10^{-4}$, and for the end-to-end phase $6 \times 10^{-5}$.
+
+We observed that logit magnitudes in the language decoder grew unboundedly over training. Since we tie the language modeling head and text embedding matrices, this caused text embedding norms to grow proportionally, while audio embedding norms steadily diminished. The resulting imbalance caused the model to increasingly rely on the text stream and ignore audio. We address this by applying a z-loss penalty on the logit norm \citep{debrébisson2016zloss,chowdhery2022palm}, which encourages the softmax normalizer to remain close to zero. This allows the audio and text embedding norms to converge to stable values.

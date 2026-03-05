@@ -1,0 +1,31 @@
+\input{tables/tasks}
+
+\section{Background}
+
+\subsection{Phone Recognition Systems}\label{ss:bg-pr-system}
+PR can be viewed as a variant of the S2T task that maps speech to phonetic symbols such as IPA \cite{ipa1999handbook}. In this work, we use ``PR system'' to refer broadly to any system capable of converting speech into IPA in a language-agnostic fashion.
+
+Modern PR systems are typically fine-tuned from ASR systems \cite{baevski2020wav2vec, radford2023robust} or trained from scratch on ASR datasets \cite{zhu-etal-2024-taste} with transcriptions automatically converted to IPA using grapheme-to-phoneme (G2P) tools \cite{mortensen2018epitran, zhu2022charsiu-g2p}.
+Language-specific approaches \cite{li2020universal, gao21_interspeech} rely on phoneme inventories, while language-agnostic approaches, which we focus on, seek to learn phonetic representations generalized across languages.
+LALMs have recently become prominent in speech tasks and have shown competitive performance with cascaded systems that combine LLMs with speech processing modules \cite{yang2025holisticlalm}, motivating interest in their application to PR \cite{huang2025dynamic, wang2025audiobench}.
+We describe the systems investigated in this work in \autoref{ss:exp_models}.
+
+
+\subsection{Phonetic information in PR systems}\label{ss:bg-phonetic-info}
+Explicitly generated phonetic transcriptions are easy for humans to inspect and utilize. 
+For example, faithful phonetic transcriptions of the speech of a child with a speech sound disorder can help a clinician understand the nature of the disorder and design interventions \cite{dodd2013differential}.
+Nevertheless, representing continuous speech with discrete symbols inherently incurs information loss, filtering out non-linguistic variation.
+
+Internal model representations serve as a complement that retains richer information.
+Speech models trained on S2T tasks produce temporally aligned representations that capture empirically useful acoustic-phonetic \cite{choi24b_s3mphonetic}, articulatory \cite{cho2024sslartic}, and even semantic \cite{ma-etal-2025-cross} features.
+The most widely used S2T model representations are from end-to-end ASR models such as Whisper \cite{radford2023robust} and WavLM \cite{chen2022wavlm}. 
+In contrast, LALMs’ representations are often inaccessible or difficult to analyze, as they focus mainly on textual output and lack strict temporal alignment with input speech.
+
+
+\subsection{Assessing phonetic/phonological ability}
+In the text modality, language models are evaluated with text input and output. 
+PhonologyBench \cite{suvarna2024phonologybench} evaluates G2P, syllable counting, and rhyme judgment, while \citet{bunzeck2025smalllm} and \citet{goriely2025wordseg} probe phonological knowledge using minimal pairs and word segmentation.
+In the speech modality, models are evaluated with speech (and optionally text) input and representation output. 
+SUPERB \cite{yang21c_interspeech} and Dynamic-SUPERB \cite{huang2025dynamic} include phoneme recognition, phonological feature analysis, and pronunciation evaluation.
+BabySLM \cite{lavechin2023babyslm} and the ZeroSpeech challenges \cite{nguyen2020zerospeech} propose metrics that evaluate phonological and acoustic-phonetic contrasts based on minimal pairs.
+In contrast to previous work, \bench evaluates phonetic ability in both text and speech through intrinsic and extrinsic tasks. 

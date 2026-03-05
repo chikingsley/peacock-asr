@@ -1,0 +1,43 @@
+\begin{table*}[t]
+\centering
+\small
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l l c l l c}
+\toprule
+\multirow{2}{*}{\textbf{Model}} & \textbf{Architecture} & \multirow{2}{*}{\textbf{Loss}} & \textbf{SSL Pre-training} & \textbf{Phone Recognition} & \multirow{2}{*}{\textbf{Langs}} \\
+ & \textbf{(Enc / Dec)} & & \textbf{Data} & \textbf{Data} & \\
+\midrule
+
+\lvsixty \cite{xu22b_interspeech} & Enc: Wav2Vec2 & CTC & LibriLight & MLS, CV, Babel & 40+ \\
+\xlsrf \cite{xu22b_interspeech} & Enc: XLSR53 & CTC & MLS, CV, Babel & MLS, CV, Babel & 40+ \\
+\mipa \cite{taguchi23_interspeech} & Enc: XLSR53 & CTC & MLS, CV, Babel & CV 11.0 & 7 \\
+
+\midrule
+
+\zipactc \cite{zipa} & Enc: Zipformer & CR-CTC & None & IPAPack++ & 88 \\
+\zipactcns \cite{zipa} & Enc: Zipformer & CR-CTC & None & IPAPack++ \& PL & 4k \\
+
+\midrule
+
+\multirow{2}{*}{\powsm \cite{powsm}} & Enc: E-Branchformer & \multirow{2}{*}{CTC-Att} & \multirow{2}{*}{None} & \multirow{2}{*}{IPAPack++} & \multirow{2}{*}{88} \\
+ & Dec: Transformer & & & & \\
+
+\powsmctc (\href{https://huggingface.co/espnet/powsm_ctc}{ours}) & Enc: E-Branchformer & Int-CTC & None & IPAPack++ & 88 \\
+
+\midrule
+
+\gemini \cite{comanici2025gemini} & Closed & N/A & Closed & Closed & >200 \\
+
+\multirow{2}{*}{\qweni \cite{xu2025qwen3omnitechnicalreport}} & Enc: AuT & \multirow{2}{*}{AR} & \multirow{2}{*}{Closed} & \multirow{2}{*}{Closed} & \multirow{2}{*}{19} \\
+ & Dec: MoE Transformer & & & & \\
+
+
+\bottomrule
+\end{tabular}
+}
+\caption{Included PR systems. 
+Architecture abbrv.: Encoder (Enc), Decoder (Dec), Audio Transformer (AuT), Mixture-of-Experts (MoE);
+Loss abbrv.: Consistency Regularized CTC (CR-CTC) \cite{crctc}, Hybrid CTC/Attention (CTC-Att) \cite{watanabe2017hybridctc}, Intermediate CTC (Int-CTC) \cite{lee2021intermediate}, Autoregressive (AR);
+Data abbrv.: Multilingual LibriSpeech (MLS), Common Voice (CV), Pseudo-labeled (PL).}
+\label{tab:model-summary}
+\end{table*}

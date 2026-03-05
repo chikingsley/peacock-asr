@@ -1,0 +1,69 @@
+\begin{table*}[tb!]
+\centering
+\resizebox{0.95\textwidth}{!}{%
+\begin{tabular}{lc lll lll llc >{\columncolor{colorext!10}}c}
+\toprule
+ & & \multicolumn{3}{c}{\textbf{Pathological Speech}} &
+ \multicolumn{3}{c}{\textbf{L2 Speech}} &
+ \multicolumn{3}{c}{\textbf{Multilingual Speech}} & 
+ \multirow{2}{*}{\shortstack{\textbf{{}} \\ \textbf{Score}}} \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-8} \cmidrule(lr){9-11}
+
+\textbf{Model} &  &
+{\texttt{DYS-ez} } & {\texttt{DYS-ua} } & {\texttt{CSD-us} } & {\texttt{L1-eda} } & {\texttt{L1-arc} } & {\texttt{L2-so} } & {\texttt{LID-fl} } & {\texttt{GEO-v}} & {\texttt{PI-drc}} &  \\
+\midrule
+
+Naive Baseline & & \ms{\wpad0.7}{1.6} & \ms{-0.8}{0.9} & \ms{41.8}{1.0} & \ms{\wpad6.3}{0.4} & \ms{14.3}{0.3} & \ms{\wpad1.5}{1.0} & \ms{\wpad4.3}{0.3} & \ms{\wpad3.3}{0.0} & --- & 8.9 \\
+\rowcolor{gray!12}
+\addlinespace[0.10cm]
+\multicolumn{12}{l}{\textbf{Transcript Probe (TP)}} \\
+\addlinespace[0.05cm]
+\mipa      & & \ms{48.2}{0.2} & \ms{45.6}{1.4} & \ms{93.6}{1.6} & \textbf{\ms{10.0}{1.0}} & \textbf{\ms{50.5}{0.9}} & \ms{33.3}{1.7} & \ms{89.3}{0.5} & \ms{44.5}{0.4} & 40.9 & \textbf{44.3} \\
+\lvsixty   & & \ms{42.4}{1.3} & \ms{50.3}{0.9} & \ms{95.6}{1.4} & \ms{\wpad7.6}{0.5}  & \ms{38.0}{0.3} & \ms{36.1}{1.7} & \ms{91.4}{0.2} & \textbf{\ms{45.7}{0.9}} & 51.3 & 42.0 \\
+\xlsrf     & & \ms{49.2}{0.8} & \ms{47.6}{0.8} & \ms{92.3}{2.6} & \wpad\underline{\ms{9.1}{0.6}}  & \underline{\ms{43.1}{0.6}} & \underline{\ms{37.5}{0.8}} & \ms{94.1}{0.2} & \ms{44.5}{1.2} & 56.9 & 43.8 \\
+\zipactc   & & \underline{\ms{55.0}{0.6}} & \textbf{\ms{57.0}{0.5}} & \ms{91.7}{2.3} & \ms{\wpad6.6}{0.4}  & \ms{30.5}{0.5} & \ms{36.6}{2.8} & \underline{\ms{95.6}{0.2}} & \ms{44.1}{1.0} & 55.2 & 43.5 \\
+\zipactcns & & \textbf{\ms{56.6}{0.8}} & \underline{\ms{51.1}{1.3}} & \textbf{\ms{99.4}{0.5}} & \ms{\wpad6.7}{0.3}  & \ms{30.0}{0.3} & \textbf{\ms{40.8}{0.8}} & \textbf{\ms{95.9}{0.1}} & \underline{\ms{44.7}{1.8}} & \underline{56.6} & \underline{44.2}\\
+\powsm     & & \ms{52.7}{1.7} & \ms{46.1}{0.8} & \ms{94.3}{1.3} & \ms{\wpad6.5}{0.8}  & \ms{28.0}{0.3} & \ms{28.4}{2.2} & \ms{95.1}{0.5} & \ms{43.7}{1.4} & 48.7 & 39.6 \\
+\powsmctc  & & \ms{53.3}{0.4} & \ms{46.5}{0.6} & \ms{96.9}{0.7} & \ms{\wpad6.4}{0.5}  & \ms{29.8}{0.1} & \ms{26.8}{0.7} & \ms{90.4}{0.4} & \ms{42.9}{0.8} & \textbf{57.7} & 40.2 \\
+\midrule
+\gemini    & & \ms{27.9}{0.6} & \ms{38.5}{0.4} & \ms{95.0}{1.6} & \ms{\wpad6.4}{0.4}  & \ms{22.3}{0.4} & \ms{20.1}{1.1} & \ms{91.8}{0.3} & \ms{33.2}{1.0} & 39.1 & 31.6 \\
+\qweni     & & \ms{52.5}{1.8} & \ms{49.4}{1.0} & \underline{\ms{98.9}{0.8}} & \ms{\wpad6.9}{0.6}  & \ms{30.5}{0.3} & \ms{15.6}{1.4} & \ms{89.3}{0.2} & \ms{34.7}{1.2} & 44.5 & 39.2 \\
+
+\addlinespace[0.10cm]
+\midrule
+\midrule
+
+\rowcolor{gray!12}
+\addlinespace[0.10cm]
+\multicolumn{12}{l}{\textbf{Representation Probe (RP)}} \\
+\addlinespace[0.05cm]
+\mipa       & & \ms{65.5}{4.0} & \ms{77.0}{1.4} & \ms{98.5}{0.8} & \ms{11.7}{1.1} & \ms{53.0}{3.3} & \ms{46.3}{1.9} & \ms{78.2}{1.0} & \ms{24.5}{3.7}  & --- & 56.5 \\
+\lvsixty    & & \ms{67.2}{1.8} & \underline{\ms{79.9}{0.9}} & \ms{98.6}{0.6} & \ms{12.0}{0.3} & \ms{60.7}{2.9} & \ms{49.9}{1.0} & \ms{76.6}{1.3} & \underline{\ms{24.6}{2.1}}  & --- & 59.4 \\
+\xlsrf      & & \ms{70.8}{2.2} & \textbf{\ms{82.0}{2.2}} & \ms{99.2}{0.7} & \ms{13.0}{1.1} & \ms{47.0}{6.0} & \ms{50.7}{3.1} & \ms{81.0}{2.3} & \ms{21.5}{3.1}  & --- & 58.2 \\
+\zipactc    & & \ms{73.2}{2.2} & \ms{74.7}{1.2} & \textbf{\ms{99.5}{0.3}} & \ms{13.9}{0.9} & \ms{73.4}{2.5} & \ms{54.0}{0.8} & \ms{96.1}{0.7} & \ms{23.0}{1.2}  & --- & \underline{62.9} \\
+\zipactcns  & & \ms{71.2}{2.2} & \ms{75.1}{0.8} & \ms{98.6}{0.9} & \ms{13.7}{0.6} & \underline{\ms{74.1}{2.8}} & \underline{\ms{54.3}{0.5}} & \textbf{\ms{96.8}{0.3}} & \ms{24.0}{1.5}  & --- & 62.7 \\
+\powsm      & & \ms{73.0}{3.0} & \ms{70.8}{1.1} & \textbf{\ms{99.5}{0.3}} & \ms{10.3}{1.2} & \ms{68.0}{1.9} & \ms{53.1}{0.3} & \ms{96.5}{0.1} & \ms{21.5}{2.2}  & --- & 60.4 \\
+\powsmctc   & & \underline{\ms{73.6}{1.5}} & \ms{66.7}{1.6} & \ms{97.9}{0.9} & \ms{\wpad8.0}{0.7}  & \ms{53.0}{0.5} & \ms{45.7}{3.0} & \ms{75.4}{1.5} & \ms{14.1}{2.6}  & --- & 55.2 \\
+\midrule
+\wavlm      & & \ms{69.2}{2.0} & \ms{77.5}{1.4} & \ms{99.0}{0.5} & \underline{\ms{14.4}{1.0}} & \ms{58.3}{2.0} & \ms{50.2}{1.4} & \ms{76.2}{3.2} & \ms{23.5}{4.6}  & --- & 59.4 \\
+\whisper    & & \textbf{\ms{74.8}{1.1}} & \ms{79.5}{0.3} & \textbf{\ms{99.5}{0.3}} & \textbf{\ms{24.3}{1.6}} & \textbf{\ms{84.3}{3.0}} & \textbf{\ms{57.2}{0.8}} & \underline{\ms{96.3}{0.5}} & \textbf{\ms{35.0}{2.7}}  & --- & \textbf{68.5} \\
+
+\midrule
+\addlinespace[0.10cm]
+\rowcolor{gray!12}
+\addlinespace[0.10cm]
+\multicolumn{12}{l}{\textbf{Zero-shot}} \\
+\addlinespace[0.05cm]
+\gemini       & & 21.4 & 50.4 & 75.3 & 32.7 & 43.9 & 35.8 & 91.5 & \wpad6.5 & --- & 41.5 \\
+\qweni        & & 27.0 & 61.7 & 70.9 & 18.2 & 31.8 & 49.8 & 59.1 & \wpad5.3 & --- & 41.5 \\
+
+\bottomrule
+\end{tabular}
+}
+\vspace{-5pt}
+\caption{PR system performance on extrinsic tasks ($\uparrow$). Results are reported as mean $\pm$ standard deviation across 5 random seeds where applicable. Best numbers are \textbf{bolded} and second-best \underline{underlined}. See \autoref{sec:extrinsic} for details.
+The formula for aggregrated score is in \autoref{appendix:phonebenchscore}.
+}
+\vspace{-5pt}
+\label{tab:phonebench:ext-results}
+\end{table*}

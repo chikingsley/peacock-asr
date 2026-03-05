@@ -1,0 +1,48 @@
+\begin{table*}[!t]
+\centering
+\footnotesize
+\captionsetup{font=small}
+\caption{\textbf{Pilot Study Results.} Performance of baseline and frontier LLM-based predictors on speech naturalness evaluation. Correlation metrics are higher-is-better ($\uparrow$), while MSE is lower-is-better ($\downarrow$).}
+
+\vspace{-0.6em}
+\setlength{\tabcolsep}{4.8pt}
+\begin{tabular}{l c
+                S[table-format=1.3] S[table-format=1.3] S[table-format=1.3]
+                S[table-format=1.3] S[table-format=1.3] S[table-format=1.3]}
+\toprule
+& & \multicolumn{3}{c}{\textbf{Validation}} & \multicolumn{3}{c}{\textbf{Out-of-domain}} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}
+\textbf{Method}
+& \textbf{Input}
+& {\textbf{Pearson} $\uparrow$}
+& {\textbf{Spearman} $\uparrow$}
+& {\textbf{MSE} $\downarrow$}
+& {\textbf{Pearson} $\uparrow$}
+& {\textbf{Spearman} $\uparrow$}
+& {\textbf{MSE} $\downarrow$} \\
+\midrule
+Human Inter-Rater Consistency (Oracle)
+& Speech
+& 0.533 & 0.517 & 0.301
+& 0.532 & 0.489 & 0.336 \\
+
+\midrule
+Regression-based Predictor
+& Speech
+& 0.215 & 0.170 & 0.433
+& 0.252 & 0.226 & 0.357 \\
+
+Gemini-2.5-Pro Speech Prompting
+& Speech
+& -0.050 & -0.078 & 1.009
+&  0.140 &  0.136 & 0.531 \\
+
+Gemini-2.5-Pro Acoustic Features Prompting
+& Text
+& 0.133 & 0.130 & 1.180
+& 0.193 & 0.157 & 0.814 \\
+\bottomrule
+\end{tabular}
+\label{table:pilot-results}
+\vspace{-1em}
+\end{table*}

@@ -1,0 +1,17 @@
+While low theoretical transcription delay is critical, practical deployments must maintain low latency under realistic conditions (e.g., batching, concurrency, and network overhead). In collaboration with the library authors and community contributors, we contribute realtime serving to the vLLM framework \citep{kwon2023efficient} by combining (i) a paged-attention backend for temporally heterogeneous encoder/decoder KV caches, (ii) resumable streaming sessions that preserve KV state across incremental updates, and (iii) a WebSocket-based realtime endpoint for incremental audio ingestion and token output streaming. Together, these features enable serving Voxtral Realtime with low operational complexity while achieving high throughput.
+
+\subsection{Paged Attention with Temporally Heterogeneous KV Caches}
+
+Voxtral Realtime requires maintaining two KV caches during inference---one for the audio encoder and one for the language decoder---each with a different frame rate. Specifically, the encoder operates at 50\,Hz and the language decoder at 12.5\,Hz, the difference due to $p=4$ temporal pooling applied by the adapter. Thus, one decoder step corresponds to four new encoder KV positions. Standard paged-attention implementations assume a single, uniform KV-position increment per step, which leads to inconsistent block indexing unless the metadata is adapted.
+
+\looseness=-1 To support this efficiently, we implement a custom attention-metadata backend that stretches the encoder-side KV-cache block size by the pooling factor ($p=4$) and applies the same scaling to the associated indexing metadata (sequence lengths and query offsets), while expanding the slot mapping so that each original slot ID maps to a contiguous range of $p$ slots. This keeps vLLM's paged-attention indexing consistent across the encoder and decoder and allows both KV caches to share a unified paged-attention allocation, preserving the performance benefits of vLLM's optimized KV paging.
+
+\subsection{Asynchronous Streaming Input with Resumable Requests}
+
+Most serving frameworks assume the full input is available before decoding begins, which prevents true realtime operation when input arrives continuously. In vLLM, incremental generation is enabled via \emph{resumable requests}: a streaming session persists an anchor request whose KV blocks are reused across incremental updates, so newly arrived input can be appended while reusing previously computed KV states. In our deployment, we pipeline I/O and compute: while the server buffers the next 80\,ms audio increment, it concurrently performs a one-token decoding step, so the next update can be appended and processed immediately when the chunk arrives.
+
+To stream output tokens while audio continues to arrive, vLLM pairs its existing async output generator with a new async input generator, enabling full-duplex streaming (ingest and emit concurrently) rather than a turn-based ``send-then-decode'' loop. A schematic is provided in Appendix~\ref{sec:appendix-b}.
+
+\subsection{WebSocket-Based Realtime API}
+
+To make streaming sessions accessible in production, we contribute a realtime WebSocket API to vLLM. The API provides a bidirectional endpoint for incremental audio ingestion and output token streaming. Clients append audio chunks to an input buffer and periodically commit increments; the server converts these events into resumable session updates for the vLLM engine and streams back token deltas over the same persistent connection with low per-message overhead. 

@@ -1,0 +1,19 @@
+\section{Benchmarked Models}
+\label{ss:exp_models}
+
+\autoref{tab:model-summary} summarizes the studied model families:
+\begin{itemize}[nosep]
+\item \textbf{Wav2Vec2Phs}: 
+\mipa, \lvsixty, and \xlsrf are fine-tuned variants of Wav2Vec2 \cite{baevski2020wav2vec}, contrastively pre-trained speech SSL models, and differ in pre-training coverage and phone recognition fine-tuning datasets.
+\item \textbf{ZIPAs}:
+\zipactc and \zipactcns are encoder-CTC models trained from scratch on multilingual data, with \zipactcns further trained on large-scale pseudo-labeled data from \zipactc.
+\item \textbf{POWSMs}:
+\powsm is an attention-based encoder-decoder (AED) model trained on the same dataset as ZIPAs and augmented for other S2T tasks. Following their framework, we train \powsmctc, an encoder-CTC variant for comparison.
+\item \textbf{LALMs}:
+We include \gemini (closed-source) and \qweni (open-weight), both state-of-the-art systems widely used in recent studies \cite{lee2025ahelm}. 
+Since their representations are not easy to access or pool, we probe them with zero-shot prompting, which is a form of context-based fine-tuning \cite{petrov2023prompting}.
+The prompts are in \autoref{appendix:prompt}.
+\item \textbf{Other baselines}:
+We include a naive baseline that randomly predicting the class or the most frequent location (\geov). 
+We also include \wavlm\footnote{\url{https://huggingface.co/microsoft/wavlm-base}}\cite{chen2022wavlm} and \whisper\footnote{\url{https://huggingface.co/openai/whisper-small}}\cite{radford2023robust} as competitive baselines for representation probing.
+\end{itemize}

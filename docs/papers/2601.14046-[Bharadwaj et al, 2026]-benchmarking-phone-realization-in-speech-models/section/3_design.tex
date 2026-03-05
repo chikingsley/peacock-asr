@@ -1,0 +1,34 @@
+\input{tables/systems}
+
+\section{Evaluation Framework of \bench}
+\bench covers intrinsic (\autoref{ss:core}) and extrinsic (\autoref{ss:downstream}) evaluations shown in \autoref{fig:phonebench-design}. 
+Intrinsic evaluation compares predicted transcriptions to gold labels, while extrinsic evaluation measures transcriptions and internal representations on downstream tasks.
+In extrinsic evaluation, transcriptions provide a direct and interpretable signal of explicit phonetic content, whereas representations are commonly used in downstream tasks but may encode non-phonetic information.
+\autoref{tab:evaltasks} summarizes included datasets and metrics.
+
+
+\subsection{Intrinsic: Core Capability}\label{ss:core}
+We use \textbf{Phonetic Feature Error Rate (PFER)} to measure the distance between reference and predicted transcriptions. 
+Unlike Phone Error Rate (PER), which treats each phone as a token, PFER computes the edit distance $D(\cdot, \cdot)$ over articulatory features $\text{feat}(\cdot)$ such as roundness or voicing. As shown in \autoref{eq:pfer}, where $u$ denotes an utterance (sequence of phones where $i$ indexes this sequence) and $u^*$ its ground truth, PFER is calculated as the total feature edit distance across all utterances divided by the total number of phones, representing the percentage of incorrect features \cite{panphon}. 
+\begin{equation}
+\label{eq:pfer}\small
+    \text{PFER} = \frac{1}{\sum_i |u_i^*|}\sum_i D(\text{feat}(u^*_i),\text{feat}(u_i))
+\end{equation}
+
+The tasks comprise two categories: 
+\textbf{Variation of seen languages} includes regional and non-native speech, testing whether PR systems rely excessively on seen patterns rather than the actual input.
+\textbf{Unseen languages} assess the system's language-agnostic phonetic knowledge. 
+Details of each task and dataset are in \autoref{appendix:datadetails-pr}.
+
+
+\subsection{Extrinsic: Downstream Utility}\label{ss:downstream}
+We evaluate PR systems using two downstream probes, namely the transcript probe and the representation probe.
+For \textbf{transcript probe (TP)}, input consists of predicted phonetic transcriptions, and the probe is a text-based bi-GRU.
+For \textbf{representation probe (RP)}, following the setup in \citet{hear}, we use the last layer's hidden representations as input and temporal pooling with attention followed by a Multi-Layer Perceptron as the probe.
+Metrics for each task are listed in \autoref{tab:evaltasks} and the detailed experimental setup is in \autoref{appendix:setup}.
+
+We consider three categories of downstream tasks where phonetic information is essential. 
+In \textbf{pathological speech assessment}, phonetic transcriptions are used to document patients' speech and support diagnosis and treatment planning \cite{ball2009importance, nelson2020use}. 
+In \textbf{L2 speech assessment}, phonetic cues enable pronunciation feedback \cite{Franco2010EduSpeakAS} and accent classification \cite{angkititrakul2006phone-based-accent}. 
+In \textbf{multilingual speech identification}, analyzing phonetic and phonological differences across languages and dialects, such as phone inventories, phonotactics, and phoneme realization, is crucial \cite{schultz2006multilingualsp}.
+We describe each task and dataset in detail in \autoref{appendix:datadetails-downstream}.

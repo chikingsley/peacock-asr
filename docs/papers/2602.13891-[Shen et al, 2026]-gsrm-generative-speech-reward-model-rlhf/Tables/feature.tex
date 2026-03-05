@@ -1,0 +1,69 @@
+\begin{table*}[h]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tabcolsep}{10pt}
+\footnotesize
+\caption{\textbf{Acoustic Features.}
+Vowel-level prosodic features extracted from time-aligned vowel segments, serve as sufficient statistics for speech naturalness judgment.}
+\vspace{-0.6em}
+
+\begin{tabular}{p{2.2cm} p{12.6cm}}
+\toprule
+\textbf{Acoustic Feature} & \textbf{Definition and Interpretation} \\
+\midrule
+\textbf{Pitch Level} &
+Average fundamental frequency ($F_0$) of a vowel segment, reflecting overall pitch height. \\
+
+\textbf{Pitch Var.} &
+Within-segment variability of frequency, reflecting the degree of expressiveness. \\
+
+\textbf{Pitch Slope} &
+Trend of frequency change across the vowel segment (rising or falling), reflecting local intonation contours. \\
+
+\textbf{Intensity Level} &
+Average loudness (e.g., RMS energy) of the vowel segment, reflecting perceived vocal strength or emphasis. \\
+
+\textbf{Intensity Var.} &
+Temporal fluctuation of intensity within the vowel segment, indicating stability or variability in loudness. \\
+
+\textbf{Duration} &
+Temporal length of the vowel segment, reflecting speech rate, emphasis, and pacing characteristics. \\
+
+\bottomrule
+\end{tabular}
+\label{table:acoustic-features}
+\vspace{-0.5em}
+\end{table*}
+
+
+\begin{table*}[!t]
+\centering
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{10pt}
+\captionsetup{font=small}
+\footnotesize
+\caption{\textbf{Evidence Log Dimensions.}
+Each utterance is analyzed along four dimensions to synthesize interpretable reasoning grounded in acoustic features and transcript context.}
+\vspace{-0.6em}
+
+\begin{tabular}{p{2.4cm} p{12.6cm}}
+\toprule
+\textbf{Dimension} & \textbf{Description} \\
+\midrule
+\textbf{Inferred Context} &
+A concise description of the communicative intent of the utterance (e.g., question, acknowledgment, neutral statement), inferred from the transcript. \\
+
+\textbf{NSVs / Fillers} &
+Identification of any non-speech vocalizations or filler words (e.g., ``yeah'', ``uh'',  ``uh''), supported by transcripts and acoustic feature such as abrupt pitch or intensity variation. \\
+
+\textbf{Positive Attributes} &
+Identification of perceptual strengths, such as appropriate emphasis, smooth intonation, or natural fillers, grounded in specific vowels and their acoustic features. \\
+
+\textbf{Potential Issue} &
+Identification of perceptual weaknesses, including intonation instability, pacing inconsistency, expressive incorrectness, or unnatural pauses, grounded in specific vowels and their acoustic features.  \\
+
+\bottomrule
+\end{tabular}
+\label{table:cot-dimensions}
+\vspace{-1em}
+\end{table*}

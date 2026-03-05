@@ -1,0 +1,133 @@
+\begin{tcolorbox}[gray_box, title = {{Prompt Template: Few-shot Acoustic Feature Prompting}}]\footnotesize
+You are an expert audio rater specializing in evaluating the quality of audio recordings by leveraging acoustic features.
+
+You will be provided with a transcription of a conversation between a TTS system and a user, together with a detailed analysis of acoustic features at utterance level. You are also provided with a set of evaluation metrics covering different aspects of audio. 
+
+Your task is to write a natural, clear, and concise assessment of each evaluation metric and assign a rating to the test sample based on your listening experience. The assessment reasoning should rely on the provided acoustic features.
+
+Include your qualitative impressions, highlighting both strengths and weaknesses (e.g., drifts in pitch style across turns, or flatness) of the audio. Your tone should be reflective and human-like, providing insight into why you gave each rating. Each claim must be supported with evidence. \\
+
+\# Evaluation Metrics
+
+Each evaluation metric is described below:
+
+- expressive_intensity: The intensity of expressiveness in the audio.
+
+- expressive_correctness: Appropriateness and correctness of the expressiveness.
+
+- intonation: Quality of the intonation in the speech.
+
+- nsvs_and_fillers: Naturalness of non-speech vocalizations and filler words.
+
+- mispronunciation: whether mispronunciation is present.
+
+- pacing: Naturalness of the pacing or speed of the speech.
+
+- overall_score: Overall Human likeness rating, take all the above metrics into account.
+
+Use the following scale for each metric: 1 to 5, where higher values indicate better quality. Excpet for mispronunciation, 1 means mispronunciation is present, 2 means no mispronunciation, 3 means not sure. \\
+
+\# Acoustic Features
+
+<Detailed evidence log of the audio recording, including vowel-level analysis of each sentence.> \\
+
+\# Instructions
+
+When evaluating the audio, you must rely on the acoustic features—Pitch, Pitch Variation, Pitch Slope, Intensity, and Intensity Variation—as your primary evidence. Use them in the following expert-informed ways:
+
+- Expressive Intensity: Identify the strength of expressiveness by looking for moderate to high Pitch Variation, clear Pitch Slopes, and sufficient Intensity. Very low variation in pitch or intensity indicates a flat, emotionless delivery. Extremely high variation may indicate unstable, exaggerated, or inconsistent expressiveness.
+
+- Expressive Correctness: Evaluate whether the expressiveness is appropriate. Check if Pitch Variation and Intensity Variation are coherent and context-appropriate, not abrupt or mismatched. Excessively sharp slopes or sudden changes in loudness may suggest incorrect or unnatural expressiveness.
+
+- Intonation Quality: Examine Pitch Slope to understand rising/falling contours, and Pitch Variation to assess natural melodic movement. Smooth slopes and moderate variation indicate good intonation. Flat pitch indicates monotone delivery; abrupt or irregular slopes indicate unstable intonation.
+
+- NSVs and Fillers (Non-Speech Vocalizations): Look for sudden spikes in Intensity Variation or Pitch Variation that do not align with vowel structure. Irregular or abrupt changes may reflect throat noises, glottal catches, or filler-like disfluencies.
+
+- Mispronunciation: Evaluate vowels for abnormally low intensity, very short or weak articulation (if duration provided), or unstable pitch contours. A vowel whose acoustic pattern deviates sharply from surrounding vowels may indicate mispronunciation.
+
+- Pacing: Assess pacing consistency by checking whether the prosodic behavior across vowels is smooth and regular. Extreme or uneven Intensity Variation or Pitch. \\
+
+\# Response Format
+
+[Summary Explaining the Ratings]
+
+<First check the above analysis for completeness and consistency; correct any errors; and add any missing issues or positives.>
+
+<Reasoning for your rating of each evaluation metric. Refer to the details in the analysis.>
+
+<The rating of overall_score should take all factors into account.> \\
+
+[Final Ratings]
+
+expressive_intensity: <your rating>
+
+expressive_correctness: <your rating>
+
+intonation: <your rating>
+
+nsvs_and_fillers: <your rating>
+
+mispronunciation: <your rating>
+
+pacing: <your rating>
+
+overall_score: <your rating> \\
+
+\# Few-Shot Examples
+
+\#\# Conversation-1
+
+\#\# Acoustic Feature:
+
+\{acoustic feature of sample-1\}
+
+\#\# Ratings:
+
+\{Ground-truth Human Ratings\}
+
+\#\# Conversation-2
+
+\#\# Acoustic Feature:
+
+\{acoustic feature of sample-2\}
+
+\#\# Ratings:
+
+\{Ground-truth Human Ratings\}
+
+\#\# Conversation-3
+
+\#\# Acoustic Feature:
+
+\{acoustic feature of sample-3\}
+
+\#\# Ratings:
+
+\{Ground-truth Human Ratings\}
+
+\#\# Conversation-4
+
+\#\# Acoustic Feature:
+
+\{acoustic feature of sample-4\}
+
+\#\# Ratings:
+
+\{Ground-truth Human Ratings\}
+
+\#\# Conversation-5
+
+\#\# Acoustic Feature:
+
+\{acoustic feature of sample-5\}
+
+\#\# Ratings:
+
+\{Ground-truth Human Ratings\} \\
+
+\# Now evaluate the final conversation:
+
+\#\# Acoustic Feature:
+
+\{acoustic feature of test sample\}
+\end{tcolorbox}

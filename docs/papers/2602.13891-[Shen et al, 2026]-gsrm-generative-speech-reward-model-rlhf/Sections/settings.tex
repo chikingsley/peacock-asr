@@ -1,0 +1,55 @@
+\section{Experimental Setup} \label{sec:app-setting}
+
+\subsection{Implementation Details of Baseline Methods}
+
+\subsubsection{Direct Score Predictor.}
+We fine-tune Qwen2.5-Omni-7B on the ConvTTS training set, which consists of 4,579 audio samples. Given an input speech recording, the model is trained to directly output numerical ratings for all evaluation sub-metrics as well as the overall human-likeness score, without generating any intermediate chain-of-thought (CoT) reasoning. The supervised fine-tuning (SFT) prompt template used for this baseline is shown below.
+
+We use a learning rate of $2\times10^{-5}$ with a cosine learning rate scheduler. The batch size is set to 32, the maximum sequence length is 4096, and the model is trained for up to 10 epochs. All experiments are conducted using the SWIFT framework~\cite{zhao2024swiftascalablelightweightinfrastructure}.
+\input{Prompts/direct_score_predictor}
+
+\subsubsection{Few-shot Speech Prompting.}
+Following the setup of \citet{manakul2025audiojudge}, we randomly select five audio samples with human-likeness ratings spanning 1 to 5 as in-context learning (ICL) examples, ensuring coverage from low to high-quality speech. The corresponding audio clips are concatenated into a single audio sequence, with short segments of background silence inserted between clips. We prompt Gemini-2.5-Pro in voice mode using this stitched audio together with a few-shot prompt that includes the ground-truth human ratings for the five examples. The full prompt template is provided below.
+\input{Prompts/speech_prompting}
+
+\subsubsection{Few-shot Acoustic Feature Prompting.}
+Instead of providing raw audio as context, we prompt a text-only LLM using explicitly extracted acoustic features. These features are obtained using the same vowel-level acoustic feature extraction pipeline described in Section~\ref{sec:gsrm} and illustrated in Figure~\ref{fig:teaser}. For each few-shot example, we concatenate the extracted acoustic features with the corresponding ground-truth human ratings, followed by the acoustic features of the test sample. The text LLM is then prompted to predict the ratings for the test sample. The prompt template used for acoustic feature prompting is shown below.
+\input{Prompts/acoustic_feature_prompting}
+
+
+\subsubsection{MOS Predictors.}
+We include existing utterance-level MOS predictors as baselines, specifically NISQA\footnote{The NISQA model code used in this research is licensed under the MIT License. The model weights are licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0) License. The weights were used solely for non-commercial research purposes in accordance with the terms of this license. No distribution of the model weights or code containing the weights is included in this publication.}~\cite{mittag2021nisqa} and UTMOSv2~\cite{baba2024utmosv2}. Both models are originally designed for single-speaker, single-utterance speech naturalness assessment and output a scalar MOS score. Since these predictors do not support multi-turn conversational inputs, we apply them independently to each utterance within a conversation. For example, if a conversation consists of five utterances, the predictor produces five corresponding MOS scores. Conversation-level predictions are then obtained by aggregating the utterance-level scores using simple statistics, such as the mean or minimum.
+
+\subsubsection{Regression-based Predictors.}
+In contrast to MOS predictors, regression-based predictors are explicitly trained to map conversational speech representations to human-annotated MOS scores. These models follow a unified regression framework built on top of large pre-trained speech encoders, including AES- and WavLM-based backbones. Given an input conversation, the audio is segmented into fixed-length windows, and frame-level representations are extracted using a frozen transformer encoder. A weighted sum of hidden states across all encoder layers is computed, followed by temporal mean pooling to obtain a segment-level embedding. The resulting embeddings are then passed through a multi-layer perceptron with GeLU activations and dropout, trained with mean squared error loss to predict MOS scores. Final conversation-level predictions are obtained by averaging the regression outputs across all segments.
+
+
+\subsection{Implementation Details of GSRM}
+
+\subsubsection{Acoustic Feature Extraction.}
+\label{app:acoustic_features}
+
+Given a speech recording and its transcript, all audio is first resampled to 24 kHz. For multi-channel recordings, only the first channel is retained (system response). Extended silences are removed using a Silero-based voice activity detector with a merge threshold of 1000 ms to preserve natural intra-utterance timing.
+
+Phoneme-level forced alignment is then performed between the transcript and waveform using a neural alignment model. From the resulting alignment, we retain only vowel segments. The vowel inventory is defined using an IPA-based set covering both monophthongs and diphthongs. For each aligned vowel, two temporal spans are defined. The \emph{full span}, computed from the earliest onset to the latest offset across all alignment states, is used to measure vowel duration. The \emph{core span} is a stable sub-region used for pitch and intensity estimation to avoid boundary transitions. When five or more alignment states are available, the middle two states are selected; when three to four states are present, the central state is used; otherwise, 20\% of the full span is trimmed from each edge.
+
+From each vowel segment, we extract a compact set of low-level prosodic features: (i) pitch level, defined as the mean fundamental frequency (F0) over the core span; (ii) pitch variation, computed as the standard deviation of F0; (iii) pitch slope, obtained via a linear fit to F0 over time; (iv) intensity level, measured as mean RMS energy; (v) intensity variation, defined as the standard deviation of RMS energy; and (vi) duration, defined as the length of the full span. Pitch extraction follows a Praat-style autocorrelation method with speaker-adaptive floor and ceiling parameters, and all pitch and intensity statistics are computed only over voiced frames.
+
+Continuous feature values are normalized using a two-stage procedure. First, features are z-normalized at the speaker level to control for individual vocal characteristics. Second, vowel-type normalization is applied to mitigate systematic differences across vowel classes. The normalized values are then discretized into ordinal categories. Specifically, pitch level is discretized using fixed thresholds at 85, 110, 160, 220, 280, and 390~Hz, corresponding to \emph{extremely low}, \emph{very low}, \emph{low}, \emph{mid}, \emph{high}, \emph{very high}, and \emph{extremely high}. Pitch slope is categorized separately for rising and falling contours using the 25th and 75th percentiles of positive and negative slopes, yielding \emph{low}, \emph{mid}, and \emph{high} slope categories. Pitch variation, intensity level, intensity variation, and duration are discretized via quantile-based binning at the 10th, 25th, 75th, and 90th percentiles, producing five ordinal categories: \emph{very low}, \emph{low}, \emph{mid}, \emph{high}, and \emph{very high}. Duration quantiles are computed only from vowels with fully voiced cores.
+
+The final output is an utterance-level acoustic feature log that records vowel sequences and their discretized prosodic attributes in temporal order. We provide an example of the extracted vowel-level acoustic feature log below.
+
+\input{Prompts/acoustic_feature_demo}
+
+\subsubsection{Reasoning Synthesis.}
+After extracting the acoustic feature log for an audio sample, we leverage a teacher model, GPT-4o, to synthesize the utterance-level evidence log. Specifically, for each utterance (sentence) and its associated vowel-level acoustic features, we prompt GPT-4o to generate a structured analysis capturing the inferred context, perceptual strengths, and potential issues of the utterance. We then concatenate the analyses of all utterances to form the complete evidence log for the audio sample. The prompt template used for evidence log synthesis is provided below.
+\input{Prompts/evidence_log}
+
+Once the evidence log is constructed, we prompt GPT-4o again to synthesize a global judgment chain-of-thought (CoT). We adopt a \emph{role-playing} prompt that grants the model access to both the evidence log and the ground-truth human ratings, and instructs it to explain the reasoning behind the assigned scores. This design ensures that the synthesized reasoning is faithful to the oracle ratings while remaining coherent. The prompt template for global judgment synthesis is shown below.
+\input{Prompts/global_cot_prompting}
+
+\subsubsection{Training and Inference.}
+We fine-tune GSRM on the ConvTTS training set using Qwen2.5-Omni-7B as the backbone model. Given an input speech recording, GSRM is trained to first generate the utterance-level evidence log, followed by the global judgment CoT and the final rating scores. The supervised fine-tuning (SFT) prompt template used for training GSRM is provided below.
+\input{Prompts/gsrm_sft}
+
+We use a learning rate of $2\times10^{-5}$ with a cosine learning rate scheduler. The batch size is set to 32, the maximum sequence length is 4096, and the model is trained for up to 10 epochs. During inference, we select the model checkpoint with the lowest validation loss on a held-out validation set. For each audio sample, we perform up to 16 random inference passes with a sampling temperature of 1.0 and top-$p$ set to 0.6. The final rating is obtained by averaging the scores across these samples. All experiments are conducted using the SWIFT framework~\cite{zhao2024swiftascalablelightweightinfrastructure}.
