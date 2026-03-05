@@ -1,0 +1,51 @@
+\documentclass[sigconf,screen,nonacm]{acmart}
+
+
+\AtBeginDocument{%
+  \providecommand\BibTeX{{%
+    \normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
+
+
+\acmPrice{15.00}
+\acmISBN{978-1-4503-XXXX-X/18/06}
+
+% \acmSubmissionID{268}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\settopmatter{printfolios=false,printacmref=false}
+\settopmatter{printacmref=false} % REMOVE IN FINAL VERSION
+
+\include{headers}
+
+\begin{document}
+
+\title[\visowel{}]{\visowel{}: An Interactive Vowel Chart to Understand What Makes Visual Pronunciation Effective in Second Language Learning}
+\include{authors}
+\begin{abstract}
+\input{abstract}
+\end{abstract}
+\include{ccs}
+\maketitle
+\input{0intro}
+\input{1related_work}
+% \input{2design}
+\input{02_1_design}
+\input{3methodology}
+% \input{4technical}
+\input{05_1_results}
+\input{6discussion}
+\input{7conclusion}
+\input{acknowledge}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{general}
+% TC:endignore
+%%
+%% If your work has an appendix, this is the place to put it.
+% TC:ignore
+% \newpage
+\appendix
+\input{8appendix}
+
+% TC:endignore
+\end{document}
+

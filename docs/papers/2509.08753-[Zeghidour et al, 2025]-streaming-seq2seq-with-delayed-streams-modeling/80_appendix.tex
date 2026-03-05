@@ -1,0 +1,439 @@
+\appendix
+
+\section{ASR Training Data}
+\label{sec:app:data}
+\subsection{Short-form finetuning data}
+\label{sec:app:short-form}
+This collection includes: LibriSpeech~\citep{librispeech}, VoxPopuli~\citep{voxpopuli}, GigaSpeech~\citep{gigaspeech}, AMI~\cite{ami-carletta2007,ami-renals2007}, SPGISpeech~\citep{spgispeech}, TED-LIUM~\citep{tedlium}, and Earnings22~\citep{earnings22}.
+We filter out examples where Whisper had a high character error rate. %
+With LibriSpeech (LS), we use timestamps provided by Montreal Forced Aligner~\citep{montreal_forced_aligner}, as prepared by~\cite{lugosch2019}. For the rest of the datasets, we use timestamps provided by Whisper (see Section~\ref{sec:dsm_asr}). Importantly, at this stage, examples are short: only 0.5\% of examples are longer than 30.5s. This data mixture totals 28k hours.
+
+Table~\ref{tab:license_asr} summarizes licenses for the datasets used at this stage.
+
+\begin{table}[h]
+    \centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Dataset} & \textbf{License} \\
+\midrule
+AMI & CC-BY-4.0 \\
+EARNINGS22 & CC-ShareAlike-4.0 \\
+GigaSpeech & Apache 2.0 \\
+LibriSpeech & CC-BY-4.0 \\
+SPGISpeech & Non-commercial use \\
+TED-LIUM & BY-NC-ND 3.0 \\
+VoxPopuli & Creative Commons Zero \\
+\bottomrule
+\end{tabular}
+    \caption{Licenses for the public datasets we used for \oursASR{} finetuning.}
+    \label{tab:license_asr}
+\end{table}
+\subsection{Long-form finetuning data}
+\label{sec:app:long-form}
+First, we concatenate utterances in LibriSpeech~\citep{librispeech} to form segments of up to 6 minutes long ($\approx$ 1k hours). %
+Second, we use a collection of synthesized dialogs, each dialog lasting for 5 minutes ($\approx 22$k hours). Those examples are produced by a preliminary version of \oursTTS. %
+We combine these datasets with the short-form finetuning dataset in a weighted mixture, with respective weights 8:1:1 (i.e., a sample from LibriSpeech is 8x more likely to be included in a batch than from the short-form data mixture).
+
+\section{Size ablations for ASR}
+In the main text, we evaluated \oursASR{} model with 2.6B parameters. This model size might not be practical for all applications, so we additionally trained a smaller model with 300M parameters, using the same protocol, data, and vocabulary.
+
+In Table~\ref{tab:300m-ablation}, we  compare its performance to several reference models. From this comparison, we see that \oursASR{} with 300M parameters  (350M including Mimi encoder) achieves considerably better performance than streaming and non-streaming versions of \textit{Whisper Medium}, which have 760M parameters. Unsurprisingly, the smaller version of \oursASR{} performs worse than a 2.6B version.
+
+Finally, we note that these experiments suggest that the approach of \oursASR{} works well for models of smaller sizes, too.
+
+\section{ASR: Efficiency as a function of batch size}
+In Table~\ref{tab:bsz-throughput}, we report how the efficiency metrics (RTF and throughput) change in function of the batch size used. In these measurements, we use the same \oursASR{} as in the main text.
+
+
+\begin{table}[t]
+\centering
+\caption{{\oursASR{}: Real-time Factor and Throughput in function of batch size}.}
+\label{tab:bsz-throughput}
+\begin{sc}
+\begin{tabular}{ccc}
+\toprule
+\textbf{Batch size} & \textbf{RTF} $\uparrow$ & \textbf{Throughput} $\uparrow$ \\
+\midrule
+1 & 6.9 & 6.9 \\
+32 & 4.4 & 141.4 \\
+64 & 3.5 & 224.0 \\
+256 & 1.49 & 380.1 \\
+\bottomrule
+\end{tabular}
+\end{sc}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Short-form ASR performance across model sizes}. We report Word Error Rates (WER, \%) for a \oursASR{} model with 300M parameters, along with reference models.}
+\label{tab:300m-ablation}
+\begin{sc}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lc|cccccccc}
+\toprule
+\textbf{Model} & \textbf{Avg.} %
+& \textbf{AMI} & \textbf{Earnings22} & \textbf{Gigaspeech} & \textbf{LS Clean} & \textbf{LS Other} & \textbf{SPGISpeech} & \textbf{TED-LIUM} & \textbf{Voxpopuli}
+\\
+\midrule
+\multicolumn{10}{c}{\textit{Non-streaming}} \\
+\midrule[0.3pt]
+Whisper medium.en & 8.1 %
+& 16.7 & 12.6 & 11.0 & 3.0 & 5.9 & 3.3 & 4.1 & 9.6 \\
+\midrule
+\multicolumn{10}{c}{\textit{Streaming}} \\
+\midrule[0.3pt]
+Whisper medium.en & 9.0  & 22.1 & 13.4 & 10.4 & 3.0 & 6.2 & 3.7 & 4.7 & 8.6 \\
+\midrule[0.01pt]
+\oursASR{} 300M & {8.2} & {16.4} & {13.9} & {11.1} & {2.2} & {6.8} & {2.7} & {4.2} & {8.4} \\
+
+\oursASR{} 2.6B & {6.4} & {12.2} & {11.0} & {9.8} & {1.7} & {4.3} & {2.0} & {3.4} & {6.8} \\
+\bottomrule
+\end{tabular}
+}
+\end{sc}
+\end{table}
+
+
+
+\section{Evaluation TTS Data}
+\label{sec:app:eval_data}
+For evaluating our data, we use both monologue and dialog scripts. 
+We do not have reference audio to compare to, although we can still compare models to one another. The datasets and evaluation code are available at \href{https://github.com/kyutai-labs/tts_longeval}{github.com/kyutai-labs/tts\_longeval}.
+
+\paragraph{Monologues.}
+Those are taken from news articles of the NTREX-128 dataset~\citep{federmann-etal-2022-ntrex}, giving us 123 articles per language. Note that those articles are already split in sentences, which we leverage when evaluating models that do not support long form generation.
+
+\paragraph{Dialogs.}
+Dialogs are generated using the \texttt{mistral-large-latest} model through their API\footnote{https://docs.mistral.ai/api/}. The scripts fall in 3 categories: daily life, technical, and number-heavy. For daily life scripts, the LLM API is first asked to come up with a number of situations that could arise in daily interactions. For each one, it is then tasked with generating a script in a given language and with a target number of turns. We try to generate 50 daily dialogs per language (due to failures in the generation, only 97 in total are available). For technical topics, we follow a similar approach, except the LLM API is given a specific topic (technical, but also person, piece of art, movie,  etc.) to discuss instead. We again have 50 technical dialogs per language. Finally, for number-heavy dialogs, we use 12 hand written prompts, such as ``\emph{PERSON\_A and PERSON\_B discuss the chronology of various events during the middle age}'', which we use for generating scripts in both English and French. In total we thus have nearly 112 dialogs per language. Examples are provided in Figures~\ref{fig:dialog-example-daily} and \ref{fig:dialog-example-tech}.
+
+\paragraph{Voices.}
+For voice conditioning, we use samples from the test set of VCTK~\citep{Yamagishi2019CSTRVC} (ODC-BY license) for English, keeping only one utterance per speaker whose duration is longer than 7 seconds, and less than 10 seconds. We kept 50 voices.
+For French, we combine speakers from the test and valid sets of CML~\citep{Cmltts2023} (CC-BY 4.0), applying the same criterion. This gives us 35 voices.
+Pairs of voices are randomly assigned to each script, although the mapping is fixed across evaluation runs.
+
+
+\section{Timestamp predictions}
+\label{sec:app:timestamps}
+
+We adopt evaluation metrics from~\cite{crisper}. Firstly, we compute an F1 score by defining true positives as words that match a reference word and overlap with it temporarily; false positive words are predicted but either do not match or do not overlap with a reference word; and false negatives are the reference words that do not have a match in content or have no temporal overlap with predicted words. The temporal overlap happens if the predicted timestamps for the word start and word end fall within a collar distance from the true events. Since this F1 metric considers overlap in a binary way, \cite{crisper} complement it with a more nuanced measure, mean Intersection over Union (mIoU), which additionally accounts for the relative duration of the temporal overlap. %
+As the evaluation dataset, use the same time-aligned LibriSpeech test-clean as for latency measurement. 
+Results are shown in Table~\ref{tab:alignments}.
+
+\section{\oursASR{}: speech representation}
+One natural question is whether \oursASR{} is hindered by using discretized speech representation. In order to answer this question, we use the fact that the models are trained using quantizer dropout: at training time, after a randomly selected cut-off level, all quantization levels are zeroed out~\citep{soundstream,moshi}. We exploit this by running a series of evaluations of the same model on LibriSpeech test-clean~\citep{librispeech}, while systematically dropping quantizers at different cut-off levels.
+We observe that having fewer than 24 quantizers comes at a cost on WER; however, having more than that is not beneficial. Thus we conclude that having even more nuanced representation (e.g., continuous embeddings), might not lead to extra gains.
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Precision of predicted timestamps}. F1 and mIoU metrics, calculated on LS test-clean.}
+\label{tab:alignments}
+\begin{sc}
+\begin{tabular}{lcccccc}
+\toprule
+Metric & {CrisperWhisper} & {Whisper large-v3} & \oursASR \\
+\midrule
+F1 & 0.85 & 0.22 & 0.73 \\
+mIoU & 0.65 & 0.30 & 0.54\\
+\bottomrule
+\end{tabular}
+\end{sc}
+\end{table}
+
+\section{TTS Baseline evaluations}
+\label{sec:app:tts_baselines}
+We present how the baselines presented in Section~\ref{sec:experiments:tts} were evaluated.
+All baselines are given the same audio conditioning extracts of no more than 10 sec. for each speaker. The code for running the baselines is available at \href{https://github.com/kyutai-labs/tts_longeval}{github.com/kyutai-labs/tts\_longeval}.
+
+\textbf{ElevenLabs.} For monologues, we directly feed the entire script. For dialogs, we feed turns one by one, with no context (except for the speaker conditioning).
+
+\textbf{Dia.} Dia was only trained to generate short audio extracts. For dialogs, we provide the turns used for speaker conditioning, and the last turn that was generated (e.g. from the other speaker than we are currently generating). We take care to provide them in such an order that speaker alternate. Even with limited context, generation sometimes failed, in which case we revert to generating the segment with no context
+(always keeping the speaker conditioning).
+
+\textbf{Orpheus.} For monologues, we generate the sentences one by one
+with a context given by the speaker conditioning audio sample, along with 
+one sentence of context. When that fails, we only give the audio conditioning sample. For dialogs, as Orpheus is single speaker, we generate the turns one by one, only with the speaker conditioning as context.
+
+\textbf{CSM.} CSM normally only supports dialogs. For monologues,
+we have to repeat twice the same speaker in a row, which is out of distribution. We experimented with various parameters (deduplicating
+the speaker conditioning to pretend they are two speakers, different context size) and found the best results in terms of WER was obtained
+by keeping a single speaker conditioning, providing no extra past context, and still having two segments in a row with the same speaker id.
+For dialogs, we start with giving the turns used for speaker conditioning. Then we experimented with giving no context (short form), or giving up to 6 turns of context (long form). In case where the context would be too long and CSM raised an error, we would try again with a shorter context.
+
+
+\section{Human evaluations}
+\label{sec:app:human_evaluations}
+
+\subsection{Models and dataset}
+The models are evaluated using the same parameters as described in Section~\ref{sec:app:tts_baselines}. For CSM, we only evaluate the version with no context which was giving the best WER.
+We use a subset of the data provided in Section~\ref{sec:app:eval_data},
+namely 15 monologues, and 9 dialogs (3 from each category) per language. For each script, we rate both the first 30 seconds, and the last 30 seconds separately.
+
+\subsection{Subjective evaluation tasks}
+
+Raters were payed on average 9.3£ per hour.
+
+
+\textbf{Quality.}
+We also organize a MUSHRA style study for evaluating the audio quality, although with no explicit reference. For each script, the rater is presented with all the models' generations, and must note each one on a scale from 1 to 100. In particular, the instruction is as follows:
+``\emph{How would you rate the overall quality of these audio clips?
+Consider aspects such as clarity, balance, richness, and naturalness}''.
+We report the aggregated ratings, with the confidence intervals being the plus and minus the standard deviation of the mean estimator.
+For each language, 800 scripts were rated (each time covering all methods).
+
+\textbf{Speaker similarity.}
+We present the rater with the audio used for speaker conditioning (either single speaker or the concatenation of both speakers for dialogs), along with two generations from two random models given the same script. The rater must choose which extract has speakers sound the most like the reference audio. The instruction is as follow:
+``\emph{The reference contains the voices of one or two speakers. The audio files below it contain either a monologue or a dialog. Which voices sound more like the speakers in the reference?}''
+The win-rate is summarized as an \emph{Elo score}, as described in the next paragraph. 1600 pairs were rated per language.
+
+\textbf{Bayesian Elo Score.}
+The Elo score allows the ranking of models based on some pairwise comparisons of audio samples. Given two models $A$ and $B$, the probability that $A$ is preferred over $B$ is:
+\begin{equation}
+    P(A>B) = \frac{1}{1 +10^{(E_B-E_A)/400}},
+    \label{eq:elo}
+\end{equation}
+where $E_A$ and $E_B$ are the Elo scores of each model. 
+Unlike a traditional Elo score, the Bayesian Elo score uses a Gamma prior,
+so that one can derive confidence intervals over the posterior distribution.
+
+
+We denote $S_A = 10^{(E_A - c)/400}$, with $c$ freely chosen in $\reals$. Then eq. \eqref{eq:elo} becomes
+\begin{equation}
+    P(A>B) = \frac{S_A}{S_A+S_B},
+\end{equation}
+which is a Bradley-Terry \citep{bradley_terry} model. We use the iterative by \citet{carondoucet} where $S_A^0$ follows a Gamma prior with parameters $\alpha^0, \beta^0$. 
+By denoting $w_A$ the number of times where method $A$ won against any other method and $w_{AB}$ the number of times where $A$ and $B$ are compared, $S_A^t$ is computed with the following update rule:
+\begin{equation}
+    S_A^{t+1} = \frac{\alpha^0 +w_A}{\beta^0 +\sum_{B \neq A}\frac{w_{AB}}{S_A^t+S_B^t}},
+\end{equation}
+given as the mean of the Gamma distribution with updated parameters $\alpha_A^{t + 1}$, $\beta_A^{t +1 }$ given by
+\begin{equation}
+    \alpha_A^{t+1} = \alpha^0 + w_A,\qquad
+    \text{and}\qquad \beta_A^{t+1} = 
+    \beta^0 + \sum_{B\neq A} \frac{w_{A,B}}{S_A^t + S_B^t}.
+\end{equation}
+Iterating over $t$ allows reaching a fix point, we run 30 of them,
+once we have collected all the pairs.
+We use $\alpha=0.1, \beta=0.1, c=2000$ so that, in absence of any data, $S_A=1$ and $E_A = 2000$. Confidence intervals are 95\% confidence interval according to the posterior.
+
+\section{Latency, RTF, and throughput}
+\label{sec:app:latency}
+
+We report in Table~\ref{tab:latency} latency, RTF, and throughput
+for various batch sizes for our model. Those numbers are obtained under
+real workload, with no synchronization between the batch elements,
+that is, requests for TTS arrive at the service at \emph{random times}.
+
+\paragraph{Batch size of 1.}
+The latency represents the time to first audio, including all computations. Given that we use a delay $\tau=2$ sec., or 25 steps, we need to account for the time that it takes to run those.
+We have to account for two times: $d_b$ the duration it takes
+to run a single step of the backbone, and $d_q$ the time it takes to run
+the small Transformer over the $Q$ dimension. For the first 25 steps, we need only to run the backbone transformer, as no audio is produced.
+When the batch size is 1, the time to first token is given by $(\tau f_r - 1) \cdot d_b + (1 + 2)\cdot (d_b + d_q)$.  The extra $2\cdot (d_b + d_q)$ comes from the fact that, following~\citet{moshi}, we use an \emph{acoustic delay} of 2 steps between the first codebook and the remaining ones.
+With values of $d_b=5\,\text{ms}$, and $d_q=25\,\text{ms}$, we obtained the given results. The throughput and RTF are derived using only the time per step of $d_b + d_q$.
+Note that even though the small Transformer over $Q$ is smaller in terms of dimensions and layers per codebook, it represents a significant amount of computation due to us using $Q=32$ codebooks, leading to a large number of kernels being scheduled.
+
+\paragraph{Interleaved steps for higher batch sizes.} 
+When needing to handle requests that are not in sync, with a larger batch size, we cannot just skip the small Transformer over $Q$, as not everyone will be at the same point in the generation. We use a 2-for-1 interleaving pattern, where if any of the batch items is in the initial phase,
+we interleave two steps of backbone only, followed by a full step.
+For items in the initial phase, this gives an effective time per step
+of $(d_b + 2 \cdot d_q) / 3$.
+
+\section{TTS results on LibriSpeech and Seed-en training on public datasets}
+\label{app:sec:libri_seed}
+
+\begin{table}
+\centering
+\caption{\textbf{Resilience of existing watermarking techniques.} 
+We compare the resilience of open-source watermarking techniques when applied to synthesized audio.
+After having applied the watermark, we encode and decode the audio using the Mimi codec~\citep{moshi} with 32 RVQ levels.
+The Perth watermark was released at \href{https://github.com/resemble-ai/perth}{github.com/resemble-ai/perth}.}
+\label{tab:watermark}
+\begin{tabular}{l|rr}
+\toprule
+\textbf{Watermarking model} & \textbf{Detection rate} (\%) & \textbf{Detection rate after Mimi} (\%)\\
+\midrule
+AudioSeal~\citep{sanroman2024proactive} & 100.0\% & 45.2\%\\
+Resemble AI Perth & 100.0\% & 0.0\%\\
+Silent Cipher~\citep{singh24_interspeech} & 82.3\% & 0.0\%\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+We experiment with training \oursTTS{} using only the publicly available datasets. 
+
+\paragraph{Architecture and training.} This variant of the model uses a 300m backbone (24 layers with dimension 1024), $Q=16$ codebooks. The small Transformer over $Q$ is made more compact following~\citep{hibiki}, e.g. sharing weights for all codebooks from $[9-16]$, $[17, 24]$, along with using only 4 layers per  step. We use a delay of $\tau=1.28\,\text{sec.}$, or 16 steps.
+It receives no speaker conditioning, instead it has a probability of 20\% of seeing the start of the audio with no text, and a probability of 10\% of having this prefix completely empty, which will be used for applying classifier-free-guidance~\citep{ho2022classifier,audiogen}. The model receives no text 20\% of the time.
+The model is trained for 500k updates with a batch size of 64 on 16 H100 GPUs, using the same optimization parameters as described in Section~\ref{sec:hyperparams}.
+
+\paragraph{Dataset} We use a similar mixture as described in Section~\ref{sec:app:short-form}, using the following datasets: AMI, EARNINGS22, GIGASpeech, SPGISpeech, TED-LIUM, VoxPopuli. Besides, we use LibriHeavy~\citep{kang2023libriheavy} and Emilia~\citep{he2024emilia}.
+For LibriHeavy, we use the original formatted text. We filter out data with a high word error rate compared with Whisper transcripts. This totals to 88k hours of speech.
+
+\paragraph{Evaluations}
+
+We evaluate our approach on LibriSpeech test clean, with punctuation, following the same protocol as \citet{chen2024f5} (F5-TTS). When evaluating our model, we provide the speaker conditioning sample as a prefix.
+We use CFG factor $\alpha = 3$.
+We use the exact same evaluation set as F5-TTS, along with the same text normalization, ASR model (\texttt{whisper-large-v3}), and reuse their code for evaluating the speaker similarity to the original conditioning audio.
+We similarly evaluate on the Seed test en dataset~\citep{anastassiou2024seed}, following~\citep{du2025cosyvoice}.
+We provide support for those benchmarks in our evaluation codebase \footnote{\href{https://github.com/kyutai-labs/tts_longeval}{github.com/kyutai-labs/tts\_longeval}}.
+We release the $Q=16$ version publicly\footnote{\href{https://huggingface.co/kyutai/tts-0.75b-en-public}{huggingface.co/kyutai/tts-0.75b-en-public}}. This model allows for voice cloning through prefixing, although when generating turn-by-turn in the same setup as Table~\ref{tab:longform_similarity}, with a score of 74.9\%, against 80.9\% for our main model. This level of speaker similarity is in line with some of the baselines like CSM and it thus seems safe to open source it.
+
+\paragraph{Results}
+
+Results are provided in Table~\ref{tab:tts-libri}.
+We achieve a large improvement of 0.3\% of WER over the best F5-TTS model, however, with a small decrease in speaker similarity. While the diffusion based approach F5-TTS can generate faster a single script, it suffers from a higher latency, due to its non causal nature requiring the entire audio to be generated at once. Finally, we again show that the ease of batching of our methods allows for more than 100x throughput (duration of audio generated per second of computation) even for requests arriving unsynchronized, as explained in Section~\ref{sec:app:latency}.
+
+Finally, we also provide results on the Seed test en dataset in Table~\ref{tab:tts-seed}. Our 16 codebooks model beats F5-TTS and is quite close to Cosyvoice 3-1.5B (RL)~\citep{du2025cosyvoice}, while being twice as small, and not requiring a reinforcement learning based fine tuning stage.
+
+\section{On the efficacy of watermarking for TTS}
+\label{app:sec:watermark}
+
+We challenge the practice of relying on watermarking to limit potentially negative usage of TTS models. First, when open sourcing such a model, the watermarking stage can be disabled in the code. Besides, even if the watermark was built in the model, we noticed that most existing state of the art watermarking methods would almost completely disappear after a single round of encoding/decoding with Mimi with 32 codebooks, e.g. with minimal distortions. Results are provided in Table~\ref{tab:watermark}. Only AudioSeal~\citep{sanroman2024proactive} is still detected half of the time. We believe this is because Mimi was not released at the time those watermark models were trained, and in particular, Mimi was trained with no spectrogram or waveform reconstruction loss, giving more freedom to how the input can be resynthesized, which the watermarking technique did not account for. This shows how fragile those approaches can be in the face of future innovation. The search for a reliable watermarking method remains an open and important question.
+
+\section{Supplementary ablations on DSM-TTS}
+\label{app:sec:ablations}
+We now provide supplementary ablations.
+
+First we compare training \oursTTS{} with Mimi and with EnCodec~\citep{encodec} in Table~\ref{tab:tts-encodec}. Training and evaluation are performed as in Section~\ref{app:sec:libri_seed}. We notice that while worse than with Mimi, our method generalizes well to other codecs. 
+
+Second, we study the impact of the lookahead and action stream presented in Section~\ref{sec:dsm_tts} in Table~\ref{tab:tts-variants}. We train and evaluate as in Section~\ref{sec:experiments:tts}, either without a lookahead stream, or simply reusing the original \oursTTS{} model, we ignore its action prediction and instead use a fixed padding strategy between words: we either force a fixed amount of padding after the start of the word, or a fixed amount of padding after its last text token. We notice that not using the lookahead has limited impact on the speaker similarity, but deteriorates the WER. On the other hand, using a fixed padding pattern has a clear impact on the speaker similarity, likely due to the fixed and unnatural prosody.
+
+\begin{table}[t]
+\caption{Comparing \oursTTS{} trained with Mimi and with EnCodec~\citep{encodec}. The number of RVQ levels in EnCodec was selected to roughly match the number of tokens per second with Mimi, keeping still a sufficient number to ensure decent quality. Training and evaluations are done as in Table~\ref{tab:tts-libri}.}
+\label{tab:tts-encodec}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|llll|ll}
+\toprule
+\textbf{Model}                & \textbf{RVQ levels} & \textbf{Frame rate} & \textbf{Tokens per sec.} & \textbf{Bandwidth} & \textbf{WER} & \textbf{Speaker Sim.} \\
+\midrule
+F5-TTS               & -          & -          & -               & -         & 2.42 \%           & 0.66                       \\
+DSM-TTS with Mimi    & 32         & 12.5 Hz    & 400             & 4.4 kbps  & 1.68 \%           & 0.71                       \\
+DSM-TTS with Encodec & 8          & 75 Hz      & 600             & 6 kbps    & 2.45 \%           & 0.68                      \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+
+\begin{table}[t]
+\caption{We compare variants of \oursTTS{}, in particular without a lookahead stream, and with a fixed padding strategy between words, e.g. without an action stream. For the fixed padding, we either force a fixed amount of padding after the start of the word, or a fixed amount of padding after its last text token. Training and evaluation is done as in Section~\ref{sec:experiments:tts}.}
+\label{tab:tts-variants}
+\begin{tabular}{lllll}
+\toprule
+\textbf{Model variant}                       & \textbf{WER English} & \textbf{WER French} & \textbf{Spk. Sim. English} & \textbf{Spk. Sim. French} \\
+\midrule
+DSM-TTS baseline            & 1.60\%      & 3.02\%     & 0.743             & 0.745            \\
+No lookahead                & 3.51\%      & 3.25\%     & 0.743             & 0.746            \\
+Fixed padding, 4 from start & 2.86\%      & 3.60\%     & 0.694             & 0.690            \\
+Fixed padding, 5 from start & 2.69\%      & 3.48\%     & 0.691             & 0.700            \\
+Fixed padding, 2 from end   & 2.32\%      & 3.13\%     & 0.715             & 0.698           \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}
+    \centering
+    \begin{tcolorbox}[width=\textwidth, colback=white, colframe=black, boxrule=0.8pt, fonttitle=\bfseries, title={Dialog example, daily life}]
+[LIU]: Hey Jean, how's it going with the studies?
+
+[JEAN]: Not bad, Liu. Just trying to keep up with everything.
+
+[LIU]: I hear you. Have you tried any study apps lately?
+
+[JEAN]: Not really. I've been sticking to the old pen and paper method.
+
+[LIU]: Oh, you should try this new app. It's really helpful.
+
+[JEAN]: What's it called?
+
+[LIU]: It's called "StudyBuddy." It helps you organize your notes and has flashcards too.
+
+[JEAN]: Sounds interesting. How does it work?
+
+[LIU]: You can upload your notes, create flashcards, and it even has a quiz feature.
+
+[JEAN]: That sounds really useful. I'll give it a try.
+
+[LIU]: Great! I think you'll find it really helpful.
+
+[JEAN]: Alright, I'll download it tonight.
+
+[LIU]: Awesome. Let me know how it goes.
+
+[JEAN]: Will do. Thanks for the recommendation, Liu.
+
+[LIU]: No problem, anytime.
+
+[JEAN]: Hey, I just downloaded the app. It looks pretty good.
+
+[LIU]: Glad to hear it. Have you tried any of the features yet?
+
+[JEAN]: I uploaded some notes and made a few flashcards. It's really user-friendly.
+
+[LIU]: That's great to hear. I find the quiz feature really helpful too.
+
+[JEAN]: Yeah, I'm going to try that next. Thanks again, Liu.
+
+[LIU]: You're welcome, Jean. Good luck with your studies!
+
+[JEAN]: Thanks! Talk to you later.
+
+[LIU]: Take care, Jean. See you in class!
+    \end{tcolorbox}
+    \caption{Example of dialog generated with an LLM to serve as evaluation
+    data. This dialog covers daily life topics.}
+    \label{fig:dialog-example-daily}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \begin{tcolorbox}[width=\textwidth, colback=white, colframe=black, boxrule=0.8pt, fonttitle=\bfseries, title={Dialog example, daily life}]
+[LUIS]: Mrs. Al-Falasi, have you heard of hydroxyapatite before?
+
+[MRS AL-FALASI]: Yes, Luis. I know it's related to bones and teeth, but that's about it.
+
+[LUIS]: Great start! Hydroxyapatite is a naturally occurring mineral form of calcium apatite. It has the formula Ca5(PO4)3(OH).
+
+[MRS AL-FALASI]: That sounds quite complex. What makes it so important?
+
+[LUIS]: It's the main mineral component of bones and teeth. It provides rigidity and strength.
+
+[MRS AL-FALASI]: That makes sense. Is it used in any medical applications?
+
+[LUIS]: Yes, synthetic hydroxyapatite is used in medical and dental applications for bone grafts and implants.
+
+[MRS AL-FALASI]: Really? How does it work in those contexts?
+
+[LUIS]: It has biocompatible properties, which means it's suitable for use in body tissue repair.
+
+[MRS AL-FALASI]: That's fascinating. Are there any other uses for it?
+
+[LUIS]: Absolutely. Hydroxyapatite can be used in coatings on orthopedic implants to promote bone growth.
+
+[MRS AL-FALASI]: I didn't know that. It seems very versatile.
+
+[LUIS]: It is. It's also used in toothpaste and mouthwash to help remineralize enamel.
+
+[MRS AL-FALASI]: That explains why it's so beneficial for dental health. Anything else I should know?
+
+[LUIS]: The material is effective in drug delivery systems, especially for bone diseases.
+
+[MRS AL-FALASI]: That's impressive. Are there any non-medical uses?
+
+[LUIS]: Yes, hydroxyapatite is utilized in chromatography for protein purification.
+
+[MRS AL-FALASI]: Interesting. How about its sources? Where does it come from?
+
+[LUIS]: It can be derived from natural sources such as animal bones or synthesized chemically.
+
+[MRS AL-FALASI]: That's good to know. Any other applications I might not be aware of?
+
+[LUIS]: Its porous structure makes it useful in filtering and ion-exchange applications.
+
+[MRS AL-FALASI]: That's a lot of information. Thanks for explaining, Luis.
+
+[LUIS]: You're welcome, Mrs. Al-Falasi. Hydroxyapatite is truly a remarkable material.
+    \end{tcolorbox}
+    \caption{Example of dialog generated with an LLM to serve as evaluation
+    data. This dialog covers technical topics.}
+    \label{fig:dialog-example-tech}
+\end{figure}

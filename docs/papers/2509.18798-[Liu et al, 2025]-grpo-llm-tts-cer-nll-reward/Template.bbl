@@ -1,0 +1,118 @@
+\begin{thebibliography}{10}
+
+\bibitem{valle}
+Chengyi Wang, Sanyuan Chen, Yu~Wu, Ziqiang Zhang, Long Zhou, Shujie Liu, Zhuo Chen, Yanqing Liu, Huaming Wang, Jinyu Li, et~al.,
+\newblock ``Neural codec language models are zero-shot text to speech synthesizers,''
+\newblock {\em arXiv preprint arXiv:2301.02111}, 2023.
+
+\bibitem{lauragpt}
+Zhihao Du, Jiaming Wang, Qian Chen, Yunfei Chu, Zhifu Gao, Zerui Li, Kai Hu, Xiaohuan Zhou, Jin Xu, Ziyang Ma, et~al.,
+\newblock ``Lauragpt: Listen, attend, understand, and regenerate audio with gpt,''
+\newblock {\em arXiv preprint arXiv:2310.04673}, 2024.
+
+\bibitem{cosyvoice}
+Zhihao Du, Qian Chen, Shiliang Zhang, Kai Hu, Heng Lu, Yexin Yang, Hangrui Hu, Siqi Zheng, Yue Gu, Ziyang Ma, et~al.,
+\newblock ``Cosyvoice: A scalable multilingual zero-shot text-to-speech synthesizer based on supervised semantic tokens,''
+\newblock {\em arXiv preprint arXiv:2407.05407}, 2024.
+
+\bibitem{cosyvoice2}
+Zhihao Du, Yuxuan Wang, Qian Chen, Xian Shi, Xiang Lv, Tianyu Zhao, Zhifu Gao, Yexin Yang, Changfeng Gao, Hui Wang, et~al.,
+\newblock ``Cosyvoice 2: Scalable streaming speech synthesis with large language models,''
+\newblock {\em arXiv preprint arXiv:2412.10117}, 2024.
+
+\bibitem{cosyvoice3}
+Zhihao Du, Changfeng Gao, Yuxuan Wang, Fan Yu, Tianyu Zhao, Hao Wang, Xiang Lv, Hui Wang, Chongjia Ni, Xian Shi, et~al.,
+\newblock ``Cosyvoice 3: Towards in-the-wild speech generation via scaling-up and post-training,''
+\newblock {\em arXiv preprint arXiv:2505.17589}, 2025.
+
+\bibitem{llasa}
+Zhen Ye, Xinfa Zhu, Chi-Min Chan, Xinsheng Wang, Xu~Tan, Jiahe Lei, Yi~Peng, Haohe Liu, Yizhu Jin, Zheqi Dai, et~al.,
+\newblock ``Llasa: Scaling train-time and inference-time compute for llama-based speech synthesis,''
+\newblock {\em arXiv preprint arXiv:2502.04128}, 2025.
+
+\bibitem{sparktts}
+Xinsheng Wang, Mingqi Jiang, Ziyang Ma, Ziyu Zhang, Songxiang Liu, Linqin Li, Zheng Liang, Qixi Zheng, Rui Wang, Xiaoqin Feng, et~al.,
+\newblock ``Spark-tts: An efficient llm-based text-to-speech model with single-stream decoupled speech tokens,''
+\newblock {\em arXiv preprint arXiv:2503.01710}, 2025.
+
+\bibitem{seedtts}
+Philip Anastassiou, Jiawei Chen, Jitong Chen, Yuanzhe Chen, Zhuo Chen, Ziyi Chen, Jian Cong, Lelai Deng, Chuang Ding, Lu~Gao, et~al.,
+\newblock ``Seed-tts: A family of high-quality versatile speech generation models,''
+\newblock {\em arXiv preprint arXiv:2406.02430}, 2024.
+
+\bibitem{ppo}
+John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg Klimov,
+\newblock ``Proximal policy optimization algorithms,''
+\newblock {\em arXiv preprint arXiv:1707.06347}, 2017.
+
+\bibitem{REINFORCE}
+Arash Ahmadian, Chris Cremer, Matthias Gall{\'e}, Marzieh Fadaee, Julia Kreutzer, Olivier Pietquin, Ahmet {\"U}st{\"u}n, and Sara Hooker,
+\newblock ``Back to basics: Revisiting {REINFORCE}-style optimization for learning from human feedback in {LLM}s,''
+\newblock in {\em Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)}, aug 2024, pp. 12248--12267.
+
+\bibitem{dpo}
+Rafael Rafailov, Archit Sharma, Eric Mitchell, Christopher~D Manning, Stefano Ermon, and Chelsea Finn,
+\newblock ``Direct preference optimization: Your language model is secretly a reward model,''
+\newblock in {\em Advances in Neural Information Processing Systems}, 2023, vol.~36, pp. 53728--53741.
+
+\bibitem{emodpo}
+Xiaoxue Gao, Chen Zhang, Yiming Chen, Huayun Zhang, and Nancy~F. Chen,
+\newblock ``Emo-dpo: Controllable emotional speech synthesis through direct preference optimization,''
+\newblock in {\em ICASSP 2025 - 2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 2025, pp. 1--5.
+
+\bibitem{dpollmtts}
+Jinchuan Tian, Chunlei Zhang, Jiatong Shi, Hao Zhang, Jianwei Yu, Shinji Watanabe, and Dong Yu,
+\newblock ``Preference alignment improves language model-based tts,''
+\newblock in {\em ICASSP 2025 - 2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 2025, pp. 1--5.
+
+\bibitem{koeltts}
+Shehzeen Hussain, Paarth Neekhara, Xuesong Yang, Edresson Casanova, Subhankar Ghosh, Mikyas~T. Desta, Roy Fejgin, Rafael Valle, and Jason Li,
+\newblock ``Koel-tts: Enhancing llm based speech generation with preference alignment and classifier free guidance,''
+\newblock {\em arXiv preprint arXiv:2502.05236}, 2025.
+
+\bibitem{limitdpo}
+Yong Lin, Skyler Seto, Maartje Ter~Hoeve, Katherine Metcalf, Barry-John Theobald, Xuan Wang, Yizhe Zhang, Chen Huang, and Tong Zhang,
+\newblock ``On the limited generalization capability of the implicit reward model induced by direct preference optimization,''
+\newblock in {\em Findings of the Association for Computational Linguistics: EMNLP 2024}, nov 2024, pp. 16015--16026.
+
+\bibitem{isdposuper}
+Shusheng Xu, Wei Fu, Jiaxuan Gao, Wenjie Ye, Weilin Liu, Zhiyu Mei, Guangju Wang, Chao Yu, and Yi~Wu,
+\newblock ``Is dpo superior to ppo for llm alignment? a comprehensive study,''
+\newblock in {\em Proceedings of the 41st International Conference on Machine Learning}, 2024.
+
+\bibitem{DPOvsGRPO}
+Chengzhuo Tong, Ziyu Guo, Renrui Zhang, Wenyu Shan, Xinyu Wei, Zhenghao Xing, Hongsheng Li, and Pheng-Ann Heng,
+\newblock ``Delving into rl for image generation with cot: A study on dpo vs. grpo,''
+\newblock {\em arXiv preprint arXiv:2505.17017}, 2025.
+
+\bibitem{diffro}
+Changfeng Gao, Zhihao Du, and Shiliang Zhang,
+\newblock ``{Differentiable Reward Optimization for LLM based TTS system},''
+\newblock in {\em {Interspeech 2025}}, 2025, pp. 2450--2454.
+
+\bibitem{deepseekmath}
+Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Xiao Bi, Haowei Zhang, Mingchuan Zhang, Y.~K. Li, Y.~Wu, et~al.,
+\newblock ``Deepseekmath: Pushing the limits of mathematical reasoning in open language models,''
+\newblock {\em arXiv preprint arXiv:2402.03300}, 2024.
+
+\bibitem{whisper}
+Alec Radford, Jong~Wook Kim, Tao Xu, Greg Brockman, Christine Mcleavey, and Ilya Sutskever,
+\newblock ``Robust speech recognition via large-scale weak supervision,''
+\newblock in {\em Proceedings of the 40th International Conference on Machine Learning}, Andreas Krause, Emma Brunskill, Kyunghyun Cho, Barbara Engelhardt, Sivan Sabato, and Jonathan Scarlett, Eds. 23--29 Jul 2023, vol. 202 of {\em Proceedings of Machine Learning Research}, pp. 28492--28518, PMLR.
+
+\bibitem{commonvoice}
+R.~Ardila, M.~Branson, K.~Davis, M.~Henretty, M.~Kohler, J.~Meyer, R.~Morais, L.~Saunders, F.~M. Tyers, and G.~Weber,
+\newblock ``Common voice: A massively-multilingual speech corpus,''
+\newblock in {\em Proceedings of the 12th Conference on Language Resources and Evaluation (LREC 2020)}, 2020, pp. 4211--4215.
+
+\bibitem{funasr}
+Zhifu Gao, Zerui Li, Jiaming Wang, Haoneng Luo, Xian Shi, Mengzhe Chen, Yabin Li, Lingyun Zuo, Zhihao Du, and Shiliang Zhang,
+\newblock ``Funasr: A fundamental end-to-end speech recognition toolkit,''
+\newblock in {\em Interspeech 2023}, 2023, pp. 1593--1597.
+
+\bibitem{wavlm-sv}
+Zhengyang Chen, Sanyuan Chen, Yu~Wu, Yao Qian, Chengyi Wang, Shujie Liu, Yanmin Qian, and Michael Zeng,
+\newblock ``Large-scale self-supervised speech representation learning for automatic speaker verification,''
+\newblock in {\em ICASSP 2022 - 2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 2022, pp. 6147--6151.
+
+\end{thebibliography}

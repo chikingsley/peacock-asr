@@ -1,0 +1,104 @@
+\section{Experimental Setup}
+
+\paragraph{Evaluation metric}
+We report Phonetic Feature Error Rate (PFER), an edit distance using articulatory features from PanPhon \citep{panphon}, averaged over the number of phones and computed as in \autoref{eq:pfer} for PR. 
+Each feature contributes $\frac{1}{24}$ distance unit, while insertion and deletion cost 1 unit. 
+The edit distance $D$ grows linearly with the sequence length and has no upper bound.
+\begin{equation}
+\label{eq:pfer}\small
+    \text{PFER} = \frac{1}{\text{\#phone}}\sum_{i=1}^N D(\text{feat}(\text{hyp}_i),\text{feat}(\text{ref}_i))
+\end{equation}
+
+Unlike Phone Error Rate (PER), which considers only exact phone matches, or Phone Token Error Rate (PTER), which treats diacritics and modifiers as separate tokens, PFER computes the edit distance in terms of articulatory features---interpretable subphone attributes (\textit{e.g.} voicing)---capturing phonetic similarity in a fine-grained fashion. 
+Previous studies \cite{taguchi23_interspeech, zhu-etal-2025-zipa} define PFER as the mean articulatory feature edit distance over the evaluation set. In contrast, we normalize it by the number of phones in the reference transcription to measure the proportion of feature errors per phone.
+
+
+\paragraph{Decoding hyperparameters}
+We use a CTC weight (denoted as \texttt{ctc}) of 0.3 and a beam size (denoted as \texttt{beam}) of 3 during decoding for all reported numbers unless specified. Further details on the choice of hyperparameters are discussed in \autoref{sec:analysis-ctc-weight}.
+
+\paragraph{Evaluation datasets}
+For unseen languages, we evaluate on three datasets: DoReCo \cite{paschen2020doreco}, VoxAngeles \cite{chodroff2024voxangeles}, and Tusom2021 \cite{mortensen2021tusom2021}.
+% \kalvin{add details about datasets}
+DoReCo is a dataset of 50+ languages (with broad transcriptions) intended for documentation of small or endangered languages; we use a 45-language subset.\footnote{
+% Fixed: \reviewer{why 45 lang subset?}
+We use the same DoReCo subset as \citet{zhu-etal-2025-zipa,zhu-etal-2024-taste}, listed in \autoref{sec:appendix-doreco}. They removed languages mostly due to licensing issues, while others were not accessible during dataset creation.
+}
+VoxAngeles \citep{chodroff2024voxangeles} is a postprocessed version of the UCLA Phonetics Lab Archive \citep{ucla2009} containing 95 languages.
+Tusom is a low-data Tangkhulic language of India not included in the training data. Tusom2021 \citep{mortensen2021tusom2021} consists of narrow phonetic transcriptions (unlike the broad transcriptions from G2P on which \POWSM was trained) of individual Tusom words.
+We removed the tones.
+% \kalvin{how narrow are doreco and voxangeles}
+
+We also test on five datasets on varieties of English: the Buckeye Corpus \cite{pitt2005buckeye} and DoReCo South-England represent dialectal variation, while L2-ARCTIC \cite{zhao2018l2arctic}, EpaDB \cite{vidal2019epadb}, and SpeechOcean762 \cite{zhang2021speechocean762} contain L2 speakers.
+% For L2-ARCTIC we only use the "scripted" subset with shorter utterance durations.
+For L2-ARCTIC, we used the manually annotated phoneme transcriptions (which \citet{zhu-etal-2025-zipa} termed \textit{L2-Perceived}) rather than G2P dictionary-based transcriptions.  % \kalvin{technically they come from forced alignment but forced alignment was trained with pronouncing dicts}
+% https://psi.engr.tamu.edu/l2-arctic-corpus/
+% https://huggingface.co/datasets/KoelLabs/L2Arctic
+The manual transcriptions reflect what the speaker actually said, whereas the dictionary-based version enforces a single pronunciation variant.\footnote{For instance, ``crayon'' in American English can be pronounced as 
+% \ipa{/ˈkɹæn/}, \ipa{/ˈkɹej.ɔn/}, or \ipa{/ˈkɹej.ɒn/} 
+\textipa{/\textprimstress k\*r\ae n/}, \textipa{/\textprimstress k\*rej.On/}, or \textipa{/\textprimstress k\*rej.6n/} \citep{vaux2003harvard} (among others), but the CMU Pronouncing Dictionary \citep{rudnicky2003cmu} only lists one.}
+Manual inspection by a trained phonologist further showed the L2-ARCTIC transcriptions to be of extremely poor quality.
+For the five aforementioned datasets, we use preprocessed datasets from \citet{zhu-etal-2025-zipa}\footnote{\texttt{https://huggingface.co/anyspeech}} and Koel Labs\footnote{texttt{https://huggingface.co/KoelLabs}} for better transcription quality. 
+%\drm{Something is wrong with this sentence. It should also be mentioned that manual inspection showed the L2-ARCTIC transcriptions to be of extremely poor quality.} \chinjou{we are switching to l2-arctic-perceived, which would be better}
+% \shikhar{Including long samples from suitcase is possible but we need to devise a way to handle long audio which is beyond the scope of this particular work}
+
+We then evaluated our model on in-domain data from IPAPack++, the dataset seen during training. We followed \citet{zhu-etal-2025-zipa} in using LibriSpeech for English, AISHELL for Mandarin, and MLS for European languages, and additionally evaluated on IISc-MILE Tamil \cite{a2022subworddictionarylearningsegmentation} for Tamil and KSC \cite{khassanov-2021-crowdsourced-ksc} for Kazakh.
+
+For ASR and P2G, we evaluate with FLEURS.
+
+See \autoref{tab:test-data-stats} for more details about our evaluation datasets.
+
+\begin{table}[h]
+\vspace{-2mm}
+\centering
+\small
+\setlength{\tabcolsep}{4pt} % Adjust column spacing
+\renewcommand{\arraystretch}{1.2}
+\resizebox{0.95\columnwidth}{!}{
+\begin{tabular}{c c c c c c}
+\toprule
+\rowcolor{gray!10}
+\addlinespace[0.10cm]
+\multicolumn{6}{l}{\textbf{PR (In-domain)}}\\
+\texttt{eng} & \texttt{deu} & \texttt{nld} & \texttt{fra} & \texttt{ita} & \texttt{spa} \\ 
+10.58 & 14.27 & 12.76 & 10.07 & 5.27 & 10.00\\
+\texttt{por} & \texttt{pol} & \texttt{tam} & \texttt{kaz} & \texttt{cmn}\\
+3.74 & 2.14 & 16.58 & 7.07 & 10.02 \\
+\addlinespace[0.10cm]
+\rowcolor{gray!10}
+\addlinespace[0.10cm]
+\multicolumn{6}{l}{\textbf{PR (Out-of-domain: Unseen languages)}}\\
+% \multicolumn{2}{c}{DoReCo} &  \multicolumn{2}{c}{VoxAngeles} & \multicolumn{2}{c}{Tusom2021}\\
+% \multicolumn{2}{c}{19.18} & \multicolumn{2}{c}{1.58} & \multicolumn{2}{c}{1.16}\\
+DoReCo &  VoxA. & Tusom.\\
+19.18 & 1.58 & 1.16\\
+\addlinespace[0.10cm]
+\rowcolor{gray!10}
+\addlinespace[0.10cm]
+\multicolumn{6}{l}{\textbf{PR (Out-of-domain: Language variation)}}\\
+Buckeye & DRC-SE & L2-ARC & EpaDB & SO762\\
+7.88 & 0.77 & 3.66 & 2.74 & 2.32\\ 
+\midrule
+\midrule
+\rowcolor{gray!10}
+\multicolumn{6}{l}{\textbf{ASR (FLEURS)}}\\
+\texttt{afr} & \texttt{orm} & \texttt{aze}  & \texttt{pan} &\texttt{tgk}  & \texttt{mkd} \\
+0.66 & 0.13 & 2.37 & 1.48 & 1.96 & 2.45 \\
+\texttt{bos} & \texttt{slv} \\
+2.45 & 1.76\\
+\bottomrule
+  \end{tabular}
+}
+ \caption{Duration of the test sets for different tasks (in hours). Abbreviated datasets (in order): VoxAngeles, Tusom2021, DoReCo South-England, L2-ARCTIC, SpeechOcean762.}
+\label{tab:test-data-stats}
+\vspace{-2mm}
+\end{table}
+
+
+\paragraph{Baselines}
+We evaluate all PR baselines without further training with IPAPack++. See Appendix \autoref{sec:appendix-baseline} for more details about training data and language coverage.
+Allosaurus \cite{li2020universal,li2021hierarchical} uses a phone-level CTC to train a language-agnostic model and applies language-specific allophone-to-phoneme mappings. 
+Wav2Vec2Phoneme \citep{xu22b_interspeech}, MultIPA \cite{taguchi23_interspeech} and Allophant \cite{glocker23_interspeech} fine-tune XLS-R \citep{babu22_interspeech} with different objectives: Wav2Vec2Phoneme maps unseen phonemes using articulatory features, MultIPA leverages high-quality G2P data from seven languages, while Allophant decomposes phones into articulatory features and applies CTC losses for each. 
+ZIPA \cite{zhu-etal-2025-zipa} trains ZipFormer \citep{yao2023zipformer} from scratch on IPAPack++ using CR-CTC and also provides a variant trained with additional pseudo-labeled data (``ZIPA-CR-NS-Large'').
+
+For ASR, we compare \POWSM with two series of models: OWSM \cite{peng25c_interspeech} and OWLS \cite{chen2025owls}. We select OWSM-CTC v4 because it is the best-performing model in the series, featuring an encoder-CTC architecture that supports ASR, ST, and LID. For OWLS, we include models with comparable parameter sizes. 
+

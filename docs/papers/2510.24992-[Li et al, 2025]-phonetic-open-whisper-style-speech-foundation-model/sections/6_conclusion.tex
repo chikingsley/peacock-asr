@@ -1,0 +1,90 @@
+% \begin{enumerate}
+%     \item XEUS SSL features (4,000 languages) \citep{chen-etal-2024-towards-robust} or syllable-level features (Sylber, SyllableLM)
+%     \item language-universal phone recognition (phone-level transcripts)
+%     \item forced alignment (by modifying the CTC alignments)
+%     \item prompting with previous tokens
+%     % \item train with all of OWSM's ASR and Speech translation data (might be difficult unless we change the CTC target)
+%     \item Does POWSM have a shared phonetic crosslingual space?
+%     \item TTA / emergent abilities
+%         \begin{enumerate}
+%             \item to improve adaptation to sociophonetic variation
+%             \item hypothesis: POWSM is larger so should have some emergent skills that smaller models like ZIPA don't have
+%             \item Jian: ICL prompting with phonemes? \kalvin{never trained on previous tokens though}
+%         \end{enumerate}
+    % \item mech interp
+    %     \begin{itemize}
+    %         \item Ryan: phonetic variation might be present in the internal layers (early exiting)
+    %     \end{itemize}
+%     \item phonotactics
+%         \begin{itemize}
+%             \item Ryan's idea: does the decoder learn phonotactics?
+%             % <en><asr><notimestamps>p f e r d -> low score
+%             % <de><asr><notimestamps>p f e r d -> high score
+%             \item mechanistic interpretability
+%             \item lends well then to perturbation-based setups
+%             \item see GPTScore
+%             \item could also measure the correlation between word length and phonotactic complexity (see Ryan and Kalvin's paper)
+%         \end{itemize}
+%     \item getting it to work for conversational data
+% \end{enumerate}
+
+\section{Conclusion}
+
+We train a fully open-source phonetic speech foundation model \POWSM using our scalable multi-task framework.
+Our model achieves state-of-the-art performance on PR while also supporting ASR across more than 70 languages. 
+Beyond PR and ASR, the model's ability to perform audio-guided G2P and P2G enables applications that require fine-grained linguistic analysis such as atypical speech assessment.
+Our analysis reveals that \POWSM's encoder benefits from phoneme-level CTC supervision and stronger encoder weighting, enhancing cross-lingual generalization.
+Additionally, the model demonstrates interpretable multimodal and language-aware behaviors, effectively mediating between phonetic detail and standardized phonological patterns.
+To conclude, \POWSM not only provides a strong phone recognition foundation model for high-resource languages, but also acts as a versatile resource for unseen languages and socio-phonetic variation.
+
+\section{Future Work}
+% Skipped: \reviewer{CTC-only model?} \chinjou{vaguely mentioned in limitation; stress again that AED is for multitasking}
+% Skipped: \reviewer{tone?} \chinjou{already in limitation}
+\POWSM's current decoder serves as a large phoneme-level phonotactic language model on which linguists could investigate hypotheses about phonetic universals \citep{chodroff2024voxangeles,chodroff2025phonetic} and phonotactics \citep{shim2024phonotactic,pimentel2020phonotactic}.
+In the future, we seek to adapt to socio-phonetic variation either through (unsupervised) test-time adaptation \citep{lin22b_interspeech}, in-context learning \citep{roll2025context,wang2024can}, or mechanistic interpretability \citep{tang2024language}.
+% Mechanistic interpretability techniques could also be used to identify language-agnostic and language-specific neurons \citep{tang2024language} in POWSM to adapt transcriptions to lower-resource languages.
+Furthermore, since \citet{shim2025languages} found that earlier encoder layers in Whisper preserve more phonetic detail, early exiting may mitigate the decoder's tendencies to normalize socio-phonetic variation.
+% Other future work includes leveraging XEUS, self-supervised speech features learned from 4,000 languages \citep{chen-etal-2024-towards-robust}.
+% POWSM will also have forced alignments, by modifying the CTC alignments to be less peaky.
+% Finally, we also seek to adapt phoneme-level transcripts to phone-level transcripts to achieve language-universal \textit{phone} recognition. % via reverse phonemicization (see Aim 3 in NSF grant)
+% \eunjung{there are lots of future works. while promising, i think we can keep it less, and focus on our contribution and limitations. including future works that are related to limitations will be a good start.}
+
+\section*{Limitations}
+\POWSM has several limitations that we aim to address in future work.
+First, the model is neither strictly phonemic nor phonetic: its training data consist of cleaned and filtered phonemic transcriptions from multiple languages, which are not fully faithful to the phonetic or phonemic structure of the audio. Although phonemic transcriptions share similarities across languages, adding auxiliary tasks and language tokens may have reinforced language-specific biases. We also currently lack sufficient allophone-level data, which would provide more language-independent information.
+
+Second, the model still favors high-resource languages. Since we include a decoder for language modeling and language tokens, both of which function effectively, the model would inherently bias toward the seen distribution.
+
+Finally, the current AED architecture, although effective for multitasking, imposes certain engineering limitations. Inference is significantly slower than with encoder-only models, and the architecture does not easily support tone modeling, limiting its application to tonal languages.
+% Skipped: \reviewer{ASR results} \chinjou{results aren't absymal so it's fine to skip}
+
+
+% \begin{enumerate}
+%     \item Our model is neither phonemic or phonetic, strictly speaking. it's actually a polyglot phonemic model
+%         \begin{enumerate}
+%             % \item see David's thread on Slack
+%             \item It is trained on phonemic transcriptions, but these are combined from multiple languages with different phonologies.
+%             \item the transcriptions are not faithful to either the phonetics or the phonemic structure of the audio
+%             \item At some level of scale, with many languages, it may be that the representation that POWSM learns for [p] has basically zero VOT (even though many instances in English will have positive VOT). As it stands, I think the model is a kind of polyglot phonemic model
+%             \item However, phonemic transcription still have similarities across languages, and adding tasks can somewhat cancel out the bias
+%             \item if we want truly phonemic transcriptions (like classic HMMs), then we can do the following: Since the really criterions for phonemes is complementary distribution, if you have a PR model, you can recognize a bunch of text, phonemicize it algorithmically, and then (if you like) train a model with it.
+%         \end{enumerate}
+%     \item technically phonemes are lang-specific, but we don't have a lot of allophone-level data (which is lang-independent)
+%     \item favors HRLs - language token means performance inherently limited on unseen langs (without a lang token)
+%     \item suprasegmentals like tone
+%     \item encoder-decoder has much slower inference speed..
+% \end{enumerate}
+
+
+\subsubsection*{Ethics Statement}
+
+All of our data is ethically sourced, either through permissive licensing or through proper consent.
+We are aware of the implicit prescriptivism and representational harms \citep{crawford} that normalizing socio-phonetic variation in ASR or PR models can create.
+This may threaten linguistic diversity instead of preserving it.
+% ``We therefore call on the speech community to start preserving sociolinguistic variation at the same time that it improves WER for all demographics.'' kalvin's interspeech paper notes (never made it to the final version)
+We also acknowledge that accurate modeling of socio-phonetic variation can enable demographic inference, as demographics and phonetic variation are deeply intertwined \citep{labov1963social}.
+We stress that uses of \POWSM must align with our vision: a future where advances in spoken language processing and NLP do not leave low-resource varieties behind.
+
+
+\subsubsection*{The Use of LLMs}
+We acknowledge the use of large language models (LLMs) to assist with grammar correction and clarity improvements in writing this paper. All conceptual, methodological, and experimental contributions were developed independently by the authors.

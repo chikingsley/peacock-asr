@@ -1,0 +1,217 @@
+\begin{thebibliography}{42}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Achiam et~al.(2023)Achiam, Adler, Agarwal, Ahmad, Akkaya, Aleman, Almeida, Altenschmidt, Altman, Anadkat, et~al.]{achiam2023gpt}
+Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Florencia~Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, et~al.
+\newblock Gpt-4 technical report.
+\newblock \emph{arXiv preprint arXiv:2303.08774}, 2023.
+
+\bibitem[Ankner et~al.(2024)Ankner, Paul, Cui, Chang, and Ammanabrolu]{ankner2024critique}
+Zachary Ankner, Mansheej Paul, Brandon Cui, Jonathan~D Chang, and Prithviraj Ammanabrolu.
+\newblock Critique-out-loud reward models.
+\newblock \emph{arXiv preprint arXiv:2408.11791}, 2024.
+
+\bibitem[Baevski et~al.(2020)Baevski, Zhou, Mohamed, and Auli]{baevski2020wav2vec}
+Alexei Baevski, Yuhao Zhou, Abdelrahman Mohamed, and Michael Auli.
+\newblock wav2vec 2.0: A framework for self-supervised learning of speech representations.
+\newblock \emph{Advances in neural information processing systems}, 33:\penalty0 12449--12460, 2020.
+
+\bibitem[Bradley \& Terry(1952)Bradley and Terry]{btloss}
+Ralph~Allan Bradley and Milton~E Terry.
+\newblock Rank analysis of incomplete block designs: I. the method of paired comparisons.
+\newblock \emph{Biometrika}, 39\penalty0 (3/4):\penalty0 324--345, 1952.
+
+\bibitem[Chen et~al.(2025)Chen, Hu, Wang, Wang, Chen, Zhang, Yang, and Chng]{chen2025audio}
+Chen Chen, Yuchen Hu, Siyin Wang, Helin Wang, Zhehuai Chen, Chao Zhang, Chao-Han~Huck Yang, and Eng~Siong Chng.
+\newblock Audio large language models can be descriptive speech quality evaluators.
+\newblock \emph{arXiv preprint arXiv:2501.17202}, 2025.
+
+\bibitem[Chen \& Tsao(2021)Chen and Tsao]{tmhint-qi}
+Yu-Wen Chen and Yu~Tsao.
+\newblock Inqss: a speech intelligibility and quality assessment model using a multi-task learning network.
+\newblock \emph{arXiv preprint arXiv:2111.02585}, 2021.
+
+\bibitem[Chu et~al.(2024)Chu, Xu, Yang, Wei, Wei, Guo, Leng, Lv, He, Lin, et~al.]{chu2024qwen2}
+Yunfei Chu, Jin Xu, Qian Yang, Haojie Wei, Xipin Wei, Zhifang Guo, Yichong Leng, Yuanjun Lv, Jinzheng He, Junyang Lin, et~al.
+\newblock Qwen2-audio technical report.
+\newblock \emph{arXiv preprint arXiv:2407.10759}, 2024.
+
+\bibitem[Comanici et~al.(2025)Comanici, Bieber, Schaekermann, Pasupat, Sachdeva, Dhillon, Blistein, Ram, Zhang, Rosen, et~al.]{comanici2025gemini}
+Gheorghe Comanici, Eric Bieber, Mike Schaekermann, Ice Pasupat, Noveen Sachdeva, Inderjit Dhillon, Marcel Blistein, Ori Ram, Dan Zhang, Evan Rosen, et~al.
+\newblock Gemini 2.5: Pushing the frontier with advanced reasoning, multimodality, long context, and next generation agentic capabilities.
+\newblock \emph{arXiv preprint arXiv:2507.06261}, 2025.
+
+\bibitem[Cooper \& Yamagishi(2021)Cooper and Yamagishi]{bvcc}
+Erica Cooper and Junichi Yamagishi.
+\newblock How do voices from past speech synthesis challenges compare today?
+\newblock \emph{arXiv preprint arXiv:2105.02373}, 2021.
+
+\bibitem[Cooper et~al.(2023)Cooper, Huang, Tsao, Wang, Toda, and Yamagishi]{vmc23}
+Erica Cooper, Wen-Chin Huang, Yu~Tsao, Hsin-Min Wang, Tomoki Toda, and Junichi Yamagishi.
+\newblock The voicemos challenge 2023: Zero-shot subjective speech quality prediction for multiple domains.
+\newblock In \emph{2023 IEEE Automatic Speech Recognition and Understanding Workshop (ASRU)}, pp.\  1--7. IEEE, 2023.
+
+\bibitem[Deshmukh et~al.(2024)Deshmukh, Alharthi, Elizalde, Gamper, Ismail, Singh, Raj, and Wang]{deshmukh2024pam}
+Soham Deshmukh, Dareen Alharthi, Benjamin Elizalde, Hannes Gamper, Mahmoud~Al Ismail, Rita Singh, Bhiksha Raj, and Huaming Wang.
+\newblock Pam: Prompting audio-language models for audio quality assessment.
+\newblock \emph{arXiv preprint arXiv:2402.00282}, 2024.
+
+\bibitem[Fu et~al.(2018)Fu, Tsao, Hwang, and Wang]{fu2018quality}
+Szu-Wei Fu, Yu~Tsao, Hsin-Te Hwang, and Hsin-Min Wang.
+\newblock Quality-net: An end-to-end non-intrusive speech quality assessment model based on blstm.
+\newblock \emph{arXiv preprint arXiv:1808.05344}, 2018.
+
+\bibitem[Hayashi et~al.(2020)Hayashi, Yamamoto, Inoue, Yoshimura, Watanabe, Toda, Takeda, Zhang, and Tan]{hayashi2020espnet}
+Tomoki Hayashi, Ryuichi Yamamoto, Katsuki Inoue, Takenori Yoshimura, Shinji Watanabe, Tomoki Toda, Kazuya Takeda, Yu~Zhang, and Xu~Tan.
+\newblock Espnet-tts: Unified, reproducible, and integratable open source end-to-end text-to-speech toolkit.
+\newblock In \emph{ICASSP 2020-2020 IEEE international conference on acoustics, speech and signal processing (ICASSP)}, pp.\  7654--7658. IEEE, 2020.
+
+\bibitem[Hsu et~al.(2021)Hsu, Bolte, Tsai, Lakhotia, Salakhutdinov, and Mohamed]{hsu2021hubert}
+Wei-Ning Hsu, Benjamin Bolte, Yao-Hung~Hubert Tsai, Kushal Lakhotia, Ruslan Salakhutdinov, and Abdelrahman Mohamed.
+\newblock Hubert: Self-supervised speech representation learning by masked prediction of hidden units.
+\newblock \emph{IEEE/ACM transactions on audio, speech, and language processing}, 29:\penalty0 3451--3460, 2021.
+
+\bibitem[Huang et~al.(2022)Huang, Cooper, Tsao, Wang, Toda, and Yamagishi]{huang2022voicemos}
+Wen-Chin Huang, Erica Cooper, Yu~Tsao, Hsin-Min Wang, Tomoki Toda, and Junichi Yamagishi.
+\newblock The voicemos challenge 2022.
+\newblock \emph{arXiv preprint arXiv:2203.11389}, 2022.
+
+\bibitem[Huang et~al.(2023)Huang, Violeta, Liu, Shi, and Toda]{huang2023singing}
+Wen-Chin Huang, Lester~Phillip Violeta, Songxiang Liu, Jiatong Shi, and Tomoki Toda.
+\newblock The singing voice conversion challenge 2023.
+\newblock In \emph{2023 IEEE Automatic Speech Recognition and Understanding Workshop (ASRU)}, pp.\  1--8. IEEE, 2023.
+
+\bibitem[Ito \& Johnson(2017)Ito and Johnson]{ito2017lj}
+Keith Ito and Linda Johnson.
+\newblock The lj speech dataset, 2017.
+
+\bibitem[Liu et~al.(2025)Liu, Wang, Xu, Ma, Ruan, Li, Liu, and Wu]{liu2025inference}
+Zijun Liu, Peiyi Wang, Runxin Xu, Shirong Ma, Chong Ruan, Peng Li, Yang Liu, and Yu~Wu.
+\newblock Inference-time scaling for generalist reward modeling.
+\newblock \emph{arXiv preprint arXiv:2504.02495}, 2025.
+
+\bibitem[Lo et~al.(2019)Lo, Fu, Huang, Wang, Yamagishi, Tsao, and Wang]{lo2019mosnet}
+Chen-Chou Lo, Szu-Wei Fu, Wen-Chin Huang, Xin Wang, Junichi Yamagishi, Yu~Tsao, and Hsin-Min Wang.
+\newblock Mosnet: Deep learning based objective assessment for voice conversion.
+\newblock \emph{arXiv preprint arXiv:1904.08352}, 2019.
+
+\bibitem[Maniati et~al.(2022)Maniati, Vioni, Ellinas, Nikitaras, Klapsas, Sung, Jho, Chalamandaris, and Tsiakoulis]{somos}
+Georgia Maniati, Alexandra Vioni, Nikolaos Ellinas, Karolos Nikitaras, Konstantinos Klapsas, June~Sig Sung, Gunu Jho, Aimilios Chalamandaris, and Pirros Tsiakoulis.
+\newblock Somos: The samsung open mos dataset for the evaluation of neural text-to-speech synthesis.
+\newblock \emph{arXiv preprint arXiv:2204.03040}, 2022.
+
+\bibitem[Mittag \& M{\"o}ller(2019)Mittag and M{\"o}ller]{mittag2019non}
+Gabriel Mittag and Sebastian M{\"o}ller.
+\newblock Non-intrusive speech quality assessment for super-wideband speech communication networks.
+\newblock In \emph{ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pp.\  7125--7129. IEEE, 2019.
+
+\bibitem[Mittag et~al.(2021{\natexlab{a}})Mittag, Naderi, Chehadi, and M{\"o}ller]{nisqa}
+Gabriel Mittag, Babak Naderi, Assmaa Chehadi, and Sebastian M{\"o}ller.
+\newblock Nisqa: A deep cnn-self-attention model for multidimensional speech quality prediction with crowdsourced datasets.
+\newblock \emph{arXiv preprint arXiv:2104.09494}, 2021{\natexlab{a}}.
+
+\bibitem[Mittag et~al.(2021{\natexlab{b}})Mittag, Zadtootaghaj, Michael, Naderi, and M{\"o}ller]{mittag2021bias}
+Gabriel Mittag, Saman Zadtootaghaj, Thilo Michael, Babak Naderi, and Sebastian M{\"o}ller.
+\newblock Bias-aware loss for training image and speech quality prediction models from multiple datasets.
+\newblock In \emph{2021 13th International Conference on Quality of Multimedia Experience (QoMEX)}, pp.\  97--102. IEEE, 2021{\natexlab{b}}.
+
+\bibitem[Ouyang et~al.(2022)Ouyang, Wu, Jiang, Almeida, Wainwright, Mishkin, Zhang, Agarwal, Slama, Ray, et~al.]{ouyang2022training}
+Long Ouyang, Jeffrey Wu, Xu~Jiang, Diogo Almeida, Carroll Wainwright, Pamela Mishkin, Chong Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, et~al.
+\newblock Training language models to follow instructions with human feedback.
+\newblock \emph{Advances in neural information processing systems}, 35:\penalty0 27730--27744, 2022.
+
+\bibitem[Perrotin et~al.(2023)Perrotin, Stephenson, Gerber, and Bailly]{perrotin2023blizzard}
+Olivier Perrotin, Brooke Stephenson, Silvain Gerber, and G{\'e}rard Bailly.
+\newblock The blizzard challenge 2023.
+\newblock In \emph{18th Blizzard Challenge Workshop}, pp.\  1--27. ISCA, 2023.
+
+\bibitem[Pieper \& Voran(2024)Pieper and Voran]{pieper2024alignnet}
+Jaden Pieper and Stephen~D Voran.
+\newblock Alignnet: Learning dataset score alignment functions to enable better training of speech quality estimators.
+\newblock \emph{arXiv preprint arXiv:2406.10205}, 2024.
+
+\bibitem[Qi et~al.(2023)Qi, Hu, Zhou, Li, Wu, Lu, and Xu]{qi2023ssl}
+Zili Qi, Xinhui Hu, Wangjin Zhou, Sheng Li, Hao Wu, Jian Lu, and Xinkang Xu.
+\newblock Le-ssl-mos: Self-supervised learning mos prediction with listener enhancement.
+\newblock In \emph{2023 IEEE Automatic Speech Recognition and Understanding Workshop (ASRU)}, pp.\  1--6. IEEE, 2023.
+
+\bibitem[Saeki et~al.(2022)Saeki, Xin, Nakata, Koriyama, Takamichi, and Saruwatari]{saeki2022utmos}
+Takaaki Saeki, Detai Xin, Wataru Nakata, Tomoki Koriyama, Shinnosuke Takamichi, and Hiroshi Saruwatari.
+\newblock Utmos: Utokyo-sarulab system for voicemos challenge 2022.
+\newblock \emph{arXiv preprint arXiv:2204.02152}, 2022.
+
+\bibitem[Sector(1996)]{international1996methods}
+International Telecommunication Union. Telecommunication~Standardization Sector.
+\newblock \emph{Methods for subjective determination of transmission quality}.
+\newblock International Telecommunication Union, 1996.
+
+\bibitem[Shao et~al.(2024)Shao, Wang, Zhu, Xu, Song, Bi, Zhang, Zhang, Li, Wu, et~al.]{grpo}
+Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Xiao Bi, Haowei Zhang, Mingchuan Zhang, YK~Li, Yang Wu, et~al.
+\newblock Deepseekmath: Pushing the limits of mathematical reasoning in open language models.
+\newblock \emph{arXiv preprint arXiv:2402.03300}, 2024.
+
+\bibitem[Tang et~al.(2024)Tang, Shi, Wu, and Jin]{singmos}
+Yuxun Tang, Jiatong Shi, Yuning Wu, and Qin Jin.
+\newblock Singmos: An extensive open-source singing voice dataset for mos prediction.
+\newblock \emph{arXiv preprint arXiv:2406.10911}, 2024.
+
+\bibitem[Valentini-Botinhao \& Yamagishi(2018)Valentini-Botinhao and Yamagishi]{valentini2018speech}
+Cassia Valentini-Botinhao and Junichi Yamagishi.
+\newblock Speech enhancement of noisy and reverberant speech for text-to-speech.
+\newblock \emph{IEEE/ACM Transactions on Audio, Speech, and Language Processing}, 26\penalty0 (8):\penalty0 1420--1433, 2018.
+
+\bibitem[Valin \& Skoglund(2019)Valin and Skoglund]{valin2019lpcnet}
+Jean-Marc Valin and Jan Skoglund.
+\newblock Lpcnet: Improving neural speech synthesis through linear prediction.
+\newblock In \emph{ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pp.\  5891--5895. IEEE, 2019.
+
+\bibitem[Wang et~al.(2025{\natexlab{a}})Wang, Yu, Yang, Tang, Li, Zhuang, Chen, Tian, Zhang, Sun, et~al.]{wang2025enabling}
+Siyin Wang, Wenyi Yu, Yudong Yang, Changli Tang, Yixuan Li, Jimin Zhuang, Xianzhao Chen, Xiaohai Tian, Jun Zhang, Guangzhi Sun, et~al.
+\newblock Enabling auditory large language models for automatic speech quality evaluation.
+\newblock In \emph{ICASSP 2025-2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pp.\  1--5. IEEE, 2025{\natexlab{a}}.
+
+\bibitem[Wang et~al.(2025{\natexlab{b}})Wang, Jiang, Ma, Zhang, Liu, Li, Liang, Zheng, Wang, Feng, et~al.]{wang2025spark}
+Xinsheng Wang, Mingqi Jiang, Ziyang Ma, Ziyu Zhang, Songxiang Liu, Linqin Li, Zheng Liang, Qixi Zheng, Rui Wang, Xiaoqin Feng, et~al.
+\newblock Spark-tts: An efficient llm-based text-to-speech model with single-stream decoupled speech tokens.
+\newblock \emph{arXiv preprint arXiv:2503.01710}, 2025{\natexlab{b}}.
+
+\bibitem[Xiong et~al.(2025)Xiong, Wang, Guo, Ye, Fan, Gu, Huang, and Li]{xiong2025llava}
+Tianyi Xiong, Xiyao Wang, Dong Guo, Qinghao Ye, Haoqi Fan, Quanquan Gu, Heng Huang, and Chunyuan Li.
+\newblock Llava-critic: Learning to evaluate multimodal models.
+\newblock In \emph{Proceedings of the Computer Vision and Pattern Recognition Conference}, pp.\  13618--13628, 2025.
+
+\bibitem[Xu et~al.(2025{\natexlab{a}})Xu, Guo, He, Hu, He, Bai, Chen, Wang, Fan, Dang, et~al.]{xu2025qwen2}
+Jin Xu, Zhifang Guo, Jinzheng He, Hangrui Hu, Ting He, Shuai Bai, Keqin Chen, Jialin Wang, Yang Fan, Kai Dang, et~al.
+\newblock Qwen2. 5-omni technical report.
+\newblock \emph{arXiv preprint arXiv:2503.20215}, 2025{\natexlab{a}}.
+
+\bibitem[Xu et~al.(2025{\natexlab{b}})Xu, Guo, He, Hu, He, Bai, Chen, Wang, Fan, Dang, et~al.]{xu2025qwen2omni}
+Jin Xu, Zhifang Guo, Jinzheng He, Hangrui Hu, Ting He, Shuai Bai, Keqin Chen, Jialin Wang, Yang Fan, Kai Dang, et~al.
+\newblock Qwen2. 5-omni technical report.
+\newblock \emph{arXiv preprint arXiv:2503.20215}, 2025{\natexlab{b}}.
+
+\bibitem[Yu et~al.(2025)Yu, Zhang, Zhu, Yuan, Zuo, Yue, Dai, Fan, Liu, Liu, et~al.]{yu2025dapo}
+Qiying Yu, Zheng Zhang, Ruofei Zhu, Yufeng Yuan, Xiaochen Zuo, Yu~Yue, Weinan Dai, Tiantian Fan, Gaohong Liu, Lingjun Liu, et~al.
+\newblock Dapo: An open-source llm reinforcement learning system at scale.
+\newblock \emph{arXiv preprint arXiv:2503.14476}, 2025.
+
+\bibitem[Zezario et~al.(2024)Zezario, Chen, Fu, Tsao, Wang, and Fuh]{zezario2024study}
+Ryandhimas~E Zezario, Yu-Wen Chen, Szu-Wei Fu, Yu~Tsao, Hsin-Min Wang, and Chiou-Shann Fuh.
+\newblock A study on incorporating whisper for robust speech assessment.
+\newblock In \emph{2024 IEEE International Conference on Multimedia and Expo (ICME)}, pp.\  1--6. IEEE, 2024.
+
+\bibitem[Zezario et~al.(2025)Zezario, Siniscalchi, Wang, and Tsao]{zezario2025study}
+Ryandhimas~E Zezario, Sabato~M Siniscalchi, Hsin-Min Wang, and Yu~Tsao.
+\newblock A study on zero-shot non-intrusive speech assessment using large language models.
+\newblock In \emph{ICASSP 2025-2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pp.\  1--5. IEEE, 2025.
+
+\bibitem[Zheng et~al.(2023)Zheng, Chiang, Sheng, Zhuang, Wu, Zhuang, Lin, Li, Li, Xing, et~al.]{llmasajudge}
+Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Siyuan Zhuang, Zhanghao Wu, Yonghao Zhuang, Zi~Lin, Zhuohan Li, Dacheng Li, Eric Xing, et~al.
+\newblock Judging llm-as-a-judge with mt-bench and chatbot arena.
+\newblock \emph{Advances in neural information processing systems}, 36:\penalty0 46595--46623, 2023.
+
+\end{thebibliography}

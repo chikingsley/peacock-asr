@@ -1,0 +1,82 @@
+
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2026_conference,times}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+\usepackage{hyperref}
+\usepackage{url}
+
+
+%===========================
+%===========================
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{ulem}
+\usepackage{subcaption}   % for subfigures
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{colortbl}
+%===========================
+%===========================
+
+\title{From Scores to Preferences: Redefining MOS Benchmarking for Speech Quality Reward Modeling}
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the \iclrfinalcopy macro remains commented out below.
+% Non-anonymous submissions will be rejected without review.
+
+
+\author{Yifei Cao$^{1}$\footnotemark[1]~~, Changhao Jiang$^{1}$\footnotemark[1]~~, Jiabao Zhuang$^{1}$\footnotemark[1]~~, Jiajun Sun$^{1}$\footnotemark[1]~~,\\
+\textbf{Ming Zhang$^{1}$, Zhiheng Xi$^{1}$, Hui Li$^{1}$, Shihan Dou$^{1}$, Yuran Wang$^{2}$, Yunke Zhang$^{2}$,}\\
+\textbf{Tao Ji$^{1}$, Tao Gui$^{1}$\footnotemark[2]~~, Qi Zhang$^{1}$, Xuanjing Huang$^{1}$}\\
+$^1$ Fudan University \quad$^2$ Honor Device Co., Ltd \\
+\texttt{caoyf24@m.fudan.edu.cn,} \texttt{tgui@fudan.edu.cn}\\
+}
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+\begin{document}
+
+
+\maketitle
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\footnotetext[1]{Equal contribution.}
+\footnotetext[2]{Corresponding authors.}
+\renewcommand*{\thefootnote}
+
+\input{outline/abstract}
+\input{outline/1_introduction}
+\input{outline/2_relatedwork}
+\input{outline/3_MOS-RMBench-Data}
+\input{outline/4_MOS-RMBench-Eval}
+\input{outline/5_Experiment}
+\input{outline/6_conclusion}
+
+
+\input{outline/7_Ethical-Statement}
+\input{outline/8_Reproducibility-Statement}
+
+% \bibliography{iclr2026_conference}
+\bibliography{main}
+\bibliographystyle{iclr2026_conference}
+
+
+
+\appendix
+\input{outline/appendix}
+
+
+\end{document}

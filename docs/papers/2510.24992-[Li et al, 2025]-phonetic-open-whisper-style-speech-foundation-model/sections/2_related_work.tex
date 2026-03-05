@@ -1,0 +1,43 @@
+\section{Related Work}
+
+
+\paragraph{Speech foundation models}
+Recent speech foundation models such as Whisper \citep{radford2023robust} and OWSM \citep{peng2023reproducing,peng24b_interspeech} have driven progress in large-scale multilingual ASR and speech translation, but they do not explicitly address phoneme recognition or articulatory-level supervision. 
+Subsequent work \citep{yusuyin2025whistle,fu2025pac} showed that incorporating phoneme-level objectives improves ASR for low-resource and long-tailed settings, while outputting phonemes as an intermediate benefited speech translation \citep{gállego2025speechtotexttranslationphonemeaugmentedcot}.
+\POWSM extends this line of work by being the first open foundation model jointly trained on phone recognition and related tasks, integrating multilinguality, phonetic supervision, and multi-task scalability within one framework.
+
+
+% \paragraph{Language-specific phone recognition}
+\paragraph{Phone recognition}
+Prior work in multilingual phone recognition can broadly be categorized into (1) language-specific models \citep{gao21_interspeech} that rely on explicit phoneme \citep{xu22b_interspeech} or allophone inventories \citep{li2020universal} and (2) language-agnostic approaches that aim to generalize across languages without such resources \citep{taguchi23_interspeech,glocker23_interspeech,li2021hierarchical,zhu-etal-2025-zipa}. 
+\POWSM follows the latter paradigm as a fully data-driven multilingual model that learns phone representations without predefined phoneme mappings.
+
+WhisperPPT \citep{samir2024efficiently} improved Whisper \citep{radford2023robust}'s performance through data cleaning but remained limited in data coverage and task diversity.
+However, Whisper is trained on a closed corpus and could display harmful biases for PR which cannot be fully removed by fine-tuning.
+\POWSM is trained from scratch on open datasets.
+
+ZIPA \citep{zhu-etal-2025-zipa} scaled PR to 17,000+ hours of data and 88 languages using a Zipformer \cite{yao2023zipformer} encoder and noisy-student training on 4,000+ languages, achieving state-of-the-art results. To construct its training corpus, ZIPA employed a G2P system to convert large-scale ASR transcriptions into phoneme sequences, effectively repurposing ASR datasets for PR. Building on this idea, \POWSM leverages both the grapheme and the G2P-generated phoneme transcriptions, reformulating them into four task-specific forms: ASR, PR, G2P, and P2G.
+
+\textbf{G2P \& P2G} \POWSM is the first model capable of both audio-guided G2P and audio-guided P2G. 
+G2P conversion, sometimes called phonemization in the text-to-speech literature, can be accomplished with pronunciation dictionaries \citep{rudnicky2003cmu}, rules \citep{mortensen2018epitran}, WFSTs \citep{black2001flite}, seq2seq models \citep{zhu2022charsiu-g2p}, or LLMs \citep{qharabagh2025llm}. % to choose between different pronunciations of a word in context
+Text-based G2P, however, still cannot handle phonetic variation, enforcing a one-to-one mapping between orthography and transcription.
+In contrast, audio-guided G2P can learn to map the different acoustic realizations of a phoneme across varieties of a language to a phone representation \cite{route-etal-2019-multimodal}.
+In particular, \citet{mak2025speech} observed a performance improvement by using audio-guided G2P versus text-based G2P alone for Cantonese.
+\citet{gao2024g2pu} similarly showed that joint learning of G2P, phone recognition, and forced alignment outperform a G2P teacher model. Similarly, \citet{sun2024acquiring} jointly learned G2P and TTS.
+Compared to G2P, P2G conversion is less studied but can be performed with a seq2seq model \citep{lauc2024polyipa} or a finetuned LLM \citep{ma2025llm}.  %on 19 million language-grapheme-phoneme triplets and .
+% \kalvin{LLM-based phoneme-to-grapheme for phoneme-based speech recognition}
+% To the best of our knowledge, \POWSM is the first to attempt audio-based P2G.
+
+
+% \kalvin{Acquiring Pronunciation Knowledge from Transcribed Speech Audio via Multi-task Learning: joint learning of G2P and TTS (regressing on the acoustic feature sequence)}
+
+
+% Improving seq2seq tts frontends with transcribed speech audio ?
+% Speech-Based Phonetic Transcript Metrics
+
+% A Survey of Grapheme-to-Phoneme Conversion Methods\\
+% Data driven grapheme-to-phoneme representations for a Lexicon-free text-to-speech: neural
+% IPA-CHILDES \& G2P+: Feature-Rich Resources for Cross-Lingual Phonology and Phonemic Language Modeling
+
+% \kalvin{what does eSpeak use? \url{https://github.com/espeak-ng/espeak-ng}}
+

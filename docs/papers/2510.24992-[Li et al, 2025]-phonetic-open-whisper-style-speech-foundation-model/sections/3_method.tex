@@ -1,0 +1,36 @@
+\section{Methodology}
+\subsection{Data preparation}
+We use IPAPack++ \cite{zhu-etal-2025-zipa} for training. It is an open source corpus of roughly 17,000 hours of multilingual speech with paired orthographic and phonemic transcriptions. We will release all data processing scripts to make \POWSM fully reproducible.
+
+G2P-generated transcriptions have been manually inspected and cleaned. 
+% Following \citet{samir2024efficiently}, we remove Interlingua and 10 noisy FLEURS languages. \chinjou{we accidentally included them and the performance is actually better ==}
+% ('ga_ie', 'sd_in', 'ar_eg', 'ml_in', 'lo_la', 'da_dk', 'ko_kr', 'ny_mw', 'mn_mn', 'so_so', 'my_mm') 
+Utterances longer than 300 phones are filtered out. IPA sequences are normalized to Unicode NFD (Canonical Decomposition); English G2P sequences are further refined with rule-based corrections to fix voice-onset time issues (see Appendix \autoref{sec:appendix-engg2p}).
+
+To prevent IPA tokens from being confused with graphemes, sequences are split into tokens with diacritics and modifiers attached through greedy trie search of PanPhon phone entries \cite{panphon} and enclosed in slashes (e.g., \textipa{/p\super{h}Os@m/} $\rightarrow$ \textipa{/p\super{h}/ /O/ /s/ /@/ /m/}).
+
+\subsection{Multitask data format}
+Our model is trained on four tasks: PR, ASR, and audio-guided G2P and P2G. Each utterance is used once per task, with task-specific formatting as illustrated in \Cref{fig:overview}, including a text prompt, language token, task token, and target output. 
+We leave the text prompt blank (token \texttt{<na>}) for PR and ASR, and provide graphemes and phones as prompts for G2P and P2G.
+For example, for an utterance saying \textit{who is that}, the G2P text prompt is \texttt{"who is that"}, and the target output is \texttt{"<eng><g2p><notimestamps> /h//u//\textipa{I}//z//ð//æ//t/"}.
+
+% The three auxiliary tasks improve training efficiency and model utility. ASR provides orthographic transcriptions, which help regularize the speech-to-text mapping and ground the model in stable phonetic representations. Audio-guided G2P and P2G connect IPA and orthographic representations. They can be seen as context-augmented variants of PR and ASR: G2P predicts orthography given speech and phonemes, while P2G is the inverse. This setup allows the model to leverage both forms, connecting graphemes and IPA symbols. 
+
+
+\subsection{Training details}
+\POWSM adopts an attention-based encoder-decoder (AED) architecture, which flexibly models output sequences and allows the integration of additional tasks.
+Specifically, we follow the OWSM v3.1 architecture \cite{peng24b_interspeech}, which employs an E-Branchformer encoder and a Transformer decoder, consistent with the general encoder-decoder structure of Whisper \cite{radford2023robust}. The model is trained from scratch using ESPnet \cite{watanabe2018espnet} with a hybrid CTC/attention loss as in \autoref{eq:loss} \cite{watanabe2017hybridctc}, where we set the ratio $\alpha_\text{ctc}$ to 0.3.
+\begin{equation}
+\label{eq:loss}\small
+    \mathcal{L} = \alpha_\text{ctc} \mathcal{L}_{\text{ctc}} + (1 - \alpha_\text{ctc}) \mathcal{L}_{\text{attention}}
+\end{equation}
+
+The encoder operates at the stride size of 40 ms. Training uses a global batch size of 256. Speech inputs are 16kHz and padded to 20 seconds. The vocabulary consists of 40k tokens, including around 6k phone tokens, language and timestamp tokens, and BPE tokens from orthography. 
+The model has approximately 350M parameters with 9 layers for both the encoder and decoder and was trained for around 200 GPUs hours on H100s.
+Using a CTC loss \citep{graves2006connectionist}, we align the encoder outputs with a simplified version of the phone token sequences. Unlike the decoder outputs, the phones in these sequences are stripped of break (\textipa{/./}, \textipa{/\t*{}/})
+and length diacritics (\textipa{/e\textlengthmark/, /e\texthalflength/, /\v{e}/}) to accelerate convergence. Additional details and analyses are provided in \autoref{sec:analysis-ctc-target}. 
+The decoder is an autoregressive language model conditioned on a text prompt and attends to the encoder output via cross-attention.
+
+% Skipped: \reviewer{why do we train from scratch instead of initializing from the OWSM 3.1 model?
+% a key difference between OWSM and POWSM lies in the encoder representation. OWSM (and most ASR models) uses language-specific BPE targets, whereas our work uses phone entries shared across languages. As discussed in §6.1, mixing phones and orthography in the encoder hindered convergence. Given this and the need for fine-grained control over the phonetic representation space, we chose to train POWSM from scratch to avoid inheriting hidden biases or training artifacts from OWSM.
+% } 

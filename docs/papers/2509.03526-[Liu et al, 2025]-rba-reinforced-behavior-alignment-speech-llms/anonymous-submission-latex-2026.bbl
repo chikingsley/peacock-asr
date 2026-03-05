@@ -1,0 +1,303 @@
+\begin{thebibliography}{60}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Achiam et~al.(2023)Achiam, Adler, Agarwal, Ahmad, Akkaya, Aleman, Almeida, Altenschmidt, Altman, Anadkat et~al.}]{achiam2023gpt}
+Achiam, J.; Adler, S.; Agarwal, S.; Ahmad, L.; Akkaya, I.; Aleman, F.~L.; Almeida, D.; Altenschmidt, J.; Altman, S.; Anadkat, S.; et~al. 2023.
+\newblock Gpt-4 technical report.
+\newblock \emph{arXiv preprint arXiv:2303.08774}.
+
+\bibitem[{Alayrac et~al.(2022)Alayrac, Donahue, Luc, Miech, Barr, Hasson, Lenc, Mensch, Millican, Reynolds et~al.}]{alayrac2022flamingo}
+Alayrac, J.-B.; Donahue, J.; Luc, P.; Miech, A.; Barr, I.; Hasson, Y.; Lenc, K.; Mensch, A.; Millican, K.; Reynolds, M.; et~al. 2022.
+\newblock Flamingo: a visual language model for few-shot learning.
+\newblock \emph{Advances in neural information processing systems}, 35: 23716--23736.
+
+\bibitem[{Amini, Vieira, and Cotterell(2024)}]{amini2024direct}
+Amini, A.; Vieira, T.; and Cotterell, R. 2024.
+\newblock Direct Preference Optimization with an Offset.
+\newblock \emph{arXiv preprint arXiv:2402.10571}.
+
+\bibitem[{Bai et~al.(2022)Bai, Jones, Ndousse, Askell, Chen, DasSarma, Drain, Fort, Ganguli, Henighan et~al.}]{bai2022training}
+Bai, Y.; Jones, A.; Ndousse, K.; Askell, A.; Chen, A.; DasSarma, N.; Drain, D.; Fort, S.; Ganguli, D.; Henighan, T.; et~al. 2022.
+\newblock Training a helpful and harmless assistant with reinforcement learning from human feedback.
+\newblock \emph{arXiv preprint arXiv:2204.05862}.
+
+\bibitem[{Barrault et~al.(2023)Barrault, Chung, Meglioli, Dale, Dong, Duquenne, Elsahar, Gong, Heffernan, Hoffman et~al.}]{barrault2023seamlessm4t}
+Barrault, L.; Chung, Y.-A.; Meglioli, M.~C.; Dale, D.; Dong, N.; Duquenne, P.-A.; Elsahar, H.; Gong, H.; Heffernan, K.; Hoffman, J.; et~al. 2023.
+\newblock SeamlessM4T: Massively Multilingual \& Multimodal Machine Translation.
+\newblock \emph{arXiv preprint arXiv:2308.11596}.
+
+\bibitem[{Berant et~al.(2013)Berant, Chou, Frostig, and Liang}]{berant2013semantic}
+Berant, J.; Chou, A.; Frostig, R.; and Liang, P. 2013.
+\newblock Semantic parsing on freebase from question-answer pairs.
+\newblock In \emph{Proceedings of the 2013 conference on empirical methods in natural language processing}, 1533--1544.
+
+\bibitem[{Busa-Fekete et~al.(2014)Busa-Fekete, Sz{\"o}r{\'e}nyi, Weng, Cheng, and H{\"u}llermeier}]{busa2014preference}
+Busa-Fekete, R.; Sz{\"o}r{\'e}nyi, B.; Weng, P.; Cheng, W.; and H{\"u}llermeier, E. 2014.
+\newblock Preference-based reinforcement learning: evolutionary direct policy search using a preference-based racing algorithm.
+\newblock \emph{Machine learning}, 97: 327--351.
+
+\bibitem[{Chen et~al.(2023)Chen, Hu, Yang, Siniscalchi, Chen, and Chng}]{chen2023hyporadise}
+Chen, C.; Hu, Y.; Yang, C.-H.~H.; Siniscalchi, S.~M.; Chen, P.-Y.; and Chng, E.-S. 2023.
+\newblock Hyporadise: An open baseline for generative speech recognition with large language models.
+\newblock \emph{Advances in Neural Information Processing Systems}, 36: 31665--31688.
+
+\bibitem[{Chen et~al.(2024)Chen, Deng, Yuan, Ji, and Gu}]{chen2024self}
+Chen, Z.; Deng, Y.; Yuan, H.; Ji, K.; and Gu, Q. 2024.
+\newblock Self-play fine-tuning converts weak language models to strong language models.
+\newblock \emph{arXiv preprint arXiv:2401.01335}.
+
+\bibitem[{Chu et~al.(2024)Chu, Xu, Yang, Wei, Wei, Guo, Leng, Lv, He, Lin et~al.}]{chu2024qwen2}
+Chu, Y.; Xu, J.; Yang, Q.; Wei, H.; Wei, X.; Guo, Z.; Leng, Y.; Lv, Y.; He, J.; Lin, J.; et~al. 2024.
+\newblock Qwen2-audio technical report.
+\newblock \emph{arXiv preprint arXiv:2407.10759}.
+
+\bibitem[{Chu et~al.(2023)Chu, Xu, Zhou, Yang, Zhang, Yan, Zhou, and Zhou}]{chu2023qwen}
+Chu, Y.; Xu, J.; Zhou, X.; Yang, Q.; Zhang, S.; Yan, Z.; Zhou, C.; and Zhou, J. 2023.
+\newblock Qwen-audio: Advancing universal audio understanding via unified large-scale audio-language models.
+\newblock \emph{arXiv preprint arXiv:2311.07919}.
+
+\bibitem[{Conneau et~al.(2023)Conneau, Ma, Khanuja, Zhang, Axelrod, Dalmia, Riesa, Rivera, and Bapna}]{conneau2023fleurs}
+Conneau, A.; Ma, M.; Khanuja, S.; Zhang, Y.; Axelrod, V.; Dalmia, S.; Riesa, J.; Rivera, C.; and Bapna, A. 2023.
+\newblock Fleurs: Few-shot learning evaluation of universal representations of speech.
+\newblock In \emph{2022 IEEE Spoken Language Technology Workshop (SLT)}, 798--805. IEEE.
+
+\bibitem[{Dai et~al.(2023)Dai, Pan, Sun, Ji, Xu, Liu, Wang, and Yang}]{dai2023safe}
+Dai, J.; Pan, X.; Sun, R.; Ji, J.; Xu, X.; Liu, M.; Wang, Y.; and Yang, Y. 2023.
+\newblock Safe rlhf: Safe reinforcement learning from human feedback.
+\newblock \emph{arXiv preprint arXiv:2310.12773}.
+
+\bibitem[{Das et~al.(2024)Das, Dingliwal, Ronanki, Paturi, Huang, Mathur, Yuan, Bekal, Niu, Jayanthi et~al.}]{das2024speechverse}
+Das, N.; Dingliwal, S.; Ronanki, S.; Paturi, R.; Huang, Z.; Mathur, P.; Yuan, J.; Bekal, D.; Niu, X.; Jayanthi, S.~M.; et~al. 2024.
+\newblock Speechverse: A large-scale generalizable audio language model.
+\newblock \emph{arXiv preprint arXiv:2405.08295}.
+
+\bibitem[{D{\'e}fossez et~al.(2024)D{\'e}fossez, Mazar{\'e}, Orsini, Royer, P{\'e}rez, J{\'e}gou, Grave, and Zeghidour}]{defossez2024moshi}
+D{\'e}fossez, A.; Mazar{\'e}, L.; Orsini, M.; Royer, A.; P{\'e}rez, P.; J{\'e}gou, H.; Grave, E.; and Zeghidour, N. 2024.
+\newblock Moshi: a speech-text foundation model for real-time dialogue.
+\newblock \emph{arXiv preprint arXiv:2410.00037}.
+
+\bibitem[{Di~Gangi et~al.(2019)Di~Gangi, Cattoni, Bentivogli, Negri, and Turchi}]{di2019must}
+Di~Gangi, M.~A.; Cattoni, R.; Bentivogli, L.; Negri, M.; and Turchi, M. 2019.
+\newblock Must-c: a multilingual speech translation corpus.
+\newblock In \emph{Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers)}, 2012--2017. Association for Computational Linguistics.
+
+\bibitem[{Dong et~al.(2024)Dong, Xiong, Pang, Wang, Zhao, Zhou, Jiang, Sahoo, Xiong, and Zhang}]{dong2024rlhf}
+Dong, H.; Xiong, W.; Pang, B.; Wang, H.; Zhao, H.; Zhou, Y.; Jiang, N.; Sahoo, D.; Xiong, C.; and Zhang, T. 2024.
+\newblock Rlhf workflow: From reward modeling to online rlhf.
+\newblock \emph{arXiv preprint arXiv:2405.07863}.
+
+\bibitem[{Du et~al.(2024)Du, Chen, Zhang, Hu, Lu, Yang, Hu, Zheng, Gu, Ma et~al.}]{du2024cosyvoice}
+Du, Z.; Chen, Q.; Zhang, S.; Hu, K.; Lu, H.; Yang, Y.; Hu, H.; Zheng, S.; Gu, Y.; Ma, Z.; et~al. 2024.
+\newblock Cosyvoice: A scalable multilingual zero-shot text-to-speech synthesizer based on supervised semantic tokens.
+\newblock \emph{arXiv preprint arXiv:2407.05407}.
+
+\bibitem[{Dubois et~al.()Dubois, Galambosi, Liang, and Hashimoto}]{dubois2404length}
+Dubois, Y.; Galambosi, B.; Liang, P.; and Hashimoto, T.~B. ????
+\newblock Length-controlled alpacaeval: A simple way to debias automatic evaluators, 2024.
+\newblock \emph{URL https://arxiv. org/abs/2404.04475}.
+
+\bibitem[{Fang et~al.(2024)Fang, Guo, Zhou, Ma, Zhang, and Feng}]{fang2024llama}
+Fang, Q.; Guo, S.; Zhou, Y.; Ma, Z.; Zhang, S.; and Feng, Y. 2024.
+\newblock Llama-omni: Seamless speech interaction with large language models.
+\newblock \emph{arXiv preprint arXiv:2409.06666}.
+
+\bibitem[{Fathullah et~al.(2023)Fathullah, Wu, Lakomkin, Li, Jia, Shangguan, Mahadeokar, Kalinli, Fuegen, and Seltzer}]{fathullah2023audiochatllama}
+Fathullah, Y.; Wu, C.; Lakomkin, E.; Li, K.; Jia, J.; Shangguan, Y.; Mahadeokar, J.; Kalinli, O.; Fuegen, C.; and Seltzer, M. 2023.
+\newblock Audiochatllama: Towards general-purpose speech abilities for llms.
+\newblock \emph{arXiv preprint arXiv:2311.06753}.
+
+\bibitem[{Feng et~al.(2025)Feng, Jiang, Kaufmann, Xu, H{\"u}llermeier, Weng, and Zhu}]{feng2025duo}
+Feng, X.; Jiang, Z.; Kaufmann, T.; Xu, P.; H{\"u}llermeier, E.; Weng, P.; and Zhu, Y. 2025.
+\newblock DUO: Diverse, Uncertain, On-Policy Query Generation and Selection for Reinforcement Learning from Human Feedback.
+\newblock In \emph{Proceedings of the AAAI Conference on Artificial Intelligence}, volume~39, 16604--16612.
+
+\bibitem[{Hassid et~al.(2023)Hassid, Remez, Nguyen, Gat, Conneau, Kreuk, Copet, Defossez, Synnaeve, Dupoux et~al.}]{hassid2023textually}
+Hassid, M.; Remez, T.; Nguyen, T.~A.; Gat, I.; Conneau, A.; Kreuk, F.; Copet, J.; Defossez, A.; Synnaeve, G.; Dupoux, E.; et~al. 2023.
+\newblock Textually pretrained speech language models.
+\newblock \emph{Advances in Neural Information Processing Systems}, 36: 63483--63501.
+
+\bibitem[{Hu et~al.(2025)Hu, Chen, Yang, {\.Z}elasko, Hrinchuk, Lavrukhin, Balam, and Ginsburg}]{hu2025chain}
+Hu, K.; Chen, Z.; Yang, C.-H.~H.; {\.Z}elasko, P.; Hrinchuk, O.; Lavrukhin, V.; Balam, J.; and Ginsburg, B. 2025.
+\newblock Chain-of-thought prompting for speech translation.
+\newblock In \emph{ICASSP 2025-2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 1--5. IEEE.
+
+\bibitem[{Hu et~al.(2024)Hu, Zhou, Liu, Chen, Meng, Hao, Pan, Liu, Li, Sivasankaran et~al.}]{hu2024wavllm}
+Hu, S.; Zhou, L.; Liu, S.; Chen, S.; Meng, L.; Hao, H.; Pan, J.; Liu, X.; Li, J.; Sivasankaran, S.; et~al. 2024.
+\newblock Wavllm: Towards robust and adaptive speech large language model.
+\newblock \emph{arXiv preprint arXiv:2404.00656}.
+
+\bibitem[{Jain et~al.(2013)Jain, Wojcik, Joachims, and Saxena}]{jain2013learning}
+Jain, A.; Wojcik, B.; Joachims, T.; and Saxena, A. 2013.
+\newblock Learning trajectory preferences for manipulators via iterative improvement.
+\newblock \emph{Advances in neural information processing systems}, 26.
+
+\bibitem[{Ji et~al.(2024)Ji, Jiang, Wang, Chen, Fang, Zuo, Yang, Cheng, Wang, Li et~al.}]{ji2024wavtokenizer}
+Ji, S.; Jiang, Z.; Wang, W.; Chen, Y.; Fang, M.; Zuo, J.; Yang, Q.; Cheng, X.; Wang, Z.; Li, R.; et~al. 2024.
+\newblock Wavtokenizer: an efficient acoustic discrete codec tokenizer for audio language modeling.
+\newblock \emph{arXiv preprint arXiv:2408.16532}.
+
+\bibitem[{Joshi et~al.(2017)Joshi, Choi, Weld, and Zettlemoyer}]{joshi2017triviaqa}
+Joshi, M.; Choi, E.; Weld, D.~S.; and Zettlemoyer, L. 2017.
+\newblock Triviaqa: A large scale distantly supervised challenge dataset for reading comprehension.
+\newblock \emph{arXiv preprint arXiv:1705.03551}.
+
+\bibitem[{Kim et~al.(2024)Kim, Seo, Jeong, Kwon, Kim, Kim, Lee, Song, Oh, Ha et~al.}]{kim2024paralinguistics}
+Kim, H.; Seo, S.; Jeong, K.; Kwon, O.; Kim, S.; Kim, J.; Lee, J.; Song, E.; Oh, M.; Ha, J.-W.; et~al. 2024.
+\newblock Paralinguistics-Aware Speech-Empowered Large Language Models for Natural Conversation.
+\newblock \emph{arXiv preprint arXiv:2402.05706}.
+
+\bibitem[{Lakhotia et~al.(2021)Lakhotia, Kharitonov, Hsu, Adi, Polyak, Bolte, Nguyen, Copet, Baevski, Mohamed et~al.}]{lakhotia2021generative}
+Lakhotia, K.; Kharitonov, E.; Hsu, W.-N.; Adi, Y.; Polyak, A.; Bolte, B.; Nguyen, T.-A.; Copet, J.; Baevski, A.; Mohamed, A.; et~al. 2021.
+\newblock On generative spoken language modeling from raw audio.
+\newblock \emph{Transactions of the Association for Computational Linguistics}, 9: 1336--1354.
+
+\bibitem[{Li et~al.(2023)Li, Zhang, Dubois, Taori, Gulrajani, Guestrin, Liang, and Hashimoto}]{li2023alpacaeval}
+Li, X.; Zhang, T.; Dubois, Y.; Taori, R.; Gulrajani, I.; Guestrin, C.; Liang, P.; and Hashimoto, T.~B. 2023.
+\newblock Alpacaeval: An automatic evaluator of instruction-following models.
+
+\bibitem[{Lin et~al.(2023)Lin, Ye, Zhu, Cui, Ning, Jin, and Yuan}]{lin2023video}
+Lin, B.; Ye, Y.; Zhu, B.; Cui, J.; Ning, M.; Jin, P.; and Yuan, L. 2023.
+\newblock Video-llava: Learning united visual representation by alignment before projection.
+\newblock \emph{arXiv preprint arXiv:2311.10122}.
+
+\bibitem[{Lin et~al.(2024)Lin, Shivakumar, Gandhe, Yang, Gu, Ghosh, Stolcke, Lee, and Bulyko}]{lin2024paralinguistics}
+Lin, G.-T.; Shivakumar, P.~G.; Gandhe, A.; Yang, C.-H.~H.; Gu, Y.; Ghosh, S.; Stolcke, A.; Lee, H.-y.; and Bulyko, I. 2024.
+\newblock Paralinguistics-enhanced large language modeling of spoken dialogue.
+\newblock In \emph{ICASSP 2024-2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 10316--10320. IEEE.
+
+\bibitem[{Liu et~al.(2025)Liu, Fang, Hu, Zhang, Zhou, Zhang, Tu, Lin, Huang, Song et~al.}]{liu2025survey}
+Liu, S.; Fang, W.; Hu, Z.; Zhang, J.; Zhou, Y.; Zhang, K.; Tu, R.; Lin, T.-E.; Huang, F.; Song, M.; et~al. 2025.
+\newblock A survey of direct preference optimization.
+\newblock \emph{arXiv preprint arXiv:2503.11701}.
+
+\bibitem[{Liu, Sun, and Zheng(2024)}]{liu2024enhancing}
+Liu, Z.; Sun, X.; and Zheng, Z. 2024.
+\newblock Enhancing LLM Safety via Constrained Direct Preference Optimization.
+\newblock \emph{arXiv preprint arXiv:2403.02475}.
+
+\bibitem[{Nachmani et~al.(2023)Nachmani, Levkovitch, Hirsch, Salazar, Asawaroengchai, Mariooryad, Rivlin, Skerry-Ryan, and Ramanovich}]{nachmani2023spoken}
+Nachmani, E.; Levkovitch, A.; Hirsch, R.; Salazar, J.; Asawaroengchai, C.; Mariooryad, S.; Rivlin, E.; Skerry-Ryan, R.; and Ramanovich, M.~T. 2023.
+\newblock Spoken question answering and speech continuation using spectrogram-powered llm.
+\newblock \emph{arXiv preprint arXiv:2305.15255}.
+
+\bibitem[{Prabhavalkar et~al.(2018)Prabhavalkar, Sainath, Wu, Nguyen, Chen, Chiu, and Kannan}]{prabhavalkar2018minimum}
+Prabhavalkar, R.; Sainath, T.~N.; Wu, Y.; Nguyen, P.; Chen, Z.; Chiu, C.-C.; and Kannan, A. 2018.
+\newblock Minimum word error rate training for attention-based sequence-to-sequence models.
+\newblock In \emph{2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 4839--4843. IEEE.
+
+\bibitem[{Radford et~al.(2023)Radford, Kim, Xu, Brockman, McLeavey, and Sutskever}]{radford2023robust}
+Radford, A.; Kim, J.~W.; Xu, T.; Brockman, G.; McLeavey, C.; and Sutskever, I. 2023.
+\newblock Robust speech recognition via large-scale weak supervision.
+\newblock In \emph{International conference on machine learning}, 28492--28518. PMLR.
+
+\bibitem[{Rafailov et~al.(2024)Rafailov, Sharma, Mitchell, Manning, Ermon, and Finn}]{rafailov2024direct}
+Rafailov, R.; Sharma, A.; Mitchell, E.; Manning, C.~D.; Ermon, S.; and Finn, C. 2024.
+\newblock Direct preference optimization: Your language model is secretly a reward model.
+\newblock \emph{Advances in Neural Information Processing Systems}, 36.
+
+\bibitem[{Rennie et~al.(2017)Rennie, Marcheret, Mroueh, Ross, and Goel}]{rennie2017self}
+Rennie, S.~J.; Marcheret, E.; Mroueh, Y.; Ross, J.; and Goel, V. 2017.
+\newblock Self-critical sequence training for image captioning.
+\newblock In \emph{Proceedings of the IEEE conference on computer vision and pattern recognition}, 7008--7024.
+
+\bibitem[{Rubenstein et~al.(2023)Rubenstein, Asawaroengchai, Nguyen, Bapna, Borsos, Quitry, Chen, Badawy, Han, Kharitonov et~al.}]{rubenstein2023audiopalm}
+Rubenstein, P.~K.; Asawaroengchai, C.; Nguyen, D.~D.; Bapna, A.; Borsos, Z.; Quitry, F. d.~C.; Chen, P.; Badawy, D.~E.; Han, W.; Kharitonov, E.; et~al. 2023.
+\newblock Audiopalm: A large language model that can speak and listen.
+\newblock \emph{arXiv preprint arXiv:2306.12925}.
+
+\bibitem[{Shu et~al.(2023)Shu, Dong, Chen, Huang, Zhang, Shi, Xiang, and Shi}]{shu2023llasm}
+Shu, Y.; Dong, S.; Chen, G.; Huang, W.; Zhang, R.; Shi, D.; Xiang, Q.; and Shi, Y. 2023.
+\newblock Llasm: Large language and speech model.
+\newblock \emph{arXiv preprint arXiv:2308.15930}.
+
+\bibitem[{Tang et~al.(2023)Tang, Yu, Sun, Chen, Tan, Li, Lu, Ma, and Zhang}]{tang2023salmonn}
+Tang, C.; Yu, W.; Sun, G.; Chen, X.; Tan, T.; Li, W.; Lu, L.; Ma, Z.; and Zhang, C. 2023.
+\newblock Salmonn: Towards generic hearing abilities for large language models.
+\newblock \emph{arXiv preprint arXiv:2310.13289}.
+
+\bibitem[{Touvron et~al.(2023)Touvron, Lavril, Izacard, Martinet, Lachaux, Lacroix, Rozi{\`e}re, Goyal, Hambro, Azhar et~al.}]{touvron2023llama}
+Touvron, H.; Lavril, T.; Izacard, G.; Martinet, X.; Lachaux, M.-A.; Lacroix, T.; Rozi{\`e}re, B.; Goyal, N.; Hambro, E.; Azhar, F.; et~al. 2023.
+\newblock Llama: Open and efficient foundation language models.
+\newblock \emph{arXiv preprint arXiv:2302.13971}.
+
+\bibitem[{Wang et~al.(2023{\natexlab{a}})Wang, Chen, Wu, Zhang, Zhou, Liu, Chen, Liu, Wang, Li et~al.}]{wang2023neural}
+Wang, C.; Chen, S.; Wu, Y.; Zhang, Z.; Zhou, L.; Liu, S.; Chen, Z.; Liu, Y.; Wang, H.; Li, J.; et~al. 2023{\natexlab{a}}.
+\newblock Neural codec language models are zero-shot text to speech synthesizers.
+\newblock \emph{arXiv preprint arXiv:2301.02111}.
+
+\bibitem[{Wang et~al.(2023{\natexlab{b}})Wang, Liao, Huang, Lu, Wu, Liu, Zong, and Zhang}]{wang2023blsp}
+Wang, C.; Liao, M.; Huang, Z.; Lu, J.; Wu, J.; Liu, Y.; Zong, C.; and Zhang, J. 2023{\natexlab{b}}.
+\newblock Blsp: Bootstrapping language-speech pre-training via behavior alignment of continuation writing.
+\newblock \emph{arXiv preprint arXiv:2309.00916}.
+
+\bibitem[{Wang et~al.(2021)Wang, Wu, Gu, and Pino}]{wang2021covost}
+Wang, C.; Wu, A.; Gu, J.; and Pino, J. 2021.
+\newblock CoVoST 2 and massively multilingual speech translation.
+\newblock In \emph{Interspeech}, volume 2021, 2247--2251.
+
+\bibitem[{Wu et~al.(2023)Wu, Gaur, Chen, Zhou, Zhu, Wang, Li, Liu, Ren, Liu et~al.}]{wu2023decoder}
+Wu, J.; Gaur, Y.; Chen, Z.; Zhou, L.; Zhu, Y.; Wang, T.; Li, J.; Liu, S.; Ren, B.; Liu, L.; et~al. 2023.
+\newblock On decoder-only architecture for speech-to-text and large language model integration.
+\newblock In \emph{2023 IEEE Automatic Speech Recognition and Understanding Workshop (ASRU)}, 1--8. IEEE.
+
+\bibitem[{Wu et~al.(2018)Wu, Tian, Qin, Lai, and Liu}]{wu2018study}
+Wu, L.; Tian, F.; Qin, T.; Lai, J.; and Liu, T.-Y. 2018.
+\newblock A study of reinforcement learning for neural machine translation.
+\newblock \emph{arXiv preprint arXiv:1808.08866}.
+
+\bibitem[{Xu et~al.(2024)Xu, Jiang, Niu, Deng, Poovendran, Choi, and Lin}]{xu2024magpie}
+Xu, Z.; Jiang, F.; Niu, L.; Deng, Y.; Poovendran, R.; Choi, Y.; and Lin, B.~Y. 2024.
+\newblock Magpie: Alignment data synthesis from scratch by prompting aligned llms with nothing.
+\newblock \emph{arXiv preprint arXiv:2406.08464}.
+
+\bibitem[{Yang et~al.(2023)Yang, Tian, Tan, Huang, Liu, Chang, Shi, Zhao, Bian, Wu et~al.}]{yang2023uniaudio}
+Yang, D.; Tian, J.; Tan, X.; Huang, R.; Liu, S.; Chang, X.; Shi, J.; Zhao, S.; Bian, J.; Wu, X.; et~al. 2023.
+\newblock Uniaudio: An audio foundation model toward universal audio generation.
+\newblock \emph{arXiv preprint arXiv:2310.00704}.
+
+\bibitem[{Ye et~al.(2025)Ye, Zhu, Chan, Wang, Tan, Lei, Peng, Liu, Jin, DAI et~al.}]{ye2025llasa}
+Ye, Z.; Zhu, X.; Chan, C.-M.; Wang, X.; Tan, X.; Lei, J.; Peng, Y.; Liu, H.; Jin, Y.; DAI, Z.; et~al. 2025.
+\newblock Llasa: Scaling Train-Time and Inference-Time Compute for Llama-based Speech Synthesis.
+\newblock \emph{arXiv preprint arXiv:2502.04128}.
+
+\bibitem[{Yuan et~al.(2024)Yuan, Pang, Cho, Sukhbaatar, Xu, and Weston}]{yuan2024self}
+Yuan, W.; Pang, R.~Y.; Cho, K.; Sukhbaatar, S.; Xu, J.; and Weston, J. 2024.
+\newblock Self-rewarding language models.
+\newblock \emph{arXiv preprint arXiv:2401.10020}.
+
+\bibitem[{Zen et~al.(2019)Zen, Dang, Clark, Zhang, Weiss, Jia, Chen, and Wu}]{zen2019libritts}
+Zen, H.; Dang, V.; Clark, R.; Zhang, Y.; Weiss, R.~J.; Jia, Y.; Chen, Z.; and Wu, Y. 2019.
+\newblock Libritts: A corpus derived from librispeech for text-to-speech.
+\newblock \emph{arXiv preprint arXiv:1904.02882}.
+
+\bibitem[{Zeng et~al.(2024{\natexlab{a}})Zeng, Du, Liu, Zhang, Jiang, Dong, and Tang}]{zeng2024scaling}
+Zeng, A.; Du, Z.; Liu, M.; Zhang, L.; Jiang, S.; Dong, Y.; and Tang, J. 2024{\natexlab{a}}.
+\newblock Scaling speech-text pre-training with synthetic interleaved data.
+\newblock \emph{arXiv preprint arXiv:2411.17607}.
+
+\bibitem[{Zeng et~al.(2024{\natexlab{b}})Zeng, Liu, Ma, Yang, Zhang, and Wang}]{zeng2024token}
+Zeng, Y.; Liu, G.; Ma, W.; Yang, N.; Zhang, H.; and Wang, J. 2024{\natexlab{b}}.
+\newblock Token-level Direct Preference Optimization.
+\newblock \emph{arXiv preprint arXiv:2404.11999}.
+
+\bibitem[{Zhang et~al.(2023)Zhang, Li, Zhang, Zhan, Wang, Zhou, and Qiu}]{zhang2023speechgpt}
+Zhang, D.; Li, S.; Zhang, X.; Zhan, J.; Wang, P.; Zhou, Y.; and Qiu, X. 2023.
+\newblock Speechgpt: Empowering large language models with intrinsic cross-modal conversational abilities.
+\newblock \emph{arXiv preprint arXiv:2305.11000}.
+
+\bibitem[{Zhang et~al.(2024)Zhang, Huang, Jin, and Lu}]{zhang2024vision}
+Zhang, J.; Huang, J.; Jin, S.; and Lu, S. 2024.
+\newblock Vision-language models for vision tasks: A survey.
+\newblock \emph{IEEE Transactions on Pattern Analysis and Machine Intelligence}.
+
+\bibitem[{Zhang et~al.(2025)Zhang, Liu, Zhang, Liu, Luo, Huang, and Gong}]{zhang2025process}
+Zhang, S.; Liu, X.; Zhang, X.; Liu, J.; Luo, Z.; Huang, S.; and Gong, Y. 2025.
+\newblock Process-based self-rewarding language models.
+\newblock \emph{arXiv preprint arXiv:2503.03746}.
+
+\bibitem[{Zhou et~al.(2023)Zhou, Liu, Yang, Shao, Liu, Yue, Ouyang, and Qiao}]{zhou2023beyond}
+Zhou, Z.; Liu, J.; Yang, C.; Shao, J.; Liu, Y.; Yue, X.; Ouyang, W.; and Qiao, Y. 2023.
+\newblock Beyond one-preference-for-all: Multi-objective direct preference optimization.
+\newblock \emph{arXiv preprint arXiv:2310.03708}.
+
+\end{thebibliography}

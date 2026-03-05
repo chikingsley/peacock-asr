@@ -1,0 +1,75 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+%Template version as of 6/27/2024
+
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+% \usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{textcomp}
+\usepackage{color}
+\usepackage{booktabs}
+\usepackage[normalem]{ulem}
+\usepackage{enumitem}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+% \algrenewcommand{\algorithmicrequire}{\textbf{Input:}}
+% \algrenewcommand{\algorithmicensure}{\textbf{Output:}}
+% \usepackage{algorithmicx}
+% \usepackage{algcompatible}
+\usepackage[table,xcdraw]{xcolor} 
+
+\definecolor{brightturquoise}{rgb}{0.85, 1, 1}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{LCS-CTC: Leveraging Soft Alignments to Enhance Phonetic Transcription Robustness}
+
+% \author{Anonymous ASRU 2025 submission}
+\author{%
+  \IEEEauthorblockN{%
+    \parbox{\linewidth}{\centering
+      Zongli Ye\IEEEauthorrefmark{1}, %
+      Jiachen Lian\IEEEauthorrefmark{2}\thanks{Project Lead / Corresponding author: \texttt{jiachenlian@berkeley.edu}}, %
+    Akshaj Gupta\IEEEauthorrefmark{2}, Xuanru Zhou\IEEEauthorrefmark{1}, Haodong Li\IEEEauthorrefmark{3}, Krish Patel\IEEEauthorrefmark{2},\\
+      Hwi Joo Park\IEEEauthorrefmark{2}, Dingkun Zhou\IEEEauthorrefmark{4}, Chenxu Guo\IEEEauthorrefmark{1}, Shuhe Li\IEEEauthorrefmark{1}, Sam Wang\IEEEauthorrefmark{2}, Iris Zhou\IEEEauthorrefmark{2}, Cheol Jun Cho\IEEEauthorrefmark{2}, \\Zoe Ezzes\IEEEauthorrefmark{5},
+      Jet M.J. Vonk\IEEEauthorrefmark{5}, Brittany T. Morin\IEEEauthorrefmark{5}, Rian Bogley\IEEEauthorrefmark{5}, Lisa Wauters\IEEEauthorrefmark{5}, Zachary A. Miller\IEEEauthorrefmark{5},\\
+      Maria Luisa Gorno-Tempini\IEEEauthorrefmark{5}, Gopala Anumanchipalli\IEEEauthorrefmark{2}%
+    }
+  }\\[0.1em]   
+  \IEEEauthorblockA{\normalsize  
+    \IEEEauthorrefmark{1}Zhejiang University \quad
+    \IEEEauthorrefmark{2}UC Berkeley \quad
+    \IEEEauthorrefmark{3}SUSTech \quad
+    \IEEEauthorrefmark{4}SCUT \quad
+    \IEEEauthorrefmark{5}UCSF
+  }
+}
+
+
+
+
+
+\maketitle
+
+\input{abstract}
+\input{introduction}
+\input{methods}
+\input{experiments}
+\input{conclusion}
+% \input{extra}
+
+% \input{References}
+% \clearpage
+\bibliographystyle{IEEEtran}
+\bibliography{refs}{}
+% \bibliography{IEEEabrv, refs}
+\end{document}

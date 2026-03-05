@@ -1,0 +1,25 @@
+{
+   "sources" : [
+      {
+         "usage" : "toplevel",
+         "filename" : "main.tex"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "IEEEabrv.bib"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "IEEEtran.bst"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "refs.bib"
+      }
+   ],
+   "version" : 2,
+   "texlive_version" : 2023,
+   "process" : {
+      "compiler" : "pdflatex"
+   }
+}

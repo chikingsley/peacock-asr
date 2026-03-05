@@ -1,0 +1,111 @@
+\documentclass{Interspeech}
+
+\usepackage{tipa}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{booktabs}   
+\usepackage{color}
+\usepackage[table,xcdraw]{xcolor} 
+
+\definecolor{brightturquoise}{rgb}{0.85, 1, 1}
+
+% 2023-10-21 modified by Simon King (Simon.King@ed.ac.uk)  
+% 2024-01 modified by TPC Chairs of Interspeech 2024  
+% 2024-10 modified by Antoine Serrurier for Interspeech 2025
+% 2024-12 modified by TPC Chairs of Interspeech 2025
+
+% **************************************
+% *    DOUBLE-BLIND REVIEW SETTINGS    *
+% **************************************
+% Comment out \interspeechcameraready when submitting the 
+% paper for review.
+% If your paper is accepted, uncomment this to produce the
+%  'camera ready' version to submit for publication.
+
+% \interspeechcameraready 
+
+
+% **************************************
+% *                                    *
+% *      STOP !   DO NOT DELETE !      *
+% *          READ THIS FIRST           *
+% *                                    *
+% * This template also includes        *
+% * important INSTRUCTIONS that you    *
+% * must follow when preparing your    *
+% * paper. Read it BEFORE replacing    *
+% * the content with your own work.    *
+% **************************************
+
+% title here must exactly match the title entered into the paper submission system
+
+
+
+\interspeechcameraready 
+
+\makeatletter
+\renewcommand\anonaddress{%
+  \ifinterspeechfinal
+    {\centering
+      % stacked box: no extra \vskip from `center`
+      \vskip-3pt
+      \shortstack[c]{%
+        \textsuperscript{1}Zhejiang University, China\quad
+        \textsuperscript{2}UC Berkeley, United States\\
+        \textsuperscript{3}UCSF, United States
+      }\par
+      % now pull up the next \vskip3pt by 3pt → zero net space
+      \vskip-3pt
+    }%
+  \fi
+}
+\makeatother
+
+\title{Towards Accurate Phonetic Error Detection Through Phoneme Similarity Modeling}
+
+
+\author[affiliation={ 1 }]{Xuanru}{Zhou}
+\author[affiliation={ 2 }]{Jiachen}{Lian$^*$}
+\author[affiliation={ 2 }]{Cheol Jun}{Cho}
+\author[affiliation={ 2 }]{Tejas}{Prabhune}
+\author[affiliation={ 1 }]{Shuhe}{Li}
+\author[affiliation={ 2 }]{William}{Li}
+\author[affiliation={ 2 }]{Rodrigo}{Ortiz}
+\author[affiliation={ 3 }]{Zoe}{Ezzes}
+\author[affiliation={ 3 }]{Jet}{Vonk}
+\author[affiliation={ 3 }]{Brittany}{Morin}
+\author[affiliation={ 3 }]{Rian}{Bogley}
+\author[affiliation={ 3 }]{Lisa}{Wauters}
+\author[affiliation={ 3 }]{Zachary}{Miller}
+\author[affiliation={ 3 }]{Maria}{Gorno-Tempini}
+\author[affiliation={ 2 }]{Gopala}{Anumanchipalli}
+
+
+\affiliation{}{Zhejiang University}{China}
+\affiliation{}{UC Berkeley}{US}
+\affiliation{}{UCSF}{US}
+\email{$^*$ Project Lead, corresponding to: jiachenlian@berkeley.edu}
+
+
+\keywords{phonetic error detection, allophony, speech recognition, phoneme similarity modeling}
+
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\usepackage{comment}
+
+\begin{document}
+
+\maketitle
+
+
+\input{abstract}
+\input{introduction}
+\input{method}
+\input{experiments}
+\input{conclusion}
+
+
+\bibliographystyle{IEEEtran}
+\bibliography{mybib}
+
+\end{document}

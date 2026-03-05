@@ -1,0 +1,109 @@
+
+\documentclass{article} % For LaTeX2e
+\usepackage[utf8]{inputenc}    % UTF-8 input encoding
+\usepackage[T1]{fontenc}       % T1 font encoding for accented characters
+\usepackage{nemo_speech,times}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+% \input{math_commands.tex}
+
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{lipsum}
+\usepackage{colortbl}       % for \rowcolor
+\usepackage{graphicx}       % graphics
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{subcaption}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{pdflscape}
+\usepackage{rotating}
+\usepackage{float}
+\usepackage{threeparttable} % in preamble
+\graphicspath{{images/}}     % organize your images and other figures under media/ folder
+\usepackage[table]{xcolor}   % in the preamble
+
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+
+%% Title
+\title{Canary-1B-v2 \& Parakeet-TDT-0.6B-v3: Efficient and High-Performance Models for Multilingual ASR and AST}
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the \nemofinalcopy macro remains commented out below.
+% Non-anonymous submissions will be rejected without review.
+
+\author{Monica Sekoyan\thanks{These authors contributed equally. Listed in alphabetical order based on First Name.}, Nithin Rao Koluguri\footnotemark[1], Nune Tadevosyan\footnotemark[1], \\
+Piotr Zelasko, Travis Bartley, Nikolay Karpov, Jagadeesh Balam, Boris Ginsburg \\
+NVIDIA \\
+Santa Clara, CA 95051, USA \\
+\texttt{\{msekoyan, nkoluguri, ntadevosyan\}@nvidia.com}
+}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\nemofinalcopy % Uncomment for camera-ready version, but NOT for submission.
+
+\begin{document}
+
+\maketitle
+
+% Remove the header text completely 
+\fancyhead{}
+
+\begin{abstract}
+This report introduces \textbf{Canary-1B-v2}\footnote{\url{https://huggingface.co/nvidia/canary-1b-v2}}, a fast, robust multilingual model for Automatic Speech Recognition (ASR) and Speech-to-Text Translation (AST). Built with a FastConformer encoder and Transformer decoder, it supports 25 European languages. The model was trained on ~1.7M hours of total data samples, including Granary and NeMo ASR Set 3.0, with non-speech audio added to reduce hallucinations for ASR and AST. We describe its two-stage pre-training and fine-tuning process with dynamic data balancing, as well as experiments with an nGPT encoder. Results show nGPT scales well with massive data, while FastConformer excels after fine-tuning. For timestamps, Canary-1B-v2 uses the NeMo Forced Aligner (NFA) with an auxiliary CTC model, providing reliable segment-level timestamps for ASR and AST. Evaluations show Canary-1B-v2 outperforms Whisper-large-v3 on English ASR while being 10$\times$ faster, and delivers competitive multilingual ASR and AST performance against larger models like Seamless-M4T-v2-large and LLM-based systems.
+
+We also release \textbf{Parakeet-TDT-0.6B-v3}\footnote{\url{https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3}}, a successor to v2, offering multilingual ASR across the same 25 languages with just 600M parameters.
+
+\end{abstract}
+
+
+% keywords can be removed
+%\keywords{First keyword \and Second keyword \and More}
+
+\section{Introduction}
+\input{chapters/intro}
+
+\section{Architecture}
+\input{chapters/arch}
+
+\section{Data}
+\input{chapters/data}
+
+\section{Training}
+\input{chapters/training}
+
+\section{Timestamps}
+\input{chapters/timestamps}
+
+\section{Evaluation}
+\input{chapters/evaluation}
+
+\section{Conclusions}
+This report introduces \textit{\textbf{Canary-1B-v2}} and \textbf{\textit{Parakeet-TDT-0.6B-v3}}, two multilingual models that achieve state-of-the-art ASR and AST performance with high efficiency. The models were developed through a comprehensive exploration of data, training strategies, and architecture. This included curating a 1.7M-hour dataset with non-speech audio to reduce hallucinations and using dynamic weight scheduling to mitigate data imbalance.
+
+A core contribution of this work is a comparative study of encoder architectures, featuring the first application of nGPT to speech processing. Our experiments reveal a crucial trade-off: while the final FastConformer-based model excelled after a multi-stage training and fine-tuning regimen , the nGPT encoder is a data-hungry model that demonstrated stronger and faster generalization in large-scale, single-stage training, especially on challenging translation tasks. This investigation also yielded novel insights into positional encodings, finding ALiBi more effective for long-form ASR and RoPE more suitable for AST.
+
+We also present a robust method for generating accurate segment-level timestamps using the NeMo Forced Aligner , and the release of Parakeet-TDT-0.6B-v3 extends high-quality ASR to resource-limited settings. 
+
+%Bibliography
+\bibliographystyle{nemo_speech}  
+\bibliography{nemo_speech}  
+
+\clearpage
+\appendix
+
+\section*{Appendix}
+\addcontentsline{toc}{section}{Appendix}
+\nopagebreak[4]            % <-- prevent a break here
+
+\input{chapters/appendix} % no forced page break
+
+\end{document}

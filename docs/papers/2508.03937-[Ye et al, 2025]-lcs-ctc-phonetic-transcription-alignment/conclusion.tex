@@ -1,0 +1,9 @@
+\vspace{-0.3em}
+\section{Conclusions and Limitations}
+
+In this work, we propose LCS-CTC which demonstrates strong performance across all evaluation metrics for both fluent and non-fluent speech, and, critically, yields outputs that are more clinically interpretable. Nonetheless, several limitations remain. The current framework is trained on clean speech from the VCTK corpus, which is insufficient to fully assess its generalizability to more diverse, noisy, or pathological speech. Future work will focus on expanding both the training and evaluation datasets to encompass a broader range of conditions. LCS-CTC operates explicitly as a forced aligner, maintaining transparency comparable to traditional HMM-based systems such as MFA~\cite{mcauliffe17_interspeech}. A promising direction for future research is the development of a neural variant~\cite{pratap2024scaling-mms, zhu2022phone-w2v2-alignment, li2022neufa, seamless2025joint} that retains interpretability while achieving performance on par with established HMM-based methods. Another challenge involves the inherent ambiguity of phonetic labels. To address this, we plan to incorporate phonetic similarity modeling~\cite{zhou2025phonetic-error-detection} and WFST-based decoding~\cite{guo2025dysfluentwfstframeworkzeroshot, li2025k} strategies. Moreover, given that phonemes are intrinsically articulatory in nature, we aim to integrate articulatory priors~\cite{cho2024jstsp-sparc, ssdm, lian22bcsnmf, lian2023factor} into the label space to mitigate alignment instability—particularly in disordered or atypical speech.
+
+
+\vspace{-0.3em}
+\section{Acknowledgements}
+Thanks for support from UC Noyce Initiative, Society of Hellman Fellows, NIH/NIDCD, and the Schwab Innovation fund. Many thanks to Alexei Baevski for the early-stage discussions and insightful idea brainstorming.

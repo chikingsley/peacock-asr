@@ -1,0 +1,66 @@
+\begin{thebibliography}{10}
+
+\bibitem{getman2025non}
+Yaroslav Getman, Tam{\'a}s Gr{\'o}sz, Mikko Kurimo, and Giampiero Salvi,
+\newblock ``Non-native children's automatic speech assessment challenge ({NOCASA}),''
+\newblock {\em arXiv preprint arXiv:2504.20678}, 2025.
+
+\bibitem{cao24b_interspeech}
+Xinwei Cao, Zijian Fan, Torbjørn Svendsen, and Giampiero Salvi,
+\newblock ``A framework for phoneme-level pronunciation assessment using {CTC},''
+\newblock in {\em Proc. Interspeech}, 2024, pp. 302--306.
+
+\bibitem{10255657}
+Ahmed~I. Zahran, Aly~A. Fahmy, Khaled~T. Wassif, and Hanaa Bayomi,
+\newblock ``Fine-tuning self-supervised learning models for end-to-end pronunciation scoring,''
+\newblock {\em IEEE Access}, vol. 11, pp. 112650--112663, 2023.
+
+\bibitem{nbtale2013}
+{Lingit AS} and {National Library of Norway (Språkbanken)},
+\newblock ``{NB Tale} - speech database for {N}orwegian,'' \url{https://hdl.handle.net/21.11146/31}, 2013.
+
+\bibitem{li2021prefixtuning}
+Xiang~Lisa Li and Percy Liang,
+\newblock ``Prefix-tuning: Optimizing continuous prompts for generation,''
+\newblock in {\em Proc. ACL-IJCNLP (Volume 1: Long Papers)}, 2021, pp. 4582--4597.
+
+\bibitem{alumae2023dialect}
+Tanel Alum{\"a}e, Jiaming Kong, and Daniil Robnikov,
+\newblock ``Dialect adaptation and data augmentation for low-resource {ASR}: {TalTech} systems for the {MADASR} 2023 challenge,''
+\newblock in {\em Proc. ASRU}. IEEE, 2023, pp. 1--7.
+
+\bibitem{wang2023wespeaker}
+Hongji Wang, Chengdong Liang, Shuai Wang, Zhengyang Chen, Binbin Zhang, Xu~Xiang, Yanlei Deng, and Yanmin Qian,
+\newblock ``Wespeaker: A research and production oriented speaker embedding learning toolkit,''
+\newblock in {\em Proc. ICASSP}. IEEE, 2023, pp. 1--5.
+
+\bibitem{wang2024advancing}
+Shuai Wang, Zhengyang Chen, Bing Han, Hongji Wang, Chengdong Liang, Binbin Zhang, Xu~Xiang, Wen Ding, Johan Rohdin, Anna Silnova, et~al.,
+\newblock ``Advancing speaker embedding learning: Wespeaker toolkit for research and production,''
+\newblock {\em Speech Communication}, vol. 162, pp. 103104, 2024.
+
+\bibitem{qin2022simple}
+Xiaoyi Qin, Na~Li, Chao Weng, Dan Su, and Ming Li,
+\newblock ``Simple attention module based speaker verification with iterative noisy label detection,''
+\newblock in {\em Proc. ICASSP}. IEEE, 2022, pp. 6722--6726.
+
+\bibitem{lin2024voxblink2100kspeakerrecognition}
+Yuke Lin, Ming Cheng, Fulin Zhang, Yingying Gao, Shilei Zhang, and Ming Li,
+\newblock ``Voxblink2: A 100k+ speaker recognition corpus and the open-set speaker-identification benchmark,''
+\newblock {\em arXiv preprint arXiv:2407.11510}, 2024.
+
+\bibitem{chung2018voxceleb2}
+Joon~Son Chung, Arsha Nagrani, and Andrew Zisserman,
+\newblock ``{VoxCeleb2}: Deep speaker recognition,''
+\newblock {\em Proc. Interspeech}, 2018.
+
+\bibitem{SileroVAD}
+Silero Team,
+\newblock ``Silero {VAD}: pre-trained enterprise-grade voice activity detector ({VAD}), number detector and language classifier,'' \url{https://github.com/snakers4/silero-vad}, 2024.
+
+\bibitem{olstad-etal-2024-collecting}
+Anne Marte~Haug Olstad, Anna Smolander, Sofia Str{\"o}mbergsson, Sari Ylinen, Minna Lehtonen, Mikko Kurimo, Yaroslav Getman, Tam{\'a}s Gr{\'o}sz, Xinwei Cao, Torbj{\o}rn Svendsen, and Giampiero Salvi,
+\newblock ``Collecting linguistic resources for assessing children`s pronunciation of {N}ordic languages,''
+\newblock in {\em Proc. LREC-COLING}, Torino, Italia, May 2024, pp. 3529--3537.
+
+\end{thebibliography}

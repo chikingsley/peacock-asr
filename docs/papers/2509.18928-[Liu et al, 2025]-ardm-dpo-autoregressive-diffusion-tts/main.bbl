@@ -1,0 +1,203 @@
+\begin{thebibliography}{10}
+
+\bibitem{ARDiT}
+Zhijun Liu, Shuai Wang et~al.,
+\newblock ``Autoregressive diffusion transformer for text-to-speech synthesis,''
+\newblock {\em arXiv preprint arXiv:2406.05551}, 2024.
+
+\bibitem{DiTAR}
+Dongya Jia, Zhuo Chen et~al.,
+\newblock ``{DiTAR}: Diffusion transformer autoregressive modeling for speech generation,''
+\newblock in {\em ICML}, 2025.
+
+\bibitem{SongBloom}
+Chenyu Yang, Shuai Wang et~al.,
+\newblock ``{SongBloom}: Coherent song generation via interleaved autoregressive sketching and diffusion refinement,''
+\newblock {\em arXiv preprint arXiv:2506.07634}, 2025.
+
+\bibitem{MAR}
+Tianhong Li, Yonglong Tian et~al.,
+\newblock ``Autoregressive image generation without vector quantization,''
+\newblock in {\em NeurIPS}, 2024.
+
+\bibitem{Orthus}
+Siqi Kou, Jiachun Jin et~al.,
+\newblock ``{O}rthus: Autoregressive interleaved image-text generation with modality-specific heads,''
+\newblock in {\em ICML}, 2025.
+
+\bibitem{NextStep1}
+NextStep Team, Chunrui Han et~al.,
+\newblock ``{NextStep-1}: Toward autoregressive image generation with continuous tokens at scale,''
+\newblock {\em arXiv preprint arXiv:2508.10711}, 2025.
+
+\bibitem{CausVid}
+Tianwei Yin, Qiang Zhang et~al.,
+\newblock ``From slow bidirectional to fast autoregressive video diffusion models,''
+\newblock in {\em CVPR}, 2025.
+
+\bibitem{NOVA}
+Haoge Deng, Ting Pan et~al.,
+\newblock ``Autoregressive video generation without vector quantization,''
+\newblock {\em arXiv preprint arXiv:2412.14169}, 2024.
+
+\bibitem{MAGI1}
+Hansi Teng, Hongyu Jia et~al.,
+\newblock ``{MAGI-1}: Autoregressive video generation at scale,''
+\newblock {\em arXiv preprint arXiv:2505.13211}, 2025.
+
+\bibitem{DiscreteTokens}
+Yiwei Guo, Zhihan Li et~al.,
+\newblock ``Recent advances in discrete speech tokens: A review,''
+\newblock {\em arXiv preprint arXiv:2502.06490}, 2025.
+
+\bibitem{DiscreTalk}
+Tomoki Hayashi, Shinji Watanabe,
+\newblock ``{DiscreTalk}: Text-to-speech as a machine translation problem,''
+\newblock {\em arXiv preprint arXiv:2005.05525}, 2020.
+
+\bibitem{LatentLM}
+Yutao Sun, Hangbo Bao et~al.,
+\newblock ``Multimodal latent language modeling with next-token diffusion,''
+\newblock {\em arXiv preprint arXiv:2412.08635}, 2024.
+
+\bibitem{VibeVoice}
+Zhiliang Peng, Jianwei Yu et~al.,
+\newblock ``{VibeVoice} technical report,''
+\newblock {\em arXiv preprint arXiv:2508.19205}, 2025.
+
+\bibitem{DragonFM}
+Yanqing Liu, Ruiqing Xue et~al.,
+\newblock ``Next tokens denoising for speech synthesis,''
+\newblock {\em arXiv preprint arXiv:2507.22746}, 2025.
+
+\bibitem{EmoDPO}
+Xiaoxue Gao, Chen Zhang et~al.,
+\newblock ``{Emo-DPO}: Controllable emotional speech synthesis through direct preference optimization,''
+\newblock in {\em ICASSP}, 2025.
+
+\bibitem{InstructGPT}
+Long Ouyang, Jeffrey Wu et~al.,
+\newblock ``Training language models to follow instructions with human feedback,''
+\newblock {\em NeurIPS}, 2022.
+
+\bibitem{DPO}
+Rafael Rafailov, Archit Sharma et~al.,
+\newblock ``{Direct Preference Optimization}: Your language model is secretly a reward model,''
+\newblock in {\em NeurIPS}, 2023.
+
+\bibitem{ImageReward}
+Jiazheng Xu, Xiao Liu et~al.,
+\newblock ``{ImageReward}: Learning and evaluating human preferences for text-to-image generation,''
+\newblock in {\em NeurIPS}, 2023.
+
+\bibitem{SeedTTS}
+Philip Anastassiou, Jiawei Chen et~al.,
+\newblock ``{Seed-TTS}: A family of high-quality versatile speech generation models,''
+\newblock {\em arXiv preprint arXiv:2406.02430}, 2024.
+
+\bibitem{TTSDPO}
+Jinchuan Tian, Chunlei Zhang et~al.,
+\newblock ``Preference alignment improves language model-based {TTS},''
+\newblock in {\em ICASSP}, 2025.
+
+\bibitem{INTP}
+Xueyao Zhang, Yuancheng Wang et~al.,
+\newblock ``Advancing zero-shot text-to-speech intelligibility across diverse domains via preference alignment,''
+\newblock in {\em ACL}, 2025.
+
+\bibitem{CosyVoice3}
+Zhihao Du, Changfeng Gao et~al.,
+\newblock ``{CosyVoice 3}: Towards in-the-wild speech generation via scaling-up and post-training,''
+\newblock {\em arXiv preprint arXiv:2505.17589}, 2025.
+
+\bibitem{DMOSpeech}
+Yinghao~Aaron Li, Rithesh Kumar et~al.,
+\newblock ``{DMOSpeech}: Direct metric optimization via distilled diffusion model in zero-shot speech synthesis,''
+\newblock in {\em ICML}, 2025.
+
+\bibitem{RIO}
+Yuchen Hu, Chen Chen et~al.,
+\newblock ``Robust zero-shot text-to-speech synthesis with reverse inference optimization,''
+\newblock {\em arXiv preprint arXiv:2407.02243}, 2024.
+
+\bibitem{SpeechAlign}
+Dong Zhang, Zhaowei Li et~al.,
+\newblock ``{SpeechAlign}: Aligning speech generation to human preferences,''
+\newblock {\em NeurIPS}, 2024.
+
+\bibitem{UNO}
+Chen Chen, Yuchen Hu et~al.,
+\newblock ``Enhancing zero-shot text-to-speech synthesis with human feedback,''
+\newblock {\em arXiv preprint arXiv:2406.00654}, 2024.
+
+\bibitem{DLPO}
+Jingyi Chen, Ju~Seung Byun et~al.,
+\newblock ``Fine-tuning text-to-speech diffusion models using reinforcement learning with human feedback,''
+\newblock in {\em Interspeech}, 2025.
+
+\bibitem{FPO}
+Jixun Yao, Yuguang Yang et~al.,
+\newblock ``Fine-grained preference optimization improves zero-shot text-to-speech,''
+\newblock {\em arXiv preprint arXiv:2502.02950}, 2025.
+
+\bibitem{MPO}
+Kangxiang Xia, Xinfa Zhu et~al.,
+\newblock ``{MPO}: Multidimensional preference optimization for language model-based text-to-speech,''
+\newblock {\em arXiv preprint arXiv:2509.00685}, 2025.
+
+\bibitem{DiffusionDPO}
+Bram Wallace, Meihua Dang et~al.,
+\newblock ``Diffusion model alignment using direct preference optimization,''
+\newblock in {\em CVPR}, 2024.
+
+\bibitem{ScoreSDE}
+Yang Song, Jascha Sohl-Dickstein et~al.,
+\newblock ``Score-based generative modeling through stochastic differential equations,''
+\newblock in {\em ICLR}, 2021.
+
+\bibitem{DDPM}
+Jonathan Ho, Ajay Jain et~al.,
+\newblock ``Denoising diffusion probabilistic models,''
+\newblock in {\em NeurIPS}, 2020.
+
+\bibitem{DDIM}
+Jiaming Song, Chenlin Meng et~al.,
+\newblock ``Denoising diffusion implicit models,''
+\newblock in {\em ICLR}, 2021.
+
+\bibitem{AWR}
+Xue~Bin Peng, Aviral Kumar et~al.,
+\newblock ``Advantage-weighted regression: Simple and scalable off-policy reinforcement learning,''
+\newblock {\em arXiv preprint arXiv:1910.00177}, 2019.
+
+\bibitem{LibriTTS}
+Heiga Zen, Viet Dang et~al.,
+\newblock ``{LibriTTS}: A corpus derived from librispeech for text-to-speech,''
+\newblock in {\em Interspeech}, 2019.
+
+\bibitem{RAFT}
+Hanze Dong, Wei Xiong et~al.,
+\newblock ``{RAFT}: {Reward rAnked FineTuning} for generative foundation model alignment,''
+\newblock {\em TMLR}, 2023.
+
+\bibitem{DPO3DP}
+Yuzi Yan, Yibo Miao et~al.,
+\newblock ``{3D-Properties}: Identifying challenges in dpo and charting a path forward,''
+\newblock in {\em ICLR}, 2025.
+
+\bibitem{CTC}
+Alex Graves, Santiago Fern{\'a}ndez et~al.,
+\newblock ``{Connectionist Temporal Classification}: labelling unsegmented sequence data with recurrent neural networks,''
+\newblock in {\em ICML}, 2006.
+
+\bibitem{DiDiSpeech}
+Tingwei Guo, Cheng Wen et~al.,
+\newblock ``{DiDiSpeech}: A large scale mandarin speech corpus,''
+\newblock in {\em ICASSP}, 2021.
+
+\bibitem{Tango2}
+Navonil Majumder, Chia-Yu Hung et~al.,
+\newblock ``{Tango 2}: Aligning diffusion-based text-to-audio generations through direct preference optimization,''
+\newblock {\em arXiv preprint arXiv:2404.09956}, 2024.
+
+\end{thebibliography}

@@ -1,0 +1,37 @@
+\definecolor{tealblue}{RGB}{0,180,140}
+
+
+\begin{table}[t]
+\centering
+\setlength{\belowcaptionskip}{0.2cm}
+
+\caption{Evaluation results of MOS-aware GRMs with GRPO and DAPO on MOS-RMBench. 
+Numbers in \textcolor{tealblue}{parentheses} denote absolute improvements over baseline GRM.}
+\label{tab:MOS-aware-GRM}
+\renewcommand{\arraystretch}{1.1} % 行距
+
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lccccccc}
+\toprule
+\textbf{Models} & \textbf{BVCC} & \textbf{NISQA} & \textbf{SingMOS} & \textbf{SOMOS} & \textbf{TMHINT-QI} & \textbf{VMC'23} & \textbf{Overall} \\
+\midrule
+MOS-aware GRM+GRPO &
+83.10 \textcolor{tealblue}{(+0.60)} &
+81.47 \textcolor{tealblue}{(+1.16)} &
+76.50 \textcolor{tealblue}{(+0.10)} &
+75.80 \textcolor{tealblue}{(+1.20)} &
+80.40 \textcolor{tealblue}{(+2.30)} &
+74.13 \textcolor{tealblue}{(+1.00)} &
+78.00 \textcolor{tealblue}{(+1.06)} \\
+MOS-aware GRM+DAPO &
+83.40 \textcolor{tealblue}{(+0.80)} &
+82.14 \textcolor{tealblue}{(+0.09)} &
+78.40 \textcolor{tealblue}{(+0.90)} &
+75.10 \textcolor{tealblue}{(+0.70)} &
+79.90 \textcolor{tealblue}{(+0.60)} &
+73.57 \textcolor{tealblue}{(+0.44)} &
+78.08 \textcolor{tealblue}{(+0.48)} \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

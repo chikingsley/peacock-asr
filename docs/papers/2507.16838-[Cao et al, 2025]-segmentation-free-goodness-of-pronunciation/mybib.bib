@@ -1,0 +1,701 @@
+@string{icassp={IEEE ICASSP}}
+@string{interspeech={Interspeech}}
+@string{lrec={LREC}}
+@string{asru={ASRU}}
+@string{slate={SLaTE}}
+@string{icml={ICML}}
+@string{neurips={NeurIPS}}
+@string{IEEE_J_ASLP={{IEEE/ACM} Trans. Audio, Speech, Language Process.}}
+@string{naacl={NAACL}} % Proceedings the North American Chapter of the Association for Computational Linguistics (NAACL)
+@string{slt={IEEE SLT}}
+@string{specomm={Spe. Comm.}} % Speech Communication
+@string{jslhr={JSHLR}} % Journal of Speech, Language, and Hearing Research
+@STRING{IEEE_J_STSP       = {IEEE J. Sel. Topics Signal Process.}} % {IEEE} Journal of Selected Topics in Signal Processing"}
+@string{iccae = {ICCAE}} % {International Conference on Computer and Automation Engineering (ICCAE)}
+
+@INPROCEEDINGS{comparison-dtw,
+  author={Lee, Ann and Glass, James},
+  booktitle=slt, 
+  title={A comparison-based approach to mispronunciation detection}, 
+  year={2012},
+  volume={},
+  number={},
+  pages={382--387},
+  doi={10.1109/SLT.2012.6424254}}
+
+@article{witt2000phone,
+  title={Phone-level pronunciation scoring and assessment for interactive language learning},
+  author={Witt, Silke M and Young, Steve J},
+  journal=specomm,
+  volume={30},
+  number={2-3},
+  pages={95--108},
+  year={2000},
+  OPTpublisher={Elsevier}
+}
+
+@article{NEUMEYER200083,
+title = {Automatic scoring of pronunciation quality},
+journal = specomm,
+volume = {30},
+number = {2},
+pages = {83--93},
+year = {2000},
+issn = {0167-6393},
+doi = {https://doi.org/10.1016/S0167-6393(99)00046-1},
+url = {https://www.sciencedirect.com/science/article/pii/S0167639399000461},
+author = {Leonardo Neumeyer and Horacio Franco and Vassilios Digalakis and Mitchel Weintraub},
+keywords = {Automatic pronunciation scoring, Speech technology, Hidden Markov models, Speech recognition, Pronunciation quality assessment, Language instruction systems, Computer aided language learning},
+abstract = {We present a paradigm for the automatic assessment of pronunciation quality by machine. In this scoring paradigm, both native and nonnative speech data is collected and a database of human-expert ratings is created to enable the development of a variety of machine scores. We first discuss issues related to the design of speech databases and the reliability of human ratings. We then address pronunciation evaluation as a prediction problem, trying to predict the grade a human expert would assign to a particular skill. Using the speech and the expert-ratings databases, we build statistical models and introduce different machine scores that can be used as predictor variables. We validate these machine scores on the Voice Interactive Language Training System (VILTS) corpus, evaluating the pronunciation of American speakers speaking French and we show that certain machine scores, like the log-posterior and the normalized duration, achieve a correlation with the targeted human grades that is comparable to the human-to-human correlation when a sufficient amount of speech data is available.}
+}
+
+@article{CINCAREK200965,
+title = {Automatic pronunciation scoring of words and sentences independent from the non-native’s first language},
+journal = {Computer Speech \& Language},
+volume = {23},
+number = {1},
+pages = {65--88},
+year = {2009},
+issn = {0885-2308},
+doi = {https://doi.org/10.1016/j.csl.2008.03.001},
+url = {https://www.sciencedirect.com/science/article/pii/S0885230808000193},
+author = {Tobias Cincarek and Rainer Gruhn and Christian Hacker and Elmar Nöth and Satoshi Nakamura},
+keywords = {Non-native speech, Pronunciation assessment, Sentence scoring, Word scoring, Mispronunciation detection, Phoneme mispronunciation statistic},
+abstract = {This paper describes an approach for automatic scoring of pronunciation quality for non-native speech. It is applicable regardless of the foreign language student’s mother tongue. Sentences and words are considered as scoring units. Additionally, mispronunciation and phoneme confusion statistics for the target language phoneme set are derived from human annotations and word level scoring results using a Markov chain model of mispronunciation detection. The proposed methods can be employed for building a part of the scoring module of a system for computer assisted pronunciation training (CAPT). Methods from pattern and speech recognition are applied to develop appropriate feature sets for sentence and word level scoring. Besides features well-known from and approved in previous research, e.g. phoneme accuracy, posterior score, duration score and recognition accuracy, new features such as high-level phoneme confidence measures are identified. The proposed method is evaluated with native English speech, non-native English speech from German, French, Japanese, Indonesian and Chinese adults and non-native speech from German school children. The speech data are annotated with tags for mispronounced words and sentence level ratings by native English teachers. Experimental results show, that the reliability of automatic sentence level scoring by the system is almost as high as the average human evaluator. Furthermore, a good performance for detecting mispronounced words is achieved. In a validation experiment, it could also be verified, that the system gives the highest pronunciation quality scores to 90% of native speakers’ utterances. Automatic error diagnosis based on a automatically derived phoneme mispronunciation statistic showed reasonable results for five non-native speaker groups. The statistics can be exploited in order to provide the non-native feedback on mispronounced phonemes.}
+}
+}
+
+@inproceedings{ERN,
+  title={Implementation of an extended recognition network for mispronunciation detection and diagnosis in computer-assisted pronunciation training},
+  author={Harrison, Alissa M and Lo, Wai-Kit and Qian, Xiao-jun and Meng, Helen},
+  booktitle=slate,
+  pages={45--48},
+  year={2009}
+}
+
+@article{witt-thesis,
+author = {Witt, Silke},
+year = {1999},
+month = {12},
+pages = {},
+title = {Use of Speech Recognition in Computer-assisted Language Learning. PhD, Dissertation}
+}
+
+@inproceedings{luo2011improvement,
+  title={Improvement of segmental mispronunciation detection with prior knowledge extracted from large L2 speech corpus},
+  author={Luo, Dean and Yang, Xuesong and Wang, Lan},
+  booktitle=interspeech,
+  year={2011}
+}
+
+@inproceedings{lo2010automatic,
+  title={Automatic derivation of phonological rules for mispronunciation detection in a computer-assisted pronunciation training system},
+  author={Lo, Wai-Kit and Zhang, Shuang and Meng, Helen},
+  booktitle=interspeech,
+  year={2010}
+}
+
+@inproceedings{yoon2010landmark,
+  title={Landmark-based automated pronunciation error detection},
+  author={Yoon, Su-Youn and Hasegawa-Johnson, Mark and Sproat, Richard},
+  booktitle=interspeech,
+  year={2010}
+}
+
+@inproceedings{kanters09_slate,
+  author={Sandra Kanters and Catia Cucchiarini and Helmer Strik},
+  title={{The goodness of pronunciation algorithm: a detailed performance study}},
+  year=2009,
+  booktitle=slate,
+  pages={49--52},
+  doi={10.21437/SLaTE.2009-13},
+  issn={2311-4975}
+}
+
+@inproceedings{weigthed-GOP,
+author = {Doremalen, Joost and Cucchiarini, Catia and Strik, Helmer},
+year = {2010},
+month = {09},
+pages = {590--593},
+title = {Using non-native error patterns to improve pronunciation verification},
+booktitle = interspeech,
+doi = {10.21437/Interspeech.2010-230}
+}
+
+@inproceedings{context-aware-GOP,
+  author={Jiatong Shi and Nan Huo and Qin Jin},
+  title={{Context-Aware Goodness of Pronunciation for Computer-Assisted Pronunciation Training}},
+  year={2020},
+  booktitle=interspeech,
+  pages={3057--3061},
+  doi={10.21437/Interspeech.2020-2953}
+}
+
+@article{SALVI20061666,
+title = {Segment boundary detection via class entropy measurements in connectionist phoneme recognition},
+journal = specomm,
+volume = {48},
+number = {12},
+pages = {1666--1676},
+year = {2006},
+OPTnote = {NOLISP 2005},
+issn = {0167-6393},
+doi = {https://doi.org/10.1016/j.specom.2006.07.009},
+author = {Giampiero Salvi},
+keywords = {Boundary detection, Entropy, Connectionist phoneme recognition}
+}
+
+@inproceedings{luo2009analysis,
+  title={Analysis and utilization of {MLLR} speaker adaptation technique for learners' pronunciation evaluation},
+  author={Luo, Dean and Qiao, Yu and Minematsu, Nobuaki and Yamauchi, Yutaka and Hirose, Keikichi},
+  booktitle=interspeech,
+  year={2009}
+}
+
+@inproceedings{hu13_interspeech,
+  author={Wenping Hu and Yao Qian and Frank K. Soong},
+  title={{A new DNN-based high quality pronunciation evaluation for computer-aided language learning (CALL)}},
+  year=2013,
+  booktitle=interspeech,
+  pages={1886--1890},
+  doi={10.21437/Interspeech.2013-458}
+}
+
+@inproceedings{hu15_slate,
+  author={Wenping Hu and Yao Qian and Frank K. Soong},
+  title={{An improved DNN-based approach to mispronunciation detection and diagnosis of L2 learners’ speech}},
+  year=2015,
+  booktitle=slate,
+  pages={71--76}
+}
+
+@inproceedings{Lin-transfer,
+  author={Binghuai Lin and Liyuan Wang},
+  title={{Deep Feature Transfer Learning for Automatic Pronunciation Assessment}},
+  year=2021,
+  booktitle=interspeech,
+  pages={4438--4442},
+  doi={10.21437/Interspeech.2021-931}
+}
+
+
+@article{STRIK2009845,
+title = {Comparing different approaches for automatic pronunciation error detection},
+journal = specomm,
+volume = {51},
+number = {10},
+pages = {845--852},
+year = {2009},
+OPTnote = {Spoken Language Technology for Education},
+issn = {0167-6393},
+doi = {https://doi.org/10.1016/j.specom.2009.05.007},
+url = {https://www.sciencedirect.com/science/article/pii/S0167639309000715},
+author = {Helmer Strik and Khiet Truong and Febe {de Wet} and Catia Cucchiarini},
+keywords = {Pronunciation error detection, Acoustic–phonetic classification, Computer assisted pronunciation training, Computer assisted language learning},
+abstract = {One of the biggest challenges in designing computer assisted language learning (CALL) applications that provide automatic feedback on pronunciation errors consists in reliably detecting the pronunciation errors at such a detailed level that the information provided can be useful to learners. In our research we investigate pronunciation errors frequently made by foreigners learning Dutch as a second language. In the present paper we focus on the velar fricative /x/ and the velar plosive /k/. We compare four types of classifiers that can be used to detect erroneous pronunciations of these phones: two acoustic–phonetic classifiers (one of which employs Linear Discriminant Analysis (LDA)), a classifier based on cepstral coefficients in combination with LDA, and one based on confidence measures (the so-called Goodness Of Pronunciation score). The best results were obtained for the two LDA classifiers which produced accuracy levels of about 85–93%.}
+}
+
+@inproceedings{li2017improving,
+  title={Improving Mispronunciation Detection for Non-Native Learners with Multisource Information and LSTM-Based Deep Models.},
+  author={Li, Wei and Chen, Nancy F and Siniscalchi, Sabato Marco and Lee, Chin-Hui},
+  booktitle=interspeech,
+  pages={2759--2763},
+  year={2017}
+}
+
+@inproceedings{xu2021explore,
+  title={Explore wav2vec 2.0 for Mispronunciation Detection.},
+  author={Xu, Xiaoshuo and Kang, Yueteng and Cao, Songjun and Lin, Binghuai and Ma, Long},
+  booktitle=interspeech,
+  pages={4428--4432},
+  year={2021}
+}
+
+@inproceedings{getman2022wav2vec2,
+  title={{wav2vec2}-based Speech Rating System for Children with Speech Sound Disorder},
+  author={Getman, Yaroslav and Al-Ghezi, Ragheb and Voskoboinik, Ekaterina and Gr{\'o}sz, Tam{\'a}s and Kurimo, Mikko and Salvi, Giampiero and Svendsen, Torbj{\o}rn and Str{\"o}mbergsson, Sofia and others},
+  booktitle=interspeech,
+  pages={3618--3622},
+  year={2022}
+}
+
+@article{DUDY201862,
+title = {Automatic analysis of pronunciations for children with speech sound disorders},
+journal = {Computer Speech \& Language},
+volume = {50},
+pages = {62-84},
+year = {2018},
+issn = {0885--2308},
+author = {Dudy, S. and Bedrick, S. and Asgari, M. and Kain, A.},
+}
+
+@inproceedings{Song2010LatticebasedGI,
+  title={Lattice-based {GOP} in automatic pronunciation evaluation},
+  author={Yin Song and Weiqian Liang and Runsheng Liu},
+  booktitle=iccae,
+  year={2010},
+  volume={3},
+  pages={598--602}
+}
+
+@INPROCEEDINGS{libri,
+  author={Panayotov, Vassil and Chen, Guoguo and Povey, Daniel and Khudanpur, Sanjeev},
+  booktitle=icassp, 
+  title={Librispeech: An {ASR} corpus based on public domain audio books}, 
+  year={2015},
+  volume={},
+  number={},
+  pages={5206--5210},
+  doi={10.1109/ICASSP.2015.7178964}}
+
+
+  @inproceedings{Tedlium,
+    title = "{TED}-{LIUM}: an Automatic Speech Recognition dedicated corpus",
+    author = "Rousseau, Anthony  and
+      Del{\'e}glise, Paul  and
+      Est{\`e}ve, Yannick",
+    booktitle = lrec,
+    month = may,
+    year = "2012",
+    address = "Istanbul, Turkey",
+    OPTpublisher = "European Language Resources Association (ELRA)",
+    url = "http://www.lrec-conf.org/proceedings/lrec2012/pdf/698_Paper.pdf",
+    pages = "125--129",
+    abstract = "This paper presents the corpus developed by the LIUM for Automatic Speech Recognition (ASR), based on the TED Talks. This corpus was built during the IWSLT 2011 Evaluation Campaign, and is composed of 118 hours of speech with its accompanying automatically aligned transcripts. We describe the content of the corpus, how the data was collected and processed, how it will be publicly available and how we built an ASR system using this data leading to a WER score of 17.4 {\%}. The official results we obtained at the IWSLT 2011 evaluation campaign are also discussed.",
+}
+
+@INPROCEEDINGS{
+         Povey_ASRU2011,
+         author = {Povey, Daniel and Ghoshal, Arnab and Boulianne, Gilles and Burget, Lukas and Glembek, Ondrej and Goel, Nagendra and Hannemann, Mirko and Motlicek, Petr and Qian, Yanmin and Schwarz, Petr and Silovsky, Jan and Stemmer, Georg and Vesely, Karel},
+       keywords = {ASR, Automatic Speech Recognition, GMM, HTK, SGMM},
+          month = dec,
+          title = {The {Kaldi} Speech Recognition Toolkit},
+      booktitle = asru,
+           year = {2011},
+      OPTpublisher = {IEEE Signal Processing Society},
+       OPTlocation = {Hilton Waikoloa Village, Big Island, Hawaii, US},
+           OPTnote = {IEEE Catalog No.: CFP11SRW-USB},
+}
+
+@INPROCEEDINGS{p-norm,
+  author={Zhang, Xiaohui and Trmal, Jan and Povey, Daniel and Khudanpur, Sanjeev},
+  booktitle=icassp, 
+  title={Improving deep neural network acoustic models using generalized maxout networks}, 
+  year={2014},
+  volume={},
+  number={},
+  pages={215--219},
+  doi={10.1109/ICASSP.2014.6853589}}
+
+  @Misc{Voxforge.org,
+  author = 	 {Voxforge.org},
+  title = 	 {Free Speech... Recognition (Linux, Windows and Mac) - voxforge.org},
+  url = {http://www.voxforge.org/},
+  note = 	 {accessed 03/07/2023},
+}
+
+@misc{CMU_kids, 
+title = {{The CMU Kids Corpus LDC97S63. Web Download. Philadelphia: Linguistic Data Consortium}}, 
+author = {Eskenazi, M. and Mostow, J. and Graff, D.}, 
+url = {https://catalog.ldc.upenn.edu/LDC97S63}, 
+keywords = {},
+year = {1997},
+note = 	 {accessed 03/07/2023}
+}
+
+@inproceedings{kanters09_slate,
+  author={Sandra Kanters and Catia Cucchiarini and Helmer Strik},
+  title={{The goodness of pronunciation algorithm: a detailed performance study}},
+  year=2009,
+  booktitle=slate,
+  pages={49--52}
+}
+
+@inproceedings{the_impact_of_FA,
+author = {C M, Vikram and Mahr, Tristan and Scherer, Nancy and Chapman, Kathy and Hustad, Katherine and Liss, Julie and Berisha, Visar},
+year = {2021},
+month = {08},
+pages = {1922--1926},
+title = {The Impact of Forced-Alignment Errors on Automatic Pronunciation Evaluation},
+booktitle = interspeech,
+doi = {10.21437/Interspeech.2021-1403}
+}
+
+@article{perform_FA,
+author = {Mahr, Tristan and Berisha, Visar and Kawabata, Kan and Liss, Julie and Hustad, Katherine},
+year = {2021},
+month = {03},
+pages = {1--10},
+title = {Performance of Forced-Alignment Algorithms on Children's Speech},
+volume = {64},
+journal = jslhr,
+doi = {10.1044/2020_JSLHR-20-00268}
+}
+
+@inproceedings{L2-GOP,
+  author={Wenping Hu and Yao Qian and Frank K. Soong},
+  title={{An improved DNN-based approach to mispronunciation detection and diagnosis of L2 learners’ speech}},
+  year=2015,
+  booktitle=slate,
+  pages={71--76}
+}
+
+@article{improved_DNN,
+author = {Hu, Wenping and Qian, Yao and Soong, Frank and Wang, Yong},
+year = {2015},
+month = {01},
+pages = {},
+title = {Improved Mispronunciation Detection with Deep Neural Network Trained Acoustic Models and Transfer Learning based Logistic Regression Classifiers},
+volume = {67},
+journal = specomm,
+doi = {10.1016/j.specom.2014.12.008}
+}
+
+@inproceedings{HMM_tran_GOP,
+  author={Sweekar Sudhakara and Manoj Kumar Ramanathi and Chiranjeevi Yarra and Prasanta Kumar Ghosh},
+  title={{An Improved Goodness of Pronunciation (GoP) Measure for Pronunciation Evaluation with DNN-HMM System Considering HMM Transition Probabilities}},
+  year=2019,
+  booktitle=interspeech,
+  pages={954--958},
+  doi={10.21437/Interspeech.2019-2363}
+}
+
+@inproceedings{GOPT,
+   title={Transformer-Based Multi-Aspect Multi-Granularity Non-Native English Speaker Pronunciation Assessment},
+   DOI={10.1109/icassp43922.2022.9746743},
+   booktitle=icassp,
+   OPTpublisher={IEEE},
+   author={Gong, Yuan and Chen, Ziyi and Chu, Iek-Heng and Chang, Peng and Glass, James},
+   pages={7262--7266},
+   year={2022},
+   month=may }
+
+
+@INPROCEEDINGS{cnn-rnn-ctc,
+  author={Leung, Wai-Kim and Liu, Xunying and Meng, Helen},
+  booktitle=icassp, 
+  title={{CNN-RNN-CTC} Based End-to-end Mispronunciation Detection and Diagnosis}, 
+  year={2019},
+  volume={},
+  number={},
+  pages={8132--8136},
+  doi={10.1109/ICASSP.2019.8682654}}
+
+@article{why_peaky,
+  title={Why does {CTC} result in peaky behavior?},
+  author={Zeyer, Albert and Schl{\"u}ter, Ralf and Ney, Hermann},
+  journal={arXiv preprint arXiv:2105.14849},
+  year={2021}
+}
+
+@inproceedings{CTC-ME,
+ author = {Liu, Hu and Jin, Sheng and Zhang, Changshui},
+ booktitle = neurips,
+ OPTeditor = {S. Bengio and H. Wallach and H. Larochelle and K. Grauman and N. Cesa-Bianchi and R. Garnett},
+ OPTpages = {},
+ OPTpublisher = {Curran Associates, Inc.},
+ title = {Connectionist Temporal Classification with Maximum Entropy Regularization},
+ OPTvolume = {31},
+ year = {2018}
+}
+
+@inproceedings{CTC,
+author = {Graves, Alex and Fern\'{a}ndez, Santiago and Gomez, Faustino and Schmidhuber, J\"{u}rgen},
+title = {Connectionist Temporal Classification: Labelling Unsegmented Sequence Data with Recurrent Neural Networks},
+year = {2006},
+isbn = {1595933832},
+doi = {10.1145/1143844.1143891},
+booktitle = icml,
+pages = {369--376},
+OPTnumpages = {8},
+OPTlocation = {Pittsburgh, Pennsylvania, USA},
+OPTseries = {ICML '06}
+}
+
+@inproceedings{standford-ctc,
+    title={Lexicon-Free Conversational Speech Recognition with Neural Networks},
+    author={Maas, Andrew L. and Xie, Ziang and Jurafsky, Dan and Ng, Andrew Y.},
+    booktitle=naacl,
+    year={2015}
+}
+
+@inproceedings{speechocean762,
+  title={{speechocean762}: An Open-Source Non-native English Speech Corpus For Pronunciation Assessment},
+  booktitle=interspeech,
+  year={2021},
+  pages={3710--3714},
+  author={Junbo Zhang and Zhiwen Zhang and Yongqing Wang and Zhiyong Yan and Qiong Song and Yukai Huang and Ke Li and Daniel Povey and Yujun Wang}
+}
+
+@ARTICLE{tdnn,
+  author={Waibel, A. and Hanazawa, T. and Hinton, G. and Shikano, K. and Lang, K.J.},
+  journal={IEEE Transactions on Acoustics, Speech, and Signal Processing}, 
+  title={Phoneme recognition using time-delay neural networks}, 
+  year={1989},
+  volume={37},
+  number={3},
+  pages={328-339},
+  keywords={Neural networks;Speech recognition;Hidden Markov models;Computer science;Psychology;Character recognition;Computer networks;Backpropagation;Acoustic testing;Loudspeakers},
+  doi={10.1109/29.21701}}
+
+@article{WEI2009896,
+title = {A new method for mispronunciation detection using Support Vector Machine based on Pronunciation Space Models},
+journal = specomm,
+volume = {51},
+number = {10},
+pages = {896--905},
+year = {2009},
+OPTnote = {Spoken Language Technology for Education},
+issn = {0167-6393},
+doi = {https://doi.org/10.1016/j.specom.2009.03.004},
+url = {https://www.sciencedirect.com/science/article/pii/S0167639309000442},
+author = {Si Wei and Guoping Hu and Yu Hu and Ren-Hua Wang},
+keywords = {Automatic speech recognition, Mispronunciation detection, Support Vector Machine, Pronunciation Space Models}
+}
+
+@inproceedings{GPP,
+author = {Wai Kit, Lo and Soong, Frank},
+year = {2005},
+month = {02},
+pages = {85--88},
+title = {Generalized Posterior Probability for Minimum Error Verification of Recognized Sentences},
+OPTvolume = {1},
+isbn = {0-7803-8874-7},
+booktitle = icassp,
+doi = {10.1109/ICASSP.2005.1415056}
+}
+
+
+
+@inproceedings{zhang22p_interspeech,
+  author={Zhan Zhang and Yuehai Wang and Jianyi Yang},
+  title={{End-to-end Mispronunciation Detection with Simulated Error Distance}},
+  year=2022,
+  booktitle=interspeech,
+  pages={4327--4331},
+  doi={10.21437/Interspeech.2022-870}
+}
+
+@inproceedings{cao23_interspeech,
+  author={Xinwei Cao and Zijian Fan and Torbjørn Svendsen and Giampiero Salvi},
+  title={{An Analysis of Goodness of Pronunciation for Child Speech}},
+  year=2023,
+  booktitle=interspeech,
+  pages={4613--4617},
+  doi={10.21437/Interspeech.2023-743}
+}
+
+@inproceedings{cao24b_interspeech,
+  title     = {A Framework for Phoneme-Level Pronunciation Assessment Using {CTC}},
+  author    = {Xinwei Cao and Zijian Fan and Torbjørn Svendsen and Giampiero Salvi},
+  year      = {2024},
+  booktitle = {Interspeech 2024},
+  pages     = {302--306},
+  doi       = {10.21437/Interspeech.2024-459},
+}
+
+@article{fu2021textdependent,
+  title={A Full Text-Dependent End to End Mispronunciation Detection and Diagnosis with Easy Data Augmentation Techniques},
+  author={Kaiqi Fu and Jones Lin and Dengfeng Ke and Yanlu Xie and Jinsong Zhang and Binghuai Lin},
+  journal={ArXiv},
+  year={2021},
+  volume={abs/2104.08428},
+  url={https://api.semanticscholar.org/CorpusID:233296389}
+}
+
+@INPROCEEDINGS{textdep2,
+  author={Feng, Yiqing and Fu, Guanyu and Chen, Qingcai and Chen, Kai},
+  booktitle=icassp, 
+  title={{SED-MDD}: Towards Sentence Dependent End-To-End Mispronunciation Detection and Diagnosis}, 
+  year={2020},
+  volume={},
+  number={},
+  pages={3492--3496},
+  doi={10.1109/ICASSP40776.2020.9052975}}
+
+
+@article{textdep3,
+author = {Zhang, Zhan and Wang, Yuehai and Yang, Jianyi},
+title = {Text-Conditioned Transformer for Automatic Pronunciation Error Detection},
+year = {2021},
+issue_date = {Jun 2021},
+OPTpublisher = {Elsevier Science Publishers B. V.},
+address = {NLD},
+volume = {130},
+number = {C},
+issn = {0167-6393},
+url = {https://doi.org/10.1016/j.specom.2021.04.004},
+doi = {10.1016/j.specom.2021.04.004},
+journal = specomm,
+month = {jun},
+pages = {55--63},
+numpages = {9},
+keywords = {Computer-assisted pronunciation training (CAPT), Transformer, Automatic pronunciation error detection (APED)}
+}
+
+@ARTICLE{ssl2,
+  author={Shen, Yunfei and Liu, Qingqing and Fan, Zhixing and Liu, Jiajun and Wumaier, Aishan},
+  journal={IEEE Access}, 
+  title={Self-Supervised Pre-Trained Speech Representation Based End-to-End Mispronunciation Detection and Diagnosis of Mandarin}, 
+  year={2022},
+  volume={10},
+  number={},
+  pages={106451--106462},
+  doi={10.1109/ACCESS.2022.3212417}}
+
+@inproceedings{ssl1,
+  author={Eesung Kim and Jae-Jin Jeon and Hyeji Seo and Hoon Kim},
+  title={{Automatic Pronunciation Assessment using Self-Supervised Speech Representation Learning}},
+  year=2022,
+  booktitle=interspeech,
+  pages={1411--1415},
+  doi={10.21437/Interspeech.2022-10245}
+}
+
+
+@article{hubert,
+author = {Hsu, Wei-Ning and Bolte, Benjamin and Tsai, Yao-Hung and Lakhotia, Kushal and Salakhutdinov, Ruslan and Mohamed, Abdelrahman},
+year = {2021},
+month = {10},
+pages = {3451--3460},
+title = {{HuBERT}: Self-Supervised Speech Representation Learning by Masked Prediction of Hidden Units},
+OPTvolume = {PP},
+journal = IEEE_J_ASLP,
+doi = {10.1109/TASLP.2021.3122291}
+}
+
+@inproceedings{w2v2,
+author = {Baevski, Alexei and Zhou, Henry and Mohamed, Abdelrahman and Auli, Michael},
+title = {{wav2vec} 2.0: A Framework for Self-Supervised Learning of Speech Representations},
+year = {2020},
+isbn = {9781713829546},
+booktitle = neurips,
+OPTarticleno = {1044},
+OPTnumpages = {12},
+OPTseries = {NIPS'20}
+}
+
+@inproceedings{Liu2023ZeroShotAP,
+  author={Hongfu Liu and Mingqian Shi and Ye Wang},
+  title={{Zero-Shot Automatic Pronunciation Assessment}},
+  year=2023,
+  booktitle=interspeech,
+  pages={1009--1013},
+  doi={10.21437/Interspeech.2023-1592}
+}
+
+@inproceedings{graves2012sequence,
+  title={Sequence transduction with recurrent neural networks},
+  author={Graves, Alex},
+  booktitle=icml,
+  year={2012}
+}
+
+@inproceedings{conneau21_interspeech,
+  author={Alexis Conneau and Alexei Baevski and Ronan Collobert and Abdelrahman Mohamed and Michael Auli},
+  title={{Unsupervised Cross-Lingual Representation Learning for Speech Recognition}},
+  year=2021,
+  booktitle=interspeech,
+  pages={2426--2430},
+  doi={10.21437/Interspeech.2021-329}
+}
+
+@article{Chen2021WavLMLS,
+  title={WavLM: Large-Scale Self-Supervised Pre-Training for Full Stack Speech Processing},
+  author={Sanyuan Chen and Chengyi Wang and Zhengyang Chen and Yu Wu and Shujie Liu and Zhuo Chen and Jinyu Li and Naoyuki Kanda and Takuya Yoshioka and Xiong Xiao and Jian Wu and Long Zhou and Shuo Ren and Yanmin Qian and Yao Qian and Micheal Zeng and Furu Wei},
+  journal=IEEE_J_STSP,
+  year={2021},
+  volume={16},
+  pages={1505--1518},
+  
+}
+
+@misc{yan2023preserving,
+      title={Preserving Phonemic Distinctions for Ordinal Regression: A Novel Loss Function for Automatic Pronunciation Assessment}, 
+      author={Bi-Cheng Yan and Hsin-Wei Wang and Yi-Cheng Wang and Jiun-Ting Li and Chi-Han Lin and Berlin Chen},
+      year={2023},
+      eprint={2310.01839},
+      archivePrefix={arXiv},
+      primaryClass={eess.AS}
+}
+
+
+@inproceedings{cheng20_interspeech,
+  author={Sitong Cheng and Zhixin Liu and Lantian Li and Zhiyuan Tang and Dong Wang and Thomas Fang Zheng},
+  title={{ASR-Free Pronunciation Assessment}},
+  year=2020,
+  booktitle={Proc. Interspeech 2020},
+  pages={3047--3051},
+  doi={10.21437/Interspeech.2020-2623},
+  issn={2958-1796}
+}
+
+
+@inproceedings{huang2024peakyaccuratectcforced,
+   title={Less Peaky and More Accurate {CTC} Forced Alignment by Label Priors}, 
+      author={Ruizhe Huang and Xiaohui Zhang and Zhaoheng Ni and Li Sun and Moto Hira and Jeff Hwang and Vimal Manohar and Vineel Pratap and Matthew Wiesner and Shinji Watanabe and Daniel Povey and Sanjeev Khudanpur},
+   booktitle=icassp,
+   OPTpublisher={IEEE},
+   author={Ruizhe Huang and Xiaohui Zhang and Zhaoheng Ni and Li Sun and Moto Hira and Jeff Hwang and Vimal Manohar and Vineel Pratap and Matthew Wiesner and Shinji Watanabe and Daniel Povey and Sanjeev Khudanpur},
+   year={2024}
+}
+
+
+@Article{hybrid,
+AUTHOR = {Zhang, Long and Zhao, Ziping and Ma, Chunmei and Shan, Linlin and Sun, Huazhi and Jiang, Lifen and Deng, Shiwen and Gao, Chang},
+TITLE = {End-to-End Automatic Pronunciation Error Detection Based on Improved Hybrid CTC/Attention Architecture},
+JOURNAL = {Sensors},
+VOLUME = {20},
+YEAR = {2020},
+NUMBER = {7},
+ARTICLE-NUMBER = {1809},
+URL = {https://www.mdpi.com/1424-8220/20/7/1809},
+PubMedID = {32218379},
+ISSN = {1424-8220},
+ABSTRACT = {Advanced automatic pronunciation error detection (APED) algorithms are usually based on state-of-the-art automatic speech recognition (ASR) techniques. With the development of deep learning technology, end-to-end ASR technology has gradually matured and achieved positive practical results, which provides us with a new opportunity to update the APED algorithm. We first constructed an end-to-end ASR system based on the hybrid connectionist temporal classification and attention (CTC/attention) architecture. An adaptive parameter was used to enhance the complementarity of the connectionist temporal classification (CTC) model and the attention-based seq2seq model, further improving the performance of the ASR system. After this, the improved ASR system was used in the APED task of Mandarin, and good results were obtained. This new APED method makes force alignment and segmentation unnecessary, and it does not require multiple complex models, such as an acoustic model or a language model. It is convenient and straightforward, and will be a suitable general solution for L1-independent computer-assisted pronunciation training (CAPT). Furthermore, we find that in regards to accuracy metrics, our proposed system based on the improved hybrid CTC/attention architecture is close to the state-of-the-art ASR system based on the deep neural network–deep neural network (DNN–DNN) architecture, and has a stronger effect on the F-measure metrics, which are especially suitable for the requirements of the APED task.},
+DOI = {10.3390/s20071809}
+}
+
+@ARTICLE{Rabiner,
+  author={Rabiner, L.R.},
+  journal={Proceedings of the IEEE}, 
+  title={A tutorial on hidden Markov models and selected applications in speech recognition}, 
+  year={1989},
+  volume={77},
+  number={2},
+  pages={257--286},
+  keywords={Tutorial;Hidden Markov models;Speech recognition},
+  doi={10.1109/5.18626}}
+
+
+@ARTICLE{HanleyAndMcNeil1982ROC-CI,
+  author={Hanley, J.A. and McNeil, B.J.},
+  journal={Radiology}, 
+  title={The Meaning and Use of the Area under a Receiver Operating Characteristic
+({ROC}) Curve.}, 
+  year={1982},
+  volume={148},
+  pages={29--36},
+  keywords={AUC, confidence intervals},
+}
+
+@ARTICLE{leekf,
+  author={Lee, K.-F. and Hon, H.-W.},
+  journal={IEEE Transactions on Acoustics, Speech, and Signal Processing}, 
+  title={Speaker-independent phone recognition using hidden Markov models}, 
+  year={1989},
+  volume={37},
+  number={11},
+  pages={1641-1648},
+  keywords={Hidden Markov models;Databases;Knowledge engineering;Speech recognition;Maximum likelihood decoding;Humans;Acoustics;Context modeling;Linear predictive coding;Natural languages},
+  doi={10.1109/29.46546}}
+
+@inproceedings{chao23_interspeech,
+  title     = {A Hierarchical Context-aware Modeling Approach for Multi-aspect and Multi-granular Pronunciation Assessment},
+  author    = {Fu-An Chao and Tien-Hong Lo and Tzu-I Wu and Yao-Ting Sung and Berlin Chen},
+  year      = {2023},
+  booktitle = interspeech,
+  pages     = {974--978},
+  doi       = {10.21437/Interspeech.2023-550},
+  issn      = {2958-1796},
+}

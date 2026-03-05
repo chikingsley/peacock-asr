@@ -1,0 +1,33 @@
+\section{MOS-RMBench-Eval}
+To comprehensively evaluate the capability of reward models in speech quality assessment, we design MOS-RMBench-Eval. Centered on a unified preference-based setting, the benchmark encompasses diverse reward modeling paradigms, thereby enabling systematic and fair comparison across models. This section introduces the evaluation task and the reward models under evaluation.
+
+\subsection{Evaluation Task}
+\textbf{Task Description.}
+The evaluation is formulated as a binary preference comparison task: given a pair of speech samples, the model must either assign quality scores to both or directly decide which sample exhibits higher perceptual quality. The model’s performance on this task reflects its ability to discriminate differences in speech quality.
+To reduce potential position bias, the presentation order of the two audio clips in each pair is randomly swapped during evaluation. A decision is counted as correct only if the model assigns a strictly higher score to the sample annotated as chosen than to the one annotated as rejected.
+
+\textbf{Evaluation Metrics.}
+Model performance is reported in terms of accuracy (Acc). For each dataset, we calculate the proportion of evaluation pairs in which the model's scores correctly reflect the annotated preference (i.e., the chosen sample receives the higher score). The overall accuracy is computed as the proportion of correctly judged pairs across all samples from all datasets, which provides a comprehensive measure of model performance across the diverse speech scenarios covered by MOS-RMBench-Eval.
+
+\subsection{Evaluated Models}
+We implement and evaluate a range of reward modeling paradigms based on Qwen2-Audio \citep{chu2024qwen2}, covering scalar, semi-scalar, and GRMs, as well as UTMOS used for MOS prediction and the LLM-as-a-judge \citep{llmasajudge} paradigm. The following provides a description of the models evaluated under each paradigm, with detailed configurations provided in the Appendix~\ref{appendix:Experimental-Details}.
+
+\textbf{Classic scalar reward models.} These models output a single quality score for each audio sample. We adopt two training objectives: the Bradley–Terry(BT) \citep{btloss} loss, which maximizes the likelihood that the sample annotated as chosen receives a higher predicted score, and the mean squared error (MSE) loss, which minimizes the squared difference between the predicted score and the corresponding MOS value.
+
+
+\textbf{Semi-scalar reward models.} These models extend the scalar paradigm by incorporating natural language descriptions of audio quality. For each audio sample, Gemini-2.5-Pro \citep{comanici2025gemini} provides an overall quality description along four dimensions: noise, distortion, continuity, and naturalness. The model is first trained to generate these descriptions, after which its outputs are passed through a reward head to produce scalar scores. Similar to classic scalar models, both BT and MSE objectives are used for training.
+
+
+\textbf{Generative reward models.} GRMs take two audio samples as input simultaneously. As in the semi-scalar setting, the mode first learns to produce descriptive quality assessments. It is then further refined through supervised fine-tuning (SFT) on paired audio data annotated by Gemini-2.5-Pro, where each pair is compared across the same four dimensions and provided with overall quality scores. The annotation is validated to ensure that the chosen sample receives the higher score. 
+GRMs are further optimized using reinforcement learning methods, including Group Relative Policy Optimization (GRPO) \citep{grpo} and Decoupled Clip and Dynamic sAmpling Policy Optimization (DAPO) \citep{yu2025dapo}. In both cases, training employs a rule-based reward design, referred to as the Accuracy reward, which is determined solely by whether the model correctly judges the quality of a speech sample pair. Using $S(c)$ and $S(r)$ to denote the scores assigned to the chosen and rejected samples, respectively, the Accuracy reward is defined as follows:
+
+\begin{equation}
+\text{Accuracy reward}=\left\{
+                \begin{array}{lcl}
+                        1  &     & if\ \ S(c)>S(r),\\
+             -1  &     & otherwise\\
+                \end{array} \right.
+\end{equation}
+
+
+\textbf{LLM-as-a-judge.} These models directly compare two audio samples and output a preference judgment without producing explicit scalar scores. We evaluate this paradigm using Gemini-2.5-Pro and Qwen2.5-Omni-7B \citep{xu2025qwen2omni}.

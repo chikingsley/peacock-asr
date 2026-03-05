@@ -1,0 +1,14 @@
+Mispronunciation detection and diagnosis~(MDD) is a significant part in modern computer-aided language learning~(CALL) systems.
+%Phoneme-level pronunciation assessment is key to helping L2 learners improve their pronunciation.
+%However, most systems are based on a form of goodness of pronunciation (GOP) which requires pre-segmentation of speech into phonetic units.
+Most systems implementing phoneme-level MDD through goodness of pronunciation (GOP), however, rely on pre-segmentation of speech into phonetic units.
+This limits the accuracy of these methods and the possibility to use modern CTC-based acoustic models for their evaluation.
+In this study, we first propose self-alignment GOP (GOP-SA) that enables the use of CTC-trained ASR models for MDD.
+Next, we define a more general segmentation-free method that takes all possible segmentations of the canonical transcription into account (GOP-SF).
+We give a theoretical account of our definition of GOP-SF, an implementation that solves potential numerical issues as well as a proper normalization which allows the use of acoustic models with different peakiness over time.
+%makes the method applicable with acoustic models with different peakiness over time.
+We provide extensive experimental results on the CMU~Kids and speechocean762 datasets comparing the different definitions of our methods, estimating the dependency of GOP-SF on the peakiness of the acoustic models and on the amount of context around the target phoneme.
+Finally, we compare our methods
+with recent studies over the speechocean762 data
+showing that the feature vectors derived from the proposed method achieve state-of-the-art results on phoneme-level pronunciation assessment. 
+

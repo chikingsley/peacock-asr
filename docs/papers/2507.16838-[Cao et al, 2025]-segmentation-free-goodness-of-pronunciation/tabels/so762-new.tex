@@ -1,0 +1,27 @@
+\begin{tabular}{ lcc  }
+ \hline\hline
+% \multicolumn{3}{|c|}{Speechocean762} \\
+% \hline
+ Features & MDD model & PCC \\
+ \hline
+ GOP-TDNN~\cite{cao24b_interspeech} & poly. reg. &0.361$\pm$0.008 \\
+ GOP-CE-SF-SD & poly. reg. & N/A\\
+GOP-CE-SF-SD-\textit{numerical}&poly. reg. & 0.314$\pm$0.008 \\
+GOP-CE-SF-SD-Norm& poly. reg. & 0.332$\pm$0.008 \\
+GOP-CTC-SF-SD~\cite{cao24b_interspeech}& poly. reg. & 0.433$\pm$0.007 \\
+GOP-CTC-SF-SD-\textit{numerical}&poly. reg. & \textbf{0.450}$\pm$\textbf{0.006} \\
+GOP-CTC-SF-SD-Norm& poly. reg. & \textbf{0.449}$\pm$\textbf{0.006} \\
+ \hline
+ FGOP-TDNN~\cite{speechocean762}& SVR &0.441$\pm$0.007 \\
+ FGOP-CTC-SF~\cite{cao24b_interspeech}& SVR &0.568$\pm$0.006 \\
+FGOP-CTC-SF-\textit{numerical}&SVR&\textbf{0.580$\pm$0.006} \\
+FGOP-CTC-SF-Norm&SVR&\textbf{0.581$\pm$0.006} \\
+ \hline
+  FGOP-TDNN~\cite{GOPT} & GOPT & 0.605$\pm$0.002 \\
+  FGOP-CTC-SF~\cite{cao24b_interspeech} & GOPT & 0.618$\pm$0.002 \\
+  FGOP-CTC-SF-\textit{numerical} & GOPT & \textbf{0.646}$\pm$\textbf{0.002} \\
+  FGOP-CTC-SF-Norm & GOPT & \textbf{0.648}$\pm$\textbf{0.002} \\
+  %FGOP-CTC-SF-Norm-child & GOPT & \textbf{0.635}$\pm$\textbf{0.005} \\
+  %FGOP-CTC-SF-Norm-adult & GOPT & \textbf{0.651}$\pm$\textbf{0.004} \\
+     \hline\hline
+\end{tabular}

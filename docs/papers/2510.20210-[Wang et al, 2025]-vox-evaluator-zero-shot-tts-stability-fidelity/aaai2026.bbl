@@ -1,0 +1,269 @@
+\begin{thebibliography}{53}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Anastassiou et~al.(2024)Anastassiou, Chen, Chen, Chen, Chen, Chen, Cong, Deng, Ding, Gao et~al.}]{anastassiou2024seed}
+Anastassiou, P.; Chen, J.; Chen, J.; Chen, Y.; Chen, Z.; Chen, Z.; Cong, J.; Deng, L.; Ding, C.; Gao, L.; et~al. 2024.
+\newblock Seed-tts: A family of high-quality versatile speech generation models.
+\newblock \emph{arXiv preprint arXiv:2406.02430}.
+
+\bibitem[{Bae et~al.(2025)Bae, Oh, Kim, and Lee}]{bae2025unitcorrect}
+Bae, H.-W.; Oh, H.-S.; Kim, S.-B.; and Lee, S.-W. 2025.
+\newblock UnitCorrect: Unit-Based Mispronunciation Correcting System With a DTW-Based Detection.
+\newblock \emph{IEEE Transactions on Audio, Speech and Language Processing}.
+
+\bibitem[{Baevski et~al.(2020)Baevski, Zhou, Mohamed, and Auli}]{baevski2020wav2vec}
+Baevski, A.; Zhou, Y.; Mohamed, A.; and Auli, M. 2020.
+\newblock wav2vec 2.0: A framework for self-supervised learning of speech representations.
+\newblock \emph{Advances in neural information processing systems}, 33: 12449--12460.
+
+\bibitem[{Benesty et~al.(2009)Benesty, Chen, Huang, and Cohen}]{benesty2009pearson}
+Benesty, J.; Chen, J.; Huang, Y.; and Cohen, I. 2009.
+\newblock Pearson correlation coefficient.
+\newblock In \emph{Noise reduction in speech processing}, 1--4. Springer.
+
+\bibitem[{Borsos et~al.(2023)Borsos, Marinier, Vincent, Kharitonov, Pietquin, Sharifi, Roblek, Teboul, Grangier, Tagliasacchi et~al.}]{borsos2023audiolm}
+Borsos, Z.; Marinier, R.; Vincent, D.; Kharitonov, E.; Pietquin, O.; Sharifi, M.; Roblek, D.; Teboul, O.; Grangier, D.; Tagliasacchi, M.; et~al. 2023.
+\newblock Audiolm: a language modeling approach to audio generation.
+\newblock \emph{IEEE/ACM transactions on audio, speech, and language processing}, 31: 2523--2533.
+
+\bibitem[{Borsos, Sharifi, and Tagliasacchi(2022)}]{borsos2022speechpainter}
+Borsos, Z.; Sharifi, M.; and Tagliasacchi, M. 2022.
+\newblock Speechpainter: Text-conditioned speech inpainting.
+\newblock \emph{arXiv preprint arXiv:2202.07273}.
+
+\bibitem[{Chen et~al.(2024{\natexlab{a}})Chen, Hu, Wu, Wang, Chng, and Zhang}]{chen2024enhancing}
+Chen, C.; Hu, Y.; Wu, W.; Wang, H.; Chng, E.~S.; and Zhang, C. 2024{\natexlab{a}}.
+\newblock Enhancing zero-shot text-to-speech synthesis with human feedback.
+\newblock \emph{arXiv preprint arXiv:2406.00654}.
+
+\bibitem[{Chen et~al.(2024{\natexlab{b}})Chen, Liu, Zhou, Liu, Tan, Li, Zhao, Qian, and Wei}]{chen2024vall}
+Chen, S.; Liu, S.; Zhou, L.; Liu, Y.; Tan, X.; Li, J.; Zhao, S.; Qian, Y.; and Wei, F. 2024{\natexlab{b}}.
+\newblock Vall-e 2: Neural codec language models are human parity zero-shot text to speech synthesizers.
+\newblock \emph{arXiv preprint arXiv:2406.05370}.
+
+\bibitem[{Chen et~al.(2022)Chen, Wang, Chen, Wu, Liu, Chen, Li, Kanda, Yoshioka, Xiao et~al.}]{chen2022wavlm}
+Chen, S.; Wang, C.; Chen, Z.; Wu, Y.; Liu, S.; Chen, Z.; Li, J.; Kanda, N.; Yoshioka, T.; Xiao, X.; et~al. 2022.
+\newblock Wavlm: Large-scale self-supervised pre-training for full stack speech processing.
+\newblock \emph{IEEE Journal of Selected Topics in Signal Processing}, 16(6): 1505--1518.
+
+\bibitem[{Chen et~al.(2025)Chen, Wang, Wu, Zhang, Zhou, Liu, Chen, Liu, Wang, Li et~al.}]{chen2025neural}
+Chen, S.; Wang, C.; Wu, Y.; Zhang, Z.; Zhou, L.; Liu, S.; Chen, Z.; Liu, Y.; Wang, H.; Li, J.; et~al. 2025.
+\newblock Neural codec language models are zero-shot text to speech synthesizers.
+\newblock \emph{IEEE Transactions on Audio, Speech and Language Processing}.
+
+\bibitem[{Chen et~al.(2024{\natexlab{c}})Chen, Niu, Ma, Deng, Wang, Zhao, Yu, and Chen}]{chen2024f5}
+Chen, Y.; Niu, Z.; Ma, Z.; Deng, K.; Wang, C.; Zhao, J.; Yu, K.; and Chen, X. 2024{\natexlab{c}}.
+\newblock F5-tts: A fairytaler that fakes fluent and faithful speech with flow matching.
+\newblock \emph{arXiv preprint arXiv:2410.06885}.
+
+\bibitem[{Christiano et~al.(2017)Christiano, Leike, Brown, Martic, Legg, and Amodei}]{christiano2017deep}
+Christiano, P.~F.; Leike, J.; Brown, T.; Martic, M.; Legg, S.; and Amodei, D. 2017.
+\newblock Deep reinforcement learning from human preferences.
+\newblock \emph{Advances in neural information processing systems}, 30.
+
+\bibitem[{Du et~al.(2024)Du, Chen, Zhang, Hu, Lu, Yang, Hu, Zheng, Gu, Ma et~al.}]{du2024cosyvoice}
+Du, Z.; Chen, Q.; Zhang, S.; Hu, K.; Lu, H.; Yang, Y.; Hu, H.; Zheng, S.; Gu, Y.; Ma, Z.; et~al. 2024.
+\newblock Cosyvoice: A scalable multilingual zero-shot text-to-speech synthesizer based on supervised semantic tokens.
+\newblock \emph{arXiv preprint arXiv:2407.05407}.
+
+\bibitem[{Eskimez et~al.(2024)Eskimez, Wang, Thakker, Li, Tsai, Xiao, Yang, Zhu, Tang, Tan et~al.}]{eskimez2024e2}
+Eskimez, S.~E.; Wang, X.; Thakker, M.; Li, C.; Tsai, C.-H.; Xiao, Z.; Yang, H.; Zhu, Z.; Tang, M.; Tan, X.; et~al. 2024.
+\newblock E2 tts: Embarrassingly easy fully non-autoregressive zero-shot tts.
+\newblock In \emph{2024 IEEE Spoken Language Technology Workshop (SLT)}, 682--689. IEEE.
+
+\bibitem[{Gao et~al.(2025)Gao, Zhang, Chen, Zhang, and Chen}]{gao2025emo}
+Gao, X.; Zhang, C.; Chen, Y.; Zhang, H.; and Chen, N.~F. 2025.
+\newblock Emo-dpo: Controllable emotional speech synthesis through direct preference optimization.
+\newblock In \emph{ICASSP 2025-2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 1--5. IEEE.
+
+\bibitem[{He et~al.(2024)He, Shang, Wang, Li, Gu, Hua, Liu, Yang, Li, Shi et~al.}]{he2024emilia}
+He, H.; Shang, Z.; Wang, C.; Li, X.; Gu, Y.; Hua, H.; Liu, L.; Yang, C.; Li, J.; Shi, P.; et~al. 2024.
+\newblock Emilia: An extensive, multilingual, and diverse speech dataset for large-scale speech generation.
+\newblock In \emph{2024 IEEE Spoken Language Technology Workshop (SLT)}, 885--890. IEEE.
+
+\bibitem[{Hendrycks and Gimpel(2016)}]{hendrycks2016gaussian}
+Hendrycks, D.; and Gimpel, K. 2016.
+\newblock Gaussian error linear units (gelus).
+\newblock \emph{arXiv preprint arXiv:1606.08415}.
+
+\bibitem[{Hu et~al.(2024)Hu, Chen, Wang, Chng, and Zhang}]{hu2024robust}
+Hu, Y.; Chen, C.; Wang, S.; Chng, E.~S.; and Zhang, C. 2024.
+\newblock Robust Zero-Shot Text-to-Speech Synthesis with Reverse Inference Optimization.
+\newblock \emph{arXiv preprint arXiv:2407.02243}.
+
+\bibitem[{Hussain et~al.(2025)Hussain, Neekhara, Yang, Casanova, Ghosh, Desta, Fejgin, Valle, and Li}]{hussain2025koel}
+Hussain, S.; Neekhara, P.; Yang, X.; Casanova, E.; Ghosh, S.; Desta, M.~T.; Fejgin, R.; Valle, R.; and Li, J. 2025.
+\newblock Koel-tts: Enhancing llm based speech generation with preference alignment and classifier free guidance.
+\newblock \emph{arXiv preprint arXiv:2502.05236}.
+
+\bibitem[{Jiang et~al.(2025)Jiang, Ren, Li, Ji, Ye, Zhang, Jionghao, Yang, Zuo, Zhang et~al.}]{jiang2025sparse}
+Jiang, Z.; Ren, Y.; Li, R.; Ji, S.; Ye, Z.; Zhang, C.; Jionghao, B.; Yang, X.; Zuo, J.; Zhang, Y.; et~al. 2025.
+\newblock Sparse Alignment Enhanced Latent Diffusion Transformer for Zero-Shot Speech Synthesis.
+\newblock \emph{arXiv preprint arXiv:2502.18924}.
+
+\bibitem[{Ju et~al.(2024)Ju, Wang, Shen, Tan, Xin, Yang, Liu, Leng, Song, Tang et~al.}]{ju2024naturalspeech}
+Ju, Z.; Wang, Y.; Shen, K.; Tan, X.; Xin, D.; Yang, D.; Liu, Y.; Leng, Y.; Song, K.; Tang, S.; et~al. 2024.
+\newblock Naturalspeech 3: Zero-shot speech synthesis with factorized codec and diffusion models.
+\newblock \emph{arXiv preprint arXiv:2403.03100}.
+
+\bibitem[{Ju et~al.(2025)Ju, Yang, Yu, Shen, Leng, Wang, Tan, Zhou, Qin, and Li}]{ju2025mooncast}
+Ju, Z.; Yang, D.; Yu, J.; Shen, K.; Leng, Y.; Wang, Z.; Tan, X.; Zhou, X.; Qin, T.; and Li, X. 2025.
+\newblock MoonCast: High-quality zero-shot podcast generation.
+\newblock \emph{arXiv preprint arXiv:2503.14345}.
+
+\bibitem[{Kharitonov et~al.(2023)Kharitonov, Vincent, Borsos, Marinier, Girgin, Pietquin, Sharifi, Tagliasacchi, and Zeghidour}]{kharitonov2023speak}
+Kharitonov, E.; Vincent, D.; Borsos, Z.; Marinier, R.; Girgin, S.; Pietquin, O.; Sharifi, M.; Tagliasacchi, M.; and Zeghidour, N. 2023.
+\newblock Speak, read and prompt: High-fidelity text-to-speech with minimal supervision.
+\newblock \emph{Transactions of the Association for Computational Linguistics}, 11: 1703--1718.
+
+\bibitem[{K{\"u}rzinger et~al.(2020)K{\"u}rzinger, Winkelbauer, Li, Watzel, and Rigoll}]{kurzinger2020ctc}
+K{\"u}rzinger, L.; Winkelbauer, D.; Li, L.; Watzel, T.; and Rigoll, G. 2020.
+\newblock Ctc-segmentation of large corpora for german end-to-end speech recognition.
+\newblock In \emph{International Conference on Speech and Computer}, 267--278. Springer.
+
+\bibitem[{{\L}ajszczak et~al.(2024){\L}ajszczak, C{\'a}mbara, Li, Beyhan, Van~Korlaar, Yang, Joly, Mart{\'\i}n-Cortinas, Abbas, Michalski et~al.}]{lajszczak2024base}
+{\L}ajszczak, M.; C{\'a}mbara, G.; Li, Y.; Beyhan, F.; Van~Korlaar, A.; Yang, F.; Joly, A.; Mart{\'\i}n-Cortinas, {\'A}.; Abbas, A.; Michalski, A.; et~al. 2024.
+\newblock Base tts: Lessons from building a billion-parameter text-to-speech model on 100k hours of data.
+\newblock \emph{arXiv preprint arXiv:2402.08093}.
+
+\bibitem[{Le et~al.(2023)Le, Vyas, Shi, Karrer, Sari, Moritz, Williamson, Manohar, Adi, Mahadeokar et~al.}]{le2023voicebox}
+Le, M.; Vyas, A.; Shi, B.; Karrer, B.; Sari, L.; Moritz, R.; Williamson, M.; Manohar, V.; Adi, Y.; Mahadeokar, J.; et~al. 2023.
+\newblock Voicebox: Text-guided multilingual universal speech generation at scale.
+\newblock \emph{Advances in neural information processing systems}, 36: 14005--14034.
+
+\bibitem[{Lewis et~al.(2019)Lewis, Liu, Goyal, Ghazvininejad, Mohamed, Levy, Stoyanov, and Zettlemoyer}]{lewis2019bart}
+Lewis, M.; Liu, Y.; Goyal, N.; Ghazvininejad, M.; Mohamed, A.; Levy, O.; Stoyanov, V.; and Zettlemoyer, L. 2019.
+\newblock Bart: Denoising sequence-to-sequence pre-training for natural language generation, translation, and comprehension.
+\newblock \emph{arXiv preprint arXiv:1910.13461}.
+
+\bibitem[{Lin et~al.(2017)Lin, Goyal, Girshick, He, and Doll{\'a}r}]{lin2017focal}
+Lin, T.-Y.; Goyal, P.; Girshick, R.; He, K.; and Doll{\'a}r, P. 2017.
+\newblock Focal loss for dense object detection.
+\newblock In \emph{Proceedings of the IEEE international conference on computer vision}, 2980--2988.
+
+\bibitem[{Lipman et~al.(2022)Lipman, Chen, Ben-Hamu, Nickel, and Le}]{lipman2022flow}
+Lipman, Y.; Chen, R.~T.; Ben-Hamu, H.; Nickel, M.; and Le, M. 2022.
+\newblock Flow matching for generative modeling.
+\newblock \emph{arXiv preprint arXiv:2210.02747}.
+
+\bibitem[{Meister et~al.(2023)Meister, Novikov, Karpov, Bakhturina, Lavrukhin, and Ginsburg}]{meister2023librispeech}
+Meister, A.; Novikov, M.; Karpov, N.; Bakhturina, E.; Lavrukhin, V.; and Ginsburg, B. 2023.
+\newblock Librispeech-pc: Benchmark for evaluation of punctuation and capitalization capabilities of end-to-end asr models.
+\newblock In \emph{2023 IEEE automatic speech recognition and understanding workshop (ASRU)}, 1--7. IEEE.
+
+\bibitem[{Minixhofer, Klejch, and Bell(2025)}]{minixhofer2025ttsds2}
+Minixhofer, C.; Klejch, O.; and Bell, P. 2025.
+\newblock TTSDS2: Resources and Benchmark for Evaluating Human-Quality Text to Speech Systems.
+\newblock \emph{arXiv preprint arXiv:2506.19441}.
+
+\bibitem[{Morrison et~al.(2021)Morrison, Rencker, Jin, Bryan, Caceres, and Pardo}]{morrison2021context}
+Morrison, M.; Rencker, L.; Jin, Z.; Bryan, N.~J.; Caceres, J.-P.; and Pardo, B. 2021.
+\newblock Context-aware prosody correction for text-based speech editing.
+\newblock In \emph{ICASSP 2021-2021 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 7038--7042. IEEE.
+
+\bibitem[{Ouyang et~al.(2022)Ouyang, Wu, Jiang, Almeida, Wainwright, Mishkin, Zhang, Agarwal, Slama, Ray et~al.}]{ouyang2022training}
+Ouyang, L.; Wu, J.; Jiang, X.; Almeida, D.; Wainwright, C.; Mishkin, P.; Zhang, C.; Agarwal, S.; Slama, K.; Ray, A.; et~al. 2022.
+\newblock Training language models to follow instructions with human feedback.
+\newblock \emph{Advances in neural information processing systems}, 35: 27730--27744.
+
+\bibitem[{Park, Joo, and Jung(2025)}]{park2025multiactor}
+Park, K.; Joo, S.; and Jung, K. 2025.
+\newblock MultiActor-Audiobook: Zero-Shot Audiobook Generation with Faces and Voices of Multiple Speakers.
+\newblock \emph{arXiv preprint arXiv:2505.13082}.
+
+\bibitem[{Peng et~al.(2024)Peng, Huang, Li, Mohamed, and Harwath}]{peng2024voicecraft}
+Peng, P.; Huang, P.-Y.; Li, S.-W.; Mohamed, A.; and Harwath, D. 2024.
+\newblock Voicecraft: Zero-shot speech editing and text-to-speech in the wild.
+\newblock \emph{arXiv preprint arXiv:2403.16973}.
+
+\bibitem[{Radford et~al.(2023)Radford, Kim, Xu, Brockman, McLeavey, and Sutskever}]{radford2023robust}
+Radford, A.; Kim, J.~W.; Xu, T.; Brockman, G.; McLeavey, C.; and Sutskever, I. 2023.
+\newblock Robust speech recognition via large-scale weak supervision.
+\newblock In \emph{International conference on machine learning}, 28492--28518. PMLR.
+
+\bibitem[{Saeki et~al.(2022)Saeki, Xin, Nakata, Koriyama, Takamichi, and Saruwatari}]{saeki2022utmos}
+Saeki, T.; Xin, D.; Nakata, W.; Koriyama, T.; Takamichi, S.; and Saruwatari, H. 2022.
+\newblock Utmos: Utokyo-sarulab system for voicemos challenge 2022.
+\newblock \emph{arXiv preprint arXiv:2204.02152}.
+
+\bibitem[{Sedgwick(2014)}]{sedgwick2014spearman}
+Sedgwick, P. 2014.
+\newblock Spearman’s rank correlation coefficient.
+\newblock \emph{Bmj}, 349.
+
+\bibitem[{Shen et~al.(2023)Shen, Ju, Tan, Liu, Leng, He, Qin, Zhao, and Bian}]{shen2023naturalspeech}
+Shen, K.; Ju, Z.; Tan, X.; Liu, Y.; Leng, Y.; He, L.; Qin, T.; Zhao, S.; and Bian, J. 2023.
+\newblock Naturalspeech 2: Latent diffusion models are natural and zero-shot speech and singing synthesizers.
+\newblock \emph{arXiv preprint arXiv:2304.09116}.
+
+\bibitem[{Sun et~al.(2025)Sun, Xiao, Mo, Wu, Yu, and Wang}]{sun2025f5r}
+Sun, X.; Xiao, R.; Mo, J.; Wu, B.; Yu, Q.; and Wang, B. 2025.
+\newblock F5R-TTS: Improving flow-matching based text-to-speech with group relative policy optimization.
+\newblock \emph{arXiv preprint arXiv:2504.02407}.
+
+\bibitem[{Tang et~al.(2022)Tang, Gong, Dong, Wang, Hsu, Gu, Baevski, Li, Mohamed, Auli et~al.}]{tang2022unified}
+Tang, Y.; Gong, H.; Dong, N.; Wang, C.; Hsu, W.-N.; Gu, J.; Baevski, A.; Li, X.; Mohamed, A.; Auli, M.; et~al. 2022.
+\newblock Unified speech-text pre-training for speech translation and recognition.
+\newblock \emph{arXiv preprint arXiv:2204.05409}.
+
+\bibitem[{Tian et~al.(2025)Tian, Zhang, Shi, Zhang, Yu, Watanabe, and Yu}]{tian2025preference}
+Tian, J.; Zhang, C.; Shi, J.; Zhang, H.; Yu, J.; Watanabe, S.; and Yu, D. 2025.
+\newblock Preference alignment improves language model-based tts.
+\newblock In \emph{ICASSP 2025-2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 1--5. IEEE.
+
+\bibitem[{Tjandra et~al.(2025)Tjandra, Wu, Guo, Hoffman, Ellis, Vyas, Shi, Chen, Le, Zacharov et~al.}]{tjandra2025meta}
+Tjandra, A.; Wu, Y.-C.; Guo, B.; Hoffman, J.; Ellis, B.; Vyas, A.; Shi, B.; Chen, S.; Le, M.; Zacharov, N.; et~al. 2025.
+\newblock Meta Audiobox Aesthetics: Unified Automatic Quality Assessment for Speech, Music, and Sound.
+\newblock \emph{arXiv preprint arXiv:2502.05139}.
+
+\bibitem[{Vaswani et~al.(2017)Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez, Kaiser, and Polosukhin}]{vaswani2017attention}
+Vaswani, A.; Shazeer, N.; Parmar, N.; Uszkoreit, J.; Jones, L.; Gomez, A.~N.; Kaiser, {\L}.; and Polosukhin, I. 2017.
+\newblock Attention is all you need.
+\newblock \emph{Advances in neural information processing systems}, 30.
+
+\bibitem[{Wang et~al.(2022)Wang, Yi, Deng, Fu, Tao, and Wen}]{wang2022context}
+Wang, T.; Yi, J.; Deng, L.; Fu, R.; Tao, J.; and Wen, Z. 2022.
+\newblock Context-aware mask prediction network for end-to-end text-based speech editing.
+\newblock In \emph{ICASSP 2022-2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 6082--6086. IEEE.
+
+\bibitem[{Wang et~al.(2024)Wang, Zhan, Liu, Zeng, Guo, Zheng, Zhang, Zhang, Zhang, and Wu}]{wang2024maskgct}
+Wang, Y.; Zhan, H.; Liu, L.; Zeng, R.; Guo, H.; Zheng, J.; Zhang, Q.; Zhang, X.; Zhang, S.; and Wu, Z. 2024.
+\newblock Maskgct: Zero-shot text-to-speech with masked generative codec transformer.
+\newblock \emph{arXiv preprint arXiv:2409.00750}.
+
+\bibitem[{Yao et~al.(2025)Yao, Yang, Pan, Feng, Ning, Ye, Zhou, and Xie}]{yao2025fine}
+Yao, J.; Yang, Y.; Pan, Y.; Feng, Y.; Ning, Z.; Ye, J.; Zhou, H.; and Xie, L. 2025.
+\newblock Fine-grained Preference Optimization Improves Zero-shot Text-to-Speech.
+\newblock \emph{arXiv preprint arXiv:2502.02950}.
+
+\bibitem[{Ye et~al.(2025)Ye, Zhu, Chan, Wang, Tan, Lei, Peng, Liu, Jin, DAI et~al.}]{ye2025llasa}
+Ye, Z.; Zhu, X.; Chan, C.-M.; Wang, X.; Tan, X.; Lei, J.; Peng, Y.; Liu, H.; Jin, Y.; DAI, Z.; et~al. 2025.
+\newblock Llasa: Scaling Train-Time and Inference-Time Compute for Llama-based Speech Synthesis.
+\newblock \emph{arXiv preprint arXiv:2502.04128}.
+
+\bibitem[{Zen et~al.(2019)Zen, Dang, Clark, Zhang, Weiss, Jia, Chen, and Wu}]{zen2019libritts}
+Zen, H.; Dang, V.; Clark, R.; Zhang, Y.; Weiss, R.~J.; Jia, Y.; Chen, Z.; and Wu, Y. 2019.
+\newblock Libritts: A corpus derived from librispeech for text-to-speech.
+\newblock \emph{arXiv preprint arXiv:1904.02882}.
+
+\bibitem[{Zhang et~al.(2024{\natexlab{a}})Zhang, Li, Li, Zhang, Wang, Zhou, and Qiu}]{zhang2024speechalign}
+Zhang, D.; Li, Z.; Li, S.; Zhang, X.; Wang, P.; Zhou, Y.; and Qiu, X. 2024{\natexlab{a}}.
+\newblock Speechalign: Aligning speech generation to human preferences.
+\newblock \emph{arXiv preprint arXiv:2404.05600}.
+
+\bibitem[{Zhang et~al.(2025)Zhang, Wang, Wang, Li, Chen, and Wu}]{zhang2025advancing}
+Zhang, X.; Wang, Y.; Wang, C.; Li, Z.; Chen, Z.; and Wu, Z. 2025.
+\newblock Advancing zero-shot text-to-speech intelligibility across diverse domains via preference alignment.
+\newblock \emph{arXiv preprint arXiv:2505.04113}.
+
+\bibitem[{Zhang et~al.(2024{\natexlab{b}})Zhang, Chen, Zhou, Wu, Ren, Liu, Yao, Gong, Dai, Li et~al.}]{zhang2024speechlm}
+Zhang, Z.; Chen, S.; Zhou, L.; Wu, Y.; Ren, S.; Liu, S.; Yao, Z.; Gong, X.; Dai, L.; Li, J.; et~al. 2024{\natexlab{b}}.
+\newblock Speechlm: Enhanced speech pre-training with unpaired textual data.
+\newblock \emph{IEEE/ACM Transactions on Audio, Speech, and Language Processing}.
+
+\bibitem[{Zhang et~al.(2023)Zhang, Zhou, Wang, Chen, Wu, Liu, Chen, Liu, Wang, Li et~al.}]{zhang2023speak}
+Zhang, Z.; Zhou, L.; Wang, C.; Chen, S.; Wu, Y.; Liu, S.; Chen, Z.; Liu, Y.; Wang, H.; Li, J.; et~al. 2023.
+\newblock Speak foreign languages with your own voice: Cross-lingual neural codec language modeling.
+\newblock \emph{arXiv preprint arXiv:2303.03926}.
+
+\end{thebibliography}

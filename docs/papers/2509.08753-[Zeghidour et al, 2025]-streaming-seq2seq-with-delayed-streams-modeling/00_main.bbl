@@ -1,0 +1,415 @@
+\begin{thebibliography}{77}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Abouelenin et~al.(2025)Abouelenin, Ashfaq, Atkinson, Awadalla, Bach, Bao, Benhaim, Cai, Chaudhary, Chen, Chen, Chen, Chen, Chen, Chen, Chen, Dai, Dai, Fan, Gao, Gao, Garg, Goswami, Hao, Hendy, Hu, Jin, Khademi, Kim, Kim, Lee, Li, Li, Liang, Lin, Lin, Liu, Liu, Lopez, Luo, Madan, Mazalov, Mitra, Mousavi, Nguyen, Pan, Perez{-}Becker, Platin, Portet, Qiu, Ren, Ren, Roy, Shang, Shen, Singhal, Som, Song, Sych, Vaddamanu, Wang, Wang, Wang, Wu, Xu, Xu, Yang, Yang, Yu, Zabir, Zhang, Zhang, Zhang, and Zhou]{phi4}
+Abouelenin, A., Ashfaq, A., Atkinson, A., Awadalla, H., Bach, N., Bao, J., Benhaim, A., Cai, M., Chaudhary, V., Chen, C., Chen, D., Chen, D., Chen, J., Chen, W., Chen, Y., Chen, Y., Dai, Q., Dai, X., Fan, R., Gao, M., Gao, M., Garg, A., Goswami, A., Hao, J., Hendy, A., Hu, Y., Jin, X., Khademi, M., Kim, D., Kim, Y.~J., Lee, G., Li, J., Li, Y., Liang, C., Lin, X., Lin, Z., Liu, M., Liu, Y., Lopez, G., Luo, C., Madan, P., Mazalov, V., Mitra, A., Mousavi, A., Nguyen, A., Pan, J., Perez{-}Becker, D., Platin, J., Portet, T., Qiu, K., Ren, B., Ren, L., Roy, S., Shang, N., Shen, Y., Singhal, S., Som, S., Song, X., Sych, T., Vaddamanu, P., Wang, S., Wang, Y., Wang, Z., Wu, H., Xu, H., Xu, W., Yang, Y., Yang, Z., Yu, D., Zabir, I., Zhang, J., Zhang, L.~L., Zhang, Y., and Zhou, X.
+\newblock Phi-4-mini technical report: Compact yet powerful multimodal language models via mixture-of-loras.
+\newblock \emph{CoRR}, abs/2503.01743, 2025.
+\newblock \doi{10.48550/ARXIV.2503.01743}.
+
+\bibitem[Alayrac et~al.(2022)Alayrac, Donahue, Luc, Miech, Barr, Hasson, Lenc, Mensch, Millican, Reynolds, Ring, Rutherford, Cabi, Han, Gong, Samangooei, Monteiro, Menick, Borgeaud, Brock, Nematzadeh, Sharifzadeh, Binkowski, Barreira, Vinyals, Zisserman, and Simonyan]{flamingo}
+Alayrac, J., Donahue, J., Luc, P., Miech, A., Barr, I., Hasson, Y., Lenc, K., Mensch, A., Millican, K., Reynolds, M., Ring, R., Rutherford, E., Cabi, S., Han, T., Gong, Z., Samangooei, S., Monteiro, M., Menick, J.~L., Borgeaud, S., Brock, A., Nematzadeh, A., Sharifzadeh, S., Binkowski, M., Barreira, R., Vinyals, O., Zisserman, A., and Simonyan, K.
+\newblock Flamingo: a visual language model for few-shot learning.
+\newblock In Koyejo, S., Mohamed, S., Agarwal, A., Belgrave, D., Cho, K., and Oh, A. (eds.), \emph{Advances in Neural Information Processing Systems 35: Annual Conference on Neural Information Processing Systems 2022, NeurIPS 2022, New Orleans, LA, USA, November 28 - December 9, 2022}, 2022.
+
+\bibitem[Anastassiou et~al.(2024)Anastassiou, Chen, Chen, Chen, Chen, Chen, Cong, Deng, Ding, Gao, et~al.]{anastassiou2024seed}
+Anastassiou, P., Chen, J., Chen, J., Chen, Y., Chen, Z., Chen, Z., Cong, J., Deng, L., Ding, C., Gao, L., et~al.
+\newblock Seed-tts: A family of high-quality versatile speech generation models.
+\newblock \emph{arXiv preprint arXiv:2406.02430}, 2024.
+
+\bibitem[Bahdanau et~al.(2015)Bahdanau, Cho, and Bengio]{bahdanau_attention}
+Bahdanau, D., Cho, K., and Bengio, Y.
+\newblock Neural machine translation by jointly learning to align and translate.
+\newblock In Bengio, Y. and LeCun, Y. (eds.), \emph{3rd International Conference on Learning Representations, {ICLR} 2015, San Diego, CA, USA, May 7-9, 2015, Conference Track Proceedings}, 2015.
+
+\bibitem[Barrault et~al.(2023)Barrault, Chung, Meglioli, Dale, Dong, Duppenthaler, Duquenne, Ellis, Elsahar, Haaheim, Hoffman, Hwang, Inaguma, Klaiber, Kulikov, Li, Licht, Maillard, Mavlyutov, Rakotoarison, Sadagopan, Ramakrishnan, Tran, Wenzek, Yang, Ye, Evtimov, Fernandez, Gao, Hansanti, Kalbassi, Kallet, Kozhevnikov, Gonzalez, Roman, Touret, Wong, Wood, Yu, Andrews, Balioglu, Chen, Costa{-}juss{\`{a}}, Elbayad, Gong, Guzm{\'{a}}n, Heffernan, Jain, Kao, Lee, Ma, Mourachko, Peloquin, Pino, Popuri, Ropers, Saleem, Schwenk, Sun, Tomasello, Wang, Wang, Wang, and Williamson]{seamless}
+Barrault, L., Chung, Y., Meglioli, M.~C., Dale, D., Dong, N., Duppenthaler, M., Duquenne, P., Ellis, B., Elsahar, H., Haaheim, J., Hoffman, J., Hwang, M., Inaguma, H., Klaiber, C., Kulikov, I., Li, P., Licht, D., Maillard, J., Mavlyutov, R., Rakotoarison, A., Sadagopan, K.~R., Ramakrishnan, A., Tran, T., Wenzek, G., Yang, Y., Ye, E., Evtimov, I., Fernandez, P., Gao, C., Hansanti, P., Kalbassi, E., Kallet, A., Kozhevnikov, A., Gonzalez, G.~M., Roman, R.~S., Touret, C., Wong, C., Wood, C., Yu, B., Andrews, P., Balioglu, C., Chen, P., Costa{-}juss{\`{a}}, M.~R., Elbayad, M., Gong, H., Guzm{\'{a}}n, F., Heffernan, K., Jain, S., Kao, J., Lee, A., Ma, X., Mourachko, A., Peloquin, B.~N., Pino, J., Popuri, S., Ropers, C., Saleem, S., Schwenk, H., Sun, A.~Y., Tomasello, P., Wang, C., Wang, J., Wang, S., and Williamson, M.
+\newblock Seamless: Multilingual expressive and streaming speech translation.
+\newblock \emph{CoRR}, abs/2312.05187, 2023.
+\newblock \doi{10.48550/ARXIV.2312.05187}.
+
+\bibitem[Beyer et~al.(2024)Beyer, Steiner, Pinto, Kolesnikov, Wang, Salz, Neumann, Alabdulmohsin, Tschannen, Bugliarello, Unterthiner, Keysers, Koppula, Liu, Grycner, Gritsenko, Houlsby, Kumar, Rong, Eisenschlos, Kabra, Bauer, Bosnjak, Chen, Minderer, Voigtlaender, Bica, Balazevic, Puigcerver, Papalampidi, H{\'{e}}naff, Xiong, Soricut, Harmsen, and Zhai]{paligemma}
+Beyer, L., Steiner, A., Pinto, A.~S., Kolesnikov, A., Wang, X., Salz, D., Neumann, M., Alabdulmohsin, I., Tschannen, M., Bugliarello, E., Unterthiner, T., Keysers, D., Koppula, S., Liu, F., Grycner, A., Gritsenko, A.~A., Houlsby, N., Kumar, M., Rong, K., Eisenschlos, J., Kabra, R., Bauer, M., Bosnjak, M., Chen, X., Minderer, M., Voigtlaender, P., Bica, I., Balazevic, I., Puigcerver, J., Papalampidi, P., H{\'{e}}naff, O.~J., Xiong, X., Soricut, R., Harmsen, J., and Zhai, X.
+\newblock Paligemma: {A} versatile 3b {VLM} for transfer.
+\newblock \emph{CoRR}, abs/2407.07726, 2024.
+\newblock \doi{10.48550/ARXIV.2407.07726}.
+
+\bibitem[Bradley \& Terry(1952)Bradley and Terry]{bradley_terry}
+Bradley, R.~A. and Terry, M.~E.
+\newblock Rank analysis of incomplete block designs: The method of paired comparisons.
+\newblock \emph{Biometrika}, 39\penalty0 (3-4):\penalty0 324--345, 12 1952.
+\newblock ISSN 0006-3444.
+\newblock \doi{10.1093/biomet/39.3-4.324}.
+
+\bibitem[Bredin(2023)]{Bredin23}
+Bredin, H.
+\newblock {pyannote.audio 2.1 speaker diarization pipeline: principle, benchmark, and recipe}.
+\newblock In \emph{Proc. INTERSPEECH 2023}, 2023.
+
+\bibitem[Carletta(2007)]{ami-carletta2007}
+Carletta, J.
+\newblock Unleashing the killer corpus: experiences in creating the multi-everything ami meeting corpus.
+\newblock \emph{Language Resources and Evaluation}, 41:\penalty0 181--190, 2007.
+
+\bibitem[Caron \& Doucet(2010)Caron and Doucet]{carondoucet}
+Caron, F. and Doucet, A.
+\newblock Efficient bayesian inference for generalized bradley-terry models, 2010.
+
+\bibitem[Chan et~al.(2016)Chan, Jaitly, Le, and Vinyals]{chan2016listen}
+Chan, W., Jaitly, N., Le, Q., and Vinyals, O.
+\newblock Listen, attend and spell: A neural network for large vocabulary conversational speech recognition.
+\newblock In \emph{2016 IEEE international conference on acoustics, speech and signal processing (ICASSP)}, pp.\  4960--4964. IEEE, 2016.
+
+\bibitem[Chen et~al.(2021{\natexlab{a}})Chen, Chai, Wang, Du, Zhang, Weng, Su, Povey, Trmal, Zhang, et~al.]{gigaspeech}
+Chen, G., Chai, S., Wang, G., Du, J., Zhang, W.-Q., Weng, C., Su, D., Povey, D., Trmal, J., Zhang, J., et~al.
+\newblock Gigaspeech: An evolving, multi-domain asr corpus with 10,000 hours of transcribed audio.
+\newblock \emph{arXiv preprint arXiv:2106.06909}, 2021{\natexlab{a}}.
+
+\bibitem[Chen et~al.(2021{\natexlab{b}})Chen, Ma, Zheng, and Huang]{chen-etal-2021-direct}
+Chen, J., Ma, M., Zheng, R., and Huang, L.
+\newblock Direct simultaneous speech-to-text translation assisted by synchronized streaming {ASR}.
+\newblock In Zong, C., Xia, F., Li, W., and Navigli, R. (eds.), \emph{Findings of the Association for Computational Linguistics: ACL-IJCNLP 2021}, pp.\  4618--4624, Online, August 2021{\natexlab{b}}. Association for Computational Linguistics.
+\newblock \doi{10.18653/v1/2021.findings-acl.406}.
+\newblock URL \url{https://aclanthology.org/2021.findings-acl.406/}.
+
+\bibitem[Chen et~al.(2024{\natexlab{a}})Chen, Sun, Shan, Yang, and Xie]{chen2024streaming}
+Chen, P., Sun, S., Shan, C., Yang, Q., and Xie, L.
+\newblock Streaming decoder-only automatic speech recognition with discrete speech units: A pilot study.
+\newblock \emph{arXiv preprint arXiv:2406.18862}, 2024{\natexlab{a}}.
+
+\bibitem[Chen et~al.(2024{\natexlab{b}})Chen, Niu, Ma, Deng, Wang, Zhao, Yu, and Chen]{chen2024f5}
+Chen, Y., Niu, Z., Ma, Z., Deng, K., Wang, C., Zhao, J., Yu, K., and Chen, X.
+\newblock F5-tts: A fairytaler that fakes fluent and faithful speech with flow matching.
+\newblock \emph{arXiv preprint arXiv:2410.06885}, 2024{\natexlab{b}}.
+
+\bibitem[Chiu \& Raffel(2018)Chiu and Raffel]{mocha}
+Chiu, C. and Raffel, C.
+\newblock Monotonic chunkwise attention.
+\newblock In \emph{6th International Conference on Learning Representations, {ICLR} 2018, Vancouver, BC, Canada, April 30 - May 3, 2018, Conference Track Proceedings}. OpenReview.net, 2018.
+
+\bibitem[Chiu et~al.(2019)Chiu, Kannan, Prabhavalkar, Chen, Sainath, Wu, Han, Zhang, Pang, Kishchenko, Nguyen, Narayanan, Liao, and Zhang]{local_attention}
+Chiu, C., Kannan, A., Prabhavalkar, R., Chen, Z., Sainath, T.~N., Wu, Y., Han, W., Zhang, Y., Pang, R., Kishchenko, S., Nguyen, P., Narayanan, A., Liao, H., and Zhang, S.
+\newblock A comparison of end-to-end models for long-form speech recognition.
+\newblock In \emph{{IEEE} Automatic Speech Recognition and Understanding Workshop, {ASRU} 2019, Singapore, December 14-18, 2019}, pp.\  889--896. {IEEE}, 2019.
+\newblock \doi{10.1109/ASRU46091.2019.9003854}.
+
+\bibitem[D{\'e}fossez et~al.(2023)D{\'e}fossez, Copet, Synnaeve, and Adi]{encodec}
+D{\'e}fossez, A., Copet, J., Synnaeve, G., and Adi, Y.
+\newblock High fidelity neural audio compression.
+\newblock \emph{Transactions on Machine Learning Research}, 2023.
+
+\bibitem[D{\'{e}}fossez et~al.(2024)D{\'{e}}fossez, Mazar{\'{e}}, Orsini, Royer, P{\'{e}}rez, J{\'{e}}gou, Grave, and Zeghidour]{moshi}
+D{\'{e}}fossez, A., Mazar{\'{e}}, L., Orsini, M., Royer, A., P{\'{e}}rez, P., J{\'{e}}gou, H., Grave, E., and Zeghidour, N.
+\newblock Moshi: a speech-text foundation model for real-time dialogue.
+\newblock \emph{CoRR}, abs/2410.00037, 2024.
+\newblock \doi{10.48550/ARXIV.2410.00037}.
+
+\bibitem[Del~Rio et~al.(2022)Del~Rio, Ha, McNamara, Miller, and Chandra]{earnings22}
+Del~Rio, M., Ha, P., McNamara, Q., Miller, C., and Chandra, S.
+\newblock Earnings-22: A practical benchmark for accents in the wild.
+\newblock \emph{arXiv preprint arXiv:2203.15591}, 2022.
+
+\bibitem[Du et~al.(2025)Du, Gao, Wang, Yu, Zhao, Wang, Lv, Wang, Ni, Shi, et~al.]{du2025cosyvoice}
+Du, Z., Gao, C., Wang, Y., Yu, F., Zhao, T., Wang, H., Lv, X., Wang, H., Ni, C., Shi, X., et~al.
+\newblock Cosyvoice 3: Towards in-the-wild speech generation via scaling-up and post-training.
+\newblock \emph{arXiv preprint arXiv:2505.17589}, 2025.
+
+\bibitem[Esser et~al.(2020)Esser, Rombach, and Ommer]{Esser2020TamingTF}
+Esser, P., Rombach, R., and Ommer, B.
+\newblock Taming transformers for high-resolution image synthesis.
+\newblock \emph{2021 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)}, pp.\  12868--12878, 2020.
+
+\bibitem[Federmann et~al.(2022)Federmann, Kocmi, and Xin]{federmann-etal-2022-ntrex}
+Federmann, C., Kocmi, T., and Xin, Y.
+\newblock {NTREX}-128 {--} news test references for {MT} evaluation of 128 languages.
+\newblock In \emph{Proceedings of the First Workshop on Scaling Up Multilingual Evaluation}, pp.\  21--24, Online, nov 2022. Association for Computational Linguistics.
+
+\bibitem[Gandhi et~al.(2023)Gandhi, von Platen, and Rush]{distil-whisper}
+Gandhi, S., von Platen, P., and Rush, A.~M.
+\newblock Distil-whisper: Robust knowledge distillation via large-scale pseudo labelling.
+\newblock \emph{CoRR}, abs/2311.00430, 2023.
+\newblock \doi{10.48550/ARXIV.2311.00430}.
+
+\bibitem[{Gemma Team} et~al.(2025){Gemma Team}, Kamath, Ferret, Pathak, Vieillard, Merhej, Perrin, Matejovicova, Ramé, Rivière, Rouillard, Mesnard, Cideron, bastien Grill, Ramos, Yvinec, Casbon, Pot, Penchev, Liu, Visin, Kenealy, Beyer, Zhai, Tsitsulin, Busa-Fekete, Feng, Sachdeva, Coleman, Gao, Mustafa, Barr, Parisotto, Tian, Eyal, Cherry, Peter, Sinopalnikov, Bhupatiraju, Agarwal, Kazemi, Malkin, Kumar, Vilar, Brusilovsky, Luo, Steiner, Friesen, Sharma, Sharma, Gilady, Goedeckemeyer, Saade, Feng, Kolesnikov, Bendebury, Abdagic, Vadi, György, Pinto, Das, Bapna, Miech, Yang, Paterson, Shenoy, Chakrabarti, Piot, Wu, Shahriari, Petrini, Chen, Lan, Choquette-Choo, Carey, Brick, Deutsch, Eisenbud, Cattle, Cheng, Paparas, Sreepathihalli, Reid, Tran, Zelle, Noland, Huizenga, Kharitonov, Liu, Amirkhanyan, Cameron, Hashemi, Klimczak-Plucińska, Singh, Mehta, Lehri, Hazimeh, Ballantyne, Szpektor, Nardini, Pouget-Abadie, Chan, Stanton, Wieting, Lai, Orbay, Fernandez, Newlan, yeong Ji, Singh, Black, Yu, Hui,
+  Vodrahalli, Greff, Qiu, Valentine, Coelho, Ritter, Hoffman, Watson, Chaturvedi, Moynihan, Ma, Babar, Noy, Byrd, Roy, Momchev, Chauhan, Sachdeva, Bunyan, Botarda, Caron, Rubenstein, Culliton, Schmid, Sessa, Xu, Stanczyk, Tafti, Shivanna, Wu, Pan, Rokni, Willoughby, Vallu, Mullins, Jerome, Smoot, Girgin, Iqbal, Reddy, Sheth, Põder, Bhatnagar, Panyam, Eiger, Zhang, Liu, Yacovone, Liechty, Kalra, Evci, Misra, Roseberry, Feinberg, Kolesnikov, Han, Kwon, Chen, Chow, Zhu, Wei, Egyed, Cotruta, Giang, Kirk, Rao, Black, Babar, Lo, Moreira, Martins, Sanseviero, Gonzalez, Gleicher, Warkentin, Mirrokni, Senter, Collins, Barral, Ghahramani, Hadsell, Matias, Sculley, Petrov, Fiedel, Shazeer, Vinyals, Dean, Hassabis, Kavukcuoglu, Farabet, Buchatskaya, Alayrac, Anil, Dmitry, Lepikhin, Borgeaud, Bachem, Joulin, Andreev, Hardin, Dadashi, and Hussenot]{gemmateam2025gemma3technicalreport}
+{Gemma Team}, Kamath, A., Ferret, J., Pathak, S., Vieillard, N., Merhej, R., Perrin, S., Matejovicova, T., Ramé, A., Rivière, M., Rouillard, L., Mesnard, T., Cideron, G., bastien Grill, J., Ramos, S., Yvinec, E., Casbon, M., Pot, E., Penchev, I., Liu, G., Visin, F., Kenealy, K., Beyer, L., Zhai, X., Tsitsulin, A., Busa-Fekete, R., Feng, A., Sachdeva, N., Coleman, B., Gao, Y., Mustafa, B., Barr, I., Parisotto, E., Tian, D., Eyal, M., Cherry, C., Peter, J.-T., Sinopalnikov, D., Bhupatiraju, S., Agarwal, R., Kazemi, M., Malkin, D., Kumar, R., Vilar, D., Brusilovsky, I., Luo, J., Steiner, A., Friesen, A., Sharma, A., Sharma, A., Gilady, A.~M., Goedeckemeyer, A., Saade, A., Feng, A., Kolesnikov, A., Bendebury, A., Abdagic, A., Vadi, A., György, A., Pinto, A.~S., Das, A., Bapna, A., Miech, A., Yang, A., Paterson, A., Shenoy, A., Chakrabarti, A., Piot, B., Wu, B., Shahriari, B., Petrini, B., Chen, C., Lan, C.~L., Choquette-Choo, C.~A., Carey, C., Brick, C., Deutsch, D., Eisenbud, D., Cattle, D., Cheng, D.,
+  Paparas, D., Sreepathihalli, D.~S., Reid, D., Tran, D., Zelle, D., Noland, E., Huizenga, E., Kharitonov, E., Liu, F., Amirkhanyan, G., Cameron, G., Hashemi, H., Klimczak-Plucińska, H., Singh, H., Mehta, H., Lehri, H.~T., Hazimeh, H., Ballantyne, I., Szpektor, I., Nardini, I., Pouget-Abadie, J., Chan, J., Stanton, J., Wieting, J., Lai, J., Orbay, J., Fernandez, J., Newlan, J., yeong Ji, J., Singh, J., Black, K., Yu, K., Hui, K., Vodrahalli, K., Greff, K., Qiu, L., Valentine, M., Coelho, M., Ritter, M., Hoffman, M., Watson, M., Chaturvedi, M., Moynihan, M., Ma, M., Babar, N., Noy, N., Byrd, N., Roy, N., Momchev, N., Chauhan, N., Sachdeva, N., Bunyan, O., Botarda, P., Caron, P., Rubenstein, P.~K., Culliton, P., Schmid, P., Sessa, P.~G., Xu, P., Stanczyk, P., Tafti, P., Shivanna, R., Wu, R., Pan, R., Rokni, R., Willoughby, R., Vallu, R., Mullins, R., Jerome, S., Smoot, S., Girgin, S., Iqbal, S., Reddy, S., Sheth, S., Põder, S., Bhatnagar, S., Panyam, S.~R., Eiger, S., Zhang, S., Liu, T., Yacovone, T.,
+  Liechty, T., Kalra, U., Evci, U., Misra, V., Roseberry, V., Feinberg, V., Kolesnikov, V., Han, W., Kwon, W., Chen, X., Chow, Y., Zhu, Y., Wei, Z., Egyed, Z., Cotruta, V., Giang, M., Kirk, P., Rao, A., Black, K., Babar, N., Lo, J., Moreira, E., Martins, L.~G., Sanseviero, O., Gonzalez, L., Gleicher, Z., Warkentin, T., Mirrokni, V., Senter, E., Collins, E., Barral, J., Ghahramani, Z., Hadsell, R., Matias, Y., Sculley, D., Petrov, S., Fiedel, N., Shazeer, N., Vinyals, O., Dean, J., Hassabis, D., Kavukcuoglu, K., Farabet, C., Buchatskaya, E., Alayrac, J.-B., Anil, R., Dmitry, Lepikhin, Borgeaud, S., Bachem, O., Joulin, A., Andreev, A., Hardin, C., Dadashi, R., and Hussenot, L.
+\newblock Gemma 3 technical report, 2025.
+
+\bibitem[Giorgino(2009)]{giorgino2009computing}
+Giorgino, T.
+\newblock Computing and visualizing dynamic time warping alignments in r: the dtw package.
+\newblock \emph{Journal of statistical Software}, 31:\penalty0 1--24, 2009.
+
+\bibitem[Graves(2012)]{graves2012sequence}
+Graves, A.
+\newblock Sequence transduction with recurrent neural networks.
+\newblock \emph{arXiv preprint arXiv:1211.3711}, 2012.
+
+\bibitem[Graves et~al.(2013)Graves, Mohamed, and Hinton]{graves_ctc}
+Graves, A., Mohamed, A., and Hinton, G.~E.
+\newblock Speech recognition with deep recurrent neural networks.
+\newblock In \emph{{IEEE} International Conference on Acoustics, Speech and Signal Processing, {ICASSP} 2013, Vancouver, BC, Canada, May 26-31, 2013}, pp.\  6645--6649. {IEEE}, 2013.
+\newblock \doi{10.1109/ICASSP.2013.6638947}.
+
+\bibitem[Guo et~al.(2024)Guo, Zhang, and Feng]{guo2024decoder}
+Guo, S., Zhang, S., and Feng, Y.
+\newblock Decoder-only streaming transformer for simultaneous translation.
+\newblock \emph{arXiv preprint arXiv:2406.03878}, 2024.
+
+\bibitem[He et~al.(2024)He, Shang, Wang, Li, Gu, Hua, Liu, Yang, Li, Shi, et~al.]{he2024emilia}
+He, H., Shang, Z., Wang, C., Li, X., Gu, Y., Hua, H., Liu, L., Yang, C., Li, J., Shi, P., et~al.
+\newblock Emilia: An extensive, multilingual, and diverse speech dataset for large-scale speech generation.
+\newblock In \emph{2024 IEEE Spoken Language Technology Workshop (SLT)}, pp.\  885--890. IEEE, 2024.
+
+\bibitem[Hernandez et~al.(2018)Hernandez, Nguyen, Ghannay, Tomashenko, and Esteve]{tedlium}
+Hernandez, F., Nguyen, V., Ghannay, S., Tomashenko, N., and Esteve, Y.
+\newblock Ted-lium 3: Twice as much data and corpus repartition for experiments on speaker adaptation.
+\newblock In \emph{Speech and Computer: 20th International Conference, SPECOM 2018, Leipzig, Germany, September 18--22, 2018, Proceedings 20}, pp.\  198--208. Springer, 2018.
+
+\bibitem[Ho \& Salimans(2022)Ho and Salimans]{ho2022classifier}
+Ho, J. and Salimans, T.
+\newblock Classifier-free diffusion guidance.
+\newblock \emph{arXiv preprint arXiv:2207.12598}, 2022.
+
+\bibitem[Hochreiter \& Schmidhuber(1997)Hochreiter and Schmidhuber]{lstm}
+Hochreiter, S. and Schmidhuber, J.
+\newblock Long short-term memory.
+\newblock \emph{Neural Computation}, 9\penalty0 (8):\penalty0 1735--1780, 1997.
+\newblock \doi{10.1162/neco.1997.9.8.1735}.
+
+\bibitem[Kang et~al.(2023)Kang, Yang, Yao, Kuang, Yang, Guo, Lin, and Povey]{kang2023libriheavy}
+Kang, W., Yang, X., Yao, Z., Kuang, F., Yang, Y., Guo, L., Lin, L., and Povey, D.
+\newblock Libriheavy: a 50,000 hours asr corpus with punctuation casing and context, 2023.
+
+\bibitem[Kharitonov et~al.(2023)Kharitonov, Vincent, Borsos, Marinier, Girgin, Pietquin, Sharifi, Tagliasacchi, and Zeghidour]{speartts}
+Kharitonov, E., Vincent, D., Borsos, Z., Marinier, R., Girgin, S., Pietquin, O., Sharifi, M., Tagliasacchi, M., and Zeghidour, N.
+\newblock Speak, read and prompt: High-fidelity text-to-speech with minimal supervision.
+\newblock \emph{Transactions of the Association for Computational Linguistics}, 11:\penalty0 1703--1718, 2023.
+
+\bibitem[Kreuk et~al.(2023)Kreuk, Synnaeve, Polyak, Singer, D{\'{e}}fossez, Copet, Parikh, Taigman, and Adi]{audiogen}
+Kreuk, F., Synnaeve, G., Polyak, A., Singer, U., D{\'{e}}fossez, A., Copet, J., Parikh, D., Taigman, Y., and Adi, Y.
+\newblock Audiogen: Textually guided audio generation.
+\newblock In \emph{The Eleventh International Conference on Learning Representations, {ICLR} 2023, Kigali, Rwanda, May 1-5, 2023}. OpenReview.net, 2023.
+
+\bibitem[Labiausse et~al.(2025)Labiausse, Mazaré, Grave, Pérez, Défossez, and Zeghidour]{hibiki}
+Labiausse, T., Mazaré, L., Grave, E., Pérez, P., Défossez, A., and Zeghidour, N.
+\newblock High-fidelity simultaneous speech-to-speech translation, 2025.
+
+\bibitem[Lee et~al.(2022)Lee, Kim, Kim, Cho, and Han]{rq-transformer}
+Lee, D., Kim, C., Kim, S., Cho, M., and Han, W.
+\newblock Autoregressive image generation using residual quantization.
+\newblock In \emph{{IEEE/CVF} Conference on Computer Vision and Pattern Recognition, {CVPR} 2022, New Orleans, LA, USA, June 18-24, 2022}, pp.\  11513--11522. {IEEE}, 2022.
+\newblock \doi{10.1109/CVPR52688.2022.01123}.
+
+\bibitem[Li et~al.(2021)Li, Gulati, Yu, Sainath, Chiu, Narayanan, Chang, Pang, He, Qin, Han, Liang, Zhang, Strohman, and Wu]{streaming_asr}
+Li, B., Gulati, A., Yu, J., Sainath, T.~N., Chiu, C., Narayanan, A., Chang, S., Pang, R., He, Y., Qin, J., Han, W., Liang, Q., Zhang, Y., Strohman, T., and Wu, Y.
+\newblock A better and faster end-to-end model for streaming {ASR}.
+\newblock In \emph{{IEEE} International Conference on Acoustics, Speech and Signal Processing, {ICASSP} 2021, Toronto, ON, Canada, June 6-11, 2021}, pp.\  5634--5638. {IEEE}, 2021.
+\newblock \doi{10.1109/ICASSP39728.2021.9413899}.
+
+\bibitem[Liu et~al.(2025)Liu, Ehrenberg, Lo, Denoix, Barreau, Lample, Delignon, Chandu, von Platen, Muddireddy, Gandhi, Ghosh, Mishra, Foubert, Rastogi, Yang, Jiang, Sablayrolles, Héliou, Martin, Agarwal, Roux, Darcet, Mensch, Bout, Rozière, Monicault, Bamford, Wallenwein, Renaudin, Lanfranchi, Dabert, Chaplot, Mizelle, de~las Casas, Chane-Sane, Fugier, Hanna, Berrada, Delerce, Guinet, Novikov, Martin, Jaju, Ludziejewski, Rute, Chabran, Chudnovsky, Studnia, Barmentlo, Amar, Roberts, Denize, Saxena, Yadav, Khandelwal, Jain, Lavaud, Blier, Zhao, Martin, Saulnier, Gao, Pellat, Guillaumin, Felardos, Dinot, Darrin, Augustin, Seznec, Gupta, Raghuraman, Duchenne, Wang, Saffer, Jacob, Wambergue, Kurylowicz, Chagniot, Stock, Agrawal, Delacourt, Sauvestre, Soletskyi, Vaze, Subramanian, Garg, Dalal, Gandhi, Aithal, Antoniak, Scao, Schueller, Lavril, Robert, Wang, Lacroix, Bewley, Nemychnikova, Paltz, Richard, Li, Marshall, Zhang, Wan, and Tang]{voxtral}
+Liu, A.~H., Ehrenberg, A., Lo, A., Denoix, C., Barreau, C., Lample, G., Delignon, J.-M., Chandu, K.~R., von Platen, P., Muddireddy, P.~R., Gandhi, S., Ghosh, S., Mishra, S., Foubert, T., Rastogi, A., Yang, A., Jiang, A.~Q., Sablayrolles, A., Héliou, A., Martin, A., Agarwal, A., Roux, A., Darcet, A., Mensch, A., Bout, B., Rozière, B., Monicault, B.~D., Bamford, C., Wallenwein, C., Renaudin, C., Lanfranchi, C., Dabert, D., Chaplot, D.~S., Mizelle, D., de~las Casas, D., Chane-Sane, E., Fugier, E., Hanna, E.~B., Berrada, G., Delerce, G., Guinet, G., Novikov, G., Martin, G., Jaju, H., Ludziejewski, J., Rute, J., Chabran, J.-H., Chudnovsky, J., Studnia, J., Barmentlo, J., Amar, J., Roberts, J.~S., Denize, J., Saxena, K., Yadav, K., Khandelwal, K., Jain, K., Lavaud, L.~R., Blier, L., Zhao, L., Martin, L., Saulnier, L., Gao, L., Pellat, M., Guillaumin, M., Felardos, M., Dinot, M., Darrin, M., Augustin, M., Seznec, M., Gupta, N., Raghuraman, N., Duchenne, O., Wang, P., Saffer, P., Jacob, P., Wambergue, P.,
+  Kurylowicz, P., Chagniot, P., Stock, P., Agrawal, P., Delacourt, R., Sauvestre, R., Soletskyi, R., Vaze, S., Subramanian, S., Garg, S., Dalal, S., Gandhi, S., Aithal, S., Antoniak, S., Scao, T.~L., Schueller, T., Lavril, T., Robert, T., Wang, T., Lacroix, T., Bewley, T., Nemychnikova, V., Paltz, V., Richard, V., Li, W.-D., Marshall, W., Zhang, X., Wan, Y., and Tang, Y.
+\newblock Voxtral, 2025.
+\newblock URL \url{https://arxiv.org/abs/2507.13264}.
+
+\bibitem[Loshchilov \& Hutter(2019)Loshchilov and Hutter]{adamw}
+Loshchilov, I. and Hutter, F.
+\newblock Decoupled weight decay regularization.
+\newblock In \emph{7th International Conference on Learning Representations, {ICLR} 2019, New Orleans, LA, USA, May 6-9, 2019}, 2019.
+
+\bibitem[Louradour(2023)]{lintoai2023whispertimestamped}
+Louradour, J.
+\newblock whisper-timestamped.
+\newblock \url{https://github.com/linto-ai/whisper-timestamped}, 2023.
+
+\bibitem[Lugosch et~al.(2019)Lugosch, Ravanelli, Ignoto, Tomar, and Bengio]{lugosch2019}
+Lugosch, L., Ravanelli, M., Ignoto, P., Tomar, V.~S., and Bengio, Y.
+\newblock Speech model pre-training for end-to-end spoken language understanding.
+\newblock \emph{arXiv preprint arXiv:1904.03670}, 2019.
+
+\bibitem[Ma et~al.(2019)Ma, Huang, Xiong, Zheng, Liu, Zheng, Zhang, He, Liu, Li, Wu, and Wang]{ma-etal-2019-stacl}
+Ma, M., Huang, L., Xiong, H., Zheng, R., Liu, K., Zheng, B., Zhang, C., He, Z., Liu, H., Li, X., Wu, H., and Wang, H.
+\newblock {STACL}: Simultaneous translation with implicit anticipation and controllable latency using prefix-to-prefix framework.
+\newblock In Korhonen, A., Traum, D., and M{\`a}rquez, L. (eds.), \emph{Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics}, pp.\  3025--3036, Florence, Italy, July 2019. Association for Computational Linguistics.
+\newblock \doi{10.18653/v1/P19-1289}.
+\newblock URL \url{https://aclanthology.org/P19-1289/}.
+
+\bibitem[Ma et~al.(2021)Ma, Wang, Dousti, Koehn, and Pino]{ma2021streaming}
+Ma, X., Wang, Y., Dousti, M.~J., Koehn, P., and Pino, J.
+\newblock Streaming simultaneous speech translation with augmented memory transformer.
+\newblock In \emph{ICASSP 2021-2021 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pp.\  7523--7527. IEEE, 2021.
+
+\bibitem[Mach{\'a}{\v{c}}ek et~al.(2023)Mach{\'a}{\v{c}}ek, Dabre, and Bojar]{whisper-streaming}
+Mach{\'a}{\v{c}}ek, D., Dabre, R., and Bojar, O.
+\newblock Turning whisper into real-time transcription system.
+\newblock In Saha, S. and Sujaini, H. (eds.), \emph{Proceedings of the 13th International Joint Conference on Natural Language Processing and the 3rd Conference of the Asia-Pacific Chapter of the Association for Computational Linguistics: System Demonstrations}, Bali, Indonesia, November 2023. Association for Computational Linguistics.
+
+\bibitem[McAuliffe et~al.(2025)McAuliffe, Fatchurrahman, Feiteng, GalaxieT, NTT123, Gulati, Coles, Kong, Veaux, Eren, Gritskevich, Thor, Mishra, Fruehwald, Potrykus, Sereda, Mestrou, michaelasocolof, and vannawillerton]{montreal_forced_aligner}
+McAuliffe, M., Fatchurrahman, M.~R., Feiteng, GalaxieT, NTT123, Gulati, A., Coles, A., Kong, C., Veaux, C., Eren, E., Gritskevich, E., Thor, G., Mishra, H., Fruehwald, J., Potrykus, P., Sereda, T., Mestrou, T., michaelasocolof, and vannawillerton.
+\newblock Montrealcorpustools/montreal-forced-aligner: Version 3.2.2, March 2025.
+
+\bibitem[Oliveira et~al.(2023)Oliveira, Casanova, Junior, Soares, and Galv{\~a}o~Filho]{Cmltts2023}
+Oliveira, F.~S., Casanova, E., Junior, A.~C., Soares, A.~S., and Galv{\~a}o~Filho, A.~R.
+\newblock Cml-tts: A multilingual dataset for speech synthesis in low-resource languages.
+\newblock In Ek{\v{s}}tein, K., P{\'a}rtl, F., and Konop{\'i}k, M. (eds.), \emph{Text, Speech, and Dialogue}, pp.\  188--199, Cham, 2023. Springer Nature Switzerland.
+\newblock ISBN 978-3-031-40498-6.
+
+\bibitem[O'Neill et~al.(2021)O'Neill, Lavrukhin, Majumdar, Noroozi, Zhang, Kuchaiev, Balam, Dovzhenko, Freyberg, Shulman, et~al.]{spgispeech}
+O'Neill, P.~K., Lavrukhin, V., Majumdar, S., Noroozi, V., Zhang, Y., Kuchaiev, O., Balam, J., Dovzhenko, Y., Freyberg, K., Shulman, M.~D., et~al.
+\newblock Spgispeech: 5,000 hours of transcribed financial audio for fully formatted end-to-end speech recognition.
+\newblock \emph{arXiv preprint arXiv:2104.02014}, 2021.
+
+\bibitem[Panayotov et~al.(2015)Panayotov, Chen, Povey, and Khudanpur]{librispeech}
+Panayotov, V., Chen, G., Povey, D., and Khudanpur, S.
+\newblock Librispeech: An {ASR} corpus based on public domain audio books.
+\newblock In \emph{2015 {IEEE} International Conference on Acoustics, Speech and Signal Processing, {ICASSP} 2015, South Brisbane, Queensland, Australia, April 19-24, 2015}, pp.\  5206--5210. {IEEE}, 2015.
+\newblock \doi{10.1109/ICASSP.2015.7178964}.
+
+\bibitem[Radford et~al.(2018)Radford, Narasimhan, Salimans, Sutskever, et~al.]{radford2018improving}
+Radford, A., Narasimhan, K., Salimans, T., Sutskever, I., et~al.
+\newblock Improving language understanding by generative pre-training.
+\newblock 2018.
+
+\bibitem[Radford et~al.(2023)Radford, Kim, Xu, Brockman, McLeavey, and Sutskever]{whisper}
+Radford, A., Kim, J.~W., Xu, T., Brockman, G., McLeavey, C., and Sutskever, I.
+\newblock Robust speech recognition via large-scale weak supervision.
+\newblock In Krause, A., Brunskill, E., Cho, K., Engelhardt, B., Sabato, S., and Scarlett, J. (eds.), \emph{International Conference on Machine Learning, {ICML} 2023, 23-29 July 2023, Honolulu, Hawaii, {USA}}, volume 202 of \emph{Proceedings of Machine Learning Research}, pp.\  28492--28518. {PMLR}, 2023.
+
+\bibitem[Raffel et~al.(2017)Raffel, Luong, Liu, Weiss, and Eck]{monotonic_attention}
+Raffel, C., Luong, M., Liu, P.~J., Weiss, R.~J., and Eck, D.
+\newblock Online and linear-time attention by enforcing monotonic alignments.
+\newblock In Precup, D. and Teh, Y.~W. (eds.), \emph{Proceedings of the 34th International Conference on Machine Learning, {ICML} 2017, Sydney, NSW, Australia, 6-11 August 2017}, volume~70 of \emph{Proceedings of Machine Learning Research}, pp.\  2837--2846. {PMLR}, 2017.
+
+\bibitem[Ramesh et~al.(2021)Ramesh, Pavlov, Goh, Gray, Voss, Radford, Chen, and Sutskever]{dalle}
+Ramesh, A., Pavlov, M., Goh, G., Gray, S., Voss, C., Radford, A., Chen, M., and Sutskever, I.
+\newblock Zero-shot text-to-image generation.
+\newblock In Meila, M. and Zhang, T. (eds.), \emph{Proceedings of the 38th International Conference on Machine Learning, {ICML} 2021, 18-24 July 2021, Virtual Event}, volume 139 of \emph{Proceedings of Machine Learning Research}, pp.\  8821--8831. {PMLR}, 2021.
+
+\bibitem[Razavi et~al.(2019)Razavi, van~den Oord, and Vinyals]{vqvae}
+Razavi, A., van~den Oord, A., and Vinyals, O.
+\newblock Generating diverse high-fidelity images with vq-vae-2.
+\newblock In Wallach, H., Larochelle, H., Beygelzimer, A., d\textquotesingle Alch\'{e}-Buc, F., Fox, E., and Garnett, R. (eds.), \emph{Advances in Neural Information Processing Systems}, volume~32. Curran Associates, Inc., 2019.
+
+\bibitem[Renals et~al.(2007)Renals, Hain, and Bourlard]{ami-renals2007}
+Renals, S., Hain, T., and Bourlard, H.
+\newblock Recognition and understanding of meetings the ami and amida projects.
+\newblock In \emph{2007 IEEE Workshop on Automatic Speech Recognition \& Understanding (ASRU)}, pp.\  238--247. IEEE, 2007.
+
+\bibitem[Rio et~al.(2021)Rio, Delworth, Westerman, Huang, Bhandari, Palakapilly, McNamara, Dong, Zelasko, and Jette]{earnings21}
+Rio, M.~D., Delworth, N., Westerman, R., Huang, M., Bhandari, N., Palakapilly, J., McNamara, Q., Dong, J., Zelasko, P., and Jette, M.
+\newblock Earnings-21: {A} practical benchmark for {ASR} in the wild.
+\newblock \emph{CoRR}, abs/2104.11348, 2021.
+
+\bibitem[Rubenstein et~al.(2023)Rubenstein, Asawaroengchai, Nguyen, Bapna, Borsos, de~Chaumont~Quitry, Chen, Badawy, Han, Kharitonov, Muckenhirn, Padfield, Qin, Rozenberg, Sainath, Schalkwyk, Sharifi, Ramanovich, Tagliasacchi, Tudor, Velimirovic, Vincent, Yu, Wang, Zayats, Zeghidour, Zhang, Zhang, Zilka, and Frank]{audiopalm}
+Rubenstein, P.~K., Asawaroengchai, C., Nguyen, D.~D., Bapna, A., Borsos, Z., de~Chaumont~Quitry, F., Chen, P., Badawy, D.~E., Han, W., Kharitonov, E., Muckenhirn, H., Padfield, D., Qin, J., Rozenberg, D., Sainath, T.~N., Schalkwyk, J., Sharifi, M., Ramanovich, M.~T., Tagliasacchi, M., Tudor, A., Velimirovic, M., Vincent, D., Yu, J., Wang, Y., Zayats, V., Zeghidour, N., Zhang, Y., Zhang, Z., Zilka, L., and Frank, C.~H.
+\newblock Audiopalm: {A} large language model that can speak and listen.
+\newblock \emph{CoRR}, abs/2306.12925, 2023.
+\newblock \doi{10.48550/ARXIV.2306.12925}.
+
+\bibitem[San~Roman et~al.(2024)San~Roman, Fernandez, Elsahar, D´efossez, Furon, and Tran]{sanroman2024proactive}
+San~Roman, R., Fernandez, P., Elsahar, H., D´efossez, A., Furon, T., and Tran, T.
+\newblock Proactive detection of voice cloning with localized watermarking.
+\newblock \emph{ICML}, 2024.
+
+\bibitem[Singh et~al.(2024)Singh, Takahashi, Liao, and Mitsufuji]{singh24_interspeech}
+Singh, M.~K., Takahashi, N., Liao, W., and Mitsufuji, Y.
+\newblock {SilentCipher: Deep Audio Watermarking}.
+\newblock In \emph{Proc. INTERSPEECH 2024}, 2024.
+
+\bibitem[Srivastav et~al.(2023)Srivastav, Majumdar, Koluguri, Moumen, Gandhi, et~al.]{open-asr-leaderboard}
+Srivastav, V., Majumdar, S., Koluguri, N., Moumen, A., Gandhi, S., et~al.
+\newblock Open automatic speech recognition leaderboard.
+\newblock \url{https://huggingface.co/spaces/hf-audio/open_asr_leaderboard}, 2023.
+
+\bibitem[Su et~al.(2024)Su, Ahmed, Lu, Pan, Bo, and Liu]{su2024roformer}
+Su, J., Ahmed, M., Lu, Y., Pan, S., Bo, W., and Liu, Y.
+\newblock Roformer: Enhanced transformer with rotary position embedding.
+\newblock \emph{Neurocomputing}, 568:\penalty0 127063, 2024.
+
+\bibitem[Sutskever et~al.(2014)Sutskever, Vinyals, and Le]{sutskever2014sequence}
+Sutskever, I., Vinyals, O., and Le, Q.~V.
+\newblock Sequence to sequence learning with neural networks.
+\newblock \emph{Advances in neural information processing systems}, 27, 2014.
+
+\bibitem[Vaswani et~al.(2017)Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez, and and]{attentionvaswani}
+Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A.~N., and and, L.~K.
+\newblock Attention is all you need.
+\newblock In \emph{Advances in Neural Information Processing Systems (NeurIPS)}, pp.\  5998--6008, 2017.
+
+\bibitem[Wagner et~al.(2024)Wagner, Thallinger, and Zusag]{crisper}
+Wagner, L., Thallinger, B., and Zusag, M.
+\newblock Crisperwhisper: Accurate timestamps on verbatim speech transcriptions.
+\newblock \emph{CoRR}, abs/2408.16589, 2024.
+\newblock \doi{10.48550/ARXIV.2408.16589}.
+
+\bibitem[Wang et~al.(2021)Wang, Riviere, Lee, Wu, Talnikar, Haziza, Williamson, Pino, and Dupoux]{voxpopuli}
+Wang, C., Riviere, M., Lee, A., Wu, A., Talnikar, C., Haziza, D., Williamson, M., Pino, J., and Dupoux, E.
+\newblock Voxpopuli: A large-scale multilingual speech corpus for representation learning, semi-supervised learning and interpretation.
+\newblock \emph{arXiv preprint arXiv:2101.00390}, 2021.
+
+\bibitem[Wang et~al.(2023)Wang, Chen, Wu, Zhang, Zhou, Liu, Chen, Liu, Wang, Li, He, Zhao, and Wei]{valle}
+Wang, C., Chen, S., Wu, Y., Zhang, Z., Zhou, L., Liu, S., Chen, Z., Liu, Y., Wang, H., Li, J., He, L., Zhao, S., and Wei, F.
+\newblock Neural codec language models are zero-shot text to speech synthesizers.
+\newblock \emph{CoRR}, abs/2301.02111, 2023.
+\newblock \doi{10.48550/ARXIV.2301.02111}.
+
+\bibitem[Wang et~al.(2017)Wang, Skerry{-}Ryan, Stanton, Wu, Weiss, Jaitly, Yang, Xiao, Chen, Bengio, Le, Agiomyrgiannakis, Clark, and Saurous]{tacotron}
+Wang, Y., Skerry{-}Ryan, R.~J., Stanton, D., Wu, Y., Weiss, R.~J., Jaitly, N., Yang, Z., Xiao, Y., Chen, Z., Bengio, S., Le, Q.~V., Agiomyrgiannakis, Y., Clark, R., and Saurous, R.~A.
+\newblock Tacotron: Towards end-to-end speech synthesis.
+\newblock In Lacerda, F. (ed.), \emph{18th Annual Conference of the International Speech Communication Association, Interspeech 2017, Stockholm, Sweden, August 20-24, 2017}, pp.\  4006--4010. {ISCA}, 2017.
+\newblock \doi{10.21437/INTERSPEECH.2017-1452}.
+
+\bibitem[Xu et~al.(2023)Xu, Jia, Majumdar, Huang, Watanabe, and Ginsburg]{parakeet}
+Xu, H., Jia, F., Majumdar, S., Huang, H., Watanabe, S., and Ginsburg, B.
+\newblock Efficient sequence transduction by jointly predicting tokens and durations.
+\newblock In Krause, A., Brunskill, E., Cho, K., Engelhardt, B., Sabato, S., and Scarlett, J. (eds.), \emph{International Conference on Machine Learning, {ICML} 2023, 23-29 July 2023, Honolulu, Hawaii, {USA}}, volume 202 of \emph{Proceedings of Machine Learning Research}, pp.\  38462--38484. {PMLR}, 2023.
+
+\bibitem[Xue et~al.(2023)Xue, Wang, Li, and Sun]{xue2023weakly}
+Xue, J., Wang, P., Li, J., and Sun, E.
+\newblock A weakly-supervised streaming multilingual speech model with truly zero-shot capability.
+\newblock In \emph{2023 IEEE Automatic Speech Recognition and Understanding Workshop (ASRU)}, pp.\  1--7. IEEE, 2023.
+
+\bibitem[Yalniz et~al.(2019)Yalniz, J{\'e}gou, Chen, Paluri, and Mahajan]{yalniz2019billion}
+Yalniz, I.~Z., J{\'e}gou, H., Chen, K., Paluri, M., and Mahajan, D.
+\newblock Billion-scale semi-supervised learning for image classification.
+\newblock \emph{arXiv preprint arXiv:1905.00546}, 2019.
+
+\bibitem[Yamagishi et~al.(2019)Yamagishi, Veaux, and MacDonald]{Yamagishi2019CSTRVC}
+Yamagishi, J., Veaux, C., and MacDonald, K.
+\newblock Cstr vctk corpus: English multi-speaker corpus for cstr voice cloning toolkit (version 0.92), 2019.
+
+\bibitem[Yu et~al.(2023)Yu, Shi, Pasunuru, Muller, Golovneva, Wang, Babu, Tang, Karrer, Sheynin, Ross, Polyak, Howes, Sharma, Xu, Tamoyan, Ashual, Singer, Li, Zhang, James, Ghosh, Taigman, Fazel-Zarandi, Celikyilmaz, Zettlemoyer, and Aghajanyan]{Yu2023ScalingAM}
+Yu, L., Shi, B., Pasunuru, R., Muller, B., Golovneva, O.~Y., Wang, T., Babu, A., Tang, B., Karrer, B., Sheynin, S., Ross, C., Polyak, A., Howes, R., Sharma, V., Xu, P., Tamoyan, H., Ashual, O., Singer, U., Li, S.-W., Zhang, S., James, R., Ghosh, G., Taigman, Y., Fazel-Zarandi, M., Celikyilmaz, A., Zettlemoyer, L., and Aghajanyan, A.
+\newblock Scaling autoregressive multi-modal models: Pretraining and instruction tuning.
+\newblock \emph{ArXiv}, abs/2309.02591, 2023.
+
+\bibitem[Zeghidour et~al.(2022)Zeghidour, Luebs, Omran, Skoglund, and Tagliasacchi]{soundstream}
+Zeghidour, N., Luebs, A., Omran, A., Skoglund, J., and Tagliasacchi, M.
+\newblock Soundstream: An end-to-end neural audio codec.
+\newblock \emph{{IEEE} {ACM} Trans. Audio Speech Lang. Process.}, 30:\penalty0 495--507, 2022.
+\newblock \doi{10.1109/TASLP.2021.3129994}.
+
+\bibitem[Zelasko et~al.(2025)Zelasko, Dhawan, Galvez, Puvvada, Pasad, Koluguri, Hu, Lavrukhin, Balam, and Ginsburg]{canary}
+Zelasko, P., Dhawan, K., Galvez, D., Puvvada, K.~C., Pasad, A., Koluguri, N.~R., Hu, K., Lavrukhin, V., Balam, J., and Ginsburg, B.
+\newblock Training and inference efficiency of encoder-decoder speech models.
+\newblock \emph{CoRR}, abs/2503.05931, 2025.
+\newblock \doi{10.48550/ARXIV.2503.05931}.
+
+\bibitem[Zhang et~al.(2024)Zhang, Qian, Zhou, Liu, Wang, Wang, Yousefi, Qian, Li, He, et~al.]{zhang2024covomix}
+Zhang, L., Qian, Y., Zhou, L., Liu, S., Wang, D., Wang, X., Yousefi, M., Qian, Y., Li, J., He, L., et~al.
+\newblock Covomix: Advancing zero-shot speech generation for human-like multi-talker conversations.
+\newblock \emph{Proceedings of the 38th International Conference on Neural Information Processing Systems (NeurIPS 2024)}, 2024.
+
+\bibitem[Zhang et~al.(2020)Zhang, Lu, Sak, Tripathi, McDermott, Koo, and Kumar]{zhang2020transformer}
+Zhang, Q., Lu, H., Sak, H., Tripathi, A., McDermott, E., Koo, S., and Kumar, S.
+\newblock Transformer transducer: A streamable speech recognition model with transformer encoders and rnn-t loss.
+\newblock In \emph{ICASSP 2020-2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pp.\  7829--7833. IEEE, 2020.
+
+\end{thebibliography}

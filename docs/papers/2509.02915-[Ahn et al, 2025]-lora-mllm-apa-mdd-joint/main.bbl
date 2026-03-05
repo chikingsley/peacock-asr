@@ -1,0 +1,234 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{25}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{} and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showURL}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showURL #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       {\relax}        \fi
+% The following commands are used for tagged output and should be
+% invisible to TeX
+\providecommand\bibfield[2]{#2}
+\providecommand\bibinfo[2]{#2}
+\providecommand\natexlab[1]{#1}
+\providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[Abouelenin et~al\mbox{.}(2025)]%
+        {abouelenin2025phi}
+\bibfield{author}{\bibinfo{person}{A. Abouelenin}, \bibinfo{person}{A. Ashfaq}, \bibinfo{person}{A. Atkinson}, \bibinfo{person}{H. Awadalla}, \bibinfo{person}{N. Bach}, \bibinfo{person}{J. Bao}, {et~al\mbox{.}}} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{{Phi-4-Mini Technical Report: Compact yet Powerful Multimodal Language Models via Mixture-of-LoRAs}}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2503.01743}} (\bibinfo{year}{2025}).
+\newblock
+
+
+\bibitem[Babu et~al\mbox{.}(2022)]%
+        {babu2022xls}
+\bibfield{author}{\bibinfo{person}{A. Babu}, \bibinfo{person}{C. Wang}, \bibinfo{person}{A. Tjandra}, \bibinfo{person}{K. Lakhotia}, \bibinfo{person}{Q. Xu}, \bibinfo{person}{N. Goyal}, \bibinfo{person}{K. Singh}, \bibinfo{person}{P. von Platen}, \bibinfo{person}{Y. Saraf}, \bibinfo{person}{J. Pino}, \bibinfo{person}{A. Baevski}, \bibinfo{person}{A. Conneau}, {and} \bibinfo{person}{M. Auli}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{{XLS-R: Self-supervised cross-lingual speech representation learning at scale}}. In \bibinfo{booktitle}{\emph{Proc. Interspeech 2022}}. \bibinfo{pages}{2278--2282}.
+\newblock
+\href{https://doi.org/10.21437/Interspeech.2022-143}{doi:\nolinkurl{10.21437/Interspeech.2022-143}}
+
+
+\bibitem[Baevski et~al\mbox{.}(2020)]%
+        {baevski2020wav2vec}
+\bibfield{author}{\bibinfo{person}{A. Baevski}, \bibinfo{person}{Y. Zhou}, \bibinfo{person}{A. Mohamed}, {and} \bibinfo{person}{M. Auli}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{{Wav2vec 2.0: A Framework for Self-Supervised Learning of Speech Representations}}. In \bibinfo{booktitle}{\emph{Advances in Neural Information Processing Systems}}, Vol.~\bibinfo{volume}{33}. \bibinfo{pages}{12449--12460}.
+\newblock
+
+
+\bibitem[Bernstein et~al\mbox{.}(1990)]%
+        {bernstein1990automatic}
+\bibfield{author}{\bibinfo{person}{J. Bernstein}, \bibinfo{person}{M. Cohen}, \bibinfo{person}{H. Murveit}, \bibinfo{person}{D. Rtischev}, {and} \bibinfo{person}{M. Weintraub}.} \bibinfo{year}{1990}\natexlab{}.
+\newblock \showarticletitle{{Automatic evaluation and training in English pronunciation}}. In \bibinfo{booktitle}{\emph{Proceedings of the ICSLP-90: 1990 International Conference on Spoken Language Processing}}. \bibinfo{pages}{1185--1188}.
+\newblock
+
+
+\bibitem[Conneau et~al\mbox{.}(2021)]%
+        {conneau2021unsupervised}
+\bibfield{author}{\bibinfo{person}{A. Conneau}, \bibinfo{person}{A. Baevski}, \bibinfo{person}{R. Collobert}, \bibinfo{person}{A. Mohamed}, {and} \bibinfo{person}{M. Auli}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{{Unsupervised cross-lingual representation learning for speech recognition}}. In \bibinfo{booktitle}{\emph{Proc. Interspeech 2021}}. \bibinfo{pages}{2426--2430}.
+\newblock
+\href{https://doi.org/10.21437/Interspeech.2021-329}{doi:\nolinkurl{10.21437/Interspeech.2021-329}}
+
+
+\bibitem[Eskenazi(2009)]%
+        {eskenazi2009overview}
+\bibfield{author}{\bibinfo{person}{M. Eskenazi}.} \bibinfo{year}{2009}\natexlab{}.
+\newblock \showarticletitle{{An overview of spoken language technology for education}}.
+\newblock \bibinfo{journal}{\emph{Speech Communication}} \bibinfo{volume}{51}, \bibinfo{number}{10} (\bibinfo{year}{2009}), \bibinfo{pages}{832--844}.
+\newblock
+
+
+\bibitem[Feng et~al\mbox{.}(2020)]%
+        {feng2020sed}
+\bibfield{author}{\bibinfo{person}{Y. Feng}, \bibinfo{person}{G. Fu}, \bibinfo{person}{Q. Chen}, {and} \bibinfo{person}{K. Chen}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{{SED-MDD: Towards sentence dependent end-to-end mispronunciation detection and diagnosis}}. In \bibinfo{booktitle}{\emph{ICASSP 2020-2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}}. IEEE, \bibinfo{pages}{3492--3496}.
+\newblock
+
+
+\bibitem[Fouz-Gonz{\'a}lez(2015)]%
+        {fouz2015trends}
+\bibfield{author}{\bibinfo{person}{J. Fouz-Gonz{\'a}lez}.} \bibinfo{year}{2015}\natexlab{}.
+\newblock \showarticletitle{{Trends and directions in computer-assisted pronunciation training}}.
+\newblock In \bibinfo{booktitle}{\emph{Investigating English pronunciation: Trends and directions}}. \bibinfo{pages}{314--342}.
+\newblock
+
+
+\bibitem[Franco et~al\mbox{.}(2000a)]%
+        {franco2000sri}
+\bibfield{author}{\bibinfo{person}{H. Franco}, \bibinfo{person}{V. Abrash}, \bibinfo{person}{K. Precoda}, \bibinfo{person}{H. Bratt}, \bibinfo{person}{R. Rao}, {and} \bibinfo{person}{J. Butzberger}.} \bibinfo{year}{2000}\natexlab{a}.
+\newblock \showarticletitle{{The SRI EduSpeak system: recognition and pronunciation scoring for language learning}}. In \bibinfo{booktitle}{\emph{Proceedings of Intelligent Speech Technology in Language Learning, InSTiLL-2000}}.
+\newblock
+
+
+\bibitem[Franco et~al\mbox{.}(2000b)]%
+        {franco2000combination}
+\bibfield{author}{\bibinfo{person}{H. Franco}, \bibinfo{person}{L. Neumeyer}, \bibinfo{person}{V. Digalakis}, {and} \bibinfo{person}{O. Ronen}.} \bibinfo{year}{2000}\natexlab{b}.
+\newblock \showarticletitle{{Combination of machine scores for automatic grading of pronunciation quality}}.
+\newblock \bibinfo{journal}{\emph{Speech Communication}}  \bibinfo{volume}{30} (\bibinfo{year}{2000}), \bibinfo{pages}{121--130}.
+\newblock
+
+
+\bibitem[Fu et~al\mbox{.}(2024)]%
+        {fu2024pronunciation}
+\bibfield{author}{\bibinfo{person}{K. Fu}, \bibinfo{person}{L. Peng}, \bibinfo{person}{N. Yang}, {and} \bibinfo{person}{S. Zhou}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{{Pronunciation Assessment with Multi-modal Large Language Models}}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2407.09209}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[Getman et~al\mbox{.}(2022)]%
+        {getman2022wav2vec2}
+\bibfield{author}{\bibinfo{person}{Y. Getman}, \bibinfo{person}{R. Al-Ghezi}, \bibinfo{person}{K. Voskoboinik}, \bibinfo{person}{T. Gr{\'o}sz}, \bibinfo{person}{M. Kurimo}, \bibinfo{person}{G. Salvi}, \bibinfo{person}{T. Svendsen}, {and} \bibinfo{person}{S. Str{\"o}mbergsson}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{{Wav2vec2-Based Speech Rating System for Children with Speech Sound Disorder}}. In \bibinfo{booktitle}{\emph{Interspeech 2022}}. ISCA.
+\newblock
+
+
+\bibitem[Gong et~al\mbox{.}(2022)]%
+        {gong2022transformer}
+\bibfield{author}{\bibinfo{person}{Y. Gong}, \bibinfo{person}{Z. Chen}, \bibinfo{person}{I.~H. Chu}, \bibinfo{person}{P. Chang}, {and} \bibinfo{person}{J. Glass}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{{Transformer-based multi-aspect multi-granularity non-native english speaker pronunciation assessment}}. In \bibinfo{booktitle}{\emph{ICASSP 2022-2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}}. IEEE, \bibinfo{pages}{7262--7266}.
+\newblock
+
+
+\bibitem[Heo(2024)]%
+        {heo2024llm}
+\bibfield{author}{\bibinfo{person}{J. Heo}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{{Practical AI application development using LLMs}}}.
+\newblock \bibinfo{publisher}{onlybook}.
+\newblock
+
+
+\bibitem[Hong(2021)]%
+        {hong2021automated}
+\bibfield{author}{\bibinfo{person}{Y. Hong}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \emph{\bibinfo{title}{{Automated evaluation of pronunciation for L2 English learners}}}.
+\newblock \bibinfo{thesistype}{Ph.\,D. Dissertation}. \bibinfo{school}{Graduate School, Korea University}.
+\newblock
+
+
+\bibitem[Hurst et~al\mbox{.}(2024)]%
+        {hurst2024gpt}
+\bibfield{author}{\bibinfo{person}{Aaron Hurst}, \bibinfo{person}{Adam Lerer}, \bibinfo{person}{Adam~P Goucher}, \bibinfo{person}{Adam Perelman}, \bibinfo{person}{Aditya Ramesh}, \bibinfo{person}{Aidan Clark}, \bibinfo{person}{AJ Ostrow}, \bibinfo{person}{Akila Welihinda}, \bibinfo{person}{Alan Hayes}, \bibinfo{person}{Alec Radford}, {et~al\mbox{.}}} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Gpt-4o system card}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2410.21276}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[{Microsoft}(2025)]%
+        {microsoft2025phi}
+\bibfield{author}{\bibinfo{person}{{Microsoft}}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \bibinfo{title}{{Phi-4-multimodal-instruct}}.
+\newblock \bibinfo{howpublished}{Hugging Face}.
+\newblock
+\urldef\tempurl%
+\url{https://huggingface.co/microsoft/Phi-4-multimodal-instruct}
+\showURL{%
+\tempurl}
+
+
+\bibitem[Peng et~al\mbox{.}(2021)]%
+        {peng2021study}
+\bibfield{author}{\bibinfo{person}{L. Peng}, \bibinfo{person}{K. Fu}, \bibinfo{person}{B. Lin}, \bibinfo{person}{D. Ke}, {and} \bibinfo{person}{J. Zhang}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{{A Study on Fine-Tuning wav2vec2. 0 Model for the Task of Mispronunciation Detection and Diagnosis}}. In \bibinfo{booktitle}{\emph{Interspeech}}. ISCA.
+\newblock
+
+
+\bibitem[Qian et~al\mbox{.}(2010)]%
+        {qian2010use}
+\bibfield{author}{\bibinfo{person}{X. Qian}, \bibinfo{person}{H. Meng}, {and} \bibinfo{person}{F. Soong}.} \bibinfo{year}{2010}\natexlab{}.
+\newblock \showarticletitle{{The use of DBN-HMMs for mispronunciation detection and diagnosis in L2 English to support computer-aided pronunciation training}}. In \bibinfo{booktitle}{\emph{Proceedings of INTERSPEECH}}. \bibinfo{pages}{775--778}.
+\newblock
+
+
+\bibitem[Ryu et~al\mbox{.}(2023)]%
+        {ryu2023joint}
+\bibfield{author}{\bibinfo{person}{H. Ryu}, \bibinfo{person}{S. Kim}, {and} \bibinfo{person}{M. Chung}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{{A Joint Model for Pronunciation Assessment and Mispronunciation Detection and Diagnosis with Multi-task Learning}}. In \bibinfo{booktitle}{\emph{Proc. Interspeech 2023}}. \bibinfo{pages}{959--963}.
+\newblock
+\href{https://doi.org/10.21437/Interspeech.2023-337}{doi:\nolinkurl{10.21437/Interspeech.2023-337}}
+
+
+\bibitem[Wang et~al\mbox{.}(2025)]%
+        {wang2025exploring}
+\bibfield{author}{\bibinfo{person}{K. Wang}, \bibinfo{person}{L. He}, \bibinfo{person}{K. Liu}, \bibinfo{person}{Y. Deng}, \bibinfo{person}{W. Wei}, {and} \bibinfo{person}{S. Zhao}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{{Exploring the Potential of Large Multimodal Models as Effective Alternatives for Pronunciation Assessment}}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2503.11229}} (\bibinfo{year}{2025}).
+\newblock
+
+
+\bibitem[Weide et~al\mbox{.}(1998)]%
+        {weide1998carnegie}
+\bibfield{author}{\bibinfo{person}{R. Weide} {et~al\mbox{.}}} \bibinfo{year}{1998}\natexlab{}.
+\newblock \bibinfo{title}{{The Carnegie Mellon pronouncing dictionary (Release 0.6)}}.
+\newblock \bibinfo{howpublished}{Retrieved from www.cs.cmu.edu}.
+\newblock
+
+
+\bibitem[Witt and Young(2000)]%
+        {witt2000phone}
+\bibfield{author}{\bibinfo{person}{S.~M. Witt} {and} \bibinfo{person}{S.~J. Young}.} \bibinfo{year}{2000}\natexlab{}.
+\newblock \showarticletitle{{Phone-level pronunciation scoring and assessment for interactive language learning}}.
+\newblock \bibinfo{journal}{\emph{Speech Communication}} \bibinfo{volume}{30}, \bibinfo{number}{2-3} (\bibinfo{year}{2000}), \bibinfo{pages}{95--108}.
+\newblock
+
+
+\bibitem[Yang et~al\mbox{.}(2022)]%
+        {yang2022improving}
+\bibfield{author}{\bibinfo{person}{M. Yang}, \bibinfo{person}{K. Hirschi}, \bibinfo{person}{S.~D. Looney}, \bibinfo{person}{O. Kang}, {and} \bibinfo{person}{J.~H.~L. Hansen}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{{Improving Mispronunciation Detection with Wav2vec2-Based Momentum Pseudo-Labeling for Accentedness and Intelligibility Assessment}}. In \bibinfo{booktitle}{\emph{Interspeech 2022}}. ISCA.
+\newblock
+
+
+\bibitem[Zhang et~al\mbox{.}(2021)]%
+        {zhang2021speechocean762}
+\bibfield{author}{\bibinfo{person}{J. Zhang}, \bibinfo{person}{Z. Zhang}, \bibinfo{person}{Y. Wang}, \bibinfo{person}{Z. Yan}, \bibinfo{person}{Q. Song}, \bibinfo{person}{Y. Huang}, {et~al\mbox{.}}} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{{speechocean762: An open-source non-native english speech corpus for pronunciation assessment}}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2104.01378}} (\bibinfo{year}{2021}).
+\newblock
+
+
+\end{thebibliography}

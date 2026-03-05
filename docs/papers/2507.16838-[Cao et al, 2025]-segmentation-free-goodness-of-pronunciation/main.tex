@@ -1,0 +1,139 @@
+% IEEE Transactions on Audio, Speech and Language Processing:
+% submission: 13 pages max, final: 16 pages max, every page over 10 costs ~220$
+%\documentclass[lettersize,peerreview]{IEEEtran}
+\documentclass[lettersize]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amsfonts}
+\usepackage{algorithmic}
+\usepackage{array}
+\usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf]{subfig}
+\usepackage{textcomp}
+\usepackage{stfloats}
+\usepackage{url}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\hyphenation{op-tical net-works semi-conduc-tor IEEE-Xplore}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\usepackage{balance}
+\usepackage{xspace}
+\newcommand{\Lcano}{\ensuremath{L_{\text{C}}}\xspace}
+\newcommand{\Lleft}{\ensuremath{L_{\text{L}}}\xspace}
+\newcommand{\Lright}{\ensuremath{L_{\text{R}}}\xspace}
+\newcommand{\Lsdi}{\ensuremath{L_{\text{SDI}}}\xspace}
+\newcommand{\Lsd}{\ensuremath{L_{\text{SD}}}\xspace}
+\newcommand{\Ldet}{\ensuremath{L_{\text{det}}}\xspace}
+\newcommand{\Lsub}{\ensuremath{L_{\text{sub}}}\xspace}
+\newcommand{\Scano}{\ensuremath{S_{\text{cano}}}\xspace}
+\newcommand{\Eocc}{\ensuremath{\mathbb{E}[\text{occ}(l_i)]}\xspace}
+\newcommand{\SEG}{\ensuremath{\mathcal{A}}\xspace}
+\usepackage{tipa}
+% define phoneme ipa symbols
+\newcommand{\ipaW}{\textipa{w}}
+\newcommand{\ipaIH}{\textipa{\i}}
+\newcommand{\ipaAH}{\textipa{\textturnv}}
+\newcommand{\ipaSH}{\textipa{S}}
+\newcommand{\ipaAE}{\textipa{\ae}}
+\newcommand{\ipaM}{\textipa{m}}
+\newcommand{\ipaL}{\textipa{l}}
+\newcommand{\ipaS}{\textipa{s}}
+
+\usepackage[
+    style=ieee,
+    doi=false,
+    isbn=false,
+    url=false,
+    eprint=false,
+    date=year, % should disable month in the date
+    %maxnames = 2,
+    %maxbibnames=1,
+    %minbibnames=1,
+    %uniquename=false
+]{biblatex}
+\addbibresource{mybib.bib}
+
+\usepackage{xcolor}
+\newcommand{\todo}[1]{{\color{red} #1}}
+
+\begin{document}
+\title{Segmentation-Free Goodness of Pronunciation}
+\author{Xinwei Cao, Zijian Fan, Torbjørn Svendsen, ~\IEEEmembership{Senior Member,~IEEE}, Giampiero Salvi, ~\IEEEmembership{Senior Member,~IEEE}
+\thanks{All authors are with the Department of Electronic Systems, Norwegian University of Science and Technology (NTNU), Norway. \{xinwei.cao, zijian.fan, torbjorn.svendsen, giampiero.salvi\}@ntnu.no}
+\thanks{This research was partly funded by the NordForsk Teflon project (\#103893) and by the Research Council of Norway SCRIBE project (\#322964).}
+}
+%\address{
+%  $^1$\\
+%  $^2$KTH Royal Institute of Technology, EECS, Sweden}
+%\email{\{xinwei.cao, zijian.fan, torbjorn.svendsen, giampiero.salvi\}@ntnu.no}
+
+\markboth{Journal of \LaTeX\ Class Files,~Vol.~18, No.~9, September~2020}%
+{How to Use the IEEEtran \LaTeX \ Templates}
+
+\maketitle
+
+
+%\begin{abstract} % 150-250 words.
+%\input{0_abstract}
+%\end{abstract}
+
+
+%\begin{IEEEkeywords}
+%Computer-aided pronunciation training, mispronunciation detection and diagnosis, speech assessment, goodness of pronunciation, CTC, child speech, L2.
+%\end{IEEEkeywords}
+
+%\IEEEpeerreviewmaketitle
+
+\begin{abstract} % 150-250 words.
+\input{0_abstract}
+\end{abstract}
+
+\begin{IEEEkeywords}
+Computer-aided pronunciation training, mispronunciation detection and diagnosis, speech assessment, goodness of pronunciation, CTC, child speech, L2.
+\end{IEEEkeywords}
+
+\input{1_introduction} % extend to complete the page
+\input{2_background} % make maximum two pages
+\input{3_method}
+\input{4_experiments}
+\input{5_results_and_discussion}
+\input{6_conclusions}
+
+%\section{Acknowledgements}
+% using BibLaTeX instead of BibTeX
+%\bibliographystyle{IEEEtran}
+%\bibliography{mybib}
+\printbibliography
+
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{bios/xinwei_cao.jpg}}]{Xinwei Cao}
+is a PhD candidate in Signal Processing and Machine Learning at NTNU, Norway, researching speech assessment using state-of-the-art ASR and TTS systems. He previously worked at Cerence Inc., Germany (2019-2022), developing language models for automotive ASR, and at IFlytek Inc., China (2018-2019), building chat-bot systems. He received his M.S. in Computer Science from Karlsruhe Institute of Technology, Germany (2018), and B.S. from Zhejiang University, China (2012). His research interests include speech processing, acoustic and language modeling, neural machine translation and generative AI.
+\end{IEEEbiography}
+
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{bios/zijian_fan.jpg}}]{Zijian Fan}
+is a PhD candidate in Signal Processing and Machine Learning at NTNU, Norway, researching Child speech ASR sytsems. He received his M.S. in Information and Network Engineering from KTH Royal Institute of Technology, Sweden (2020) and B.S. in Electrical Engineering from Dalian University of Technology, China (2018). His research interests include speech augmentation, end-to-end models, and generative models.
+\end{IEEEbiography}
+
+\begin{IEEEbiography}[{\includegraphics[width=1in,height=1.35in,clip,keepaspectratio]{bios/torbjosv.jpg}}]{Torbjørn Svendsen}
+is a Professor at the Department of Electronic Systems. Professor Svendsen
+holds a MScEE, and a PhD both from the NTNU. He is an ISCA Fellow and IEEE Life Senior
+Member. He received his dr.ing. (PhD) degree in 1985 from the then Norwegian Institute of
+Technology (NTH). He has published over 110 scientific papers and has supervised 18 PhD
+graduates and more than 100 Masters students. His research activities have spanned numerous application areas of speech
+technology, including speech recognition; speech compression; speaker identification; spoken
+language identification and speech synthesis.
+He is an ISCA Fellow, and a former Vice
+President of ISCA. He is an elected member
+to the Norwegian Academy of Technical Sciences.
+\end{IEEEbiography}
+
+%\vspace{-9cm}
+\begin{IEEEbiography}
+[{\includegraphics[width=1in,height=1.25in,clip,keepaspectratio]{bios/gs.jpg}}]{Giampiero Salvi}
+(Senior Member, IEEE) is a Full Professor at the Department of Electronic Systems at the Norwegian University of Science and Technology (NTNU), Trondheim, Norway. Prof. Salvi received the MSc degree in Electronic Engineering from Università la Sapienza, Rome, Italy and the PhD degree in Computer Science from KTH. 
+He was a post-doctoral fellow at the Institute of Systems and Robotics, Lisbon, Portugal and an Associate Professor at KTH Royal Institute of Technology, Stockholm, Sweden.
+He was a co-founder of the company SynFace AB, active between 2006 and 2016.
+His main interests are machine learning, speech technology, and cognitive systems and has authored and co-authored more than 110 papers in these areas.
+Prof. Salvi is a senior member of IEEE Signal Processing Society (SPS) and a member of the International Speech Communication Association (ISCA).
+\end{IEEEbiography}
+
+\end{document}
+\endinput

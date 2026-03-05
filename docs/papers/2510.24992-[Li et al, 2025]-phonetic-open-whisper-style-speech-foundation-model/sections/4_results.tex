@@ -1,0 +1,116 @@
+\section{Results}
+We find that \POWSM achieves comparable or better performance on PR and ASR than competitive baselines, particularly in low-resource settings; audio-G2P and P2G are discussed in \autoref{sec:analysis-task-lang}. These results suggest that including PR as a pre-training task improves representation generality and reduces the data required to map acoustics to text tokens.
+In contrast, we find no clear evidence that ASR benefits PR under the current setup (\autoref{sec:appendix-asr-perf}, \autoref{sec:appendix-multitask}).
+% Fixed: \reviewer{paste our response here, about multitask. also point to appendix about ASR and multitask}
+% Fixed: \reviewer{I believe it is necessary to include results on common ASR benchmarks (e.g., LibriSpeech) with more comprehensive metrics, as ASR is also one of the main training tasks. Results solely on PR tasks and low-resource ASR tasks are, in my opinion, insufficient to fully demonstrate the model's capabilities.} 
+% Fixed: \reviewer{updated results after fixing librispeech text normalization issue} \chinjou{appendix}
+
+\subsection{Multi-task performance}
+Results on the in-domain test sets are presented in \autoref{tab:main-seen} and \autoref{tab:main-asr}. We provide further discussion of G2P and P2G in \autoref{sec:analysis-task-lang}.
+
+\paragraph{\POWSM excels at in-domain phone recognition} From \autoref{tab:main-seen}, we see that \POWSM achieves the lowest average PFER in phone recognition, due to the strong language modeling capability of the decoder.
+We hypothesize that our English data cleaning (Appendix \autoref{sec:appendix-engg2p}) may have negatively affected the PFER for Germanic languages due to a mismatch between training and test data. 
+Nevertheless, our approach fills this gap by achieving strong performance on other languages, outperforming models trained on larger datasets.
+
+\begin{table*}[t]
+\vspace{-2mm}
+\centering
+\resizebox{0.95\textwidth}{!}{
+\begin{tabular}{lc rrr rrrr rrrr r}
+\toprule
+Model & Param. & \texttt{eng } & \texttt{deu } & \texttt{nld } & \texttt{fra } & \texttt{ita } & \texttt{spa } & \texttt{por } & \texttt{pol } & \texttt{tam } & \texttt{kaz } & \texttt{cmn } & Avg.\\
+\midrule
+Allosaurus & 11M & 6.89 & 17.67 & 19.19 & 20.91 & 19.02 & 4.82 & 19.61 & 21.21 & 12.01 & 20.90 & 15.28 & 16.14\\
+Allophant & 300M & 10.26 & 9.37 & 18.39 & 18.83 & 7.82 & 17.37 & 15.44 & 7.90 & 19.32 & --- & --- & ---\\
+%W2V2P-lv-60-ft & 300M & 5.93 & 11.39 & 16.13 & 19.08 & 7.09 & 5.43 & 14.53 & 9.98 & 14.50 & 16.75 & 16.09 & 12.45\\
+Wav2Vec2Phoneme & 300M & 7.70 & 7.89 & 12.31 & 17.73 & 6.10 & 3.67 & 11.65 & 9.57 & 15.63 & 15.30 & 14.66 & 11.11\\
+MultIPA & 300M & 15.81 & 16.28 & 18.97 & 20.19 & 7.20 & 6.99 & 15.04 & 2.63 & 10.54 & 17.71 & 21.10 & 13.86\\
+ZIPA-CR-Large & 300M & 1.63 & 3.32 & 3.03 & 3.23 & 3.24 & 1.98 & 4.01 & 4.33 & 4.59 & 2.31 & 1.25 & 2.99\\
+ZIPA-CR-NS-Large & 300M & \textbf{1.40}& \textbf{3.17}& \textbf{2.83} & \textbf{2.92} & 3.22 & 1.53 & 3.40 & 4.31 & 4.15 & \textbf{1.87} & \textbf{0.90} & 2.70\\
+\midrule
+POWSM & 350M & 2.85 & 3.37 & 5.14 & 3.27 & \textbf{1.81} & \textbf{1.21} & \textbf{2.90} & \textbf{1.36} & \textbf{3.56} & 2.25 & 1.15 & \textbf{2.62}\\
+%POWSM medium & 1B\\
+\bottomrule
+\end{tabular}
+}
+\caption{PFER ($\downarrow$) on the in-domain dataset, IPAPack++. Languages not supported by Allophant are left blank. Some languages were not seen by MultiIPA. \textbf{Bold} indicates the best performance.}
+\label{tab:main-seen}
+\vspace{-2mm}
+\end{table*}
+
+\paragraph{\POWSM is comparable with web-scale ASR models on low-resource languages}
+We hypothesize that pre-training with phone recognition benefits low-resource ASR \cite{yusuyin2025whistle}. 
+To choose low-resource languages, we selected languages in IPAPack++ with less than 8 hours of speech in FLEURS to serve as the test set. 
+See \autoref{sec:appendix-asr-splits} for details on the amount of data used by different models.
+For a fair comparison with other multilingual ASR baselines without language-specific components, we use the same decoding hyperparameters \texttt{ctc=0.0, beam=1}.
+
+As shown in \autoref{tab:main-asr}, \POWSM (\texttt{POWSM 0.35B, ASR}) is often comparable to models of similar size trained on web-scale data for ASR (\texttt{OWLS 0.5B}).
+Incorporating phones obtained from PR as text prompts (PR-P2G) significantly decreases WER, making it comparable to or even better than these models.
+When using gold phone labels for P2G (see analysis in \autoref{sec:analysis-p2g-good}), \POWSM outperforms other ASR models by a large margin in most cases. 
+
+
+\begin{table}
+\vspace{-2mm}
+\centering
+\small
+\setlength{\tabcolsep}{4pt} % Adjust column spacing
+\renewcommand{\arraystretch}{1.4}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{l cc c cc ccc}
+\toprule
+% use numbers reported in OWSM v4
+& \multicolumn{2}{c}{Afroasiatic} & Turkic & \multicolumn{2}{c}{Indo-Iranian} & \multicolumn{3}{c}{Balto-Slavic}\\
+Model & \texttt{afr} & \texttt{orm} & \texttt{aze}  & \texttt{pan} & \texttt{tgk}  & \texttt{mkd} & \texttt{bos} & \texttt{slv}\\
+\midrule
+%\rowcolor{gray!10}
+%MMS 1B-all & 24.4 & 65.3 & 23.3 & 33.7 & 14.8 & 8.1 & 13.4 & 14.4\\
+OWLS 0.5B  & 102.3 & \textbf{89.0} & 77.7 & \underline{59.3} & 60.4 & 54.2 & 59.3 & \underline{58.6}\\
+OWLS 1B  & 95.7 & 102.4 & \underline{67.5} & \textbf{50.0} & \textbf{50.7} & \textbf{46.2} & \textbf{50.0} & \textbf{52.8}\\
+OWSM-CTC v4 1B & \textbf{67.5} & \underline{92.7} & 71.2 & 88.7 & 57.6 & \underline{51.2} & \underline{51.3} & 60.4\\
+\midrule
+POWSM 0.35B, ASR & 86.2 & 125.3 & 67.7 & 83.1 & 62.8 & 56.0 & 56.5 & 64.5\\
+%POWSM 1B, ASR &  &  &  &  &  &  &  & \\
+POWSM 0.35B, PR-P2G & \underline{68.8} & 93.0 & \textbf{66.7} & 72.8 & \underline{51.0} & \underline{48.6} & 56.9 & 63.9\\
+%POWSM 1B, PR-P2G \\
+\bottomrule
+\end{tabular}
+}
+\caption{WER ($\downarrow$) of ASR and PR-P2G on low-resource languages. PR-P2G uses phones predicted by PR as text prompts instead of gold phones. \textbf{Bold} indicates the best performance, and \underline{underline} indicates the second-best.}
+\label{tab:main-asr}
+\vspace{-2mm}
+\end{table}
+
+
+\subsection{\POWSM generalizes well to unseen languages} % PR on out-of-domain data
+\autoref{tab:main-unseen} reports PFER on datasets with unseen languages and language variation.
+Results indicate that \POWSM achieves strong performance across these datasets, and handles both dialectal and L2 variation effectively.
+Notably, our method outperforms ZIPA trained on the same data and even exceeds ZIPA trained with extra pseudo-labeled data, achieving the best results on unseen languages while performing three additional tasks.
+While \POWSM lags behind Wav2Vec2Phoneme on socio-phonetic variations, we attribute this to its self-supervised learning with over 60k hours of speech (from wav2vec 2.0 \citep{baevski2020wav2vec}) prior to the supervised learning stage.
+
+\begin{table*}[t]
+\vspace{-2mm}
+\centering
+\resizebox{0.95\textwidth}{!}{
+\begin{tabular}{lc cccc|ccrrcc}
+\toprule
+& &\multicolumn{4}{c}{Unseen Languages} & \multicolumn{6}{c}{Language Variation}\\
+Model & Param. & {DoReCo} & {VoxAngeles} & {Tusom2021} & Avg. & {Buckeye} & {DRC-SE} & {L2-ARC} & {EpaDB} & {SO762} & Avg. \\
+\midrule
+Allosaurus & 11M & 24.71 & 30.84 & 42.02 & 32.52 & 15.24 & 25.36 & 13.39 & 19.33 & 21.61 & 18.99\\
+Allophant & 300M & --- & --- & --- & --- & 16.05 & 24.13 & 11.91 & 14.38 & 18.28 & 16.95\\
+%W2V2P-lv-60-ft & 300M & 17.76 & 15.69 & 35.30 & 22.92 & 12.08 & 19.34 & 7.74 & 10.11 & 15.21 & 12.90\\
+Wav2Vec2Phoneme & 300M & 17.25 & \textbf{13.88} & 31.92 & 21.02 & 12.50 & 18.57 & 9.86 & \textbf{9.90} & \textbf{13.60} & \textbf{12.89}\\
+MultIPA & 300M & 18.28 & 15.23 & 30.53 & 21.35 & 18.69 & 23.31 & 15.52 & 15.64 & 21.34 & 18.90\\
+ZIPA-CR-Large & 300M & 17.99 & 16.95 & 23.68 & 19.54 & \textbf{12.04} & 17.89 & 9.74 & 17.38 & 15.58 & 14.53\\
+ZIPA-CR-NS-Large & 300M & \textbf{16.82} & 17.14 & 23.08 & 19.01 & 12.05 & \textbf{17.12} & \textbf{9.69} & 14.63 & 18.20 & 14.34\\
+\midrule
+POWSM & 350M  & 17.06 & 17.11 & \textbf{21.96} & \textbf{18.71} & 12.63 & 18.33 & 11.32 & 11.86 & 17.84 & 14.40\\
+%POWSM medium & 1B\\
+\bottomrule
+\end{tabular}
+}
+\caption{PFER ($\downarrow$) on out-of-domain data. ``DRC-SE'' stands for DoReCo South-England; ``L2-ARC'' stands for L2-ARCTIC; ``SO762'' stands for SpeechOcean762. Unseen language datasets include languages not supported by Allophant; therefore, we do not report results for these datasets.}
+\label{tab:main-unseen}
+%\vspace{-4mm}
+\end{table*}
+

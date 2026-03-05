@@ -1,0 +1,82 @@
+
+\begin{table}[htbp]
+\centering
+% \setlength{\abovecaptionskip}{-0.1cm} % 调整间距
+\setlength{\belowcaptionskip}{0.2cm}
+\caption{Evaluation results of models from different paradigms on MOS-RMBench. The best results are shown in \textbf{bold} and the second best is with \uline{underline}.}
+
+\renewcommand{\arraystretch}{1.1} % 行距
+
+\label{tab:main-results}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|cccccc|c}
+\toprule
+\textbf{Model} & \textbf{BVCC} & \textbf{NISQA} & \textbf{SingMOS} & \textbf{SOMOS} & \textbf{TMHINT-QI} & \textbf{VMC'23} & \textbf{Overall} \\
+\midrule
+\rowcolor[rgb]{ .792,  .87,  .949} \multicolumn{8}{c}{\textit{MOS prediction model}} \\
+UTMOS & \textbf{86.70} & 73.17 & 63.80 & 65.00 & 68.10 & 60.83 & 68.18 \\
+\midrule
+\rowcolor[rgb]{ .792,  .87,  .949} \multicolumn{8}{c}{\textit{LLM-as-a-judge}} \\
+Gemini-2.5-Pro     & 63.90 & 81.96 & 58.50 & 64.10 & 73.20 & 65.57 & 69.26 \\
+Qwen2.5-Omni-7B    & 54.00 & 63.97 & 57.70 & 56.30 & 69.90 & 58.43 & 60.23 \\
+\midrule
+\rowcolor[rgb]{ .792,  .87,  .949} \multicolumn{8}{c}{\textit{Scalar reward models}} \\
+Classic + BT Loss  & \uline{85.70} & \textbf{83.93} & 74.80 & \textbf{76.80} & \textbf{81.10} & \textbf{77.73} & \textbf{80.04} \\
+Classic + MSE Loss & 82.80 & 79.33 & 69.80 & 74.30 & 79.40 & 72.23 & 75.83 \\
+\midrule
+\rowcolor[rgb]{ .792,  .87,  .949} \multicolumn{8}{c}{\textit{Semi-scalar reward models}} \\
+Cloud + BT Loss    & 85.50 & 81.07 & \textbf{78.20} & \uline{75.30} & \uline{80.60} & \uline{75.70} & \uline{78.82} \\
+Cloud + MSE Loss   & 84.50 & 77.81 & 76.10 & 75.20 & 80.50 & 73.67 & 77.01 \\
+
+\midrule
+\rowcolor[rgb]{ .792,  .87,  .949} \multicolumn{8}{c}{\textit{Generative reward models}} \\
+GRM + SFT          & 80.60 & 79.60 & 75.10 & 70.00 & 77.90 & 69.23 & 74.63 \\
+GRM + GRPO         & 82.50 & 80.31 & 76.40 & 74.60 & 78.10 & 73.13 & 76.94 \\
+GRM + DAPO         & 82.60 & \uline{82.05} & \uline{77.50} & 74.40 & 79.30 & 73.13 & 77.60 \\
+\bottomrule
+\end{tabular}
+}
+\vskip -0.05in
+\end{table}
+
+
+
+% \begin{table}[htbp]
+% \centering
+% % \setlength{\abovecaptionskip}{-0.1cm} % 调整间距
+% \setlength{\belowcaptionskip}{0.2cm}
+% \caption{Evaluation results of models from different paradigms on MOS-RMBench. The best results are shown in \textbf{bold} and the second best is with \uline{underline}.}
+
+% \renewcommand{\arraystretch}{1.1} % 行距
+
+% \label{tab:main-results}
+% \resizebox{\textwidth}{!}{
+% \begin{tabular}{lccccccc}
+% \toprule
+% \textbf{Model} & \textbf{BVCC} & \textbf{NISQA} & \textbf{SingMOS} & \textbf{SOMOS} & \textbf{TMHINT-QI} & \textbf{VMC'23} & \textbf{Overall} \\
+% \midrule
+% \multicolumn{8}{c}{\textit{MOS prediction model}} \\
+% UTMOS & \textbf{86.70} & 73.17 & 63.80 & 65.00 & 68.10 & 60.83 & 68.18 \\
+% \midrule
+% \multicolumn{8}{c}{\textit{LLM-as-a-judge}} \\
+% Gemini-2.5-Pro     & 63.90 & 81.96 & 58.50 & 64.10 & 73.20 & 65.57 & 69.26 \\
+% Qwen2.5-Omni-7B    & 54.00 & 63.97 & 57.70 & 56.30 & 69.90 & 58.43 & 60.23 \\
+% \midrule
+% \multicolumn{8}{c}{\textit{Scalar reward models}} \\
+% Classic + BT Loss  & \uline{85.70} & \textbf{83.93} & 74.80 & \textbf{76.80} & \textbf{81.10} & \textbf{77.73} & \textbf{80.04} \\
+% Classic + MSE Loss & 82.80 & 79.33 & 69.80 & 74.30 & 79.40 & 72.23 & 75.83 \\
+% \midrule
+% \multicolumn{8}{c}{\textit{Semi-scalar reward models}} \\
+% Cloud + BT Loss    & 85.50 & 81.07 & \textbf{78.20} & \uline{75.30} & \uline{80.60} & \uline{75.70} & \uline{78.82} \\
+% Cloud + MSE Loss   & 84.50 & 77.81 & 76.10 & 75.20 & 80.50 & 73.67 & 77.01 \\
+
+% \midrule
+% \multicolumn{8}{c}{\textit{Generative reward models}} \\
+% GRM + SFT          & 80.60 & 79.60 & 75.10 & 70.00 & 77.90 & 69.23 & 74.63 \\
+% GRM + GRPO         & 82.50 & 80.31 & 76.40 & 74.60 & 78.10 & 73.13 & 76.94 \\
+% GRM + DAPO         & 82.60 & \uline{82.05} & \uline{77.50} & 74.40 & 79.30 & 73.13 & 77.60 \\
+% \bottomrule
+% \end{tabular}
+% }
+% \vskip -0.05in
+% \end{table}

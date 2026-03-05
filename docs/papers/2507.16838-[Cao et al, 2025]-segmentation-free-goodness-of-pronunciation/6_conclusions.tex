@@ -1,0 +1,30 @@
+\section{Conclusions}
+\label{sec:conclusions}
+In this work, we propose improvements to a framework for pronunciation assessment that we recently introduced in \cite{cao24b_interspeech}.
+%We propose two methods that allow the assessment of the pronunciation of a target speech sound without requiring knowledge of the corresponding speech segment boundaries.
+We propose two methods with the goal of allowing the use of goodness of pronunciation (GOP) features extracted from modern high-performance automatic speech recognition models.
+The main idea of our methods is to release the assumption that the GOP evaluation should be performed on a predetermined segment of speech corresponding to the target phone.
+We do this either by adjusting the segment under test to the activations of the acoustic models (self-aligned GOP, GOP-SA) or by proposing a definition of GOP that is independent of the segmentation of test utterance (segmentation-free GOP, GOP-SF).
+
+Our theoretical derivations make the underlying assumptions for GOP-SF explicit.
+We also provide experimental results exploring a number of properties of our methods.
+GOP-SA is always better than traditional GOP regardless of the characteristics of the acoustic model used for the evaluation.
+GOP-SF obtains the overall best results for both the CMU Kids and for the speechocean762 material.
+On the speechocean762 data we obtain state-of-the-art results keeping the MDD model constant.
+We also show how the peakiness of the acoustic models affects the MDD results for the standard GOP definition and for the two proposed methods.
+Finally we show that the performance of GOP-SF, that considers the full utterance to assess the pronunciation of the target phone, is not affected by the length of the context.
+
+We believe that the proposed methods are potentially very appealing for phoneme-level pronunciation assessment, both because of their performance but also for their simple implementation and very low computational cost.
+%In this work, we focus on providing theoretical explanation of the CTC-based framework of GOP introduced by~\cite{cao24b_interspeech}.  
+%We hypothesize that the method GOP-CTC-AF is beneficial against alignment errors due to two reasons.
+%The separation of information brought by CTC's peaky behavior while the alignment-free method considers all the alignments for GOP at the same time.  
+%We provide experimental results by combining different models and methods to support our hypotheses. 
+%In addition, we perform experiments to study the impact of GOP-AF regarding context length and activation length. 
+%The results tell that GOP-CTC-AF is a measure which is robust to different context length and activation length while the performance of GOP-CE-AF can be optimized by the suggested normalization factor for activation length. 
+%
+%The limitations of GOP-AF for phoneme-level MDD derive from the limitation of the CTC where context information is not considered during training of the model.
+%Since the context information usually has vital impact on MDD results as discussed earlier, investigating context dependent end-to-end ASR models such as RNN-T~\cite{graves2012sequence} to replace the CTC-based model is a direction for future study.
+%Another potential direction is trying out more recent proposed SSL models, e.g., Hubert or WavLM~\cite{Chen2021WavLMLS} as backbone model and fine-tuning with a larger and noisy dataset (rather than the native English train-100-clean only here in this work). 
+%Finally, since GOP is generally an ASR-based method in which the output from discriminative model is used. 
+%This is a limitation of phoneme-level MDD because there could be other variabilities than phonemes to identify mispronounced speech, for example accent or dialect of the speakers.
+%Therefore, using generative models for phoneme-level MDD is on our plan. 

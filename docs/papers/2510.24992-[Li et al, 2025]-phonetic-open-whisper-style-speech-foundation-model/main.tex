@@ -1,0 +1,182 @@
+\documentclass[11pt]{article}
+
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage[preprint]{acl}
+
+% \usepackage{emoji} % place this before times
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{inconsolata}
+\usepackage{tikz}
+\usepackage{xcolor,colortbl} % table coloring, place before arydshln
+\usepackage{arydshln} 
+% dashed lines in tables
+\usepackage{amsmath}
+\usepackage{amssymb} % for \checkmark
+\usepackage{multirow}
+\usepackage{cleveref}
+
+\usetikzlibrary{positioning, arrows, shapes.multipart}
+
+% IPA
+% for LuaLaTeX
+% \usepackage{fontspec} 
+% for pdfLaTeX
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{tipa}
+
+\newcommand{\ipa}[1]{\textipa{#1}}
+\newcommand{\undertie}{\textipa{\textundertie}}  % proper undertie glyph
+
+\newcommand{\wpad}{\textcolor{white}{0}}
+% for aligning numbers
+
+% \newfontfamily\ipa{Doulos SIL}  % or Charis SIL
+% \newfontfamily\ipafont{Doulos SIL}[
+%   Scale=MatchLowercase,
+%   BoldFont=Doulos SIL,  % (it has no real bold, but keeps consistency)
+% ]
+% % \DeclareRobustCommand{\ipa}[1]{{\ipafont #1}}
+
+% \setsansfont[
+%   Path = fonts/,
+%   % UprightFont = *Light.ttf,
+%   % BoldFont = *Medium.ttf,
+%   % ItalicFont = *LightItalic.ttf,
+%   % BoldItalicFont = *MediumItalic.ttf,
+% ]{HelveticaNeue.ttc}
+
+
+\definecolor{brandBlue}{HTML}{648FFF}
+\definecolor{brandViolet}{HTML}{785EF0}
+\definecolor{brandMagenta}{HTML}{DC267F}
+\definecolor{brandOrange}{HTML}{FE6100}
+\definecolor{brandYellow}{HTML}{FFB000}
+\definecolor{brandBlack}{HTML}{000000}
+\definecolor{brandWhite}{HTML}{FFFFFF}
+\definecolor{brandGray}{HTML}{3B333D}
+
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{tabularray}
+\usepackage{booktabs}
+\usepackage{pifont}% http://ctan.org/pkg/pifont
+\usepackage{xspace}
+
+\renewcommand{\sectionautorefname}{\S}
+\renewcommand{\subsectionautorefname}{\S}
+\renewcommand{\subsubsectionautorefname}{\S}
+
+
+% change the color as you like! 
+\newcommand{\drm}[1]{{\color[HTML]{351c75}[David: #1]}}
+\newcommand{\shinji}[1]{{\color[HTML]{990000}[Shinji: #1]}}
+\newcommand{\jian}[1]{{\color[HTML]{f29b21}[Jian: #1]}}
+\newcommand{\kalvin}[1]{{\color[HTML]{2596be}[Kalvin: #1]}}
+\newcommand{\chinjou}[1]{{\color[HTML]{3e8f1b}[Chin-jou: #1]}}
+\newcommand{\eunjung}[1]{{\color[HTML]{ff4100}[Eunjung: #1]}}
+\newcommand{\kwanghee}[1]{{\color[HTML]{744a19}[Kwanghee: #1]}}
+\newcommand{\shikhar}[1]{{\color[HTML]{456882}[Shikhar: #1]}}
+\newcommand{\brendon}[1]{{\color[HTML]{c2004f}[Brendon: #1]}}
+\newcommand{\berkeleynlp}[1]{{\color[HTML]{c2004f}[BerkeleyNLP labmates: #1]}}
+\newcommand{\reviewer}[1]{{\color[HTML]{c2004f}[Reviewer: #1]}}
+
+% \newcommand{\POWSM}{\emoji{mouse}POWSM }
+\newcommand{\POWSM}{POWSM\xspace}
+
+\title{\POWSM: A Phonetic Open Whisper-Style Speech Foundation Model}
+
+\author{
+ \textbf{Chin-Jou Li$^*$\textsuperscript{1}},
+ \textbf{Kalvin Chang$^*$\textsuperscript{2}},
+ \textbf{Shikhar Bharadwaj\textsuperscript{1}},
+ \textbf{Eunjung Yeo\textsuperscript{3}},
+ \textbf{Kwanghee Choi\textsuperscript{3}},
+\\
+ \textbf{Jian Zhu\textsuperscript{4}},
+ \textbf{David R. Mortensen\textsuperscript{1}},
+ \textbf{Shinji Watanabe\textsuperscript{1}},
+\\
+ \textsuperscript{1}Carnegie Mellon University,
+ \textsuperscript{2}University of California, Berkeley,
+\\
+ \textsuperscript{3}University of Texas, Austin,
+ \textsuperscript{4}University of British Columbia
+\\
+ % \small{
+ %   \textbf{Correspondence:} \href{mailto:chinjoul@andrew.cmu.edu}{chinjoul@andrew.cmu.edu}
+ % }
+}
+
+\begin{document}
+\maketitle
+
+
+\begin{abstract}
+Recent advances in spoken language processing have led to substantial progress in phonetic tasks such as automatic speech recognition (ASR), phone recognition (PR), grapheme-to-phoneme conversion (G2P), and phoneme-to-grapheme conversion (P2G). Despite their conceptual similarity, these tasks have largely been studied in isolation, each relying on task-specific architectures and datasets. 
+In this paper, we introduce \POWSM (Phonetic Open Whisper-style Speech Model), the first unified framework capable of jointly performing multiple phone-related tasks. 
+\POWSM enables seamless conversion between audio, text (graphemes), and phones, opening up new possibilities for universal and low-resource speech processing.
+Our model outperforms or matches specialized PR models of similar size (Wav2Vec2Phoneme and ZIPA) while jointly supporting G2P, P2G, and ASR.
+% \eunjung{need to change the results to include ASR / PR / other subtasks}
+% \POWSM achieves an average 2.6 PFER on in-domain languages, outperforming prior phoneme recognition models such as ZIPA-CR-NS (2.7 PFER), while jointly supporting G2P, P2G, and ASR.
+Our training data, code\footnote{\texttt{https://github.com/espnet}} and model\footnote{\texttt{https://huggingface.co/espnet/powsm}} are released to foster open science.
+
+% Universal phone recognition (UPR) enables emerging speech technologies including atypical speech assessment, endangered language documentation, and pronunciation training by capturing fine-grained phonetic details in speech missed by conventional grapheme-level speech-to-text systems. 
+%\eunjung{is multilingual ASR considered as language-agnostic?} % \kalvin{POWSM learns lang-specific phonotactics too. soften this claim somehow}.
+%Recent UPR systems % like Wav2vec2phoneme \citep{xu22b_interspeech} and ZIPA \cite{zhu-etal-2025-zipa} show strong premise % have demonstrated the potential of UPR for applications 
+%rely on noisy grapheme-to-phoneme (G2P) conversion for labels, % do not take advantage of multi-tasking. % However, they usually rely on language-specific phoneme inventories or phoneme-allophone mapping (allosaurus).
+%limiting UPR's potential as an enabling technology. % \kalvin{our performance isn't that far off from ZIPA. this feels like a stretch}
+% To regularize G2P-induced noise, we introduce a multi-tasking training regime leveraging clean orthographic transcripts.
+% While recent UPR systems show strong potential, they overlook a simple but powerful insight: leveraging ASR transcripts in a multi-task framework can quadruple the training data.
+% Within this framework, we train POWSM, a phonetic open Whisper-style speech foundation model capable of phoneme recognition, automatic speech recognition, audio-guided G2P (grapheme-to-phoneme), and audio-guided P2G conversion.
+% POWSM is the first model to unify phone-related tasks, enabling seamless conversion between speech, text (graphemes), and phones.
+% We achieve SOTA performance on seen languages in \shikhar{TODO} benchmarks and improved performance in \shikhar{TODO}.
+
+% \begin{itemize}
+%     \item phone recognition is a fundamental problem for speech tasks.
+%     \item prior methods have utilized scaling to a limited extent
+%     \item we propose a multi-task approach for effective generalization and scaling of training data
+%     \item we achieve sota performance on seen languages in xyz benchmarks and improved performance in abc.
+%     \item we also conduct a detailed ablation study for our proposed tasks
+% \end{itemize}
+
+\end{abstract}
+
+\input{sections/1_intro}
+\input{sections/2_related_work}
+\input{sections/3_method}
+\input{sections/3p5_experimental_setup}
+\input{sections/4_results}
+\input{sections/5_analysis}
+\input{sections/6_conclusion}
+
+
+% \iffalse
+
+% \kalvin{reminder to take out just for peer review}
+\section*{Acknowledgments}
+This work used Bridges2 in the PSC and Delta NCSA computing systems through allocation CIS210027 from the Advanced Cyberinfrastructure Coordination Ecosystem: Services \& Support (ACCESS) program, supported by National Science Foundation grants.
+% \shinji{TODO}.
+We appreciate the contributions of Kevin Glocker, Shih-heng Wang, Farhan Samir, and Aaricia Herygers during earlier iterations of this work. 
+We are also grateful for feedback from David Harwath, Brendon Boldt, Sanjay Subramanian, Rudy Corona, Anya Ji, Seun Eisape, and Kayo Yin.
+
+% \fi
+
+
+\bibliography{custom,doreco}
+
+\newpage
+\appendix
+
+\input{sections/7_appendix}
+
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: t
+%%% TeX-engine: luatex
+%%% End:

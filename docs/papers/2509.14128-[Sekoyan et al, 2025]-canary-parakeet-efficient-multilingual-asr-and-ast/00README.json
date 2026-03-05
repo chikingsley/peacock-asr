@@ -1,0 +1,21 @@
+{
+   "sources" : [
+      {
+         "usage" : "toplevel",
+         "filename" : "nemo_speech.tex"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "nemo_speech.bib"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "nemo_speech.bst"
+      }
+   ],
+   "spec_version" : 1,
+   "texlive_version" : "2025",
+   "process" : {
+      "compiler" : "pdflatex"
+   }
+}

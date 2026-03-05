@@ -1,0 +1,143 @@
+\begin{thebibliography}{10}
+
+\bibitem{Kheir2023PA}
+Yassine Kheir et~al.,
+\newblock ``Automatic pronunciation assessment - a review,''
+\newblock in {\em Findings of the ACL: EMNLP}, 2023.
+
+\bibitem{Ye2022Approach}
+Wenxuan Ye et~al.,
+\newblock ``An approach to mispronunciation detection and diagnosis with acoustic, phonetic and linguistic (apl) embeddings,''
+\newblock {\em arXiv preprint arXiv:2110.07274}, 2022.
+
+\bibitem{Wu2024Prompting}
+Minglin Wu et~al.,
+\newblock ``Prompting large language models with mispronunciation detection and diagnosis abilities,''
+\newblock in {\em Interspeech}, 2024.
+
+\bibitem{Mao2019OR}
+Shaoguang Mao et~al.,
+\newblock ``Nn-based ordinal regression for assessing fluency of esl speech,''
+\newblock in {\em ICASSP}, 2019.
+
+\bibitem{Lin2020PA}
+Binghuai Lin et~al.,
+\newblock ``Automatic scoring at multi-granularity for l2 pronunciation,''
+\newblock in {\em Interspeech}, 2020.
+
+\bibitem{Gong2022GOPT}
+Yuan Gong et~al.,
+\newblock ``Transformer-based multi-aspect multi-granularity non-native english speaker pronunciation assessment,''
+\newblock in {\em ICASSP}, 2022.
+
+\bibitem{Chao20233MH}
+Fu-An Chao et~al.,
+\newblock ``A hierarchical context-aware modeling approach for multi-aspect and multi-granular pronunciation assessment,''
+\newblock in {\em INTERSPEECH}, 2023.
+
+\bibitem{Fu2024LLM}
+Kaiqi Fu et~al.,
+\newblock ``Pronunciation assessment with multi-modal large language models,''
+\newblock {\em arXiv preprint arXiv:2407.09209}, 2024.
+
+\bibitem{Wang2025Exploring}
+Ke~Wang et~al.,
+\newblock ``Exploring the potential of large multimodal models as effective alternatives for pronunciation assessment,''
+\newblock {\em arXiv preprint arXiv:2503.11229}, 2025.
+
+\bibitem{Witt2000Phone}
+S.M Witt and S.J Young,
+\newblock ``Phone-level pronunciation scoring and assessment for interactive language learning,''
+\newblock {\em Speech Communication}, 2000.
+
+\bibitem{Hu2015Improved}
+Wenping Hu et~al.,
+\newblock ``Improved mispronunciation detection with deep neural network trained acoustic models and transfer learning based logistic regression classifiers,''
+\newblock {\em Speech Communication}, 2015.
+
+\bibitem{Qian2010Capturing}
+Xiaojun Qian et~al.,
+\newblock ``Capturing l2 segmental mispronunciations with joint-sequence models in computer-aided pronunciation training (capt),''
+\newblock in {\em ISCSLP}, 2010.
+
+\bibitem{Li2016Tone}
+Wei Li et~al.,
+\newblock ``Using tone-based extended recognition network to detect non-native mandarin tone mispronunciations,''
+\newblock in {\em APSIPA}, 2016.
+
+\bibitem{Leung2019CNN}
+Wai-Kim Leung et~al.,
+\newblock ``Cnn-rnn-ctc based end-to-end mispronunciation detection and diagnosis,''
+\newblock in {\em ICASSP}, 2019.
+
+\bibitem{Xu2021Explore}
+Xiaoshuo Xu et~al.,
+\newblock ``Explore wav2vec 2.0 for mispronunciation detection,''
+\newblock in {\em Interspeech}, 2021.
+
+\bibitem{Wang2023Assessing}
+Zhiyi Wang et~al.,
+\newblock ``Assessing phrase break of esl speech with pre-trained language models and large language models,''
+\newblock in {\em INTERSPEECH}, 2023.
+
+\bibitem{Cincarek2009PA}
+Tobias Cincarek et~al.,
+\newblock ``Automatic pronunciation scoring of words and sentences independent from the non-native’s first language,''
+\newblock {\em Computer Speech and Language}, 2009.
+
+\bibitem{Do2023Hierarchical}
+Heejin Do et~al.,
+\newblock ``Hierarchical pronunciation assessment with multi-aspect attention,''
+\newblock in {\em ICASSP}, 2023.
+
+\bibitem{Ryu2023Joint}
+Hyungshin Ryu et~al.,
+\newblock ``A joint model for pronunciation assessment and mispronunciation detection and diagnosis with multi-task learning,''
+\newblock in {\em INTERSPEECH}, 2023.
+
+\bibitem{Chao2025HMamba}
+Fu-An Chao and Berlin Chen,
+\newblock ``Towards efficient and multifaceted computer-assisted pronunciation training leveraging hierarchical selective state space model and decoupled cross-entropy loss,''
+\newblock {\em arXiv preprint arXiv:2502.07575}, 2025.
+
+\bibitem{NatarajanBalaji2025Leveraging}
+Shankar~Natarajan Balaji et~al.,
+\newblock ``Leveraging asr and llms for automated scoring and feedback in children’s spoken language assessments,''
+\newblock in {\em SLaTE}, 2025.
+
+\bibitem{Ma2025Assessment}
+Rao Ma et~al.,
+\newblock ``Assessment of l2 oral proficiency using speech large language models,''
+\newblock in {\em Interspeech}, 2025.
+
+\bibitem{Hu2021LoRA}
+Edward~J. Hu et~al.,
+\newblock ``Lora: Low-rank adaptation of large language models,''
+\newblock {\em arXiv preprint arXiv:2106.09685}, 2021.
+
+\bibitem{Ahn2025English}
+Taekyung Ahn and Hosung Nam,
+\newblock ``English pronunciation evaluation without complex joint training: Lora fine-tuned speech multimodal llm,''
+\newblock {\em arXiv preprint arXiv:2509.02915}, 2025.
+
+\bibitem{Chu2024Qwen2Audio}
+Yunfei Chu et~al.,
+\newblock ``Qwen2-audio technical report,''
+\newblock {\em arXiv preprint arXiv:2407.10759}, 2024.
+
+\bibitem{Rafailov2023DPO}
+Rafael Rafailov et~al.,
+\newblock ``Direct preference optimization: Your language model is secretly a reward model,''
+\newblock {\em arXiv preprint arXiv:2305.18290}, 2023.
+
+\bibitem{Meng2024SimPO}
+Yu~Meng et~al.,
+\newblock ``Simpo: Simple preference optimization with a reference-free reward,''
+\newblock in {\em NeurIPS}, 2024.
+
+\bibitem{Zhang2021speechocean762}
+Junbo Zhang et~al.,
+\newblock ``speechocean762: An open-source non-native english speech corpus for pronunciation assessment,''
+\newblock in {\em Interspeech}, 2021.
+
+\end{thebibliography}

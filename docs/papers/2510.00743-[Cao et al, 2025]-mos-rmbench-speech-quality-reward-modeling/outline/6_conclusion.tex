@@ -1,0 +1,8 @@
+\section{Conclusion, limitations and future work}
+
+
+In this work, we introduced MOS-RMBench, the first unified benchmark for speech quality reward modeling that reformulates six major MOS datasets into a preference-based evaluation framework. Our experiments show that scalar reward models achieve the strongest overall accuracy (80\%), semi-scalar models perform comparably, and GRMs achieve slightly lower accuracy but offer greater interpretability. Error analysis reveals that most misrankings occur on pairs with very small MOS differences, highlighting fine-grained quality discrimination as a key challenge.
+
+Despite its coverage, MOS-RMBench is limited to a small set of languages and focuses primarily on perceptual quality, leaving prosody, emotion, and style unmodeled. Reformulating MOS scores into pairwise preferences also changes the original score distribution, which may affect how models learn absolute quality levels.
+
+Future work includes expanding the benchmark to more languages and acoustic conditions, incorporating multi-dimensional quality dimensions, and developing reward models that better capture subtle perceptual differences. We hope MOS-RMBench will serve as a reproducible foundation for advancing speech quality reward modeling and preference alignment in next-generation speech generation systems.

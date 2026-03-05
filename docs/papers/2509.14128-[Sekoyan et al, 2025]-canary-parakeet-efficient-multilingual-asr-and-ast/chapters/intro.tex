@@ -1,0 +1,24 @@
+
+
+% \section{Introduction}
+
+Modern speech processing systems for Automatic Speech Recognition (ASR) and Speech Translation (ST) are predominantly built on the encoder-decoder paradigm. Architectures such as the Transformer\cite{attention} have proven highly effective, with models like Whisper\cite{radford2023whisper} and SeamlessM4T\cite{barrault2023seamlessm4t} demonstrating that training on massive, weakly supervised multilingual datasets can yield state-of-the-art results. Despite their strong performance, these models often require large resources and run slowly, creating a trade-off between accuracy, size, and speed. Specialized architectures like Conformer and its efficient variant, FastConformer, have been developed to better capture speech-specific features with a smaller computation footprint.
+
+This work introduces Canary-1B-v2, a multilingual, multi-task model designed to deliver robust ASR and AST performance with high efficiency. In addition, we release Parakeet-TDT-0.6B-v3, a smaller yet more accurate ASR model supporting the same 25 languages.
+
+The key contributions of this paper are:
+
+\begin{itemize}
+\item \textbf{A Multi-Stage Training and Fine-Tuning Strategy}: A two-stage pre-training regimen followed by a high-quality fine-tuning stage with dynamic weight scheduling to address significant data imbalances in large-scale multilingual corpora.
+
+\item \textbf{Comprehensive Data Curation}: Training on a 1.7 million-hour dataset spanning 25 languages, combining pseudo-labeled and human-annotated data, and incorporating non-speech audio to improve robustness.
+
+\item \textbf{Efficient Architecture and Timestamp Generation}: Canary-1B-v2 leverages a FastConformer encoder and a unified BPE tokenizer for all languages, delivering high throughput. It integrates the NeMo Forced Aligner (NFA) with an auxiliary CTC model for accurate segment-level timestamps in both ASR and AST tasks.
+
+\item \textbf{State-of-the-Art Performance}: Canary-1B-v2 achieves competitive or superior results to much larger models on ASR and AST benchmarks, including the Hugging Face Open ASR Leaderboard, while providing significantly faster inference.
+
+\end{itemize}
+
+This report details the models’ architectures, the data curation and balancing strategies, the multi-stage training process, and extensive evaluations against leading speech processing systems.
+
+% \textbf{Need to combine models and how good they are with prior work}

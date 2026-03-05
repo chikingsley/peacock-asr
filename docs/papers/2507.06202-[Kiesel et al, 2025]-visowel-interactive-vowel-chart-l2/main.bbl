@@ -1,0 +1,440 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{40}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{}, \showDOI{}, and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showDOI}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showDOI #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showDOI      \undefined \def \showDOI       #1{#1}\fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       {\relax}        \fi
+% The following commands are used for tagged output and should be
+% invisible to TeX
+\providecommand\bibfield[2]{#2}
+\providecommand\bibinfo[2]{#2}
+\providecommand\natexlab[1]{#1}
+\providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[Barlow and Gierut(2002)]%
+        {barlow_minimal_2002}
+\bibfield{author}{\bibinfo{person}{Jessica Barlow} {and} \bibinfo{person}{Judith Gierut}.} \bibinfo{year}{2002}\natexlab{}.
+\newblock \showarticletitle{Minimal Pair Approaches to Phonological Remediation}.
+\newblock \bibinfo{journal}{\emph{Seminars in speech and language}}  \bibinfo{volume}{23} (\bibinfo{date}{03} \bibinfo{year}{2002}), \bibinfo{pages}{57--68}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1055/s-2002-24969}
+\showDOI{\tempurl}
+
+
+\bibitem[Bellman and Kalaba(1959)]%
+        {bellman1959dtw}
+\bibfield{author}{\bibinfo{person}{R. Bellman} {and} \bibinfo{person}{R. Kalaba}.} \bibinfo{year}{1959}\natexlab{}.
+\newblock \showarticletitle{On adaptive control processes}.
+\newblock \bibinfo{journal}{\emph{IRE Transactions on Automatic Control}} \bibinfo{volume}{4}, \bibinfo{number}{2} (\bibinfo{year}{1959}), \bibinfo{pages}{1--9}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1109/TAC.1959.1104847}
+\showDOI{\tempurl}
+
+
+\bibitem[Blanco and Moline(2025)]%
+        {Blanco_Moline_2025}
+\bibfield{author}{\bibinfo{person}{Cindy Blanco} {and} \bibinfo{person}{Ari Moline}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \bibinfo{title}{Covering all the bases: Duolingo’s approach to listening skills}.
+\newblock
+\newblock
+\urldef\tempurl%
+\url{https://blog.duolingo.com/covering-all-the-bases-duolingos-approach-to-listening-skills/}
+\showURL{%
+\tempurl}
+
+
+\bibitem[Bliss et~al\mbox{.}(2018)]%
+        {bliss2018computer}
+\bibfield{author}{\bibinfo{person}{Heather Bliss}, \bibinfo{person}{Jennifer Abel}, {and} \bibinfo{person}{Bryan Gick}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Computer-Assisted Visual Articulation Feedback in L2 Pronunciation Instruction: A Review}.
+\newblock \bibinfo{journal}{\emph{Journal of Second Language Pronunciation}}  \bibinfo{volume}{4} (\bibinfo{date}{05} \bibinfo{year}{2018}), \bibinfo{pages}{129--153}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1075/jslp.00006.bli}
+\showDOI{\tempurl}
+
+
+\bibitem[Boersma and Weenink(2022)]%
+        {hugoQuenePraat}
+\bibfield{author}{\bibinfo{person}{Paul Boersma} {and} \bibinfo{person}{David Weenink}.} \bibinfo{year}{1992-2022}\natexlab{}.
+\newblock \bibinfo{title}{Praat: doing phonetics by computer}.
+\newblock
+\newblock
+\urldef\tempurl%
+\url{https://www.fon.hum.uva.nl/praat/}
+\showURL{%
+\tempurl}
+\newblock
+\shownote{[Computer program]}.
+
+
+\bibitem[Booth(1991)]%
+        {booth1991errors}
+\bibfield{author}{\bibinfo{person}{Paul~A. Booth}.} \bibinfo{year}{1991}\natexlab{}.
+\newblock \showarticletitle{Errors and theory in human-computer interaction}.
+\newblock \bibinfo{journal}{\emph{Acta Psychologica}} \bibinfo{volume}{78}, \bibinfo{number}{1} (\bibinfo{year}{1991}), \bibinfo{pages}{69--96}.
+\newblock
+\showISSN{0001-6918}
+\urldef\tempurl%
+\url{https://doi.org/10.1016/0001-6918(91)90005-K}
+\showDOI{\tempurl}
+
+
+\bibitem[Brown(1995)]%
+        {brown_minimal_1995}
+\bibfield{author}{\bibinfo{person}{Adam Brown}.} \bibinfo{year}{1995}\natexlab{}.
+\newblock \showarticletitle{Minimal pairs: minimal importance?}
+\newblock \bibinfo{journal}{\emph{ELT Journal}} \bibinfo{volume}{49}, \bibinfo{number}{2} (\bibinfo{date}{04} \bibinfo{year}{1995}), \bibinfo{pages}{169--175}.
+\newblock
+\showISSN{0951-0893}
+\urldef\tempurl%
+\url{https://doi.org/10.1093/elt/49.2.169}
+\showDOI{\tempurl}
+\showeprint{https://academic.oup.com/eltj/article-pdf/49/2/169/9791152/169.pdf}
+
+
+\bibitem[Bu et~al\mbox{.}(2021)]%
+        {bu2021pteacher}
+\bibfield{author}{\bibinfo{person}{Yaohua Bu}, \bibinfo{person}{Tianyi Ma}, \bibinfo{person}{Weijun Li}, \bibinfo{person}{Hang Zhou}, \bibinfo{person}{Jia Jia}, \bibinfo{person}{Shengqi Chen}, \bibinfo{person}{Kaiyuan Xu}, \bibinfo{person}{Dachuan Shi}, \bibinfo{person}{Haozhe Wu}, \bibinfo{person}{Zhihan Yang}, {et~al\mbox{.}}} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{PTeacher: a Computer-Aided Personalized Pronunciation Training System with Exaggerated Audio-Visual Corrective Feedback}. In \bibinfo{booktitle}{\emph{Proceedings of the 2021 CHI Conference on Human Factors in Computing Systems}}. \bibinfo{pages}{1--14}.
+\newblock
+
+
+\bibitem[Carey(2004)]%
+        {carey_call_2004}
+\bibfield{author}{\bibinfo{person}{Michael Carey}.} \bibinfo{year}{2004}\natexlab{}.
+\newblock \showarticletitle{{CALL} {Visual} {Feedback} for {Pronunciation} of {Vowels}: {Kay} {Sona}-{Match}}.
+\newblock \bibinfo{journal}{\emph{CALICO Journal}} \bibinfo{volume}{21}, \bibinfo{number}{3} (\bibinfo{year}{2004}), \bibinfo{pages}{571--601}.
+\newblock
+\showISSN{0742-7778}
+\urldef\tempurl%
+\url{https://www.jstor.org/stable/24149798}
+\showURL{%
+\tempurl}
+\newblock
+\shownote{Publisher: Equinox Publishing Ltd.}.
+
+
+\bibitem[Chen et~al\mbox{.}(2024)]%
+        {chenRetAssist2024}
+\bibfield{author}{\bibinfo{person}{Qiaoyi Chen}, \bibinfo{person}{Siyu Liu}, \bibinfo{person}{Kaihui Huang}, \bibinfo{person}{Xingbo Wang}, \bibinfo{person}{Xiaojuan Ma}, \bibinfo{person}{Junkai Zhu}, {and} \bibinfo{person}{Zhenhui Peng}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{RetAssist: Facilitating Vocabulary Learners with Generative Images in Story Retelling Practices}. In \bibinfo{booktitle}{\emph{Proceedings of the 2024 ACM Designing Interactive Systems Conference}} (Copenhagen, Denmark) \emph{(\bibinfo{series}{DIS '24})}. \bibinfo{publisher}{Association for Computing Machinery}, \bibinfo{address}{New York, NY, USA}, \bibinfo{pages}{2019–2036}.
+\newblock
+\showISBNx{9798400705830}
+\urldef\tempurl%
+\url{https://doi.org/10.1145/3643834.3661581}
+\showDOI{\tempurl}
+
+
+\bibitem[Darcy et~al\mbox{.}(2021)]%
+        {darcy2021window}
+\bibfield{author}{\bibinfo{person}{Isabelle Darcy}, \bibinfo{person}{Brian Rocca}, {and} \bibinfo{person}{Zoie Hancock}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{A Window into the Classroom: How Teachers Integrate Pronunciation Instruction}.
+\newblock \bibinfo{journal}{\emph{RELC Journal}} \bibinfo{volume}{52}, \bibinfo{number}{1} (\bibinfo{year}{2021}), \bibinfo{pages}{110--127}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/doi/10.1177/0033688220964269}
+\showDOI{\tempurl}
+
+
+\bibitem[Das and Imon(2016)]%
+        {das2016brief}
+\bibfield{author}{\bibinfo{person}{Keya~Rani Das} {and} \bibinfo{person}{AHMR Imon}.} \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{A brief review of tests for normality}.
+\newblock \bibinfo{journal}{\emph{American Journal of Theoretical and Applied Statistics}} \bibinfo{volume}{5}, \bibinfo{number}{1} (\bibinfo{year}{2016}), \bibinfo{pages}{5--12}.
+\newblock
+
+
+\bibitem[Derwing(2003)]%
+        {derwing2003esl}
+\bibfield{author}{\bibinfo{person}{Tracey Derwing}.} \bibinfo{year}{2003}\natexlab{}.
+\newblock \showarticletitle{What Do ESL Students say about Their Accents?}
+\newblock \bibinfo{journal}{\emph{Canadian Modern Language Review-revue Canadienne Des Langues Vivantes - CAN MOD LANG REV}}  \bibinfo{volume}{59} (\bibinfo{date}{06} \bibinfo{year}{2003}), \bibinfo{pages}{547--567}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.3138/cmlr.59.4.547}
+\showDOI{\tempurl}
+
+
+\bibitem[Greene et~al\mbox{.}(1984)]%
+        {greene_recognition_1984}
+\bibfield{author}{\bibinfo{person}{Beth~G. Greene}, \bibinfo{person}{David~B. Pisoni}, {and} \bibinfo{person}{Thomas~D. Carrell}.} \bibinfo{year}{1984}\natexlab{}.
+\newblock \showarticletitle{Recognition of speech spectrograms}.
+\newblock \bibinfo{journal}{\emph{The Journal of the Acoustical Society of America}} \bibinfo{volume}{76}, \bibinfo{number}{1} (\bibinfo{date}{July} \bibinfo{year}{1984}), \bibinfo{pages}{32--43}.
+\newblock
+\showISSN{0001-4966}
+\urldef\tempurl%
+\url{https://doi.org/10.1121/1.391035}
+\showDOI{\tempurl}
+
+
+\bibitem[Hamzah and Bawodood(2019)]%
+        {hamzah_teaching_2019}
+\bibfield{author}{\bibinfo{person}{Mohd~Hilmi Hamzah} {and} \bibinfo{person}{Abdullah Bawodood}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{TEACHING ENGLISH SOUNDS VIA MINIMAL PAIRS: THE CASE OF YEMENI EFL LEARNERS}.
+\newblock \bibinfo{journal}{\emph{Journal of English Language and Literature}}  \bibinfo{volume}{6} (\bibinfo{date}{10} \bibinfo{year}{2019}), \bibinfo{pages}{97--102}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.33329/joell.63.97}
+\showDOI{\tempurl}
+
+
+\bibitem[Han(2016)]%
+        {han2016integrating}
+\bibfield{author}{\bibinfo{person}{Feifei Han}.} \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{Integrating pronunciation instruction with passage-level reading instruction}.
+\newblock \bibinfo{journal}{\emph{Pronunciation in the classroom: The overlooked essential}} (\bibinfo{year}{2016}), \bibinfo{pages}{143--151}.
+\newblock
+
+
+\bibitem[Hart(1986)]%
+        {hart1986nasa}
+\bibfield{author}{\bibinfo{person}{Sandra~G Hart}.} \bibinfo{year}{1986}\natexlab{}.
+\newblock \showarticletitle{NASA task load index (TLX)}.
+\newblock  (\bibinfo{year}{1986}).
+\newblock
+
+
+\bibitem[Hew and Ohki(2004)]%
+        {hew_effect_2004}
+\bibfield{author}{\bibinfo{person}{Soon-Hin Hew} {and} \bibinfo{person}{Mitsuru Ohki}.} \bibinfo{year}{2004}\natexlab{}.
+\newblock \showarticletitle{Effect of {Animated} {Graphic} {Annotations} and {Immediate} {Visual} {Feedback} in {Aiding} {Japanese} {Pronunciation} {Learning}: {A} {Comparative} {Study}}.
+\newblock \bibinfo{journal}{\emph{CALICO Journal}} \bibinfo{volume}{21}, \bibinfo{number}{2} (\bibinfo{year}{2004}), \bibinfo{pages}{397--419}.
+\newblock
+\showISSN{0742-7778}
+\urldef\tempurl%
+\url{https://www.jstor.org/stable/24149403}
+\showURL{%
+\tempurl}
+\newblock
+\shownote{Publisher: Equinox Publishing Ltd.}.
+
+
+\bibitem[Hinton(2013)]%
+        {hinton_aptitude_2013}
+\bibfield{author}{\bibinfo{person}{Martin Hinton}.} \bibinfo{year}{2013}\natexlab{}.
+\newblock \showarticletitle{An Aptitude for Speech: The Importance of Mimicry Ability in Foreign Language Pronunciation}.
+\newblock In \bibinfo{booktitle}{\emph{Teaching and Researching English Accents in Native and Non-native Speakers}}, \bibfield{editor}{\bibinfo{person}{Ewa Waniek-Klimczak} {and} \bibinfo{person}{Linda~R. Shockey}} (Eds.). \bibinfo{publisher}{Springer}, \bibinfo{pages}{103--111}.
+\newblock
+\showISBNx{978-3-642-24019-5}
+\urldef\tempurl%
+\url{https://doi.org/10.1007/978-3-642-24019-5_8}
+\showDOI{\tempurl}
+
+
+\bibitem[Hismanoglu and Hismanoglu(2010)]%
+        {hismanoglu2010language}
+\bibfield{author}{\bibinfo{person}{Murat Hismanoglu} {and} \bibinfo{person}{Sibel Hismanoglu}.} \bibinfo{year}{2010}\natexlab{}.
+\newblock \showarticletitle{Language teachers’ preferences of pronunciation teaching techniques: traditional or modern?}
+\newblock \bibinfo{journal}{\emph{Procedia-Social and Behavioral Sciences}} \bibinfo{volume}{2}, \bibinfo{number}{2} (\bibinfo{year}{2010}), \bibinfo{pages}{983--989}.
+\newblock
+
+
+\bibitem[Huggins-Daines et~al\mbox{.}(2006)]%
+        {huggins2006pocketsphinx}
+\bibfield{author}{\bibinfo{person}{David Huggins-Daines}, \bibinfo{person}{Mohit Kumar}, \bibinfo{person}{Arthur Chan}, \bibinfo{person}{Alan~W Black}, \bibinfo{person}{Mosur Ravishankar}, {and} \bibinfo{person}{Alexander~I Rudnicky}.} \bibinfo{year}{2006}\natexlab{}.
+\newblock \showarticletitle{Pocketsphinx: A free, real-time continuous speech recognition system for hand-held devices}. In \bibinfo{booktitle}{\emph{2006 IEEE international conference on acoustics speech and signal processing proceedings}}, Vol.~\bibinfo{volume}{1}. IEEE, \bibinfo{pages}{I--I}.
+\newblock
+
+
+\bibitem[Jadoul et~al\mbox{.}(2018)]%
+        {jadoul2018introducing}
+\bibfield{author}{\bibinfo{person}{Yannick Jadoul}, \bibinfo{person}{Bill Thompson}, {and} \bibinfo{person}{Bart De~Boer}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Introducing parselmouth: A python interface to praat}.
+\newblock \bibinfo{journal}{\emph{Journal of Phonetics}}  \bibinfo{volume}{71} (\bibinfo{year}{2018}), \bibinfo{pages}{1--15}.
+\newblock
+
+
+\bibitem[Moser and Wei(2024)]%
+        {moser2024covid}
+\bibfield{author}{\bibinfo{person}{Kelly Moser} {and} \bibinfo{person}{Tianlan Wei}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{COVID-19 and the pre-existing language teacher supply crisis}.
+\newblock \bibinfo{journal}{\emph{Language Teaching Research}} \bibinfo{volume}{28}, \bibinfo{number}{5} (\bibinfo{year}{2024}), \bibinfo{pages}{1940--1975}.
+\newblock
+
+
+\bibitem[Munro et~al\mbox{.}(2015)]%
+        {munro2015setting}
+\bibfield{author}{\bibinfo{person}{Murray~J Munro}, \bibinfo{person}{Tracey~M Derwing}, {and} \bibinfo{person}{Ron~I Thomson}.} \bibinfo{year}{2015}\natexlab{}.
+\newblock \showarticletitle{Setting segmental priorities for English learners: Evidence from a longitudinal study}.
+\newblock \bibinfo{journal}{\emph{International Review of Applied Linguistics in Language Teaching}} \bibinfo{volume}{53}, \bibinfo{number}{1} (\bibinfo{year}{2015}), \bibinfo{pages}{39--60}.
+\newblock
+
+
+\bibitem[Offerman and Olson(2016)]%
+        {offerman_visual_2016}
+\bibfield{author}{\bibinfo{person}{Heather~M. Offerman} {and} \bibinfo{person}{Daniel~J. Olson}.} \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{Visual feedback and second language segmental production: {The} generalizability of pronunciation gains}.
+\newblock \bibinfo{journal}{\emph{System}}  \bibinfo{volume}{59} (\bibinfo{date}{July} \bibinfo{year}{2016}), \bibinfo{pages}{45--60}.
+\newblock
+\showISSN{0346-251X}
+\urldef\tempurl%
+\url{https://doi.org/10.1016/j.system.2016.03.003}
+\showDOI{\tempurl}
+
+
+\bibitem[Olson(2014)]%
+        {olson2014benefits}
+\bibfield{author}{\bibinfo{person}{Daniel~J Olson}.} \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{Benefits of visual feedback on segmental production in the L2 classroom}.
+\newblock  (\bibinfo{year}{2014}).
+\newblock
+
+
+\bibitem[Paganus et~al\mbox{.}(2006)]%
+        {paganus2006vowel}
+\bibfield{author}{\bibinfo{person}{Annu Paganus}, \bibinfo{person}{Vesa-Petteri Mikkonen}, \bibinfo{person}{Tomi M{\"a}ntyl{\"a}}, \bibinfo{person}{Sami Nuuttila}, \bibinfo{person}{Jouni Isoaho}, \bibinfo{person}{Olli Aaltonen}, {and} \bibinfo{person}{Tapio Salakoski}.} \bibinfo{year}{2006}\natexlab{}.
+\newblock \showarticletitle{The vowel game: continuous real-time visualization for pronunciation learning with vowel charts}. In \bibinfo{booktitle}{\emph{Advances in Natural Language Processing: 5th International Conference on NLP, FinTAL 2006 Turku, Finland, August 23-25, 2006 Proceedings}}. Springer, \bibinfo{pages}{696--703}.
+\newblock
+
+
+\bibitem[Rahman and Nur(2017)]%
+        {rahman_use_2018}
+\bibfield{author}{\bibinfo{person}{Indah Rahman} {and} \bibinfo{person}{Isna Nur}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{{THE} {USE} {OF} {MINIMAL} {PAIR} {TECHNIQUE} {IN} {TEACHING} {PRONUNCIATION} {AT} {THE} {SECOND} {YEAR} {STUDENTS} {OF} {SMAN} 4 {BANTIMURUNG}}.
+\newblock   \bibinfo{volume}{4} (\bibinfo{year}{2017}), \bibinfo{pages}{276}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.24252/Eternal.V42.2018.A11}
+\showDOI{\tempurl}
+
+
+\bibitem[Rao(2019)]%
+        {rao2019key}
+\bibfield{author}{\bibinfo{person}{Rajiv Rao}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Key issues in the teaching of Spanish pronunciation}}.
+\newblock \bibinfo{publisher}{Routledge London, United Kingdom}.
+\newblock
+
+
+\bibitem[Rehman(2021)]%
+        {rehman2021real}
+\bibfield{author}{\bibinfo{person}{Ivana Rehman}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \emph{\bibinfo{title}{Real-time formant extraction for second language vowel production training}}.
+\newblock \bibinfo{thesistype}{Ph.\,D. Dissertation}. \bibinfo{school}{Iowa State University}.
+\newblock
+
+
+\bibitem[Schafer and Rabiner(1970)]%
+        {schaferFormant1970}
+\bibfield{author}{\bibinfo{person}{Ronald~W. Schafer} {and} \bibinfo{person}{Lawrence~R. Rabiner}.} \bibinfo{year}{1970}\natexlab{}.
+\newblock \showarticletitle{System for Automatic Formant Analysis of Voiced Speech}.
+\newblock \bibinfo{journal}{\emph{The Journal of the Acoustical Society of America}} \bibinfo{volume}{47}, \bibinfo{number}{2B} (\bibinfo{date}{02} \bibinfo{year}{1970}), \bibinfo{pages}{634--648}.
+\newblock
+\showISSN{0001-4966}
+\urldef\tempurl%
+\url{https://doi.org/10.1121/1.1911939}
+\showDOI{\tempurl}
+\showeprint{https://pubs.aip.org/asa/jasa/article-pdf/47/2B/634/18766538/634\_1\_online.pdf}
+
+
+\bibitem[Sheldon et~al\mbox{.}(1996)]%
+        {sheldon1996use}
+\bibfield{author}{\bibinfo{person}{Michael~R Sheldon}, \bibinfo{person}{Michael~J Fillyaw}, {and} \bibinfo{person}{W~Douglas Thompson}.} \bibinfo{year}{1996}\natexlab{}.
+\newblock \showarticletitle{The use and interpretation of the Friedman test in the analysis of ordinal-scale data in repeated measures designs}.
+\newblock \bibinfo{journal}{\emph{Physiotherapy Research International}} \bibinfo{volume}{1}, \bibinfo{number}{4} (\bibinfo{year}{1996}), \bibinfo{pages}{221--228}.
+\newblock
+
+
+\bibitem[Sicola and Darcy(2015)]%
+        {sicola2015integrating}
+\bibfield{author}{\bibinfo{person}{Laura Sicola} {and} \bibinfo{person}{Isabelle Darcy}.} \bibinfo{year}{2015}\natexlab{}.
+\newblock \showarticletitle{Integrating pronunciation into the language classroom}.
+\newblock \bibinfo{journal}{\emph{The handbook of English pronunciation}} (\bibinfo{year}{2015}), \bibinfo{pages}{471--487}.
+\newblock
+
+
+\bibitem[St et~al\mbox{.}(1989)]%
+        {st1989analysis}
+\bibfield{author}{\bibinfo{person}{Lars St}, \bibinfo{person}{Svante Wold}, {et~al\mbox{.}}} \bibinfo{year}{1989}\natexlab{}.
+\newblock \showarticletitle{Analysis of variance (ANOVA)}.
+\newblock \bibinfo{journal}{\emph{Chemometrics and intelligent laboratory systems}} \bibinfo{volume}{6}, \bibinfo{number}{4} (\bibinfo{year}{1989}), \bibinfo{pages}{259--272}.
+\newblock
+
+
+\bibitem[Szyszka(2015)]%
+        {szyszka_good_2015}
+\bibfield{author}{\bibinfo{person}{Magdalena Szyszka}.} \bibinfo{year}{2015}\natexlab{}.
+\newblock \showarticletitle{Good English Pronunciation Users and Their Pronunciation Learning Strategies}.
+\newblock \bibinfo{journal}{\emph{Research in Language}}  \bibinfo{volume}{13} (\bibinfo{date}{03} \bibinfo{year}{2015}), \bibinfo{pages}{93--106}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1515/rela-2015-0017}
+\showDOI{\tempurl}
+
+
+\bibitem[Tennant and Gardner(2004)]%
+        {tennant2004computerized}
+\bibfield{author}{\bibinfo{person}{Jeff Tennant} {and} \bibinfo{person}{RC Gardner}.} \bibinfo{year}{2004}\natexlab{}.
+\newblock \showarticletitle{The computerized mini-AMTB}.
+\newblock \bibinfo{journal}{\emph{Calico Journal}} (\bibinfo{year}{2004}), \bibinfo{pages}{245--263}.
+\newblock
+
+
+\bibitem[Thomson and Derwing(2014)]%
+        {thomson_effectiveness_2015}
+\bibfield{author}{\bibinfo{person}{R.~I. Thomson} {and} \bibinfo{person}{T.~M. Derwing}.} \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{The Effectiveness of L2 Pronunciation Instruction: A Narrative Review}.
+\newblock  \bibinfo{volume}{36}, \bibinfo{number}{3} (\bibinfo{date}{12} \bibinfo{year}{2014}), \bibinfo{pages}{326--344}.
+\newblock
+\showISSN{0142-6001, 1477-450X}
+\urldef\tempurl%
+\url{https://doi.org/10.1093/applin/amu076}
+\showDOI{\tempurl}
+
+
+\bibitem[Wei(2006)]%
+        {wei2006literature}
+\bibfield{author}{\bibinfo{person}{Michael Wei}.} \bibinfo{year}{2006}\natexlab{}.
+\newblock \showarticletitle{A Literature Review on Strategies for Teaching Pronunciation.}
+\newblock \bibinfo{journal}{\emph{Online submission}} (\bibinfo{year}{2006}).
+\newblock
+
+
+\bibitem[Wieling et~al\mbox{.}(2011)]%
+        {wieling2011inducing}
+\bibfield{author}{\bibinfo{person}{Martijn Wieling}, \bibinfo{person}{Eliza Margaretha}, {and} \bibinfo{person}{John Nerbonne}.} \bibinfo{year}{2011}\natexlab{}.
+\newblock \showarticletitle{Inducing phonetic distances from dialect variation}.
+\newblock \bibinfo{journal}{\emph{Computational Linguistics in the Netherlands Journal}}  \bibinfo{volume}{1} (\bibinfo{year}{2011}), \bibinfo{pages}{109--118}.
+\newblock
+
+
+\bibitem[Yuen et~al\mbox{.}(2011)]%
+        {yuen_enunciate_2011}
+\bibfield{author}{\bibinfo{person}{Ka-Wa Yuen}, \bibinfo{person}{Wai-Kim Leung}, \bibinfo{person}{Peng-fei Liu}, \bibinfo{person}{Ka-Ho Wong}, \bibinfo{person}{Xiao-jun Qian}, \bibinfo{person}{Wai-Kit Lo}, {and} \bibinfo{person}{Helen Meng}.} \bibinfo{year}{2011}\natexlab{}.
+\newblock \showarticletitle{Enunciate: {An} internet-accessible computer-aided pronunciation training system and related user evaluations}. In \bibinfo{booktitle}{\emph{2011 {International} {Conference} on {Speech} {Database} and {Assessments} ({Oriental} {COCOSDA})}}. \bibinfo{pages}{85--90}.
+\newblock
+\urldef\tempurl%
+\url{https://doi.org/10.1109/ICSDA.2011.6085985}
+\showDOI{\tempurl}
+
+
+\end{thebibliography}

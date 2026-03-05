@@ -1,0 +1,131 @@
+\section{Experiment}
+
+\subsection{Datasets}
+\begin{itemize}
+
+\item \textbf{VCTK-Accent} is a TTS-based~\cite{zhou24eyolostutter} simulated datasets, extended from VCTK corpus~\cite{yamagishi2019cstr-vctk}, which contains vowel and consonant phonetic errors, with simulation details provided in Sec.~\ref{sec:data-simulation}. The total duration of the dataset is 323.9 hours.
+
+
+\item \textbf{L2-ARCTIC~\cite{zhao18L2Arctic}} 
+includes recordings from 24 non-native English speakers, each recording about one hour of read speech from CMU’s ARCTIC prompts. It provided forced-aligned phonetic transcriptions, and annotated 150 utterances per speaker for mispronunciation errors.
+
+\item \textbf{Speechocean762 ~\cite{zhang21speechocean}} is an open-source non-native English speech corpus, which consists of 5000 English sentences. All the speakers are non-native, and their mother tongue is Mandarin, and half of the speakers are children.
+
+\item \textbf{MultiPA~\cite{chen24multipa}} was collected from real-world open-response scenarios and consists of 50 audio clips, each lasting 10 to 20 seconds, from around 20 anonymous Mandarin-speaking users practicing English with a dialog chatbot.
+
+
+
+\item \textbf{PPA Speech} is collected from our clinical collaborators, and consists of recordings from 38 participants diagnosed with Primary Progressive Aphasia (PPA)~\cite{gorno2011classification-ppa}. We selected segments containing phonetic errors for evaluation.
+% People were asked to read grandfather passage, leading about \textcolor{red}{X} hour of speech.
+\end{itemize}
+For the above real speech datasets, we did the segmentation and annotation ourselves, the process is: we first segment out the words with phonetic error, then label the phoneme sequence that the speaker actually pronounced as the target.
+
+
+\vspace{-5pt}
+\subsection{Training}
+The phoneme recognition model is trained with 90/10 train/test split on VCTK-accent, with a batch size of 256. We use Adam optimization and gradient clipping, and the learning rate is 3e-4. The model is trained for 30 epochs with total of 75 hours on an RTX A6000.
+
+
+
+
+\subsection{Evaluation Metrics}
+\vspace{-3pt}
+\subsubsection{Phoneme Error Rate (PER)}
+PER measure of how many errors (inserted, deleted, and substitute phonemes) are predicting phoneme sequences compared to the actual phoneme sequence. It calculated by dividing the number of phoneme errors by the total number of phonemes.
+
+
+\vspace{-5pt}
+\subsubsection{Weight Phoneme Error Rate (WPER)}
+The single-word phoneme error rate (PER) is a relatively coarse metric, as it only reflects the presence or absence of phonetic errors, lacking the ability to capture nuanced pronunciation differences. To address this limitation, we introduce a more refined metric: the Weighted Phoneme Error Rate (WPER). In the case of substitutions, we replace the count of substitutions with the sum of the phoneme similarities between the substituted pairs. The equation is shown below:
+
+\begin{table*}[htp]
+    \caption{Evaluation on VCTK-accent testsets with three different phoneme similarity modeling methods}
+    \label{table-eval-vctk}
+    \centering
+    \setlength{\tabcolsep}{7pt} 
+    \renewcommand{\arraystretch}{1.1} 
+    \resizebox{15cm}{!}{
+    \small
+    \begin{tabular}{l|c c c|c c c|c c c} 
+     \toprule
+      Metrics& \multicolumn{3}{c|}{Vowel}& \multicolumn{3}{c|}{Consonant} & \multicolumn{3}{c}{All}\\
+      \rowcolor{brightturquoise}
+     & \textit{Heuristic} & \textit{Articulatory} & \textit{Sylber} & \textit{Heuristic} & \textit{Articulatory} & \textit{Sylber} & \textit{Heuristic} & \textit{Articulatory} & \textit{Sylber}\\
+     \hline
+    \hline
+    PER ($\%$, $\downarrow$) & 12.39 & 10.15 & 10.04 & 13.93 & 13.62 & 12.89 & 15.85 & \textbf{12.37} & 16.51\\
+    WPER ($\%$, $\downarrow$)& 8.19 & 7.34 &8.83 & 9.18 & 7.75 & 10.42 & 9.39 & \textbf{7.41} & 9.57\\
+    AER ($\%$, $\downarrow$) & 9.22 &7.93 & 9.37 & 10.84 & 10.76 & 11.09 & 12.82 & \textbf{10.53} & 12.08 \\
+    \bottomrule
+    \end{tabular}}
+\end{table*}
+\vspace{-8mm}
+\begin{align}
+   WPER = \frac{D + \displaystyle \sum^{(p_r, p_s)} (1 - S(p_r, p_s)) + I}{L}
+  \label{equation:wper}
+\end{align}
+Where $L$ be the length of the reference phoneme sequence, $D$ and $I$ the counts of deletions and insertions, $S$ the phoneme similarity matrix constructed in Sec.~\ref{sec:phn-similarity}, $p_r$, $p_s$ are the reference and substitute phoneme, respectively.
+
+\subsubsection{Articulatory Error Rate (AER)}
+We also propose a metric that considers the articulatory distance between different phonemes. For each speech sample, we apply the AAI model~\cite{cho2024jstsp} to convert the waveform into articulatory features. We then calculate the L2 distance between the articulatory features of the current frame and the target phoneme, using the mapping we constructed in Sec.~\ref{sec:art-based}. If the distance exceeds a threshold, denoted as $\tau$, the frame is classified as negative. AER is then computed as the ratio of negative frames to the total length of the speech. In this work, we set $\tau$ to be 0.5 times the distance between the two most distant phonemes.
+
+
+\begin{table}[th]
+    \caption{Phoneme recognition with different training tasks}
+    \label{table:eval-loss}
+    \centering
+    \setlength{\tabcolsep}{4pt} 
+    \renewcommand{\arraystretch}{1.2} 
+    \resizebox{8cm}{!}{
+    \small
+    \begin{tabular}{l c c c} 
+    \toprule
+    Training tasks & PER ($\%$, $\downarrow$) & WPER ($\%$, $\downarrow$) & AER ($\%$, $\downarrow$)\\
+    \hline
+    \hline
+    w/o soft-training & 18.31 & 16.98 & 17.42 \\
+    \ \ + smap & 14.81 & 11.98 &  11.87\\
+    \ \ + sCTC & 16.14 & 14.36 & 13.29 \\
+    \ \ + smap + sCTC & \textbf{12.37} & \textbf{7.41} & \textbf{10.53}  \\
+    \bottomrule
+    \end{tabular}}
+\end{table}
+
+
+\vspace{-5pt}
+\begin{table}[th]
+    \caption{Evaluation on real speech datasets}
+    \label{table:real-data}
+    \centering
+    \setlength{\tabcolsep}{5pt} 
+    \renewcommand{\arraystretch}{1.2} 
+    \resizebox{8cm}{!}{
+    \small
+    \begin{tabular}{l c c c} 
+    \toprule
+    Datasets & PER ($\%$, $\downarrow$) & WPER ($\%$, $\downarrow$) & AER ($\%$, $\downarrow$)\\
+    \hline
+    \hline
+    L2-ARCTIC~\cite{zhao18L2Arctic} & 26.67 & 16.53 & 18.79 \\
+    Speechocean762~\cite{zhang21speechocean}& 28.33 & 17.74 & 16.33 \\
+    MultiPA~\cite{chen24multipa}& 30.49 & 19.01 & 20.45 \\
+    PPA Speech~\cite{gorno2011classification-ppa}& 38.63 & 21.78 & 21.45 \\
+    \bottomrule
+    \end{tabular}}
+\end{table}
+
+
+\vspace{-5pt}
+\subsection{Validation}
+To assess the performance of the phoneme recognition model, we first conduct evaluation on the VCTK-accent dataset, using three different phoneme similarity modeling methods, and focusing on vowel, consonant, and whole testsets, respectively. The results are presented in Table~\ref{table-eval-vctk}. 
+Furthermore, to comprehensively evaluate the impact of phoneme similarity modeling, we trained three additional models with different training objectives: multi-task learning without soft-training, adding soft phoneme mapping training, and adding soft CTC training. For the latter two, the soft training used the articulatory-based method (the best, as referenced in Table~\ref{table-eval-vctk}). We then compared these results with the benchmark (smap + sCTC), as shown in Table~\ref{table:eval-loss}. Additionally, to assess model's generalizability in real-world scenarios, we validated the model on L2-Arctic, Speechocean762, MultiPA, and PPA speech, with the results presented in Table~\ref{table:real-data}.
+
+
+
+
+\subsection{Results and Discussion}
+Since there are no established benchmarks suitable for direct comparison, we report PER along with our proposed WPER and AER for each evaluation. As shown in Table~\ref{table-eval-vctk}, the phoneme recognition model's performance on the VCTK-accent testset yields PER consistently around 10–15\%, indicating a solid performance level. Meanwhile, WPER and AER range between 7–12\%, providing a more reasonable measure of the speech pronunciation differences. Notably, vowel substitutions appear to be transcribed more accurately than consonant substitutions, possibly due to the higher TTS simulation quality for vowel substitutions. Among the three phoneme similarity modeling methods, the articulatory-based approach demonstrates the best performance, which aligns with the fundamental principles of human speech production.
+
+From Table~\ref{table:eval-loss}, we can observe that multi-task learning with soft training yields the best results, as it outperforms the other tasks across all three metrics. It reduces the PER from 18.31\% to 12.37\%, and the WPER and AER decrease by approximately 8\%. Among the individual tasks, only adding soft phoneme mapping and soft CTC training show improvements compared to the task without soft training, with soft phoneme mapping demonstrating a greater improvement.
+As indicated in Table~\ref{table:real-data}, the model's performance at real speech datasets are not as strong compared to the VCTK-accent test set, but the generalization still at a good level. Among the datasets, the model performs best on L2-Arctic and Speechocean762, which contain read speech texts. Its performance is relatively lower on MultiPA, which features open-response spontaneous speech, and is weakest on PPA speech, representing the most severe form of pronunciation error. 
+The performance aligns with the difficulty level of the speech.

@@ -1,0 +1,15 @@
+\begin{tabular}{ l|ccc|ccc }
+% \hline
+% \multicolumn{5}{c}{The overview of the models} \\
+ \hline\hline
+  & \multicolumn{3}{c|}{Peakiness and Phone Recognition} & \multicolumn{3}{c}{GOP Methods (AUC, 95\% confidence intervals)} \\
+ Models & BC (\%) & ConEn & PER (\%) & GOP-X-Avg & GOP-X-SA & GOP-X-SF \\
+ \hline
+CE         & 42.22 & 22.9886 & 13.25 & 0.860 ($\pm$2.91E-3)~\cite{cao24b_interspeech} & 0.885 ($\pm$2.50E-3) & 0.870 ($\pm$2.75E-3) \\
+EnCTC-0.20 & 79.10 & 37.8672 & 11.63 & 0.842 ($\pm$3.19E-3) & 0.860 ($\pm$2.91E-3) & 0.913 ($\pm$2.01E-3) \\
+EnCTC-0.15 & 79.55 & 35.9145 & 11.64 & 0.841 ($\pm$3.20E-3) & 0.861 ($\pm$2.81E-3) & \textbf{0.915 ($\pm$1.97E-3)} \\
+EnCTC-0.10 & 80.11 & 34.9024 & 11.47 & 0.841 ($\pm$3.20E-3) & 0.864 ($\pm$2.84E-3) &  \textbf{0.914 ($\pm$1.99E-3)} \\
+EsCTC      & 88.52 & 14.2370 & 21.06 & 0.580 ($\pm$6.00E-3) & 0.884 ($\pm$2.52E-3) & 0.896 ($\pm$2.31E-3) \\
+CTC        & 88.62 & 2.8287  & 11.46 & 0.824 ($\pm$3.46E-3) & 0.909 ($\pm$2.08E-3) &  \textbf{0.914 ($\pm$1.99E-3)} \\
+ \hline\hline
+\end{tabular}

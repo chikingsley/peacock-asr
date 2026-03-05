@@ -1,0 +1,139 @@
+\section{Experimental Settings}
+\label{sec:experiments}
+\subsection{Data}
+We perform our experiments on two datasets including child speech: CMU Kids and speechocean762.
+
+CMU Kids~\cite{CMU_kids} comprises 9.1 hours of speech from children in the range 6--11 years old, and a total of 5180 sentences spoken by 65 females and 24 males. 
+%Child MDD is a more challenging task than adult  MDD due to children's heterogeneous characteristics in different language development stages~\cite{cao23_interspeech}. 
+In CMU Kids, each utterance is equipped with a phonetic transcription and utterances including mispronunciations are marked.
+%(we refer to this as human transcription later in this paper).
+We determine the distribution of pronunciation errors by comparing\footnote{The comparing procedure is performed only for those utterances that are marked as problematic.
+For the correct utterances, on the other hand, we simply label all the canonical phonemes as correct.}
+the phonetic transcription with the canonical pronunciation from the CMU pronunciation dictionary provided by Kaldi~\cite{Povey_ASRU2011}.
+There are 150899 labeled phonemes in total, among which, 90.2\% are correct; 3.2\% are substitution errors; 2.3\% are deletion errors; and 4.3\% are insertion errors.
+ % by looking up in the file ``point.tbl''.
+% Since the human transcriptions use a wider Arpabet symbols than the canonical sequence, we follow the same mapping rules from~\cite{cao24b_interspeech} to match the two different phone inventories.
+%With the help of Levenshtein distance between the two transcriptions, we are able to label each phone in the canonical sequence with 1 (missing or mispronounced) or 0 (correctly pronounced). 
+%The insertion errors are outside the scope of the canonical phoneme sequence and are therefore not used.
+We refer to MDD experiments that use the labels obtained this way as ``real errors''.
+
+
+Following~\cite{cao23_interspeech}, we also create an alternative MDD task based on the CMU~Kids data, where we systematically change each phoneme in the canonical pronunciation to any other phoneme.
+We call this task ``simulated errors'' because we pretend that the recorded speech was incorrectly pronounced.
+
+Finally, the speechocean762 dataset~\cite{speechocean762} includes 5000 utterances read by 250 gender-balanced L2 English learners, half of which are children in the range from 5 years- to 15 years-old.
+The dataset is collected specifically for pronunciation assessment tasks with rich annotations at different linguistic levels.
+We focus on the phoneme-level where each phoneme is labeled as one of the three categories: 0~(mispronounced),
+1~(strongly accented) and 2~(correctly spoken).
+speechocean762 provides canonical phone-level transcriptions using the same phone inventory as the CMU pronunciation dictionary that we used for CMU Kids.
+We were also interested in comparing the results for children and adults.
+In order to do this we split the speechocean762 test set according to the reported age of the speaker.
+The children (age 6--11) account for 38.4\% of the utterances whereas adults (age 12--43) account for 61.6\%.
+Note however, that the results on speechocean762 children are not comparable to those in CMU Kids because the two data sets define different tasks (ternary vs binary assessment).
+
+\subsection{Baseline segmentation model}
+The external segmentation used for all the experiments in this study is based on the same baseline segmentation model. 
+The model is a context-independent GMM-HMM model that is trained using the standard Kaldi recipe “train-mono.sh” on the 100 hours training set “train-100-clean” from Librispeech~\cite{libri}.
+Since the output symbols of the baseline segmentation model match the symbols of the canonical sequences, we used the Kaldi's command ``gmm-align'' for obtaining the segmentation for both CMU Kids and speechocean762 for further experiments.
+% We refer to the alignment obtained from this as ``baseline-alignment'' which is considered as an approximation of human annotated alignment that reflects mostly the acoustic evidence.
+
+\subsection{Pre-training and fine-tuning of the acoustic models}
+\label{sec:expeirments-AM}
+The acoustic models ``DNN'' (CMU Kids baseline) and ``TDNN'' (speechocean762 baseline) are trained from scratch using the Kaldi recipes\footnote{./egs/librispeech/s5/local/\{nnet2/run\_5a\_clean\_100, nnet3/run\_tdnn\}.sh}.
+All the other models are based on the wav2vec2.0-large-xlsr-53 \cite{conneau21_interspeech} which is available on Huggingface\footnote{https://huggingface.co/blog/fine-tune-xlsr-wav2vec2} and have a transformer-based structure~\cite{w2v2}.
+This model, with the \texttt{feature\_extractor} frozen, was fine-tuned on the Librispeech ``train-100-clean'' set according to the corresponding loss functions:
+\begin{itemize}
+    \item CE: cross entropy
+    \item CTC: connectionist temporal classification
+    \item EnCTC: CTC with entropy regularization \cite{CTC-ME}
+    \item EsCTC: CTC with equal space constraint \cite{CTC-ME}
+\end{itemize}
+Fine-tuning was performed for at most 10 epochs or by early stopping based on the validation loss, with learning rate 1e-4 and batch size 32.
+The same model was used for the CMU Kids and speechocean762 experiments.
+%We believe the unsupervised style of pre-training with multi-language resources is a good feature for MDD.
+
+%The pre-trained model is then fine-tuned either by Cross-Entropy-Loss using the baseline-alignment, or by CTC loss.
+%In addition to the standard CTC, we also try to fine-tune the model with en-CTC and es-CTC as introduced by~\cite{CTC-ME} representing different levels of peakiness.
+%All of our fine-tuning are performed on the same data~(“train-100-clean”) and at most 10 epochs are allowed before it early stops.
+%The best model based on the validation loss is selected.  
+
+\subsection{Evaluation}
+The evaluation on CMU Kids is based on the canonical transcription for each utterance.
+Each phone in the canonical transcription is marked as mispronounced if it deviates from the phonetic transcription from the data set.
+%To evaluate the performance of MDD on CMU Kids, we assign mispronunciation label "True" to all the canonical phonemes labeled as deletion or substitution errors, and "False" for the non-problematic phonemes.
+Then we compute the receiver operative characteristic curve (AUC-ROC) according to various GOP scores, where correctly detecting a mispronunciation is a ``true positive''.
+We opt for this threshold-free criterion because we want a robust method to evaluate the performance of our GOP definitions that is not dependent on a specific threshold chosen to perform the MDD task.
+This also allows us to use all the data for testing because we do not need to set aside a training set for threshold optimization.
+Moreover, AUC-ROC is considered to be robust to label bias which is the case for our data.
+We compute AUC-ROC for each phoneme category and report the arithmetic mean.   
+
+For the MDD-oriented dataset speechocean762 the task is to predict three different classes.
+In this case, we train and evaluate several typical MDD models using the standard training and test splits.
+We follow the recommendations of using Pearson Correlation Coefficient (PCC) from the dataset's paper~\cite{speechocean762} as MDD performance metric.
+ 
+To give a reference on the quality of the different acoustic models in this study, we also report on phoneme recognition results measured with phoneme error rate~(PER). 
+Beam-search decoding without language models is used for recognition.
+
+\begin{table}
+\centering
+\caption{Mispronunciation Detection on CMU Kids}
+\label{tbl:cmu_method_comparison}
+\input{tabels/cmu_method_comparison}
+\end{table}
+
+
+
+\subsection{Experiments}
+The set of experiments we include in this paper aims at answering the following questions:
+
+1) \emph{Which GOP definition results in the best MDD performance?}
+In this case we test GOP-X-Avg, GOP-X-SA, and the different variants of GOP-X-SF (GOP-X-SF-SDI, GOP-X-SF-SD, GOP-X-SF-S) where ``X'' corresponds to acoustic models trained with different loss functions and architectures as explained in Sec.\ref{sec:expeirments-AM}.
+
+% X=DNN~\cite{cao23_interspeech} is a DNN trained with the kaldi recipe, X=CE is a wav2vec2.0 model trained with cross entropy loss on phoneme recognition, X=CTC is the same model trained by CTC on phoneme recognition.
+
+%will be substituted by different 
+
+2) \emph{How are the results dependent on the peakiness of the ASR models used for the assessment?}
+In this case we test the different GOP definitions in combination with models that are trained with loss functions that are specifically defined to control peakiness: CTC, EnCTC, EsCTC and CE.
+We use our best method GOP-SF-SD as segmentation-free version in this experiment and due to numerical problem with CE-trained models, we use the ``numerical'' implementation as discussed in Sec.\ref{sec:gop-segmentation-free}.
+
+3) \emph{How do the results for GOP-SF depend on the length of the context around the target phoneme?}
+In this case we create utterances by cropping the original recordings and gradually increasing the context around the target phoneme.
+Each time we add one phoneme left and one right and we extract the corresponding utterance with the help of forced alignment.
+We go from no context to context length 7 (both right and left) and we compare to the results obtained with the original utterances (full context).
+
+4) \emph{How do our results compare to the state-of-the-art in MDD?}
+In order to compare our results to the state-of-the-art, we tested our best method~(GOP-X-SF-SD) on the speechocean762 dataset, and we also include FGOP, that is, segmentation-free GOP features.
+Moreover, we compare our new implementations that solve the numerical issues~(denoted as -\textit{numerical}) and the normalized versions of both the scalar GOP and the GOP features. 
+Because the focus is on comparing between different GOP and GOP-features definitions, we keep the models for MDD simple in our state-of-the-art comparison.
+In particular, we limit our tests to polynomial regression, support vector regression~(SVR) and GOPT as in \cite{GOPT}.
+The PCC is computed between the model's output value and the true label.
+For the sake of fair comparison, we preserve all the details for evaluations as the baseline papers, e.g, whether to round the output before calculating the PCC; using polynomial order two for polynomial regression; applying the Radial Basis Function~(RBF) kernel for the SVR models etc.
+Due to relatively high variance of the GOPT model, same as in~\cite{GOPT}, we run the training of GOPT five times with random initialization, selecting the best model for each run and then averaging the results.
+Following the same idea in~\cite{cao23_interspeech} to reduce the variance of the GOPT model during training, we limit the gradients to flow from phoneme-only loss instead of from all multi-aspects losses.
+
+%Our experiments aim to compare between three different methods: GOP-X-Avg, GOP-X-SS and GOP-X-SF where ``X'' represents ASR models trained with different loss functions using the same training data.
+%Both GOP-X-Avg and GOP-X-SS are computed with Eq.\ref{eqa:gop-dnn}.
+%GOP-X-Avg uses the baseline-alignment whereas GOP-X-SS has a different alignment for each ASR model, as discussed in Section~\ref{sec:gop-self-segmentation}.
+%They differ in the alignments used for segmentation.  
+%For GOP-X-Avgp, the alignment is always the baseline-alignment regardless of what the current model being tested is.  
+%For GOP-X-SS, on the other hand, the alignment for GOP is obtained by running Viterbi with the same model under test, as is discussed in Section~\ref{sec:gop-self-segmentation}.
+
+% For GOP-X-SF, we use Eq.~\ref{eq:gop-sf_implementation} directly without any explicit segmentation. 
+% Here we tested three variants depending on the type of mispronunciations that we allow: GOP-X-SF-SDI considers substitutions, deletions and insertions, GOP-X-SF-SD only substitutions and deletions, and GOP-X-SF-S only substitutions.
+% %For the denominator, we modify the CTC loss and implement three variants according to different categories of errors for which the graph in Fig.\ref{fig:af-gragh} covers:
+% %The GOP-CTC-AF-SDI expands the full graph that addresses all kinds of errors. 
+% %By removing the blue arrow we obtain GOP-CTC-AF-SD that addresses substitutions and deletions.
+% %If further removing the red arrow for the denominator graph, the GOP-CTC-AF-S cares about substitution errors only.
+% %In our previous work~\cite{cao24b_interspeech}, it is found that GOP-CTC-AF-SD performs best among three for the reason that most MDD tasks are only evaluated for the canonical phonemes, i.e., only deletion and substitution errors are relevant.
+% %Therefore, in the rest of this paper, we focus on GOP-CTC-AF-SD only and use the abbreviation GOP-CTC-AF for this particular variant. 
+
+% \subsection{Perfromance vs Peakiness}
+% In order to evaluate the effect of peakiness on the pefromance, we tested the different methods of computing GOP with models trained according to different loss functions that result in different degrees of peakiness.
+% COMPLETE THIS!
+
+% \subsection{Effect of context in GOP-SF}
+% The proposed definition of GOP-SF consideres the whole utterance to evaluate the pronunciation of the target segment $l_i$.
+% It is therefore interesting to evaluate if the length of the left and right context has an impact on the MDD performance.
+% In order to do this, we run an evaluation where the context length is gradually increased and the corresponding MDD performace is measured.
+

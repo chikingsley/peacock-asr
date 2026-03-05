@@ -1,0 +1,102 @@
+\section{Introduction}
+\IEEEPARstart{C}{omputer-aided} language learning (CALL) and computer-assisted pronunciation training~(CAPT) are becoming more important and helpful among language learners and teachers both because they are ubiquitously available and because they maintain a high degree of self-controlled manner of study. 
+One of the desirable features for these systems is the ability to provide instant feedback and intervention when the learner makes any mispronunciation.
+%In order to detect these pronunciation errors on the spot and correct them sooner rather than later, modern CALL and CAPT systems are often equipped with automatic mispronunciation detection and/or diagnosis~(MDD) modules. 
+However, the automatic mispronunciation detection and/or diagnosis (MDD) modules currently available are not sufficiently reliable.
+
+MDD can be performed at different linguistic levels: phoneme, word, and utterance.
+One of the main challenges with MDD is the scarcity of data that is specifically annotated for the task, including information about mispronunciations.
+This problem is especially severe for phoneme-level assessment which is the focus of this paper.
+
+%To train a MDD system, it is often required to obtain sufficient annotations from experienced phoneticians.
+%This leads to data sparsity for many MDD tasks.
+Witt et al.~\cite{witt2000phone} proposed a widely used method for MDD at the phoneme level that is based on a measure called goodness of pronunciation~(GOP).
+The advantage of this method is that it relies on acoustic models exclusively trained for automatic speech recognition (ASR).
+The ASR models are used to score new utterances, and only a small amount of MDD annotations are required to optimize a detection threshold that separates acceptable pronunciations from mispronunciations.
+ASR models can also be used to transcribe speech at the word, character, or phoneme level and detect mispronunciations by comparing the resulting output sequence with the canonical pronunciation or orthographic transcription, respectively~\cite{cnn-rnn-ctc, fu2021textdependent, textdep2, hybrid, getman2022wav2vec2}.
+
+Another approach is to train end-to-end models for MDD.
+However, training such models from scratch would require large amounts of MDD annotated data.
+%The recent introduction of end-to-end ASR models 
+%Recently, end-to-end ASR models have been introduced with higher performance than 
+%With the emergence of highly performant foundation models for ASR, 
+A solution is to use foundation models that are either trained on large amounts of unlabeled speech data, or fine-tuned for ASR.
+These models can be further fine-tuned with small amounts of MDD annotated data for the MDD task.
+%These ASR-based MDD systems often follow two major steps, namely the recognition step and comparison step. 
+%In recognition step, normal ASR is conducted for transcribing the speech into text.
+%In the next step, mispronunciations are then identified by comparing the recognized text with the canonical text.
+%The models can also be used as a starting point to create end-to-end detectors of mispronunciations.
+%which are usually pre-trained with self-supervised learning on massive amounts of unlabeled speech data, offer an option for mitigating this issue.
+For example, Xu et al.~\cite{xu2021explore} follow this strategy starting from a Wav2Vec2.0 model~\cite{w2v2}
+%as feature extractors and then fine-tune the model with a small amount of data annotated for mispronunciation detection.
+whereas, the authors of~\cite{ssl1, ssl2} start from a HuBERT model~\cite{hubert}.
+% Instead of fine-tuning a foundation model for MDD directly, in \cite{cnn-rnn-ctc, fu2021textdependent, textdep2, hybrid} it was proposed to fine-tune an end-to-end phoneme recognizer which requires no MDD data.
+% The mispronunciations are then identified by comparing the recognized phoneme sequence with the canonical phoneme sequence to provide binary phoneme level assessment. 
+% %Other than phonemes, characters can be compared in a similar way.
+% In~\cite{getman2022wav2vec2}, characters are used instead of phonemes and the character error rate is used to produce global utterance-level speech assessment.
+Liu et al.~\cite{Liu2023ZeroShotAP} attempt to perform MDD at utterance-level based on hidden representations directly derived from the foundation models without further fine-tuning.
+
+%The data sparsity issue can also be addressed by data augmentation.
+%In \cite{speechocean762}, resampling is used to obtain a balanced training set that results in better performance compared to the baseline.
+%In~\cite{zhang22p_interspeech}, the authors generate new mispronunciations by replacing units in a discrete representation of speech obtained with Wav2Vec2.0.
+%use unit selection synthesis to produce more varied and faithful mispronunciations in the latent space of Wav2Vec2.0. 
+%In~\cite{cao23_interspeech}, a systematic way of changing the canonical phonemes is used to evaluate MDD systems at phoneme level.
+
+%The methods proposed in this work rely on foundation models and phoneme based GOP definitions, thus drastically reducing the need for MDD annotations in the data.
+
+
+%The ``compared-based'' methods 
+%are intuitive approaches for MDD at utterance and word level, they
+%use pattern matching techniques to find the similarity between the input speech and some stored templates at words or utterance level.
+%Lee et al.~\cite[e.g.]{comparison-dtw} use dynamic time wrapping for this kind of comparison.
+%However, these approaches are limited both in terms of vocabulary and speaker variability by the number of templates.
+%An alternative approach to cope with data sparsity is the use of ASR models to estimate a graded score of pronunciation quality.
+In this paper, our goal is to combine the advantages of the GOP method, the foundation models, and end-to-end ASR training based on CTC loss~\cite{CTC}.
+This raises a number of challenges due to the fact that GOP requires segmentation of speech into phonetic units.
+This is typically obtained by forced alignment of the canonical pronunciation with the spoken utterance. 
+If the pronunciation is correct, the obtained phonetic boundaries may vary due to coarticulation effects.
+In case of mispronunciations, the segmentation may be even less reliable.
+Finally, CTC trained models tend to give activations that are not necessarily aligned with acoustic speech segmentation.
+In \cite{cao24b_interspeech} we introduced a framework for combining CTC trained models and GOP.
+In particular, we introduced 1) a self-aligned GOP method that uses the same activations from CTC trained models for alignment and GOP evaluation, and 2) a segmentation-free GOP method that can assess a specific speech segment without committing to a particular segmentation.
+%This is not straightforward because of the different properties of CTC trained models compared to more traditional GMM-HMM or DNN-HMM models.
+%Witt et al. propose a widely-used method for MDD at the phoneme level called goodness of pronunciation~(GOP)~\cite{witt2000phone}.
+%However, the defition of GOP makes it hard to combine this method with foundation models that are typically trained with CTC loss~\cite{CTC}.
+%Performing MDD at phoneme-level aims to provide more detailed information about erroneous pronunciation than at word- or utterance-level.
+%Moreover, because GOP is evaluated using trained ASR models, there is no need to store any fixed template recording, and speech variability can be more easily modeled. 
+
+% \todo{Introduce end-to-end models and foundation models, the fact that they have not been used much for GOP, and if they are used they need a lot of MDD annotations, which are costly.}
+
+%Speech foundation models, e.g., Wav2vec2.0~\cite{w2v2}, are often trained on massive unlabeled speech data using self-supervised learning targets. 
+%As a result, they have been proved to be powerful tools for overcoming the data sparsity problems for many different downstream tasks, for example ASR.
+%In~\cite{}, the authors achieve a performant ASR-based MDD system by fine-tune an end-to-end ASR model based on Wav2vec2.0. 
+%Character error rate is the feature being used to produce utterance-level speech assessment.
+
+%In~\cite{cao24b_interspeech}, we proposed a new MDD framework that combines the advantages of GOP, foundation models and the end-to-end ASR framework using CTC.
+% The framework has many advantages such as:
+% \begin{itemize}
+%     \item Similar to the original GOP, rather than a binary label, the methods provide continuous assessment scores. 
+%     \item To obtain the score, it is only required to fine-tune a phoneme recognizer using the CTC Loss in end-to-end fashion, without human annotations for MDD. Because of the power of the foundation speech model being used, the fine-tuning of the phoneme recognizer requires fewer epochs~(less than 10) on 100 hours' standard English only.
+%     \item The framework contains two methods based on the model trained with CTC loss. The method ``alignment-free'' generates phoneme-level speech assessment without relying on segmentation of phonemes with forced alignment. It not only simplifies the workflow of GOP but also makes GOP more robust to potential alignment issues.
+%     Both of the new methods achieved better MDD performance compared to the model trained with the conventional Cross-Entropy loss. 
+% \end{itemize}
+In this paper, we enhance these methods by making the following novel contributions:
+\begin{itemize}
+    \item We define proper segment length normalization for our segmentation-free GOP definition without committing to a particular segmentation.
+%    \item We illustrate how mispronunciations could lead to alignment issues that will, in turn, degrade conventional GOP methods.
+    \item We provide a theoretical derivation of the segmentation-free GOP method that exposes the assumptions required for its definition.
+    %We then explain the proposed methods in details and hypothesize the reasons how the proposed methods could address different issues from which conventional GOP methods suffer.
+    \item We introduce a novel implementation of our method that eliminates numerical problems.
+    \item We provide extensive experimental results that compare the different methods we propose to the state-of-the-art on binary and ternary MDD tasks.
+    \item We provide an analysis of the effect of peakiness of the model on the segmentation-free GOP method.
+    \item We provide an analysis of the effect of context length (utterance length) on the segmentation-free GOP method.
+    \item We make all code available.\footnote{https://github.com/frank613/CTC-based-GOP}
+%    We perform experiments to verify our hypothesis by comparing models trained with different loss functions, focusing on the different behaviors of models' output.
+%    \item We perform robustness test on the methods regarding various situations of the input.   
+%    \item Lastly, we perform efficiency study of the methods and provide another implementation of one of the methods to avoid numerical issues.
+\end{itemize}
+
+The paper is organized as follows: in Section~\ref{sec:Backgrounds} we provide the background and review the related work that is necessary to understand our methods.
+In Section~\ref{sec:Methods} we give our GOP definitions and theoretical derivations showing the assumptions that are implicit in them.
+Sections~\ref{sec:experiments} and \ref{sec:results} report on our experimental settings and empirical results.
+Finally, Section~\ref{sec:conclusions} concludes the paper.
