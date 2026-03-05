@@ -7,7 +7,7 @@ Last updated: 2026-03-03
 We're building a segmentation-free GOP pipeline using CTC posteriors for
 pronunciation assessment on SpeechOcean762. We already beat every published
 GOP-based method (PCC 0.677 vs best prior 0.657). The question now is how
-close we can get to 0.743 (ConPCO/HierCB), which uses a completely different
+close we can get to 0.701 (ConPCO/HierCB), which uses a completely different
 paradigm (SSL embeddings + hierarchical scoring, not GOP).
 
 ---
@@ -19,7 +19,7 @@ graph TD
     ROOT["Can we build a competitive<br/>pronunciation assessment system?"]
 
     Q1["<b>Q1: Does GOP-SF + GOPT beat<br/>published GOP methods?</b><br/>ANSWERED: PCC 0.677 vs 0.657"]
-    Q2["Q2: Can we close the gap<br/>to 0.743?"]
+    Q2["Q2: Can we close the gap<br/>to 0.701?"]
     Q3["Q3: Can we skip GOP entirely<br/>with an LLM?<br/><i>Track 06 — planned</i>"]
     Q4["Q4: Can we train CTC<br/>from scratch?<br/><i>Track 07 — planned</i>"]
     Q5["Q5: Can this work<br/>in real-time?<br/><i>Track 08 — planned</i>"]
@@ -88,9 +88,9 @@ graph TD
 |Gradformer|0.646|Pei et al. 2023|
 |HIA|0.657|Han et al. 2026, best prior GOP method|
 |**Ours (xlsr-53 + GOPT + GOP-SF)**|**0.677**|Track 05 Phase 1, 5 seeds|
-|HierCB + ConPCO|0.743|Yan et al. 2025, target (different paradigm)|
+|HierCB + ConPCO|0.701|Yan et al. 2025, target (different paradigm)|
 
-The 0.677 to 0.743 gap is the working frontier. HierCB uses 3164-dim SSL
+The 0.677 to 0.701 gap is the working frontier. HierCB uses 3164-dim SSL
 embeddings vs our 42-dim GOP features, so some of the gap is input richness,
 not architecture.
 
@@ -141,8 +141,8 @@ Streaming before the backbone question is resolved would be premature.
 |Track|Question|Workspace|
 |---|----------|-----------|
 |05|Does GOP-SF + GOPT beat published methods?|`projects/P001-gop-baselines/docs/`|
-|06|Can an LLM score pronunciation without GOP?|`track06_llm_pronunciation/`|
-|07|Can we train a CTC model from scratch?|`track07_training_from_scratch/`|
-|08|Can GOP-SF work in real-time?|`track08_realtime_streaming/`|
-|09|Does ConPCO loss improve GOPT?|`track09_conpco_scoring/`|
-|10|Do we need the 300M backbone?|`track10_compact_backbones/`|
+|06|Can an LLM score pronunciation without GOP?|`projects/P005-llm-pronunciation/docs/`|
+|07|Can we train a CTC model from scratch?|`projects/P004-training-from-scratch/docs/`|
+|08|Can GOP-SF work in real-time?|`projects/P006-realtime-streaming/docs/`|
+|09|Does ConPCO loss improve GOPT?|`projects/P002-conpco-scoring/docs/`|
+|10|Do we need the 300M backbone?|`projects/P003-compact-backbones/docs/`|

@@ -104,44 +104,44 @@ Current status:
 ### Core Pipeline (must-cite in Methods/Results)
 
 [1] X. Cao, Z. Fan, T. Svendsen, and G. Salvi, “Segmentation-Free Goodness of Pronunciation,” 2026.  
-Local PDF: [[Cao et al, 2025]-segmentation-free-goodness-of-pronunciation.pdf](../../../docs/papers/[Cao et al, 2025]-segmentation-free-goodness-of-pronunciation.pdf)
+Local PDF: [[Cao et al, 2025]-segmentation-free-goodness-of-pronunciation.pdf](../../../docs/papers/pdf/[Cao et al, 2025]-segmentation-free-goodness-of-pronunciation.pdf)
 
 [2] Y. Gong, Z. Chen, I.-H. Chu, P. Chang, and J. Glass, “Transformer-Based Multi-Aspect Multi-Granularity Non-native English Speaker Pronunciation Assessment,” ICASSP 2022.  
-Local PDF: [[Gong et al, 2022]-gopt-transformer-multi-aspect-pronunciation-assessment.pdf](../../../docs/papers/[Gong et al, 2022]-gopt-transformer-multi-aspect-pronunciation-assessment.pdf)
+Local PDF: [[Gong et al, 2022]-gopt-transformer-multi-aspect-pronunciation-assessment.pdf](../../../docs/papers/pdf/[Gong et al, 2022]-gopt-transformer-multi-aspect-pronunciation-assessment.pdf)
 
 [3] A. Parikh et al., “Enhancing GOP in CTC-Based MDD with Phonological Knowledge,” 2025.  
-Local PDF: [[Parikh et al, 2025]-gop-phonological-knowledge-ctc-mdd.pdf](../../../docs/papers/[Parikh et al, 2025]-gop-phonological-knowledge-ctc-mdd.pdf)
+Local PDF: [[Parikh et al, 2025]-gop-phonological-knowledge-ctc-mdd.pdf](../../../docs/papers/pdf/[Parikh et al, 2025]-gop-phonological-knowledge-ctc-mdd.pdf)
 
 [4] “Evaluating Logit-Based GOP Scores,” 2025.  
-Local PDF: [[Parikh et al, 2025]-logit-based-gop-mispronunciation-detection.pdf](../../../docs/papers/[Parikh et al, 2025]-logit-based-gop-mispronunciation-detection.pdf)
+Local PDF: [[Parikh et al, 2025]-logit-based-gop-mispronunciation-detection.pdf](../../../docs/papers/pdf/[Parikh et al, 2025]-logit-based-gop-mispronunciation-detection.pdf)
 
 [5] J.-H. Kim et al., “Automatic Pronunciation Assessment using Self-Supervised Speech Representation Learning,” 2022.  
-Local PDF: [[Kim et al, 2022]-ssl-pronunciation-assessment-wav2vec-hubert.pdf](../../../docs/papers/[Kim et al, 2022]-ssl-pronunciation-assessment-wav2vec-hubert.pdf)
+Local PDF: [[Kim et al, 2022]-ssl-pronunciation-assessment-wav2vec-hubert.pdf](../../../docs/papers/pdf/[Kim et al, 2022]-ssl-pronunciation-assessment-wav2vec-hubert.pdf)
 
 [6] J. Zhang et al., “Speechocean762: An Open-Source Non-native English Speech Corpus for Pronunciation Assessment,” 2021.  
-Local PDF: [[Zhang et al, 2021]-speechocean762-non-native-english-corpus.pdf](../../../docs/papers/[Zhang et al, 2021]-speechocean762-non-native-english-corpus.pdf)
+Local PDF: [[Zhang et al, 2021]-speechocean762-non-native-english-corpus.pdf](../../../docs/papers/pdf/[Zhang et al, 2021]-speechocean762-non-native-english-corpus.pdf)
 
 ### Adjacent Phone-Model Literature (for Related Work)
 
 [7] J. Zhu et al., “ZIPA,” 2025.  
-Local PDF: [[Zhu et al, 2025]-family-of-efficient-models-for-multilingual-phone-recognition.pdf](../../../docs/papers/[Zhu et al, 2025]-family-of-efficient-models-for-multilingual-phone-recognition.pdf)
+Local PDF: [[Zhu et al, 2025]-family-of-efficient-models-for-multilingual-phone-recognition.pdf](../../../docs/papers/pdf/[Zhu et al, 2025]-family-of-efficient-models-for-multilingual-phone-recognition.pdf)
 
 [8] C.-J. Li et al., “POWSM,” 2026.  
-Local PDF: [[Li et al, 2025]-phonetic-open-whisper-style-speech-foundation-model.pdf](../../../docs/papers/[Li et al, 2025]-phonetic-open-whisper-style-speech-foundation-model.pdf)
+Local PDF: [[Li et al, 2025]-phonetic-open-whisper-style-speech-foundation-model.pdf](../../../docs/papers/pdf/[Li et al, 2025]-phonetic-open-whisper-style-speech-foundation-model.pdf)
 
 [9] S. Bharadwaj et al., “PRiSM,” 2026.  
-Local PDF: [[Bharadwaj et al, 2026]-benchmarking-phone-realization-in-speech-models.pdf](../../../docs/papers/[Bharadwaj et al, 2026]-benchmarking-phone-realization-in-speech-models.pdf)
+Local PDF: [[Bharadwaj et al, 2026]-benchmarking-phone-realization-in-speech-models.pdf](../../../docs/papers/pdf/[Bharadwaj et al, 2026]-benchmarking-phone-realization-in-speech-models.pdf)
 
 ### Supporting Phoneme Recognition References
 
 [10] Q. Xu, A. Baevski, and M. Auli, “Simple and Effective Zero-shot Cross-lingual Phoneme Recognition,” 2021.  
-Local PDF: [[Xu et al, 2021]-simple-effective-zero-shot-cross-lingual-phoneme-recognition.pdf](../../../docs/papers/[Xu et al, 2021]-simple-effective-zero-shot-cross-lingual-phoneme-recognition.pdf)
+Local PDF: [[Xu et al, 2021]-simple-effective-zero-shot-cross-lingual-phoneme-recognition.pdf](../../../docs/papers/pdf/[Xu et al, 2021]-simple-effective-zero-shot-cross-lingual-phoneme-recognition.pdf)
 
 [11] V. Pratap et al., “Scaling Speech Technology to 1,000+ Languages,” 2023.  
-Local PDF: [[Pratap et al, 2023]-scaling-speech-technology-to-1000-languages-mms.pdf](../../../docs/papers/[Pratap et al, 2023]-scaling-speech-technology-to-1000-languages-mms.pdf)
+Local PDF: [[Pratap et al, 2023]-scaling-speech-technology-to-1000-languages-mms.pdf](../../../docs/papers/pdf/[Pratap et al, 2023]-scaling-speech-technology-to-1000-languages-mms.pdf)
 
 [12] X. Li et al., “Universal Phone Recognition with a Multilingual Allophone System,” 2020.  
-Local PDF: [[Li et al, 2020]-universal-phone-recognition-multilingual-allophone-system.pdf](../../../docs/papers/[Li et al, 2020]-universal-phone-recognition-multilingual-allophone-system.pdf)
+Local PDF: [[Li et al, 2020]-universal-phone-recognition-multilingual-allophone-system.pdf](../../../docs/papers/pdf/[Li et al, 2020]-universal-phone-recognition-multilingual-allophone-system.pdf)
 
 ### Internal Experimental Evidence (non-bibliographic)
 

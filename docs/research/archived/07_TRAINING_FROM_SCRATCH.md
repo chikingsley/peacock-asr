@@ -64,7 +64,7 @@ ZIPA trained a Zipformer from scratch:
 - achieved 2.71 PFER on seen languages, 0.66 on English
 - acoustically excellent but character-level vocab breaks GOP
   (diphthongs AW/AY/CH/EY/JH/OW/OY can't be single tokens)
-- paper: 2505.23170 (root docs/papers/)
+- paper: 2505.23170 (docs/papers/pdf/)
 - code: github.com/lingjzhu/zipa
 
 ## What POWSM Did
@@ -74,7 +74,7 @@ POWSM trained a Whisper-style model (350M params) on multiple tasks:
 - phoneme recognition + ASR + G2P + P2G (multi-task)
 - outperforms ZIPA and wav2vec2-phoneme on phone recognition
 - ESPnet-based
-- paper: 2510.24992 (root docs/papers/)
+- paper: 2510.24992 (docs/papers/pdf/)
 
 ## Papers We Have
 

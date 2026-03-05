@@ -1,6 +1,6 @@
 # P002 - ConPCO Scoring
 
-Legacy mapping: `docs/research/track09_conpco_scoring`
+Legacy mapping: `projects/P002-conpco-scoring/docs`
 
 Reference repo target location (post-sweep migration):
 - `projects/P002-conpco-scoring/third_party/conpco-upstream/`

@@ -1,12 +1,13 @@
 # P001 Paper Sources
 
-P001 currently uses centrally mirrored PDFs under `docs/papers/`.
+P001 uses the shared paper mirror under `docs/papers/`.
+PDFs live in `docs/papers/pdf/`; extracted notes live in `docs/papers/markdown/`.
 
 The bibliography file for this project is:
 - `projects/P001-gop-baselines/docs/refs.bib`
 
 `file = {...}` entries in `refs.bib` point to:
-- `../../../docs/papers/...`
+- `../../../docs/papers/pdf/...`
 
 This means the paper package is self-contained in `P001/docs` while sharing one
 central paper mirror across projects.

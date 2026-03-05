@@ -17,11 +17,11 @@ Citation policy:
 
 | ID | Claim | Evidence Status | Primary Citations |
 |---|---|---|---|
-| C1 | ConPCO regularization improves pronunciation scoring over MSE-only training | **Refuted on GOP-SF** (P1: +0.003); **Marginal on HierCB** (v3: +0.007, paper claims +0.042) | [1], [2] |
+| C1 | ConPCO regularization improves pronunciation scoring over MSE-only training | **Refuted on GOP-SF** (P1: +0.003); **Supported on HierCB** (v4: +0.014, paper claims +0.021) | [1], [2] |
 | C2 | Ordinal entropy loss is the primary driver (not CLAP contrastive) | **Inconclusive** — OE gives +0.003, adding CLAP washes it out (net 0.000) | [2] |
 | C3 | Duration and energy features add meaningful signal beyond GOP-SF features | Needs experiment (Phase 2) | [1] |
 | C4 | SSL embeddings provide large marginal gain over handcrafted features | Needs experiment (Phase 2C) | [1], [3] |
-| C5 | HierCB's SOTA (0.743) is primarily from architecture+features, not just loss | **Supported** — ConPCO loss without rich features adds negligible value | [1] |
+| C5 | HierCB's SOTA (0.701) is primarily from architecture+features, not just loss | **Supported** — ConPCO adds +0.014 on HierCB but only +0.003 on GOPT/GOP-SF | [1] |
 | C6 | Our GOPT baseline (0.6774) is a valid compute-fair comparison point | Supported (Track 05 Phase 1 A3, 5 seeds) | Internal |
 
 ---
@@ -30,7 +30,7 @@ Citation policy:
 
 | # | Paper | Key Result | Status |
 |---|---|---|---|
-| [1] | Yan et al. (ICASSP 2025) "ConPCO: Contrastive Phonemic Ordinal Regularizer" | HierCB+ConPCO PCC 0.743 phone-level on SO762 | Code available, precomputed features on HF |
+| [1] | Yan et al. (ICASSP 2025) "ConPCO: Contrastive Phonemic Ordinal Regularizer" | HierCB+ConPCO PCC **0.701** phone-level on SO762 (Table II); HierCB without ConPCO = 0.680 | Code available, precomputed features on HF |
 | [2] | Yan et al. (ASRU 2023) "PCO: Phonemic Ordinal Entropy" | +1-3% PCC when added to GOPT | Predecessor paper |
 | [3] | Yan et al. (ACL 2024) "HierTFR: Hierarchical Transformer" | Phone+word+utterance hierarchical scoring | Architecture predecessor to HierCB |
 | [4] | Cao et al. (TASLP 2026) "Segmentation-Free GOP" | GOP-SF algorithm we use as feature extractor | Our GOP implementation source |
@@ -80,7 +80,7 @@ loss_w_clap (CLAP loss weight): 1.0
 | Our GOPT (Track 05) | LPP + LPR + occupancy | 42 | 0.677 |
 | Original GOPT (paper) | Kaldi GOP features | 84 | 0.612 |
 | HierCB (no SSL) | GOP + energy + duration | 92 | Unknown |
-| HierCB (full) | GOP + energy + dur + 3xSSL | 3164 | 0.743 |
+| HierCB (full) | GOP + energy + dur + 3xSSL | 3164 | 0.701 |
 
 The 75x feature dimension gap (42 vs 3164) is the elephant in the room.
 
@@ -118,7 +118,7 @@ The relative comparison within P1 is valid.
 
 Paper target: 0.701 (ON), gap = −0.034. Known v3 code mismatches (fixed in v4):
 RNG noise tensor always created, train-set validation each epoch, best-MSE-epoch
-model selection. v4 sweep running locally to test these fixes.
+model selection.
 
 **Per-seed breakdown:**
 
@@ -129,6 +129,37 @@ model selection. v4 sweep running locally to test these fixes.
 | 44 | 0.6701 | 0.6648 | +0.005 |
 | 55 | 0.6745 | 0.6577 | +0.017 |
 | 66 | 0.6712 | 0.6665 | +0.005 |
+
+### v4 Reproduction: RNG-Aligned HierCB + ConPCO (Local RTX 5070)
+
+**Sweep:** `peacockery/peacock-asr-runs/sweeps/n7kj97kc` (10 runs: 5 ON + 5 OFF, FINISHED)
+
+Fixes over v3: noise tensor only created when ConPCO ON, removed train-set
+validation, model selected by best val PCC (not MSE).
+
+| Condition | Mean PCC | 95% CI | Min | Max |
+|-----------|----------|--------|-----|-----|
+| ConPCO ON | **0.6715** | ±0.0032 | 0.6678 | 0.6764 |
+| ConPCO OFF | 0.6577 | ±0.0086 | 0.6439 | 0.6693 |
+| **Δ (ON − OFF)** | **+0.0137** | | | |
+
+**Per-seed breakdown:**
+
+| Seed | ON PCC | OFF PCC | Δ |
+|------|--------|---------|---|
+| 22 | 0.6731 | 0.6620 | +0.011 |
+| 33 | 0.6678 | 0.6439 | +0.024 |
+| 44 | 0.6764 | 0.6693 | +0.007 |
+| 55 | 0.6719 | 0.6610 | +0.011 |
+| 66 | 0.6680 | 0.6525 | +0.016 |
+
+**v3 → v4 improvement:** ON mean 0.6672 → 0.6715 (+0.004), delta 0.0074 → 0.0137.
+The RNG fix nearly doubled the measured ConPCO effect. ON is tighter (CI ±0.003 vs
+±0.007 in v3), confirming the noise tensor was adding variance to ON runs.
+
+Paper target: 0.701 (ON), gap = −0.030. Remaining gap likely from: (1) our
+precomputed features vs their runtime extraction, (2) minor hyperparameter
+differences, (3) undocumented training details.
 
 ---
 

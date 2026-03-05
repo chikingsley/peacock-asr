@@ -13,7 +13,7 @@ features (42 dimensions) and a 3-layer transformer scorer, achieving PCC 0.677
 on SpeechOcean762. We incrementally add: (1) ordinal entropy loss, (2) CLAP
 contrastive alignment, (3) duration and energy features, and (4) SSL
 embeddings. This ablation isolates how much of the reported ConPCO+HierCB
-SOTA (PCC 0.743) comes from the loss function versus richer features and
+SOTA (PCC 0.701) comes from the loss function versus richer features and
 architecture.
 
 ## 1. Introduction
@@ -31,7 +31,7 @@ loss: an ordinal entropy term that enforces structured spacing between
 phoneme score levels, and a contrastive alignment term that matches audio
 and text phoneme representations. When combined with HierCB (a hierarchical
 convolutional-block architecture using 3072 dimensions of SSL features),
-ConPCO achieves PCC 0.743 on SpeechOcean762, the current best reported
+ConPCO achieves PCC 0.701 on SpeechOcean762, the current best reported
 result.
 
 However, it remains unclear how much of this improvement comes from:

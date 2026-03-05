@@ -19,7 +19,8 @@ projects:
     root: projects/P002-conpco-scoring
     wandb_project: peacock-asr-p002-conpco-scoring
     active_paths:
-      - docs/research/track09_conpco_scoring
+      - projects/P002-conpco-scoring/docs
+      - projects/P002-conpco-scoring/experiments
       - runs/reproduce_conpco.py
       - runs/sweep_conpco_v3_paper.yaml
       - runs/sweep_conpco_v4_rng_fix.yaml
@@ -34,7 +35,8 @@ projects:
     root: projects/P003-compact-backbones
     wandb_project: peacock-asr-p003-compact-backbones
     active_paths:
-      - docs/research/track10_compact_backbones
+      - projects/P003-compact-backbones/docs
+      - projects/P003-compact-backbones/experiments
       - runs/sweep_track10_wav2vec2_base.yaml
       - training/train_phoneme_head.py
       - training/preprocess_features.py
@@ -46,7 +48,8 @@ projects:
     root: projects/P004-training-from-scratch
     wandb_project: peacock-asr-p004-training-from-scratch
     active_paths:
-      - docs/research/track07_training_from_scratch
+      - projects/P004-training-from-scratch/docs
+      - projects/P004-training-from-scratch/experiments
   - id: P005
     slug: llm-pronunciation
     name: LLM Pronunciation
@@ -55,7 +58,8 @@ projects:
     root: projects/P005-llm-pronunciation
     wandb_project: peacock-asr-p005-llm-pronunciation
     active_paths:
-      - docs/research/track06_llm_pronunciation
+      - projects/P005-llm-pronunciation/docs
+      - projects/P005-llm-pronunciation/experiments
   - id: P006
     slug: realtime-streaming
     name: Realtime Streaming
@@ -64,7 +68,8 @@ projects:
     root: projects/P006-realtime-streaming
     wandb_project: peacock-asr-p006-realtime-streaming
     active_paths:
-      - docs/research/track08_realtime_streaming
+      - projects/P006-realtime-streaming/docs
+      - projects/P006-realtime-streaming/experiments
 
 conventions:
   canonical_naming: P###-slug

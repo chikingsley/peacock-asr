@@ -13,7 +13,7 @@ Do not move these yet:
 
 ## Current Canonical Inputs (legacy paths)
 
-- Docs: `docs/research/track09_conpco_scoring/`
+- Docs: `projects/P002-conpco-scoring/docs/`
 - Run specs:
   - `runs/sweep_conpco_v3_paper.yaml`
   - `runs/sweep_conpco_v4_rng_fix.yaml`

@@ -10,7 +10,7 @@ These papers build on each other. Read in chronological order to understand the 
 |---|------|-------|-------|------|-----------------|
 | 1 | `[Yan et al, 2023]-pco-preserving-phonemic-distinctions-ordinal-regression.pdf` | PCO: Preserving Phonemic Distinctions for Ordinal Regression | ASRU 2023 | 2023 | Ordinal entropy loss for pronunciation scoring |
 | 2 | `[Yan et al, 2024]-hierarchical-transformer-pre-training-strategies-apa.pdf` | HierTFR: Hierarchical Transformer with Pre-training Strategies | ACL 2024 | 2024 | HierCB architecture (BlockCNN + phone→word→utterance hierarchy) |
-| 3 | `[Yan et al, 2024]-conpco-contrastive-phonemic-ordinal-regularization.pdf` | ConPCO: Contrastive Phonemic Ordinal Regularization | ICASSP 2025 | 2025 | Adds CLAP contrastive alignment to PCO. **SOTA PCC 0.743** on SpeechOcean762 |
+| 3 | `[Yan et al, 2024]-conpco-contrastive-phonemic-ordinal-regularization.pdf` | ConPCO: Contrastive Phonemic Ordinal Regularization | ICASSP 2025 | 2025 | Adds CLAP contrastive alignment to PCO. **SOTA PCC 0.701** (phone-level, Table II) on SpeechOcean762 |
 | 4 | `[Li et al, 2025]-multi-task-pretraining-interpretable-apa.pdf` | Multi-task Pretraining for Interpretable L2 Pronunciation Assessment | Interspeech 2025 | 2025 | Masked pretraining of phonetic/prosodic features on HierCB encoder |
 | 5 | `[Yan et al, 2025]-muffin-multifaceted-apa-mdd-joint.pdf` | MuFFIN: Multifaceted Pronunciation Feedback | IEEE/ACM TASLP | 2025 | Unifies MDD + APA, reuses ConPCO regularizer |
 | 6 | `[Yan et al, 2025]-hippo-hierarchical-apa-unscripted-speech.pdf` | HiPPO: Hierarchical Pronunciation Assessment | IJCNLP-AACL 2025 | 2025 | Hierarchical assessment with interpretability |

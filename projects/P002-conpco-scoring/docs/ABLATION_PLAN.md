@@ -2,7 +2,7 @@
 
 ## Research Question
 
-How much of the ConPCO+HierCB SOTA performance (PCC 0.743) comes from:
+How much of the ConPCO+HierCB SOTA performance (PCC 0.701) comes from:
 
 1. The ConPCO loss function alone (added to our existing GOPT)?
 2. Additional input features (energy, duration, SSL embeddings)?

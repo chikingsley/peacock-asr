@@ -53,10 +53,10 @@ Once caching enables fast iteration, swap in better phoneme models.
 
 ## Key Papers to Process
 
-- [x] ZIPA (2505.23170) — saved to docs/papers/
-- [x] POWSM (2510.24992) — saved to docs/papers/
-- [x] PRiSM (2601.14046) — saved to docs/papers/
-- [x] CTC-based-GOP (2507.16838) — saved to docs/papers/
+- [x] ZIPA (2505.23170) — saved to docs/papers/pdf/
+- [x] POWSM (2510.24992) — saved to docs/papers/pdf/
+- [x] PRiSM (2601.14046) — saved to docs/papers/pdf/
+- [x] CTC-based-GOP (2507.16838) — saved to docs/papers/pdf/
 - [ ] Xu et al. 2022 — wav2vec2-xlsr-53-espeak-cv-ft paper (arXiv: 2109.11680)
 - [ ] Allosaurus (ICASSP 2020) — universal phone recognizer
 - [ ] Enhancing GOP with Phonological Knowledge (2506.02080)
