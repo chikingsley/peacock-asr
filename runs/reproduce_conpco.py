@@ -21,7 +21,7 @@
 Reproduce ConPCO (Yan & Chen, ICASSP 2025) results on SpeechOcean762.
 
 Uses their precomputed features + their HierCB model + ConPCO loss.
-Target: PCC ~0.743 on phone-level accuracy.
+Target: PCC ~0.701 on phone-level accuracy.
 
 Data: references/ConPCO/data/seq_data_librispeech_v4/
 Code: references/ConPCO/src/
@@ -473,7 +473,7 @@ def train(args):
     print(f"\nDone. Best MSE epoch: {best_epoch}")
     print(f"  PCC at best-MSE epoch: {best_epoch_pcc:.4f}  (this is what the paper reports)")
     print(f"  Best PCC ever seen:    {best_phn_pcc:.4f}")
-    print(f"Target: ~0.743 (ConPCO paper, 5-seed mean)")
+    print(f"Target: ~0.701 (ConPCO paper, 5-seed mean)")
 
 
 if __name__ == "__main__":

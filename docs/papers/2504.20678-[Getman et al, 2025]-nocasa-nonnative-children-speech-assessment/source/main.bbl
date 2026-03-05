@@ -1,0 +1,940 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{none/global//global/global}
+    \entry{10214276}{article}{}
+      \name{author}{12}{}{%
+        {{hash=17311277053ffbfcbe97d23716513cbb}{%
+           family={Getman},
+           familyi={G\bibinitperiod},
+           given={Yaroslav},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=f697aa053a42315640eb88de24c6eaff}{%
+           family={Phan},
+           familyi={P\bibinitperiod},
+           given={Nhan},
+           giveni={N\bibinitperiod}}}%
+        {{hash=18a8b2712e60e2157fd2d713b895a4ab}{%
+           family={Al-Ghezi},
+           familyi={A\bibinithyphendelim G\bibinitperiod},
+           given={Ragheb},
+           giveni={R\bibinitperiod}}}%
+        {{hash=820197af2672425857a8b1fb666d130c}{%
+           family={Voskoboinik},
+           familyi={V\bibinitperiod},
+           given={Ekaterina},
+           giveni={E\bibinitperiod}}}%
+        {{hash=b5400eb93772a21385aab5054455739b}{%
+           family={Singh},
+           familyi={S\bibinitperiod},
+           given={Mittul},
+           giveni={M\bibinitperiod}}}%
+        {{hash=c106bb48ea868cb81dbd254304101a17}{%
+           family={Grósz},
+           familyi={G\bibinitperiod},
+           given={Tamás},
+           giveni={T\bibinitperiod}}}%
+        {{hash=fc41983fe6b59122bbe49c6f8d4eded8}{%
+           family={Kurimo},
+           familyi={K\bibinitperiod},
+           given={Mikko},
+           giveni={M\bibinitperiod}}}%
+        {{hash=936d0853d6193bcfdfd3aeced887a364}{%
+           family={Salvi},
+           familyi={S\bibinitperiod},
+           given={Giampiero},
+           giveni={G\bibinitperiod}}}%
+        {{hash=0c4dc371d56c62ffe8da4af8e237d7bb}{%
+           family={Svendsen},
+           familyi={S\bibinitperiod},
+           given={Torbjørn},
+           giveni={T\bibinitperiod}}}%
+        {{hash=bf1671d092cc96b97afef921010e9b00}{%
+           family={Strömbergsson},
+           familyi={S\bibinitperiod},
+           given={Sofia},
+           giveni={S\bibinitperiod}}}%
+        {{hash=c4ade2a7228bd84c372dd067086e0a64}{%
+           family={Smolander},
+           familyi={S\bibinitperiod},
+           given={Anna},
+           giveni={A\bibinitperiod}}}%
+        {{hash=5a3d19e8cd3aae6007e8f14f75407ddd}{%
+           family={Ylinen},
+           familyi={Y\bibinitperiod},
+           given={Sari},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{0775be0806bdc94bc125ae8cdfe6dc64}
+      \strng{fullhash}{bf1aa9716cd9ed35350a197e9b8122eb}
+      \strng{bibnamehash}{0775be0806bdc94bc125ae8cdfe6dc64}
+      \strng{authorbibnamehash}{0775be0806bdc94bc125ae8cdfe6dc64}
+      \strng{authornamehash}{0775be0806bdc94bc125ae8cdfe6dc64}
+      \strng{authorfullhash}{bf1aa9716cd9ed35350a197e9b8122eb}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Access}
+      \field{title}{Developing an AI-Assisted Low-Resource Spoken Language Learning App for Children}
+      \field{volume}{11}
+      \field{year}{2023}
+      \field{pages}{86025\bibrangedash 86037}
+      \range{pages}{13}
+      \verb{doi}
+      \verb 10.1109/ACCESS.2023.3304274
+      \endverb
+      \keyw{Hidden Markov models;Training;Speech recognition;Task analysis;Recording;Vocabulary;Toy manufacturing industry;Pediatrics;Computer aided diagnosis;Artificial intelligence;ASR;children’s speech;L2 speech;speech rating;SSD;wav2vec2}
+    \endentry
+    \entry{kheir-etal-2023-automatic}{inproceedings}{}
+      \name{author}{3}{}{%
+        {{hash=d48185d23305669d9097e326d6af136e}{%
+           family={El\bibnamedelima Kheir},
+           familyi={E\bibinitperiod\bibinitdelim K\bibinitperiod},
+           given={Yassine},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=fc6b779fd58dd748836db7347acb08d6}{%
+           family={Ali},
+           familyi={A\bibinitperiod},
+           given={Ahmed},
+           giveni={A\bibinitperiod}}}%
+        {{hash=b4bface8fc882cc6891c3e6e6b84f1f5}{%
+           family={Chowdhury},
+           familyi={C\bibinitperiod},
+           given={Shammur\bibnamedelima Absar},
+           giveni={S\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+      }
+      \name{editor}{3}{}{%
+        {{hash=b46767bc2cc6558bc2276b0d8cda03d7}{%
+           family={Bouamor},
+           familyi={B\bibinitperiod},
+           given={Houda},
+           giveni={H\bibinitperiod}}}%
+        {{hash=70fbbebd4875461935ebed5a7c7d4d1d}{%
+           family={Pino},
+           familyi={P\bibinitperiod},
+           given={Juan},
+           giveni={J\bibinitperiod}}}%
+        {{hash=4e7a16b33b42e17420a922fd0fca193b}{%
+           family={Bali},
+           familyi={B\bibinitperiod},
+           given={Kalika},
+           giveni={K\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Singapore}%
+      }
+      \list{publisher}{1}{%
+        {Association for Computational Linguistics}%
+      }
+      \strng{namehash}{5561590c0aad0db36e6d697b8bd8532a}
+      \strng{fullhash}{5561590c0aad0db36e6d697b8bd8532a}
+      \strng{bibnamehash}{5561590c0aad0db36e6d697b8bd8532a}
+      \strng{authorbibnamehash}{5561590c0aad0db36e6d697b8bd8532a}
+      \strng{authornamehash}{5561590c0aad0db36e6d697b8bd8532a}
+      \strng{authorfullhash}{5561590c0aad0db36e6d697b8bd8532a}
+      \strng{editorbibnamehash}{35afbfee52595edf1ad6a24c177ade36}
+      \strng{editornamehash}{35afbfee52595edf1ad6a24c177ade36}
+      \strng{editorfullhash}{35afbfee52595edf1ad6a24c177ade36}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Pronunciation assessment and its application in computer-aided pronunciation training (CAPT) have seen impressive progress in recent years. With the rapid growth in language processing and deep learning over the past few years, there is a need for an updated review. In this paper, we review methods employed in pronunciation assessment for both phonemic and prosodic. We categorize the main challenges observed in prominent research trends, and highlight existing limitations, and available resources. This is followed by a discussion of the remaining challenges and possible directions for future work.}
+      \field{booktitle}{Findings of the Association for Computational Linguistics: EMNLP 2023}
+      \field{month}{12}
+      \field{title}{Automatic Pronunciation Assessment - A Review}
+      \field{year}{2023}
+      \field{pages}{8304\bibrangedash 8324}
+      \range{pages}{21}
+      \verb{doi}
+      \verb 10.18653/v1/2023.findings-emnlp.557
+      \endverb
+      \verb{urlraw}
+      \verb https://aclanthology.org/2023.findings-emnlp.557/
+      \endverb
+      \verb{url}
+      \verb https://aclanthology.org/2023.findings-emnlp.557/
+      \endverb
+    \endentry
+    \entry{cmukids}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=ff24f7f9c2bb45d40704bbd0c136e3b4}{%
+           family={Maxine\bibnamedelima Eskenazi},
+           familyi={M\bibinitperiod\bibinitdelim E\bibinitperiod},
+           given={Jack\bibnamedelima Mostow},
+           giveni={J\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=9f73a961976578ffd8a5149ea681e1fd}{%
+           family={Graff},
+           familyi={G\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Philadelphia}%
+      }
+      \list{publisher}{1}{%
+        {Linguistic Data Consortium}%
+      }
+      \strng{namehash}{6f7e6924a3030e5050a97f3870f9628a}
+      \strng{fullhash}{6f7e6924a3030e5050a97f3870f9628a}
+      \strng{bibnamehash}{6f7e6924a3030e5050a97f3870f9628a}
+      \strng{authorbibnamehash}{6f7e6924a3030e5050a97f3870f9628a}
+      \strng{authornamehash}{6f7e6924a3030e5050a97f3870f9628a}
+      \strng{authorfullhash}{6f7e6924a3030e5050a97f3870f9628a}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{The CMU Kids Corpus LDC97S63}}
+      \field{year}{1997}
+      \verb{doi}
+      \verb 10.35111/b4v0-ff65
+      \endverb
+    \endentry
+    \entry{cslukids}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=291f5c2489af6820fd62cc4ece66103d}{%
+           family={Khaldoun\bibnamedelima Shobaki},
+           familyi={K\bibinitperiod\bibinitdelim S\bibinitperiod},
+           given={John-Paul\bibnamedelima Hosom},
+           giveni={J\bibinithyphendelim P\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+        {{hash=991686ca3a19e580c15353bc41452730}{%
+           family={Cole},
+           familyi={C\bibinitperiod},
+           given={Ronald},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Philadelphia}%
+      }
+      \list{publisher}{1}{%
+        {Linguistic Data Consortium}%
+      }
+      \strng{namehash}{52dc3cdc65706ea6eb869128150234e7}
+      \strng{fullhash}{52dc3cdc65706ea6eb869128150234e7}
+      \strng{bibnamehash}{52dc3cdc65706ea6eb869128150234e7}
+      \strng{authorbibnamehash}{52dc3cdc65706ea6eb869128150234e7}
+      \strng{authornamehash}{52dc3cdc65706ea6eb869128150234e7}
+      \strng{authorfullhash}{52dc3cdc65706ea6eb869128150234e7}
+      \field{sortinit}{3}
+      \field{sortinithash}{ad6fe7482ffbd7b9f99c9e8b5dccd3d7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{CSLU: Kids` Speech Version 1.1, LDC2007S18}}
+      \field{year}{1997}
+      \verb{doi}
+      \verb 10.35111/q5tn-8096
+      \endverb
+    \endentry
+    \entry{myst}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=1f3d0634a0a357d180afae5e0b4d55c8}{%
+           family={Sameer\bibnamedelima Pradhan},
+           familyi={S\bibinitperiod\bibinitdelim P\bibinitperiod},
+           given={Ronald\bibnamedelima Cole},
+           giveni={R\bibinitperiod\bibinitdelim C\bibinitperiod}}}%
+        {{hash=d96d67ee85bef7495a015bab4891e9c2}{%
+           family={Ward},
+           familyi={W\bibinitperiod},
+           given={Wayne},
+           giveni={W\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Philadelphia}%
+      }
+      \list{publisher}{1}{%
+        {Linguistic Data Consortium}%
+      }
+      \strng{namehash}{1031e78e7fdc0b8ca6bb6a5a79c2cdd8}
+      \strng{fullhash}{1031e78e7fdc0b8ca6bb6a5a79c2cdd8}
+      \strng{bibnamehash}{1031e78e7fdc0b8ca6bb6a5a79c2cdd8}
+      \strng{authorbibnamehash}{1031e78e7fdc0b8ca6bb6a5a79c2cdd8}
+      \strng{authornamehash}{1031e78e7fdc0b8ca6bb6a5a79c2cdd8}
+      \strng{authorfullhash}{1031e78e7fdc0b8ca6bb6a5a79c2cdd8}
+      \field{sortinit}{4}
+      \field{sortinithash}{9381316451d1b9788675a07e972a12a7}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{{MyST Children's Conversational Speech LDC2021S05}}
+      \field{year}{2021}
+      \verb{doi}
+      \verb 10.35111/cyxy-p432
+      \endverb
+    \endentry
+    \entry{jasminlr}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=95c7c8f8f73be0b16558d2e66d74c349}{%
+           family={C.\bibnamedelimi Cucchiarini},
+           familyi={C\bibinitperiod\bibinitdelim C\bibinitperiod},
+           given={O.\bibnamedelimi van\bibnamedelima Herwijnen},
+           giveni={O\bibinitperiod\bibinitdelim v\bibinitperiod\bibinitdelim H\bibinitperiod},
+           suffix={H.\bibnamedelimi V.\bibnamedelimi Hamme},
+           suffixi={H\bibinitperiod\bibinitdelim V\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+        {{hash=6a9540d84fb6ee2cf744e1c46c71d00e}{%
+           family={Smits},
+           familyi={S\bibinitperiod},
+           given={F.},
+           giveni={F\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Available at the Dutch Language Institute: http://hdl.handle.net/10032/tm-a2-j7}%
+      }
+      \strng{namehash}{9a03a74bcd898dabfd15413d0768abe9}
+      \strng{fullhash}{9a03a74bcd898dabfd15413d0768abe9}
+      \strng{bibnamehash}{9a03a74bcd898dabfd15413d0768abe9}
+      \strng{authorbibnamehash}{9a03a74bcd898dabfd15413d0768abe9}
+      \strng{authornamehash}{9a03a74bcd898dabfd15413d0768abe9}
+      \strng{authorfullhash}{9a03a74bcd898dabfd15413d0768abe9}
+      \field{sortinit}{5}
+      \field{sortinithash}{20e9b4b0b173788c5dace24730f47d8c}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Jasmin-spraakcorpus (Version 1.0)}
+      \field{year}{2008}
+    \endentry
+    \entry{slt21lr}{inproceedings}{}
+      \name{author}{1}{}{%
+        {{hash=db672e5edd8be157295f9ba988bbfbea}{%
+           family={al.},
+           familyi={a\bibinitperiod},
+           given={F.\bibnamedelimi Yu},
+           giveni={F\bibinitperiod\bibinitdelim Y\bibinitperiod},
+           prefix={et},
+           prefixi={e\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Shenzen, China}%
+      }
+      \strng{namehash}{db672e5edd8be157295f9ba988bbfbea}
+      \strng{fullhash}{db672e5edd8be157295f9ba988bbfbea}
+      \strng{bibnamehash}{db672e5edd8be157295f9ba988bbfbea}
+      \strng{authorbibnamehash}{db672e5edd8be157295f9ba988bbfbea}
+      \strng{authornamehash}{db672e5edd8be157295f9ba988bbfbea}
+      \strng{authorfullhash}{db672e5edd8be157295f9ba988bbfbea}
+      \field{sortinit}{6}
+      \field{sortinithash}{b33bc299efb3c36abec520a4c896a66d}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proc. IEEE Spoken Lang. Tech. Workshop (SLT)}
+      \field{note}{described in Proc. IEEE Spoken Lang. Tech. Workshop (SLT) 2021}
+      \field{title}{The SLT 2021 children speech recognition challenge: Open datasets, rules and baselines}
+      \field{year}{2021}
+    \endentry
+    \entry{kidstalk}{inproceedings}{}
+      \name{author}{7}{}{%
+        {{hash=b0d48f30d712eaddd0fb71ed4d3175e4}{%
+           family={Rumberg},
+           familyi={R\bibinitperiod},
+           given={Lars},
+           giveni={L\bibinitperiod}}}%
+        {{hash=1edae87d354d6bc84569a40e9806ee42}{%
+           family={Gebauer},
+           familyi={G\bibinitperiod},
+           given={Christopher},
+           giveni={C\bibinitperiod}}}%
+        {{hash=1c67022bdde89d115bf9aa9d1a8f27be}{%
+           family={Ehlert},
+           familyi={E\bibinitperiod},
+           given={Hanna},
+           giveni={H\bibinitperiod}}}%
+        {{hash=91d13350c50930ef014df5950980fa4c}{%
+           family={Wallbaum},
+           familyi={W\bibinitperiod},
+           given={Maren},
+           giveni={M\bibinitperiod}}}%
+        {{hash=3e0155782d60525a7b4cd6c39ba6eabc}{%
+           family={Bornholt},
+           familyi={B\bibinitperiod},
+           given={Lena},
+           giveni={L\bibinitperiod}}}%
+        {{hash=c7fc4194063b0a2e47c4426014ff2f34}{%
+           family={Ostermann},
+           familyi={O\bibinitperiod},
+           given={Jörn},
+           giveni={J\bibinitperiod}}}%
+        {{hash=453b59570ef2fef5b64d25273551a6b8}{%
+           family={Lüdtke},
+           familyi={L\bibinitperiod},
+           given={Ulrike},
+           giveni={U\bibinitperiod}}}%
+      }
+      \strng{namehash}{b3a6879f145bccfcb172fb96d7d15d88}
+      \strng{fullhash}{8599cd6779c6b881a930a19a8596146e}
+      \strng{bibnamehash}{b3a6879f145bccfcb172fb96d7d15d88}
+      \strng{authorbibnamehash}{b3a6879f145bccfcb172fb96d7d15d88}
+      \strng{authornamehash}{b3a6879f145bccfcb172fb96d7d15d88}
+      \strng{authorfullhash}{8599cd6779c6b881a930a19a8596146e}
+      \field{sortinit}{7}
+      \field{sortinithash}{108d0be1b1bee9773a1173443802c0a3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proc Interspeech}
+      \field{title}{{kidsTALC: A Corpus of 3- to 11-year-old German Children’s Connected Natural Speech}}
+      \field{year}{2022}
+      \field{pages}{5160\bibrangedash 5164}
+      \range{pages}{5}
+      \verb{doi}
+      \verb 10.21437/interspeech.2022-330
+      \endverb
+    \endentry
+    \entry{TeflonDataLREC2024}{inproceedings}{}
+      \name{author}{11}{}{%
+        {{hash=828e3f33d2dc8153f919ab10f93a065e}{%
+           family={Olstad},
+           familyi={O\bibinitperiod},
+           given={Anne\bibnamedelimb Marte\bibnamedelima Haug},
+           giveni={A\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim H\bibinitperiod}}}%
+        {{hash=c4ade2a7228bd84c372dd067086e0a64}{%
+           family={Smolander},
+           familyi={S\bibinitperiod},
+           given={Anna},
+           giveni={A\bibinitperiod}}}%
+        {{hash=bf1671d092cc96b97afef921010e9b00}{%
+           family={Strömbergsson},
+           familyi={S\bibinitperiod},
+           given={Sofia},
+           giveni={S\bibinitperiod}}}%
+        {{hash=5a3d19e8cd3aae6007e8f14f75407ddd}{%
+           family={Ylinen},
+           familyi={Y\bibinitperiod},
+           given={Sari},
+           giveni={S\bibinitperiod}}}%
+        {{hash=06e08cea4329d02fc4b9ba415167eefb}{%
+           family={Lehtonen},
+           familyi={L\bibinitperiod},
+           given={Minna},
+           giveni={M\bibinitperiod}}}%
+        {{hash=fc41983fe6b59122bbe49c6f8d4eded8}{%
+           family={Kurimo},
+           familyi={K\bibinitperiod},
+           given={Mikko},
+           giveni={M\bibinitperiod}}}%
+        {{hash=17311277053ffbfcbe97d23716513cbb}{%
+           family={Getman},
+           familyi={G\bibinitperiod},
+           given={Yaroslav},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=cf607a1e857e6643a55c3a60677e310c}{%
+           family={Tamás},
+           familyi={T\bibinitperiod},
+           given={Grósz},
+           giveni={G\bibinitperiod}}}%
+        {{hash=52206394a3418cc25e9d274226f97748}{%
+           family={Cao},
+           familyi={C\bibinitperiod},
+           given={Xinwei},
+           giveni={X\bibinitperiod}}}%
+        {{hash=0c4dc371d56c62ffe8da4af8e237d7bb}{%
+           family={Svendsen},
+           familyi={S\bibinitperiod},
+           given={Torbjørn},
+           giveni={T\bibinitperiod}}}%
+        {{hash=936d0853d6193bcfdfd3aeced887a364}{%
+           family={Salvi},
+           familyi={S\bibinitperiod},
+           given={Giampiero},
+           giveni={G\bibinitperiod}}}%
+      }
+      \name{editor}{6}{}{%
+        {{hash=c341e33a4b6ea903f6c723a46650c1be}{%
+           family={Calzolari},
+           familyi={C\bibinitperiod},
+           given={Nicoletta},
+           giveni={N\bibinitperiod}}}%
+        {{hash=549f49a0f40722c52169e0083730d12f}{%
+           family={Kan},
+           familyi={K\bibinitperiod},
+           given={Min-Yen},
+           giveni={M\bibinithyphendelim Y\bibinitperiod}}}%
+        {{hash=a2552991b1433efe99cce9b2a665aae7}{%
+           family={Hoste},
+           familyi={H\bibinitperiod},
+           given={Veronique},
+           giveni={V\bibinitperiod}}}%
+        {{hash=5ca65e378c2b71d06107979d273315ed}{%
+           family={Lenci},
+           familyi={L\bibinitperiod},
+           given={Alessandro},
+           giveni={A\bibinitperiod}}}%
+        {{hash=8f51dd1b39e7ef8aa830c97a98536583}{%
+           family={Sakti},
+           familyi={S\bibinitperiod},
+           given={Sakriani},
+           giveni={S\bibinitperiod}}}%
+        {{hash=47c3156f10dfabf6842e8caf450fda15}{%
+           family={Xue},
+           familyi={X\bibinitperiod},
+           given={Nianwen},
+           giveni={N\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Torino, Italia}%
+      }
+      \list{publisher}{2}{%
+        {ELRA}%
+        {ICCL}%
+      }
+      \strng{namehash}{58d007bb8732dd1f88ee53286743dc15}
+      \strng{fullhash}{42fea326647855e0b8b0c9536112d84c}
+      \strng{bibnamehash}{58d007bb8732dd1f88ee53286743dc15}
+      \strng{authorbibnamehash}{58d007bb8732dd1f88ee53286743dc15}
+      \strng{authornamehash}{58d007bb8732dd1f88ee53286743dc15}
+      \strng{authorfullhash}{42fea326647855e0b8b0c9536112d84c}
+      \strng{editorbibnamehash}{67cc341797d15e0b10b5e05c259573e8}
+      \strng{editornamehash}{f5ea934b595a89ffc591b668018d9c66}
+      \strng{editorfullhash}{67cc341797d15e0b10b5e05c259573e8}
+      \field{sortinit}{8}
+      \field{sortinithash}{a231b008ebf0ecbe0b4d96dcc159445f}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the 2024 Joint International Conference on Computational Linguistics, Language Resources and Evaluation (LREC-COLING 2024)}
+      \field{month}{5}
+      \field{title}{Collecting Linguistic Resources for Assessing Children`s Pronunciation of {N}ordic Languages}
+      \field{year}{2024}
+      \field{pages}{3529\bibrangedash 3537}
+      \range{pages}{9}
+      \verb{urlraw}
+      \verb https://aclanthology.org/2024.lrec-main.313/
+      \endverb
+      \verb{url}
+      \verb https://aclanthology.org/2024.lrec-main.313/
+      \endverb
+    \endentry
+    \entry{fan-2008-linSVC}{article}{}
+      \name{author}{5}{}{%
+        {{hash=a80b4e0a934fe13da20d9a58cd4e280c}{%
+           family={Fan},
+           familyi={F\bibinitperiod},
+           given={Rong-En},
+           giveni={R\bibinithyphendelim E\bibinitperiod}}}%
+        {{hash=e92742530fcafbae797b45437638bb01}{%
+           family={Chang},
+           familyi={C\bibinitperiod},
+           given={Kai-Wei},
+           giveni={K\bibinithyphendelim W\bibinitperiod}}}%
+        {{hash=8ce122ee46af7bc8820d9d1c340793dc}{%
+           family={Hsieh},
+           familyi={H\bibinitperiod},
+           given={Cho-Jui},
+           giveni={C\bibinithyphendelim J\bibinitperiod}}}%
+        {{hash=2ac88e343120cbe7a6c564c1b4e37680}{%
+           family={Wang},
+           familyi={W\bibinitperiod},
+           given={Xiang-Rui},
+           giveni={X\bibinithyphendelim R\bibinitperiod}}}%
+        {{hash=bb8c32ec740b902c4f066796b083badc}{%
+           family={Lin},
+           familyi={L\bibinitperiod},
+           given={Chih-Jen},
+           giveni={C\bibinithyphendelim J\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {JMLR.org}%
+      }
+      \strng{namehash}{cbb45b17f12dc08cb9dcfe897fdb5fe8}
+      \strng{fullhash}{11e44e2f48e118c7607d022a2d667950}
+      \strng{bibnamehash}{11e44e2f48e118c7607d022a2d667950}
+      \strng{authorbibnamehash}{11e44e2f48e118c7607d022a2d667950}
+      \strng{authornamehash}{cbb45b17f12dc08cb9dcfe897fdb5fe8}
+      \strng{authorfullhash}{11e44e2f48e118c7607d022a2d667950}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{LIBLINEAR is an open source library for large-scale linear classification. It supports logistic regression and linear support vector machines. We provide easy-to-use command-line tools and library calls for users and developers. Comprehensive documents are available for both beginners and advanced users. Experiments demonstrate that LIBLINEAR is very efficient on large sparse data sets.}
+      \field{issn}{1532-4435}
+      \field{journaltitle}{J. Mach. Learn. Res.}
+      \field{month}{6}
+      \field{title}{LIBLINEAR: A Library for Large Linear Classification}
+      \field{volume}{9}
+      \field{year}{2008}
+      \field{pages}{1871\bibrangedash 1874}
+      \range{pages}{4}
+    \endentry
+    \entry{schuller16_interspeech}{inproceedings}{}
+      \name{author}{10}{}{%
+        {{hash=952e7ee348d058f9287a08ad1c034dbc}{%
+           family={Schuller},
+           familyi={S\bibinitperiod},
+           given={Björn},
+           giveni={B\bibinitperiod}}}%
+        {{hash=6494c92cdcae6c0ed637c7420374b9ca}{%
+           family={Steidl},
+           familyi={S\bibinitperiod},
+           given={Stefan},
+           giveni={S\bibinitperiod}}}%
+        {{hash=7879985e8b4a5348a5de9cfa1507c08c}{%
+           family={Batliner},
+           familyi={B\bibinitperiod},
+           given={Anton},
+           giveni={A\bibinitperiod}}}%
+        {{hash=f5cb368011303fe22ab5c7141448c62d}{%
+           family={Hirschberg},
+           familyi={H\bibinitperiod},
+           given={Julia},
+           giveni={J\bibinitperiod}}}%
+        {{hash=f7cc9503d306aab32c992f14b3cca273}{%
+           family={Burgoon},
+           familyi={B\bibinitperiod},
+           given={Judee\bibnamedelima K.},
+           giveni={J\bibinitperiod\bibinitdelim K\bibinitperiod}}}%
+        {{hash=fcdab47498da76d7558bad5a21ab4da8}{%
+           family={Baird},
+           familyi={B\bibinitperiod},
+           given={Alice},
+           giveni={A\bibinitperiod}}}%
+        {{hash=769f6ff40e109b9d752238b134859920}{%
+           family={Elkins},
+           familyi={E\bibinitperiod},
+           given={Aaron},
+           giveni={A\bibinitperiod}}}%
+        {{hash=b8238061b3c805be2a30dd55bb11fb21}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Yue},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=8464670ac8c8f79d2af723c90ddf74ed}{%
+           family={Coutinho},
+           familyi={C\bibinitperiod},
+           given={Eduardo},
+           giveni={E\bibinitperiod}}}%
+        {{hash=fb8d7133749c6d5964408c69b225c210}{%
+           family={Evanini},
+           familyi={E\bibinitperiod},
+           given={Keelan},
+           giveni={K\bibinitperiod}}}%
+      }
+      \strng{namehash}{402d9e756ed21ee7f9da2b5d6af2641f}
+      \strng{fullhash}{e040c645c36cd7ebfb543fc06a7143ab}
+      \strng{bibnamehash}{402d9e756ed21ee7f9da2b5d6af2641f}
+      \strng{authorbibnamehash}{402d9e756ed21ee7f9da2b5d6af2641f}
+      \strng{authornamehash}{402d9e756ed21ee7f9da2b5d6af2641f}
+      \strng{authorfullhash}{e040c645c36cd7ebfb543fc06a7143ab}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Interspeech 2016}
+      \field{issn}{2958-1796}
+      \field{title}{The INTERSPEECH 2016 Computational Paralinguistics Challenge: Deception, Sincerity \& Native Language}
+      \field{year}{2016}
+      \field{pages}{2001\bibrangedash 2005}
+      \range{pages}{5}
+      \verb{doi}
+      \verb 10.21437/Interspeech.2016-129
+      \endverb
+    \endentry
+    \entry{king2001logistic}{article}{}
+      \name{author}{2}{}{%
+        {{hash=e62a3c431989b28a48ea18aa5cfcfbed}{%
+           family={King},
+           familyi={K\bibinitperiod},
+           given={Gary},
+           giveni={G\bibinitperiod}}}%
+        {{hash=f3a390e23dc81bf8e05b73ea53c4a871}{%
+           family={Zeng},
+           familyi={Z\bibinitperiod},
+           given={Langche},
+           giveni={L\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Cambridge University Press}%
+      }
+      \strng{namehash}{36528a65549594fdf6865387021d93a2}
+      \strng{fullhash}{36528a65549594fdf6865387021d93a2}
+      \strng{bibnamehash}{36528a65549594fdf6865387021d93a2}
+      \strng{authorbibnamehash}{36528a65549594fdf6865387021d93a2}
+      \strng{authornamehash}{36528a65549594fdf6865387021d93a2}
+      \strng{authorfullhash}{36528a65549594fdf6865387021d93a2}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Political analysis}
+      \field{number}{2}
+      \field{title}{Logistic regression in rare events data}
+      \field{volume}{9}
+      \field{year}{2001}
+      \field{pages}{137\bibrangedash 163}
+      \range{pages}{27}
+    \endentry
+    \entry{getman23_slate}{inproceedings}{}
+      \name{author}{4}{}{%
+        {{hash=17311277053ffbfcbe97d23716513cbb}{%
+           family={Getman},
+           familyi={G\bibinitperiod},
+           given={Yaroslav},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=18a8b2712e60e2157fd2d713b895a4ab}{%
+           family={Al-Ghezi},
+           familyi={A\bibinithyphendelim G\bibinitperiod},
+           given={Ragheb},
+           giveni={R\bibinitperiod}}}%
+        {{hash=35bde8936508a871e0ce2f0d1b7f0b37}{%
+           family={Grosz},
+           familyi={G\bibinitperiod},
+           given={Tamas},
+           giveni={T\bibinitperiod}}}%
+        {{hash=fc41983fe6b59122bbe49c6f8d4eded8}{%
+           family={Kurimo},
+           familyi={K\bibinitperiod},
+           given={Mikko},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{513a4786a4b7b09aa065920b9d24bee2}
+      \strng{fullhash}{bafba8fdbad1656bf4d60c2100543c40}
+      \strng{bibnamehash}{bafba8fdbad1656bf4d60c2100543c40}
+      \strng{authorbibnamehash}{bafba8fdbad1656bf4d60c2100543c40}
+      \strng{authornamehash}{513a4786a4b7b09aa065920b9d24bee2}
+      \strng{authorfullhash}{bafba8fdbad1656bf4d60c2100543c40}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{9th Workshop on Speech and Language Technology in Education (SLaTE)}
+      \field{issn}{2311-4975}
+      \field{title}{Multi-task wav2vec2 Serving as a Pronunciation Training System for Children}
+      \field{year}{2023}
+      \field{pages}{36\bibrangedash 40}
+      \range{pages}{5}
+      \verb{doi}
+      \verb 10.21437/SLaTE.2023-8
+      \endverb
+    \endentry
+    \entry{de-la-rosa-etal-2023-boosting}{inproceedings}{}
+      \name{author}{4}{}{%
+        {{hash=d781a812150aa5181d1af6b44dff65c3}{%
+           family={De\bibnamedelima La\bibnamedelima Rosa},
+           familyi={D\bibinitperiod\bibinitdelim L\bibinitperiod\bibinitdelim R\bibinitperiod},
+           given={Javier},
+           giveni={J\bibinitperiod}}}%
+        {{hash=84874ed1041d2f03c1aa3c473bdfd73b}{%
+           family={Braaten},
+           familyi={B\bibinitperiod},
+           given={Rolv-Arild},
+           giveni={R\bibinithyphendelim A\bibinitperiod}}}%
+        {{hash=5726c1315ac28f0aee0dfa16d1bc560e}{%
+           family={Kummervold},
+           familyi={K\bibinitperiod},
+           given={Per},
+           giveni={P\bibinitperiod}}}%
+        {{hash=9ffdd2f9640eb59c68c8213f29d6cb22}{%
+           family={Wetjen},
+           familyi={W\bibinitperiod},
+           given={Freddy},
+           giveni={F\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Tórshavn, Faroe Islands}%
+      }
+      \list{publisher}{1}{%
+        {University of Tartu Library}%
+      }
+      \strng{namehash}{7fe0edaed338e85efbd4e6261f0fdeca}
+      \strng{fullhash}{053fcca83ab07678496446cede0efb86}
+      \strng{bibnamehash}{053fcca83ab07678496446cede0efb86}
+      \strng{authorbibnamehash}{053fcca83ab07678496446cede0efb86}
+      \strng{authornamehash}{7fe0edaed338e85efbd4e6261f0fdeca}
+      \strng{authorfullhash}{053fcca83ab07678496446cede0efb86}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{In this paper, we present several baselines for automatic speech recognition (ASR) models for the two official written languages in Norway: Bokm{å}l and Nynorsk. We compare the performance of models of varying sizes and pre-training approaches on multiple Norwegian speech datasets. Additionally, we measure the performance of these models against previous state-of-the-art ASR models, as well as on out-of-domain datasets. We improve the state of the art on the Norwegian Parliamentary Speech Corpus (NPSC) from a word error rate (WER) of 17.10{\%} to 7.60{\%}, with models achieving 5.81{\%} for Bokm{å}l and 11.54{\%} for Nynorsk. We also discuss the challenges and potential solutions for further improving ASR models for Norwegian.}
+      \field{booktitle}{Proceedings of the 24th Nordic Conference on Computational Linguistics (NoDaLiDa)}
+      \field{month}{5}
+      \field{title}{Boosting {N}orwegian Automatic Speech Recognition}
+      \field{year}{2023}
+      \field{pages}{555\bibrangedash 564}
+      \range{pages}{10}
+      \verb{urlraw}
+      \verb https://aclanthology.org/2023.nodalida-1.55
+      \endverb
+      \verb{url}
+      \verb https://aclanthology.org/2023.nodalida-1.55
+      \endverb
+    \endentry
+    \entry{CI}{software}{}
+      \name{author}{2}{}{%
+        {{hash=d3b58abeb45602a1af1e28c6b4fdac9d}{%
+           family={Ferrer},
+           familyi={F\bibinitperiod},
+           given={L.},
+           giveni={L\bibinitperiod}}}%
+        {{hash=66849c13428c7de5d00bd327a120175c}{%
+           family={Riera},
+           familyi={R\bibinitperiod},
+           given={P.},
+           giveni={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{e63fe3f98e2ebf75053bd816f9bb422f}
+      \strng{fullhash}{e63fe3f98e2ebf75053bd816f9bb422f}
+      \strng{bibnamehash}{e63fe3f98e2ebf75053bd816f9bb422f}
+      \strng{authorbibnamehash}{e63fe3f98e2ebf75053bd816f9bb422f}
+      \strng{authornamehash}{e63fe3f98e2ebf75053bd816f9bb422f}
+      \strng{authorfullhash}{e63fe3f98e2ebf75053bd816f9bb422f}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Confidence {I}ntervals for evaluation in machine learning}
+      \verb{urlraw}
+      \verb https://github.com/luferrer/ConfidenceIntervals
+      \endverb
+      \verb{url}
+      \verb https://github.com/luferrer/ConfidenceIntervals
+      \endverb
+    \endentry
+    \entry{healy2024uniform}{article}{}
+      \name{author}{2}{}{%
+        {{hash=2a653f5c3174b96798d6336399101032}{%
+           family={Healy},
+           familyi={H\bibinitperiod},
+           given={John},
+           giveni={J\bibinitperiod}}}%
+        {{hash=f3edd0ee6ca72eca5c532b9c1fcee621}{%
+           family={McInnes},
+           familyi={M\bibinitperiod},
+           given={Leland},
+           giveni={L\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Nature Publishing Group UK London}%
+      }
+      \strng{namehash}{0463cd02d4bb1e7815533e7aa7a913bc}
+      \strng{fullhash}{0463cd02d4bb1e7815533e7aa7a913bc}
+      \strng{bibnamehash}{0463cd02d4bb1e7815533e7aa7a913bc}
+      \strng{authorbibnamehash}{0463cd02d4bb1e7815533e7aa7a913bc}
+      \strng{authornamehash}{0463cd02d4bb1e7815533e7aa7a913bc}
+      \strng{authorfullhash}{0463cd02d4bb1e7815533e7aa7a913bc}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Nature Reviews Methods Primers}
+      \field{number}{1}
+      \field{title}{Uniform manifold approximation and projection}
+      \field{volume}{4}
+      \field{year}{2024}
+      \field{pages}{82}
+      \range{pages}{1}
+    \endentry
+    \entry{hao24_interspeech}{inproceedings}{}
+      \name{author}{5}{}{%
+        {{hash=461787956a4c89896235c736ec2bc0c5}{%
+           family={Hao},
+           familyi={H\bibinitperiod},
+           given={Yaqian},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=0ec57ccee3794f5df757126523d11cb7}{%
+           family={Hu},
+           familyi={H\bibinitperiod},
+           given={Chenguang},
+           giveni={C\bibinitperiod}}}%
+        {{hash=e3644823cb1d40b72ebcba89f9cbbc92}{%
+           family={Gao},
+           familyi={G\bibinitperiod},
+           given={Yingying},
+           giveni={Y\bibinitperiod}}}%
+        {{hash=bf4e1e62e0f1db256dd1eb9a345f2a2a}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Shilei},
+           giveni={S\bibinitperiod}}}%
+        {{hash=5348e29db00b0e6556fc3405c7d3bffe}{%
+           family={Feng},
+           familyi={F\bibinitperiod},
+           given={Junlan},
+           giveni={J\bibinitperiod}}}%
+      }
+      \strng{namehash}{817cc4ce374ecbe33fcab2b9e8c69493}
+      \strng{fullhash}{f8808394ff8ed7fb8b40604482db27ea}
+      \strng{bibnamehash}{f8808394ff8ed7fb8b40604482db27ea}
+      \strng{authorbibnamehash}{f8808394ff8ed7fb8b40604482db27ea}
+      \strng{authornamehash}{817cc4ce374ecbe33fcab2b9e8c69493}
+      \strng{authorfullhash}{f8808394ff8ed7fb8b40604482db27ea}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Interspeech 2024}
+      \field{issn}{2958-1796}
+      \field{title}{On Calibration of Speech Classification Models: Insights from Energy-Based Model Investigations}
+      \field{year}{2024}
+      \field{pages}{3175\bibrangedash 3179}
+      \range{pages}{5}
+      \verb{doi}
+      \verb 10.21437/Interspeech.2024-1643
+      \endverb
+    \endentry
+    \entry{team1}{inproceedings}{}
+      \name{author}{1}{}{%
+        {{hash=3f70faecf18c1dd34a05358e6fe5b8d4}{%
+           family={Yuuki},
+           familyi={Y\bibinitperiod},
+           given={Tachioka},
+           giveni={T\bibinitperiod}}}%
+      }
+      \strng{namehash}{3f70faecf18c1dd34a05358e6fe5b8d4}
+      \strng{fullhash}{3f70faecf18c1dd34a05358e6fe5b8d4}
+      \strng{bibnamehash}{3f70faecf18c1dd34a05358e6fe5b8d4}
+      \strng{authorbibnamehash}{3f70faecf18c1dd34a05358e6fe5b8d4}
+      \strng{authornamehash}{3f70faecf18c1dd34a05358e6fe5b8d4}
+      \strng{authorfullhash}{3f70faecf18c1dd34a05358e6fe5b8d4}
+      \field{sortinit}{1}
+      \field{sortinithash}{4f6aaa89bab872aa0999fec09ff8e98a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proc. IEEE MLSP}
+      \field{title}{Automated Pronunciation Scoring of Child L2 Learners with Score Calibration for Imbalanced Distributions}
+      \field{year}{2025}
+    \endentry
+    \entry{team2}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=eb746d03d8ac3d508922841d61a6caa3}{%
+           family={Žavoronkov},
+           familyi={Ž\bibinitperiod},
+           given={Aleksei},
+           giveni={A\bibinitperiod}}}%
+        {{hash=18c3b7d510daf0349c254119cb0ab20a}{%
+           family={Alumäe},
+           familyi={A\bibinitperiod},
+           given={Tanel},
+           giveni={T\bibinitperiod}}}%
+      }
+      \strng{namehash}{cb5f9be92a22b9a5b8d44af5ca201a26}
+      \strng{fullhash}{cb5f9be92a22b9a5b8d44af5ca201a26}
+      \strng{bibnamehash}{cb5f9be92a22b9a5b8d44af5ca201a26}
+      \strng{authorbibnamehash}{cb5f9be92a22b9a5b8d44af5ca201a26}
+      \strng{authornamehash}{cb5f9be92a22b9a5b8d44af5ca201a26}
+      \strng{authorfullhash}{cb5f9be92a22b9a5b8d44af5ca201a26}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proc. IEEE MLSP}
+      \field{title}{Comparison of End-to-end Speech Assessment Models for the NOCASA 2025 Challenge}
+      \field{year}{2025}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

@@ -1,0 +1,55 @@
+LATIC: A Non-native Pre-labelled Mandarin Chinese Validation Corpus
+for Automatic Speech Scoring and Evaluation Task
+====================================================================
+
+Author:  Xiao Zhang (School of Foreign Languages, Hunan University of Technology)
+Contact: xiaozhangslp@gmail.com
+Date:    May 25, 2021
+DOI:     10.21227/mqtj-qh10
+License: CC-BY-4.0
+
+NO SEPARATE PAPER
+-----------------
+LATIC has no companion journal or conference paper. The primary
+publication is the IEEE DataPort dataset description itself.
+Other papers (e.g. Wang et al., Interspeech 2024, arXiv:2406.04595)
+cite it simply as an online resource:
+
+  X. Zhang, "LATIC: A non-native pre-labelled mandarin chinese
+  validation corpus for automatic speech scoring and evaluation task,"
+  2021. [Online]. Available: https://dx.doi.org/10.21227/mqtj-qh10
+
+Dataset URL
+-----------
+https://ieee-dataport.org/open-access/latic-non-native-pre-labelled-mandarin-chinese-validation-corpus-automatic-speech
+
+(Open access; requires free IEEE DataPort login to download.)
+
+Dataset Summary
+---------------
+- 4 non-native Mandarin Chinese speakers (L1: Russian, Korean, French, Arabic)
+- 2 male, 2 female, ages 19-30
+- 4 hours of speech, 2,579 audio samples (~9-10 s average)
+- 1,423 unique pinyin units + 1 blank token
+- 3 levels of annotation per waveform (original text, original notation, testing)
+- Annotated by 2 Chinese-major students (native Mandarin speakers)
+
+Files on IEEE DataPort
+----------------------
+- LATIC Speech Corpus.zip (391.76 MB) -- all audio WAV files
+- Original Text Scripts (4 TXT files, one per speaker)
+- Original Notations  (4 TXT files)
+- Testing Notations   (4 TXT files)
+- Testing Text Scripts (4 TXT files)
+- Speaker.txt metadata
+
+Significance
+------------
+LATIC is the only publicly available L2 Mandarin Chinese dataset for
+MDD/pronunciation assessment training, making it a small but important
+resource. It is cited in the Pitch-Aware RNN-T paper (Wang et al.,
+Interspeech 2024) as the sole open L2 Mandarin corpus.
+
+Keywords: Automatic Mandarin Speech Scoring, Computational Linguistics,
+Second Language Acquisition, Speech Technology, Acoustics Phonetics,
+Corpus Linguistics

@@ -1,0 +1,65 @@
+{
+   "sources" : [
+      {
+         "usage" : "toplevel",
+         "filename" : "main.tex"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "IEEEbib.bst"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "figs/fine.png"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "figs/pre.png"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "format.ps"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "image1.eps"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "image1.pdf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "image3.eps"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "image3.pdf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "image4.eps"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "image4.pdf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "refs.bib"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "spconf.sty"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "strings.bib"
+      }
+   ],
+   "version" : 2,
+   "texlive_version" : 2023,
+   "process" : {
+      "compiler" : "pdflatex"
+   }
+}
