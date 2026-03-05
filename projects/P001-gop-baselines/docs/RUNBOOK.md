@@ -1,4 +1,6 @@
-# Track 05 Runbook (Narrow Scope)
+# P001 Runbook (GOP Baselines)
+
+Moved from legacy path: `docs/research/track05_paper/RUNBOOK.md`.
 
 This runbook now has two completed phases on one frozen backend (`xlsr-espeak`):
 - Phase 1 baseline trio:
@@ -8,7 +10,11 @@ This runbook now has two completed phases on one frozen backend (`xlsr-espeak`):
 - Phase 2b dense cached alpha sweep:
 `alpha=0.00..1.00` step `0.05` from cached scalar variants.
 
-Configs:
+Canonical project configs:
+- [`projects/P001-gop-baselines/experiments/track05_phase1_baseline.yaml`](/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/track05_phase1_baseline.yaml)
+- [`projects/P001-gop-baselines/experiments/track05_phase2_logit_scalar.yaml`](/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/track05_phase2_logit_scalar.yaml)
+
+Legacy compatibility configs (still valid during migration):
 - [`runs/track05_phase1_baseline.yaml`](/home/simon/github/peacock-asr/runs/track05_phase1_baseline.yaml)
 - [`runs/track05_phase2_logit_scalar.yaml`](/home/simon/github/peacock-asr/runs/track05_phase2_logit_scalar.yaml)
 
@@ -26,7 +32,7 @@ Expected output:
 ## 2) Execute Phase-1 Baseline Batch
 
 ```bash
-uv run peacock-asr batch --config runs/track05_phase1_baseline.yaml --output-dir runs
+uv run peacock-asr batch --config projects/P001-gop-baselines/experiments/track05_phase1_baseline.yaml --output-dir runs
 ```
 
 ## 3) Execute Phase-2 Scalar Logit Batch
@@ -34,7 +40,7 @@ uv run peacock-asr batch --config runs/track05_phase1_baseline.yaml --output-dir
 ```bash
 MLFLOW_TRACKING_URI=https://mlflow.peacockery.studio \
 MLFLOW_EXPERIMENT_NAME=peacock-asr-track05 \
-uv run peacock-asr batch --config runs/track05_phase2_logit_scalar.yaml --output-dir runs
+uv run peacock-asr batch --config projects/P001-gop-baselines/experiments/track05_phase2_logit_scalar.yaml --output-dir runs
 ```
 
 ## 4) Output Artifacts
@@ -68,5 +74,5 @@ Expected best point for current stack:
 ## 6) Optional Fast Smoke Test (Not for Claims)
 
 ```bash
-uv run peacock-asr batch --config runs/track05_phase2_logit_scalar.yaml --limit 50 --output-dir runs
+uv run peacock-asr batch --config projects/P001-gop-baselines/experiments/track05_phase2_logit_scalar.yaml --limit 50 --output-dir runs
 ```

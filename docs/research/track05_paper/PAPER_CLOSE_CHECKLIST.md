@@ -88,7 +88,7 @@ Related standard:
 
 - [ ] Update `manuscript.md` tables with W&B-backed rerun aggregates.
 - [ ] Update `EVIDENCE_LEDGER.md` with W&B run URLs + local artifact paths.
-- [ ] Update `RUNBOOK.md` with exact W&B-first execution commands.
+- [ ] Update `projects/P001-gop-baselines/docs/RUNBOOK.md` with exact W&B-first execution commands.
 - [ ] Update `docs/EXPERIMENTS.md` and `docs/TODO.md` to reflect final status.
 - [ ] Verify all IDs/metrics are consistent across manuscript, runbook, and ledger.
 
