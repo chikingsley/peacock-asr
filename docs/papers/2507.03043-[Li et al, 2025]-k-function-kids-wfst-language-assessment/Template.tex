@@ -1,0 +1,131 @@
+% Template for ICASSP-2026 paper; to be used with:
+%          spconf.sty  - ICASSP/ICIP LaTeX style file, and
+%          IEEEbib.bst - IEEE bibliography style file.
+% --------------------------------------------------------------------------
+\documentclass{article}
+\usepackage{spconf,amsmath,graphicx,hyperref}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{tabularx}
+\usepackage[numbers, sort&compress]{natbib}
+\setlength{\bibsep}{0pt}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{hyperref}
+\usepackage{tipa}
+\usepackage{float}
+
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+\SetKw{Continue}{continue}
+% Example definitions.
+% --------------------
+\def\x{{\mathbf x}}
+\def\L{{\cal L}}
+
+% Title.
+% ------
+\title{K-Function: Joint Pronunciation Transcription and Feedback for Evaluating Kids Language Function}
+%
+% Single address.
+% ---------------
+\name{
+    \begin{tabular}{@{}c@{}}
+    Shuhe Li$^{1}$\textsuperscript{*} \quad 
+    Chenxu Guo$^{1}$\textsuperscript{*} \quad 
+    Jiachen Lian$^{2}$\textsuperscript{†} \quad 
+    Cheol Jun Cho$^{2}$ \quad 
+    Wenshuo Zhao$^{1}$ \quad 
+    Xiner Xu$^{1}$ \\
+    \textit{Ruiyu Jin}$^{1}$ \quad 
+    \textit{Xiaoyu Shi}$^{3}$ \quad
+    \textit{Xuanru Zhou}$^{1}$ \quad
+    \textit{Dingkun Zhou}$^{4}$ \quad 
+    \textit{Sam Wang}$^{2}$ \quad 
+    \textit{Grace Wang}$^{2}$ \\
+    \textit{Jingze Yang}$^{1}$ \quad 
+    \textit{Jingyi Xu}$^{1}$ \quad 
+    \textit{Ruohan Bao}$^{1}$ \quad
+    \textit{Xingrui Chen}$^{5}$ \quad
+    \textit{Elise Brenner}$^{6}$ \quad 
+    \textit{Brandon In}$^{6}$ \\
+    \textit{Francesca Pei}$^{6}$ \quad
+    \textit{Maria Luisa Gorno-Tempini}$^{6}$ \quad 
+    \textit{Gopala Anumanchipalli}$^{2}$
+    \end{tabular}
+    \thanks{* Equal contribution. † Contact: \texttt{jiachenlian@berkeley.edu}}
+}
+
+\address{$^{1}$Zhejiang University \quad $^{2}$UC Berkeley \quad $^{3}$Duke University \quad $^{4}$SCUT \quad $^{5}$TVT \quad $^{6}$UCSF}
+%
+% For example:
+% ------------
+%\address{School\\
+%	Department\\
+%	Address}
+%
+% Two addresses (uncomment and modify for two-address case).
+% ----------------------------------------------------------
+%\twoauthors
+%  {A. Author-one, B. Author-two\sthanks{Thanks to XYZ agency for funding.}}
+%	{School A-B\\
+%	Department A-B\\
+%	Address A-B}
+%  {C. Author-three, D. Author-four\sthanks{The fourth author performed the work
+%	while at ...}}
+%	{School C-D\\
+%	Department C-D\\
+%	Address C-D}
+%
+\begin{document}
+\ninept
+%
+\maketitle
+%
+\begin{abstract}
+Evaluating young children's language is challenging for automatic speech recognizers due to high-pitched voices, prolonged sounds, and limited data. We introduce K-Function, a framework that combines accurate sub-word transcription with objective, Large Language Model (LLM)-driven scoring. Its core, Kids-Weighted Finite State Transducer (K-WFST), merges an acoustic phoneme encoder with a phoneme-similarity model to capture child-specific speech errors while remaining fully interpretable. K-WFST achieves a 1.39\% phoneme error rate on MyST and 8.61\% on Multitudes—an absolute improvement of 10.47\% and 7.06\% over a greedy-search decoder. These high-quality transcripts are used by an LLM to grade verbal skills, developmental milestones, reading, and comprehension, with results that align closely with human evaluators. Our findings show that precise phoneme recognition is essential for creating an effective assessment framework, enabling scalable language screening for children. Our K-Function framework demo is available at \url{https://chenxukwok.github.io/K-function/}.
+\end{abstract}
+%
+\begin{keywords}
+Phoneme Recognition, WFST, Content Feedback, Language Function
+\end{keywords}
+%
+\section{Introduction}
+
+\input{text/intro}
+
+\section{Method}
+
+
+
+\input{text/method}
+
+\section{Experiments}
+
+\input{text/experiments}
+
+\section{Conclusion and future work}
+
+\input{text/conclusion}
+
+
+
+
+
+
+
+
+
+
+% References should be produced using the bibtex program from suitable
+% BiBTeX files (here: strings, refs, manuals). The IEEEbib.bst bibliography
+% style file from IEEE produces unsorted bibliography list.
+% -------------------------------------------------------------------------
+\bibliographystyle{IEEEbib}
+\bibliography{strings,refs}
+
+\end{document}

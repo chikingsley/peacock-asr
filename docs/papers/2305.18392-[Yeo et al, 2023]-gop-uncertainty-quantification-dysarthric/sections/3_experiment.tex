@@ -1,0 +1,118 @@
+\section{Experimental setting} \label{sec:experiment}
+% While isolated words may give useful information in terms of intelligibility classification, sentence stimuli have abundant acoustic information, especially related to prosody. 
+% Since this study aims to inspect acoustic measurements from different speech dimensions, we limit our analysis to the TORGO database. 
+
+\subsection{Datasets} \label{ssec:corpus}
+To train the acoustic model to learn the distribution of healthy phonemes, we use the Common Phone dataset \cite{klumpp2022common} and the L2-ARCTIC dataset \cite{zhao2018l2}.
+To evaluate the efficacy of our proposed approach, three dysarthric datasets are utilized: UASpeech English dataset \cite{kim2008uaspeech}, QoLT Korean dataset \cite{choi2012dysarthric}, and SSNCE Tamil dataset \cite{ta2016dysarthric}.
+All three datasets contain dysarthric speech from speakers suffering from Cerebral Palsy.
+We focus the analysis on sentences from QoLT and SSNCE dysarthric datasets, since the Common Phone and L2-ARCTIC datasets solely consist of sentences.
+Word materials are analyzed for the UASpeech dataset, since the dataset contains words only. 
+
+
+\subsubsection{Common Phone dataset and L2-ARCTIC dataset} \label{sssec:commonPhone}
+The acoustic model is trained on healthy speech using the Common Phone dataset and the L2-ARCTIC dataset, which were selected for their extensive phoneme coverage and phonetic annotations.
+These datasets are expected to cover most of the phonemes used in English, Korean, and Tamil.
+\textbf{Common Phone dataset} \cite{klumpp2022common} is a gender-balanced, multilingual corpus with six languages.
+Comprised of more than 11,000 speakers, the dataset includes around 116 hours of speech.
+\textbf{L2-ARCTIC dataset} \cite{zhao2018l2} is a speech corpus often used for detecting mispronunciations in non-native English speakers. 
+It includes recordings from 24 speakers with a balanced distribution of gender and first language, representing six different countries. 
+On average, each speaker has around 67.7 minutes of speech, which has a total duration of approximately 27.1 hours.
+
+
+\subsubsection{UASpeech English dysarthric datasat} \label{sssec:uaspeech}
+UASpeech dataset \cite{kim2008uaspeech} is a publicly-available English dysarthric speech dataset, which contains 15 dysarthria speakers (11 males, 4 females) and 13 aged-matched healthy speakers (9 males, 4 females). 
+Speakers were classified based on the scores on the Frenchay Dysarthria Assessment (FDA) \cite{enderby1980frenchay}: 5 mild speakers (score 1), 3 moderate-to-severe speakers (score 2), 3 moderate-to-severe speakers (score 3), and 4 severe speakers (score 4). 
+Montreal Forced Aligner (MFA) \cite{mcauliffe2017montreal} is employed to extract phoneme-level alignments.
+
+% we selected phoneme-rich sentences for the utterances, resulting in 413 and 147 utterances for dysarthric and healthy speakers, respectively.
+
+% Two database are commonly used for English dysarthric speech research: the UA-Speech database \cite{kim2008dysarthric} and the TORGO database \cite{rudzicz2012torgo}. 
+% While the former database contains larger number of speakers and utterances, it only has isolated words as materials. TORGO database, on the contrary, comprises isolated words and sentences. 
+% We limit our analysis to the sentence materials of TORGO database. 
+
+\subsubsection{QoLT Korean dysarthric dataset} \label{sssec:qolt}
+Quality of Life Technology (QoLT) dataset \cite{choi2012dysarthric} is a privately held dataset of Korean dysarthric speech. 
+The corpus consists of 70 dysarthric speakers (45 males, 25 females) and 10 healthy speakers (5 males, 5 females).
+Each speaker recorded five phonetically balanced sentences twice. 
+Five speech pathologists were asked to determine the intelligibility levels of the speakers on a 5-point Likert scale.
+With a score of 0 considered healthy, the dataset holds 25 mild (score 1), 26 mild-to-moderate (score 2), 12 moderate-to-severe (score 3), and 7 severe (score 4) intelligibility level speakers.
+Accordingly, 100 healthy utterances and 700 dysarthric utterances are used for the experiment.
+After using MFA to align the phonemes, two speech pathologists further fixed the automated alignment for better quality.
+
+\subsubsection{SSNCE Tamil dysarthric dataset} \label{sssec:ssnce}
+SSNCE dataset \cite{ta2016dysarthric} is a Tamil dysarthric speech corpus available by request. 
+The dataset includes recordings from 20 dysarthric speakers (13 males and 7 females) and 10 healthy speakers (5 males and 5 females). 
+The dataset groups dysarthric speakers based on their speech intelligibility scores, which were marked by two speech pathologists on a 7-point Likert scale.
+A score of 0 considered healthy, score 1 and 2 are grouped into mild (score 1), score 3 and 4 into moderate (score 2), and score 5 and 6 into severe (score 3).
+There were different numbers of speakers in each score category: 7 with mild, 10 with moderate, and 3 with severe.
+For the experiment, we used a total of 5,200 utterances from the dysarthric speakers and 2,600 utterances from the healthy speakers, with 260 unique sentences recorded from each speaker.
+For forced alignments, we use the time-aligned phonetic transcriptions provided by the dataset.
+
+
+\subsection{Experimental details} \label{ssec:detail}
+In this study, we evaluated GoP performance by following the approach of the previous study \cite{Fontan2015PredictingDS}.
+Concretely, rather than evaluating the models based on their accuracy in mispronunciation detection, our objective was to calculate the average GoP score for each utterance and compare their correlation with the intelligibility scores.
+% The reason for this approach is that annotation on each phoneme pronunciation is a subjective and labor-intensive task in dysarthric speech.
+
+\subsubsection{Phoneme Prediction} \label{sssec:phone_pred}
+% \subsubsection{Baseline experiments}
+% To validate the effectiveness of our proposed approach, we conducted three baseline experiments: GMM-GoP \cite{witt2000phone}\footnote{\url{https://github.com/jimbozhang/kaldi-gop}}, NN-GoP \cite{hu2015improved}\footnote{\url{https://github.com/kaldi-asr/kaldi/tree/master/egs/gop_speechocean762}} and DNN-GoP.
+To fairly compare the performances between various GoP scoring functions, we extract the posterior probabilities from the common cross-lingual Wav2Vec 2.0 XLS-R model \cite{babu2022xls} instead of using the acoustic model from Kaldi, following recent literature \cite{xu2021explore}.
+We slightly modify the architecture by attaching the linear phone prediction head to the convolutional layer, not the transformer layer, to avoid extensive computational overhead and preserve the phonetic characteristics in convolutional features \cite{choi2022opening}.
+Also, the loss function is simplified by removing the adaptive pooling, where we observed that the final performance difference was negligible.
+AdamW optimizer \cite{loshchilov2019decoupled} is used with the default learning rate of $0.001$ for three epochs.
+As we only trained the linear prediction head, the final performance was not sensitive to other hyperparameters.
+Refer to \cite{xu2021explore} and our source code\footref{footnote:repo_url} for more details.
+
+% , which needs much larger amounts of data per language.
+% Then the probabilities are applied to each GoP equation presented in \Cref{ssec:gop-baseline}.
+% Refer to \Cref{sssec:proposed} for further details regarding Wav2Vec 2.0 based representation extraction.
+
+\subsubsection{Baselines} \label{sssec:baselines}
+We conducted three baseline experiments: GMM-GoP \cite{witt2000phone}, NN-GoP \cite{hu2015improved}, and DNN-GoP.
+We compare the baselines with the UQ methods introduced in \Cref{subsec:modify_score} and \Cref{subsec:modify_pred} by using the same phoneme probabilities.
+As we aim to see the correlations between GoP scores (continuous) and intelligibility scores (ordinal),
+we utilize the Kendall Rank Coefficient $\tau$ to compare the performances.
+Kendall's $\tau$ measures the strength of the relationships, with a higher absolute coefficient indicating higher correlations between the two variables.
+
+% is the measure of association between continuous variables $X$ and ordinal variables $Y$, which 
+% Concretely, $\tau$ uses the numerical values of $X$ and the coded numerical values of $Y$ to render a coefficient between $-1$ and $+1$. 
+% % Let ($x_{1}, y_{1}$) be a set of observations. 
+% Any pair of observations are concordant if the order of $(x_{i}, y_{i})$ and $(x_{j}, y_{j})$ agrees to $i<j$.
+% % Otherwise are considered to be discordant.
+
+% \begin{equation}
+% \begin{aligned}
+% \tau &= \frac{\text{(\# of concordant pairs)} - \text{(\# of discordant pairs)}}{\text{(total \# of pairs)}} \\
+% &= 1 - \frac{2\text{(\# of discordant pairs)}}{\binom{n}{2}}
+% \end{aligned} \label{eq:gop}
+% \end{equation}
+
+
+
+% We assumed this dataset will be appropriate for training the acoustic model, as it contains various phones from six different languages. 
+
+%----------------------------
+% for the new scoring functions and phoneme predictor
+
+% To validate the effectiveness of our proposed approach, we conducted two baseline experiments: GMM-GoP \cite{witt2000phone}\footnote{\url{https://github.com/jimbozhang/kaldi-gop}} and NN-GoP \cite{hu2015improved}\footnote{\url{https://github.com/kaldi-asr/kaldi/tree/master/egs/gop_speechocean762}}.
+% Kaldi is used to train both GMM and time-delay neural network (nnet3-TDNN) for each language, following the default setting. 
+
+% \subsubsection{Baseline experiments}
+% To validate the effectiveness of our proposed approach, we conducted four baseline experiments: GMM-GoP \cite{witt2000phone}\footnote{\url{https://github.com/jimbozhang/kaldi-gop}}, NN-GoP \cite{hu2015improved}\footnote{\url{https://github.com/kaldi-asr/kaldi/tree/master/egs/gop_speechocean762}}, ASR free-GoP \cite{Cheng2020ASRFreePA}\footnote{\url{https://github.com/tzyll/goparrot}}, and SSL-GoP \cite{xu2021explore}. 
+% Kaldi \cite{Povey_ASRU2011} is used to train GMM and time-delayed neural networks.
+% While librispeech and zeroth korean 
+% Since there were no scripts available for the Tamil dataset, we only conducted 
+
+
+%------------------------------------
+% We train and use a common phone predictor for all the scoring functions.
+% Phone prediction architecture designed by attaching a linear prediction head to the 1D convolutional layers of XLS-R wav2vec 2.0 \cite{babu2022xls}.
+% Following the recent analysis on convolutional features \cite{choi2022opening}, we freeze the convolutional layers to preserve the linguistic characteristics.
+% We use a similar training scheme of SSL-GoP, where we modify the loss function and the architecture.
+% Unlike SSL-GoP, which averages the loss within the same phone and then averages per phone, we simplify the loss by averaging the loss for each phone prediction.
+% Also, SSL-GoP uses the transformer architecture, which we removed as a whole.
+% Our empirical results show that the performance is comparable with or without the transformer, which is not surprising given the nature of the phoneme prediction task.
+% We use AdamW optimizer \cite{loshchilov2019decoupled} with the default learning rate of $0.001$ for three epochs.
+% The final performance was not susceptible to different hyperparameters, as we only trained the linear prediction head.

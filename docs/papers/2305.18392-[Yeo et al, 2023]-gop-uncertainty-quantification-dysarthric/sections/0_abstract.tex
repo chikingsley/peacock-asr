@@ -1,0 +1,93 @@
+\begin{abstract}
+This paper proposes an improved Goodness of Pronunciation (GoP) that utilizes Uncertainty Quantification (UQ) for automatic speech intelligibility assessment for dysarthric speech. Current GoP methods rely heavily on neural network-driven overconfident predictions, which is unsuitable for assessing dysarthric speech due to its significant acoustic differences from healthy speech. To alleviate the problem, UQ techniques were used on GoP by 1) normalizing the phoneme prediction (entropy, margin, maxlogit, logit-margin) and 2) modifying the scoring function (scaling, prior normalization). As a result, prior-normalized maxlogit GoP achieves the best performance, with a relative increase of 5.66\%, 3.91\%, and 23.65\% compared to the baseline GoP for English, Korean, and Tamil, respectively. Furthermore, phoneme analysis is conducted to identify which phoneme scores significantly correlate with intelligibility scores in each language.
+\end{abstract}
+\noindent\textbf{Index Terms}: dysarthric speech, speech intelligibility, automatic assessment, goodness of pronunciation, uncertainty quantification
+
+% with the best-performing GoP  
+
+% The current GoP method relies heavily on acoustic model predictions, which have limitations of network-driven overconfident predictions. 
+
+
+%The experiment used phoneme probabilities from a fine-tuned Wav2Vec XLS-R model. GoP with prior-normalized maxLogit showed the best performance, with a relative increase of 5.66%, 3.91%, and 23.65% compared to the baseline for English, Korean, and Tamil, respectively. Additionally, the proposed GoP was used to conduct phoneme analysis to identify which phoneme scores significantly correlate with intelligibility scores in each language.
+
+
+
+
+
+
+
+
+
+% Using Kendall's rank coefficient between GoP and intelligibility scores, we aim to find the optimal UQ method for dysarthria assessment.
+% 998/1000
+
+% Although GoP has shown successful performances in language education applications, applications on disordered speech has been limited.
+
+
+% The model's probabilities are then used to calculate GoP.
+
+% For further improvements, each measurement is normalized by incorporating UQ methods into the phoneme recognizer.
+
+% The proposed method is tested on English, Korean, and Tamil dysarthric speech datasets, and all measurements except entropy perform better than the baseline, GMM-GoP and NN-GoP. The best-performing measurement improves by an average of 31.98% and 2.63% relative to GMM-GoP and NN-GoP, respectively. Additionally, the paper analyzes which phonemes significantly correlate with intelligibility scores for each language.
+
+
+% We explore seven new GoP measures by modifying 1) the scoring function and 2) the phoneme predictor. 
+
+% 978/1000 characters. ASCII characters only. No citations.
+% No italics, non-ASCII characters
+
+% Further analysis is conducted to find the frequently mispronounced phones by severity levels and languages.
+
+% However, recent studies claim that predictions from neural networks are often over-confident.
+
+% However, previous studies have limitations in giving over-confident results and being heavily dependent on language-dependent acoustic models.
+
+% However, predictions of modern neural networks have the limitations of giving over-confident results.
+
+% Further analysis is conducted to find the frequently mispronounced phones by severity levels and languages.
+
+% This phenomenon can hinder the performance of GoP, which heavily depends on the phone probability of language-dependent phone recognition models.
+
+
+% Kendall's rank coefficient between the expected pronunciation scores and the intelligibility severity levels is compared to the traditional methods.
+
+% Previous studies have proposed variations of Goodness of Pronunciation (GoP) to score the similarity of pronounced phones with canonical phones.
+
+% this paper presents an attempt to utilize Goodness of Pronunciation (GoP) with uncertainty quantification for phone-level pronunciation scoring and assessment of dysarthric speech.
+% Degraded speech intelligibility due to misarticulated phones is one major characteristic of dysarthric speech.
+
+% We utilize representations extracted from the convolutional layer of the Wav2Vec2.0 XLS-R model, which have been revealed to contain abundant acoustic features.
+
+% However, the methods have two limitations: (1) dependency on acoustic models, and (2) uncalibrated results of the neural networks.
+
+% The common way of phone-level scoring and assessment is conducted with GoP.
+
+% The XXX method presents the best performance, achieving the coefficient of XX.
+
+% While phone-level pronunciation scoring has often been applied to non-native speech, applications to atypical speech have been limited.
+
+% We further conduct analysis on the frequently mispronounced phones by severity levels and languages.
+
+
+% due to its nature of high dependence on phone probaiblity from acoustic models.  
+% As the traditional way of automatic pronunciation scoring measure, variations of GoP have been proposed to assess atypical speech, by leveraging modern neural networks (NN).
+% However, recent studies have reported that NNs produce overly confident predictions, which can 
+% , which heavily relies on phone probability from acoustic models. 
+
+% Previous studies have leveraged neural networks in proposing variations of GoP.
+% However, studies have reported that modern neural netowkrs have the tendency to produce overly confident predictions, which 
+
+% However, modern neural networks are known to produce overly confident predictions. 
+% This negatively impacts traditional GoP performance, which heavily relies on phone probability from acoustic models. 
+% With UQ methods having shown to alleviate overconfidence of the neural networks,
+
+% GoP is the traditional way of assessing pronunciations of atypical speech.
+% While variations of GoP have been suggested by leveraging the development of neural networks (NN), recent research reported that NNs produce overly confident predictions. 
+% This negatively impacts GoP performance, as the measures heavily rely on phone probability from acoustic models. 
+% To alleviate the problem, this paper proposes to incorporat UQ methods into GoP.
+
+% As dysarthric speech exhibits great intra-speaker and inter-speaker variability, modifications to normalize the probabilities are necessary for optimal GoP performance. 
+% Phone probabilities are extracted from a cross-lingual XLS-R model fine-tuned with healthy speech.
+% Then, UQ methods are applied to normalize the acoustic deviations of each phonemes in two ways.
+% First, probabilities are replaced with new phoneme predictions.
+% Second, such predictions are normalized with each phoneme probability. 

@@ -1,0 +1,62 @@
+
+\section{Proposed Method}
+This section describes the proposed multi-modal pronunciation assessment method. First, we outline the three components of our system: the pre-trained acoustic encoder from data2vec2, the m-adapter as a modality adapter, and the LLM-based pronunciation assessment module. Then, we introduce the two-stage training process. The overall pipeline for pronunciation assessment is illustrated in Figure~\ref{fig: model}. 
+
+\subsection{Speech Encoder}
+Data2vec2~\cite{data2vec2} was employed as the audio encoder because of its versatility, efficiency, and outstanding performance in speech tasks. It comprises several convolutional blocks and multi-layer transformers. The convolutions in each block have 512 channels with strides of (5, 2, 2, 2, 2, 2, 2) and kernel sizes of (10, 3, 3, 3, 3, 2, 2). It transforms 16 kHz raw audio into a sequence of embeddings with a stride of 20 ms and a receptive field of 25 ms.
+
+For each sample, given the raw audio $\mathbf{x_s}$, the speech features $\mathbf{h_s}$ was firstly extracted from the last hidden layer through the data2vec2 based speech encoder, which can be written as:
+
+\begin{equation}
+\label{eq:speech_encoder}
+\mathbf{h_s} =  {SpeechEncoder}(\mathbf{x_s}),
+\end{equation}
+
+
+\subsection{Modality adapter}
+The m-adapter~\cite{m-adapter} was firstly introduced for speech translation tasks. We employed it as a modality adapter in our model to connect the speech and text modalities. It consists of two pooling convolutions and a multi-head self-attention (MSA) layer. The pooling operations are used to modify the speech sequence length, while the MSA captures global information.
+
+This work follows the paper~\cite{seamless} by replacing the three independent pooling modules for Q, K, and V with a shared pooling module to streamline the architecture and improve the efficiency of the model. In general, given the speech features $\mathbf{h_s}$ extracted from the speech encoder, a convolutional pooling operation is first used to adapt the speech length. These adapted features are then fed into the MSA layers to obtain the modality adapter features $\mathbf{{h'}_s}$, expressed as follow:
+
+\begin{equation}
+\label{eq:adapter}
+\mathbf{{h'}_s} =  {Adapter}(\mathbf{h_s}),
+\end{equation}
+
+% 这个模块的直觉是，语音信号在时域上的特征数量比文本长度要大得多，一种scale的方法需要被应用在语音特征上来平衡两个模态的信息量。
+The intuition of this module is that the number of features in the time domain of the speech signal is much larger than the length of the text. A scaling method needs to be applied to the speech features to balance the amount of information between the two modalities.
+
+\begin{table*}[t!]
+\vspace{1pt}
+  \centering
+  \caption{The WER results on Librispeech dataset comparing with other multi-modal systems. We briefly outlined the differences in these systems regarding speech encoders and modality adapters. Extra data indicates that these systems used additional training data besides Librespeech.}
+   \label{table:asr_main}
+\begin{tabular}{llcccc}
+\toprule
+      \multicolumn{1}{l}{\textbf{Model}}       & \textbf{Speech encoder} & \textbf{Modality adapter}    & \textbf{Extra data}  & \textbf{Test-clean} & \textbf{Test-other}   \\ \midrule
+      SALMONN \cite{salmonn}           &    Whisper~\cite{whisper}, Beats   &  Q-former     &   \cmark             & 2.4                 & 5.4                        \\
+      WavLLM~\cite{wavllm}     &  Whisper, WavLM          &  Linear &  \cmark         & 2              &  4.8                         \\  
+      Qwen-Audio \cite{qwen_audio}  &  Whisper    & Linear &    \cmark   &   2.04     &  4.19                        \\ 
+     SALM \cite{salm}  &     Hubert~\cite{hubert}   &  Linear &  \xmark       &   1.94        & 3.81                       \\ 
+     Proposed   &     Data2vec2   & M-adapter & \xmark       &   \textbf{1.73}          &  \textbf{3.7}                       \\ 
+
+\bottomrule
+
+\end{tabular}
+\end{table*}
+
+\subsection{Pronunciation assessment with LLM}
+Decoder-only LLM serves as a foundational component in the proposed method. We expect it to understand the learner's speech, analyse the difference between speech and the canonical text, and then make decisions regarding accuracy and fluency scores accordingly. 
+
+For the text input of the LLM, we define the task-specific prefix as ``$<Pronunciation~Assessment>$". Additionally, in follow-up scenarios, The prompt text, as an important reference cue, can be considered as the text input of the LLM. Therefore, the final text input of LLM is defined as ``$<Pronunciation~Assessment> the~prompt~text~is~...$", and then the text input will be transformed into embedding features denoted as $\mathbf{{h}_t}$. Finally, we concatenate the embedding features with adapter-modified speech features $\mathbf{{h'}_s}$ and then fed the concatenated features into the LLM to obtain the final prediction text $\mathbf{y}$ through a token decoding operation as equation\eqref{eq:llm}, where the [;] denotes the concatenation of two vectors.
+
+
+\begin{equation}
+\label{eq:llm}
+\mathbf{y} =  {LLM}([\mathbf{{h'}_s};\mathbf{h_t}]),
+\end{equation}
+
+\subsection{Two stages training  strategy}
+The proposed method adopts a two-stage training strategy. Previous studies have shown that the performance of traditional align-based methods can be affected by the ASR system, as accuracy scoring heavily relies on speech content recognition. Therefore, in the first stage, we train the multi-modal model on the ASR task to make the connection between the two modalities more robust, which may benefit the pronunciation assessment task. We took the ASR task-specific prefix ``$<transcript>$" as the text input and then utilized limited ASR data to complete the ASR task training.
+
+In the second stage, we fine-tuned the model trained in the first stage using a limited amount of scoring data based on the ``$<pronunciation~assessment>$" assessment task-specific prefix and prompt text. For the ground truth, we structured it as ``$accuracy:9~fluency:7$", aiming for LLM to output scores in such a format to achieve multi-task scoring for both accuracy and fluency. 

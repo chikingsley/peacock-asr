@@ -1,0 +1,125 @@
+\documentclass{article}
+\usepackage{style/spconf,amsmath,graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{enumitem}
+
+\title{To Reviewer 1A7D}
+% \name{S3T: Self-Supervised Pre-training with Swin Transformer for Music Classification}
+\name{}
+\address{}
+
+\begin{document}
+\maketitle
+
+\section{Novelty/Originality}
+% We would like to emphasize S3T's contributions and address major concerns below. 
+% ~\cite{spijkervet2021contrastive}
+\noindent\textbf{[Novelty]} Self-supervised learning (SSL) is important for the music domain, however, it lacks related research. Compared to CLMR, S3T aims to contribute a self-supervised prototype that could learn music representation containing both local and global features across frequency and time via an effective self-supervised framework. To address this, S3T introduces flexible data augmentations, a self-attention based hierarchical features extractor Swin Transformer and specific-designed pre-processors, and small-batch efficient MoCo. 
+% Music signals are different from images or text due to their time-varying nature.
+% Common CNN-based feature extractors like SampleCNN used in CLMR focus on local invariance which are unable to capture the time-dependent global features. The widely-used Transformers in NLP could capture temporal features while lack of cross-frequency features for music time-frequency domain. Swin Transformer could retain both CNN's translation invariance and Transformers' global dependency modeling. It learns hierarchical representations which capture local features with in-window attention and capture global features by a shifted windowing mechanism together with varying resolutions by gradually merging receptive fields. Besides, the data augmentation pipeline is also specially developed for music.
+\\
+
+\noindent\textbf{[S3T v.s. CLMR]} \\
+% in order to learn augmentation-invariant representations and increase the difficulty of learning, 
+1) \noindent\textbf{Data domain.} Instead of the raw audio used in CLMR, S3T works on music time-frequency domain, constant-Q transform (CQT) more specifically. CQT is a well-suited transform for musical data which describes the harmonics of musical notes and the timbre of the instrument. Besides, we design a flexible augmentation pipeline to render samples as diverse as possible. Unlike CLMR uses a fixed length of 2 to 3 seconds audio as input, S3T takes spectrograms ranging from 8 to 160 seconds. Thus, S3T could see various musical samples during pre-training, which helps it learn augmentation-invariant representations.
+\\
+2) \noindent\textbf{Feature extractor.} SampleCNN in CLMR extracts local features from raw audio while lacking ability to capture global dependencies. However, Swin Transformer in S3T extracts both local translation invariance and global features across frequency and time. It learns hierarchical representations with local features via a shifted window self-attention mechanism and global features via varying resolutions by gradually merging receptive fields. Thus, S3T could describe both global dependencies across frequency and time, which is especially meaningful for music representation learning.
+\\
+3) \noindent\textbf{SSL.} S3T is built upon MoCo. MoCo performs contrast within a fixed-size queue instead of in-batch contrast, and the size of the queue is 65,536 which is much larger than the batch size 1024. Such a momentum queue mechanism enables efficient self-supervised training with music spectrograms. 
+% 1) The problem we are trying to solve with S3T: Compared to CLMR, S3T is aimed to learn music representation which describes both local features and global dependencies in music time-frequency domain via effective self-supervised framework. \\
+% 2) The reason that S3T outperforms CLMR: According to the differences of music domain and image domain we mentioned above, we apply Swin Transformer and design pre-processors to adapt it to music domain. Swin Transformer could retain both CNN's translation invariance and Transformers' global dependency modeling.
+
+\section{Technical Correctness}
+
+We apologize for the ambiguous notations and we will change them in the next version by replacing the \% with "points" when comparing different results.
+
+\section{Experimental Validation}
+% \textbf{[Ablation studies]}
+% Besides encoders and pre-processors, we will clarify the effectiveness of the other two components of S3T: SSL framework and data augmentations. \\
+\textbf{[SSL framework]} S3T is a music representation learning prototype that should work for most self-supervised learning frameworks. We choose MoCo for its small-batch friendly setting. And we would like to explore more SSL frameworks under the S3T prototype in our future work. \\
+
+\noindent\textbf{[Data augmentation]} 
+% As for the data augmentations, we made several efforts to [get] an effective augmentation combinations on music time-frequency domain. 
+% To obtain appropriate augmentations parameters, we have invited our music expertise to evaluate the augmented samples which are applied one of the augmentations with different intensity. 
+To obtain proper augmentations, we have invited our music expertise to evaluate the validity of 2,800 augmented samples each was applied with one of the augmentations with different intensities.
+% To fit the purpose of contrastive learning which attracts positive samples together while pulls away negative samples, 
+Each augmented sample was evaluated with two metrics: whether it retains musicality and how much it is auditory similarly to the original sample. Thus, the proposed parameters of each augmentation are curated according to the evaluation results. Besides, randomness is added to cropping, masking, and shifting augmentations to increase data diversity.
+% one key component of contrastive learning is its ability to attract positive samples and repels negative samples, thus, the more versions of one clip the model could see the more easier for the model to recognize its positive counterpart from negative ones. To this point, we also upgrade each augmentation to render much diverse music samples. For example, when performing masking, the number of masks, the length of each mask, and the location of each mask are totally random selected. Similarly, shifting also apply some kind of randomness mechanism. 
+Table~\ref{tab:ablation_aug} compares the performance before and after applying the random version of data augmentation and shows its effectiveness. In the future version, we would like to compare the effectiveness of each augmentation separately.
+
+\noindent\textbf{[Pre-processors]} We update Table~\ref{tab:pre_processor_new} with a statistical significance testing by repeating the train/test runs 5 times, and report the mean results with standard deviations to rule out the influence of random error. The latest result on GTZAN in Table~\ref{tab:pre_processor_new} has already surpassed the supervised SOTA.
+
+% Meanwhile, we update the latest result on GTZAN in Table~\ref{tab:main_results_new} correspondingly.
+% 加个aug优化前后的效果对比表，gtzan+fma-small的top1/top5比较
+\begin{table}[t]
+\centering
+\small 
+\vspace{-0.3cm}
+\begin{tabular}{ c | c c c c}
+	\toprule
+	\multirow{2}{*}[-0.7ex]{Method}  & \multicolumn{2}{c}{FMA} & \multicolumn{2}{c}{GTZAN} \\
+    \cmidrule(lr){2-3} 
+    \cmidrule(lr){4-5}
+    & Top-1(\%) & Top-5(\%) & Top-1(\%) & Top-5(\%) \\
+	\midrule
+	\textit{Naive Aug} & 54.4 & 94.3 & 66.0 & 90.4\\
+	\textit{Random Aug} & 58.5 & 93.1 & 69.5 & 93.9 \\
+	\bottomrule
+\end{tabular}
+\vspace{-0.2cm}
+\caption{Comparison of the results on FMA and GTZAN of different data augmentation pipelines.}
+\label{tab:ablation_aug}
+% \vspace{-0.3cm}
+\end{table}
+
+\begin{table}[t]
+\centering
+\setlength\tabcolsep{20pt}
+\small 
+% \vspace{-0.3cm}
+\begin{tabular}{ c | c  c }
+	\toprule
+	\multirow{2}{*}[-0.7ex]{Pre-processor} & \multicolumn{2}{c}{GTZAN} \\
+	\cmidrule(lr){2-3}
+	& Top-1(\%) & Top-5(\%) \\
+	\midrule
+	\textit{Frequency Tiling} & 78.3 ($\pm{0.2}$) & 96.6 ($\pm{0.4}$) \\
+    \textit{Time Folding} & \textbf{81.1} ($\pm{0.4}$) & \textbf{97.2} ($\pm{0.5}$) \\
+	\bottomrule
+\end{tabular}
+\vspace{-0.2cm}
+\caption{Comparison of the results on GTZAN of different pre-processors.}
+\label{tab:pre_processor_new}
+\vspace{-0.5cm}
+\end{table}
+
+% \begin{table}[t]
+% \centering
+% \small 
+% \vspace{0.3cm}
+% \begin{tabular}{ c | c c c c}
+% 	\toprule
+% 	\multirow{2}{*}[-0.7ex]{Method}  & \multicolumn{2}{c}{MTAT} & FMA & GTZAN \\
+%     \cmidrule(lr){2-3} 
+%     \cmidrule(lr){4-4} \cmidrule(lr){5-5}
+% 	& PR-AUC & ROC-AUC  & Top-1(\%) & Top-1(\%) \\
+% 	\midrule
+% 	\textit{Random Init} & 18.0 & 73.5 & 26.0 & 27.6 \\
+%     \textit{Supervised} & 38.3 & \textbf{90.6} & 42.7 & 79.0 \\
+%     \textit{SSL (CLMR)} & 36.1 & 89.4 & 48.4 & 68.6 \\
+%     \textit{S3T (Ours)} & \textbf{40.9} & 89.9 & \textbf{56.4} & \textbf{81.1} \\
+% 	\bottomrule
+% \end{tabular}
+% \vspace{-0.2cm}
+% \caption{Comparison of linear evaluation results of S3T with other three methods. Supervised results are the state-of-the-art task-specific results.}
+% \label{tab:main_results_new}
+% % \vspace{-0.3cm}
+% \end{table}
+
+
+% \bibliographystyle{style/IEEEbib}
+% \bibliography{bib/refs}
+\end{document}

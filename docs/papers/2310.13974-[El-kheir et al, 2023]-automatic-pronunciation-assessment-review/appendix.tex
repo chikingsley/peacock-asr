@@ -1,0 +1,397 @@
+\section{Mispronunciation Assessment and Non-Native Datasets}
+% \section{Annotated Mispronunciation and Non-Native Datasets}
+\label{sec:datasets}
+
+
+In this section, we provide a comprehensive overview of existing pronunciation assessment datasets as presented in Table \ref{tab:datasets}.
+
+
+
+% \label{sec:annotation}
+% \subsection{CMU Kids Corpus \cite{cmu}}
+% The CMU Kids corpus consists of sentences that have been read aloud by children aged between 6 and 11 years old. The recordings were conducted in a controlled environment. The corpus includes a total of 76 speakers, comprising 24 males and 52 females, amounting to approximately 9 hours of recorded speech. Notably, the corpus has been transcribed at both the phoneme and word levels.
+\subsection{ISLE Speech Corpus \cite{ISLE}}
+
+The ISLE corpus stands out as one of the largest speech corpora in terms of duration and offers the advantage of being distributed by ELDA. This corpus focuses on German and Italian accented English, featuring recordings of $23$ intermediate-level speakers from each accent group. The participants, primarily employees and students from project sites in Italy, Germany, and the UK, were selected to achieve a balance of native languages (German/Italian) while including a small number of non-native speakers from other countries (Spanish, French, Chinese) and native British English speakers for comparison purposes. The corpus contains readings of both nonfictional autobiographic text ($1300$ words) and short utterances ($1100$ words) designed to cover common pronunciation errors made by language learners. It offers annotations at both the word and phone levels, making it particularly valuable for developing Computer Assisted Language Learning systems. The annotation process involved multiple steps, including quality checks, reference transcription, forced alignment, and the addition of canonical pronunciations and stress markings. An emphasis was placed on matching non-English phones to the closest equivalent in the UK English phone set, with occasional input from a trained phonetician and a native speaker of the speaker's mother tongue for verification and quality improvement purposes.
+
+\subsection{English read by Japanese Corpus (ERJ) \cite{ERJ}}
+
+The ERJ corpus (English Read by Japanese) is a database of English speech read by Japanese students. It was created  to support research in computer-assisted language learning (CALL). The corpus contains 800 utterances from 202 (100 males and 102 females) Japanese university students, each of whom read a set of 100 sentences. The sentences were selected to be phonetically balanced and to cover a variety of grammatical structures. The corpus is annotated with phonemic transcriptions and prosodic markings. The ERJ corpus consists of two sets of data: a phonemic pronunciation set and a prosody set. The phonemic pronunciation set contains 460 phonetically-balanced sentences, 32 sentences including phoneme sequences difficult for Japanese to pronounce correctly, and 100 sentences designed for the test set. The prosody set contains 94 sentences with various intonation patterns, 120 sentences with various accent and rhythm patterns, and 109 words with various accent patterns. The ERJ corpus is annotated with phonemic transcriptions and prosodic markings. The phonemic transcriptions are based on the International Phonetic Alphabet (IPA). The prosodic markings include information about intonation, accent, and rhythm.
+
+% \subsection{ATR-Gruhn \cite{gruhn}}
+% ATR-Gruhn is a speech corpus that offers the advantage of proficiency ratings assigned to the speakers is available. This corpus comprises recordings from 89 non-native speakers of English, with an evenly distributed representation of speakers from China, France, Germany, Indonesia, and Japan. Furthermore, there are seven speakers with other native languages included. Each speaker participated in reading 25 credit card number sequences, 48 phonetically rich sentences, and six hotel reservation dialogs. The proficiency ratings were carried out by native English speakers from the United States and Canada, who possess teaching experience.
+
+
+% \subsection{PF-Star Speech Corpus \cite{pfstar}}
+% The PF STAR Children corpus, contributed by the KTH Research group, shares similarities with the CMU-Kids corpus as it was also recorded in a controlled environment. However, this corpus exhibits greater diversity in terms of speakers, with 108 male and 91 female children. The corpus comprises two types of recordings, each consisting of approximately 9 hours of speech. One type was recorded using headsets, while the other type was recorded using desktop microphones. Additionally, the corpus includes word-level transcriptions for the recorded speech.
+
+
+% \subsection{Cross Towns \cite{Cross_Town}}
+% Cross Towns is a rich non-native language corpus covering various language directions, involving speakers of one native language speaking another language. In total, the corpus encompasses 24 different language directions. Each recording within a language direction includes two sets of 45 city names per speaker. Firstly, the speaker reads the 45 city names from a prompt, and then they repeat them after listening to the names through headphones. Furthermore, 13,000 of the utterances in the corpus have undergone manual transcription at the phonetic level. Additionally, the corpus provides information regarding the language proficiency of the speakers.
+
+
+\subsection{Chinese University Chinese Learners of English (CU-CHLOE) \cite{CH-CHLOE}}
+The CU-CHLOE corpus encompasses a diverse group of speakers, including 110 Mandarin speakers (60 males and 50 females) and 100 Cantonese speakers (50 males and 50 females). It is structured into five distinct sections, namely confusable words, minimal pairs, phonemic sentences, the Aesop's Fable "The North Wind and the Sun," and prompts sourced from the TIMIT dataset. Trained linguists have diligently labeled all sections, except for the TIMIT prompts, contributing to approximately 30\% of the comprehensive CHLOE data. This expert annotation ensures the corpus provides reliable and precise linguistic information, making it a valuable resource for exploring Mandarin and Cantonese speech characteristics and facilitating advancements in research within these languages.
+
+
+% \subsection{CSLU \cite{CSLU}}
+% CSLU database is notable for its wide range of non-native accents, including 22 different accents. The corpus comprises recordings of foreign speakers speaking about themselves in English for 20 seconds, conducted over the telephone. An important feature of this corpus is the inclusion of human judgments rating the level of foreign accent on a scale of one to four. With a total of 5000 utterances, each lasting 20 seconds, the estimated size of the corpus is approximately 30 hours.
+
+\subsection{EURONOUNCE \cite{euronounce}}
+EURONOUNCE is a speech corpus developed for an ASR-based pronunciation tutoring system. The annotation conveys a phonetic segmentation, with identifying pronunciation errors, including substitutions, insertions, and deletions. The resulting annotations are then reviewed by a native speaker of the source language (German) to validate the assessment. 
+
+\subsection{iCALL \cite{chen2015icall}}
+iCALL is comprised of 90,841 spoken statements delivered by 305 individuals, spanning a cumulative duration of 142 hours. The speaker composition ensures gender equality, encompasses various native languages, and reflects a representative range of adult Mandarin learners. These oral statements have been transcribed phonetically and evaluated for fluency by proficient native Mandarin speakers.
+
+\subsection{SingaKids-Mandarin \cite{chen2016singakids}}
+SingaKids-Mandarin is a comprehensive speech corpus consisting of recordings from 255 Singaporean children between the ages of 7 and 12. The corpus aims to provide a resource for studying Mandarin Chinese pronunciation and language acquisition in Singaporean children. The corpus contains a total of 125 hours of audio data, with 75 hours dedicated to speech. Within this dataset, there are 79,843 utterances, each of which has been meticulously annotated by human experts. The annotations include phonetic transcriptions, lexical tone markings, and proficiency scoring at the level of individual utterances. The reading scripts used in the corpus encompass a wide range of utterance styles. They cover syllable-level minimal pairs, individual words, phrases, complete sentences, and even short stories. This diversity allows for a thorough analysis of different aspects of Mandarin pronunciation and fluency in Singaporean children.
+
+\subsection{SHEFCE \cite{shefce}}
+SHEFCE (ShefCE) is a bilingual parallel speech corpus that focuses on Cantonese and English. It was recorded by second language (L2) English learners in Hong Kong. The corpus consists of recordings from 31 undergraduate to postgraduate students, aged 20 to 30. The corpus includes a total of 25 hours of speech data, with approximately 12 hours recorded in Cantonese and 13 hours recorded in English. The primary goal of this corpus is to provide a resource for studying the speech patterns, pronunciation, and language acquisition of Cantonese-speaking individuals who are learning English as a second language.
+
+\subsection{L2-ARCTIC \cite{L2-ARCTIC}}
+The L$2$-ARCTIC\footnote{version $5$ released in $2020$ avalaible: https://psi.engr.tamu.edu/l2-arctic-corpus} corpus is a specialized speech corpus designed for research in voice conversion, accent conversion, and mispronunciation detection in non-native English. It encompasses a substantial collection of $26867$ utterances from $24$ non-native speakers ($12$ males and $12$ females) whose $L1$ languages include Hindi, Korean, Mandarin, Spanish, Arabic, and Vietnamese. The recordings were sourced from a total of $4$ speakers per $L1$ language, consisting of $2$ males and $2$ females ensuring a balanced distribution in terms of gender and native languages (L1s). Yet, only $150$ utterances is manually per speaker to identify three types of segmental mispronunciation errors: substitutions, deletions, and insertions resulting in $3.66$ hours.
+% The L2-ARCTIC corpus is a specialized speech corpus designed for research in voice conversion, accent conversion, and mispronunciation detection in non-native English. It encompasses a substantial collection of $26867$ utterances from $24$ non-native speakers, ensuring a balanced distribution in terms of gender and native languages (L1s). The total corpus duration is of $27.1$ hours. On average, each L2 speaker contributes approximately $67.7$ minutes of speech (standard deviation: $8.6$ minutes). Each individual utterance in the corpus has an average duration of $3.6$ seconds, with minimal pauses of no more than $100$ ms before and after each utterance. The forced alignment results indicate a speech to silence ratio of $7:1$ across the entire dataset. Additionally, the corpus comprises over $238702$ word segments, with an average of around nine words per utterance, and over $851830$ phone segments (excluding silence). For meticulous analysis, human annotators manually examined $3599$ utterances, annotating $14,098$ phone substitutions, $3420$ phone deletions, and $1092$ phone additions. It should be noted that not all speakers read all sentences, and a few sentences were excluded for certain speakers due to insufficient recording quality. These statistics demonstrate the extensive and detailed nature of the L2-ARCTIC corpus, providing researchers with a rich resource for in-depth investigations in the field of non-native English speech analysis.
+
+
+% \subsection{NATO HIWIRE}
+% NATO HIWIRE corpus consists of speech recordings from a total of 81 speakers, specifically collected during a military pilot-ground control conversation task. An advantageous aspect of this corpus, particularly for general speech recognition purposes, is that it was initially recorded in a studio environment and subsequently combined with realistic cockpit noise. As a result, the corpus encompasses two distinct signal levels: one with clean speech and another with the inclusion of added noise.
+
+% \subsection{CLIPS-IMAG}
+% CLIPS-IMAG corpora features French non-native speech by Vietnamese and Chinese speakers. With a substantial total duration of 6 hours. The speech recordings encompass dialogues and articles within the tourist domain. Although the sentences in the corpus maintain a spontaneous nature, it is important to note that the data consists of read speech.
+
+\subsection{VoisTUTOR corpus \cite{voistutor}}
+VoisTUTOR is a pronunciation assessment corpus of Indian second language (L$2$) learners learning English.  The corpus consists of audio recordings of $16$ Indian L$2$ learners reading a set of 1676 sentences. The recordings are accompanied by phonetic transcriptions, human ratings of pronunciation accuracy on a scale of $0$ to $10$ for each utterance, and binary decisions for seven factors that affect pronunciation quality: intelligibility, phoneme quality, phoneme mispronunciation, syllable stress quality, intonation quality, correctness of pauses, and mother tongue influence. 
+
+\subsection{SELL-CORPUS \cite{sell-corpus}}
+SELL-CORPUS is a multiple accented speech corpus for L2 English learning in China. The corpus consists of audio recordings of 389 volunteer speakers, including 186 males and 203 females. The speakers are from seven major regional dialects of China, including Mandarin, Cantonese, Wu, Min, Hakka, and Southwestern Mandarin. The corpus contains 31.6 hours of speech recordings. Each recording in the corpus contains a word-level orthographic transcription manually inspected and cleaned by inserting, substituting, or deleting mismatching characters. 
+
+\subsection{English Pronunciation by Argentinians Database (EpaDB) \cite{epadb}}
+EpaDB consists of English phrases recorded by native Spanish speakers with varying levels of English proficiency. The recordings are annotated with ratings indicating the quality of pronunciation at the phrase level. Additionally, detailed phonetic alignments and transcriptions are provided, indicating which phones were actually pronounced by the speakers. 
+
+% \subsection{Boulder Learning-MyST Corpus \cite{boulder}}
+% MyST Corpus consists of dialog interaction between a student and a virtual tutor on science topics; typically 20-40 minute duration of a session; roughly 49\% of the utterances have been transcribed, and more being transcribed. volunteers encouraged. 
+
+
+% \subsection{TLT-school \cite{tlt}}
+% TLT-school is a corpus of speech utterances collected in schools of northern Italy for assessing the performance of students learning both English and German. The corpus was recorded from students aged between 9 and 16, attending primary, middle, and high school. All utterances have been scored, in terms of some predefined proficiency indicators, by human experts. In addition, a subset of utterances have been manually transcribed carefully. (Part of it free)
+
+\subsection{Speechocean762 \cite{speechocean762}}
+Speechocean762 is an extensive dataset specifically designed for pronunciation assessment. It comprises a total of 5,000 English utterances obtained from 250 non-native speakers. Each utterance in the dataset is associated with five aspect scores at the utterance level, namely accuracy, fluency, completeness, prosody, and a total score ranging from 0 to 10. Additionally, for each word within the utterance, three aspect scores are provided, including accuracy, stress, and a total score ranging from 0 to 10. Furthermore, an accuracy score is assigned to each individual phoneme, ranging from 0 to 2. To ensure reliability, each of these scores is annotated by five expert evaluators.
+
+
+
+ 
+\subsection{LATIC \cite{mqtj-qh10-21}}
+LATIC primarily targets non-native learners of Mandarin Chinese. The dataset comprises four hours of recordings involving specifically selected non-native Chinese speakers. The participants' L1's vary, including Russian, Korean, French, and Arabic. Following each audio file, annotators transcribed the "closest" transcript and provided modern Mandarin annotations after careful listening.
+
+\subsection{Arabic-CAPT \cite{algabri2022mispronunciation}}
+Arabic-CAPT is an Arabic mispronunciation detection corpus consisting of 62 non-native Arabic speakers from 20 different nationalities, totaling 2.36 hours of speech data. The Arabic non-native speech is annotated following the guidelines in \cite{L2-ARCTIC}.
+
+
+\subsection{AraVoiceL2 \cite{speechblender}}
+AraVoiceL2 is an Arabic mispronunciation detection corpus comprised of $5.5$ hours of data recorded by $11$ non-native Arabic speakers. Each speaker recorded a fixed list of $642$ words and short sentences, making for a total of $7,062$ recordings. The corpus is annotated at character level including diacritics following \cite{speechocean762} guidelines.
+
+% \begin{table*}[htbp]
+%   \centering
+%   \setlength{\tabcolsep}{7pt} % Adjust the spacing between columns
+%   \renewcommand{\arraystretch}{1.5} % Adjust the spacing between rows
+%   \begin{tabular}{p{6cm}cccc}
+  
+%   % {*{6}{>{\centering\arraybackslash}X}}
+%     \toprule
+%     Corpus & Languages & Dur / \#Utt & \#Speakers & Date  \\
+%     \midrule
+%     \midrule
+%     Boulder Learning—MyST Corpus \cite{boulder} & English & 393h / 228874 & 1371 & 2019\\    \midrule
+
+%     CMU Kids Corpus \cite{cmu} & English & / 5180 & 76 & 1997\\    \midrule
+
+%     PF-STAR Children's Speech Corpus \cite{pfstar} & English & 14.5h & 158 & 2006\\    \midrule
+
+%     CALL-SLT \cite{callslt} & German & 5000 & - & 2014\\\midrule
+%     TBALL \cite{tball} & English & 40h / 5000 & 256 & 2005\\    \midrule
+
+%     CASS\_CHILD \cite{casschild} & Mandarin & - & 23 & 2012\\    \midrule
+
+%     CU Children's Read and Prompted Speech Corpus \cite{cu_children} & English & 100 & 663 & 2001\\\midrule
+%     CU Story Corpus \cite{cu_children} & English & 40h / 7062 & 106 & 2003\\    \midrule
+
+%     Providence Corpus \cite{providence_corpus} & English & 363h & 6 & 2006\\    \midrule
+
+%     Lyon Corpus \cite{lyon} & French & 185h & 4 & 2007\\ \midrule
+%     Demuth Sesotho Corpus \cite{demuth1992acquisition} & Sesotho & 98h / 13250 & 4 & 1992\\    \midrule
+
+%     CHIEDE \cite{chiede} & Spanish & 8h / 15444 & 59 & 2008\\    \midrule
+
+%     TIDIGITS \cite{tidigits} & English & - & 326 & 1993\\    \midrule
+
+%     Swedish NICE Corpus \cite{swedish} & Swedish & - & 5580 & 2005\\    \midrule
+
+%     CFSC \cite{CFSC} & Filipino & 8h & 57 & 2012 \\
+%     \midrule
+%     TLT-school \cite{gretter2020tlt} & English and German & ~119.1h / 26059 & 6547 & 2016-2017 \\
+%     \midrule
+%     \midrule
+%   \end{tabular}
+%   \newline
+%     \caption{Non-native Speech Datasets. An interactive version of this table is also available \href{https://en.wikipedia.org/wiki/List_of_children%27s_speech_corpora}}
+
+% \end{table*}
+
+% \begin{center}
+% \begin{table*}[htbp]
+%   \centering
+%   \setlength{\tabcolsep}{7pt} % Adjust the spacing between columns
+%   \renewcommand{\arraystretch}{1.5} % Adjust the spacing between rows
+%   \begin{tabularx}{\textwidth}{*{7}{>{\centering\arraybackslash}X}}
+%     \toprule
+%     Corpus & Languages & Native Language (L1) & Dur / \#Utt & \#Speakers & Date  \\
+%     \midrule
+%     \midrule
+%     ISLE \cite{ISLE} & English & German and Italian & 18h & 46 & 2000\\
+%     ERJ \cite{ERJ} & English & Japanese & - / 68000 & 200 & 2002 \\
+%     ATR-Gruhn \cite{gruhn} & English & Chinese, German, French, Japanese, and Indonesian & - / 15000 & 96 & 2004\\
+%     Cross Towns \cite{Cross_Town}  & English, French, German, Italien, Czesh, and Dutch & English, French, German, Italien, and Spanish & 133h / 72000 & 161 & 2006\\
+%     CU-CHLOE \cite{CH-CHLOE} & English & Cantonese and Mandarin & - & 210 & 2007\\
+%     CSLU \cite{CSLU} & English & 22 countries & - / 5000 & - & 2007\\
+%     EURONOUNCE \cite{euronounce} & Polish & German & / 721 & 18 & 2009\\
+%     SingaKids-Mandarin \cite{singa} & Mandarin & Singaporean (English) & 125h & 255 & 2016\\
+%     SHEFCE \cite{shefce} & English, Cantonese & English, Cantonese & 25h & 31 & 2017 \\
+%     VoisTUTOR \cite{voistutor} & English & Kannada, Malayalam, Telugu, Tamil, Hindi and Gujarati & 1676 & 16 & 2019\\
+%     EpaDB \cite{epadb} & English & Spanish &  / 3200 & 50 & 2019\\
+%     SELL-CORPUS \cite{sell-corpus}  & English & Chinese & 31.6 & 389 & 2019\\
+%     L2-ARCTIC \cite{L2-ARCTIC} & English & Hindi, Korean, Mandarin, Spanish, and Arabic & $3.66$h & 24  & 2018 (v5 2020) \\     
+%     SpeechOcean762 \cite{speechocean762}  & English & Chinese & / 5000 & 250 & 2021\\
+%     AraVoiceL2 \cite{speechblender} & Arabic & Turkey, Nigeria, Bangladesh, Indonesia, Malaysia & 5.5h / 7062 & 11 & 2022\\
+%     \midrule
+%     \midrule
+
+%   \end{tabularx}
+%   \newline
+%     \caption{Fancy Table}
+
+% \end{table*}
+
+% \begin{table*}[htbp]
+%   \centering
+%   \setlength{\tabcolsep}{7pt} % Adjust the spacing between columns
+%   \renewcommand{\arraystretch}{1.5} % Adjust the spacing between rows
+%   \begin{tabularx}{\textwidth}{*{6}{>{\centering\arraybackslash}X}}
+%     \toprule
+%     Corpus & Languages & Dur / \#Utt & \#Speakers & Date  \\
+%     \midrule
+%     \midrule
+%     Boulder Learning—MyST Corpus \cite{boulder} & English & 393h / 228874 & 1371 & 2019\\
+%     CMU Kids Corpus \cite{cmu} & English & / 5180 & 76 & 1997\\
+%     PF-STAR Children's Speech Corpus \cite{pfstar} & English & 14.5h & 158 & 2006\\
+%     CALL-SLT \cite{callslt} & German & 5000 & - & 2014\\
+%     TBALL \cite{tball} & English & 40h / 5000 & 256 & 2005\\
+%     CASS\_CHILD \cite{casschild} & Mandarin & - & 23 & 2012\\
+%     CU Children's Read and Prompted Speech Corpus \cite{cu_children} & English & 100 & 663 & 2001\\
+%     CU Story Corpus \cite{cu_children} & English & 40h / 7062 & 106 & 2003\\
+%     Providence Corpus \cite{providence_corpus} & English & 363h & 6 & 2006\\
+%     Lyon Corpus \cite{lyon} & French & 185h & 4 & 2007\\
+%     Demuth Sesotho Corpus \cite{demuth1992acquisition} & Sesotho & 98h / 13250 & 4 & 1992\\
+%     CHIEDE \cite{chiede} & Spanish & 8h / 15444 & 59 & 2008\\
+%     TIDIGITS \cite{tidigits} & English & - & 326 & 1993\\
+%     Swedish NICE Corpus \cite{swedish} & Swedish & - & 5580 & 2005\\
+%     CFSC \cite{CFSC} & Filipino & 8h & 57 & 2012 \\
+%     \midrule
+%     \midrule
+
+%   \end{tabularx}
+%   \newline
+%     \caption{Fancy Table}
+
+% \end{table*}
+% \end{center}
+
+
+% \section{Datasets}
+
+% \subsection{L2-ARCTIC}
+% The L$2$-ARCTIC\footnote{version $5$ released in $2020$ avalaible: https://psi.engr.tamu.edu/l2-arctic-corpus} corpus is a specialized speech corpus designed for research in voice conversion, accent conversion, and mispronunciation detection in non-native English. It encompasses a substantial collection of $26867$ utterances from $24$ non-native speakers ($12$ males and $12$ females) whose $L1$ languages include Hindi, Korean, Mandarin, Spanish, Arabic, and Vietnamese. The recordings were sourced from a total of $4$ speakers per $L1$ language, consisting of $2$ males and $2$ females ensuring a balanced distribution in terms of gender and native languages (L1s). Yet, only $150$ utterances is manually per speaker to identify three types of segmental mispronunciation errors: substitutions, deletions, and insertions resulting in $3.66$ hours.
+
+% \subsection{Speechocean762}
+% Speechocean762 is an extensive english dataset designed for segmental and supra-segmental pronunciation assessment. It comprises a total of $5000$ English utterances obtained from $250$ chinese non-native speakers. Each utterance in the dataset is associated with five aspect scores at the utterance level, namely accuracy, fluency, completeness, prosody, and a total score ranging from $0$ to $10$. Additionally, for each word within the utterance, three aspect scores are provided, including accuracy, stress, and a total score ranging from $0$ to $10$. Furthermore, an accuracy score is assigned to each individual phoneme, ranging from $0$ to $2$, and to ensure reliability, each of these scores is annotated by five expert evaluators.
+
+% % \subsection{LATIC}
+% % \subsection{Other Datasets}
+% % \begin{table*}[htbp]
+% %   \centering
+% %   \setlength{\tabcolsep}{7pt} % Adjust the spacing between columns
+% %   \renewcommand{\arraystretch}{0.5} % Adjust the spacing between rows
+% %   \begin{tabularx}{\textwidth}{p{3cm}p{2cm}p{3cm}ccc}
+  
+% %   % {*{7}{>{\centering\arraybackslash}X}}
+% %     \toprule
+% %     Corpus & Languages (L2) & Native Language (L1) & Dur / \#Utt & \#Speakers & Date  \\
+% %     \midrule
+% %     \midrule
+% %     ISLE \cite{ISLE} & English & German and Italian & 18h & 46 & 2000\\    \midrule
+
+% %     ERJ \cite{ERJ} & English & Japanese & - / 68000 & 200 & 2002 \\    \midrule
+
+% %     ATR-Gruhn \cite{gruhn} & English & Chinese, German, French, Japanese, and Indonesian & - / 15000 & 96 & 2004\\    \midrule
+
+% %     Cross Towns \cite{Cross_Town}  & English, French, German, Italien, Czesh, and Dutch & English, French, German, Italien, and Spanish & 133h / 72000 & 161 & 2006\\     \midrule
+
+% %     CU-CHLOE \cite{CH-CHLOE} & English & Cantonese and Mandarin & - & 210 & 2007\\    \midrule
+
+% %     CSLU \cite{CSLU} & English & 22 countries & - / 5000 & - & 2007\\    \midrule
+
+% %     EURONOUNCE \cite{euronounce} & Polish & German & / 721 & 18 & 2009\\    \midrule
+
+% %     SingaKids-Mandarin \cite{singa} & Mandarin & Singaporean (English) & 125h & 255 & 2016\\    \midrule
+
+% %     SHEFCE \cite{shefce} & English, Cantonese & English, Cantonese & 25h & 31 & 2017 \\    \midrule
+
+% %     VoisTUTOR \cite{voistutor} & English & Kannada, Malayalam, Telugu, Tamil, Hindi and Gujarati & 1676 & 16 & 2019\\    \midrule
+
+% %     EpaDB \cite{epadb} & English & Spanish &  / 3200 & 50 & 2019\\    \midrule
+
+% %     SELL-CORPUS \cite{sell-corpus}  & English & Chinese & 31.6 & 389 & 2019\\    \midrule
+
+% %     L2-ARCTIC \cite{L2-ARCTIC} & English & Hindi, Korean, Mandarin, Spanish, and Arabic & $3.66$h & 24  & 2018 (v5 2020) \\       \midrule
+  
+% %     SpeechOcean762 \cite{speechocean762}  & English & Chinese & / 5000 & 250 & 2021\\    \midrule
+% %     LATIC \cite{mqtj-qh10-21} & Chinese & Russian, Korean, French, and Arabic & 4 / 2579 & 4 & 2021\\\midrule
+% %     AraVoiceL2 \cite{speechblender} & Arabic & Turkey, Nigeria, Bangladesh, Indonesia, Malaysia & 5.5h / 7062 & 11 & 2022\\
+% %     \midrule
+% %     \midrule
+% %   \end{tabularx}
+% %   \newline
+% %     \caption{MDD Annotated Datasets}
+
+% % \end{table*}
+
+
+% % \begin{table*}[htbp]
+% %   \centering
+% %   \setlength{\tabcolsep}{7pt} % Adjust the spacing between columns
+% %   \renewcommand{\arraystretch}{1.5} % Adjust the spacing between rows
+% %   \begin{tabular}{p{6cm}cccc}
+  
+% %   % {*{6}{>{\centering\arraybackslash}X}}
+% %     \toprule
+% %     Corpus & Languages & Dur / \#Utt & \#Speakers & Date  \\
+% %     \midrule
+% %     \midrule
+% %     Boulder Learning—MyST Corpus \cite{boulder} & English & 393h / 228874 & 1371 & 2019\\    \midrule
+
+% %     CMU Kids Corpus \cite{cmu} & English & / 5180 & 76 & 1997\\    \midrule
+
+% %     PF-STAR Children's Speech Corpus \cite{pfstar} & English & 14.5h & 158 & 2006\\    \midrule
+
+% %     CALL-SLT \cite{callslt} & German & 5000 & - & 2014\\\midrule
+% %     TBALL \cite{tball} & English & 40h / 5000 & 256 & 2005\\    \midrule
+
+% %     CASS\_CHILD \cite{casschild} & Mandarin & - & 23 & 2012\\    \midrule
+
+% %     CU Children's Read and Prompted Speech Corpus \cite{cu_children} & English & 100 & 663 & 2001\\\midrule
+% %     CU Story Corpus \cite{cu_children} & English & 40h / 7062 & 106 & 2003\\    \midrule
+
+% %     Providence Corpus \cite{providence_corpus} & English & 363h & 6 & 2006\\    \midrule
+
+% %     Lyon Corpus \cite{lyon} & French & 185h & 4 & 2007\\ \midrule
+% %     Demuth Sesotho Corpus \cite{demuth1992acquisition} & Sesotho & 98h / 13250 & 4 & 1992\\    \midrule
+
+% %     CHIEDE \cite{chiede} & Spanish & 8h / 15444 & 59 & 2008\\    \midrule
+
+% %     TIDIGITS \cite{tidigits} & English & - & 326 & 1993\\    \midrule
+
+% %     Swedish NICE Corpus \cite{swedish} & Swedish & - & 5580 & 2005\\    \midrule
+
+% %     CFSC \cite{CFSC} & Filipino & 8h & 57 & 2012 \\
+% %     \midrule
+% %     TLT-school \cite{gretter2020tlt} & English and German & ~119.1h / 26059 & 6547 & 2016-2017 \\
+% %     \midrule
+% %     \midrule
+% %   \end{tabular}
+% %   \newline
+% %     \caption{Non-native Speech Datasets}
+
+% % \end{table*}
+
+
+
+% \input{appendix}
+
+% % \appendix
+
+% % \section{Example Appendix}
+% % \label{sec:appendix}
+
+% % This is a section in the appendix.
+\begin{table*}[htbp]
+  \centering
+  \setlength{\tabcolsep}{7pt} % Adjust the spacing between columns
+  \renewcommand{\arraystretch}{1.5} % Adjust the spacing between rows
+  \begin{tabular}{p{6cm}cccc}
+  
+  % {*{6}{>{\centering\arraybackslash}X}}
+    \toprule
+    Corpus & Languages & Dur / \#Utt & \#Speakers   \\
+    \midrule
+    \midrule
+    Demuth Sesotho Corpus \cite{demuth1992acquisition} & Sesotho & 98h / / 13250 & 4 \\    \midrule
+    TIDIGITS \cite{tidigits} & English & - & / 326 \\    \midrule
+    CMU Kids Corpus \cite{cmu} & English & / 5180 & 76 \\    \midrule
+
+    % PF-STAR Children's Speech Corpus \cite{pfstar} & English & 14.5h /  & 158 \\    \midrule
+
+    % CASS\-CHILD \cite{casschild} & Mandarin & - & 23 \\    \midrule
+
+    CU Children's Read and Prompted Speech Corpus \cite{cu_children} & English &  / 100 & 663 \\\midrule
+    CU Story Corpus \cite{cu_children} & English & 40h / 7062 & 106\\    \midrule
+    PF-STAR Children's Speech Corpus \cite{pfstar} & English & 14.5h /  & 158 \\    \midrule
+
+    TBALL \cite{tball} & English & 40h / 5000 & 256 \\    \midrule
+
+    Swedish NICE Corpus \cite{swedish} & Swedish & - & 5580\\    \midrule
+    Providence Corpus \cite{providence_corpus} & English & 363h /  & 6 \\    \midrule
+
+    Lyon Corpus \cite{lyon} & French & 185h /  & 4 \\ \midrule
+    CHIEDE \cite{chiede} & Spanish & 8h /  / 15444 & 59 \\    \midrule
+
+    CFSC \cite{CFSC} & Filipino & 8h / & 57  \\
+    \midrule
+    CASS\-CHILD \cite{casschild} & Mandarin & - & 23 \\    \midrule
+    CALL-SLT \cite{callslt} & German & / 5000 & - \\\midrule
+    Boulder Learning—MyST Corpus \cite{boulder} & English & 393h / 228874 & 1371\\    \midrule
+    TLT-school \cite{tlt} & English and German & ~119.1h / 26059 & 6547 \\
+    \midrule
+    \midrule
+  \end{tabular}
+  \newline
+    \caption{Non-Native Speech Datasets}
+    \label{tab:non-native}
+
+\end{table*}
+
+
+\subsection{Non-Native Datasets:}
+Table \ref{tab:non-native} provides a comprehensive overview of existing non-native datasets that are particularly beneficial as they enable the extraction of error patterns allowing for a thorough assessment of L2 pronunciation. These datasets can also be used to train robust ASR models, from which we can extract valuation features to accurately score L2 speech. Furthermore, non-native datasets can enhance existing pronunciation assessment end-to-end approaches.
+
+
+\section{Annotation}
+\label{sec:annotation}
+
+In this section, we provide an overview of the standard approaches to annotate segmental and supra-segmental errors widely used in MDD research. 
+
+% \subsection{Annotation Keys}
+
+\subsection{Segmental Annotation}
+
+Segmental human annotation can be approached from two perspectives. The first and the commonly utilized approach in most available MDD corpora involves linguistics experts transcribing the actual sequence of phonemes spoken by the learner \cite{bonaventura2000phonetic, zhao2018l2, vidal2019epadb}. The resulted transcription is commonly referred as hypothesis annotation. Additionally, extra tasks can be incorporated, such as providing time boundaries for each pronounced phoneme, to further enhance the annotation process. This approaches may have limitations in capturing non-clear speech instances, such as heavily accented pronunciations that may not be easily detected by human annotators. This leads to the second approach, which incorporates scoring-based methods in addition to hypothesis annotation \cite{zhang2021speechocean762}. In this approach, a score is assigned to each phoneme: $0$ represents deleted or mispronounced phonemes, $1$ indicates heavily accented pronunciation, and $2$ signifies good pronunciation. This scoring-based approach provides a more comprehensive assessment of pronunciation quality, particularly in cases where clear detection by human annotators may be challenging.
+
+% Segmental errors annotation is a major task for automatic pronunication teaching and learning, yet phonetic annotations is very costly, requires time, and pointed linguistic expertise. The phoneme-level scoring requires determining the canonical phone sequence.
+
+
+\subsection{Supra-segmental Annotation}
+\label{sec:supra_anno}
+Limited research has been conducted regarding the annotation of supra-segmental features at the rhythm, stress, and intonation levels such as in \cite{arvaniti2000greek, chen2016singakids, cole2017crowd}. However, the ultimate objective of annotating these supra-segmental aspects is to ensure the fluency and intelligibility of L2 learners' speech. Hence the most commonly used annotated datasets at the prosodic level provide human-scored words, and sentences based on overall pronunciation quality and fluency. Multiple tiers of human scoring annotations can be applied in this context. This includes providing the accuracy of pronounced words to assess their intelligibility, assigning scores to evaluate the positioning of stress within individual words or within sentences, and evaluating sentence fluency by considering factors such as pauses, repetitions, and stammering in speech as adapted in \cite{zhang2021speechocean762}.
+
+
+

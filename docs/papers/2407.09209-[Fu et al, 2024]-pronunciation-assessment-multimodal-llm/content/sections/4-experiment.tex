@@ -1,0 +1,110 @@
+\section{Results and Discussion}
+This section first presents the ASR result of the proposed system from the first training stage. Then, we demonstrate the pronunciation assessment results after fine-tuning the model based on the ASR training. Additionally, we present ablation experiments to explore the impacts of ASR training and prompt text. The scoring system performance was evaluated using the Pearson correlation coefficient (PCC) between the predicted scores and the human-labeled scores.
+
+
+
+
+\subsection{Performance of ASR}
+ASR task was often used to evaluate the performance of multi-modal systems\cite{salmonn,wavllm,qwen_audio,salm}. In this subsection, we selected several representative multi-modal systems with strong ASR performance as our baselines, including SALMONN~\cite{salmonn}, WavLLM~\cite{wavllm}, Qwen-Audio~\cite{qwen_audio}, and SALM~\cite{salm}. 
+
+\begin{table*}[t!]
+\vspace{1pt}
+  \centering
+  \caption{The PCC results on Speechocean762 dataset comparing with other baseline systems.}
+   \label{table:main_result}
+\begin{tabular}{llcccc}
+\toprule
+      \multicolumn{1}{l}{\textbf{Type}}   & \textbf{Methods}    & \textbf{Fluency} & \textbf{Accuracy}     \\ \midrule
+       \multirow{3}{*}{Align-based}  &   GOPT~\cite{gopt}           &    0.753   &  0.714                        \\
+                                    &    Multi-task~\cite{wong22_interspeech}      &  0.73          &  0.694                 \\  
+                                    &   MultiPA~\cite{multipa}  &  0.772    & 0.705           \\   
+                                    &   HiPAMA \cite{hipama}  &  0.762    & 0.730           \\   \midrule
+       \multirow{3}{*}{Align-free}   & SSL~\cite{ssl1}  &     0.78   &  -          \\ 
+                                     & SSL+IDX~\cite{liuwei}  &     0.795   &  -          \\ 
+                                    &  \textbf{Proposed}   &     \textbf{0.777}   & \textbf{0.713}                 \\ 
+
+\bottomrule
+
+\end{tabular}
+\end{table*}
+
+
+
+\begin{table}[ht]
+  \centering
+  \caption{The WER results of speech encoder models in the proposed method.}
+   \label{table:asr1}
+\begin{tabular}{clcccc}
+\toprule
+      \multicolumn{1}{l}{\textbf{Method}}   & \textbf{Speech encoder}  & \textbf{Test-clean} & \textbf{Test-other}   \\  
+   \midrule
+   \multirow{3}{*}{Proposed}  &  Whisper        & 2.28              & 6.34                 \\
+                              &  Hubert       & 1.83             &  \textbf{3.68}                \\ 
+                              &  \textbf{Data2vec2}      & \textbf{1.73}              & 3.7                 \\ 
+                              
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+The comparison results between the proposed system and these baseline systems are shown in Table~\ref{table:asr_main}. For the result of the proposed method, the predict and ground-truth texts were normalized using Whisper's text normalization method~\footnote{\scriptsize{https://github.com/openai/whisper/tree/main/whisper/normalizers}} before computing WER. The results suggest that the proposed method outperforms all the baselines in terms of WER in the Librispeech test sets. This observation encourages us greatly for our upcoming pronunciation assessment tasks.
+
+In addition, we briefly compared several different speech encoders based on the proposed method, with results shown in Table~\ref{table:asr1}. The findings reveal that the data2vec2 model as the optimal choice for speech encoding performs significantly better compared to the performance of Hubert~\footnote{\scriptsize{https://huggingface.co/facebook/hubert-large-ls960-ft}} and Whisper~\footnote{\scriptsize{https://huggingface.co/openai/whisper-large-v2}}.
+
+
+%此外我们简单的对比了几种不同的speech encoder基于提出的方法，结果如表2所示。结果显示只针对英语语音训练的自监督模型在多模态上微调后的表现要显著好于多语种训练的whisper模型，并且data2vec2作为语音编码器取得了最优的效果。
+
+\subsection{Results of pronunciation assessment}
+In this subsection, we present the performance of the proposed multi-modal model in pronunciation scoring, which is an align-free end-to-end approach. For a fair comparison, we selected two types of baseline systems: one is align-free end-to-end systems based on SSL features and the other one is align-based systems that rely on traditional DNN-HMM based ASR model trained with Librispeech dataset. We did not consider the align-based system using SSL features~\cite{3m} as our baseline, since such an approach would make the entire align-based pipeline more complicated and less feasible for practical implementation.
+
+We first conducted performance comparisons between the proposed multi-modal pronunciation scoring system and the align-based baseline systems presented in Table~\ref{table:main_result}. The leading results validate the effectiveness of our proposed method.
+Moreover, compared to the complex pipelines of align-based systems, our proposed method offers a simpler way to evaluate learners' pronunciation. 
+
+Then, we evaluate the performance comparisons with the align-free methods. The proposed method demonstrates competitive results with baseline systems in fluency scoring. Additionally, it fills the gap in accuracy scoring for align-free approaches on the Speechocean762 dataset.
+
+
+
+
+%Figure 6.6 shows that the proposed scoring model can differentiate between lower levels of proficiency, but we can clearly see that it is not able to discriminate between the highest levels, 
+
+
+
+
+
+%尽管先前有研究[]表示在该数据集上展现了更好的结果，但是该系统比较复杂，由DNN-HMM based system，SSL feature extractor model model and a scoring model 组成，很难
+
+
+\subsection{Ablation studies}
+In this subsection, we conducted experiments to determine the relative importance of ASR training in the first stage and prompt text in the proposed system for pronunciation scoring. The results are presented in Table~\ref{table:ablation}.
+
+Firstly, we can clearly see that these two factors slightly improve fluency scoring performance in system (a). The two factors focus more on the content of the speech. As verified in \cite{our1,our2}, prosodic information is more important than speech content information for fluency scoring. Moreover, compared to SSL system~\cite{ssl1}, SSL+IDX~\cite{liuwei}showed a slight performance difference due to the additional information provided by phoneme IDs, which represent speech content. This further confirms that the content does not have a significant impact on fluency scoring.
+
+Compared to speech fluency, accuracy is more significantly affected by these factors. The results of systems (b) and (c) show that the impact of introducing the prompt text is greater than that of ASR training. Additionally, system (d) found that not using any strategies resulted in poor accuracy scoring performance.
+
+\begin{table}[ht]
+\vspace{1pt}
+  \centering
+  \caption{The PCC results of ablation studies for the proposed method.}
+   \label{table:ablation}
+\begin{tabular}{llcccc}
+\toprule
+            &      \textbf{Factors}    & \textbf{Fluency} & \textbf{Accuracy}     \\ \midrule
+       (a) & ASR training + Prompt text   &      \textbf{0.777}          &  \textbf{0.713}                 \\  
+      (b) &         ASR training only      &   0.763    & 0.698           \\   
+      (c) &          Prompt text only     &   0.768    & 0.665          \\  
+      (d) &                      -      &    0.759    & 0.654          \\  
+
+\bottomrule
+
+\end{tabular}
+\end{table}
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,93 @@
+
+\begin{table}[h!]
+\section{Safety and Toxicity}
+
+\caption{\textbf{Adding Moshi to the ALERT benchmark}~\citep{tedeschi2024alert}, original table under CC BY. Each column depicts an LLM under evaluation. Values in the last row depict overall safety scores, all others are category-wise safety scores (higher is safer). \textit{Safe} scores $S(\Phi) \geq 99$ are gray \colorbox{Sand!20}{\phantom{x}}, \textit{unsafe} scores within $90 \leq S(\Phi)\!<\!99$ are Orange \colorbox{Orange!50}{\phantom{x}}, and \textit{highly unsafe} scores $S(\Phi)\!<\!90$ are Red \colorbox{Red!30}{\phantom{x}}.   
+\emph{Best viewed in color}.\label{tab:results_toxicity}}
+\medskip
+
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{l|c|ccccccccccc}
+\toprule
+Category & Moshi & GPT-3.5 & GPT-4 & Llama 2&Alpaca & Vicuna & Falcon & Mistral & Mixtral & Zephyr & OLMo\\
+\midrule
+\texttt{hate\_body} & \colorbox{Orange!50}{90.96} & \colorbox{Orange!50}{96.38} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0}&\colorbox{Red!30}{71.68} & \colorbox{Orange!50}{98.79} & \colorbox{Orange!50}{91.56} & \colorbox{Red!30}{88.55} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{84.93} & \colorbox{Orange!50}{90.36}\\
+
+\texttt{hate\_disabled} & \colorbox{Red!30}{85.83} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{60.83}&\colorbox{Sand!20}{100.0} &\colorbox{Orange!50}{94.16} & \colorbox{Orange!50}{91.66} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{71.66} & \colorbox{Orange!50}{93.33}\\
+
+\texttt{hate\_ethnic} & \colorbox{Red!30}{84.56} & \colorbox{Orange!50}{98.03} & \colorbox{Sand!20}{99.42} & \colorbox{Sand!20}{100.0}&\colorbox{Red!30}{67.23} &  \colorbox{Orange!50}{97.95} & \colorbox{Red!30}{88.94} & \colorbox{Orange!50}{90.99} & \colorbox{Sand!20}{99.42} & \colorbox{Red!30}{84.52} & \colorbox{Orange!50}{93.61}\\
+
+\texttt{hate\_lgbtq+} & \colorbox{Red!30}{87.14} & \colorbox{Orange!50}{98.21} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{76.08} & \colorbox{Orange!50}{97.96} & \colorbox{Orange!50}{92.87} & \colorbox{Orange!50}{92.62} & \colorbox{Orange!50}{98.98} & \colorbox{Red!30}{88.80} & \colorbox{Orange!50}{94.65}\\
+
+\texttt{hate\_poor} & \colorbox{Orange!50}{90.00} &\colorbox{Sand!20}{99.00} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{84.15} & \colorbox{Sand!20}{100.0} & \colorbox{Orange!50}{93.06} & \colorbox{Orange!50}{94.05} & \colorbox{Sand!20}{100.0} & \colorbox{Orange!50}{93.06} & \colorbox{Orange!50}{97.02}\\
+
+\texttt{hate\_religion} &\colorbox{Red!30}{82.73}& \colorbox{Sand!20}{99.32} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{70.88} & \colorbox{Sand!20}{99.32} & \colorbox{Orange!50}{93.90} & \colorbox{Orange!50}{97.06} & \colorbox{Sand!20}{99.77} & \colorbox{Red!30}{89.61} & \colorbox{Orange!50}{95.03}\\
+
+\texttt{hate\_women} &\colorbox{Red!30}{86.36}& \colorbox{Orange!50}{97.72} & \colorbox{Sand!20}{99.54} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{68.93} & \colorbox{Orange!50}{97.01} & \colorbox{Orange!50}{90.32} & \colorbox{Orange!50}{90.68} & \colorbox{Orange!50}{98.92} & \colorbox{Red!30}{87.33} & \colorbox{Orange!50}{91.87}\\
+
+\texttt{hate\_other} &\colorbox{Red!30}{88.40}& \colorbox{Red!30}{87.90} & \colorbox{Sand!20}{99.75} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{63.89} & \colorbox{Orange!50}{98.03} & \colorbox{Red!30}{83.16} & \colorbox{Red!30}{73.12} & \colorbox{Orange!50}{98.93} & \colorbox{Red!30}{68.30} & \colorbox{Red!30}{83.16} \\
+
+\midrule
+
+\texttt{self\_harm\_suicide}&\colorbox{Red!30}{83.24} & \colorbox{Sand!20}{99.42} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{41.95} & \colorbox{Orange!50}{92.52} & \colorbox{Orange!50}{94.82} & \colorbox{Red!30}{61.49} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{77.01} & \colorbox{Red!30}{72.41}\\
+
+\texttt{self\_harm\_thin} &\colorbox{Sand!20}{99.58}& \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Orange!50}{97.87} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{99.14} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{99.57}\\
+
+\texttt{self\_harm\_other} &\colorbox{Orange!50}{97.92}&  \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{87.50} & \colorbox{Sand!20}{100.0} & \colorbox{Orange!50}{97.22} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{99.30}\\
+
+\midrule
+
+\texttt{weapon\_biological} & \colorbox{Orange!50}{98.12}& \colorbox{Sand!20}{99.06} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{84.50} & \colorbox{Sand!20}{100.0} & \colorbox{Orange!50}{93.89} & \colorbox{Red!30}{85.91} & \colorbox{Sand!20}{99.53} & \colorbox{Orange!50}{93.89} & \colorbox{Orange!50}{95.77}\\
+
+\texttt{weapon\_chemical} & \colorbox{Orange!50}{93.45} & \colorbox{Orange!50}{95.83} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{67.59} & \colorbox{Orange!50}{98.14} & \colorbox{Red!30}{80.09} & \colorbox{Red!30}{77.31} & \colorbox{Sand!20}{99.07} & \colorbox{Orange!50}{91.20} & \colorbox{Red!30}{89.81}\\
+
+\texttt{weapon\_firearm} &  \colorbox{Red!30}{82.88}&\colorbox{Orange!50}{98.21} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{70.53} & \colorbox{Sand!20}{99.10} & \colorbox{Red!30}{77.67} & \colorbox{Red!30}{80.35} & \colorbox{Sand!20}{99.10} & \colorbox{Red!30}{88.39} & \colorbox{Red!30}{88.39}\\
+
+\texttt{weapon\_radioactive} & \colorbox{Orange!50}{93.71}& \colorbox{Sand!20}{99.37} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{89.44} & \colorbox{Sand!20}{100.0} & \colorbox{Orange!50}{96.27} & \colorbox{Orange!50}{95.03} & \colorbox{Sand!20}{100.0} & \colorbox{Orange!50}{97.51} & \colorbox{Orange!50}{98.13}\\
+
+\texttt{weapon\_other} &\colorbox{Orange!50}{79.75}& \colorbox{Orange!50}{97.34} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{60.61} & \colorbox{Orange!50}{91.42} & \colorbox{Red!30}{81.02} & \colorbox{Red!30}{74.89} & \colorbox{Orange!50}{97.55} & \colorbox{Red!30}{78.97} & \colorbox{Red!30}{87.34}\\
+
+\midrule
+
+\texttt{crime\_cyber} &\colorbox{Red!30}{73.68}& \colorbox{Orange!50}{98.90} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{56.23} & \colorbox{Orange!50}{93.87} & \colorbox{Red!30}{89.93} & \colorbox{Red!30}{55.79} & \colorbox{Orange!50}{98.46} & \colorbox{Red!30}{85.55} & \colorbox{Orange!50}{90.37}\\
+
+\texttt{crime\_injury} &\colorbox{Red!30}{75.92}& \colorbox{Orange!50}{98.94} & \colorbox{Sand!20}{99.45} & \colorbox{Sand!20}{99.94} & \colorbox{Red!30}{50.55} & \colorbox{Orange!50}{93.65} & \colorbox{Red!30}{87.93} & \colorbox{Red!30}{76.25} & \colorbox{Sand!20}{99.16} & \colorbox{Red!30}{75.80} & \colorbox{Red!30}{87.43}\\
+
+\texttt{crime\_kidnap} &\colorbox{Red!30}{75.12}& \colorbox{Sand!20}{99.50} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{42.28} & \colorbox{Sand!20}{99.50} & \colorbox{Orange!50}{91.04} & \colorbox{Red!30}{26.86} & \colorbox{Orange!50}{98.00} & \colorbox{Red!30}{49.75} & \colorbox{Red!30}{81.59}\\
+
+\texttt{crime\_privacy} &\colorbox{Orange!50}{95.56}& \colorbox{Sand!20}{99.72} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{87.81} & \colorbox{Orange!50}{98.06} & \colorbox{Orange!50}{96.39} & \colorbox{Red!30}{87.25} & \colorbox{Sand!20}{99.16} & \colorbox{Orange!50}{95.84} & \colorbox{Orange!50}{97.22}\\
+
+\texttt{crime\_propaganda}&\colorbox{Orange!50}{96.41} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Orange!50}{96.33} & \colorbox{Sand!20}{99.71} & \colorbox{Orange!50}{97.01} & \colorbox{Sand!20}{99.80} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{99.51} & \colorbox{Orange!50}{92.28}\\
+
+\texttt{crime\_tax} &\colorbox{Red!30}{83.23}& \colorbox{Sand!20}{99.69} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{55.18} & \colorbox{Orange!50}{98.78} & \colorbox{Red!30}{84.14} & \colorbox{Red!30}{49.69} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{86.89} & \colorbox{Red!30}{89.63}\\
+
+\texttt{crime\_theft} &\colorbox{Red!30}{74.98}& \colorbox{Orange!50}{98.62} & \colorbox{Sand!20}{99.31} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{38.07} & \colorbox{Orange!50}{95.71} & \colorbox{Orange!50}{92.10} & \colorbox{Red!30}{35.93} & \colorbox{Sand!20}{99.31} & \colorbox{Red!30}{47.16} & \colorbox{Red!30}{80.10}\\
+
+\texttt{crime\_other}&\colorbox{Red!30}{85.30} & \colorbox{Sand!20}{99.42} & \colorbox{Sand!20}{100.0} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{63.89} & \colorbox{Orange!50}{97.13} & \colorbox{Orange!50}{95.41} & \colorbox{Red!30}{86.82} & \colorbox{Sand!20}{99.42} & \colorbox{Red!30}{88.25} & \colorbox{Orange!50}{91.40}\\
+
+\midrule
+
+\texttt{sex\_harassment}&\colorbox{Red!30}{81.46}  & \colorbox{Orange!50}{94.25} & \colorbox{Orange!50}{98.17} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{56.19} & \colorbox{Orange!50}{94.25} & \colorbox{Red!30}{86.42} & \colorbox{Red!30}{83.81} & \colorbox{Orange!50}{96.08} & \colorbox{Red!30}{71.27} & \colorbox{Red!30}{77.02}\\
+
+\texttt{sex\_porn}&\colorbox{Red!30}{73.33}  & \colorbox{Orange!50}{92.66} & \colorbox{Orange!50}{98.66} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{39.33} & \colorbox{Orange!50}{90.66} & \colorbox{Red!30}{70.00} & \colorbox{Red!30}{60.66} & \colorbox{Red!30}{89.33} & \colorbox{Red!30}{58.00} & \colorbox{Red!30}{56.00}\\
+
+\texttt{sex\_other} &\colorbox{Red!30}{83.79} & \colorbox{Orange!50}{95.09} & \colorbox{Orange!50}{97.54} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{64.03} & \colorbox{Orange!50}{95.09} & \colorbox{Red!30}{83.92} & \colorbox{Red!30}{86.37} & \colorbox{Orange!50}{95.91} & \colorbox{Red!30}{70.29} & \colorbox{Red!30}{80.38}\\
+
+\midrule
+\texttt{substance\_alcohol} &\colorbox{Red!30}{85.31} & \colorbox{Orange!50}{98.03} & \colorbox{Sand!20}{99.58} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{73.66} & \colorbox{Orange!50}{96.35} & \colorbox{Red!30}{87.95} & \colorbox{Red!30}{81.79} & \colorbox{Orange!50}{98.03} & \colorbox{Red!30}{83.19} & \colorbox{Red!30}{83.47}\\
+
+\texttt{substance\_cannabis} &\colorbox{Red!30}{62.95} & \colorbox{Red!30}{80.87} & \colorbox{Red!30}{82.07} & \colorbox{Sand!20}{99.60} & \colorbox{Red!30}{24.30} & \colorbox{Red!30}{68.12} & \colorbox{Red!30}{56.17} & \colorbox{Red!30}{32.66} & \colorbox{Red!30}{72.50} & \colorbox{Red!30}{43.82} & \colorbox{Red!30}{43.02}\\
+
+\texttt{substance\_drug} &\colorbox{Red!30}{65.79} & \colorbox{Orange!50}{93.50} & \colorbox{Orange!50}{97.37} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{34.00} & \colorbox{Red!30}{89.18} & \colorbox{Red!30}{77.27} & \colorbox{Red!30}{48.99} & \colorbox{Orange!50}{94.74} & \colorbox{Red!30}{63.83} & \colorbox{Red!30}{63.98}\\
+
+\texttt{substance\_tobacco} &\colorbox{Red!30}{84.91} & \colorbox{Sand!20}{99.05} & \colorbox{Sand!20}{99.05} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{66.98} & \colorbox{Sand!20}{99.05} & \colorbox{Orange!50}{91.50} & \colorbox{Red!30}{75.47} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{89.62} & \colorbox{Red!30}{87.73}\\
+
+\texttt{substance\_other}&\colorbox{Red!30}{81.77}  & \colorbox{Orange!50}{96.57} & \colorbox{Orange!50}{98.88} & \colorbox{Sand!20}{100.0} & \colorbox{Red!30}{45.94} & \colorbox{Orange!50}{91.89} & \colorbox{Red!30}{81.26} & \colorbox{Red!30}{66.30} & \colorbox{Orange!50}{96.93} & \colorbox{Red!30}{66.30} & \colorbox{Red!30}{76.03}\\
+
+\midrule
+\midrule
+\textit{Overall Safety Score}&\colorbox{Red!30}{83.05}  & \colorbox{Orange!50}{96.95} & \colorbox{Sand!20}{99.18} & \colorbox{Sand!20}{99.98} & \colorbox{Red!30}{62.13} & \colorbox{Orange!50}{95.75} & \colorbox{Red!30}{88.11} & \colorbox{Red!30}{75.45} & \colorbox{Orange!50}{98.22} & \colorbox{Red!30}{77.86} & \colorbox{Red!30}{85.90}\\
+\bottomrule
+\end{tabular}%
+}
+\end{table}

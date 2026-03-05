@@ -1,0 +1,429 @@
+\begin{thebibliography}{10}
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{\texttt{#1}}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
+\expandafter\ifx\csname href\endcsname\relax
+  \def\href#1#2{#2} \def\path#1{#1}\fi
+
+\bibitem{RN30}
+W.-K. Leung, X.~Liu, H.~Meng, Cnn-rnn-ctc based end-to-end mispronunciation
+  detection and diagnosis, in: ICASSP 2019-2019 IEEE International Conference
+  on Acoustics, Speech and Signal Processing (ICASSP), IEEE, pp. 8132--8136.
+
+\bibitem{RN31}
+Y.~Feng, G.~Fu, Q.~Chen, K.~Chen, Sed-mdd: Towards sentence dependent
+  end-to-end mispronunciation detection and diagnosis, in: ICASSP 2020-2020
+  IEEE International Conference on Acoustics, Speech and Signal Processing
+  (ICASSP), IEEE, pp. 3492--3496.
+
+\bibitem{RN37}
+M.~Shahin, B.~Ahmed, J.~McKechnie, K.~Ballard, R.~Gutierrez-Osuna, A comparison
+  of gmm-hmm and dnn-hmm based pronunciation verification techniques for use in
+  the assessment of childhood apraxia of speech, in: Fifteenth Annual
+  Conference of the International Speech Communication Association.
+
+\bibitem{RN41}
+B.-C. Yan, M.-C. Wu, H.-T. Hung, B.~Chen, An end-to-end mispronunciation
+  detection system for l2 english speech leveraging novel anti-phone modeling,
+  arXiv preprint arXiv:2005.11950 (2020).
+
+\bibitem{RN42}
+A.~M. Harrison, W.-K. Lo, X.-j. Qian, H.~Meng, Implementation of an extended
+  recognition network for mispronunciation detection and diagnosis in
+  computer-assisted pronunciation training, in: International Workshop on
+  Speech and Language Technology in Education.
+
+\bibitem{RN43}
+S.~M. Witt, S.~J. Young, Phone-level pronunciation scoring and assessment for
+  interactive language learning, Speech communication 30~(2-3) (2000) 95--108.
+
+\bibitem{RN44}
+M.~Shahin, B.~Ahmed, Anomaly detection based pronunciation verification
+  approach using speech attribute features, Speech Communication 111 (2019)
+  29--43.
+
+\bibitem{RN45}
+D.~V. Smith, A.~Sneddon, L.~Ward, A.~Duenser, J.~Freyne, D.~Silvera-Tawil,
+  A.~Morgan, Improving child speech disorder assessment by incorporating
+  out-of-domain adult speech, in: INTERSPEECH, pp. 2690--2694.
+
+\bibitem{RN112}
+F.~K. Soong, W.-K. Lo, S.~Nakamura, Generalized word posterior probability
+  (gwpp) for measuring reliability of recognized words, Proc. SWIM2004 5
+  (2004).
+
+\bibitem{RN113}
+J.~Zheng, C.~Huang, M.~Chu, F.~K. Soong, W.-p. Ye, Generalized segment
+  posterior probability for automatic mandarin pronunciation evaluation, in:
+  2007 IEEE International Conference on Acoustics, Speech and Signal
+  Processing-ICASSP'07, Vol.~4, IEEE, pp. IV--201--IV--204.
+
+\bibitem{RN114}
+F.~Zhang, C.~Huang, F.~K. Soong, M.~Chu, R.~Wang, Automatic mispronunciation
+  detection for mandarin, in: 2008 IEEE International Conference on Acoustics,
+  Speech and Signal Processing, IEEE, pp. 5077--5080.
+
+\bibitem{RN115}
+K.~Yan, S.~Gong, Pronunciation proficiency evaluation based on discriminatively
+  refined acoustic models, International Journal of Information Technology and
+  Computer Science 3~(2) (2011) 17--23.
+
+\bibitem{RN116}
+K.~C. Sim, A phone verification approach to pronunciation quality assessment
+  for spoken language learning, in: Proceedings: APSIPA ASC 2009: Asia-Pacific
+  Signal and Information Processing Association, 2009 Annual Summit and
+  Conference, Asia-Pacific Signal and Information Processing Association, 2009
+  Annual Summit and Conference, International Organizing Committee, pp.
+  619--622.
+
+\bibitem{RN117}
+\href{https://www.clapa.com/treatment/early-years-1-4/speech/}{[link]}.
+\newline\urlprefix\url{https://www.clapa.com/treatment/early-years-1-4/speech/}
+
+\bibitem{RN118}
+W.~Hu, Y.~Qian, F.~K. Soong, Y.~Wang, Improved mispronunciation detection with
+  deep neural network trained acoustic models and transfer learning based
+  logistic regression classifiers, Speech Communication 67 (2015) 154--166.
+
+\bibitem{RN33}
+S.~M. Abdou, S.~E. Hamid, M.~Rashwan, A.~Samir, O.~Abdel-Hamid, M.~Shahin,
+  W.~Nazih, Computer aided pronunciation learning system using speech
+  recognition techniques, in: Ninth International Conference on Spoken Language
+  Processing.
+
+\bibitem{RN34}
+M.~S. Elaraby, M.~Abdallah, S.~Abdou, M.~Rashwan, A deep neural networks (dnn)
+  based models for a computer aided pronunciation learning system, in:
+  International Conference on Speech and Computer, Springer, pp. 51--58.
+
+\bibitem{RN120}
+K.~Truong, A.~Neri, C.~Cucchiarini, H.~Strik, Automatic pronunciation error
+  detection: an acoustic-phonetic approach (2004).
+
+\bibitem{RN121}
+H.~Strik, K.~P. Truong, F.~d. Wet, C.~Cucchiarini, Comparing classifiers for
+  pronunciation error detection, in: Eighth Annual Conference of the
+  International Speech Communication Association.
+
+\bibitem{RN122}
+H.~Franco, L.~Ferrer, H.~Bratt, Adaptive and discriminative modeling for
+  improved mispronunciation detection, in: 2014 IEEE International Conference
+  on Acoustics, Speech and Signal Processing (ICASSP), IEEE, pp. 7709--7713.
+
+\bibitem{RN123}
+J.~v. Doremalen, C.~Cucchiarini, H.~Strik, Automatic detection of vowel
+  pronunciation errors using multiple information sources, in: 2009 IEEE
+  Workshop on Automatic Speech Recognition \& Understanding, pp. 580--585.
+\newblock \href {https://doi.org/10.1109/ASRU.2009.5373335}
+  {\path{doi:10.1109/ASRU.2009.5373335}}.
+
+\bibitem{RN124}
+T.~Zhao, A.~Hoshino, M.~Suzuki, N.~Minematsu, K.~Hirose, Automatic chinese
+  pronunciation error detection using svm trained with structural features, in:
+  2012 IEEE Spoken Language Technology Workshop (SLT), IEEE, pp. 473--478.
+
+\bibitem{RN125}
+S.~Wei, G.~Hu, Y.~Hu, R.-H. Wang, A new method for mispronunciation detection
+  using support vector machine based on pronunciation space models, Speech
+  Communication 51~(10) (2009) 896--905.
+
+\bibitem{RN126}
+W.~Hu, Y.~Qian, F.~K. Soong, A new neural network based logistic regression
+  classifier for improving mispronunciation detection of l2 language learners,
+  in: The 9th International Symposium on Chinese Spoken Language Processing,
+  IEEE, pp. 245--249.
+
+\bibitem{RN127}
+A.~Baevski, Y.~Zhou, A.~Mohamed, M.~Auli, wav2vec 2.0: A framework for
+  self-supervised learning of speech representations, Advances in Neural
+  Information Processing Systems 33 (2020) 12449--12460.
+
+\bibitem{RN46}
+X.~Xu, Y.~Kang, S.~Cao, B.~Lin, L.~Ma, Explore wav2vec 2.0 for mispronunciation
+  detection, in: Interspeech, pp. 4428--4432.
+
+\bibitem{RN32}
+W.~Ye, S.~Mao, F.~Soong, W.~Wu, Y.~Xia, J.~Tien, Z.~Wu, An approach to
+  mispronunciation detection and diagnosis with acoustic, phonetic and
+  linguistic (apl) embeddings, in: ICASSP 2022-2022 IEEE International
+  Conference on Acoustics, Speech and Signal Processing (ICASSP), IEEE, pp.
+  6827--6831.
+
+\bibitem{RN95}
+K.~Li, X.~Qian, H.~Meng, Mispronunciation detection and diagnosis in l2 english
+  speech using multidistribution deep neural networks, IEEE/ACM Transactions on
+  Audio, Speech, and Language Processing 25~(1) (2016) 193--207.
+
+\bibitem{RN132}
+K.~Fu, J.~Lin, D.~Ke, Y.~Xie, J.~Zhang, B.~Lin, A full text-dependent end to
+  end mispronunciation detection and diagnosis with easy data augmentation
+  techniques, arXiv preprint arXiv:2104.08428 (2021).
+
+\bibitem{RN133}
+K.~Li, X.~Qian, S.~Kang, P.~Liu, H.~Meng, Integrating acoustic and
+  state-transition models for free phone recognition in l2 english speech using
+  multi-distribution deep neural networks, in: SLaTE, pp. 119--124.
+
+\bibitem{RN146}
+S.~M. Siniscalchi, J.~Reed, T.~Svendsen, C.-H. Lee, Universal attribute
+  characterization of spoken languages for automatic spoken language
+  recognition, Computer Speech \& Language 27~(1) (2013) 209--227.
+
+\bibitem{RN10}
+O.~Saz, S.-C. Yin, E.~Lleida, R.~Rose, C.~Vaquero, W.~R. Rodríguez, Tools and
+  technologies for computer-aided speech and language therapy, Speech
+  Communication 51~(10) (2009) 948--967.
+
+\bibitem{RN65}
+L.~He, J.~Zhang, Q.~Liu, H.~Yin, M.~Lech, Y.~Huang, Automatic evaluation of
+  hypernasality based on a cleft palate speech database, Journal of medical
+  systems 39~(5) (2015) 1--7.
+
+\bibitem{RN88}
+T.~Pellegrini, L.~Fontan, J.~Mauclair, J.~Farinas, M.~Robert, The goodness of
+  pronunciation algorithm applied to disordered speech, in: Fifteenth Annual
+  Conference of the International Speech Communication Association.
+
+\bibitem{RN108}
+B.~Mak, M.~Siu, M.~Ng, Y.-C. Tam, Y.-C. Chan, K.-W. Chan, K.-Y. Leung, S.~Ho,
+  J.~Wong, J.~Lo, Plaser: Pronunciation learning via automatic speech
+  recognition, in: Proceedings of the HLT-NAACL 03 workshop on Building
+  educational applications using natural language processing, pp. 23--29.
+
+\bibitem{RN109}
+A.~A. Hindi, M.~Alsulaiman, G.~Muhammad, S.~Al-Kahtani, Automatic pronunciation
+  error detection of nonnative arabic speech, in: 2014 IEEE/ACS 11th
+  International Conference on Computer Systems and Applications (AICCSA), pp.
+  190--197.
+\newblock \href {https://doi.org/10.1109/AICCSA.2014.7073198}
+  {\path{doi:10.1109/AICCSA.2014.7073198}}.
+
+\bibitem{RN110}
+F.~de~Wet, C.~Van~der Walt, T.~R. Niesler,
+  \href{https://www.sciencedirect.com/science/article/pii/S016763930900034X}{Automatic
+  assessment of oral language proficiency and listening comprehension}, Speech
+  Communication 51~(10) (2009) 864--874.
+\newblock \href {https://doi.org/https://doi.org/10.1016/j.specom.2009.03.002}
+  {\path{doi:https://doi.org/10.1016/j.specom.2009.03.002}}.
+\newline\urlprefix\url{https://www.sciencedirect.com/science/article/pii/S016763930900034X}
+
+\bibitem{RN111}
+D.~Luo, N.~Minematsu, Y.~Yamauchi, K.~Hirose, Analysis and comparison of
+  automatic language proficiency assessment between shadowed sentences and read
+  sentences, in: International Workshop on Speech and Language Technology in
+  Education.
+
+\bibitem{RN119}
+S.~Sudhakara, M.~K. Ramanathi, C.~Yarra, P.~K. Ghosh, An improved goodness of
+  pronunciation (gop) measure for pronunciation evaluation with dnn-hmm system
+  considering hmm transition probabilities.
+
+\bibitem{RN94}
+W.-K. Lo, S.~Zhang, H.~Meng, Automatic derivation of phonological rules for
+  mispronunciation detection in a computer-assisted pronunciation training
+  system, in: Eleventh Annual Conference of the International Speech
+  Communication Association.
+
+\bibitem{RN129}
+X.~Qian, H.~Meng, F.~Soong, Capturing l2 segmental mispronunciations with
+  joint-sequence models in computer-aided pronunciation training (capt), in:
+  2010 7th International Symposium on Chinese Spoken Language Processing, IEEE,
+  pp. 84--88.
+
+\bibitem{RN130}
+X.~Qian, H.~Meng, F.~Soong, Discriminatively trained acoustic model for
+  improving mispronunciation detection and diagnosis in computer-aided
+  pronunciation training (capt), in: Proc. Interspeech, Citeseer.
+
+\bibitem{RN131}
+K.~Kyriakopoulos, K.~Knill, M.~Gales, Automatic detection of accent and lexical
+  pronunciation errors in spontaneous non-native english speech, ISCA.
+
+\bibitem{RN128}
+Y.-B. Wang, L.-S. Lee, Improved approaches of modeling and detecting error
+  patterns with empirical analysis for computer-aided pronunciation training,
+  in: 2012 IEEE international conference on acoustics, speech and signal
+  processing (ICASSP), IEEE, pp. 5049--5052.
+
+\bibitem{RN136}
+S.-W.~F. Jiang, B.-C. Yan, T.-H. Lo, F.-A. Chao, B.~Chen, Towards robust
+  mispronunciation detection and diagnosis for l2 english learners with
+  accent-modulating methods, in: 2021 IEEE Automatic Speech Recognition and
+  Understanding Workshop (ASRU), IEEE, pp. 1065--1070.
+
+\bibitem{RN135}
+T.-H. Lo, S.-Y. Weng, H.-J. Chang, B.~Chen, An effective end-to-end modeling
+  approach for mispronunciation detection, arXiv preprint arXiv:2005.08440
+  (2020).
+
+\bibitem{RN138}
+B.-C. Yan, B.~Chen, End-to-end mispronunciation detection and diagnosis from
+  raw waveforms, in: 2021 29th European Signal Processing Conference (EUSIPCO),
+  IEEE, pp. 61--65.
+
+\bibitem{RN139}
+M.~Ravanelli, Y.~Bengio, Interpretable convolutional filters with sincnet,
+  arXiv preprint arXiv:1811.09725 (2018).
+
+\bibitem{RN140}
+L.~Peng, K.~Fu, B.~Lin, D.~Ke, J.~Zhang, A study on fine-tuning wav2vec2. 0
+  model for the task of mispronunciation detection and diagnosis, in:
+  Interspeech, pp. 4448--4452.
+
+\bibitem{RN288}
+I.-F. Chen, S.~M. Siniscalchi, C.-H. Lee, Attribute based lattice rescoring in
+  spontaneous speech recognition, in: 2014 IEEE International Conference on
+  Acoustics, Speech and Signal Processing (ICASSP), IEEE, 2014, pp. 3325--3329.
+
+\bibitem{RN289}
+C.-H. Lee, S.~M. Siniscalchi, An information-extraction approach to speech
+  processing: Analysis, detection, verification, and recognition, Proceedings
+  of the IEEE 101~(5) (2013) 1089--1115.
+
+\bibitem{RN290}
+J.~Qi, W.~Guo, J.~Shi, Y.~Chen, T.~Liu, Exploring universal speech attributes
+  for speaker verification with an improved cross-stitch network, arXiv
+  preprint arXiv:2010.06248 (2020).
+
+\bibitem{RN154}
+W.~Li, K.~Li, S.~M. Siniscalchi, N.~F. Chen, C.-H. Lee, Detecting
+  mispronunciations of l2 learners and providing corrective feedback using
+  knowledge-guided and data-driven decision trees, in: Interspeech, pp.
+  3127--3131.
+
+\bibitem{RN291}
+R.~Pradeep, K.~S. Rao, Incorporation of manner of articulation constraint in
+  lstm for speech recognition, Circuits, Systems, and Signal Processing 38
+  (2019) 3482--3500.
+
+\bibitem{RN292}
+I.~Karaulov, D.~Tkanov, Attention model for articulatory features detection,
+  arXiv preprint arXiv:1907.01914 (2019).
+
+\bibitem{RN293}
+L.~Qu, C.~Weber, E.~Lakomkin, J.~Twiefel, S.~Wermter, Combining articulatory
+  features with end-to-end learning in speech recognition, in: Artificial
+  Neural Networks and Machine Learning--ICANN 2018: 27th International
+  Conference on Artificial Neural Networks, Rhodes, Greece, October 4-7, 2018,
+  Proceedings, Part III 27, Springer, 2018, pp. 500--510.
+
+\bibitem{RN162}
+M.~Cernak, S.~Tong, Nasal speech sounds detection using connectionist temporal
+  classification, in: 2018 IEEE International Conference on Acoustics, Speech
+  and Signal Processing (ICASSP), IEEE, pp. 5574--5578.
+
+\bibitem{RN148}
+C.-H. Lee, M.~A. Clements, S.~Dusan, E.~Fosler-Lussier, K.~Johnson, B.-H.
+  Juang, L.~R. Rabiner, An overview on automatic speech attribute transcription
+  (asat), in: Eighth annual conference of the international speech
+  communication association.
+
+\bibitem{RN149}
+S.~King, P.~Taylor, Detection of phonological features in continuous speech
+  using neural networks, Computer Speech \& Language 14~(4) (2000) 333--353.
+
+\bibitem{RN160}
+B.~Abraham, S.~Umesh, N.~M. Joy, Articulatory feature extraction using ctc to
+  build articulatory classifiers without forced frame alignments for speech
+  recognition, in: INTERSPEECH, pp. 798--802.
+
+\bibitem{RN161}
+D.~Merkx, O.~Scharenborg, Articulatory feature classification using
+  convolutional neural networks, in: INTERSPEECH, pp. 2142--2146.
+
+\bibitem{RN159}
+A.~Graves, S.~Fernández, F.~Gomez, J.~Schmidhuber, Connectionist temporal
+  classification: labelling unsegmented sequence data with recurrent neural
+  networks, in: Proceedings of the 23rd international conference on Machine
+  learning, pp. 369--376.
+
+\bibitem{RN226}
+B.~Shi, X.~Bai, C.~Yao, An end-to-end trainable neural network for image-based
+  sequence recognition and its application to scene text recognition, IEEE
+  transactions on pattern analysis and machine intelligence 39~(11) (2016)
+  2298--2304.
+
+\bibitem{RN227}
+D.~Coquenet, C.~Chatelain, T.~Paquet, End-to-end handwritten paragraph text
+  recognition using a vertical attention network, IEEE Transactions on Pattern
+  Analysis and Machine Intelligence (2022).
+
+\bibitem{RN228}
+W.~Chan, N.~Jaitly, Q.~Le, O.~Vinyals, Listen, attend and spell: A neural
+  network for large vocabulary conversational speech recognition, in: 2016 IEEE
+  international conference on acoustics, speech and signal processing (ICASSP),
+  IEEE, pp. 4960--4964.
+
+\bibitem{RN281}
+C.~Wigington, B.~Price, S.~Cohen, Multi-label connectionist temporal
+  classification, Proceedings of the International Conference on Document
+  Analysis and Recognition, ICDAR (2019) 979--986\href
+  {https://doi.org/10.1109/ICDAR.2019.00161}
+  {\path{doi:10.1109/ICDAR.2019.00161}}.
+
+\bibitem{RN283}
+J.~Li, M.~Hasegawa-Johnson, Autosegmental neural nets: Should phones and tones
+  be synchronous or asynchronous?, arXiv preprint arXiv:2007.14351 (2020).
+
+\bibitem{RN282}
+C.~Weiss, G.~Peeters, Training deep pitch-class representations with a
+  multi-label ctc loss, in: International Society for Music Information
+  Retrieval Conference (ISMIR).
+
+\bibitem{RN296}
+N.~Chomsky, M.~Halle, The sound pattern of english. (1968).
+
+\bibitem{RN39}
+V.~Panayotov, G.~Chen, D.~Povey, S.~Khudanpur, Librispeech: an asr corpus based
+  on public domain audio books, in: 2015 IEEE international conference on
+  acoustics, speech and signal processing (ICASSP), IEEE, pp. 5206--5210.
+
+\bibitem{RN294}
+J.~Kearns, Librivox: Free public domain audiobooks, Reference Reviews 28~(1)
+  (2014) 7--8.
+
+\bibitem{RN163}
+J.~S. Garofolo, L.~F. Lamel, W.~M. Fisher, J.~G. Fiscus, D.~S. Pallett, Darpa
+  timit acoustic-phonetic continous speech corpus cd-rom. nist speech disc
+  1-1.1, NASA STI/Recon technical report n 93 (1993) 27403.
+
+\bibitem{RN96}
+G.~Zhao, S.~Sonsaat, A.~Silpachai, I.~Lucic, E.~Chukharev-Hudilainen, J.~Levis,
+  R.~Gutierrez-Osuna, L2-arctic: A non-native english speech corpus, in:
+  INTERSPEECH, pp. 2783--2787.
+
+\bibitem{RN268}
+R.~L. Weide, \href{URL: http://www. speech. cs. cmu. edu/cgibin/cmudict}{The
+  cmu pronouncing dictionary} (1998).
+\newline\urlprefix\url{URL: http://www. speech. cs. cmu. edu/cgibin/cmudict}
+
+\bibitem{RN137}
+D.~Amodei, S.~Ananthanarayanan, R.~Anubhai, J.~Bai, E.~Battenberg, C.~Case,
+  J.~Casper, B.~Catanzaro, Q.~Cheng, G.~Chen, Deep speech 2: End-to-end speech
+  recognition in english and mandarin, in: International conference on machine
+  learning, PMLR, pp. 173--182.
+
+\bibitem{RN284}
+D.~S. Park, W.~Chan, Y.~Zhang, C.-C. Chiu, B.~Zoph, E.~D. Cubuk, Q.~V. Le,
+  Specaugment: A simple data augmentation method for automatic speech
+  recognition, arXiv preprint arXiv:1904.08779 (2019).
+
+\bibitem{RN231}
+W.-N. Hsu, A.~Sriram, A.~Baevski, T.~Likhomanenko, Q.~Xu, V.~Pratap, J.~Kahn,
+  A.~Lee, R.~Collobert, G.~Synnaeve, Robust wav2vec 2.0: Analyzing domain shift
+  in self-supervised pre-training, arXiv preprint arXiv:2104.01027 (2021).
+
+\bibitem{RN285}
+I.~Loshchilov, F.~Hutter, Decoupled weight decay regularization, arXiv preprint
+  arXiv:1711.05101 (2017).
+
+\bibitem{RN295}
+V.~I. Levenshtein, et~al., Binary codes capable of correcting deletions,
+  insertions, and reversals, in: Soviet physics doklady, Vol.~10, Soviet Union,
+  1966, pp. 707--710.
+
+\bibitem{RN169}
+R.~Pradeep, Manner of articulation detection using connectionist temporal
+  classification to improve automatic speech recognition performance (2018).
+
+\end{thebibliography}

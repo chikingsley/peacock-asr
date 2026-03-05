@@ -1,0 +1,349 @@
+\begin{thebibliography}{68}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Abdin et~al.(2024)Abdin, Jacobs, Awan, Aneja, Awadallah, Awadalla, Bach, Bahree, Bakhtiari, Behl, Benhaim, Bilenko, Bjorck, Bubeck, Cai, Mendes, Chen, Chaudhary, Chopra, Giorno, de~Rosa, Dixon, Eldan, Iter, Garg, Goswami, Gunasekar, Haider, Hao, Hewett, Huynh, Javaheripi, Jin, Kauffmann, Karampatziakis, Kim, Khademi, Kurilenko, Lee, Lee, Li, Liang, Liu, Lin, Lin, Madan, Mitra, Modi, Nguyen, Norick, Patra, Perez{-}Becker, Portet, Pryzant, Qin, Radmilac, Rosset, Roy, Ruwase, Saarikivi, Saied, Salim, Santacroce, Shah, Shang, Sharma, Song, Tanaka, Wang, Ward, Wang, Witte, Wyatt, Xu, Xu, Yadav, Yang, Yang, Yu, Zhang, Zhang, Zhang, Zhang, Zhang, Zhang, Zhang, and Zhou}]{phi3}
+Marah~I Abdin, Sam~Ade Jacobs, Ammar~Ahmad Awan, Jyoti Aneja, Ahmed Awadallah, Hany Awadalla, Nguyen Bach, Amit Bahree, Arash Bakhtiari, Harkirat~S. Behl, Alon Benhaim, Misha Bilenko, Johan Bjorck, S{\'{e}}bastien Bubeck, Martin Cai, Caio C{\'{e}}sar~Teodoro Mendes, Weizhu Chen, Vishrav Chaudhary, Parul Chopra, Allie~Del Giorno, Gustavo de~Rosa, Matthew Dixon, Ronen Eldan, Dan Iter, Amit Garg, Abhishek Goswami, Suriya Gunasekar, Emman Haider, Junheng Hao, Russell~J. Hewett, Jamie Huynh, Mojan Javaheripi, Xin Jin, Piero Kauffmann, Nikos Karampatziakis, Dongwoo Kim, Mahoud Khademi, Lev Kurilenko, James~R. Lee, Yin~Tat Lee, Yuanzhi Li, Chen Liang, Weishung Liu, Eric Lin, Zeqi Lin, Piyush Madan, Arindam Mitra, Hardik Modi, Anh Nguyen, Brandon Norick, Barun Patra, Daniel Perez{-}Becker, Thomas Portet, Reid Pryzant, Heyang Qin, Marko Radmilac, Corby Rosset, Sambudha Roy, Olatunji Ruwase, Olli Saarikivi, Amin Saied, Adil Salim, Michael Santacroce, Shital Shah, Ning Shang, Hiteshi Sharma, Xia Song, Masahiro Tanaka,
+  Xin Wang, Rachel Ward, Guanhua Wang, Philipp Witte, Michael Wyatt, Can Xu, Jiahang Xu, Sonali Yadav, Fan Yang, Ziyi Yang, Donghan Yu, Chengruidong Zhang, Cyril Zhang, Jianwen Zhang, Li~Lyna Zhang, Yi~Zhang, Yue Zhang, Yunan Zhang, and Xiren Zhou. 2024.
+\newblock Phi-3 technical report: {A} highly capable language model locally on your phone.
+\newblock \emph{arXiv preprint}, abs/2404.14219.
+
+\bibitem[{Anastassiou et~al.(2024)Anastassiou, Chen, Chen, Chen, Chen, Chen, Cong, Deng, Ding, Gao, Gong, Huang, Huang, Huang, Huo, Jia, Li, Li, Li, Li, Li, Li, Liu, Liu, Liu, Liu, Liu, Liu, Lu, Pan, Wang, Wang, Wang, Wei, Wu, Yao, Yang, Yi, Zhang, Zhang, Zhang, Zhang, Zhang, Zhao, Zhong, and Zhuang}]{seedtts}
+Philip Anastassiou, Jiawei Chen, Jitong Chen, Yuanzhe Chen, Zhuo Chen, Ziyi Chen, Jian Cong, Lelai Deng, Chuang Ding, Lu~Gao, Mingqing Gong, Peisong Huang, Qingqing Huang, Zhiying Huang, Yuanyuan Huo, Dongya Jia, Chumin Li, Feiya Li, Hui Li, Jiaxin Li, Xiaoyang Li, Xingxing Li, Lin Liu, Shouda Liu, Sichao Liu, Xudong Liu, Yuchen Liu, Zhengxi Liu, Lu~Lu, Junjie Pan, Xin Wang, Yuping Wang, Yuxuan Wang, Zhen Wei, Jian Wu, Chao Yao, Yifeng Yang, Yuanhao Yi, Junteng Zhang, Qidi Zhang, Shuo Zhang, Wenjie Zhang, Yang Zhang, Zilin Zhao, Dejian Zhong, and Xiaobin Zhuang. 2024.
+\newblock Seed-tts: {A} family of high-quality versatile speech generation models.
+\newblock \emph{arXiv preprint}, abs/2406.02430.
+
+\bibitem[{Ardila et~al.(2019)Ardila, Branson, Davis, Henretty, Kohler, Meyer, Morais, Saunders, Tyers, and Weber}]{ardila2019common}
+Rosana Ardila, Megan Branson, Kelly Davis, Michael Henretty, Michael Kohler, Josh Meyer, Reuben Morais, Lindsay Saunders, Francis~M Tyers, and Gregor Weber. 2019.
+\newblock Common voice: A massively-multilingual speech corpus.
+\newblock \emph{arXiv preprint arXiv:1912.06670}.
+
+\bibitem[{Bai et~al.(2022)Bai, Jones, Ndousse, Askell, Chen, DasSarma, Drain, Fort, Ganguli, Henighan, Joseph, Kadavath, Kernion, Conerly, Showk, Elhage, Hatfield{-}Dodds, Hernandez, Hume, Johnston, Kravec, Lovitt, Nanda, Olsson, Amodei, Brown, Clark, McCandlish, Olah, Mann, and Kaplan}]{RLHF-anthoropic}
+Yuntao Bai, Andy Jones, Kamal Ndousse, Amanda Askell, Anna Chen, Nova DasSarma, Dawn Drain, Stanislav Fort, Deep Ganguli, Tom Henighan, Nicholas Joseph, Saurav Kadavath, Jackson Kernion, Tom Conerly, Sheer~El Showk, Nelson Elhage, Zac Hatfield{-}Dodds, Danny Hernandez, Tristan Hume, Scott Johnston, Shauna Kravec, Liane Lovitt, Neel Nanda, Catherine Olsson, Dario Amodei, Tom~B. Brown, Jack Clark, Sam McCandlish, Chris Olah, Benjamin Mann, and Jared Kaplan. 2022.
+\newblock Training a helpful and harmless assistant with reinforcement learning from human feedback.
+\newblock \emph{arXiv preprint}, abs/2204.05862.
+
+\bibitem[{Borsos et~al.(2023{\natexlab{a}})Borsos, Marinier, Vincent, Kharitonov, Pietquin, Sharifi, Roblek, Teboul, Grangier, Tagliasacchi, and Zeghidour}]{audiolm}
+Zal{\'{a}}n Borsos, Rapha{\"{e}}l Marinier, Damien Vincent, Eugene Kharitonov, Olivier Pietquin, Matthew Sharifi, Dominik Roblek, Olivier Teboul, David Grangier, Marco Tagliasacchi, and Neil Zeghidour. 2023{\natexlab{a}}.
+\newblock Audiolm: {A} language modeling approach to audio generation.
+\newblock \emph{{IEEE} {ACM} Trans. Audio Speech Lang. Process.}, 31:2523--2533.
+
+\bibitem[{Borsos et~al.(2023{\natexlab{b}})Borsos, Sharifi, Vincent, Kharitonov, Zeghidour, and Tagliasacchi}]{soundstorm}
+Zal{\'{a}}n Borsos, Matthew Sharifi, Damien Vincent, Eugene Kharitonov, Neil Zeghidour, and Marco Tagliasacchi. 2023{\natexlab{b}}.
+\newblock Soundstorm: Efficient parallel audio generation.
+\newblock \emph{arXiv preprint}, abs/2305.09636.
+
+\bibitem[{Burns et~al.(2024)Burns, Izmailov, Kirchner, Baker, Gao, Aschenbrenner, Chen, Ecoffet, Joglekar, Leike, Sutskever, and Wu}]{weak-to-strong-generalization}
+Collin Burns, Pavel Izmailov, Jan~Hendrik Kirchner, Bowen Baker, Leo Gao, Leopold Aschenbrenner, Yining Chen, Adrien Ecoffet, Manas Joglekar, Jan Leike, Ilya Sutskever, and Jeffrey Wu. 2024.
+\newblock Weak-to-strong generalization: Eliciting strong capabilities with weak supervision.
+\newblock In \emph{{ICML}}. OpenReview.net.
+
+\bibitem[{Chen et~al.(2024{\natexlab{a}})Chen, Hu, Wu, Wang, Chng, and Zhang}]{uno}
+Chen Chen, Yuchen Hu, Wen Wu, Helin Wang, Eng~Siong Chng, and Chao Zhang. 2024{\natexlab{a}}.
+\newblock Enhancing zero-shot text-to-speech synthesis with human feedback.
+\newblock \emph{arXiv preprint}, abs/2406.00654.
+
+\bibitem[{Chen et~al.(2024{\natexlab{b}})Chen, Byun, Elsner, and Perrault}]{dlpo}
+Jingyi Chen, Ju-Seung Byun, Micha Elsner, and Andrew Perrault. 2024{\natexlab{b}}.
+\newblock Dlpo: Diffusion model loss-guided reinforcement learning for fine-tuning text-to-speech diffusion models.
+\newblock \emph{arXiv preprint}, abs/2405.14632.
+
+\bibitem[{Chen et~al.(2022)Chen, Wang, Chen, Wu, Liu, Chen, Li, Kanda, Yoshioka, Xiao et~al.}]{wavlm}
+Sanyuan Chen, Chengyi Wang, Zhengyang Chen, Yu~Wu, Shujie Liu, Zhuo Chen, Jinyu Li, Naoyuki Kanda, Takuya Yoshioka, Xiong Xiao, et~al. 2022.
+\newblock Wavlm: Large-scale self-supervised pre-training for full stack speech processing.
+\newblock \emph{IEEE Journal of Selected Topics in Signal Processing}, 16(6):1505--1518.
+
+\bibitem[{Chen et~al.(2024{\natexlab{c}})Chen, Niu, Ma, Deng, Wang, Zhao, Yu, and Chen}]{f5tts}
+Yushen Chen, Zhikang Niu, Ziyang Ma, Keqi Deng, Chunhui Wang, Jian Zhao, Kai Yu, and Xie Chen. 2024{\natexlab{c}}.
+\newblock {F5-TTS:} {A} fairytaler that fakes fluent and faithful speech with flow matching.
+\newblock \emph{arXiv preprint}, abs/2410.06885.
+
+\bibitem[{Cideron et~al.(2024)Cideron, Girgin, Verzetti, Vincent, Kastelic, Borsos, McWilliams, Ungureanu, Bachem, Pietquin, Geist, Hussenot, Zeghidour, and Agostinelli}]{musicrl}
+Geoffrey Cideron, Sertan Girgin, Mauro Verzetti, Damien Vincent, Matej Kastelic, Zal{\'{a}}n Borsos, Brian McWilliams, Victor Ungureanu, Olivier Bachem, Olivier Pietquin, Matthieu Geist, L{\'{e}}onard Hussenot, Neil Zeghidour, and Andrea Agostinelli. 2024.
+\newblock Musicrl: Aligning music generation to human preferences.
+\newblock In \emph{{ICML}}. OpenReview.net.
+
+\bibitem[{Dao et~al.(2022)Dao, Fu, Ermon, Rudra, and R{\'e}}]{flashattention}
+Tri Dao, Dan Fu, Stefano Ermon, Atri Rudra, and Christopher R{\'e}. 2022.
+\newblock Flashattention: Fast and memory-efficient exact attention with io-awareness.
+\newblock \emph{Advances in Neural Information Processing Systems}, 35:16344--16359.
+
+\bibitem[{DeepSeek-AI et~al.(2025)DeepSeek-AI, Guo, Yang, Zhang, Song, Zhang, Xu, Zhu, Ma, Wang, Bi, Zhang, Yu, Wu, Wu, Gou, Shao, Li, Gao, Liu, Xue, Wang, Wu, Feng, Lu, Zhao, Deng, Zhang, Ruan, Dai, Chen, Ji, Li, Lin, Dai, Luo, Hao, Chen, Li, Zhang, Bao, Xu, Wang, Ding, Xin, Gao, Qu, Li, Guo, Li, Wang, Chen, Yuan, Qiu, Li, Cai, Ni, Liang, Chen, Dong, Hu, Gao, Guan, Huang, Yu, Wang, Zhang, Zhao, Wang, Zhang, Xu, Xia, Zhang, Zhang, Tang, Li, Wang, Li, Tian, Huang, Zhang, Wang, Chen, Du, Ge, Zhang, Pan, Wang, Chen, Jin, Chen, Lu, Zhou, Chen, Ye, Wang, Yu, Zhou, Pan, Li, Zhou, Wu, Ye, Yun, Pei, Sun, Wang, Zeng, Zhao, Liu, Liang, Gao, Yu, Zhang, Xiao, An, Liu, Wang, Chen, Nie, Cheng, Liu, Xie, Liu, Yang, Li, Su, Lin, Li, Jin, Shen, Chen, Sun, Wang, Song, Zhou, Wang, Shan, Li, Wang, Wei, Zhang, Xu, Li, Zhao, Sun, Wang, Yu, Zhang, Shi, Xiong, He, Piao, Wang, Tan, Ma, Liu, Guo, Ou, Wang, Gong, Zou, He, Xiong, Luo, You, Liu, Zhou, Zhu, Xu, Huang, Li, Zheng, Zhu, Ma, Tang, Zha, Yan, Ren, Ren, Sha, Fu, Xu, Xie, Zhang,
+  Hao, Ma, Yan, Wu, Gu, Zhu, Liu, Li, Xie, Song, Pan, Huang, Xu, Zhang, and Zhang}]{deepseek-r1}
+DeepSeek-AI, Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Ruoyu Zhang, Runxin Xu, Qihao Zhu, Shirong Ma, Peiyi Wang, Xiao Bi, Xiaokang Zhang, Xingkai Yu, Yu~Wu, Z.~F. Wu, Zhibin Gou, Zhihong Shao, Zhuoshu Li, Ziyi Gao, Aixin Liu, Bing Xue, Bingxuan Wang, Bochao Wu, Bei Feng, Chengda Lu, Chenggang Zhao, Chengqi Deng, Chenyu Zhang, Chong Ruan, Damai Dai, Deli Chen, Dongjie Ji, Erhang Li, Fangyun Lin, Fucong Dai, Fuli Luo, Guangbo Hao, Guanting Chen, Guowei Li, H.~Zhang, Han Bao, Hanwei Xu, Haocheng Wang, Honghui Ding, Huajian Xin, Huazuo Gao, Hui Qu, Hui Li, Jianzhong Guo, Jiashi Li, Jiawei Wang, Jingchang Chen, Jingyang Yuan, Junjie Qiu, Junlong Li, J.~L. Cai, Jiaqi Ni, Jian Liang, Jin Chen, Kai Dong, Kai Hu, Kaige Gao, Kang Guan, Kexin Huang, Kuai Yu, Lean Wang, Lecong Zhang, Liang Zhao, Litong Wang, Liyue Zhang, Lei Xu, Leyi Xia, Mingchuan Zhang, Minghua Zhang, Minghui Tang, Meng Li, Miaojun Wang, Mingming Li, Ning Tian, Panpan Huang, Peng Zhang, Qiancheng Wang, Qinyu Chen, Qiushi Du, Ruiqi Ge, Ruisong
+  Zhang, Ruizhe Pan, Runji Wang, R.~J. Chen, R.~L. Jin, Ruyi Chen, Shanghao Lu, Shangyan Zhou, Shanhuang Chen, Shengfeng Ye, Shiyu Wang, Shuiping Yu, Shunfeng Zhou, Shuting Pan, S.~S. Li, Shuang Zhou, Shaoqing Wu, Shengfeng Ye, Tao Yun, Tian Pei, Tianyu Sun, T.~Wang, Wangding Zeng, Wanjia Zhao, Wen Liu, Wenfeng Liang, Wenjun Gao, Wenqin Yu, Wentao Zhang, W.~L. Xiao, Wei An, Xiaodong Liu, Xiaohan Wang, Xiaokang Chen, Xiaotao Nie, Xin Cheng, Xin Liu, Xin Xie, Xingchao Liu, Xinyu Yang, Xinyuan Li, Xuecheng Su, Xuheng Lin, X.~Q. Li, Xiangyue Jin, Xiaojin Shen, Xiaosha Chen, Xiaowen Sun, Xiaoxiang Wang, Xinnan Song, Xinyi Zhou, Xianzu Wang, Xinxia Shan, Y.~K. Li, Y.~Q. Wang, Y.~X. Wei, Yang Zhang, Yanhong Xu, Yao Li, Yao Zhao, Yaofeng Sun, Yaohui Wang, Yi~Yu, Yichao Zhang, Yifan Shi, Yiliang Xiong, Ying He, Yishi Piao, Yisong Wang, Yixuan Tan, Yiyang Ma, Yiyuan Liu, Yongqiang Guo, Yuan Ou, Yuduan Wang, Yue Gong, Yuheng Zou, Yujia He, Yunfan Xiong, Yuxiang Luo, Yuxiang You, Yuxuan Liu, Yuyang Zhou, Y.~X. Zhu,
+  Yanhong Xu, Yanping Huang, Yaohui Li, Yi~Zheng, Yuchen Zhu, Yunxian Ma, Ying Tang, Yukun Zha, Yuting Yan, Z.~Z. Ren, Zehui Ren, Zhangli Sha, Zhe Fu, Zhean Xu, Zhenda Xie, Zhengyan Zhang, Zhewen Hao, Zhicheng Ma, Zhigang Yan, Zhiyu Wu, Zihui Gu, Zijia Zhu, Zijun Liu, Zilin Li, Ziwei Xie, Ziyang Song, Zizheng Pan, Zhen Huang, Zhipeng Xu, Zhongyu Zhang, and Zhen Zhang. 2025.
+\newblock Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning.
+
+\bibitem[{DeepSeek{-}AI et~al.(2024)DeepSeek{-}AI, Liu, Feng, Xue, Wang, Wu, Lu, Zhao, Deng, Zhang, Ruan, Dai, Guo, Yang, Chen, Ji, Li, Lin, Dai, Luo, Hao, Chen, Li, Zhang, Bao, Xu, Wang, Zhang, Ding, Xin, Gao, Li, Qu, Cai, Liang, Guo, Ni, Li, Wang, Chen, Chen, Yuan, Qiu, Li, Song, Dong, Hu, Gao, Guan, Huang, Yu, Wang, Zhang, Xu, Xia, Zhao, Wang, Zhang, Li, Wang, Zhang, Zhang, Tang, Li, Tian, Huang, Wang, Zhang, Wang, Zhu, Chen, Du, Chen, Jin, Ge, Zhang, Pan, Wang, Xu, Zhang, Chen, Li, Lu, Zhou, Chen, Wu, Ye, Ye, Ma, Wang, Zhou, Yu, Zhou, Pan, Wang, Yun, Pei, Sun, Xiao, and Zeng}]{deepseek-v3}
+DeepSeek{-}AI, Aixin Liu, Bei Feng, Bing Xue, Bingxuan Wang, Bochao Wu, Chengda Lu, Chenggang Zhao, Chengqi Deng, Chenyu Zhang, Chong Ruan, Damai Dai, Daya Guo, Dejian Yang, Deli Chen, Dongjie Ji, Erhang Li, Fangyun Lin, Fucong Dai, Fuli Luo, Guangbo Hao, Guanting Chen, Guowei Li, H.~Zhang, Han Bao, Hanwei Xu, Haocheng Wang, Haowei Zhang, Honghui Ding, Huajian Xin, Huazuo Gao, Hui Li, Hui Qu, J.~L. Cai, Jian Liang, Jianzhong Guo, Jiaqi Ni, Jiashi Li, Jiawei Wang, Jin Chen, Jingchang Chen, Jingyang Yuan, Junjie Qiu, Junlong Li, Junxiao Song, Kai Dong, Kai Hu, Kaige Gao, Kang Guan, Kexin Huang, Kuai Yu, Lean Wang, Lecong Zhang, Lei Xu, Leyi Xia, Liang Zhao, Litong Wang, Liyue Zhang, Meng Li, Miaojun Wang, Mingchuan Zhang, Minghua Zhang, Minghui Tang, Mingming Li, Ning Tian, Panpan Huang, Peiyi Wang, Peng Zhang, Qiancheng Wang, Qihao Zhu, Qinyu Chen, Qiushi Du, R.~J. Chen, R.~L. Jin, Ruiqi Ge, Ruisong Zhang, Ruizhe Pan, Runji Wang, Runxin Xu, Ruoyu Zhang, Ruyi Chen, S.~S. Li, Shanghao Lu, Shangyan Zhou,
+  Shanhuang Chen, Shaoqing Wu, Shengfeng Ye, Shengfeng Ye, Shirong Ma, Shiyu Wang, Shuang Zhou, Shuiping Yu, Shunfeng Zhou, Shuting Pan, T.~Wang, Tao Yun, Tian Pei, Tianyu Sun, W.~L. Xiao, and Wangding Zeng. 2024.
+\newblock Deepseek-v3 technical report.
+\newblock \emph{arXiv preprint}, abs/2412.19437.
+
+\bibitem[{D{\'{e}}fossez et~al.(2023)D{\'{e}}fossez, Copet, Synnaeve, and Adi}]{encodec}
+Alexandre D{\'{e}}fossez, Jade Copet, Gabriel Synnaeve, and Yossi Adi. 2023.
+\newblock High fidelity neural audio compression.
+\newblock \emph{Trans. Mach. Learn. Res.}, 2023.
+
+\bibitem[{Du et~al.(2024{\natexlab{a}})Du, Chen, Zhang, Hu, Lu, Yang, Hu, Zheng, Gu, Ma, Gao, and Yan}]{cosyvoice}
+Zhihao Du, Qian Chen, Shiliang Zhang, Kai Hu, Heng Lu, Yexin Yang, Hangrui Hu, Siqi Zheng, Yue Gu, Ziyang Ma, Zhifu Gao, and Zhijie Yan. 2024{\natexlab{a}}.
+\newblock Cosyvoice: {A} scalable multilingual zero-shot text-to-speech synthesizer based on supervised semantic tokens.
+\newblock \emph{arXiv preprint}, abs/2407.05407.
+
+\bibitem[{Du et~al.(2024{\natexlab{b}})Du, Wang, Chen, Shi, Lv, Zhao, Gao, Yang, Gao, Wang, Yu, Liu, Sheng, Gu, Deng, Wang, Zhang, Yan, and Zhou}]{cosyvoice2}
+Zhihao Du, Yuxuan Wang, Qian Chen, Xian Shi, Xiang Lv, Tianyu Zhao, Zhifu Gao, Yexin Yang, Changfeng Gao, Hui Wang, Fan Yu, Huadai Liu, Zhengyan Sheng, Yue Gu, Chong Deng, Wen Wang, Shiliang Zhang, Zhijie Yan, and Jingren Zhou. 2024{\natexlab{b}}.
+\newblock Cosyvoice 2: Scalable streaming speech synthesis with large language models.
+\newblock \emph{arXiv preprint}, abs/2412.10117.
+
+\bibitem[{Dubey et~al.(2024)Dubey, Jauhri, Pandey, Kadian, Al{-}Dahle, Letman, Mathur, Schelten, Yang, Fan, Goyal, Hartshorn, Yang, Mitra, Sravankumar, Korenev, Hinsvark, Rao, Zhang, Rodriguez, Gregerson, Spataru, Rozi{\`{e}}re, Biron, Tang, Chern, Caucheteux, Nayak, Bi, Marra, McConnell, Keller, Touret, Wu, Wong, Ferrer, Nikolaidis, Allonsius, Song, Pintz, Livshits, Esiobu, Choudhary, Mahajan, Garcia{-}Olano, Perino, Hupkes, Lakomkin, AlBadawy, Lobanova, Dinan, Smith, Radenovic, Zhang, Synnaeve, Lee, Anderson, Nail, Mialon, Pang, Cucurell, Nguyen, Korevaar, Xu, Touvron, Zarov, Ibarra, Kloumann, Misra, Evtimov, Copet, Lee, Geffert, Vranes, Park, Mahadeokar, Shah, van~der Linde, Billock, Hong, Lee, Fu, Chi, Huang, Liu, Wang, Yu, Bitton, Spisak, Park, Rocca, Johnstun, Saxe, Jia, Alwala, Upasani, Plawiak, Li, Heafield, Stone, and et~al.}]{llama3}
+Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al{-}Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten, Amy Yang, Angela Fan, Anirudh Goyal, Anthony Hartshorn, Aobo Yang, Archi Mitra, Archie Sravankumar, Artem Korenev, Arthur Hinsvark, Arun Rao, Aston Zhang, Aur{\'{e}}lien Rodriguez, Austen Gregerson, Ava Spataru, Baptiste Rozi{\`{e}}re, Bethany Biron, Binh Tang, Bobbie Chern, Charlotte Caucheteux, Chaya Nayak, Chloe Bi, Chris Marra, Chris McConnell, Christian Keller, Christophe Touret, Chunyang Wu, Corinne Wong, Cristian~Canton Ferrer, Cyrus Nikolaidis, Damien Allonsius, Daniel Song, Danielle Pintz, Danny Livshits, David Esiobu, Dhruv Choudhary, Dhruv Mahajan, Diego Garcia{-}Olano, Diego Perino, Dieuwke Hupkes, Egor Lakomkin, Ehab AlBadawy, Elina Lobanova, Emily Dinan, Eric~Michael Smith, Filip Radenovic, Frank Zhang, Gabriel Synnaeve, Gabrielle Lee, Georgia~Lewis Anderson, Graeme Nail, Gr{\'{e}}goire Mialon, Guan Pang, Guillem Cucurell, Hailey Nguyen, Hannah Korevaar, Hu~Xu, Hugo
+  Touvron, Iliyan Zarov, Imanol~Arrieta Ibarra, Isabel~M. Kloumann, Ishan Misra, Ivan Evtimov, Jade Copet, Jaewon Lee, Jan Geffert, Jana Vranes, Jason Park, Jay Mahadeokar, Jeet Shah, Jelmer van~der Linde, Jennifer Billock, Jenny Hong, Jenya Lee, Jeremy Fu, Jianfeng Chi, Jianyu Huang, Jiawen Liu, Jie Wang, Jiecao Yu, Joanna Bitton, Joe Spisak, Jongsoo Park, Joseph Rocca, Joshua Johnstun, Joshua Saxe, Junteng Jia, Kalyan~Vasuden Alwala, Kartikeya Upasani, Kate Plawiak, Ke~Li, Kenneth Heafield, Kevin Stone, and et~al. 2024.
+\newblock The llama 3 herd of models.
+\newblock \emph{arXiv preprint}, abs/2407.21783.
+
+\bibitem[{Eskimez et~al.(2024)Eskimez, Wang, Thakker, Li, Tsai, Xiao, Yang, Zhu, Tang, Tan, Liu, Zhao, and Kanda}]{e2tts}
+Sefik~Emre Eskimez, Xiaofei Wang, Manthan Thakker, Canrun Li, Chung{-}Hsien Tsai, Zhen Xiao, Hemin Yang, Zirun Zhu, Min Tang, Xu~Tan, Yanqing Liu, Sheng Zhao, and Naoyuki Kanda. 2024.
+\newblock {E2} {TTS:} embarrassingly easy fully non-autoregressive zero-shot {TTS}.
+\newblock In \emph{{SLT}}. {IEEE}.
+
+\bibitem[{Fu et~al.(2024)Fu, Xiao, Wang, Zhu, Zhang, Pang, Jia, and Chen}]{tldr-perturb-vision}
+Deqing Fu, Tong Xiao, Rui Wang, Wang Zhu, Pengchuan Zhang, Guan Pang, Robin Jia, and Lawrence Chen. 2024.
+\newblock {TLDR:} token-level detective reward model for large vision language models.
+\newblock \emph{arXiv preprint}, abs/2410.04734.
+
+\bibitem[{Gao et~al.(2024)Gao, Zhang, Chen, Zhang, and Chen}]{emo-dpo}
+Xiaoxue Gao, Chen Zhang, Yiming Chen, Huayun Zhang, and Nancy~F. Chen. 2024.
+\newblock Emo-dpo: Controllable emotional speech synthesis through direct preference optimization.
+\newblock \emph{arXiv preprint}, abs/2409.10157.
+
+\bibitem[{Gao et~al.(2023)Gao, Li, Wang, Luo, Shi, Chen, Li, Zuo, Du, and Zhang}]{funasr}
+Zhifu Gao, Zerui Li, Jiaming Wang, Haoneng Luo, Xian Shi, Mengzhe Chen, Yabin Li, Lingyun Zuo, Zhihao Du, and Shiliang Zhang. 2023.
+\newblock Funasr: {A} fundamental end-to-end speech recognition toolkit.
+\newblock In \emph{{INTERSPEECH}}, pages 1593--1597. {ISCA}.
+
+\bibitem[{Gao et~al.(2022)Gao, Zhang, McLoughlin, and Yan}]{paraformer}
+Zhifu Gao, Shiliang Zhang, Ian McLoughlin, and Zhijie Yan. 2022.
+\newblock Paraformer: Fast and accurate parallel transformer for non-autoregressive end-to-end speech recognition.
+\newblock In \emph{{INTERSPEECH}}, pages 2063--2067. {ISCA}.
+
+\bibitem[{Guo et~al.(2024)Guo, Liu, Shen, Wu, Xie, Xie, and Xu}]{fireredtts}
+Hao-Han Guo, Kun Liu, Fei-Yu Shen, Yi-Chen Wu, Feng-Long Xie, Kun Xie, and Kai-Tuo Xu. 2024.
+\newblock Fireredtts: A foundation text-to-speech framework for industry-level generative speech applications.
+\newblock \emph{arXiv preprint}, abs/2409.03283.
+
+\bibitem[{Guo et~al.(2021)Guo, Wen, Jiang, Luo, Zhang, Zhao, Li, Gong, Zou, Han et~al.}]{guo2021didispeech}
+Tingwei Guo, Cheng Wen, Dongwei Jiang, Ne~Luo, Ruixiong Zhang, Shuaijiang Zhao, Wubo Li, Cheng Gong, Wei Zou, Kun Han, et~al. 2021.
+\newblock Didispeech: A large scale mandarin speech corpus.
+\newblock In \emph{ICASSP 2021-2021 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 6968--6972. IEEE.
+
+\bibitem[{He et~al.(2024)He, Shang, Wang, Li, Gu, Hua, Liu, Yang, Li, Shi, Wang, Chen, Zhang, and Wu}]{emilia}
+Haorui He, Zengqiang Shang, Chaoren Wang, Xuyuan Li, Yicheng Gu, Hua Hua, Liwei Liu, Chen Yang, Jiaqi Li, Peiyang Shi, Yuancheng Wang, Kai Chen, Pengyuan Zhang, and Zhizheng Wu. 2024.
+\newblock Emilia: An extensive, multilingual, and diverse speech dataset for large-scale speech generation.
+\newblock In \emph{{SLT}}. {IEEE}.
+
+\bibitem[{He et~al.(2025)He, Shang, Wang, Li, Gu, Hua, Liu, Yang, Li, Shi et~al.}]{emilia-large}
+Haorui He, Zengqiang Shang, Chaoren Wang, Xuyuan Li, Yicheng Gu, Hua Hua, Liwei Liu, Chen Yang, Jiaqi Li, Peiyang Shi, et~al. 2025.
+\newblock Emilia: A large-scale, extensive, multilingual, and diverse dataset for speech generation.
+\newblock \emph{arXiv preprint}, 2501.15907.
+
+\bibitem[{Hu et~al.(2024)Hu, Chen, Wang, Chng, and Zhang}]{rio}
+Yuchen Hu, Chen Chen, Siyin Wang, Eng~Siong Chng, and Chao Zhang. 2024.
+\newblock Robust zero-shot text-to-speech synthesis with reverse inference optimization.
+\newblock \emph{arXiv preprint}, abs/2407.02243.
+
+\bibitem[{Hussain et~al.(2025)Hussain, Neekhara, Yang, Casanova, Ghosh, Desta, Fejgin, Valle, and Li}]{koel-tts}
+Shehzeen Hussain, Paarth Neekhara, Xuesong Yang, Edresson Casanova, Subhankar Ghosh, Mikyas~T. Desta, Roy Fejgin, Rafael Valle, and Jason Li. 2025.
+\newblock Koel-tts: Enhancing llm based speech generation with preference alignment and classifier free guidance.
+\newblock \emph{arXiv preprint}, abs/2502.05236.
+
+\bibitem[{Ju et~al.(2024)Ju, Wang, Shen, Tan, Xin, Yang, Liu, Leng, Song, Tang et~al.}]{naturalspeech3}
+Zeqian Ju, Yuancheng Wang, Kai Shen, Xu~Tan, Detai Xin, Dongchao Yang, Eric Liu, Yichong Leng, Kaitao Song, Siliang Tang, et~al. 2024.
+\newblock Naturalspeech 3: Zero-shot speech synthesis with factorized codec and diffusion models.
+\newblock In \emph{Forty-first International Conference on Machine Learning}.
+
+\bibitem[{Kahn et~al.(2020)Kahn, Riviere, Zheng, Kharitonov, Xu, Mazar{\'e}, Karadayi, Liptchinsky, Collobert, Fuegen et~al.}]{kahn2020libri}
+Jacob Kahn, Morgane Riviere, Weiyi Zheng, Evgeny Kharitonov, Qiantong Xu, Pierre-Emmanuel Mazar{\'e}, Julien Karadayi, Vitaliy Liptchinsky, Ronan Collobert, Christian Fuegen, et~al. 2020.
+\newblock Libri-light: A benchmark for asr with limited or no supervision.
+\newblock In \emph{ICASSP 2020-2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 7669--7673. IEEE.
+
+\bibitem[{Le et~al.(2023)Le, Vyas, Shi, Karrer, Sari, Moritz, Williamson, Manohar, Adi, Mahadeokar, and Hsu}]{voicebox}
+Matthew Le, Apoorv Vyas, Bowen Shi, Brian Karrer, Leda Sari, Rashel Moritz, Mary Williamson, Vimal Manohar, Yossi Adi, Jay Mahadeokar, and Wei{-}Ning Hsu. 2023.
+\newblock Voicebox: Text-guided multilingual universal speech generation at scale.
+\newblock In \emph{NeurIPS}.
+
+\bibitem[{Li et~al.(2025{\natexlab{a}})Li, Lin, Li, Huang, Wang, Wang, Zhan, and Wu}]{dualcodec}
+Jiaqi Li, Xiaolong Lin, Zhekai Li, Shixi Huang, Yuancheng Wang, Chaoren Wang, Zhenpeng Zhan, and Zhizheng Wu. 2025{\natexlab{a}}.
+\newblock Dualcodec: A low-frame-rate, semantically-enhanced neural audio codec for speech generation.
+\newblock In \emph{{INTERSPEECH}}. {ISCA}.
+
+\bibitem[{Li et~al.(2025{\natexlab{b}})Li, Zhang, Wang, He, Wang, Wang, Liao, Ao, Xie, Huang, Zhang, and Wu}]{amphion_v0.2}
+Jiaqi Li, Xueyao Zhang, Yuancheng Wang, Haorui He, Chaoren Wang, Li~Wang, Huan Liao, Junyi Ao, Zeyu Xie, Yiqiao Huang, Junan Zhang, and Zhizheng Wu. 2025{\natexlab{b}}.
+\newblock Overview of the amphion toolkit (v0.2).
+\newblock \emph{arXiv preprint arXiv:2501.15442}.
+
+\bibitem[{Li et~al.(2024{\natexlab{a}})Li, Xu, and Yu}]{li2024rl}
+Ziniu Li, Tian Xu, and Yang Yu. 2024{\natexlab{a}}.
+\newblock When is rl better than dpo in rlhf? a representation and optimization perspective.
+\newblock In \emph{The Second Tiny Papers Track at ICLR 2024}.
+
+\bibitem[{Li et~al.(2024{\natexlab{b}})Li, Xu, Zhang, Lin, Yu, Sun, and Luo}]{li2023rema4}
+Ziniu Li, Tian Xu, Yushun Zhang, Zhihang Lin, Yang Yu, Ruoyu Sun, and Zhi-Quan Luo. 2024{\natexlab{b}}.
+\newblock Remax: A simple, effective, and efficient reinforcement learning method for aligning large language models.
+\newblock In \emph{Forty-first International Conference on Machine Learning}.
+
+\bibitem[{Liao et~al.(2024)Liao, Han, Yang, Du, Yang, Xu, Xu, Liu, Lu, and Li}]{baton}
+Huan Liao, Haonan Han, Kai Yang, Tianjiao Du, Rui Yang, Qinmei Xu, Zunnan Xu, Jingquan Liu, Jiasheng Lu, and Xiu Li. 2024.
+\newblock {BATON:} aligning text-to-audio model using human preference feedback.
+\newblock In \emph{{IJCAI}}, pages 4542--4550. ijcai.org.
+
+\bibitem[{Lipman et~al.(2023)Lipman, Chen, Ben{-}Hamu, Nickel, and Le}]{flow-matching}
+Yaron Lipman, Ricky T.~Q. Chen, Heli Ben{-}Hamu, Maximilian Nickel, and Matthew Le. 2023.
+\newblock Flow matching for generative modeling.
+\newblock In \emph{{ICLR}}. OpenReview.net.
+
+\bibitem[{Majumder et~al.(2024)Majumder, Hung, Ghosal, Hsu, Mihalcea, and Poria}]{tango2}
+Navonil Majumder, Chia{-}Yu Hung, Deepanway Ghosal, Wei{-}Ning Hsu, Rada Mihalcea, and Soujanya Poria. 2024.
+\newblock Tango 2: Aligning diffusion-based text-to-audio generations through direct preference optimization.
+\newblock In \emph{{ACM} Multimedia}, pages 564--572. {ACM}.
+
+\bibitem[{Neekhara et~al.(2024)Neekhara, Hussain, Ghosh, Li, Valle, Badlani, and Ginsburg}]{robustness-problem}
+Paarth Neekhara, Shehzeen Hussain, Subhankar Ghosh, Jason Li, Rafael Valle, Rohan Badlani, and Boris Ginsburg. 2024.
+\newblock Improving robustness of llm-based speech synthesis by learning monotonic alignment.
+\newblock In \emph{{INTERSPEECH}}. {ISCA}.
+
+\bibitem[{Ouyang et~al.(2022)Ouyang, Wu, Jiang, Almeida, Wainwright, Mishkin, Zhang, Agarwal, Slama, Ray, Schulman, Hilton, Kelton, Miller, Simens, Askell, Welinder, Christiano, Leike, and Lowe}]{instructgpt}
+Long Ouyang, Jeffrey Wu, Xu~Jiang, Diogo Almeida, Carroll~L. Wainwright, Pamela Mishkin, Chong Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, John Schulman, Jacob Hilton, Fraser Kelton, Luke Miller, Maddie Simens, Amanda Askell, Peter Welinder, Paul~F. Christiano, Jan Leike, and Ryan Lowe. 2022.
+\newblock Training language models to follow instructions with human feedback.
+\newblock In \emph{NeurIPS}.
+
+\bibitem[{Panayotov et~al.(2015)Panayotov, Chen, Povey, and Khudanpur}]{librispeech}
+Vassil Panayotov, Guoguo Chen, Daniel Povey, and Sanjeev Khudanpur. 2015.
+\newblock Librispeech: an asr corpus based on public domain audio books.
+\newblock In \emph{2015 IEEE international conference on acoustics, speech and signal processing (ICASSP)}, pages 5206--5210. IEEE.
+
+\bibitem[{Peng et~al.(2024)Peng, Huang, Li, Mohamed, and Harwath}]{voicecraft}
+Puyuan Peng, Po-Yao Huang, Shang-Wen Li, Abdelrahman Mohamed, and David Harwath. 2024.
+\newblock Voicecraft: Zero-shot speech editing and text-to-speech in the wild.
+\newblock \emph{arXiv preprint arXiv:2403.16973}.
+
+\bibitem[{Radford et~al.(2023)Radford, Kim, Xu, Brockman, McLeavey, and Sutskever}]{whisper}
+Alec Radford, Jong~Wook Kim, Tao Xu, Greg Brockman, Christine McLeavey, and Ilya Sutskever. 2023.
+\newblock Robust speech recognition via large-scale weak supervision.
+\newblock In \emph{International conference on machine learning}, pages 28492--28518. PMLR.
+
+\bibitem[{Rafailov et~al.(2023)Rafailov, Sharma, Mitchell, Manning, Ermon, and Finn}]{dpo}
+Rafael Rafailov, Archit Sharma, Eric Mitchell, Christopher~D. Manning, Stefano Ermon, and Chelsea Finn. 2023.
+\newblock Direct preference optimization: Your language model is secretly a reward model.
+\newblock In \emph{NeurIPS}.
+
+\bibitem[{Saeki et~al.(2022)Saeki, Xin, Nakata, Koriyama, Takamichi, and Saruwatari}]{utmos}
+Takaaki Saeki, Detai Xin, Wataru Nakata, Tomoki Koriyama, Shinnosuke Takamichi, and Hiroshi Saruwatari. 2022.
+\newblock {UTMOS:} utokyo-sarulab system for voicemos challenge 2022.
+\newblock In \emph{{INTERSPEECH}}, pages 4521--4525. {ISCA}.
+
+\bibitem[{Sahoo et~al.(2024)Sahoo, Meharia, Ghosh, Saha, Jain, and Chadha}]{hallucination-survey}
+Pranab Sahoo, Prabhash Meharia, Akash Ghosh, Sriparna Saha, Vinija Jain, and Aman Chadha. 2024.
+\newblock A comprehensive survey of hallucination in large language, image, video and audio foundation models.
+\newblock In \emph{{EMNLP} (Findings)}, pages 11709--11724. Association for Computational Linguistics.
+
+\bibitem[{Shen et~al.(2024)Shen, Ju, Tan, Liu, Leng, He, Qin, Zhao, and Bian}]{naturalspeech2}
+Kai Shen, Zeqian Ju, Xu~Tan, Eric Liu, Yichong Leng, Lei He, Tao Qin, Sheng Zhao, and Jiang Bian. 2024.
+\newblock Naturalspeech 2: Latent diffusion models are natural and zero-shot speech and singing synthesizers.
+\newblock In \emph{{ICLR}}. OpenReview.net.
+
+\bibitem[{Skalse et~al.(2022)Skalse, Howe, Krasheninnikov, and Krueger}]{reward-hacking}
+Joar Skalse, Nikolaus Howe, Dmitrii Krasheninnikov, and David Krueger. 2022.
+\newblock Defining and characterizing reward gaming.
+\newblock In \emph{NeurIPS}, volume~35, pages 9460--9471.
+
+\bibitem[{Tan(2023)}]{tts-book-tanxu}
+Xu~Tan. 2023.
+\newblock \emph{Neural Text-to-Speech Synthesis}.
+\newblock Springer.
+
+\bibitem[{Tian et~al.(2024)Tian, Zhang, Shi, Zhang, Yu, Watanabe, and Yu}]{tianjinchuan-pa}
+Jinchuan Tian, Chunlei Zhang, Jiatong Shi, Hao Zhang, Jianwei Yu, Shinji Watanabe, and Dong Yu. 2024.
+\newblock Preference alignment improves language model-based {TTS}.
+\newblock \emph{arXiv preprint}, abs/2409.12403.
+
+\bibitem[{Wallace et~al.(2024)Wallace, Dang, Rafailov, Zhou, Lou, Purushwalkam, Ermon, Xiong, Joty, and Naik}]{wallace2024diffusion}
+Bram Wallace, Meihua Dang, Rafael Rafailov, Linqi Zhou, Aaron Lou, Senthil Purushwalkam, Stefano Ermon, Caiming Xiong, Shafiq Joty, and Nikhil Naik. 2024.
+\newblock Diffusion model alignment using direct preference optimization.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition}, pages 8228--8238.
+
+\bibitem[{Wang et~al.(2023)Wang, Chen, Wu, Zhang, Zhou, Liu, Chen, Liu, Wang, Li, He, Zhao, and Wei}]{valle}
+Chengyi Wang, Sanyuan Chen, Yu~Wu, Ziqiang Zhang, Long Zhou, Shujie Liu, Zhuo Chen, Yanqing Liu, Huaming Wang, Jinyu Li, Lei He, Sheng Zhao, and Furu Wei. 2023.
+\newblock Neural codec language models are zero-shot text to speech synthesizers.
+\newblock \emph{arXiv preprint}, abs/2301.02111.
+
+\bibitem[{Wang et~al.(2025{\natexlab{a}})Wang, Zhan, Liu, Zeng, Guo, Zheng, Zhang, Zhang, Zhang, and Wu}]{maskgct}
+Yuancheng Wang, Haoyue Zhan, Liwei Liu, Ruihong Zeng, Haotian Guo, Jiachen Zheng, Qiang Zhang, Xueyao Zhang, Shunsi Zhang, and Zhizheng Wu. 2025{\natexlab{a}}.
+\newblock Maskgct: Zero-shot text-to-speech with masked generative codec transformer.
+\newblock In \emph{{ICLR}}. OpenReview.net.
+
+\bibitem[{Wang et~al.(2025{\natexlab{b}})Wang, Zheng, Zhang, Zhang, Liao, and Wu}]{wang2025metis}
+Yuancheng Wang, Jiachen Zheng, Junan Zhang, Xueyao Zhang, Huan Liao, and Zhizheng Wu. 2025{\natexlab{b}}.
+\newblock Metis: A foundation speech generation model with masked generative pre-training.
+\newblock \emph{arXiv preprint arXiv:2502.03128}.
+
+\bibitem[{Weng(2024)}]{reward-hacking-wenglilian}
+Lilian Weng. 2024.
+\newblock \href {https://lilianweng.github.io/posts/2024-11-28-reward-hacking/} {Reward hacking in reinforcement learning.}
+\newblock \emph{lilianweng.github.io}.
+
+\bibitem[{Xiong et~al.(2024)Xiong, Dong, Ye, Wang, Zhong, Ji, Jiang, and Zhang}]{iterative-dpo}
+Wei Xiong, Hanze Dong, Chenlu Ye, Ziqi Wang, Han Zhong, Heng Ji, Nan Jiang, and Tong Zhang. 2024.
+\newblock Iterative preference learning from human feedback: Bridging theory and practice for {RLHF} under kl-constraint.
+\newblock In \emph{{ICML}}. OpenReview.net.
+
+\bibitem[{Xu et~al.(2023)Xu, Liu, Wu, Tong, Li, Ding, Tang, and Dong}]{imagereward}
+Jiazheng Xu, Xiao Liu, Yuchen Wu, Yuxuan Tong, Qinkai Li, Ming Ding, Jie Tang, and Yuxiao Dong. 2023.
+\newblock Imagereward: Learning and evaluating human preferences for text-to-image generation.
+\newblock In \emph{NeurIPS}.
+
+\bibitem[{Yang et~al.(2024{\natexlab{a}})Yang, Yang, Hui, Zheng, Yu, Zhou, Li, Li, Liu, Huang, Dong, Wei, Lin, Tang, Wang, Yang, Tu, Zhang, Ma, Yang, Xu, Zhou, Bai, He, Lin, Dang, Lu, Chen, Yang, Li, Xue, Ni, Zhang, Wang, Peng, Men, Gao, Lin, Wang, Bai, Tan, Zhu, Li, Liu, Ge, Deng, Zhou, Ren, Zhang, Wei, Ren, Liu, Fan, Yao, Zhang, Wan, Chu, Liu, Cui, Zhang, Guo, and Fan}]{qwen2}
+An~Yang, Baosong Yang, Binyuan Hui, Bo~Zheng, Bowen Yu, Chang Zhou, Chengpeng Li, Chengyuan Li, Dayiheng Liu, Fei Huang, Guanting Dong, Haoran Wei, Huan Lin, Jialong Tang, Jialin Wang, Jian Yang, Jianhong Tu, Jianwei Zhang, Jianxin Ma, Jianxin Yang, Jin Xu, Jingren Zhou, Jinze Bai, Jinzheng He, Junyang Lin, Kai Dang, Keming Lu, Keqin Chen, Kexin Yang, Mei Li, Mingfeng Xue, Na~Ni, Pei Zhang, Peng Wang, Ru~Peng, Rui Men, Ruize Gao, Runji Lin, Shijie Wang, Shuai Bai, Sinan Tan, Tianhang Zhu, Tianhao Li, Tianyu Liu, Wenbin Ge, Xiaodong Deng, Xiaohuan Zhou, Xingzhang Ren, Xinyu Zhang, Xipin Wei, Xuancheng Ren, Xuejing Liu, Yang Fan, Yang Yao, Yichang Zhang, Yu~Wan, Yunfei Chu, Yuqiong Liu, Zeyu Cui, Zhenru Zhang, Zhifang Guo, and Zhihao Fan. 2024{\natexlab{a}}.
+\newblock Qwen2 technical report.
+\newblock \emph{arXiv preprint}, abs/2407.10671.
+
+\bibitem[{Yang et~al.(2024{\natexlab{b}})Yang, Yang, Zhang, Hui, Zheng, Yu, Li, Liu, Huang, Wei, Lin, Yang, Tu, Zhang, Yang, Yang, Zhou, Lin, Dang, Lu, Bao, Yang, Yu, Li, Xue, Zhang, Zhu, Men, Lin, Li, Xia, Ren, Ren, Fan, Su, Zhang, Wan, Liu, Cui, Zhang, and Qiu}]{qwen2.5}
+An~Yang, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo~Zheng, Bowen Yu, Chengyuan Li, Dayiheng Liu, Fei Huang, Haoran Wei, Huan Lin, Jian Yang, Jianhong Tu, Jianwei Zhang, Jianxin Yang, Jiaxi Yang, Jingren Zhou, Junyang Lin, Kai Dang, Keming Lu, Keqin Bao, Kexin Yang, Le~Yu, Mei Li, Mingfeng Xue, Pei Zhang, Qin Zhu, Rui Men, Runji Lin, Tianhao Li, Tingyu Xia, Xingzhang Ren, Xuancheng Ren, Yang Fan, Yang Su, Yichang Zhang, Yu~Wan, Yuqiong Liu, Zeyu Cui, Zhenru Zhang, and Zihan Qiu. 2024{\natexlab{b}}.
+\newblock Qwen2.5 technical report.
+\newblock \emph{arXiv preprint}, abs/2412.15115.
+
+\bibitem[{Yao et~al.(2025)Yao, Yang, Pan, Feng, Ning, Ye, Zhou, and Xie}]{fpo}
+Jixun Yao, Yuguang Yang, Yu~Pan, Yuan Feng, Ziqian Ning, Jianhao Ye, Hongbin Zhou, and Lei Xie. 2025.
+\newblock Fine-grained preference optimization improves zero-shot text-to-speech.
+\newblock \emph{arXiv preprint}, abs/2502.02950.
+
+\bibitem[{Zeghidour et~al.(2021)Zeghidour, Luebs, Omran, Skoglund, and Tagliasacchi}]{soundstream}
+Neil Zeghidour, Alejandro Luebs, Ahmed Omran, Jan Skoglund, and Marco Tagliasacchi. 2021.
+\newblock Soundstream: An end-to-end neural audio codec.
+\newblock \emph{IEEE/ACM Transactions on Audio, Speech, and Language Processing}, 30:495--507.
+
+\bibitem[{Zhang et~al.(2024{\natexlab{a}})Zhang, Li, Li, Zhang, Wang, Zhou, and Qiu}]{speechalign}
+Dong Zhang, Zhaowei Li, Shimin Li, Xin Zhang, Pengyu Wang, Yaqian Zhou, and Xipeng Qiu. 2024{\natexlab{a}}.
+\newblock Speechalign: Aligning speech generation to human preferences.
+\newblock In \emph{NeurIPS}.
+
+\bibitem[{Zhang et~al.(2024{\natexlab{b}})Zhang, Lin, Bai, and Mei}]{zhang2024negative}
+Ruiqi Zhang, Licong Lin, Yu~Bai, and Song Mei. 2024{\natexlab{b}}.
+\newblock Negative preference optimization: From catastrophic collapse to effective unlearning.
+\newblock \emph{arXiv preprint arXiv:2404.05868}.
+
+\bibitem[{Zhang et~al.(2024{\natexlab{c}})Zhang, Xue, Gu, Wang, Li, He, Wang, Song, Chen, Fang, Chen, Zhang, Tang, Zou, Wang, Han, Chen, Li, and Wu}]{amphion}
+Xueyao Zhang, Liumeng Xue, Yicheng Gu, Yuancheng Wang, Jiaqi Li, Haorui He, Chaoren Wang, Ting Song, Xi~Chen, Zihao Fang, Haopeng Chen, Junan Zhang, Tze~Ying Tang, Lexiao Zou, Mingxuan Wang, Jun Han, Kai Chen, Haizhou Li, and Zhizheng Wu. 2024{\natexlab{c}}.
+\newblock Amphion: An open-source audio, music and speech generation toolkit.
+\newblock In \emph{{IEEE} Spoken Language Technology Workshop, {SLT} 2024}.
+
+\bibitem[{Zhang et~al.(2025)Zhang, Zhang, Peng, Tang, Manohar, Liu, Hwang, Li, Wang, Chan, Huang, Wu, and Ma}]{vevo}
+Xueyao Zhang, Xiaohui Zhang, Kainan Peng, Zhenyu Tang, Vimal Manohar, Yingru Liu, Jeff Hwang, Dangna Li, Yuhao Wang, Julian Chan, Yuan Huang, Zhizheng Wu, and Mingbo Ma. 2025.
+\newblock Vevo: Controllable zero-shot voice imitation with self-supervised disentanglement.
+\newblock In \emph{{ICLR}}. OpenReview.net.
+
+\bibitem[{Zhang et~al.(2024{\natexlab{d}})Zhang, Pan, Guo, Li, Zhu, Wang, Xu, Lu, Hong, Wang, Zhang, He, Jiang, Chen, Yang, Zhou, Cheng, and Zhao}]{gtsinger}
+Yu~Zhang, Changhao Pan, Wenxiang Guo, Ruiqi Li, Zhiyuan Zhu, Jialei Wang, Wenhao Xu, Jingyu Lu, Zhiqing Hong, Chuxin Wang, Lichao Zhang, Jinzheng He, Ziyue Jiang, Yuxin Chen, Chen Yang, Jiecheng Zhou, Xinyu Cheng, and Zhou Zhao. 2024{\natexlab{d}}.
+\newblock Gtsinger: {A} global multi-technique singing corpus with realistic music scores for all singing tasks.
+\newblock In \emph{NeurIPS}.
+
+\end{thebibliography}

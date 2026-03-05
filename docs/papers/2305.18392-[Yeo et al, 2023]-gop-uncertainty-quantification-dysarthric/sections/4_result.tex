@@ -1,0 +1,39 @@
+\input{figures/result}
+\section{Experimental results} \label{sec:results}
+\subsection{Correlation between GoPs and intelligilbity scores}
+\Cref{tab:results} demonstrates the performances of both baseline and proposed experiments, with the best performance indicated in bold.
+GoP with prior normalized MaxLogit performed the best on all the languages among the baselines and the UQ methods, achieving $-21.65\%$, $-54.42\%$, $-57.88\%$ correlation, for English, Korean, and Tamil, respectively.
+% We assume the lowest correlation was attained for the English dataset due to the alignment errors.
+
+The results of the baseline experiments show that GMM-GoP has the highest correlation for English and Korean at $-20.49\%$ and $-52.37\%$, respectively, while DNN-GoP performs best for Tamil with a correlation of $-46.81\%$.
+For the proposed experiments, GoP without normalization generally shows lower performance than the baseline, except for MaxLogit-based GoP. 
+Additionally, while scaling normalization has minimal impact, prior normalization has a positive effect on GoP performance for all languages. 
+Furthermore, when entropy-based, probability-based (Margin), and logit-based (MaxLogit, LogitMargin) GoP variants are compared, the logit-based GoPs show the highest correlations to the intelligibility scores.
+% To sum up, according to the experimental results, prior-normalized logit-based GoP yields the best performance for dysarthric speech intelligibility assessment.
+Additionally, performances on English are notably lower than that of Tamil and Korean.
+We suspect that automatically generated alignment causes the degradation to occur \cite{mathad2021impact}, for the severe cases where alignment becomes much more challenging.
+We aim to mitigate this issue in our future work.
+
+% \input{figures/phone_diagram}
+
+\subsection{Analysis on phonemes}
+\Cref{figs:phones} illustrates the GoP distribution between two Korean phonemes \textipa{/i/} and \textipa{/m/}.
+While the distribution of \textipa{/i/} differs significantly, the distribution of \textipa{/m/} is similar across all severity levels.
+This finding suggests that certain phonemes have more impact power for severity levels based on speech intelligibility, which is consistent with previous findings \cite{quintas2022automatic}.
+
+\input{figures/plots}
+
+% As certain phonemes have a more significant impact on speech intelligibility than others, 
+Identifying which phoneme pronunciation scores highly correlate to speech intelligibility can be useful in the clinical scenario, such as diagnosis and treatment.
+For example, as demonstrated in \Cref{figs:samplewise_phones}, one can pinpoint the mispronounced phonemes within a single utterance.
+
+
+Further, we conduct a quantitative analysis on which phoneme scores highly correlate to speech intelligibility by languages.
+Kendall's $\tau$ is calculated for each phoneme between our best-performing Prior+MaxLogit GoP score and the intelligibility scores.
+The top-5 phonemes based on correlation are as follows- English: \textipa{/a\textsci/},\textipa{/\textesh/},\textipa{/a\textupsilon/},\textipa{/z/},\textipa{/\textdyoghlig/}; Korean:\textipa{/i/},\textipa{/s/},\textipa{/n/},\textipa{/a/},\textipa{/\textturnv/}; Tamil:\textipa{/\textrtails/},\textipa{/h/},\textipa{/\textteshlig/},\textipa{/z/},\textipa{/a\textsci/}.
+In summary, fricative sounds (\textipa{/s/},\textipa{/\textrtails/},\textipa{/\textesh/},\textipa{/z/}) strongly correlates to speech intelligibility across languages, consistent with the previous results \cite{hernandez2019acoustic}.
+Affricates (\textipa{/\textteshlig/},\textipa{/\textdyoghlig/}) and diphthongs (\textipa{/a\textsci/},\textipa{/a\textupsilon/}) were shared as the top-5 phoneme list for English and Tamil.
+This can be explained by the complexity in the articulation of affricates and diphthongs leading to difficulties in correct pronunciation for speakers with lower speech intelligibility.
+On the other hand, Korean showed higher correlations for nasal (\textipa{/n/}) and monophthongs (\textipa{/a/},\textipa{/i/},\textipa{/\textturnv/}).
+This may be again related to the movement of the articulators, such as the tongue, velum, and jaw.
+We additionally provide the correlation scores of all the phonemes in our repository.\footref{footnote:repo_url}

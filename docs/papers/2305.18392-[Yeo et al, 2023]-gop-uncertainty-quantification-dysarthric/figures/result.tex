@@ -1,0 +1,42 @@
+\begin{table}[t]
+\caption{
+Kendall's rank coefficient between GoP \& intelligibility severity levels. A higher absolute value indicates a stronger correlation between the two variables.
+}
+\vspace{1em}
+\label{tab:results}
+\centering
+\resizebox{0.48\textwidth}{!}
+{
+
+\begin{tabular}{c|c|c|c|c|c}
+\hline
+Method & Norm. & Scoring Func. & English & Korean & Tamil \\
+\hline
+\multirow{3}{*}{Baseline} 
+& None & GMM \cite{witt2000phone,hmm-gop} & -0.2049 & -0.5237 & -0.3571 \\
+& None & NN \cite{hu2015improved} & -0.1536 & -0.4687 & -0.4003 \\
+& Prior & DNN-GoP \cite{hu2015improved} & -0.1836 & -0.4237 & -0.4681 \\
+\hline
+\multirow{12}{*}{Proposed} 
+& \multirow{4}{*}{None}  & Entropy & -0.1831 & -0.2643 & -0.3251  \\
+&  & Margin & -0.1628 & -0.4434 & -0.4445 \\
+&  & MaxLogit & -0.2164 & -0.5440 & -0.5786 \\
+&  & LogitMargin & -0.1732 & -0.4753 & -0.5158 \\
+\cline{2-6}
+& \multirow{4}{*}{Scale} & Entropy & -0.1755 & -0.1974 & -0.2263 \\
+&  & Margin & -0.1260 & -0.4444 & -0.4210\\
+&  & MaxLogit & -0.2164 & -0.5440 & -0.5786 \\
+&  & LogitMargin & -0.1732 & -0.4753 & -0.5158\\
+\cline{2-6}
+& \multirow{4}{*}{Prior} & Entropy & -0.1833 & -0.2645 & -0.3254  \\
+&  & Margin & -0.1630 & -0.4432 & -0.4447\\
+&  & \textbf{MaxLogit} & \textbf{-0.2165} & \textbf{-0.5442} & \textbf{-0.5788}\\
+&  & LogitMargin & -0.1733 & -0.4753 & -0.5160\\
+\hline
+\end{tabular}
+}
+\vspace{-1em}
+\end{table}
+
+% GMM-GOP \cite{hmm-gop} & & &\\
+%

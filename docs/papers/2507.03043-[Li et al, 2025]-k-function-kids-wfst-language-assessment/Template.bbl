@@ -1,0 +1,213 @@
+\begin{thebibliography}{10}
+
+\bibitem{nidcd2023}
+{National Institute on Deafness and Other Communication Disorders},
+\newblock ``Percentage of children ages 3–17 years with a communication or swallowing disorder,'' 2023,
+\newblock Accessed: 2025-06-25.
+
+\bibitem{cde2024}
+{California Department of Education},
+\newblock ``California announces new special education funding allocations for 2024–2025,'' 2024.
+
+\bibitem{crossriver2024}
+{Cross River Therapy},
+\newblock ``Dyslexia statistics,'' 2024.
+
+\bibitem{gorno2011classification-ppa}
+M.~L. Gorno-Tempini et~al.,
+\newblock ``Classification of primary progressive aphasia and its variants,''
+\newblock {\em Neurology}, 2011.
+
+\bibitem{lee1997analysis}
+S.~Lee et~al.,
+\newblock ``Analysis of children's speech: Duration, pitch and formants,''
+\newblock in {\em Proc. Eurospeech}, 1997.
+
+\bibitem{tran2020analysis}
+Trang Tran, Morgan Tinkler, Gary Yeung, et~al.,
+\newblock ``Analysis of disfluency in children's speech,''
+\newblock {\em arXiv preprint arXiv:2010.04293}, 2020.
+
+\bibitem{neuberger2014cross}
+Tilda Neuberger and M{\'a}ria G{\'o}sy,
+\newblock ``A cross-sectional study of disfluency characteristics in children’s spontaneous speech,''
+\newblock {\em Govor}, vol. 31, no. 1, pp. 3--27, 2014.
+
+\bibitem{gerosa2009review}
+M.~Gerosa et~al.,
+\newblock ``A review of {ASR} technologies for children's speech,''
+\newblock in {\em Proc. WOCCI}, 2009.
+
+\bibitem{yeung2018difficulties}
+G.~Yeung et~al.,
+\newblock ``On the difficulties of automatic speech recognition for kindergarten-aged children,''
+\newblock {\em Interspeech}, 2018.
+
+\bibitem{shankar2025selective}
+N.~B. Shankar et~al.,
+\newblock ``Selective attention merging for low resource tasks: A case study of child {ASR},''
+\newblock {\em arXiv:2501.08468}, 2025.
+
+\bibitem{fan2024benchmarking}
+R.~Fan et~al.,
+\newblock ``Benchmarking children's asr with supervised and self-supervised speech foundation models,''
+\newblock {\em arXiv:2406.10507}, 2024.
+
+\bibitem{bhardwaj2022automatic}
+V.~Bhardwaj et~al.,
+\newblock ``Automatic speech recognition ({ASR}) systems for children: A systematic literature review,''
+\newblock {\em Appl. Sci.}, vol. 12, no. 9, 2022.
+
+\bibitem{shahnawazuddin2024developing}
+S~Shahnawazuddin et~al.,
+\newblock ``Developing children's asr system under low-resource conditions using end-to-end architecture,''
+\newblock {\em Digital Signal Processing}, vol. 146, pp. 104385, 2024.
+
+\bibitem{singh2025causal}
+V.~P. Singh et~al.,
+\newblock ``Causal analysis of {ASR} errors for children: Quantifying the impact of physiological, cognitive, and extrinsic factors,''
+\newblock {\em arXiv:2502.08587}, 2025.
+
+\bibitem{singh2021data}
+D.~K. Singh et~al.,
+\newblock ``Data augmentation using {CycleGAN} for end-to-end children {ASR},''
+\newblock in {\em EUSIPCO}, 2021.
+
+\bibitem{kathania2022formant}
+H.~K. Kathania et~al.,
+\newblock ``A formant modification method for improved {ASR} of children's speech,''
+\newblock {\em Speech Communication}, 2022.
+
+\bibitem{fan2022towards}
+R.~Fan et~al.,
+\newblock ``Towards better domain adaptation for self-supervised models: A case study of child {ASR},''
+\newblock {\em IEEE J. Sel. Top. Signal Process.}, 2022.
+
+\bibitem{xu24c_interspeech}
+A.~Xu et~al.,
+\newblock ``Exploring speech foundation models for speaker diarization in child-adult dyadic interactions,''
+\newblock in {\em Interspeech}, 2024.
+
+\bibitem{kim2021conditionalvariationalautoencoderadversarial}
+J.~Kim et~al.,
+\newblock ``Conditional variational autoencoder with adversarial learning for end-to-end text-to-speech,''
+\newblock in {\em ICML}, 2021.
+
+\bibitem{li2024enhancingchildvocalizationclassification}
+J.~Li et~al.,
+\newblock ``Enhancing child vocalization classification with phonetically-tuned embeddings for assisting autism diagnosis,''
+\newblock {\em arXiv:2309.07287}, 2024.
+
+\bibitem{li2024analysisselfsupervisedspeechmodels}
+J.~Li et~al.,
+\newblock ``Analysis of self-supervised speech models on children's speech and infant vocalizations,'' 2024.
+
+\bibitem{Shi-JASAEL-2024}
+X.~Shi et~al.,
+\newblock ``Direct articulatory observation reveals phoneme recognition performance characteristics of a self-supervised speech model,''
+\newblock {\em JASA Express Lett.}, 2024.
+
+\bibitem{gao2024g2pu}
+H.~Gao et~al.,
+\newblock ``{G2PU}: Grapheme-to-phoneme transducer with speech units,''
+\newblock in {\em ICASSP}, 2024.
+
+\bibitem{peng2023study}
+Y.~Peng et~al.,
+\newblock ``A study on the integration of pre-trained {SSL}, {ASR}, {LM} and {SLU} models for spoken language understanding,''
+\newblock in {\em SLT}, 2023.
+
+\bibitem{10971198}
+Nicholas Mehlman and Shri Narayanan,
+\newblock ``Adversarial robustness of self-supervised learning features,''
+\newblock {\em IEEE Open Journal of Signal Processing}, vol. 6, pp. 468--477, 2025.
+
+\bibitem{zhu2022phone-w2v2-alignment}
+J.~Zhu et~al.,
+\newblock ``Phone-to-audio alignment without text: A semi-supervised approach,''
+\newblock in {\em ICASSP 2022-2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}. IEEE, 2022, pp. 8167--8171.
+
+\bibitem{zhao-etal-2025-mutis}
+W.~Zhao et~al.,
+\newblock ``{MuTIS}: Enhancing reasoning efficiency through multi turn intervention sampling in reinforcement learning,''
+\newblock in {\em EMNLP}, 2025.
+
+\bibitem{mohamed2022selfreview}
+A.~Mohamed et~al.,
+\newblock ``Self-supervised speech representation learning: A review,''
+\newblock {\em IEEE J. Sel. Top. Signal Process.}, 2022.
+
+\bibitem{hsu2021hubert}
+W.-N. Hsu et~al.,
+\newblock ``{HuBERT}: Self-supervised speech representation learning by masked prediction of hidden units,''
+\newblock {\em IEEE/ACM TASLP}, 2021.
+
+\bibitem{Chen_2022}
+S.~Chen et~al.,
+\newblock ``{WavLM}: Large-scale self-supervised pre-training for full stack speech processing,''
+\newblock {\em IEEE JSTSP}, 2022.
+
+\bibitem{ssdm}
+Jiachen L., Xuanru Z., Zoe E., et~al.,
+\newblock ``Ssdm: Scalable speech dysfluency modeling,''
+\newblock in {\em Advances in Neural Information Processing Systems}, 2024, vol.~37.
+
+\bibitem{zwilling2025speech}
+C.~Zwilling et~al.,
+\newblock ``The speech accessibility project: Best practices for collection and curation of disordered speech,''
+\newblock in {\em Interspeech}, 2025.
+
+\bibitem{ye2025seamlessalignment-neurallcs}
+Z.~Ye, J.~Lian, X.~Zhou, et~al.,
+\newblock ``Seamless dysfluent speech text alignment for disordered speech analysis,''
+\newblock {\em Interspeech}, 2025.
+
+\bibitem{zhang2025analysisevaluationsyntheticdata}
+Jinming Z., Xuanru Z., Jiachen L., et~al.,
+\newblock ``Analysis and evaluation of synthetic data generation in speech dysfluency detection,''
+\newblock {\em Interspeech}, 2025.
+
+\bibitem{lian22b_interspeech-gestures}
+J.~Lian et~al.,
+\newblock ``{Deep Neural Convolutive Matrix Factorization for Articulatory Representation Decomposition},''
+\newblock in {\em Interspeech}, 2022.
+
+\bibitem{lian2023articulatory-factors}
+J.~Lian et~al.,
+\newblock ``Articulatory representation learning via joint factor analysis and neural matrix factorization,''
+\newblock in {\em ICASSP}, 2023.
+
+\bibitem{guo2025dysfluentwfstframeworkzeroshot}
+C.~Guo, J.~Lian, X.~Zhou, et~al.,
+\newblock ``Dysfluent wfst: A framework for zero-shot speech dysfluency transcription and detection,''
+\newblock {\em Interspeech}, 2025.
+
+\bibitem{ward2011my}
+W.~Ward et~al.,
+\newblock ``My science tutor: A conversational multimedia virtual tutor for elementary school science,''
+\newblock {\em ACM Trans. Speech Lang. Process.}, vol. 7, pp. 1--29, 2011.
+
+\bibitem{UCSFMultitudes2025}
+``Multitudes universal screening platform,'' \url{https://multitudesinfo.ucsf.edu/}, 2025.
+
+\bibitem{bird2009natural}
+Steven Bird, Edward Loper, and Ewan Klein,
+\newblock {\em Natural Language Processing with Python},
+\newblock O'Reilly Media Inc., 2009.
+
+\bibitem{zhou2025phonetic-error-detection}
+X.~Zhou, J.~Lian, C.~Cho, et~al.,
+\newblock ``Towards accurate phonetic error detection through phoneme similarity modeling,''
+\newblock {\em Interspeech}, 2025.
+
+\bibitem{grattafiori2024llama}
+G.~Aaron et~al.,
+\newblock ``The llama 3 herd of models,''
+\newblock {\em arXiv:2407.21783}, 2024.
+
+\bibitem{baevski2020wav2vec}
+B.~Alexei et~al.,
+\newblock ``wav2vec 2.0: A framework for self-supervised learning of speech representations,''
+\newblock {\em NeurIPS}, 2020.
+
+\end{thebibliography}

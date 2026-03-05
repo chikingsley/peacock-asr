@@ -1,0 +1,178 @@
+\documentclass[twoside,11pt]{article}
+
+\usepackage{blindtext}
+
+
+
+\usepackage[preprint]{jmlr2e}
+
+\input{math_commands.tex}
+\usepackage[colorlinks = true,
+            linkcolor = blue,
+            urlcolor  = blue,
+            citecolor = blue,
+            anchorcolor = blue,
+            pagebackref = true]{hyperref}
+
+\usepackage[english]{babel}
+\babelhyphenation[english]{}
+
+\usepackage{amsmath}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{graphicx,wrapfig}
+\usepackage{subfig}
+\usepackage{xcolor}
+\usepackage{algpseudocode}
+\usepackage{siunitx}
+\usepackage{multirow}
+\usepackage{pgfplotstable}
+\usepackage{tcolorbox}
+
+
+\usepackage{blindtext,tikz}
+\usetikzlibrary{calc}
+
+\pgfplotstableset{col sep=comma}
+\pgfplotstableset{header=true}
+\pgfplotstableset{
+every head row/.style={
+before row=\toprule,
+after row=\midrule,
+},
+every last row/.style={
+after row=\bottomrule,
+},}
+\usepackage{wrapfig}
+\usepackage{pifont}%
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{}%
+
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\neilz}[1]{{\textcolor{blue}{[Neil: #1]}}}
+\newcommand{\PPc}[1]{{\textcolor{orange}{[Pat: #1]}}}
+\newcommand{\PP}[1]{{\textcolor{orange}{#1}}}
+
+
+\newcommand{\dataset}{{\cal D}}
+\newcommand{\fracpartial}[2]{\frac{\partial #1}{\partial  #2}}
+\newcommand{\ours}{Moshi\xspace}
+\newcommand{\mimi}{Mimi\xspace}
+\newcommand{\helium}{Helium\xspace}
+\newcommand{\spiritlm}{Spirit-LM\xspace}
+\newcommand{\interleaving}{Inner Monologue\xspace}
+\newcommand{\proba}[1]{\mathbb{P}\left[#1\right]}
+
+\makeatletter
+\newcommand{\ensuremathmode}[1]{%
+  \ifmmode
+    #1%
+  \else
+    $#1$%
+  \fi
+}
+\makeatother
+
+\newcommand{\waveform}{\ensuremathmode{x}}
+\newcommand{\waveformhat}{\ensuremathmode{\hat{x}}}
+\newcommand{\tok}[2]{\ensuremathmode{A_{#1}^{#2}}}
+\newcommand{\dims}{D}
+\newcommand{\numsamples}{L}
+\newcommand{\numtokens}{S}
+\newcommand{\numquantizers}{\ensuremathmode{Q}}
+\newcommand{\cardaudio}{\ensuremathmode{N_A}}
+\newcommand{\pmr}[1]{\scriptsize$\pm$#1}
+
+\definecolor{Sand}{RGB}{194, 178, 128}
+\definecolor{Orange}{RGB}{255, 191, 128}
+\definecolor{Red}{RGB}{255, 87, 90}
+\usepackage{tcolorbox}
+
+
+\usepackage{lastpage}
+
+
+\ShortHeadings{Moshi: a speech-text foundation model for real-time dialogue}{Moshi: a speech-text foundation model for real-time dialogue}
+\firstpageno{1}
+
+\definecolor{kyutaigreen}{RGB}{57,242,174}
+
+\begin{document}
+
+
+
+
+\title{Moshi: a speech-text foundation model for real-time dialogue}
+
+\author{%
+  \name Alexandre D\'efossez$^{*}$ \email alex@kyutai.org \\
+  \vspace{-0.6cm}
+  \AND
+  \name Laurent Mazar\'e$^{*}$ \\
+  \vspace{-0.6cm}
+  \AND
+  \name Manu Orsini \\
+  \vspace{-0.6cm}
+  \AND
+  \name Am\'elie Royer \\
+  \vspace{-0.6cm}
+  \AND
+  \name Patrick P\'erez \\
+  \vspace{-0.6cm}
+  \AND
+  \name Herv\'e J\'egou \\
+  \vspace{-0.6cm}
+  \AND
+  \name Edouard Grave$^{*}$ \\
+  \vspace{-0.6cm}
+  \AND
+  \name Neil Zeghidour$^{*}$ \email neil@kyutai.org \\
+  {\addr Kyutai}\\
+  {\addr $^*$Equal contribution}\\
+}
+
+
+\maketitle
+
+\begin{abstract}%
+  \looseness=-1
+  We introduce \ours{}, a speech-text foundation model and full-duplex spoken dialogue framework. Current systems for spoken dialogue rely on pipelines of independent components, namely voice activity detection, speech recognition, textual dialogue and text-to-speech. Such frameworks cannot emulate the experience of real conversations. First, their complexity induces a latency of several seconds between interactions. Second, text being the intermediate modality for dialogue, non-linguistic information that modifies meaning--- such as emotion or non-speech sounds--- is lost in the interaction. Finally, they rely on a segmentation into speaker turns, which does not take into account overlapping speech, interruptions and interjections. \ours{} solves these independent issues altogether by casting spoken dialogue as speech-to-speech generation. Starting from a text language model backbone, \ours{} generates speech as tokens from the residual quantizer of a neural audio codec, while modeling separately its own speech and that of the user into parallel streams. This allows for the removal of explicit speaker turns, and the modeling of arbitrary conversational dynamics. We moreover extend the hierarchical semantic-to-acoustic token generation of previous work to first predict time-aligned text tokens as a prefix to audio tokens. Not only this ``\interleaving'' method significantly improves the linguistic quality of generated speech, but we also illustrate how it can provide streaming speech recognition and text-to-speech. Our resulting model is the first real-time full-duplex spoken large language model, with a theoretical latency of 160ms, 200ms in practice, and is available at \href{https://github.com/kyutai-labs/moshi}{github.com/kyutai-labs/moshi}.
+\end{abstract}
+\medskip
+
+\begin{keywords}
+speech, text, multimodal, foundation, spoken dialogue
+\end{keywords}
+\newpage
+
+\input{sections/intro}
+\input{sections/methods}
+\input{sections/datasets}
+\input{sections/evaluation}
+\input{sections/safety}
+
+
+\section{Conclusion}
+In this work, we introduce \ours{}, the first real-time, full-duplex spoken dialogue system. The first component of \ours{} is \helium{}, a 7B parameter text LLM which is competitive with open-weights models trained with a similar compute budget. To encode audio into discrete units amenable to language modeling, we introduce \mimi{}, a semantic-acoustic neural audio codec which provides state-of-the-art audio quality at low bitrates while operating at low framerates compatible with real-time generation. We then introduce a new, hierarchical multi-stream architecture that supports generating arbitrary conversations in a speech-to-speech manner. We moreover show that speech-to-speech generation can be drastically improved by \interleaving{}, a new method that generates text tokens as a prefix to audio tokens, while remaining compatible with streaming inference. Our experiments show that \ours{} demonstrates state-of-the-art spoken question answering and dialogue modeling while displaying satisfying levels of safety by not generating toxic content and remaining consistent in its voice. To summarize, we introduce a complete suite of models and recipes, from text LLMs to neural audio codecs and generative audio models, which we combine into a real-time spoken dialogue system with a 160ms theoretical latency able to follow complex multi-turn conversations across 5 minutes. We release both \mimi{} and \ours{} to foster the development of such applications. Additionally, we show how our \interleaving{} method allows designing streaming TTS and streaming ASR just by changing the delay between text and audio tokens. We believe that both \interleaving{} and multi-stream modeling will have a positive impact on speech-to-speech and audio-to-audio beyond dialogue modeling. 
+
+\acks{This project is funded by Iliad Group, CMA CGM Group and Schmidt Sciences. We thank Xavier Niel, Rodolphe Saadé, Eric Schmidt, Aude Durand, Séverine Grégoire and Nicolas Granatino, for their support; as well as Sarah Hôte and Guillaume Rouzaud at Kyutai for their help. We also thank Alice, the voice artist who strived to give \ours{} online demo its voice, Elie Raffier who built the user interface for this demo, and Hugging Face for inference compute donation. Audio training data set was built with the help of Noatune Studios and Landospeech. Model training was conducted at Scaleway.}
+
+
+
+
+
+
+
+
+
+
+
+\vskip 0.2in
+\bibliography{sample}
+
+
+\newpage
+\input{sections/appendix}
+
+
+\end{document}

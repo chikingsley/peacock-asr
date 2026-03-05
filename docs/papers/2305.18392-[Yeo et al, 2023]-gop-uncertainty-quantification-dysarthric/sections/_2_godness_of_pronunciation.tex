@@ -1,0 +1,72 @@
+\section{Proposed approach} \label{sec:gop}
+In this study, seven popular UQ methods are applied to GoP calculations.
+Three methods involve modifying the scoring function, and four methods involve modifying the phoneme predictor.
+We release the source codes of all the implementations\footnote{\url{https://github.com/juice500ml/dysarthria-gop}}.
+
+\subsection{Prerequisite: Goodness of Pronunciation (GoP)}
+In this subsection, we provide a succinct summary of the existing GoP-based methods from the uncertainty quantification perspective.
+% understanding the existing GOP literature in the perspective of ood
+Given a phone $p$ during frames $f \in F$ with frame-wise phone probability and its logits as $P^f(p|f)$ and $L^f(p|f)$, and the total phone set as $Q$, \textbf{GMM-GOP} \cite{witt2000phone} is defined as follows:
+% \subsubsection{GMM-GoP \cite{witt2000phone}}
+\begin{equation}
+    s_\text{GMM-GoP}(p) = \frac{1}{|F|} \sum_{f \in F} \log \frac{e^{L^f(p|f)}}{ \sum_{q \in Q} e^{L^f(q|f)}},
+\end{equation}
+which is an averaged log probability across the phone duration, $\mathbb{E}_F[\log P^f(p|f)]$.
+Note that directly using the probability output is often used as a baseline for out-of-distribution detection \cite{hendrycks2017baseline}.
+Also, averaging acts as a temporal ensembling \cite{laine2017temporal}, where it is often employed also as a baseline for out-of-distribution detection \cite{ovadia2019can}.
+
+
+\textbf{NN-GoP} \cite{hu2015improved} improves GMM-GoP by incorporating NN for phoneme prediction and modifying the score function as follows:
+\begin{align}
+    \Bar{P}(p|F) = \mathbb{E}_F[P^f(p|f)] = \frac{1}{|F|} \sum_{f \in F} P^f(p|f)\\
+    s_\text{NN-GoP}(p) = \log \Bar{P}(p|F) - \max_{q \in Q} \log \Bar{P}(q|F)
+\end{align}
+which is similar to using margin rather than the probability as the uncertainty estimator \cite{kye2022tidal}.
+Similarly, \textbf{CALL-GoP} \cite{hu2013new} directly uses the margin as follows:
+\begin{align}
+    s_\text{CALL-GoP}(p) = \Bar{P}(F|p) - \max_{q \in Q - \{p\}} \Bar{P}(F|p),
+\end{align}
+based on the acoustic model predictions $P(F|p)$.
+Note that if we regard $P(F)$ to be constant, $P(F|p) \propto P(F \cap p) = P(p|F) / P(p)$, which becomes \textbf{DNN-GoP} \cite{hu2015improved}:
+\begin{align}
+    s_\text{DNN-GoP}(p) = \Bar{P}(p|F) / P(p).
+\end{align}
+
+
+\subsection{Modifying the scoring function}\label{subsec:modify_score}
+\cite{kye2022tidal} utilizes \textbf{Entropy} $H$ and \textbf{Margin} $M$ scoring function to measure the data uncertainty:
+\begin{align}
+    s_\text{H}(p) = -\sum_{q \in Q} \Bar{P}(q|F) \log \Bar{P}(p|F), \\
+    s_\text{M}(p) = \Bar{P}(p|F) - \max_{q \in Q - \{p\}} \Bar{P}(q|F).
+\end{align}
+Even though the above shows the scoring functions formulated with the averaged probability $\Bar{P}$, we can extend the approach to modified probabilities, such as normalized, scaled, or perturbed probabilities in \cref{subsec:modify_score}.
+
+
+\textbf{MaxLogit} \cite{hendrycks2022scaling} removes the Softmax function to reveal the raw logits for less skewed score distribution:
+\begin{equation}
+    s_\text{MaxLogit}(p) = \mathbb{E}_F[L^f(p|f)] = \frac{1}{|F|} \sum_{f \in F} L^f(p|f).
+\end{equation}
+Even though one cannot apply entropy $H$ to unnormalized scores as above, margin $M$ can be still utilized.
+
+% Redesigning
+
+\subsection{Modifying the phoneme predictor}\label{subsec:modify_pred}
+We first revisit the approach DNN-GoP \cite{hu2015improved}, which removes the phone bias by dividing with $P(p)$:
+\begin{align}
+    P_\textbf{DNN-GoP}(p|f) = \frac{e^{L^f(p|f) - \log P(p)}}{ \sum_{q \in Q} e^{L^f(q|f) / T - \log P(q)}},
+\end{align}
+which can be understood as \textbf{Logit Normalization} with the phoneme probability $\log P(p)$.
+Similarly, \textbf{Temperature Scaling} \cite{guo2017calibration} scale the logits with the hyperparameter $T$:
+\begin{equation}
+    P_\textbf{TS}(p|f) = \frac{e^{L^f(p|f) / T}}{ \sum_{q \in Q} e^{L^f(q|f) / T}},
+\end{equation}
+where $T$ is obtained by minimizing the negative log loss (NLL) of the validation dataset predictions $P(p|F)$.
+
+
+\textbf{ODIN} \cite{liang2018enhancing} takes a different approach by perturbing the input speech $f$:
+\begin{align}
+    \Tilde{f} = f - \epsilon (- \nabla_f \log \max_p P(p|f))\\
+    P_\text{ODIN}(p|f) = P(p|\Tilde{f})
+\end{align}
+where $\epsilon$ is the perturbation magnitude, being added to decrease the final probability $P(p|f)$ of the NN-driven prediction.
+\textbf{Mahalanobis \cite{lee2018simple}} removes the need of prediction altogether by measuring the Mahalanobis distance in the latent domain.

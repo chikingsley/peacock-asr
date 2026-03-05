@@ -1,0 +1,118 @@
+\section{Datasets and Training}
+\label{sec:maindatasets}
+
+\subsection{Text Data}
+\label{sec:text_dataset}
+Our training dataset is made of a mix of high-quality data sources and filtered web data from CommonCrawl.
+More specifically, 12.5\% of our dataset is from the following curated sources: Wikipedia,\footnote{\url{https://dumps.wikimedia.org/}} Wikibooks, Wikisource, Wikinews,
+StackExchange\footnote{\url{https://archive.org/details/stackexchange}} and the collection of scientific articles pes2o.\footnote{\url{https://github.com/allenai/peS2o}}
+Instead of doing multiple passes on Wikipedia, we use five different dumps from 2017, 2018, 2019, 2021 and 2022.
+The remaining 87.5\% of our dataset is from CommonCrawl, and was filtered with the pipeline described in \hyperref[sec:data_filtering]{Section \ref{sec:data_filtering}}.
+We used the following ten crawls: \texttt{2018-30}, \texttt{2019-04}, \texttt{2019-30}, \texttt{2020-05}, \texttt{2020-34}, \texttt{2021-04}, \texttt{2021-31}, \texttt{2022-05}, \texttt{2022-33}, \texttt{2023-40}.
+
+\subsection{Audio Data}
+\label{sec:audio_data}
+\looseness=-1
+We use an audio collection of 7 million hours, which we call the \emph{unsupervised audio dataset}, of readily available audio content, the majority
+of which contains English speech. We transcribe this set with Whisper~\citep{whisper}, using the large-v3 model. We use this data for the audio pre-training phase, during which we do not use the multi-stream approach described in \hyperref[sec:multistream]{Section~\ref{sec:multistream}}, but instead use a single stream of audio representing all speakers at once. Similarly, the text stream described in \hyperref[sec:interleaving]{Section~\ref{sec:interleaving}} represents the words coming from all speakers. All the audio is resampled to 24kHz and downmixed to mono.
+
+\looseness=-1
+To achieve multi-stream, we need the model to gain the ability to both listen and speak at the same time. For this, we further leverage the Fisher dataset~\citep{cieri2004fisher}. It consists of 2000 hours of
+phone conversations between randomly paired participants, with a given topic to discuss. A property of Fisher is that each conversation side is recorded on a separate channels, which allows providing ground-truth separated streams to \ours{}. The original audio is sampled at 8kHz, and we use AudioSR~\citep{liu2023audiosr} to upsample it to 24kHz.
+
+\looseness=-1
+Finally, we source 170 hours of natural and scripted conversations between multiple pairs of participants, recorded with separate channels per speaker, in order to provide a small dataset on which to finetune the model to improve the quality over the one obtained when using only Fisher. We call this dataset the \emph{supervised multi-stream dataset}. We do not train Moshi directly on this dataset, but use it to train a realistic multi-stream TTS model, and fine-tune Helium on real conversation transcripts as explained in Sections~\ref{sec:instruct_data} and \ref{sec:stages}.
+
+\looseness=-1
+For both Fisher and this last dataset, we sample one speaker randomly as the main speaker (i.e., \ours{} speaking), and put the other speaker on the second audio stream. For Fisher, the text stream only contains 
+the transcription of the main speaker. To obtain reliable timestamps, despite long silences in each stream, we 
+use transcription obtained with the \texttt{whisper-timestamped} package~\citep{lintoai2023whispertimestamped}, along with the medium Whisper model.
+
+\subsection{Speech-Text Instruct Data}
+\label{sec:instruct_data}
+
+Early experiments using text-based instruct datasets such as Open Hermes~\citep{OpenHermes2} proved to be ill-suited for the instruct tuning of a spoken conversational system.
+In particular, the data formatting was often impossible to properly render with TTS (e.g. URLs), and the format of the questions and responses was not following a natural oral flow (e.g. bullet points, long enumerations). Instead, we leverage Helium, fine-tuned on Open Hermes and transcripts of real conversations, to generate realistic interactions between a speech-based AI model and a user.
+We then synthesize them with our multi-stream streaming TTS described in \hyperref[app:streaming_tts]{Appendix \ref{app:streaming_tts}}, leading to more than 20k hours of synthetic speech data.
+To give \ours{} its own consistent voice, we also condition the TTS engine on the voice of a single actor, who recorded monologues covering more than 70 speaking styles, as listed in \hyperref[tab:list_voices]{Table~\ref{tab:list_voices}}. Experiments on voice consistency reported in \hyperref[sec:voice_consistency]{Section~\ref{sec:voice_consistency}} show that simply using a consistent voice for \ours{} during instruction tuning is enough to guarantee almost surely that it does not use another voice, without further control during inference.
+In contrast, the voice of the second audio stream (the user) is randomly sampled for each example, giving more robustness to different speaking conditions and accents.
+
+To generate the transcripts, we use different prompts, aiming at capturing different kinds of interactions between a user and \ours{}.
+First, we generate conversations about general knowledge, by starting from a few Wikipedia paragraphs or StackExchange posts, which we refer to as context.
+This ensures that \ours{}'s conversations cover a wide range of topics, such as history, cooking advice or pop culture.
+More precisely, using a given context, we obtain a summary of a potential discussion with the following prompt:
+\begin{tcolorbox}
+  \texttt{\textcolor{orange}{\{\{context\}\}}}
+  
+  \vspace{1em}
+  \texttt{Based on information from the previous paragraph, write the summary of a conversation about \textcolor{orange}{\{\{title\}\}} between Blake and Moshi. The summary must be 2 sentences long, and start with "They" or "The speakers".}
+\end{tcolorbox}
+
+\noindent where \texttt{\{\{context\}\}} refers to paragraphs from Wikipedia or StackExchange and \texttt{\{\{title\}\}} is the corresponding title.
+Then, we generate the full transcript with the prompt:
+\begin{tcolorbox}
+  \texttt{\textcolor{orange}{\{\{context\}\}}}
+
+  \vspace{1em}
+  \texttt{Write the transcript of a conversation between Blake and  \ours{}. \textcolor{orange}{\{\{summary\}\}} \ours{} is knowledgeable about the topic. Use some backchanneling. Use short turns.}
+\end{tcolorbox}
+Similarly, to give \ours{} information about itself and the Kyutai lab, we generate paragraphs describing both and use them as additional context.
+
+Second, we produce interactions containing instructions about  \ours{}'s voice, such as the other speaker requesting \ours{} to speak with an angry voice or like a pirate.
+Our first strategy is to generate single turn interactions where the model is instructed to tell a sentence, a monologue or a poem about an entity, belonging to a high level category such as “sports” or “animals”, using a particular voice.
+The voice requested by the other speaker and the entity are randomly sampled, and are thus completely unrelated.
+Our second strategy is to generate roleplaying situations, corresponding to different emotions or speaking styles with the following prompt:
+\begin{tcolorbox}
+  \texttt{Write a list of 10 situations about a \textcolor{orange}{\{\{voice\}\} \{\{character\}\}}. Each situation must start with "a \textcolor{orange}{\{\{voice\}\} \{\{character\}\}} who" and must be at most 8 words long.}
+\end{tcolorbox}
+Examples of voice adjective include ``happy'' or ``suprised'' and examples of characters include ``detective'' or ``superhero''.
+We then generate the interaction using the prompt:
+\begin{tcolorbox}
+\texttt{Write a dialogue between Blake and Moshi, \textcolor{orange}{\{\{situation\}\}}. Use a lot of backchanneling.}
+\end{tcolorbox}
+
+\looseness=-1
+To make Moshi robust to mispronounced words, we also generate instructions containing misspellings in the user’s questions, followed by Moshi asking the user to repeat herself or to clarify the question.
+We also generate questions containing a false or misleading fact (such as “Is the Eiffel Tower in Beijing?”), to train the model to answer “No” and correct the user.
+Otherwise, the vast majority of generated conversations only contain questions from the user where Moshi should answer positively.
+We generate basic math, grammar or trivia single-turn questions and answers, as we noticed that Moshi was initially not performing well on simple factual tasks like adding numbers.
+Finally, we generate safety conversations, where the user asks unethical or NSFW questions, and Moshi refuses to answer these requests.
+
+\subsection{Training Stages and Hyper-parameters}
+\label{sec:stages}
+\paragraph{Helium pre-training.}
+\looseness=-1
+An overview of the training stages and hyper-parameters is provided in \hyperref[tab:hparams]{Table~\ref{tab:hparams}}.
+For each stage, we use AdamW~\citep{adamw}, with a weight decay of 0.1, a momentum decay of 0.9, and a decay for the average of the squared gradient of 0.95. All models are trained on H100 GPUs, using FSDP and activation checkpointing. The text-only language model, Helium, is trained for 500k steps, with a batch size of 4.2M tokens, using a cosine learning rate schedule starting at $3\cdot 10^{-4}$ with linear warmup.
+
+\paragraph{Moshi pre-training.}
+\looseness=-1
+Then, we initialize the Temporal Transformer in Moshi with Helium, while the Depth Transformer described in \hyperref[sec:joint_ar]{Section~\ref{sec:joint_ar}} is randomly initialized. 
+We first train on the unsupervised audio dataset presented in \hyperref[sec:audio_data]{Section~\ref{sec:audio_data}}, using a single stream of audio, with a batch size covering 16 hours of audio, each batch item consisting of a 5 mn sequence. We mask the corresponding text tokens with a probability of 30\%. We randomize the delay between the text and audio tokens between -0.6 and +0.6 seconds.
+In order to prevent catastrophic forgetting, we also train half of the time on batches of text only data from the same dataset as used for Helium. In total, we make 1 million training steps, with a cosine learning rate starting at $3\cdot 10^{-5}$ for the Temporal Transformer, and $2\cdot 10^{-4}$ for the Depth Transformer, also with a linear warmup. In order to ensure the updates from the text-only batches are balanced with those from the audio dataset, we use two separate optimizer states. In addition, when operating on the text stream from an audio batch, we multiply the learning rate for the text embedding and text linear layer by 0.75. Finally, as padding tokens are predominant for audio batches, we reduce their weight by 50\% in the cross-entropy loss.
+
+\paragraph{Moshi post-training.}
+\looseness=-1
+Starting from the model obtained from the previous stage, we then train it to gain its multi-stream ability. First, we use PyAnnote~\citep{Bredin23} to diarize the audio from the unsupervised audio dataset. We sample one speaker at random, which will act as the main speaker, and derive a binary mask over the waveform, with a value of $1$ when the speaker is active based on the diarization, and $0$ otherwise. This mask provides us with two waveforms: one with the speaker, and one with the residual (potentially several speakers), which are encoded separately and then used as the two input audio streams described in \hyperref[sec:multistream]{Section~\ref{sec:multistream}}. The text stream only contains the text tokens from the selected main speaker, and the delay between text and audio tokens is fixed to 0. We train for 100k steps, with a batch size of 8 hours of audio, and a fixed learning rate of $3\cdot 10^{-6}$ for the Temporal Transformer, and $5\cdot 10^{-5}$ for the Depth Transformer. Like for the pretraining phase, we sample full text-only batches 10\% of the time.
+
+
+\paragraph{Moshi finetuning.}
+\label{sec:moshift}
+
+The previously described simulated multi-stream provides a good pre-training task but is far from being sufficient to capture natural conversations: For instance, it contains no overlap, and the stream of an inactive speaker is perfectly silent. We then use the Fisher dataset~\citep{cieri2004fisher} to have the model learn real multi-stream interaction. We sample one of the two speakers to be the first (and main) speaker. We train for 10k batches, with a batch size of 40min of audio with a learning rate of $2\cdot 10^{-6}$/$4\cdot 10^{-6}$ for the main/Depth Transformer. We no longer sample full text batches.
+
+Finally, we set the speaker identity for the first speaker stream to be that of Moshi, a useful conversational assistant, with a final stage of instruct finetuning. We use the synthetic instruct dataset described in \hyperref[sec:instruct_data]{Section~\ref{sec:instruct_data}}, with a batch size of 2.7 hours of audio, for 30k steps, with a learning rate of $2\cdot 10^{-6}$ for both transformers. 
+
+During this stage, we perform data augmentation on the user's stream to make Moshi robust to various situations. Namely, we apply a random gain to the user stream between -24 dB and +15 dB, 50\% of the time. 30\% of the time, we further add noise extracts from the Deep Noise Suppression challenge~\citep{dubey2023icassp} which we concatenate in order to cover the entire duration of each example. The noise is amplified to reach a target volume relative to the original source between -30 dB and +6 dB. Each time we need to sample a new noise, we alternatively use a silent section with a random duration up to 30 seconds of silence with probability of 50\%, so that the model can handle the audio condition going from noisy to silent, and vice versa. We emulate echo from Moshi into the user's microphone by adding a scaled down copy of Moshi's stream into the user's stream, scaled by as factor uniformly sampled in $[0, 0.2]$, and a delay uniformly sampled between $[100\text{ms}, 500\text{ms}]$. Finally, we apply to the user's stream, potentially augmented with the echo, a reverb-like augmentation as introduced by~\citet{defossez2020real}. The echo and reverb are applied together with a probability of 30\%.
+
+\paragraph{TTS Training.}
+
+We also train a streaming, multi-stream text-to-speech model, using the method described in \hyperref[sec:interleaving]{Section~\ref{sec:interleaving}}. The audio pre-training stage is shared with Moshi, while the post-training is completed using a delay of 2 seconds for the audio stream compared to the text. The model is finetuned on the supervised multi-stream dataset containing high quality recording of interactions between two speakers. It is used to generate the synthetic finetuning instruct dataset described in \hyperref[sec:instruct_data]{Section~\ref{sec:instruct_data}}. Note that Moshi itself is not trained on the supervised multi-stream dataset. Further details are provided in \hyperref[app:streaming_tts]{Appendix~\ref{app:streaming_tts}}.
+
+\paragraph{Training loss.}
+Moshi is trained to model joint sequences, as presented in eq.~\ref{eq:final_multi_sequence}. Given the ground-truth discrete token $(V_{s, k})_{s\leq S, k\leq K}$, 
+and the estimated logits $(l_{s, k})_{s\leq S, k\leq K}$ from eq.\ref{eq:logits}, we use the following loss, with $\mathrm{CE}$ the cross entropy,
+\begin{equation}
+L(V, l) = \frac{1}{S}\sum_{s=1}^S\left(\mathrm{CE}(l_{s, 1}, V_{s, 1}) + \frac{1}{\sum_{k=2}^K \alpha_k}\sum_{k=2}^K \alpha_k \mathrm{CE}(l_{s, k}, V_{s, k})\right).
+\end{equation}
+Thus, we give the same importance to the text token ($k{=}1$), and the combined audio tokens. $\alpha_k$ is set to 100 for semantic tokens, and 1 for acoustic ones.

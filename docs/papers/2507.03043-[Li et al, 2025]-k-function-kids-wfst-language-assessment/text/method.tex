@@ -1,0 +1,105 @@
+
+
+Our proposed K-Function framework is an end-to-end pipeline designed for child speech assessment, converting raw audio into a comprehensive evaluation report. The architecture, depicted in Figure~\ref{fig:pipeline}, consists of three primary stages: audio input, K-WFST transcription, and automated scoring. 
+
+% \textcolor{red}{Add the overall intro of 3 subsections}
+
+Our pipeline consists of three main stages, each corresponding to a subsection below. First, in Datasets and Preprocessing, we describe the data sources and preparation steps needed to adapt the system to child speech. Second, in K-WFST Phonetic Recognition, we introduce our enhanced phonetic recognition framework that improves robustness to child-specific variations. Finally, in LLM-based Scoring, we detail how the recognized phoneme sequences are used with a large language model to produce automated evaluation scores aligned with expert assessments.
+
+\subsection{Datasets and Preprocessing}
+Our study utilizes two distinct datasets for model fine-tuning and evaluation: the My Science Tutor (MyST)~\cite{ward2011my} dataset for adapting our acoustic model, and the UCSF California Multitudes~\cite{UCSFMultitudes2025} corpus  for evaluating downstream performance.
+
+
+\subsubsection{MyST Dataset}
+For fine-tuning our base acoustic model to the unique characteristics of child speech, we use the MyST dataset, which contains conversational speech from students in third to fifth grade (8-10 years old) interacting with a virtual tutor. To align with the shorter vocalizations typically produced by younger children, we select transcribed utterances with a duration of under 20 seconds.
+
+To generate phoneme-level labels required for end-to-end model training, we process the reference texts using the nltk~\cite{bird2009natural} toolkit to convert them into phoneme sequences. The resulting dataset is partitioned into 61.5 hours for training and 11.4 hours for testing.
+
+\subsubsection{UCSF California Multitudes Corpus}
+To evaluate our framework's practical utility in downstream assessment tasks, we use data from the UCSF California Multitudes corpus. This corpus is sourced from a digital universal screener administered to a representative sample of K-2 California public school children.
+
+Our study specifically utilizes data from the Oral Reading Fluency (ORF) task, in which a child reads a passage aloud for two minutes. The passages read by the children are drawn from nine different reading materials: Grizzly, Banana, Quail, Raccoon, Shark, Lizard, Condor, Fox, and Sealion. A key feature of this dataset is that each ORF performance is manually scored by trained proctors, providing a ground-truth expert score for our downstream scoring evaluation. To establish a ground-truth for our transcription model's performance on this data, we performed manual annotation to obtain the reference phoneme sequences for all audio samples used from the ORF task.
+
+
+
+\subsection{K-WFST: Phonetic Recognizer for Disorder Screening}
+
+Weighted Finite State Transducer (WFST) is a foundational tool in speech recognition, representing a finite-state machine that maps input sequences to output sequences. A WFST consists of a set of states and weighted arcs, where each arc is a tuple defined by a start state, an end state, an input label, an output label, and a weight. A Finite State Acceptor (FSA) is a special case of a WFST where the input and output labels on each arc are identical, effectively accepting or rejecting an input sequence rather than transducing it.
+
+A core limitation of traditional WFST-based decoders, especially in downstream applications involving child speech, is their reduced robustness in detecting subtle sub-word variations like substitutions and deletions. To address this, we introduce K-WFST, a framework that enhances the standard Dysfluent-WFST~\cite{guo2025dysfluentwfstframeworkzeroshot} by integrating a novel phoneme similarity-based substitution structure. The central innovation is to augment the WFST graph with additional, weighted paths that represent phonetically plausible substitutions. This allows the decoder to align an audio signal to a sequence that may be slightly erroneous but is phonetically similar to the reference, which is critical for accurately transcribing variable child speech.
+
+The process for generating this augmented graph is formally detailed in Algorithm~\ref{alg:build_graph}. The algorithm's inputs are the reference phoneme ID sequence $R$, a hyperparameter $\beta$ that controls the penalty for errors, and the SimMatrix~\cite{zhou2025phonetic-error-detection}. The SimMatrix is a pre-calculated $N \times N$ matrix where $N$ is the number of phonemes in the vocabulary. We construct SimMatrix using a heuristic approach based on eight phonological features like vowel height, voicing. The similarity between $p_i$ and $p_s$ is computed as the normalized weighted sum of their matching features, yielding a score in $[0, 1]$ that captures linguistically grounded proximity. The algorithm initializes an empty set of arcs, $L$, and iterates through all start states $i$ and end states $j$ in the reference sequence, skipping cases where $i=j$ to prevent self-loops. From $\beta$, it derives weights for correct transitions ($\alpha$) and errors ($w_{\text{err}}$). It then populates $L$ with arcs for correct paths, substitutions, deletions, and repetitions, with weights determined by $\alpha$, $w_{\text{err}}$, and the similarity scores.
+
+\vspace{0mm}
+\begin{algorithm}[htbp]
+\DontPrintSemicolon
+\caption{Building the Augmented WFST Graph} % Fixed typo: Argumented -> Augmented
+\label{alg:build_graph}
+
+% 定义 Input 和 Result 的样式
+\SetKwInOut{Input}{Input}
+\SetKwInOut{Result}{Result}
+
+\Input{$R$ (Phoneme ID Sequence), $\beta$, SimMatrix}
+\Result{String definition of the FSA graph}
+
+$L \leftarrow \emptyset$ \tcp*{Initialize set of arcs}
+$\alpha \leftarrow 1 - 10^{-\beta}$\;
+$w_{\text{err}} \leftarrow 1 - \alpha$\;
+
+\For{$i \leftarrow 0$ \KwTo $\text{len}(R) - 1$}{
+    $p_i \leftarrow R[i]$\;
+    \For{$j \leftarrow 0$ \KwTo $\text{len}(R)$}{
+        \If{$i = j$}{\Continue}
+        
+        \If{$j = i + 1$}{
+            % 移除了这里的空行和手动换行符
+            $L \leftarrow L \cup \{(i, j, p_i, p_i, \alpha)\}$ \tcp*{Correct path}
+            
+            \For{\text{each similar phoneme } $p_s$ \text{ to } $p_i$}{
+                $w_{\text{sub}} \leftarrow w_{\text{err}} \times (1 - \text{SimMatrix}[p_i, p_s])$\;
+                $L \leftarrow L \cup \{(i, j, p_s, \text{``sub"}, w_{\text{sub}})\}$ \tcp*{Substitution path}
+            }
+        }
+        \ElseIf{$j > i$}{
+            $w_{\text{dyn}} \leftarrow w_{\text{err}} \times e^{-|i-j|^2/2}$\;
+            $L \leftarrow L \cup \{(i, j, 0, \text{``del"}, w_{\text{dyn}})\}$ \tcp*{Deletion path}
+        }
+        \ElseIf{$j < i$}{
+            $w_{\text{dyn}} \leftarrow w_{\text{err}} \times e^{-|i-j|^2/2}$\;
+            $L \leftarrow L \cup \{(i, j, 0, \text{``rep"}, w_{\text{dyn}})\}$ \tcp*{Repetition path}
+        }
+    }
+}
+$L \leftarrow L \cup \{(\text{len}(R), \text{len}(R)+1, -1, -1, 0)\}$ \tcp*{Final state}
+\KwRet \text{FormatToString}(L)\;
+\end{algorithm}
+\vspace{-2mm}
+
+Furthermore, to control the flexibility of this substitution mechanism, we employ a Task-dependent K-Selection strategy. This allows the decoder to operate in two distinct modes depending on the input speech characteristics and the base acoustic model's performance:
+$$
+\text{K-Selection} = \left\{
+\begin{array}{ll}
+    K=1 & \text{Constrained paths} \\
+    K=2 & \text{Flexible paths}
+\end{array}
+\right.
+$$
+When $K=1$, the model is constrained to only consider the most similar phoneme, which is the phoneme itself. When $K=2$, the model is allowed to consider the top two most similar phonemes, adding the extra substitution paths to enhance robustness in more challenging scenarios. This task-dependent approach ensures optimal performance across different conditions without sacrificing efficiency.
+
+
+
+\subsection{LLM-based Scoring}
+To validate the practical utility of our high-fidelity transcriptions, we designed an experiment to assess if a Large Language Model (LLM) could replicate the nuanced scoring of human experts on the Multitudes Oral Reading Fluency (ORF) task. For this task, we evaluated a state-of-the-art instruction-tuned model, \texttt{meta-llama/Llama-3.1-70B-Instruct}~\cite{grattafiori2024llama}.
+
+We employed a few-shot prompting strategy to guide the model in simulating the evaluation process of a human proctor. For each ORF sample to be scored, the LLM was provided with a comprehensive set of inputs\footnote{Prompt is available at \url{https://chenxukwok.github.io/K-function/}}: 
+
+(1) The official Multitudes scoring guidelines, detailing the criteria for evaluation.
+
+(2) The original reference text the child was asked to read.
+
+(3) The detailed phoneme-level transcription generated by our K-WFST model.
+
+(4) Four distinct, manually-scored examples to serve as in-context demonstrations of the scoring process.
+
+The LLM synthesized these inputs to produce a single quantitative score reflecting each child’s reading performance. To account for the probabilistic nature of the model, we set the decoding temperature to 0.5 and performed the prediction five consecutive times for each sample. All five scores generated for each sample were then included in the final evaluation. We compared this entire set of predictions against the ground-truth expert scores from the Multitudes corpus to calculate the overall MAE and MSE.

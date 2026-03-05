@@ -1,0 +1,132 @@
+\section{Proposed approach} \label{sec:gop}
+The study applies various conventional UQ methods to calculate GoP scores, which are demonstrated in \Cref{fig:diagram}.
+We release the source code of all the experiments.\footnote{\url{https://github.com/juice500ml/dysarthria-gop}\label{footnote:repo_url}}
+
+\subsection{Prerequisite: Goodness of Pronunciation (GoP)} \label{ssec:gop-baseline}
+In this subsection, we provide a succinct summary of the existing GoP-based methods from the uncertainty quantification perspective.
+% understanding the existing GOP literature in the perspective of ood
+Starting from GMM-GoP, \Cref{eq:gmm-gop} presents the definition of the corresponding method:
+Given a phone $p$ during frames $f \in F$ with frame-wise phone probability and its logits as $P^f(p|f)$ and $L^f(p|f)$, and the total phone set as $Q$, \textbf{GMM-GoP} \cite{witt2000phone} is defined as an averaged log probability across the phone duration, $\mathbb{E}_F[\log P^f(p|f)]$:
+% By averaging over multiple frames, the estimate of the phone's probability becomes more robust and less sensitive to random variations in the signal, which can help to reduce the uncertainty associated with the estimate.
+\begin{equation}
+    s_\text{GMM-GoP}(p) = \frac{1}{|F|} \sum_{f \in F} \log \frac{e^{L^f(p|f)}}{ \sum_{q \in Q} e^{L^f(q|f)}}.
+\label{eq:gmm-gop}
+\end{equation}
+Averaging the log probabilities can be seen as a form of temporal ensembling \cite{laine2017temporal}, which is a well-known UQ method, as it combines the predictions from multiple frames into a single estimate. 
+Further, directly using the probability output is often used as a baseline for OOD \cite{hendrycks2017baseline}.
+
+
+Another popular baseline is \textbf{NN-GoP} \cite{hu2015improved}, which improved GMM-GoP by leveraging the development of deep neural networks and modifying the score function:
+% As \Cref{eq:nn-gop} presents, the scoring function was modified by utilizing the margin as the uncertainty estimator, which is also one conventional way of UQ methods \cite{kye2022tidal}.
+\begin{align}
+    \Bar{P}(p|F) = \mathbb{E}_F[P^f(p|f)] = \frac{1}{|F|} \sum_{f \in F} P^f(p|f), \\ 
+    s_\text{NN-GoP}(p) = \log \Bar{P}(p|F) - \max_{q \in Q} \log \Bar{P}(q|F). \label{eq:nn-gop}
+\end{align}
+
+
+Finally, \textbf{DNN-GoP} \cite{hu2015improved} normalizes the phone probability with the phone prior \cite{hong2021disentangling}:
+\begin{align}
+    s_\text{DNN-GoP}(p) = \Bar{P}(p|F) / P(p).
+\end{align}
+
+
+% With the lens of UQ methods, the modification of the scoring function can be viewed as using the margin as the uncertainty estimator \cite{kye2022tidal}.
+% Refer to \Cref{subsec:modify_score} for further details.
+
+% The approach \textbf{CALL-GoP} \cite{hu2013new} also directly used the margin based on the acoustic model predictions $P(F|p)$.
+% \begin{align}
+%     s_\text{CALL-GoP}(p) = \Bar{P}(F|p) - \max_{q \in Q - \{p\}} \Bar{P}(F|p),
+% \end{align}
+
+% Note that if we regard $P(F)$ to be constant, $P(F|p) \propto P(F \cap p) = P(p|F) / P(p)$, which becomes \textbf{DNN-GoP} \cite{hu2015improved}:
+% \begin{align}
+%     s_\text{DNN-GoP}(p) = \Bar{P}(p|F) / P(p).
+% \end{align}
+
+
+\subsection{Normalizing the phoneme predictions}\label{subsec:modify_pred}
+There are two commonly used ways to calibrate the posterior prediction $P(p|F)$ by modifying its logit $L(p|F)$.
+One is to normalize by removing the influence of the prior $P(p)$ \cite{hong2021disentangling,hu2015improved} (\textbf{Prior}), and the other is to reduce the peakiness by temperature scaling \cite{guo2017calibration} \textbf{Scale}:
+\begin{align}
+    L^f(p, f) &= L^f(p|f) - \log P(p), \\
+    L^f_T(p|f) &= L^f(p|f) / T, 
+\end{align}
+where $T$ is the hyperparameter and the modified predictions are the softmax function's output of the corresponding logits.
+
+
+Normalizing via the prior is the same with the idea of DNN-GoP, where it is commonly applied to disentangle the training distribution of the phone recognizer, where majority classes are often overconfident than minority classes \cite{hong2021disentangling}.
+Temperature scaling is also commonly used as a baseline for UQ, as it avoids the peaky distribution of posterior probabilities.
+% Both modifications are applicable to all the aforementioned methods.
+
+
+
+\subsection{Modifying the scoring function}\label{subsec:modify_score}
+% This approach involves modifying the way GoP scores are calculated, by incorporating uncertainty information.
+We first employ one of the most common methods to measure the data uncertainty: Entropy $H$ and Margin $M$.
+% As entropy $H$ and Margin $M$ are the popular methods to measure the data uncertainty \cite{kye2022tidal}, we first checked the efficacy of the two on GoP performance.
+\textbf{Entropy} measures the uncertainty associated with a set of possible outcomes:
+\begin{align}
+    s_\text{H}(p) = -\sum_{q \in Q} \Bar{P}(q|F) \log \Bar{P}(p|F).
+\label{eq:entropy-gop}
+\end{align} 
+Specifically, the entropy represents the average amount of information needed to specify which outcome was actually observed.
+Entropy does not require ground truth labels, so it is often used when obtaining the labels is expensive.
+
+
+\textbf{Margin} refers to the difference between the true class and the highest class probabilities for a given prediction:
+% Hence we incorporate each measurement into the scoring function.
+% \Cref{eq:entropy-gop} and \Cref{eq:margin-gop} each demonstrates incorporating entropy and margin into the scoring function, respectively.
+\begin{align}
+    s_\text{M}(p) = \Bar{P}(p|F) - \max_{q \in Q - \{p\}} \Bar{P}(q|F).
+\label{eq:margin-gop}
+\end{align}
+Note that the equation is strikingly similar to that of NN-GoP except the above definition excludes the true phone as $Q - \{p\}$.
+
+
+On the other hand, the \textbf{MaxLogit} \cite{hendrycks2022scaling} and \textbf{LogitMargin} involves directly utilizing the logits.
+Softmax function is often known to squash the useful information inside logits, so that it can normalize the sum into one.
+Hence, one can apply the idea of both GMM-GoP (directly using the probability) and NN-GoP (using the Margin):
+% This is to reveal raw logits and produce a less skewed score distribution for GoP calculation.
+% \Cref{eq:logit-gop} provides the corresponding equation.
+\begin{align}
+    s_\text{MaxLogit}(p) &= \frac{1}{|F|} \sum_{f \in F} L^f(p|f) = \Bar{L}(p|F), \\
+    s_\text{LogitMargin}(p) &= \Bar{L}(p|F) - \max_{q \in Q - \{p\}} \Bar{L}(p|F).
+\label{eq:logit-gop}
+\end{align} 
+
+% In addition, we also explore the effectiveness of combining MaxLogit and Margin in GoP scoring (\textbf{MaxLogitMargin}), by removing the Softmax function to obtain raw logits and applying the margin to the logits.
+
+
+
+
+% This approach involves normalizing the phoneme prediction, which includes the above-mentioned measures: entropy, margin, maxlogit, and maxlogitmargin.
+% As \Cref{eq:dnn-gop} demonstrates, normalization of each measure can be achieved by removing the phone bias. 
+% Concretely, each phoneme prediction is divided with averaged probability $\Bar{P}$ with phoneme probability $P(p)$ (DNN-GoP) \cite{hu2015improved}.
+% We further extend such applications to make \textbf{Norm Entropy-GoP},\textbf{Norm MaxLogit-GoP}, and \textbf{Norm MaxLogitMargin-GoP}.
+% \begin{align}
+%     s_\text{DNN-GoP}(p) = \Bar{P}(p|F) / P(p). \label{eq:dnn-gop}
+% \end{align}
+% As demonstrated in \Cref{eq:dnn-gop}, a similar attempt was also suggested from the previous study of GoP \cite{hu2015improved}, 
+% where the authors tried to remove the phone bias by dividing averaged probability $\Bar{P}$ with phoneme probability $P(p)$ (DNN-GoP). We further extend such applications to make \textbf{Norm Entropy-GoP},\textbf{Norm MaxLogit-GoP}, and \textbf{Norm MaxLogitMargin-GoP}.
+% \begin{align}
+%     s_\text{DNN-GoP}(p) = \Bar{P}(p|F) / P(p). \label{eq:dnn-gop}
+% \end{align}
+
+% \begin{align}
+%     P_\textbf{DNN-GoP}(p|f) = \frac{e^{L^f(p|f) - \log P(p)}}{ \sum_{q \in Q} e^{L^f(q|f) / T - \log P(q)}},
+% \end{align}
+% which can be understood as \textbf{Logit Normalization} with the phoneme probability $\log P(p)$.
+
+% Similarly, \textbf{Temperature Scaling} \cite{guo2017calibration} scale the logits with the hyperparameter $T$:
+% \begin{equation}
+%     P_\textbf{TS}(p|f) = \frac{e^{L^f(p|f) / T}}{ \sum_{q \in Q} e^{L^f(q|f) / T}},
+% \end{equation}
+% where $T$ is obtained by minimizing the negative log loss (NLL) of the validation dataset predictions $P(p|F)$.
+
+% \textbf{ODIN} \cite{liang2018enhancing} takes a different approach by perturbing the input speech $f$:
+% \begin{align}
+%     \Tilde{f} = f - \epsilon (- \nabla_f \log \max_p P(p|f))\\
+%     P_\text{ODIN}(p|f) = P(p|\Tilde{f})
+% \end{align}
+% where $\epsilon$ is the perturbation magnitude, being added to decrease the final probability $P(p|f)$ of the NN-driven prediction.
+% \textbf{Mahalanobis \cite{lee2018simple}} removes the need of prediction altogether by measuring the Mahalanobis distance in the latent domain.

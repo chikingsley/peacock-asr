@@ -1,0 +1,112 @@
+
+
+\subsection{Model Fine-tuning and Evaluation}
+Our experimental process is designed to first adapt a pre-trained model for child speech and then rigorously evaluate its performance across different conditions and decoding strategies.
+
+\subsubsection{Fine-tuning and Evaluation on MyST}
+
+\begin{table}[h]
+\centering
+\caption{PER (\%) comparison on the MyST test set. The ``Base" models are the pre-trained Wav2Vec2.0, while ``Kids-FT" models are fine-tuned on MyST. Our proposed K-WFST framework demonstrates superior performance across both conditions.}
+\vspace{-2mm}
+\begin{tabular}{llc}
+\toprule
+\textbf{Model} & \textbf{Method} & \textbf{PER $\pm$ SD (\%) } \\
+\midrule
+\multirow{3}{*}{\textbf{Base}} 
+& Greedy & 40.26$\pm$66.92 \\
+& WFST (K=1) & 3.72$\pm$27.90 \\
+& WFST (K=2) & 6.91$\pm$29.00 \\
+\midrule
+\multirow{3}{*}{\textbf{Kids-FT}}
+& Greedy & 11.86$\pm$65.89 \\
+& WFST (K=1) & \textbf{1.39$\pm$9.83} \\
+& WFST (K=2) & 8.31$\pm$14.67 \\
+\bottomrule
+\end{tabular}
+\label{tab:model-eval-results}
+\vspace{-4mm}
+\end{table}
+
+
+\begin{table*}[h]
+\vspace{-2mm}
+\centering
+\caption{Per-Material Phoneme Error Rate (PER, \%) on the UCSF Multitudes ORF Corpus. The flexible WFST (K=2) model demonstrates the strongest performance on the adapted Kids-FT model across all nine challenging reading passages.}
+\vspace{-2mm}
+\resizebox{0.85\textwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+\multirow{2}{*}{\textbf{Multitudes Materials}} & \multicolumn{3}{c}{\textbf{Base Model PER (\%)}} & \multicolumn{3}{c}{\textbf{Kids-FT Model PER (\%)}} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+& \textbf{Greedy} & \textbf{WFST (K=1)} & \textbf{WFST (K=2)} & \textbf{Greedy} & \textbf{WFST (K=1)} & \textbf{WFST (K=2)} \\
+\midrule
+Grizzly & 35.61 & 22.92 & 7.95 & 7.95 & 1.85 & \textbf{1.77} \\
+Banana & 45.13 & 48.16 & 37.72 & 23.21 & 15.47 & \textbf{11.41} \\
+Quail & 42.05 & 31.10 & 20.14 & 14.31 & 9.72 & \textbf{6.01} \\
+Raccoon & 37.48 & 28.06 & 19.36 & 11.19 & 7.10 & \textbf{4.80} \\
+Shark & 49.71 & 24.20 & 11.82 & 11.07 & 7.88 & \textbf{5.63} \\
+Lizard & 43.64 & 24.20 & 11.82 & 11.07 & 7.88 & \textbf{5.63} \\
+Condor & 43.35 & 28.06 & 19.36 & 11.19 & 7.10 & \textbf{4.80} \\
+Fox & 54.35 & 48.16 & 37.72 & 23.21 & 15.47 & \textbf{11.41} \\
+Sealion & 37.48 & 28.06 & 19.36 & 11.19 & 7.10 & \textbf{4.80} \\
+\bottomrule
+\end{tabular}%
+}
+\label{tab:multitudes_results}
+\vspace{-6mm}
+\end{table*}
+
+First, we fine-tuned the pre-trained Phoneme-based Wav2Vec2.0 model~\cite{baevski2020wav2vec} using the 61.5-hour training partition of the MyST dataset. This process created our child-speech-adapted models, hereafter referred to as ``Kids-FT". We then conducted a comprehensive evaluation on the 11.4-hour MyST test set, which primarily consists of relatively fluent child speech. The performance of our baseline (``Base") and fine-tuned (``Kids-FT") models, measured by Phoneme Error Rate (PER), is presented in Table~\ref{tab:model-eval-results}.
+
+
+
+The results clearly show the substantial benefit of fine-tuning, with the Kids-FT models significantly outperforming the Base models across all decoding methods. Notably, on this fluent speech dataset, the constrained setting of our decoder, \textbf{WFST (K=1)}, achieves the optimal performance with a PER of only \textbf{1.39\%}. This finding supports our hypothesis that for less variable speech, a more constrained decoding path prevents potential error propagation and yields higher accuracy.
+
+
+
+\subsubsection{Evaluation on Multitudes}
+To assess model performance in a more challenging and realistic downstream scenario, we evaluated all models on the 1.87-hour Multitudes corpus. This dataset contains a higher degree of disfluent child speech from the Oral Reading Fluency (ORF) task. The performance of each model configuration across the nine different reading passages of the ORF task is detailed in Table~\ref{tab:multitudes_results}.
+
+As shown in the table, the fine-tuned ``Kids-FT Model" consistently outperforms the ``Base Model" across all reading passages, reaffirming the importance of adaptation to child speech. Crucially, on this more challenging disfluent dataset, the flexible \textbf{WFST (K=2)} configuration consistently yields the lowest Phoneme Error Rate (PER) for the fine-tuned model on every single passage. This result strongly supports our Task-dependent K-Selection strategy, demonstrating that allowing greater flexibility for phonetically plausible substitutions is essential for enhancing model robustness and accuracy in complex downstream scenarios.
+
+
+
+
+\subsection{LLM-Assisted Scoring on the Multitudes Corpus}
+
+To validate the practical utility of our high-fidelity transcriptions, we assessed if a Large Language Model (LLM) could replicate the nuanced scoring of human experts. Using the Llama-3.1-70B-Instruct model, we employed a few-shot prompt that included four scored examples and the official scoring guidelines. The LLM then generated a score based on the phoneme transcriptions produced by each of our six model configurations.
+
+The results, measured in Mean Absolute Error (MAE) and Mean Squared Error (MSE) against the ground-truth expert scores, are presented in Table~\ref{tab:llm-scoring-results}. The data reveals a clear and consistent trend: higher transcription quality directly leads to a more accurate automated score from the LLM, demonstrating a stronger agreement with human evaluators.
+
+Specifically, the transcriptions from the fine-tuned ``Kids-FT'' models consistently result in lower MAE and MSE than those from the ``Base'' models. The optimal performance is achieved when the LLM is provided with the transcription from our best-performing model: the \textbf{Kids-FT} model paired with the flexible \textbf{WFST (K=2)} decoder. This configuration yielded the lowest error rates, with an \textbf{MAE of 8.43\%} and an \textbf{MSE of 0.2224}. This confirms that the detailed and accurate phoneme-level information captured by our proposed K-WFST framework provides the most robust and practically useful representation for downstream assessment tasks.
+
+\begin{table}[h]
+\centering
+\caption{Performance of LLM-Assisted Scoring on the Multitudes ORF corpus.  Mean Absolute Error (MAE) and Mean
+Squared Error (MSE) are calculated between the LLM-predicted scores and the manual expert scores. Lower values indicate higher agreement. The best results are highlighted in bold.}
+\label{tab:llm-scoring-results}
+\vspace{-2mm}
+\begin{tabular}{llcc}
+\toprule
+\textbf{Model} & \textbf{Method} & \textbf{MAE (\%)} & \textbf{MSE} \\
+\midrule
+\multirow{3}{*}{\textbf{Base}}
+& Greedy & 14.82 & 0.2876 \\
+& WFST (K=1) & 11.78 & 0.2662 \\
+& WFST (K=2) & 8.71 & 0.2371 \\
+\midrule
+\multirow{3}{*}{\textbf{Kids-FT}}
+& Greedy & 10.29 & 0.2504 \\
+& WFST (K=1) & 11.47 & 0.2581 \\
+& WFST (K=2) & \textbf{8.43} & \textbf{0.2224} \\
+\bottomrule
+\end{tabular}
+\vspace{-5mm}
+\end{table}
+
+
+
+
+
+

@@ -1,0 +1,74 @@
+\documentclass{article}
+\usepackage{style/spconf,amsmath,graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{enumitem}
+
+\title{To Reviewer 01E6}
+% \name{S3T: Self-Supervised Pre-training with Swin Transformer for Music Classification}
+\name{}
+\address{}
+
+\begin{document}
+\maketitle
+
+\section{Novelty/Originality}
+\textbf{[Novelty]}
+Self-supervised learning (SSL) is important for the music domain, however, there is currently a lack of related research in this area. Though SSL has been widely applied in the vision domain, a gap exists between music and image due to its time-varying nature. Such a gap hinders direct the application of state-of-the-art methods from the vision domain to the music domain. For music signals, both information in the frequency domain and the time domain are meaningful. S3T focuses on characteristics of the music time-frequency domain and aims to contribute a self-supervised prototype that could learn music representation describing both local and global features across frequency and time. To address this, S3T introduces flexible data augmentations, self-attention based hierarchical features extractor Swin Transformer and specific-designed pre-processors, and small-batch friendly MoCo.
+% Based on such differences, we apply Swin Transformer and design pre-processors to adapt it to music domain. Besides, the data augmentation pipeline is also specially developed for music.
+% empower the self-supervised learning paradigm to show its power in the music domain
+
+
+\section{Experimental Validation}
+
+\textbf{[Scale of experiments]} This work aims to demonstrate S3T's validity as a self-supervised prototype for music representation learning. Empirical results indicate that S3T pre-trained on one million songs yields quantitatively competitive performance with those task-specific SOTA methods. And we believe this performance would scale as data size increases as proved in vision and NLP. Surely, we will extend the scale of our experiments by either increasing the data scale or the number of downstream tasks in future work. 
+% This work aims to demonstrate the validity of this prototype, and we are recently trying to further validate our S3T using a 10-million-scale dataset, and the relevant results will probably appear in our future work.
+\\
+
+\noindent\textbf{[Supervised SOTA v.s. S3T]} We would like to clarify that the supervised SOTA results presented in Tables 1 and 2 in the paper are collected from task-specific models which are carefully curated for each task instead of the results of the same model of S3T trained in a supervised manner. The comparison is thus between supervised SOTA and the linear evaluation results of S3T. It shows that even with the simplest linear classifier, S3T achieves competitive performance. Moreover, S3T could easily transfer to different downstream tasks while those task-specific models could hardly generalize to other tasks. 
+
+Table~\ref{tab:pre_processor_new} is an updated version of comparison between two pre-processors. We perform statistical significance testing by repeating the train/test runs 5 times and report mean results with standard deviations to rule out the influence of random error. The latest result on GTZAN in Table~\ref{tab:pre_processor_new} has already surpassed the corresponding supervised SOTA by 2.1 points.
+% These results show that even if we use the simplest linear classifier, we can achieve results comparable to task-specific designed models, demonstrating the representation learning capability of S3T. 
+% \\ to those task-specific models further proved the representation learning capability of S3T
+\\
+
+\noindent\textbf{[Necessity of SSL]} One goal of SSL is to train a model which could generalize well to various downstream tasks. Though task-specific models trained with "small data" could yield reasonable results, they may suffer from overfitting on small datasets thus hardly generalize to larger data scales not to mention other tasks. However, pre-trained models could easily transfer to different downstream tasks with comparable performance by fine-tuning on small in-domain datasets. Though the datasets mentioned in the paper may not that difficult, there do exist more complicated distributions and music classification tasks where pre-training demonstrates its superiority. We believe self-supervised learning methods like S3T could generalize well to tasks including but not limited to two tasks mentioned in this work. 
+% Because good representation learning should perform well on both simple and difficult datasets. 
+% Surely, we will add evaluation on more tasks like music theme classification and emotion detection in the future work.
+
+Recently, we evaluate S3T on the singing language identification task, and it outperforms the supervised model by a large margin. We found that the supervised model overfits the test data so that it hardly generalizes to larger data or out-of-distribution data. However, S3T scales well on both small test sets and larger data scales, demonstrating the necessity of self-supervised pre-training. 
+% Though a model designed for a specific task can achieve reasonable results, it is often expensive to design and train such a model. Good representations are essential to reduce the difficulty of model design and training cost for downstream tasks. For example, (TODO). % 语种上的效果
+\\
+
+
+\noindent\textbf{[Evaluation of representation learning]} A common practice in the vision area to evaluate the representation learning performance is linear image classification. However, it lacks a widely accepted benchmark for music representation evaluation. For fair comparison, we follow CLMR using the linear music classification. We believe a good representation should perform well enough when using the simplest classifier.
+%  with the idea that 
+% Therefore, aligning to the image domain and following the previous work CLMR~\cite{spijkervet2021contrastive}, we choose music classification as the downstream task to validate the representation learning capability of S3T.
+
+\begin{table}[t]
+\centering
+\setlength\tabcolsep{20pt}
+\small 
+% \vspace{-0.3cm}
+\begin{tabular}{ c | c  c }
+	\toprule
+	\multirow{2}{*}[-0.7ex]{Pre-processor} & \multicolumn{2}{c}{GTZAN} \\
+	\cmidrule(lr){2-3}
+	& Top-1(\%) & Top-5(\%) \\
+	\midrule
+	\textit{Frequency Tiling} & 78.3 ($\pm{0.2}$) & 96.6 ($\pm{0.4}$) \\
+    \textit{Time Folding} & \textbf{81.1} ($\pm{0.4}$) & \textbf{97.2} ($\pm{0.5}$) \\
+	\bottomrule
+\end{tabular}
+\vspace{-0.2cm}
+\caption{Comparison of the results on GTZAN of different pre-processors.}
+\label{tab:pre_processor_new}
+\vspace{-0.5cm}
+\end{table}
+
+% ~\cite{spijkervet2021contrastive}
+% \bibliographystyle{style/IEEEbib}
+% \bibliography{bib/refs}
+\end{document}

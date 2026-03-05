@@ -1,0 +1,68 @@
+\documentclass{article}
+\usepackage{style/spconf,amsmath,graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{enumitem}
+
+% \def\Section#1{\vspace*{-0.125in}\section*{#1}}
+% \def\SubSection#1{\vspace*{-0.125in}\subsection*{#1}}
+
+\title{To Reviewer 014E}
+% \name{S3T: Self-Supervised Pre-training with Swin Transformer for Music Classification}
+\name{}
+\address{}
+
+\begin{document}
+\maketitle
+
+\section{Experimental Validation}
+
+\textbf{[Statistical significance testing]} Thanks for your feedback and suggestions on the experimental validation part. It does make sense to perform statistical significance testing across several different train/test runs to reduce the influence of random error. We have added the statistical testing of significance for Table 4: we repeat the downstream task train/test run 5 times and report the mean results ($\pm$ standard deviations) in Table~\ref{tab:pre_processor_new}. Meanwhile, we also update Table~\ref{tab:main_results_new} with the latest results on GTZAN, which should be more statistically reliable. Besides, we will update other tables with the same statistical significance testing results as well in the next version of our paper.
+
+\begin{table}[t]
+\centering
+\setlength\tabcolsep{20pt}
+\small 
+% \vspace{-0.3cm}
+\begin{tabular}{ c | c  c }
+	\toprule
+	\multirow{2}{*}[-0.7ex]{Pre-processor} & \multicolumn{2}{c}{GTZAN} \\
+	\cmidrule(lr){2-3}
+	& Top-1(\%) & Top-5(\%) \\
+	\midrule
+	\textit{Frequency Tiling} & 78.3 ($\pm{0.2}$) & 96.6 ($\pm{0.4}$) \\
+    \textit{Time Folding} & \textbf{81.1} ($\pm{0.4}$) & \textbf{97.2} ($\pm{0.5}$) \\
+	\bottomrule
+\end{tabular}
+\vspace{-0.2cm}
+\caption{Comparison of the results on GTZAN of different pre-processors.}
+\label{tab:pre_processor_new}
+\vspace{-0.5cm}
+\end{table}
+
+\begin{table}[t]
+\centering
+\small 
+\vspace{0.3cm}
+\begin{tabular}{ c | c c c c}
+	\toprule
+	\multirow{2}{*}[-0.7ex]{Method}  & \multicolumn{2}{c}{MTAT} & FMA & GTZAN \\
+    \cmidrule(lr){2-3} 
+    \cmidrule(lr){4-4} \cmidrule(lr){5-5}
+	& PR-AUC & ROC-AUC  & Top-1(\%) & Top-1(\%) \\
+	\midrule
+	\textit{Random Init} & 18.0 & 73.5 & 26.0 & 27.6 \\
+    \textit{Supervised} & 38.3 & \textbf{90.6} & 42.7 & 79.0 \\
+    \textit{SSL (CLMR)} & 36.1 & 89.4 & 48.4 & 68.6 \\
+    \textit{S3T (Ours)} & \textbf{40.9} & 89.9 & \textbf{56.4} & \textbf{81.1} \\
+	\bottomrule
+\end{tabular}
+\vspace{-0.2cm}
+\caption{Comparison of linear evaluation results of S3T with other three methods. Supervised results are the state-of-the-art task-specific results.}
+\label{tab:main_results_new}
+% \vspace{-0.3cm}
+\end{table}
+
+\end{document}

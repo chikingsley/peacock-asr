@@ -1,0 +1,24 @@
+\section{Related Work}
+\label{related-work}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.9\columnwidth]{figures/text_delays_on_waveforms.drawio.pdf}
+    \caption{\textbf{Generating aligned interpretations.}
+        We extract unsupervised word level contextual alignment, which we lift to audio by either inserting
+        silences, or re-synthesising with an alignment aware TTS. See Section~\ref{sec:alignment} for details.
+    }
+    \label{fig:contextual-delays-waveform}
+\end{figure}
+
+
+
+\subsection{End-to-end speech translation}
+\looseness=-1
+Speech translation can be traced back to the early 1990s~\cite{connectionist_translation} with a first generation of systems that combined automatic speech recognition (ASR), machine translation (MT) and text-to-speech synthesis (TTS). While such cascaded approaches allowed for the growth of speech translation~\cite{wahlster2000verbmobil, nakamura2006atr}, they suffer from two main limitations. First, they are subject to compounding errors due to combining separately trained models. This motivated the merging of ASR and MT into a single speech-to-text translation (S2TT) model~\cite{s2tt_berard2016, s2tt_weiss_2017, s2tt_wang_2020, s2tt_wang_2021} that can provide inputs to a TTS model. However, a second limitation of cascaded systems remains: as the input speech goes through a text bottleneck, the non-linguistic information it carries---such as speaker identity or prosody---is lost and cannot be transferred to the output speech. End-to-end speech-to-speech translation (S2ST)~\cite{jia19_translatotron,lee-etal-2022-direct,jia22-translatotron2,audiopalm} addresses this issue by directly predicting target speech from source speech, allowing for retaining paralinguistic information, including voice identity. A notable aspect of most end-to-end S2ST models is that they leverage auxiliary text or phoneme translation tasks in training, that are then discarded~\cite{jia22-translatotron2} or run in parallel~\cite{streamspeech} to the main speech translation task at inference. \ours performs end-to-end S2ST with voice transfer along with S2TT, but instead of running these tasks in parallel, \ours uses the predicted text as a scaffolding for speech generation at inference time. Moreover, since \ours predicts aligned speech and text tokens, it provides word-level timestamps in the target language. 
+\subsection{Simultaneous speech translation}
+\looseness=-1
+While the first attempts at simultaneous speech translation focused on speech-to-text~\citep{ren-etal-2020-simulspeech, ma_streaming_21, real_trans_21}, Seamless~\cite{seamless} and StreamSpeech~\cite{streamspeech} have introduced end-to-end simultaneous S2ST~\cite{real_trans_21,seamless,streamspeech}. Both systems predict discrete speech units with autoregressive models before decoding them to audio using a neural vocoder, and rely on a specific policy for inference. While StreamSpeech translates into a canonical voice, Seamless performs voice transfer from source to target. \ours also performs simultaneous S2ST and S2TT, while transferring voice characteristics. However, \ours relies on a decoder-only model which operates at a constant frame rate and performs inference with simple temperature sampling or greedy decoding. In particular, this allows for batching, unlike StreamSpeech's and Seamless's policies that involve a complex control flow that cannot be batched.
+This makes \ours able to translate hundreds of sequences on a single GPU, provides
+convenient support for classifier-free guidance, see e.g. Section~\ref{sec:voice_transfer}, and allows to run in real time on device, as shown in Section~\ref{sec:inference_capabilities}.
+Human evaluations in Section~\ref{sec:eval_human} show that \ours significantly outperforms Seamless in terms of naturalness and audio quality, getting close to human interpretation.

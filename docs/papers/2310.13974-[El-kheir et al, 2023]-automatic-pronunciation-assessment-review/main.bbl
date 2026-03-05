@@ -1,0 +1,803 @@
+\begin{thebibliography}{162}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+
+\bibitem[{Abercrombie(1949)}]{abercrombie1949teaching}
+David Abercrombie. 1949.
+\newblock Teaching pronunciation.
+\newblock \emph{ELT Journal}, 3(5):113--122.
+
+\bibitem[{Algabri et~al.(2022)Algabri, Mathkour, Alsulaiman, and Bencherif}]{algabri2022mispronunciation}
+Mohammed Algabri, Hassan Mathkour, Mansour Alsulaiman, and Mohamed~A Bencherif. 2022.
+\newblock Mispronunciation detection and diagnosis with articulatory-level feedback generation for non-native arabic speech.
+\newblock \emph{Mathematics}, 10(15):2727.
+
+\bibitem[{Anand et~al.(2023)Anand, Sirigiraju, and Yarra}]{anand2023unsupervised}
+Nayan Anand, Meenakshi Sirigiraju, and Chiranjeevi Yarra. 2023.
+\newblock \href {http://arxiv.org/abs/2306.08845} {Unsupervised speech intelligibility assessment with utterance level alignment distance between teacher and learner wav2vec-2.0 representations}.
+
+\bibitem[{Arvaniti and Baltazani(2000)}]{arvaniti2000greek}
+Amalia Arvaniti and Mary Baltazani. 2000.
+\newblock Greek tobi: A system for the annotation of greek speech corpora.
+\newblock In \emph{LREC}.
+
+\bibitem[{Baevski et~al.(2020)Baevski, Zhou, Mohamed, and Auli}]{baevski2020wav2vec}
+Alexei Baevski, Yuhao Zhou, Abdelrahman Mohamed, and Michael Auli. 2020.
+\newblock wav2vec 2.0: A framework for self-supervised learning of speech representations.
+\newblock \emph{Advances in neural information processing systems}, 33:12449--12460.
+
+\bibitem[{Batliner et~al.(2005)Batliner, Blomberg, D'Arcy, Elenius, Giuliani, Gerosa, Hacker, Russell, Steidl, and Wong}]{pfstar}
+Anton Batliner, Mats Blomberg, Shona D'Arcy, Daniel Elenius, Diego Giuliani, Matteo Gerosa, Christian Hacker, Martin Russell, Stefan Steidl, and Michael Wong. 2005.
+\newblock The {PF STAR Children's Speech Corpus}.
+\newblock In \emph{Proc. of Interspeech}.
+
+\bibitem[{Bell et~al.(2005)Bell, Boyce, Gustafson, Heldner, Lindström, and Wirén}]{swedish}
+Linda Bell, Johan Boyce, Joakim Gustafson, Mattias Heldner, Anders Lindström, and Mats Wirén. 2005.
+\newblock The swedish nice corpus - spoken dialogues between children and embodied characters in a computer game scenario.
+\newblock In \emph{Proc. of Eurospeech}.
+
+\bibitem[{Bonaventura et~al.(2000)Bonaventura, Howarth, and Menzel}]{bonaventura2000phonetic}
+Patrizia Bonaventura, Peter Howarth, and Wolfgang Menzel. 2000.
+\newblock Phonetic annotation of a non-native speech corpus.
+\newblock In \emph{Proceedings International Workshop on Integrating Speech Technology in the (Language) Learning and Assistive Interface, InStil}, pages 10--17.
+
+\bibitem[{{Boulder Learning Inc}(2019)}]{boulder}
+{Boulder Learning Inc}. 2019.
+\newblock \href {http://boulderlearning.com/request-the-myst-corpus/} {Myst corpus}.
+\newblock Retrieved July 17, 2019.
+
+\bibitem[{Caro~Anzola and Mendoza~Moreno(2023)}]{caro2023goodness}
+Edward~Wilder Caro~Anzola and Miguel~{\'A}ngel Mendoza~Moreno. 2023.
+\newblock Goodness of pronunciation algorithm in the speech analysis and assessment for detecting errors in acoustic phonetics: An exploratory review.
+
+\bibitem[{Chao et~al.(2022)Chao, Lo, Wu, Sung, and Chen}]{3M}
+Fu-An Chao, Tien-Hong Lo, Tzu-I Wu, Yao-Ting Sung, and Berlin Chen. 2022.
+\newblock \href {https://doi.org/10.23919/APSIPAASC55919.2022.9979979} {3m: An effective multi-view, multi-granularity, and multi-aspect modeling approach to english pronunciation assessment}.
+\newblock In \emph{2022 Asia-Pacific Signal and Information Processing Association Annual Summit and Conference (APSIPA ASC)}, pages 575--582.
+
+\bibitem[{Chen et~al.(2016{\natexlab{a}})Chen, Bunescu, Xu, and Liu}]{chen2016tone}
+Charles Chen, Razvan~C Bunescu, Li~Xu, and Chang Liu. 2016{\natexlab{a}}.
+\newblock Tone classification in mandarin chinese using convolutional neural networks.
+\newblock In \emph{Interspeech}, pages 2150--2154.
+
+\bibitem[{Chen and Wang(2010)}]{chen2010automatic}
+Jin-Yu Chen and Lan Wang. 2010.
+\newblock Automatic lexical stress detection for chinese learners' of english.
+\newblock In \emph{2010 7th International Symposium on Chinese Spoken Language Processing}, pages 407--411. IEEE.
+
+\bibitem[{Chen et~al.(2018)Chen, Tao, Ghaffarzadegan, and Qian}]{chen2018end}
+Lei Chen, Jidong Tao, Shabnam Ghaffarzadegan, and Yao Qian. 2018.
+\newblock End-to-end neural network based automated speech scoring.
+\newblock In \emph{2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 6234--6238. IEEE.
+
+\bibitem[{Chen and Rudnicky(2023)}]{chen2023exploring}
+Li-Wei Chen and Alexander Rudnicky. 2023.
+\newblock Exploring wav2vec 2.0 fine tuning for improved speech emotion recognition.
+\newblock In \emph{ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 1--5. IEEE.
+
+\bibitem[{Chen and Li(2016)}]{nancy2016}
+Nancy~F. Chen and Haizhou Li. 2016.
+\newblock \href {https://doi.org/10.1109/APSIPA.2016.7820782} {Computer-assisted pronunciation training: From pronunciation scoring towards spoken language learning}.
+\newblock In \emph{2016 Asia-Pacific Signal and Information Processing Association Annual Summit and Conference (APSIPA)}, pages 1--7.
+
+\bibitem[{Chen et~al.(2016{\natexlab{b}})Chen, Tong, Wee, Lee, Ma, and Li}]{chen2016singakids}
+Nancy~F Chen, Rong Tong, Darren Wee, Pei~Xuan Lee, Bin Ma, and Haizhou Li. 2016{\natexlab{b}}.
+\newblock Singakids-mandarin: Speech corpus of singaporean children speaking mandarin chinese.
+\newblock In \emph{Interspeech}, pages 1545--1549.
+
+\bibitem[{Chen et~al.(2015)Chen, Tong, Wee, Lee, Ma, and Li}]{chen2015icall}
+Nancy~F Chen, Rong Tong, Darren Wee, Peixuan Lee, Bin Ma, and Haizhou Li. 2015.
+\newblock icall corpus: Mandarin chinese spoken by non-native speakers of european descent.
+\newblock In \emph{Sixteenth Annual Conference of the International Speech Communication Association}.
+
+\bibitem[{Chen et~al.(2022)Chen, Wang, Chen, Wu, Liu, Chen, Li, Kanda, Yoshioka, Xiao et~al.}]{chen2022wavlm}
+Sanyuan Chen, Chengyi Wang, Zhengyang Chen, Yu~Wu, Shujie Liu, Zhuo Chen, Jinyu Li, Naoyuki Kanda, Takuya Yoshioka, Xiong Xiao, et~al. 2022.
+\newblock Wavlm: Large-scale self-supervised pre-training for full stack speech processing.
+\newblock \emph{IEEE Journal of Selected Topics in Signal Processing}, 16(6):1505--1518.
+
+\bibitem[{Chen et~al.(2019)Chen, Hu, and Zhang}]{sell-corpus}
+Yu~Chen, Jun Hu, and Xinyu Zhang. 2019.
+\newblock Sell-corpus: an open source multiple accented chinese-english speech corpus for l2 english learning assessment.
+\newblock In \emph{ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 7425--7429. IEEE.
+
+\bibitem[{Chen et~al.(2023)Chen, Yu, and Hirschberg}]{chen2023multipa}
+Yu-Wen Chen, Zhou Yu, and Julia Hirschberg. 2023.
+\newblock \href {http://arxiv.org/abs/2308.12490} {Multipa: a multi-task speech pronunciation assessment system for a closed and open response scenario}.
+
+\bibitem[{Chowdhury et~al.(2021)Chowdhury, Hussein, Abdelali, and Ali}]{chowdhury2021onemodel}
+S.~Chowdhury, A.~Hussein, A.~Abdelali, and A.~Ali. 2021.
+\newblock Towards one model to rule all: Multilingual strategy for dialectal code-switching {A}rabic {A}sr.
+\newblock \emph{Interspeech 2021}.
+
+\bibitem[{Cole et~al.(2017)Cole, Mahrt, and Roy}]{cole2017crowd}
+Jennifer Cole, Timothy Mahrt, and Joseph Roy. 2017.
+\newblock Crowd-sourcing prosodic annotation.
+\newblock \emph{Computer Speech \& Language}, 45:300--325.
+
+\bibitem[{Council~III et~al.(2019)Council~III, Gardner~III, Cartledge, and Telesman}]{council2019improving}
+Morris~R Council~III, Ralph Gardner~III, Gwendolyn Cartledge, and Alana~O Telesman. 2019.
+\newblock Improving reading within an urban elementary school: computerized intervention and paraprofessional factors.
+\newblock \emph{Preventing School Failure: Alternative Education for Children and Youth}, 63(2):162--174.
+
+\bibitem[{Cylwik et~al.(2009)Cylwik, Wagner, and Demenko}]{euronounce}
+Natalia Cylwik, Agnieszka Wagner, and Grazyna Demenko. 2009.
+\newblock The euronounce corpus of non-native polish for asr-based pronunciation tutoring system.
+\newblock In \emph{International Workshop on Speech and Language Technology in Education}.
+
+\bibitem[{Dahmen et~al.(2023)Dahmen, Grice, and Roessig}]{dahmen2023prosodic}
+Silvia Dahmen, Martine Grice, and Simon Roessig. 2023.
+\newblock Prosodic and segmental aspects of pronunciation training and their effects on l2.
+\newblock \emph{Languages}, 8(1):74.
+
+\bibitem[{Datta et~al.(2020)Datta, Ramabhadran, Emond, Kannan, and Roark}]{datta2020language}
+Arindrima Datta, Bhuvana Ramabhadran, Jesse Emond, Anjuli Kannan, and Brian Roark. 2020.
+\newblock Language-agnostic multilingual modeling.
+\newblock In \emph{ICASSP 2020-2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 8239--8243. IEEE.
+
+\bibitem[{Demuth(1992)}]{demuth1992acquisition}
+Katherine Demuth. 1992.
+\newblock Acquisition of sesotho.
+\newblock In Dan Slobin, editor, \emph{The Cross-Linguistic Study of Language Acquisition}, volume~3, pages 557--638. Lawrence Erlbaum Associates, Hillsdale, N.J.
+
+\bibitem[{Demuth et~al.(2006)Demuth, Culbertson, and Alter}]{providence_corpus}
+Katherine Demuth, Jennifer Culbertson, and Jessica Alter. 2006.
+\newblock Word-minimality, epenthesis, and coda licensing in the acquisition of english.
+\newblock \emph{Language \& Speech}, 49:137--174.
+
+\bibitem[{Demuth and Tremblay(2007)}]{lyon}
+Katherine Demuth and Anne Tremblay. 2007.
+\newblock Prosodically-conditioned variability in children's production of french determiners.
+\newblock \emph{Journal of Child Language}, 34:1--29.
+
+\bibitem[{Derwing and Munro(1997)}]{derwing1997accent}
+Tracey~M Derwing and Murray~J Munro. 1997.
+\newblock Accent, intelligibility, and comprehensibility: Evidence from four l1s.
+\newblock \emph{Studies in second language acquisition}, 19(1):1--16.
+
+\bibitem[{Do et~al.(2023)Do, Kim, and Lee}]{10095733}
+Heejin Do, Yunsu Kim, and Gary~Geunbae Lee. 2023.
+\newblock \href {https://doi.org/10.1109/ICASSP49357.2023.10095733} {Hierarchical pronunciation assessment with multi-aspect attention}.
+\newblock In \emph{ICASSP 2023 - 2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 1--5.
+
+\bibitem[{{EL Kheir} et~al.(2023{\natexlab{a}}){EL Kheir}, Chowdhury, and Ali}]{kheir2023multi}
+Yassine {EL Kheir}, Shammur Chowdhury, and Ahmed Ali. 2023{\natexlab{a}}.
+\newblock \href {https://doi.org/10.21437/SLaTE.2023-18} {{Multi-View Multi-Task Representation Learning for Mispronunciation Detection}}.
+\newblock In \emph{Proc. 9th Workshop on Speech and Language Technology in Education (SLaTE)}, pages 86--90.
+
+\bibitem[{{EL Kheir} et~al.(2023{\natexlab{b}}){EL Kheir}, Chowdhury, Ali, Mubarak, and Afzal}]{speechblender}
+Yassine {EL Kheir}, Shammur Chowdhury, Ahmed Ali, Hamdy Mubarak, and Shazia Afzal. 2023{\natexlab{b}}.
+\newblock \href {https://doi.org/10.21437/SLaTE.2023-6} {{SpeechBlender: Speech Augmentation Framework for Mispronunciation Data Generation}}.
+\newblock In \emph{Proc. 9th Workshop on Speech and Language Technology in Education (SLaTE)}, pages 26--30.
+
+\bibitem[{Eskenazi(1999)}]{eskenazi1999using}
+Maxine Eskenazi. 1999.
+\newblock Using automatic speech processing for foreign language pronunciation tutoring: Some issues and a prototype.
+
+\bibitem[{Eskenazi(2009)}]{eskenazi2009overview}
+Maxine Eskenazi. 2009.
+\newblock An overview of spoken language technology for education.
+\newblock \emph{Speech Communication}, 51(10):832--844.
+
+\bibitem[{Eskenazi et~al.(1997)Eskenazi, Mostow, and Graff}]{cmu}
+Maxine Eskenazi, Jack Mostow, and David Graff. 1997.
+\newblock The {CMU Kids Corpus} {LDC97S63}.
+\newblock Linguistic Data Consortium.
+
+\bibitem[{Fan et~al.(2023)Fan, Li, Wumaier, Kadeer, and Abdurahman}]{fan2023multifaceted}
+Zhixing Fan, Jing Li, Aishan Wumaier, Zaokere Kadeer, and Abdujelil Abdurahman. 2023.
+\newblock A multifaceted approach to oral assessment based on the conformer architecture.
+\newblock \emph{IEEE Access}, 11:28318--28329.
+
+\bibitem[{Fan et~al.(2020)Fan, Li, Zhou, and Xu}]{fan2020exploring}
+Zhiyun Fan, Meng Li, Shiyu Zhou, and Bo~Xu. 2020.
+\newblock Exploring wav2vec 2.0 on speaker verification and language identification.
+\newblock \emph{arXiv preprint arXiv:2012.06185}.
+
+\bibitem[{Feng et~al.(2020)Feng, Fu, Chen, and Chen}]{9052975}
+Yiqing Feng, Guanyu Fu, Qingcai Chen, and Kai Chen. 2020.
+\newblock \href {https://doi.org/10.1109/ICASSP40776.2020.9052975} {Sed-mdd: Towards sentence dependent end-to-end mispronunciation detection and diagnosis}.
+\newblock In \emph{ICASSP 2020 - 2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 3492--3496.
+
+\bibitem[{Fernandez et~al.(2017)Fernandez, Rosenberg, Sorin, Ramabhadran, and Hoory}]{7953214}
+Raul Fernandez, Andrew Rosenberg, Alexander Sorin, Bhuvana Ramabhadran, and Ron Hoory. 2017.
+\newblock \href {https://doi.org/10.1109/ICASSP.2017.7953214} {Voice-transformation-based data augmentation for prosodic classification}.
+\newblock In \emph{2017 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 5530--5534.
+
+\bibitem[{Ferrer et~al.(2015)Ferrer, Bratt, Richey, Franco, Abrash, and Precoda}]{ferrer2015classification}
+Luciana Ferrer, Harry Bratt, Colleen Richey, Horacio Franco, Victor Abrash, and Kristin Precoda. 2015.
+\newblock Classification of lexical stress using spectral and prosodic features for computer-assisted language learning systems.
+\newblock \emph{Speech Communication}, 69:31--45.
+
+\bibitem[{Fu et~al.(2022)Fu, Gao, Wang, Li, Tian, and Ma}]{mixup}
+Kaiqi Fu, Shaojun Gao, Kai Wang, Wei Li, Xiaohai Tian, and Zejun Ma. 2022.
+\newblock Improving non-native word-level pronunciation scoring with phone-level mixup data augmentation and multi-source information.
+\newblock \emph{arXiv preprint arXiv:2203.01826}.
+
+\bibitem[{Fu et~al.(2021)Fu, Lin, Ke, Xie, Zhang, and Lin}]{text-aug}
+Kaiqi Fu, Jones Lin, Dengfeng Ke, Yanlu Xie, Jinsong Zhang, and Binghuai Lin. 2021.
+\newblock A full text-dependent end to end mispronunciation detection and diagnosis with easy data augmentation techniques.
+\newblock \emph{arXiv preprint arXiv:2104.08428}.
+
+\bibitem[{Gao et~al.(2012)Gao, Li, and Xiong}]{casschild}
+Jun Gao, Aijun Li, and Ziyu Xiong. 2012.
+\newblock Mandarin multimedia child speech corpus: {CASS\_CHILD}.
+\newblock In \emph{International Conference on Speech Database and Assessments (Oriental COCOSDA)}.
+
+\bibitem[{Gao et~al.(2019)Gao, Sun, and Yang}]{gao2019tonenet}
+Qiang Gao, Shutao Sun, and Yaping Yang. 2019.
+\newblock Tonenet: A cnn model of tone classification of mandarin chinese.
+\newblock In \emph{Interspeech}, pages 3367--3371.
+
+\bibitem[{Garrote(2008)}]{chiede}
+Marta Garrote. 2008.
+\newblock \emph{{CHIEDE}: A Spontaneous Child Language Corpus of Spanish}.
+\newblock Ph.D. thesis, Universidad Autónoma de Madrid, Spain.
+
+\bibitem[{Gong et~al.(2022)Gong, Chen, Chu, Chang, and Glass}]{JIM}
+Yuan Gong, Ziyi Chen, Iek-Heng Chu, Peng Chang, and James Glass. 2022.
+\newblock \href {https://doi.org/10.1109/ICASSP43922.2022.9746743} {Transformer-based multi-aspect multi-granularity non-native english speaker pronunciation assessment}.
+\newblock In \emph{ICASSP 2022 - 2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 7262--7266.
+
+\bibitem[{Gooch et~al.(2016)Gooch, Saito, and Lyster}]{gooch2016effects}
+Reginald Gooch, Kazuya Saito, and Roy Lyster. 2016.
+\newblock Effects of recasts and prompts on l2 pronunciation development: Teaching english r to korean adult efl learners.
+\newblock \emph{System}, 60:117--127.
+
+\bibitem[{Gretter et~al.(2020)Gretter, Matassoni, Bann{\`o}, and Daniele}]{tlt}
+Roberto Gretter, Marco Matassoni, Stefano Bann{\`o}, and Falavigna Daniele. 2020.
+\newblock \href {https://aclanthology.org/2020.lrec-1.47} {{TLT}-school: a corpus of non native children speech}.
+\newblock In \emph{Proceedings of the Twelfth Language Resources and Evaluation Conference}, pages 378--385, Marseille, France. European Language Resources Association.
+
+\bibitem[{Hagen et~al.(2003)Hagen, Pellom, and Cole}]{cu_children}
+Andreas Hagen, Bryan Pellom, and Ronald Cole. 2003.
+\newblock Children's speech recognition with application to interactive books and tutors.
+\newblock In \emph{IEEE Workshop on Automatic Speech Recognition and Understanding}.
+
+\bibitem[{Hosseini-Kivanani et~al.(2021)Hosseini-Kivanani, Gretter, Matassoni, and Falavigna}]{hosseinikivanani2021experiments}
+Nina Hosseini-Kivanani, Roberto Gretter, Marco Matassoni, and Giuseppe~Daniele Falavigna. 2021.
+\newblock \href {http://arxiv.org/abs/2104.05980} {Experiments of asr-based mispronunciation detection for children and adult english learners}.
+
+\bibitem[{Hsu et~al.(2021)Hsu, Bolte, Tsai, Lakhotia, Salakhutdinov, and Mohamed}]{hsu2021hubert}
+Wei-Ning Hsu, Benjamin Bolte, Yao-Hung~Hubert Tsai, Kushal Lakhotia, Ruslan Salakhutdinov, and Abdelrahman Mohamed. 2021.
+\newblock Hubert: Self-supervised speech representation learning by masked prediction of hidden units.
+\newblock \emph{IEEE/ACM Transactions on Audio, Speech, and Language Processing}, 29:3451--3460.
+
+\bibitem[{Hu et~al.(2013)Hu, Qian, and Soong}]{DNN1}
+Wenping Hu, Yao Qian, and Frank~K Soong. 2013.
+\newblock A new dnn-based high quality pronunciation evaluation for computer-aided language learning (call).
+\newblock In \emph{Interspeech}, pages 1886--1890.
+
+\bibitem[{Hu et~al.(2015{\natexlab{a}})Hu, Qian, and Soong}]{DNN4}
+Wenping Hu, Yao Qian, and Frank~K Soong. 2015{\natexlab{a}}.
+\newblock An improved dnn-based approach to mispronunciation detection and diagnosis of l2 learners' speech.
+\newblock In \emph{SLaTE}, pages 71--76.
+
+\bibitem[{Hu et~al.(2015{\natexlab{b}})Hu, Qian, Soong, and Wang}]{DNN5}
+Wenping Hu, Yao Qian, Frank~K Soong, and Yong Wang. 2015{\natexlab{b}}.
+\newblock Improved mispronunciation detection with deep neural network trained acoustic models and transfer learning based logistic regression classifiers.
+\newblock \emph{Speech Communication}, 67:154--166.
+
+\bibitem[{Huang et~al.(2020)Huang, Chen, and Zhu}]{huang2020mispronunciation}
+Guimin Huang, Qiupu Chen, and Hongtao Zhu. 2020.
+\newblock A mispronunciation detection method of confusing vowel pair for chinese students.
+\newblock In \emph{Journal of Physics: Conference Series}, volume 1693, page 012102. IOP Publishing.
+
+\bibitem[{Ito et~al.(2005)Ito, Lim, Suzuki, and Makino}]{ito2005pronunciation}
+Akinori Ito, Yen-Ling Lim, Motoyuki Suzuki, and Shozo Makino. 2005.
+\newblock Pronunciation error detection method based on error rule clustering using a decision tree.
+\newblock In \emph{Ninth European Conference on Speech Communication and Technology}.
+
+\bibitem[{Kang et~al.(2018)Kang, Thomson, and Murphy}]{kang2018routledge}
+Okim Kang, Ron~I Thomson, and John Murphy. 2018.
+\newblock \emph{The Routledge handbook of contemporary English pronunciation}.
+\newblock Routledge New York, NY.
+
+\bibitem[{Kartushina and Frauenfelder(2014)}]{kartushina2014effects}
+Natalia Kartushina and Ulrich~H Frauenfelder. 2014.
+\newblock On the effects of l2 perception and of individual differences in l1 production on l2 pronunciation.
+\newblock \emph{Frontiers in psychology}, 5:1246.
+
+\bibitem[{Kawai and Hirose(1998)}]{kawai1998call}
+Goh Kawai and Keikichi Hirose. 1998.
+\newblock A call system using speech recognition to teach the pronunciation of japanese tokushuhaku.
+\newblock In \emph{STiLL-Speech Technology in Language Learning}.
+
+\bibitem[{Kazemzadeh et~al.(2005)Kazemzadeh, You, Iseli, Jones, Cui, Heritage, Price, Anderson, Narayanan, and Alwan}]{tball}
+Abe Kazemzadeh, Hong You, Markus Iseli, Barbara Jones, Xiaodong Cui, Margaret Heritage, Patti Price, Elaine Anderson, Shrikanth Narayanan, and Abeer Alwan. 2005.
+\newblock {TBALL} data collection: The making of a young children's speech corpus.
+\newblock In \emph{Proc. of Interspeech}.
+
+\bibitem[{Kheir et~al.(2023{\natexlab{a}})Kheir, Chowdhury, and Ali}]{kheir2023complementary}
+Yassine~El Kheir, Shammur~Absar Chowdhury, and Ahmed Ali. 2023{\natexlab{a}}.
+\newblock The complementary roles of non-verbal cues for robust pronunciation assessment.
+\newblock \emph{arXiv preprint arXiv:2309.07739}.
+
+\bibitem[{Kheir et~al.(2023{\natexlab{b}})Kheir, Chowdhury, and Ali}]{kheir2023l1}
+Yassine~El Kheir, Shammur~Absar Chowdhury, and Ahmed Ali. 2023{\natexlab{b}}.
+\newblock L1-aware multilingual mispronunciation detection framework.
+\newblock \emph{arXiv preprint arXiv:2309.07719}.
+
+\bibitem[{Kim et~al.(2022)Kim, Jeon, Seo, and Kim}]{kim2022automatic}
+Eesung Kim, Jae-Jin Jeon, Hyeji Seo, and Hoon Kim. 2022.
+\newblock \href {http://arxiv.org/abs/2204.03863} {Automatic pronunciation assessment using self-supervised speech representation learning}.
+
+\bibitem[{Kim et~al.(1997)Kim, Franco, and Neumeyer}]{kim1997automatic}
+Yoon Kim, Horacio Franco, and Leonardo Neumeyer. 1997.
+\newblock Automatic pronunciation scoring of specific phone segments for language instruction.
+\newblock In \emph{Fifth European Conference on Speech Communication and Technology}.
+
+\bibitem[{Korzekwa et~al.(2020{\natexlab{a}})Korzekwa, Barra-Chicote, Zaporowski, Beringer, Lorenzo-Trueba, Serafinowicz, Droppo, Drugman, and Kostek}]{korzekwa2020detection}
+Daniel Korzekwa, Roberto Barra-Chicote, Szymon Zaporowski, Grzegorz Beringer, Jaime Lorenzo-Trueba, Alicja Serafinowicz, Jasha Droppo, Thomas Drugman, and Bozena Kostek. 2020{\natexlab{a}}.
+\newblock Detection of lexical stress errors in non-native (l2) english with data augmentation and attention.
+\newblock \emph{arXiv preprint arXiv:2012.14788}.
+
+\bibitem[{Korzekwa et~al.(2020{\natexlab{b}})Korzekwa, Barra-Chicote, Zaporowski, Beringer, Lorenzo-Trueba, Serafinowicz, Droppo, Drugman, and Kostek}]{Korzekwa2020DetectionOL}
+Daniel Korzekwa, Roberto Barra-Chicote, Szymon Zaporowski, Grzegorz Beringer, Jaime Lorenzo-Trueba, Alicja Serafinowicz, Jasha Droppo, Thomas Drugman, and Bożena Kostek. 2020{\natexlab{b}}.
+\newblock Detection of lexical stress errors in non-native (l2) english with data augmentation and attention.
+\newblock In \emph{Interspeech}.
+
+\bibitem[{Korzekwa et~al.(2022)Korzekwa, Lorenzo-Trueba, Drugman, and Kostek}]{korzekwa2022computer}
+Daniel Korzekwa, Jaime Lorenzo-Trueba, Thomas Drugman, and Bozena Kostek. 2022.
+\newblock Computer-assisted pronunciation training—speech synthesis is almost all you need.
+\newblock \emph{Speech Communication}, 142:22--33.
+
+\bibitem[{Kyriakopoulos et~al.(2018)Kyriakopoulos, Knill, and Gales}]{kyriakopoulos2018deep}
+Konstantinos Kyriakopoulos, Kate~M Knill, and Mark~JF Gales. 2018.
+\newblock A deep learning approach to assessing non-native pronunciation of english using phone distances.
+\newblock ISCA.
+
+\bibitem[{Kyriakopoulos et~al.(2020)Kyriakopoulos, Knill, and Gales}]{kyriakopoulos2020automatic}
+Konstantinos Kyriakopoulos, Kate~M Knill, and Mark~JF Gales. 2020.
+\newblock Automatic detection of accent and lexical pronunciation errors in spontaneous non-native english speech.
+\newblock ISCA.
+
+\bibitem[{Lee et~al.(2016)Lee, Chen, and Glass}]{lee2016personalized}
+Ann Lee, Nancy~F Chen, and James Glass. 2016.
+\newblock Personalized mispronunciation detection and diagnosis based on unsupervised error pattern discovery.
+\newblock In \emph{2016 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 6145--6149. IEEE.
+
+\bibitem[{Lee and Glass(2012)}]{6424254}
+Ann Lee and James Glass. 2012.
+\newblock \href {https://doi.org/10.1109/SLT.2012.6424254} {A comparison-based approach to mispronunciation detection}.
+\newblock In \emph{2012 IEEE Spoken Language Technology Workshop (SLT)}, pages 382--387.
+
+\bibitem[{Lee and Glass(2015)}]{lee2015mispronunciation}
+Ann Lee and James Glass. 2015.
+\newblock Mispronunciation detection without nonnative training data.
+\newblock In \emph{Sixteenth Annual Conference of the International Speech Communication Association}.
+
+\bibitem[{Leonard and Doddington(1993)}]{tidigits}
+R.~Gary Leonard and George Doddington. 1993.
+\newblock In \emph{Web Download}, Philadelphia. Linguistic Data Consortium.
+
+\bibitem[{Leung et~al.(2019)Leung, Liu, and Meng}]{leung2019cnn}
+Wai-Kim Leung, Xunying Liu, and Helen Meng. 2019.
+\newblock Cnn-rnn-ctc based end-to-end mispronunciation detection and diagnosis.
+\newblock In \emph{ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 8132--8136. IEEE.
+
+\bibitem[{Li et~al.(2018{\natexlab{a}})Li, Mao, Li, Wu, and Meng}]{li2018automatic}
+Kun Li, Shaoguang Mao, Xu~Li, Zhiyong Wu, and Helen Meng. 2018{\natexlab{a}}.
+\newblock Automatic lexical stress and pitch accent detection for l2 english speech using multi-distribution deep neural networks.
+\newblock \emph{Speech Communication}, 96:28--36.
+
+\bibitem[{Li et~al.(2016{\natexlab{a}})Li, Qian, and Meng}]{li2016mispronunciation}
+Kun Li, Xiaojun Qian, and Helen Meng. 2016{\natexlab{a}}.
+\newblock Mispronunciation detection and diagnosis in l2 english speech using multidistribution deep neural networks.
+\newblock \emph{IEEE/ACM Transactions on Audio, Speech, and Language Processing}, 25(1):193--207.
+
+\bibitem[{Li et~al.(2017)Li, Chen, Siniscalchi, and Lee}]{li2017improving}
+Wei Li, Nancy~F Chen, Sabato~Marco Siniscalchi, and Chin-Hui Lee. 2017.
+\newblock Improving mispronunciation detection for non-native learners with multisource information and lstm-based deep models.
+\newblock In \emph{Interspeech}, pages 2759--2763.
+
+\bibitem[{Li et~al.(2018{\natexlab{b}})Li, Chen, Siniscalchi, and Lee}]{li2018improving}
+Wei Li, Nancy~F Chen, Sabato~Marco Siniscalchi, and Chin-Hui Lee. 2018{\natexlab{b}}.
+\newblock Improving mandarin tone mispronunciation detection for non-native learners with soft-target tone labels and blstm-based deep models.
+\newblock In \emph{2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 6249--6253. IEEE.
+
+\bibitem[{Li et~al.(2019)Li, Chen, Siniscalchi, and Lee}]{li2019improving}
+Wei Li, Nancy~F Chen, Sabato~Marco Siniscalchi, and Chin-Hui Lee. 2019.
+\newblock Improving mispronunciation detection of mandarin tones for non-native learners with soft-target tone labels and blstm-based deep tone models.
+\newblock \emph{IEEE/ACM Transactions on Audio, Speech, and Language Processing}, 27(12):2012--2024.
+
+\bibitem[{Li et~al.(2016{\natexlab{b}})Li, Siniscalchi, Chen, and Lee}]{li2016using}
+Wei Li, Sabato~Marco Siniscalchi, Nancy~F Chen, and Chin-Hui Lee. 2016{\natexlab{b}}.
+\newblock Using tone-based extended recognition network to detect non-native mandarin tone mispronunciations.
+\newblock In \emph{2016 Asia-Pacific Signal and Information Processing Association Annual Summit and Conference (APSIPA)}, pages 1--4. IEEE.
+
+\bibitem[{Liao et~al.(2015)Liao, Pundak, Siohan, Carroll, Coccaro, Jiang, Sainath, Senior, Beaufays, and Bacchiani}]{44268}
+Hank Liao, Golan Pundak, Olivier Siohan, Melissa Carroll, Noah Coccaro, Qi-Ming Jiang, Tara~N. Sainath, Andrew Senior, Françoise Beaufays, and Michiel Bacchiani. 2015.
+\newblock Large vocabulary automatic speech recognition for children.
+\newblock In \emph{Interspeech}.
+
+\bibitem[{Lin and Wang(2021)}]{lin2021deep}
+Binghuai Lin and Liyuan Wang. 2021.
+\newblock Deep feature transfer learning for automatic pronunciation assessment.
+\newblock In \emph{Interspeech}, pages 4438--4442.
+
+\bibitem[{Lin and Wang(2022{\natexlab{a}})}]{lin2022phoneme}
+Binghuai Lin and Liyuan Wang. 2022{\natexlab{a}}.
+\newblock Phoneme mispronunciation detection by jointly learning to align.
+\newblock In \emph{ICASSP 2022-2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 6822--6826. IEEE.
+
+\bibitem[{Lin and Wang(2022{\natexlab{b}})}]{9746727}
+Binghuai Lin and Liyuan Wang. 2022{\natexlab{b}}.
+\newblock \href {https://doi.org/10.1109/ICASSP43922.2022.9746727} {Phoneme mispronunciation detection by jointly learning to align}.
+\newblock In \emph{ICASSP 2022 - 2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 6822--6826.
+
+\bibitem[{Lin and Wang(2023{\natexlab{a}})}]{10022486}
+Binghuai Lin and Liyuan Wang. 2023{\natexlab{a}}.
+\newblock \href {https://doi.org/10.1109/SLT54892.2023.10022486} {Exploiting information from native data for non-native automatic pronunciation assessment}.
+\newblock In \emph{2022 IEEE Spoken Language Technology Workshop (SLT)}, pages 708--714.
+
+\bibitem[{Lin and Wang(2023{\natexlab{b}})}]{lin2023multi}
+Binghuai Lin and Liyuan Wang. 2023{\natexlab{b}}.
+\newblock Multi-lingual pronunciation assessment with unified phoneme set and language-specific embeddings.
+\newblock In \emph{ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 1--5. IEEE.
+
+\bibitem[{Lin et~al.(2018)Lin, Li, Gao, Xie, Chen, Siniscalchi, Zhang, and Lee}]{lin2018improving}
+Ju~Lin, Wei Li, Yingming Gao, Yanlu Xie, Nancy~F Chen, Sabato~Marco Siniscalchi, Jinsong Zhang, and Chin-Hui Lee. 2018.
+\newblock Improving mandarin tone recognition based on dnn by combining acoustic and articulatory features using extended recognition networks.
+\newblock \emph{Journal of Signal Processing Systems}, 90:1077--1087.
+
+\bibitem[{Lo et~al.(2010)Lo, Zhang, and Meng}]{lo2010automatic}
+Wai-Kit Lo, Shuang Zhang, and Helen Meng. 2010.
+\newblock Automatic derivation of phonological rules for mispronunciation detection in a computer-assisted pronunciation training system.
+\newblock In \emph{Eleventh annual conference of the international speech communication association}.
+
+\bibitem[{Luan et~al.(2012)Luan, Suzuki, Yamauchi, Minematsu, Kato, and Hirose}]{6424262}
+Yi~Luan, Masayuki Suzuki, Yutaka Yamauchi, Nobuaki Minematsu, Shuhei Kato, and Keikichi Hirose. 2012.
+\newblock \href {https://doi.org/10.1109/SLT.2012.6424262} {Performance improvement of automatic pronunciation assessment in a noisy classroom}.
+\newblock In \emph{2012 IEEE Spoken Language Technology Workshop (SLT)}, pages 428--431.
+
+\bibitem[{Mao et~al.(2018)Mao, Li, Li, Wu, Liu, and Meng}]{mao2018unsupervised}
+Shaoguang Mao, Xu~Li, Kun Li, Zhiyong Wu, Xunying Liu, and Helen Meng. 2018.
+\newblock Unsupervised discovery of an extended phoneme set in l2 english speech for mispronunciation detection and diagnosis.
+\newblock In \emph{2018 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 6244--6248. IEEE.
+
+\bibitem[{Matthews(2014)}]{matthews2014concise}
+Peter~Hugoe Matthews. 2014.
+\newblock \emph{The concise Oxford dictionary of linguistics}.
+\newblock Oxford University Press.
+
+\bibitem[{Meng et~al.(2007{\natexlab{a}})Meng, Lo, Wang, and Lau}]{CH-CHLOE}
+Helen Meng, Yuen~Yee Lo, Lan Wang, and Wing~Yiu Lau. 2007{\natexlab{a}}.
+\newblock \href {https://doi.org/10.1109/ASRU.2007.4430152} {Deriving salient learners’ mispronunciations from cross-language phonological comparisons}.
+\newblock In \emph{2007 IEEE Workshop on Automatic Speech Recognition and Understanding (ASRU)}, pages 437--442.
+
+\bibitem[{Meng et~al.(2007{\natexlab{b}})Meng, Lo, Wang, and Lau}]{meng2007deriving}
+Helen Meng, Yuen~Yee Lo, Lan Wang, and Wing~Yiu Lau. 2007{\natexlab{b}}.
+\newblock Deriving salient learners’ mispronunciations from cross-language phonological comparisons.
+\newblock In \emph{2007 IEEE Workshop on Automatic Speech Recognition and Understanding (ASRU)}, pages 437--442. IEEE.
+
+\bibitem[{Menzel et~al.(2000)Menzel, Atwell, Bonaventura, Herron, Howarth, Morton, and Souter}]{ISLE}
+Wolfgang Menzel, Eric Atwell, Patrizia Bonaventura, Daniel Herron, Peter Howarth, Rachel Morton, and Clive Souter. 2000.
+\newblock The isle corpus of non-native spoken english.
+\newblock In \emph{Proceedings of LREC 2000: Language Resources and Evaluation Conference, vol. 2}, pages 957--964. European Language Resources Association.
+
+\bibitem[{Minematsu et~al.(2011)Minematsu, Okabe, Ogaki, and Hirose}]{minematsu2011measurement}
+Nobuaki Minematsu, Koji Okabe, Keisuke Ogaki, and Keikichi Hirose. 2011.
+\newblock Measurement of objective intelligibility of japanese accented english using erj (english read by japanese) database.
+\newblock In \emph{INTERSPEECH}, pages 1481--1484.
+
+\bibitem[{Minematsu et~al.(2004)Minematsu, Tomiyama, Yoshimoto, Shimizu, Nakagawa, Dantsuji, and Makino}]{ERJ}
+Nobuaki Minematsu, Yoshihiro Tomiyama, Kei Yoshimoto, Katsumasa Shimizu, Seiichi Nakagawa, Masatake Dantsuji, and Shozo Makino. 2004.
+\newblock Development of english speech database read by japanese to support call research.
+\newblock In \emph{Proc. ICA}, volume~1, pages 557--560.
+
+\bibitem[{Mohamed et~al.(2022)Mohamed, Lee, Borgholt, Havtorn, Edin, Igel, Kirchhoff, Li, Livescu, Maaløe, Sainath, and Watanabe}]{9893562}
+Abdelrahman Mohamed, Hung-yi Lee, Lasse Borgholt, Jakob~D. Havtorn, Joakim Edin, Christian Igel, Katrin Kirchhoff, Shang-Wen Li, Karen Livescu, Lars Maaløe, Tara~N. Sainath, and Shinji Watanabe. 2022.
+\newblock \href {https://doi.org/10.1109/JSTSP.2022.3207050} {Self-supervised speech representation learning: A review}.
+\newblock \emph{IEEE Journal of Selected Topics in Signal Processing}, 16(6):1179--1210.
+
+\bibitem[{Munro and Derwing(1995)}]{munro1995foreign}
+Murray~J Munro and Tracey~M Derwing. 1995.
+\newblock Foreign accent, comprehensibility, and intelligibility in the speech of second language learners.
+\newblock \emph{Language learning}, 45(1):73--97.
+
+\bibitem[{Neri et~al.(2008)Neri, Mich, Gerosa, and Giuliani}]{CAPT_2}
+Ambra Neri, Ornella Mich, Matteo Gerosa, and Diego Giuliani. 2008.
+\newblock The effectiveness of computer assisted pronunciation training for foreign language learning by children.
+\newblock \emph{Computer Assisted Language Learning}, 21(5):393--408.
+
+\bibitem[{Ng et~al.(2017{\natexlab{a}})Ng, Kwan, Lee, and Hain}]{7953273}
+Raymond W.~M. Ng, Alvin~C.M. Kwan, Tan Lee, and Thomas Hain. 2017{\natexlab{a}}.
+\newblock \href {https://doi.org/10.1109/ICASSP.2017.7953273} {Shefce: A cantonese-english bilingual speech corpus for pronunciation assessment}.
+\newblock In \emph{2017 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 5825--5829.
+
+\bibitem[{Ng et~al.(2017{\natexlab{b}})Ng, Kwan, Lee, and Hain}]{shefce}
+Raymond~WM Ng, Alvin~CM Kwan, Tan Lee, and Thomas Hain. 2017{\natexlab{b}}.
+\newblock Shefce: A cantonese-english bilingual speech corpus for pronunciation assessment.
+\newblock In \emph{2017 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 5825--5829. IEEE.
+
+\bibitem[{Nguyen et~al.(2014)Nguyen, Tran, Rilliard, d’Alessandro, and Pham}]{nguyen2014intonation}
+Thi Thu~Trang Nguyen, Do~Dat Tran, Albert Rilliard, Christophe d’Alessandro, and Thi Ngoc~Yen Pham. 2014.
+\newblock Intonation issues in hmm-based speech synthesis for vietnamese.
+\newblock In \emph{Spoken Language Technologies for Under-Resourced Languages}.
+
+\bibitem[{Ogunremi et~al.(2023)Ogunremi, Manning, and Jurafsky}]{ogunremi2023multilingual}
+Tolulope Ogunremi, Christopher Manning, and Dan Jurafsky. 2023.
+\newblock Multilingual self-supervised speech representations improve the speech recognition of low-resource african languages with codeswitching.
+\newblock In \emph{Empirical Methods in Natural Language Processing}.
+
+\bibitem[{Ohata(2004)}]{ohata2004phonological}
+Kota Ohata. 2004.
+\newblock Phonological differences between japanese and english: Several potentially problematic.
+\newblock \emph{Language learning}, 22:29--41.
+
+\bibitem[{Pal et~al.(2022)Pal, Yarra, and Ghosh}]{9997873}
+Priyanshi Pal, Chiranjeevi Yarra, and Prasanta~Kumar Ghosh. 2022.
+\newblock \href {https://doi.org/10.1109/O-COCOSDA202257103.2022.9997873} {Voistutor 2.0: A speech corpus with phonetic transcription for pronunciation evaluation of indian l2 english learners}.
+\newblock In \emph{2022 25th Conference of the Oriental COCOSDA International Committee for the Co-ordination and Standardisation of Speech Databases and Assessment Techniques (O-COCOSDA)}, pages 1--6.
+
+\bibitem[{Pascual and Guevara(2012)}]{CFSC}
+R.~M. Pascual and R.~C.~L. Guevara. 2012.
+\newblock \href {https://doi.org/10.1109/TENCON.2012.6412235} {Developing a children's filipino speech corpus for application in automatic detection of reading miscues and disfluencies}.
+\newblock In \emph{TENCON 2012 IEEE Region 10 Conference}, pages 1--6.
+
+\bibitem[{Peng et~al.(2021)Peng, Fu, Lin, Ke, and Zhang}]{peng2021study}
+Linkai Peng, Kaiqi Fu, Binghuai Lin, Dengfeng Ke, and Jinsong Zhang. 2021.
+\newblock A study on fine-tuning wav2vec2. 0 model for the task of mispronunciation detection and diagnosis.
+\newblock In \emph{Interspeech}, pages 4448--4452.
+
+\bibitem[{Pratap et~al.(2023)Pratap, Tjandra, Shi, Tomasello, Babu, Kundu, Elkahky, Ni, Vyas, Fazel-Zarandi et~al.}]{pratap2023scaling}
+Vineel Pratap, Andros Tjandra, Bowen Shi, Paden Tomasello, Arun Babu, Sayani Kundu, Ali Elkahky, Zhaoheng Ni, Apoorv Vyas, Maryam Fazel-Zarandi, et~al. 2023.
+\newblock Scaling speech technology to 1,000+ languages.
+\newblock \emph{arXiv preprint arXiv:2305.13516}.
+
+\bibitem[{Qian et~al.(2010)Qian, Meng, and Soong}]{qian2010capturing}
+Xiaojun Qian, Helen Meng, and Frank Soong. 2010.
+\newblock Capturing l2 segmental mispronunciations with joint-sequence models in computer-aided pronunciation training (capt).
+\newblock In \emph{2010 7th International Symposium on Chinese Spoken Language Processing}, pages 84--88. IEEE.
+
+\bibitem[{Rasipuram et~al.(2015)Rasipuram, Cernak, and Magimai.-Doss}]{Rasipuram:213707}
+Ramya Rasipuram, Milos Cernak, and Mathew Magimai.-Doss. 2015.
+\newblock \href {http://infoscience.epfl.ch/record/213707} {Hmm-based non-native accent assessment using posterior features}.
+
+\bibitem[{Raux and Kawahara(2002)}]{raux2002automatic}
+Antoine Raux and Tatsuya Kawahara. 2002.
+\newblock Automatic intelligibility assessment and diagnosis of critical pronunciation errors for computer-assisted pronunciation learning.
+\newblock In \emph{INTERSPEECH}.
+
+\bibitem[{Rayner et~al.(2014)Rayner, Tsourakis, Baur, Bouillon, and Gerlach}]{callslt}
+Manny Rayner, Nikos Tsourakis, Claudia Baur, Pierrette Bouillon, and Johanna Gerlach. 2014.
+\newblock {CALL-SLT}: A spoken {CALL} system based on grammar and speech recognition.
+\newblock \emph{Linguistic Issues in Language Technology}, 10(2).
+
+\bibitem[{Rogerson-Revell(2021)}]{CAPT}
+Pamela~M Rogerson-Revell. 2021.
+\newblock Computer-assisted pronunciation training ({CAPT}): Current issues and future directions.
+\newblock \emph{RELC Journal}, 52(1):189--205.
+
+\bibitem[{Ronen et~al.(1997)Ronen, Neumeyer, and Franco}]{ronen1997automatic}
+Orith Ronen, Leonardo Neumeyer, and Horacio Franco. 1997.
+\newblock Automatic detection of mispronunciation for language instruction.
+\newblock In \emph{EUROSPEECH}.
+
+\bibitem[{Ruan et~al.(2019)Ruan, Wang, Liu, Ou, Gao, Cheng, and Qian}]{ruan2019end}
+Yong Ruan, Xiangdong Wang, Hong Liu, Zhigang Ou, Yun Gao, Jianfeng Cheng, and Yueliang Qian. 2019.
+\newblock An end-to-end approach for lexical stress detection based on transformer.
+\newblock \emph{arXiv preprint arXiv:1911.04862}.
+
+\bibitem[{Ryant et~al.(2014)Ryant, Yuan, and Liberman}]{ryant2014mandarin}
+Neville Ryant, Jiahong Yuan, and Mark Liberman. 2014.
+\newblock Mandarin tone classification without pitch tracking.
+\newblock In \emph{2014 IEEE international conference on acoustics, speech and signal processing (ICASSP)}, pages 4868--4872. IEEE.
+
+\bibitem[{Saito et~al.(2016)Saito, Trofimovich, and Isaacs}]{saito2016second}
+Kazuya Saito, Pavel Trofimovich, and Talia Isaacs. 2016.
+\newblock Second language speech production: Investigating linguistic correlates of comprehensibility and accentedness for learners at different ability levels.
+\newblock \emph{Applied Psycholinguistics}, 37(2):217--240.
+
+\bibitem[{Sancinetti et~al.(2022)Sancinetti, Vidal, Bonomi, and Ferrer}]{9747727}
+Marcelo Sancinetti, Jazmín Vidal, Cyntia Bonomi, and Luciana Ferrer. 2022.
+\newblock \href {https://doi.org/10.1109/ICASSP43922.2022.9747727} {A transfer learning approach for pronunciation scoring}.
+\newblock In \emph{ICASSP 2022 - 2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 6812--6816.
+
+\bibitem[{Shahin et~al.(2016)Shahin, Epps, and Ahmed}]{shahin2016automatic}
+Mostafa~Ali Shahin, Julien Epps, and Beena Ahmed. 2016.
+\newblock Automatic classification of lexical stress in english and arabic languages using deep learning.
+\newblock In \emph{Interspeech}, pages 175--179.
+
+\bibitem[{Sheoran et~al.(2023)Sheoran, Bajgoti, Gupta, Jatana, Dhand, Gupta, Dadheech, Yahya, and Aneja}]{10042421}
+Kavita Sheoran, Arpit Bajgoti, Rishik Gupta, Nishtha Jatana, Geetika Dhand, Charu Gupta, Pankaj Dadheech, Umar Yahya, and Nagender Aneja. 2023.
+\newblock \href {https://doi.org/10.1109/ACCESS.2023.3244393} {Pronunciation scoring with goodness of pronunciation and dynamic time warping}.
+\newblock \emph{IEEE Access}, 11:15485--15495.
+
+\bibitem[{Shi et~al.(2020)Shi, Huo, and Jin}]{CA-GOP}
+Jiatong Shi, Nan Huo, and Qin Jin. 2020.
+\newblock Context-aware goodness of pronunciation for computer-assisted pronunciation training.
+\newblock \emph{arXiv preprint arXiv:2008.08647}.
+
+\bibitem[{Sini et~al.(2023)Sini, Perquin, Lolive, and Delhay}]{sini2023phone}
+Aghilas Sini, Antoine Perquin, Damien Lolive, and Arnaud Delhay. 2023.
+\newblock Phone-level pronunciation scoring for l1 using weighted-dynamic time warping.
+\newblock In \emph{2022 IEEE Spoken Language Technology Workshop (SLT)}, pages 1081--1087. IEEE.
+
+\bibitem[{Strik et~al.(2009)Strik, Truong, De~Wet, and Cucchiarini}]{strik2009comparing}
+Helmer Strik, Khiet Truong, Febe De~Wet, and Catia Cucchiarini. 2009.
+\newblock Comparing different approaches for automatic pronunciation error detection.
+\newblock \emph{Speech communication}, 51(10):845--852.
+
+\bibitem[{Sudhakara et~al.(2019)Sudhakara, Ramanathi, Yarra, and Ghosh}]{STP}
+Sweekar Sudhakara, Manoj~Kumar Ramanathi, Chiranjeevi Yarra, and Prasanta~Kumar Ghosh. 2019.
+\newblock An improved goodness of pronunciation (gop) measure for pronunciation evaluation with dnn-hmm system considering hmm transition probabilities.
+\newblock In \emph{INTERSPEECH}, pages 954--958.
+
+\bibitem[{Tao et~al.(2016)Tao, Ghaffarzadegan, Chen, and Zechner}]{7472857}
+Jidong Tao, Shabnam Ghaffarzadegan, Lei Chen, and Klaus Zechner. 2016.
+\newblock \href {https://doi.org/10.1109/ICASSP.2016.7472857} {Exploring deep learning architectures for automatically grading non-native spontaneous speech}.
+\newblock In \emph{2016 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 6140--6144.
+
+\bibitem[{Tong et~al.(2017)Tong, Chen, and Ma}]{tong2017multi}
+Rong Tong, Nancy~F Chen, and Bin Ma. 2017.
+\newblock Multi-task learning for mispronunciation detection on singapore children's mandarin speech.
+\newblock In \emph{Interspeech}, pages 2193--2197.
+
+\bibitem[{Tong et~al.(2015)Tong, Chen, Ma, and Li}]{tong2015goodness}
+Rong Tong, Nancy~F Chen, Bin Ma, and Haizhou Li. 2015.
+\newblock Goodness of tone (got) for non-native mandarin tone recognition.
+\newblock In \emph{Sixteenth Annual Conference of the International Speech Communication Association}.
+
+\bibitem[{Trofimovich and Isaacs(2012)}]{trofimovich2012disentangling}
+Pavel Trofimovich and Talia Isaacs. 2012.
+\newblock Disentangling accent from comprehensibility.
+\newblock \emph{Bilingualism: Language and Cognition}, 15(4):905--916.
+
+\bibitem[{Truong et~al.(2004)Truong, Neri, Cucchiarini, and Strik}]{truong2004automatic}
+KP~Truong, Ambra Neri, Catia Cucchiarini, and Helmer Strik. 2004.
+\newblock Automatic pronunciation error detection: an acoustic-phonetic approach.
+
+\bibitem[{Uchihara(2022)}]{uchihara2022possible}
+Takumi Uchihara. 2022.
+\newblock Is it possible to measure word-level comprehensibility and accentedness as independent constructs of pronunciation knowledge?
+\newblock \emph{Research Methods in Applied Linguistics}, 1(2):100011.
+
+\bibitem[{Van~Doremalen et~al.(2009)Van~Doremalen, Cucchiarini, and Strik}]{van2009automatic}
+Joost Van~Doremalen, Catia Cucchiarini, and Helmer Strik. 2009.
+\newblock Automatic detection of vowel pronunciation errors using multiple information sources.
+\newblock In \emph{2009 IEEE Workshop on Automatic Speech Recognition \& Understanding}, pages 580--585. IEEE.
+
+\bibitem[{Venkatasubramaniam et~al.(2023)Venkatasubramaniam, Sunder, and Fosler-Lussier}]{venkatasubramaniam2023end}
+Lavanya Venkatasubramaniam, Vishal Sunder, and Eric Fosler-Lussier. 2023.
+\newblock End-to-end word-level disfluency detection and classification in children’s reading assessment.
+\newblock In \emph{ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 1--5. IEEE.
+
+\bibitem[{Vidal et~al.(2019{\natexlab{a}})Vidal, Ferrer, and Brambilla}]{epadb}
+Jazm{\'\i}n Vidal, Luciana Ferrer, and Leonardo Brambilla. 2019{\natexlab{a}}.
+\newblock Epadb: A database for development of pronunciation assessment systems.
+\newblock In \emph{INTERSPEECH}, pages 589--593.
+
+\bibitem[{Vidal et~al.(2019{\natexlab{b}})Vidal, Ferrer, and Brambilla}]{vidal2019epadb}
+Jazmin Vidal, Luciana Ferrer, and Leonardo Brambilla. 2019{\natexlab{b}}.
+\newblock Epadb: a database for development of pronunciation assessment systems.
+\newblock \emph{Proc. Interspeech 2019}, pages 589--593.
+
+\bibitem[{Wagner(2014)}]{wagner2014rhythmic}
+Agnieszka Wagner. 2014.
+\newblock Rhythmic structure of utterances in native and non-native polish.
+\newblock In \emph{Proc. 7th International Conference on Speech Prosody 2014}, pages 337--341.
+
+\bibitem[{Wang(2022)}]{wang2022segmental}
+Xue Wang. 2022.
+\newblock Segmental versus suprasegmental: Which one is more important to teach?
+\newblock \emph{RELC Journal}, 53(1):194--202.
+
+\bibitem[{Wang and Lee(2012)}]{wang2012improved}
+Yow-Bang Wang and Lin-Shan Lee. 2012.
+\newblock Improved approaches of modeling and detecting error patterns with empirical analysis for computer-aided pronunciation training.
+\newblock In \emph{2012 IEEE international conference on acoustics, speech and signal processing (ICASSP)}, pages 5049--5052. IEEE.
+
+\bibitem[{Wang and Lee(2015)}]{wang2015supervised}
+Yow-Bang Wang and Lin-shan Lee. 2015.
+\newblock Supervised detection and unsupervised discovery of pronunciation error patterns for computer-assisted language learning.
+\newblock \emph{IEEE/ACM Transactions on Audio, Speech, and Language Processing}, 23(3):564--579.
+
+\bibitem[{Witt(2012)}]{witt2012automatic}
+Silke~M Witt. 2012.
+\newblock Automatic error detection in pronunciation training: Where we are and where we need to go.
+\newblock In \emph{International Symposium on automatic detection on errors in pronunciation training}, volume~1.
+
+\bibitem[{Witt and Young(2000)}]{GOP_WITT}
+Silke~M Witt and Steve~J Young. 2000.
+\newblock Phone-level pronunciation scoring and assessment for interactive language learning.
+\newblock \emph{Speech communication}, 30(2-3):95--108.
+
+\bibitem[{Wu et~al.(2021)Wu, Li, Leung, and Meng}]{wu2021transformer}
+Minglin Wu, Kun Li, Wai-Kim Leung, and Helen Meng. 2021.
+\newblock Transformer based end-to-end mispronunciation detection and diagnosis.
+\newblock In \emph{Interspeech}, pages 3954--3958.
+
+\bibitem[{Xu et~al.(2021)Xu, Kang, Cao, Lin, and Ma}]{xu2021explore}
+Xiaoshuo Xu, Yueteng Kang, Songjun Cao, Binghuai Lin, and Long Ma. 2021.
+\newblock Explore wav2vec 2.0 for mispronunciation detection.
+\newblock In \emph{Interspeech}, pages 4428--4432.
+
+\bibitem[{Yan et~al.(2023{\natexlab{a}})Yan, Wang, and Chen}]{10022472}
+Bi-Cheng Yan, Hsin-Wei Wang, and Berlin Chen. 2023{\natexlab{a}}.
+\newblock \href {https://doi.org/10.1109/SLT54892.2023.10022472} {Peppanet: Effective mispronunciation detection and diagnosis leveraging phonetic, phonological, and acoustic cues}.
+\newblock In \emph{2022 IEEE Spoken Language Technology Workshop (SLT)}, pages 1045--1051.
+
+\bibitem[{Yan et~al.(2023{\natexlab{b}})Yan, Wang, Wang, and Chen}]{10097226}
+Bi-Cheng Yan, Hsin-Wei Wang, Yi-Cheng Wang, and Berlin Chen. 2023{\natexlab{b}}.
+\newblock \href {https://doi.org/10.1109/ICASSP49357.2023.10097226} {Effective graph-based modeling of articulation traits for mispronunciation detection and diagnosis}.
+\newblock In \emph{ICASSP 2023 - 2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 1--5.
+
+\bibitem[{Yang et~al.(2022)Yang, Hirschi, Looney, Kang, and Hansen}]{yang2022improving}
+Mu~Yang, Kevin Hirschi, Stephen~D Looney, Okim Kang, and John~HL Hansen. 2022.
+\newblock Improving mispronunciation detection with wav2vec2-based momentum pseudo-labeling for accentedness and intelligibility assessment.
+\newblock \emph{arXiv preprint arXiv:2203.15937}.
+
+\bibitem[{Yarra et~al.(2019)Yarra, Srinivasan, Srinivasa, Aggarwal, and Ghosh}]{voistutor}
+Chiranjeevi Yarra, Aparna Srinivasan, Chandana Srinivasa, Ritu Aggarwal, and Prasanta~Kumar Ghosh. 2019.
+\newblock voistutor corpus: A speech corpus of indian l2 english learners for pronunciation assessment.
+\newblock In \emph{2019 22nd Conference of the Oriental COCOSDA International Committee for the Co-ordination and Standardisation of Speech Databases and Assessment Techniques (O-COCOSDA)}, pages 1--6. IEEE.
+
+\bibitem[{Ye et~al.(2022)Ye, Mao, Soong, Wu, Xia, Tien, and Wu}]{9746604}
+Wenxuan Ye, Shaoguang Mao, Frank Soong, Wenshan Wu, Yan Xia, Jonathan Tien, and Zhiyong Wu. 2022.
+\newblock \href {https://doi.org/10.1109/ICASSP43922.2022.9746604} {An approach to mispronunciation detection and diagnosis with acoustic, phonetic and linguistic (apl) embeddings}.
+\newblock In \emph{ICASSP 2022 - 2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 6827--6831.
+
+\bibitem[{Yu et~al.(2015)Yu, Ramanarayanan, Suendermann-Oeft, Wang, Zechner, Chen, Tao, Ivanou, and Qian}]{7404814}
+Zhou Yu, Vikram Ramanarayanan, David Suendermann-Oeft, Xinhao Wang, Klaus Zechner, Lei Chen, Jidong Tao, Aliaksei Ivanou, and Yao Qian. 2015.
+\newblock \href {https://doi.org/10.1109/ASRU.2015.7404814} {Using bidirectional lstm recurrent neural networks to learn high-level abstractions of sequential features for automated scoring of non-native spontaneous speech}.
+\newblock In \emph{2015 IEEE Workshop on Automatic Speech Recognition and Understanding (ASRU)}, pages 338--345.
+
+\bibitem[{Zhang et~al.(2022{\natexlab{a}})Zhang, Ganesan, Campbell, and Korzekwa}]{zhang2022l2}
+Daniel Zhang, Ashwinkumar Ganesan, Sarah Campbell, and Daniel Korzekwa. 2022{\natexlab{a}}.
+\newblock L2-gen: A neural phoneme paraphrasing approach to l2 speech synthesis for mispronunciation diagnosis.
+
+\bibitem[{Zhang et~al.(2023)Zhang, Saha, and Campbell}]{zhang2023phonetic}
+Daniel~Yue Zhang, Soumya Saha, and Sarah Campbell. 2023.
+\newblock Phonetic rnn-transducer for mispronunciation diagnosis.
+\newblock In \emph{ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 1--5. IEEE.
+
+\bibitem[{Zhang et~al.(2008)Zhang, Huang, Soong, Chu, and Wang}]{normalized}
+Feng Zhang, Chao Huang, Frank~K Soong, Min Chu, and Renhua Wang. 2008.
+\newblock Automatic mispronunciation detection for mandarin.
+\newblock In \emph{2008 IEEE International Conference on Acoustics, Speech and Signal Processing}, pages 5077--5080. IEEE.
+
+\bibitem[{Zhang et~al.(2021{\natexlab{a}})Zhang, Shi, and Chen}]{zhang2021multilingual}
+Huayun Zhang, Ke~Shi, and Nancy~F Chen. 2021{\natexlab{a}}.
+\newblock Multilingual speech evaluation: case studies on english, malay and tamil.
+\newblock \emph{arXiv preprint arXiv:2107.03675}.
+
+\bibitem[{Zhang et~al.(2021{\natexlab{b}})Zhang, Zhang, Wang, Yan, Song, Huang, Li, Povey, and Wang}]{speechocean762}
+Junbo Zhang, Zhiwen Zhang, Yongqing Wang, Zhiyong Yan, Qiong Song, Yukai Huang, Ke~Li, Daniel Povey, and Yujun Wang. 2021{\natexlab{b}}.
+\newblock speechocean762: An open-source non-native english speech corpus for pronunciation assessment.
+\newblock \emph{arXiv preprint arXiv:2104.01378}.
+
+\bibitem[{Zhang et~al.(2021{\natexlab{c}})Zhang, Zhang, Wang, Yan, Song, Huang, Li, Povey, and Wang}]{zhang2021speechocean762}
+Junbo Zhang, Zhiwen Zhang, Yongqing Wang, Zhiyong Yan, Qiong Song, Yukai Huang, Ke~Li, Daniel Povey, and Yujun Wang. 2021{\natexlab{c}}.
+\newblock speechocean762: An open-source non-native english speech corpus for pronunciation assessment.
+\newblock \emph{arXiv preprint arXiv:2104.01378}.
+
+\bibitem[{Zhang et~al.(2020)Zhang, Zhao, Ma, Shan, Sun, Jiang, Deng, and Gao}]{zhang2020end}
+Long Zhang, Ziping Zhao, Chunmei Ma, Linlin Shan, Huazhi Sun, Lifen Jiang, Shiwen Deng, and Chang Gao. 2020.
+\newblock End-to-end automatic pronunciation error detection based on improved hybrid ctc/attention architecture.
+\newblock \emph{Sensors}, 20(7):1809.
+
+\bibitem[{ZHANG(2021)}]{mqtj-qh10-21}
+XIAO ZHANG. 2021.
+\newblock \href {https://doi.org/10.21227/mqtj-qh10} {Latic: A non-native pre-labelled mandarin chinese validation corpus for automatic speech scoring and evaluation task}.
+
+\bibitem[{Zhang et~al.(2022{\natexlab{b}})Zhang, Wang, and Yang}]{ssl}
+Zhan Zhang, Yuehai Wang, and Jianyi Yang. 2022{\natexlab{b}}.
+\newblock End-to-end mispronunciation detection with simulated error distance.
+\newblock \emph{Proc. Interspeech 2022}, pages 4327--4331.
+
+\bibitem[{Zhao et~al.(2018{\natexlab{a}})Zhao, Sonsaat, Silpachai, Lucic, Chukharev-Hudilainen, Levis, and Gutierrez-Osuna}]{L2-ARCTIC}
+Guanlong Zhao, Sinem Sonsaat, Alif Silpachai, Ivana Lucic, Evgeny Chukharev-Hudilainen, John Levis, and Ricardo Gutierrez-Osuna. 2018{\natexlab{a}}.
+\newblock L2-arctic: A non-native english speech corpus.
+\newblock In \emph{Interspeech}, pages 2783--2787.
+
+\bibitem[{Zhao et~al.(2018{\natexlab{b}})Zhao, Sonsaat, Silpachai, Lucic, Chukharev-Hudilainen, Levis, and Gutierrez-Osuna}]{zhao2018l2}
+Guanlong Zhao, Sinem Sonsaat, Alif Silpachai, Ivana Lucic, Evgeny Chukharev-Hudilainen, John Levis, and Ricardo Gutierrez-Osuna. 2018{\natexlab{b}}.
+\newblock L2-arctic: A non-native english speech corpus.
+\newblock In \emph{Interspeech}, pages 2783--2787.
+
+\bibitem[{Zhu et~al.(2023)Zhu, Kunihara, Saito, Minematsu, and Nakanishi}]{10023307}
+Chuanbo Zhu, Takuya Kunihara, Daisuke Saito, Nobuaki Minematsu, and Noriko Nakanishi. 2023.
+\newblock \href {https://doi.org/10.1109/SLT54892.2023.10023307} {Automatic prediction of intelligibility of words and phonemes produced orally by japanese learners of english}.
+\newblock In \emph{2022 IEEE Spoken Language Technology Workshop (SLT)}, pages 1029--1036.
+
+\end{thebibliography}

@@ -1,0 +1,68 @@
+{
+   "stamp" : true,
+   "sources" : [
+      {
+         "usage" : "toplevel",
+         "filename" : "acl_latex.tex"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "README"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "README.md"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "acl_natbib.bst"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "anthology.bib"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "anthology.bib.txt"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "custom.bib"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "formatting.md"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "full_table.tex"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "latex/acl.sty"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "latex/acl_latex.tex"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "latex/acl_natbib.bst"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "latex/custom.bib"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "latex/full_table.tex"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "latex/lang_details.tex"
+      }
+   ],
+   "process" : {
+      "compiler" : "pdflatex"
+   }
+}

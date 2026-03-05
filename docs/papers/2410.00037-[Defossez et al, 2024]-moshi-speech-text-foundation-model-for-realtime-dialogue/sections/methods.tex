@@ -1,0 +1,311 @@
+\section{Model}
+
+\subsection{Overview}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.85\linewidth]{figures/overview_moshi_v2.png}
+    \caption{\textbf{Overview of \ours{}}. \ours{} is a speech-text foundation model which enables real-time spoken dialogue. 
+    The main components of \ours's architecture are: a bespoke text language model backbone (\helium{}, see \hyperref[sec:helium]{Section \ref{sec:helium})}; a neural audio codec with residual vector quantization and with semantic knowledge distilled from a self-supervised speech model (\mimi{}, \hyperref[sec:mimi]{Section \ref{sec:mimi}}); the streaming, hierarchical generation of semantic and acoustic tokens for both the user and \ours, along with time-aligned text tokens for \ours when using \interleaving{} (\hyperref[sec:modeling]{Section \ref{sec:modeling}}). 
+    }
+    \label{fig:moshi-overview}
+\end{figure}
+
+\ours{} is a multi-stream speech-to-speech Transformer model, which allows for full-duplex spoken dialogue with a user thanks to an innovative architecture summarized in \hyperref[fig:moshi-overview]{Figure \ref{fig:moshi-overview}}.
+\ours{} is built on top of Helium, a text LLM which we build from scratch (\hyperref[sec:helium]{Section \ref{sec:helium}}), relying on high-quality text data to provide strong reasoning abilities to the model. 
+We also propose \interleaving{} (\hyperref[sec:interleaving]{Section \ref{sec:interleaving}}), a training and inference procedure in which we jointly model text and audio tokens. This allows the model to fully exploit the knowledge imparted from the text modality, while remaining a speech-to-speech system. 
+To enable real-time dialogue, we also design \ours{} as a multi-stream architecture from the get-go (\hyperref[sec:multistream]{Section \ref{sec:multistream}}): The model is able to both speak and listen to the user at the same time, and does not need to explicitly model speaker turns. 
+In addition, to capture the input user audio and output \ours{}'s voice with high quality and in an efficient manner, we propose Mimi (\hyperref[sec:mimi]{Section \ref{sec:mimi}}), a neural audio codec combining semantic and acoustic information into a single tokenizer by using residual vector quantization and knowledge distillation.   
+To jointly model the audio streams from \ours{} and the user, as well as \ours{}'s text tokens, we rely on a Depth Transformer compatible with streaming inference (\hyperref[sec:joint_ar]{Sections \ref{sec:joint_ar}}, \ref{sec:audio_modeling}).
+
+In this section, we further detail each of these components. We then describe the training datasets and the different training phases we used to train \ours{} in \hyperref[sec:maindatasets]{Section \ref{sec:maindatasets}}. 
+Finally, in \hyperref[sec:evaluation]{Section \ref{sec:evaluation}}, we report thorough evaluation results on \ours{}'s abilities, both linguistic and acoustic, as well as ablation experiments on its main components, while \hyperref[sec:safety]{Section~\ref{sec:safety}} provides analyses on the safety of our system.
+
+\subsection{The \helium Text Language Model}
+\label{sec:helium}
+\subsubsection{Architecture}
+\helium is an autoregressive language model, based on the Transformer architecture~\citep{attentionvaswani}.
+Following previous work in this area, we make the following changes to the original architecture: 
+First, we use RMS normalization~\citep{zhang2019root} at the input of the attention blocks, the feed-forward blocks and the output linear layer of the model.
+We use rotation positional embeddings~\citep[RoPE]{su2024roformer}, a context length of 4,096 tokens and FlashAttention~\citep{dao2022flashattention} for efficient training.
+Finally, we change the architecture of the feed-forward blocks and use Gated Linear Units~\citep{shazeer2020glu}, with the SiLU activation as a gating function~\citep{hendrycks2016gaussian}.
+Our tokenizer is based on the unigram model from SentencePiece~\citep{kudo2018sentencepiece}, and contains 32,000 elements mostly targeting English.
+We split all numbers into single digits, and use byte-backoff to ensure that our tokenizer does not lose information.
+We train the model with the AdamW~\citep{loshchilov2017decoupled} optimizer, with a fixed learning rate followed by a cosine learning rate decay~\citep{loshchilov2016sgdr}.
+
+\begin{table}[t]
+  \centering
+  \caption{\label{tab:hparams}\textbf{Models' hyper-parameters}. Hyper-parameters for the architecture and training of our 7B-parameter Helium language model and of \ours, our speech-text dialogue model. 
+  The training of \ours{} goes through 4 phases: Pre-training on unsupervised data (with Temporal Transformer initialized from \helium); Post-training with simulated multi-stream based on diarization; Fine-tuning on the Fisher dataset~\citep{cieri2004fisher} to gain its fully duplex capabilities; Instruction fine-tuning on a custom dataset built from synthetic interaction scripts. During the pre-training phase, we keep training half of the time on full text batches from the same dataset as used for Helium, using a separate optimizer state.}
+  \footnotesize
+  \begin{tabular}{l|c|cccc}
+    \toprule
+      &
+    \multicolumn{1}{c|}{Helium training} &
+    \multicolumn{4}{c}{Moshi training} \\
+    Hyper-parameter & pre-training  & pre-training & post-training & fisher & fine\\
+    \midrule
+    \multicolumn{6}{c}{\textit{Temporal Transformer}} \\
+    \midrule[0.3pt]
+    Model dimension    & 4096 & \multicolumn{4}{c}{\multirow{4}{*}{same}}\\
+    MLP dimension      & 11264 \\
+    Number of heads    & 32 \\
+    Number of layers   & 32 \\
+    Context size       & 4096 & \multicolumn{4}{c}{3000 steps, e.g. 4 min.} \\
+    Learning rate      & $3 \cdot 10^{-4}$ & $3 \cdot 10^{-5}$ & $3 \cdot 10^{-6}$ &  $2 \cdot 10^{-6}$ &  $2 \cdot 10^{-6}$\\
+    \midrule
+    \multicolumn{6}{c}{\textit{Depth Transformer}} \\
+    \midrule[0.3pt]
+    Model dimension    & - & \multicolumn{4}{c}{1024}\\
+    MLP dimension      & - & \multicolumn{4}{c}{4096} \\
+    Number of heads    & - & \multicolumn{4}{c}{16}\\
+    Number of layers   & - & \multicolumn{4}{c}{6}\\
+    Learning rate      & - & $2 \cdot 10^{-4}$ & $5 \cdot 10^{-5}$ &  $4 \cdot 10^{-6}$ &    $2 \cdot 10^{-6}$\\
+    \midrule
+    \multicolumn{6}{c}{\textit{Input / Output space}} \\
+    \midrule[0.3pt]
+    Text cardinality & 32000 & \multicolumn{4}{c}{32000}\\
+    Audio cardinality & - & \multicolumn{4}{c}{2048}\\
+    Frame rate & - & \multicolumn{4}{c}{12.5 Hz} \\
+    \midrule
+    \multicolumn{6}{c}{\textit{Common parameters}} \\
+    \midrule[0.3pt]
+    Batch size (text)    & 4.2M tok. & 1.2M tok. & 1.2M tok. &  - & - \\
+    Batch size (audio)   & - & 16h & 8h & 40min & 2.7h\\
+    Training steps       & 500k & 1M & 100k & 10k & 30k \\
+    LR Schedule          & cosine & cosine & - & - & -\\
+    Acoustic delay       & - & 2 & 1 & 1 & 1 \\
+    Text delay           & - & $\pm$0.6 & 0 & 0 & 0 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsubsection{Pre-training data filtering}
+\label{sec:data_filtering}
+Training data is one of the critical ingredients to train LLMs: we now describe our method to obtain a large and high-quality text dataset.
+We start from high-quality data sources, such as Wikipedia, Stack Exchange and a large collection of scientific articles.
+As the quantity of data from these sources is too small to train a LLM, we also rely on web crawled data, specifically from CommonCrawl, to extend our dataset. See more details on data sources in \hyperref[sec:text_dataset]{Section \ref{sec:text_dataset}}. 
+Web data requires extensive processing to obtain a high-quality training set: we perform deduplication, language identification and quality filtering.
+In the following, we describe each operation in more details.
+
+\paragraph{Deduplication.}
+We start from the WET files, which contain only the text content of web-pages, which was extracted by the CommonCrawl project.
+Because this format contains all the text of a page, it includes a lot of boilerplate such as navigation menus.
+Thus, the first step of our pipeline is to deduplicate each shard (there is 100 shards per crawl) at the \emph{line level}, to remove this boilerplate.
+To do so, we compute the \texttt{FNV-1a}\footnote{\url{http://www.isthe.com/chongo/tech/comp/fnv}} hash of each line, and use a bloom filter to remove duplicates.
+We also train a \texttt{fastText}~\citep{joulin2016bag} classifier on duplicates \emph{vs.} non-duplicates, to perform fuzzy deduplication:
+here we only remove blocks of at least 3 consecutive lines that are classified as duplicates.
+
+\paragraph{Language identification.}
+Once deduplication is performed, we apply a language identifier based on \texttt{fastText} to keep English data only.
+Language identification is performed at the document level, and we only keep documents above a certain threshold (0.85).
+
+\paragraph{Quality filtering.}
+\looseness=-1
+The last step is to filter the remaining data, to keep high-quality webpages only.
+To perform this step, we train a \texttt{fastText} classifier on lines from our high quality data sources and from random CommonCrawl webpages.
+We obtain a classifier with 9 categories, corresponding to our different high quality sources such as Wikipedia or Wikibooks and to subsets of StackExchange such as STEM or humanities.
+The motivation is to obtain a finer control over which documents to keep, not only based on similarity to high quality sources, but also based on their domains.
+This classifier is applied at the \emph{line level}, and an aggregated score is obtained by computing the average scores of each line, weighted by their length.
+Again, we keep documents corresponding to scores above a certain threshold.
+
+
+
+\subsection{Audio Tokenization}
+\label{sec:mimi}
+
+\looseness=-1
+To discretize waveforms into audio tokens, we introduce Mimi, a neural audio codec~\citep{soundstream,encodec} that operates as an autoencoder with a discrete bottleneck~\citep{vqvae}. In the literature, and following the terminology defined by~\citet{audiolm}, these tokens are referred to as \textit{acoustic} tokens, as they model fine audio details and are optimized for high-quality reconstruction. While these acoustic tokens provide appropriate targets for conditioned text-to-audio models (e.g. text-to-speech~\citep{valle} or text-to-music~\citep{musicgen}), unconditioned speech generation requires combining them with \textit{semantic} tokens extracted from self-supervised speech models~\citep{wav2vec2,hubert,w2vbert}. Unlike their acoustic counterpart, semantic tokens do not allow for reconstructing high-quality audio but correlate strongly with linguistic content. This similarity with language allows generating intelligible and consistent speech, even without text conditioning, by using semantic audio tokens as a prefix to predicting acoustic tokens. Yet, this hybrid tokenization approach is not compatible with real-time generation. Semantic tokens are typically not causal and can thus only be computed in an offline manner. Moreover, generating acoustic and semantic tokens with separate encoders represents a non-negligible computational burden. Consequently, and taking inspiration from previous work on SpeechTokenizer~\citep{zhang2024speechtokenizer}, Mimi uses distillation to transfer non-causal, high-level semantic information into the tokens produced by a causal model, allowing for streaming encoding and decoding of semantic-acoustic tokens.  
+\begin{figure}[t]
+    \centering
+        \includegraphics[width=\textwidth]{figures/mimi_arch_training.png}
+    \caption{\textbf{Architecture and training of \mimi{}, our neural audio codec, with its split residual vector quantization}. %
+    During training (blue part, top), we distill non-causal embeddings from WavLM~\citep{wavlm} into a single vector quantizer which produces semantic tokens, and is combined with separate acoustic tokens for reconstruction.
+    }\label{fig:split_quantizer}
+\end{figure}
+
+
+\subsubsection{Architecture}
+Our baseline architecture takes inspiration from SoundStream~\citep{soundstream} and Encodec~\citep{encodec} and consists of a SeaNet~\citep{tagliasacchi2020seanet} autoencoder and a Residual Vector Quantizer~\citep{soundstream}. The encoder projects a single-channel waveform $\waveform \in \mathbb{R}^{\numsamples}$ to a latent representation $\mathrm{enc}(x) \in \mathbb{R}^{\numtokens\times\dims}$ by cascading residual convolutional blocks that interleave dilated~\citep{oord2016wavenet} and strided convolutions along with ELU~\citep{elu} non-linearities and Weight Normalization~\citep{weightnorm}. All convolutions are causal, such that this autoencoder can run in a streaming fashion. With 4 convolutional blocks and respective striding factors $(4, 5, 6, 8)$, and a final 1D convolution with stride 2, \mimi's encoder projects a 24kHz waveform to a latent representation of $12.5$ frames per second and dimension $D = 512$. Symmetrically, the decoder adopts a similar structure but with transposed convolutions rather than strided ones, to project the latent representation back to 24kHz audio. We discretize the latent space with a Residual Vector Quantizer~\citep{soundstream}, which iteratively applies vector quantization (VQ) to the residuals of the previous quantizer. With \numquantizers{} quantizers, each with a codebook of \cardaudio{} centroids, the RVQ discretizes the latent space into $\{1,\dots,\cardaudio\}^{\numtokens\times\numquantizers}$. As a baseline, we train this model with a combination of reconstruction and adversarial losses, following the setup of Encodec~\citep{encodec}. We detail below the main changes of \mimi with respect to this default configuration. %
+\paragraph{Transformer-based bottleneck.}
+\looseness=-1
+To improve the ability of \mimi to encode speech into compact representations while reconstructing high-quality audio, we add Transformer modules in the bottleneck, one right before quantization and one after. These Transformers have 8 layers, 8 heads, RoPE position encodings, a finite context of 250 frames (20 seconds), GELU~\citep{gelu} activations, a model dimension of 512 and an MLP dimension of 2048. To stabilize training, we use LayerScale~\citep{layerscale}, with initialization of the diagonal values at $0.01$. Both Transformers use causal masking, which preserves the compatibility of the whole architecture with streaming inference. Both Transformers prove to be useful with regard to perceived audio quality, while Transformer in the encoder also improves the distillation of semantic information described below (see \hyperref[tab:mimi_ablations]{Table~\ref{tab:mimi_ablations}} for ablation studies).
+
+\looseness=-1
+\paragraph{Causality and streaming.} With the mentioned hyper-parameters, Mimi is causal and can be used in a streaming fashion, both for encoding and decoding. Both its initial frame size and overall stride correspond to 80ms, meaning that given a first audio frame of 80ms, Mimi outputs a first latent timestep, which can be decoded to 80ms of output audio.
+
+\paragraph{Optimization.}
+\looseness=-1
+Unlike purely convolutional codecs that use Adam~\citep{adam}, the introduction of Transformers into the architecture requires additional regularization with weight decay along with using the AdamW~\citep{adamw} optimizer. More precisely, we apply weight decay only to the parameters of the Transformers, with a weight of $5\cdot 10^{-2}$. We use a learning rate of $8\cdot 10^{-4}$, a momentum decay of $0.5$ and a decay of the squared gradient of $0.9$, and an exponential moving average of weights with a decay of $0.99$. We train with a batch size of $128$ on random windows of $\SI{12}{\second}$, for 4M steps, while the context of Transformers is limited to 10s (250 frames before the last downsampling layer of the encoder, and symmetrically for the decoder).
+
+\paragraph{Quantization rate.}
+\looseness=-1
+We use $\numquantizers= 8$ quantizers, each with a codebook size of $\cardaudio = 2048$. At 12.5Hz, this represents a bitrate of 1.1kbps. While the latent dimension is 512, we project embeddings to 256 dimensions before applying the RVQ, and project back to 512 before the decoder. Consistently with previous work, we use quantizer dropout~\citep{soundstream} to provide the codec with bitrate scalability. We moreover follow the observation of ~\citet{dac} that not applying quantization with a certain probability during training improves audio quality. More precisely, we only apply quantization $50\%$ of the time, on a per-sequence basis, during training. Unlike ~\citet{dac}, this means passing unquantized embeddings to the decoder, rather than passing embeddings quantized with all quantizers. \hyperref[tab:mimi_ablations]{Table~\ref{tab:mimi_ablations}} shows that this significantly improves objective quality metrics, while human evaluations are not conclusive. Across our experiments, we make the somehow counter-intuitive observation that this gain gets more significant as we lower the bitrate.
+
+\paragraph{Adversarial-only training.}
+\looseness=-1
+As a baseline, we train Mimi with the same combination of reconstruction and adversarial losses as ~\citet{encodec}, namely a multi-scale mel-spectrogram reconstruction loss along with a multi-scale STFT discriminator. The exact parameters can be found in the Audiocraft repository.\footnote{\url{https://github.com/facebookresearch/audiocraft/blob/main/config/solver/compression/default.yaml}} While previous neural codecs rely on such combinations of reconstruction and adversarial losses, we experiment with pure adversarial training, where we only keep the feature loss and discriminator loss. We note that this was previously experimented in the context of bandwidth extension by~\citet{tagliasacchi2020seanet} and ~\citet{hauret2023eben}. While removing reconstruction losses majorly degrades objective metrics, we observed during development that the resulting audio sounded much better than expected based on aforementioned metrics. Subjective evaluations reported in \hyperref[tab:mimi_baselines]{Table~\ref{tab:mimi_baselines}} confirm this observation and demonstrate a remarkable boost in audio quality from training with adversarial losses only.
+
+\subsubsection{Learning semantic-acoustic tokens with a split RVQ}
+\label{sec:splitrvq}
+\looseness=-1
+Similarly to SpeechTokenizer~\citep{zhang2024speechtokenizer}, we distill semantic information from a self-supervised model (WavLM\footnote{\url{https://huggingface.co/microsoft/wavlm-large}}~\citep{wavlm} in our case) into the first level of the RVQ. WavLM projects a 16kHz waveform into 1024-dimensional embeddings sampled at 50Hz, while \mimi projects a 24kHz waveform into 512-dimensional at 12.5Hz. During training, we thus produce targets for distillation by downsampling the input waveform to 16kHz before computing WavLM embeddings followed by average pooling with a stride of 4 and a kernel size of 8, to reach 12.5 Hz. Interestingly, we observed that it was critical for performance to perform this average pooling in a non-causal way, which is compatible with streaming inference as these embeddings are only used during training. We apply a linear projection with an output dimension of 1024 to the output of the first RVQ level, parallel to the actual embedding going into the decoder. We then compute a cosine distance between the output of the first quantizer and the transformed WavLM embeddings, to perform distillation. \hyperref[tab:mimi_ablations]{Table~\ref{tab:mimi_ablations}} shows that this distillation loss conflicts with reconstruction and adversarial losses targeting quality. Indeed, while distillation significantly improves the phonetic discriminability of the first quantizer (as measured by ABX~\citep{abx}), it also affects audio quality negatively. We hypothesize that this is due to distilling semantic information into the first level of a single RVQ: As higher-order quantizers operate on the residual of the first one, the latter needs to trade audio quality for phonetic discriminability. We address this issue by proposing a split RVQ. Rather than a single RVQ with 8 levels, we distill semantic information into a plain VQ and apply an RVQ with 7 levels in parallel. We sum their outputs, such that while both can be used for reconstruction, we remove the constraint that acoustic information should be conserved in the residual of the semantic quantizer. \hyperref[fig:split_quantizer]{Figure~\ref{fig:split_quantizer}} illustrates this architecture and \hyperref[tab:mimi_ablations]{Table~\ref{tab:mimi_ablations}} shows that this solution provides a better semantic-acoustic trade-off overall.
+
+
+\subsection{Generative Audio Modeling}
+\label{sec:modeling}
+\looseness=-1
+We now describe how we extend the base Helium model to support the modeling
+of the audio tokens provided by the \mimi{} codec. With our goal of achieving realistic
+spoken dialogue interactions, we further show how to model not just a single stream of audio,
+but two at the same time, one representing the user, and one the system.
+Finally, we detail a novel feature, the \emph{\interleaving}, which consists in a joint
+modeling of the textual and audio modalities on the system side, to improve the quality of interactions.
+
+
+\subsubsection{Hierarchical autoregressive modeling with RQ-Transformer}
+\label{sec:joint_ar}
+
+Let $U \in \{1, \ldots, N\}^S$ be a discrete random sequence, with cardinality $N$ and a sequence length $S$. For convenience, we also denote $U_0 = 0$, a deterministic initial token value.
+Autoregressive modeling consists in estimating the joint distribution $\proba{U_1, \ldots, U_S}$
+through estimating the conditional distributions $\proba{U_s | U_0, \ldots U_{s - 1}}$ for all steps $1 \leq s \leq S$. Text language models, such as GPT~\citep{gpt2} or Helium, fit this paradigm.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/rq_former_landscape.png}
+    \caption{\textbf{Architecture of the RQ-Transformer.} The RQ-Transformer breaks down a flattened sequence of length $K\cdot S$ into $S$ timesteps for a large Temporal Transformer which produces a context embedding used to condition a smaller Depth Transformer over $K$ steps. This allows scaling to longer sequences by increasing $S$---or to a higher depth by increasing $K$--- than modeling the flattened sequence with a single model. In this figure, we use $K=4$ for the sake of illustration.
+    }\label{fig:rqtransformer}
+\end{figure}
+
+When modeling spoken language, relying on the tokenized text yields a much more compact representation than audio tokens:
+Using the \mimi{} codec introduced in \hyperref[sec:mimi]{Section~\ref{sec:mimi}}, with $Q=8$ codebooks at a frame rate of 12.5hz, one would require a sequence length of $100$ steps per second of audio to generate. To model 5 minutes of audio, this would amount to 30,000 timesteps, which represents a significant computational cost and generating 100 tokens per second is incompatible with streaming inference. As a comparison, a sample of English speech can be represented with around 3 to 4 text tokens per second.
+
+\looseness=-1
+We are interested in modeling not just a single sequence $(U_s)$, but multiple sub-sequences, e.g. different audio codebooks, along with an optional text stream. We can stack those sub-sequences as $V_{s, k}$ for $1 \leq s \leq S$ and $1 \leq k \leq K$.
+Similarly, we define $V_{0, k} = 0$, a deterministic initial token value for all sub-sequences.
+For each $1 \leq s\leq S$ and $1 \leq k\leq K$, $V_{s, k} \in \{1, \ldots, N_k\}$, where $N_k$ is the cardinality of the $k$-th sub-sequence. One can \emph{flatten} the $K$ sequences into a single one, increasing the number of predictions by $K$.
+\citet{rqtransformer} propose using a smaller autoregressive model along the dimension $K$, combined with a larger model along the time dimension, forming a RQ-Transformer. Later, \citet{yu2024megabyte} suggested a similar approach for byte-level modeling while \citet{uniaudio} and \citet{zhu2024generativepretrainedspeechlanguage} applied it to audio token modeling.
+
+\paragraph{RQ-Transformer.}
+
+Formally, the RQ-Transformer consists in two Transformer models, as illustrated in \hyperref[fig:rqtransformer]{Figure~\ref{fig:rqtransformer}}. It consists of a \emph{Temporal} Transformer, e.g. with the same architecture as the one described for Helium in \hyperref[sec:helium]{Section~\ref{sec:helium}},
+and a smaller \emph{Depth} Transformer.
+We denote $\mathrm{Tr}_{\mathrm{Temp}}$ the function represented by the Temporal Transformer, and $\mathrm{Tr}_{\mathrm{Depth}}$ the one for the Depth Transformer. 
+For simplicity, and for all steps $s\leq S$, we denote $V_{s} = (V_{s,1}, \ldots, V_{s, K})$ the joint value of all sub-sequences at step $s$.
+For a given sequence step $1 \leq s \leq S$,
+the Temporal Transformer maps $(V_0, \ldots, V_{s - 1})$ to a \emph{temporal context} vector \begin{equation}
+z_s = \mathrm{Tr}_{\mathrm{Temp}}(V_0, \ldots, V_{s - 1}) \in \mathbb{R}^d.
+\end{equation}
+If we further take a sub-sequence index $1 < k \leq K$, the Depth Transformer maps both $z_s$ along with $(V_{s, 1}, \ldots, V_{s, k - 1})$ to the logits estimate 
+\begin{equation}
+\label{eq:logits}
+    l_{s, k} = \mathrm{Tr}_{\mathrm{Depth}}(z_s, V_{s, 1}, \ldots, V_{s, k - 1}) \in \mathbb{R}^{N_k}.
+\end{equation}
+We further define $l_{s, 1} = \mathrm{Lin}(z_s) \in \mathbb{R}^{N_1}$, with $\mathrm{Lin}$ a dedicated linear layer. We train $\mathrm{Tr}_{\mathrm{Temp}}$, $\mathrm{Tr}_{\mathrm{Depth}}$ and $\mathrm{Lin}$ so that 
+$\softmax(l_{s, k})$ is a good approximation of the distribution of $V_{s, k}$ conditioned on all sub-sequences for the previous steps, and of the previous sub-sequences for the current step, e.g.
+\begin{equation}
+\begin{cases}
+    \softmax(l_{s, 1}) &\approx \proba{V_{s, 1} | V_{0}, \ldots, V_{s-1}}\\
+    \softmax(l_{s, k}) &\approx \proba{V_{s, k} | V_{0}, \ldots, V_{s-1}, V_{s, 1}, \ldots V_{s, k - 1}} \quad \text{if $k > 1$}.
+\end{cases}
+\end{equation}
+Importantly, the number of steps in the Temporal Transformer is always equal to $\numtokens$, rather than $K \cdot \numtokens$, and the number of steps in the Depth Transformer is at most $K$.
+In practice, the Temporal Transformer receives at each step $s$ as input the sum of $K$ learnt embedding tables representing the value for the last $V_{s - 1}$. 
+Given $1 < k \leq K$,  the Depth Transformer receives as input the sum of $z_s$ and of a learnt embedding representing $V_{s, k - 1}$.
+
+\looseness=-1
+As detailed in \hyperref[tab:hparams]{Table \ref{tab:hparams}}, our Depth Transformer has 6 layers, a dimension of 1024, and 16 attention heads. Unlike \citet{rqtransformer,uniaudio,zhu2024generativepretrainedspeechlanguage}, we use different parameters per index $k$ for the linear layers, projection and fully connected, in the Depth Transformer. Indeed, different sub-sequences might require different transformations. Given the smaller size of this Transformer, this has no impact on both training and inference time, while \hyperref[tab:ablation-delays]{Table~\ref{tab:ablation-delays}} shows that this depthwise parametrization is beneficial. 
+
+\subsubsection{Audio modeling}
+\label{sec:audio_modeling}
+
+\looseness=-1
+The audio codec \mimi{} described in \hyperref[sec:mimi]{Section~\ref{sec:mimi}} outputs $Q$ sub-sequences, with 12.5 steps per second of audio. We denote those sequences by $A_{t, q} \in \{1, \ldots, N_A\}$ for $1 \leq t \leq T$ with $T = 12.5 \cdot \mathrm{duration}$, and $1 \leq q \leq Q$ with $Q=8$. 
+We insert the audio sub-sequences into the multi-sequence $V$ modeled by the RQ-Transformer. Remember that the first codebook $A_{t, 1}$ corresponds to the semantic information, as detailed in \hyperref[sec:splitrvq]{Section~\ref{sec:splitrvq}}, while the other codebooks correspond to acoustic features. 
+
+\paragraph{Acoustic delay.}
+
+\looseness=-1
+We first experimented with simply setting $V = A$ in the modeling. However we find that introducing a slight delay between the semantic and acoustic tokens led to more stable generations. \citet{musicgen} show that this leads to reduced dependencies between the sub-sequences for a given time step, conditioned on the past, thus allowing to use a weaker model to approximate the joint distribution $\proba{V_{s, k} | V_{0}, \ldots, V_{s-1}}$ (in their case, as the product of the conditioned marginals). \citet{lemercier2024mmd} further show a connection between the mutual information between the sub-sequences at a given step, and the quality of the generation: naturally, the more complex the interdependence, the more powerful a model will be needed to estimate them. 
+
+As shown in \hyperref[sec:moshi_ablations]{Section~\ref{sec:moshi_ablations}}, introducing a delay of 1 or 2 steps between the semantic and acoustic features greatly improves the quality of the generation. This allows the Temporal, larger, Transformer to model the inter-dependence between semantic and acoustic features. Formally, given a delay $\tau \in \mathbb{N}$, we have, for all steps $s$
+\begin{equation}
+\begin{cases}
+    \label{eq:v_a_delay}
+    V_{s, 1} = A_{s, 1}& \\
+    V_{s, q} = A_{s - \tau, q} &\quad \text{if}\quad s \geq \tau + 1, q > 1\\
+    V_{s, q} = 0&\quad \text{if}\quad s < \tau + 1, q > 1.\\
+\end{cases}
+\end{equation}
+Note that using RQ-Transformers to model audio was successfully used by~\citet{uniaudio} and \citet{zhu2024generativepretrainedspeechlanguage}. We introduce here the use of per-codebook parameters in the Depth Transformer, and the use of the acoustic delay. Compared with~\citep{zhu2024generativepretrainedspeechlanguage} which first generates all the semantic tokens, we generate them jointly with the acoustic tokens, which allows for the first time a streaming modeling of semantic and acoustic tokens jointly.
+
+\subsubsection{Multi-stream modeling}
+\label{sec:multistream}
+\looseness=-1
+Modeling a single stream of audio is not sufficient to fully model a conversation. Our framework can be extended to modeling a two-speaker conversation: given two streams of audios $(A_{t, q})$ and $(A'_{t, q})$, we simply apply the acoustic delay to both, and concatenate them into $V$, extending \autoref{eq:v_a_delay}. In practice, $A$ will correspond to \ours, while $A'$ models the user.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.95\textwidth]{figures/rainbow.pdf}
+\caption{\textbf{Representation of the joint sequence modeled by Moshi}.
+ Each column represents the tokens for a given step in the joint sequence $(V_{s, k})$ described in~\autoref{eq:final_multi_sequence} with an acoustic delay $\tau=1$, e.g. the input of the Temporal Transformer for this step.
+ Tokens are predicted from bottom to top in the Depth Transformer. At inference time,
+ tokens under the dashed line (corresponding to Moshi) are sampled, while those above are fed from the user. This design allows for our model to handle overlapping speech turns.}
+\label{fig:rainbow}
+\end{figure}
+
+\subsubsection{\interleaving}
+\label{sec:interleaving}
+
+While operating purely in the audio domain already yields convincing results (see \hyperref[tab:textless]{Table~\ref{tab:textless}}), we observe
+that having Moshi also model the textual representation of its own speech is providing a 
+scaffolding that increases the linguistic quality of its generation. Formally, we define a text stream $W \in \{1, \ldots, N_W\}^T$ derived from the sequence of text tokens obtained by applying the SentencePiece tokenizer~\citep{kudo2018sentencepiece} to the transcription of the audio corresponding to Moshi with Whisper~\citep{whisper}, as described after. We insert $W$ as the first sub-sequence in $V$, such that it acts as a prefix to the generation of semantic tokens. This can be seen as an extension of the hierarchical semantic-to-acoustic generation introduced by~\citet{audiolm}. Note that we do not use the textual representation corresponding to the stream of the user, as transcribing this flux in real time would be challenging, and relying on an external ASR system contradicts our end-to-end speech-to-speech approach. Ablation studies in \hyperref[sec:moshi_ablations]{Section~\ref{sec:moshi_ablations}} show that among the design choices made for \ours{}, \interleaving{} has one of the most critical impacts on the quality of generated speech.
+
+\paragraph{Aligning text and audio tokens.}
+
+To integrate text tokens with audio tokens that operate at a constant framerate of 12.5Hz, we need to align them to this framerate. For that, we leverage the word-level timestamp provided by Whisper. 
+The $i$-th word in the transcript is mapped to $n_i \in \mathbb{N}^*$ text tokens $w_{i, j}$, $j \leq n_i$, along with a start index $t_i \in \{1, \ldots T\}$, simply defined
+as its start timestamp divided by the framerate of 12.5 Hz.
+We define two special tokens: \texttt{PAD} and \texttt{EPAD}, that
+never appear in any of the word tokens. We build $W$ such that when a word starts,
+$(W_t)$ contains its text tokens, followed by \texttt{PAD} until the next word. \texttt{EPAD} is inserted before the next word to indicate the end of the padding. While
+not strictly necessary, we observed this provided a useful guidance to the model by splitting the decision of ending a word, and which one should follow, into two steps.
+
+
+First, the sequence $(W_t)$ is initialized with \texttt{PAD} tokens, e.g. $\forall t, W_t \leftarrow \text{\texttt{PAD}}$. Then, we modify it iteratively as follows. For each word $i$ and its start index $t_i$, we update $W$ as
+\begin{equation}
+\left\{\begin{array}{ll}
+    W_{t_i - 1} &\leftarrow \text{\texttt{EPAD}} \\
+    W_{t_i + j} &\leftarrow w_{i, j} \qquad \forall j \leq n_i.
+\end{array}\right.
+\end{equation}
+\looseness=-1
+Note that if $t_i = 1$, we instead insert \texttt{EPAD} at index 1, and shift the text tokens. We do not insert an \texttt{EPAD} token if it would overwrite a text token from a previous word. As text tokens are more compact than the corresponding audio tokens, there is 
+usually no overlap between words in $W_t$. In English conversational speech, we observe that padding tokens represent about 65\% of the tokens.
+
+\paragraph{Deriving streaming ASR and TTS.}
+
+One can further introduce some delay between the text sequence $(W_t)$, and the audio tokens $(A_{t, q})$. This controls in which modality the language model will take the decision about the content of the generated audio. By setting the audio ahead of the text, 
+the content of the text will be dictated by what audio has been sampled in the previous steps. In particular, by sampling only the text tokens, while using the ground truth audio tokens and discarding the prediction of the model for them, one obtain a streaming Automatic Speech Recognition model, which also provides precise word level alignment. On the other hand, by changing the text delay so that the text is ahead of the audio tokens, the content of the audio is dictated by the text content. Once more, given a sequence of properly padded text tokens, one obtain a streaming Text-To-Speech model. We further describe in \hyperref[app:streaming_tts]{Appendix~\ref{app:streaming_tts}} how one can adapt the inference of a language model with delayed text to obtain a zero-shot properly padded text tokens sequence. 
+Experiments in \hyperref[sec:streaming_asr_tts]{Section~\ref{sec:streaming_asr_tts}} show how a single delay hyper-parameter allows for switching from an ASR to a TTS model with no changes in the loss, architecture, or training data.
+
+\paragraph{Joint sequence modeling for Moshi.}
+
+Putting together the multi-stream and inner monologue, we have the final set $V$ of sequences to model defined as
+\begin{equation}
+\label{eq:final_multi_sequence}
+    \left\{\begin{array}{lll}
+    V_{s, 1} &= W_{s} \quad &\text{aligned text tokens.} \\
+    V_{s, 2} &= A_{s, 1} \quad &\text{semantic tokens of Moshi.}\\
+    V_{s, 1 + q} &= A_{s - \tau, q} \quad \text{if}\quad s \geq \tau + 1, 1 < q \leq Q \quad &\text{delayed acoustic tok. of Moshi.}\\
+    V_{s, 1 + Q + 1} &= A'_{s, 1} \quad &\text{semantic tokens of \emph{other}.}\\
+    V_{s, 1 + Q + q} &= A'_{s - \tau, q} \quad \text{if}\quad s \geq \tau + 1, 1 < q \leq Q\quad &\text{delayed acoustic tok. of \emph{other},}\\
+    \end{array}\right.
+\end{equation}
+amounting to a total number of $K=2Q+1$ streams, with $Q=8$ in the experiments. 
+A summary is provided in \hyperref[fig:rainbow]{Figure~\ref{fig:rainbow}}.
+
+\paragraph{Inference of Moshi.}
+\looseness=-1
+The joint sequence given by \autoref{eq:final_multi_sequence} is the target for our modeling task at train time: At any time step $s$, the model is input with $0, V_1, \ldots, V_{s - 1}$ and output an estimated probability distribution $\hat{V}_{s}(0, V_1, \ldots, V_{s - 1})$.
+At inference time, we sample from $\hat{V}_{s, k}$ for all the sub-sequence indexes that corresponds to outputs of Moshi: i.e., for $k=1$ for the text tokens corresponding to Moshi's speech, and for $k \in \{2, \ldots, 2 + Q\}$ for Moshi's audio tokens. In an application setting, prediction for the audio coming from the user ($k > 2 + Q)$ is actually ignored, as the actual user audio is used instead. However, modeling the user stream as output allows generating simulated dialogues, which is necessary for offline evaluation as in \hyperref[sec:eval_dialogues]{Section~\ref{sec:eval_dialogues}}. Interestingly, there is no explicit boundaries for the change of turns between the user and Moshi: Moshi can speak and listen at all time, and do both at once if needed. In particular, when the user speaks and Moshi stays silent, the corresponding audio tokens for Moshi's stream decode into ``natural silence", a near silent waveform, instead of having a fixed, well defined value; At the same time, \ours{}'s text stream will be filled with \texttt{PAD} tokens. As a result, the text stream can provide interesting ways of controlling Moshi, for instance, forcing the sampling of a \texttt{EPAD} token will make Moshi start talking immediately.

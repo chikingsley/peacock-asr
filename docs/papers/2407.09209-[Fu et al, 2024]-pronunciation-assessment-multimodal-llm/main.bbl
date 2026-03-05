@@ -1,0 +1,172 @@
+\begin{thebibliography}{10}
+
+\bibitem{ex0}
+Alex Housen and Folkert Kuiken,
+\newblock ``Complexity, accuracy, and fluency in second language acquisition,''
+\newblock {\em Applied linguistics}, vol. 30, no. 4, pp. 461--473, 2009.
+
+\bibitem{chen2016computer}
+Nancy~F Chen and Haizhou Li,
+\newblock ``{Computer-assisted pronunciation training: From pronunciation scoring towards spoken language learning},''
+\newblock in {\em 2016 Asia-Pacific Signal and Information Processing Association Annual Summit and Conference (APSIPA)}. IEEE, 2016, pp. 1--7.
+
+\bibitem{fouz2015trends}
+Jon{\'a}s Fouz-Gonz{\'a}lez,
+\newblock ``{Trends and directions in computer-assisted pronunciation training},''
+\newblock {\em Investigating English pronunciation: Trends and directions}, pp. 314--342, 2015.
+
+\bibitem{multipa}
+Yu-Wen Chen et~al.,
+\newblock ``Multipa: a multi-task speech pronunciation assessment system for a closed and open response scenario,''
+\newblock {\em arXiv preprint arXiv:2308.12490}, 2024.
+
+\bibitem{gopt}
+Yuan Gong et~al.,
+\newblock ``{Transformer-based multi-aspect multi-granularity non-native English speaker pronunciation assessment},''
+\newblock in {\em ICASSP 2022-2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}. IEEE, 2022, pp. 7262--7266.
+
+\bibitem{3m}
+Fu-An Chao et~al.,
+\newblock ``{3M: An Effective Multi-view, Multi-granularity, and Multi-aspect Modeling Approach to English Pronunciation Assessment},''
+\newblock in {\em 2022 Asia-Pacific Signal and Information Processing Association Annual Summit and Conference (APSIPA ASC)}. IEEE, 2022, pp. 575--582.
+
+\bibitem{our1}
+Kaiqi Fu et~al.,
+\newblock ``{Using Fluency Representation Learned from Sequential Raw Features for Improving Non-native Fluency Scoring},''
+\newblock {\em Proc. Interspeech 2022}, pp. 4337--4341, 2022.
+
+\bibitem{our2}
+Kaiqi Fu et~al.,
+\newblock ``{Phonetic and Prosody-aware Self-supervised Learning Approach for Non-native Fluency Scoring},''
+\newblock in {\em Proc. INTERSPEECH 2023}, 2023, pp. 949--953.
+
+\bibitem{wong22_interspeech}
+Jeremy Heng~Meng Wong et~al.,
+\newblock ``{Variations of multi-task learning for spoken language assessment},''
+\newblock in {\em Proc. Interspeech 2022}, 2022, pp. 4456--4460.
+
+\bibitem{hipama}
+Heejin Do et~al.,
+\newblock ``Hierarchical pronunciation assessment with multi-aspect attention,''
+\newblock in {\em ICASSP 2023 - 2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 2023, pp. 1--5.
+
+\bibitem{liuwei}
+Wei Liu et~al.,
+\newblock ``{An ASR-free Fluency Scoring Approach with Self-Supervised Learning},''
+\newblock {\em arXiv preprint arXiv:2302.09928}, 2023.
+
+\bibitem{ssl1}
+Eesung Kim et~al.,
+\newblock ``{Automatic Pronunciation Assessment using Self-Supervised Speech Representation Learning},''
+\newblock in {\em Proc. Interspeech 2022}, 2022, pp. 1411--1415.
+
+\bibitem{liang23_interspeech}
+Yukang Liang et~al.,
+\newblock ``{End-to-End Word-Level Pronunciation Assessment with MASK Pre-training},''
+\newblock in {\em Proc. INTERSPEECH 2023}, 2023, pp. 969--973.
+
+\bibitem{gop}
+Wenping Hu et~al.,
+\newblock ``Improved mispronunciation detection with deep neural network trained acoustic models and transfer learning based logistic regression classifiers,''
+\newblock {\em Speech Communication}, vol. 67, pp. 154--166, 2015.
+
+\bibitem{gpt4}
+OpenAI,
+\newblock ``{GPT-4 Technical Report},'' 2024.
+
+\bibitem{llama}
+Hugo Touvron et~al.,
+\newblock ``{Llama: Open and efficient foundation language models},''
+\newblock {\em arXiv preprint arXiv:2302.13971}, 2023.
+
+\bibitem{qwen}
+Jinze Bai et~al.,
+\newblock ``{Qwen technical report},''
+\newblock {\em arXiv preprint arXiv:2309.16609}, 2023.
+
+\bibitem{llm_survey}
+Shervin Minaee et~al.,
+\newblock ``{Large language models: A survey},''
+\newblock {\em arXiv preprint arXiv:2402.06196}, 2024.
+
+\bibitem{text_score1}
+Stefano Bann{\`o} et~al.,
+\newblock ``{Can GPT-4 do L2 analytic assessment?},''
+\newblock {\em arXiv preprint arXiv:2404.18557}, 2024.
+
+\bibitem{text_score2}
+Kevin~P Yancey et~al.,
+\newblock ``{Rating short l2 essays on the cefr scale with gpt-4},''
+\newblock in {\em Proceedings of the 18th Workshop on Innovative Use of NLP for Building Educational Applications (BEA 2023)}, 2023, pp. 576--584.
+
+\bibitem{text_score3}
+Changrong Xiao et~al.,
+\newblock ``{From Automation to Augmentation: Large Language Models Elevating Essay Scoring Landscape},''
+\newblock {\em arXiv preprint arXiv:2401.06431}, 2024.
+
+\bibitem{text_score4}
+Shen Wang et~al.,
+\newblock ``Large language models for education: A survey and outlook,''
+\newblock {\em arXiv preprint arXiv:2403.18105}, 2024.
+
+\bibitem{salmonn}
+Changli Tang et~al.,
+\newblock ``{SALMONN}: Towards generic hearing abilities for large language models,''
+\newblock in {\em The Twelfth International Conference on Learning Representations}, 2024.
+
+\bibitem{wavllm}
+Shujie Hu et~al.,
+\newblock ``{Wavllm: Towards robust and adaptive speech large language model},''
+\newblock {\em arXiv preprint arXiv:2404.00656}, 2024.
+
+\bibitem{salm}
+Ziyang Ma et~al.,
+\newblock ``{An Embarrassingly Simple Approach for LLM with Strong ASR Capacity},''
+\newblock {\em arXiv preprint arXiv:2402.08846}, 2024.
+
+\bibitem{qwen_audio}
+Yunfei Chu et~al.,
+\newblock ``{Qwen-audio: Advancing universal audio understanding via unified large-scale audio-language models},''
+\newblock {\em arXiv preprint arXiv:2311.07919}, 2023.
+
+\bibitem{data2vec2}
+Alexei Baevski et~al.,
+\newblock ``Efficient self-supervised learning with contextualized target representations for vision, speech and language,''
+\newblock in {\em International Conference on Machine Learning}. PMLR, 2023, pp. 1416--1429.
+
+\bibitem{m-adapter}
+Jinming Zhao et~al.,
+\newblock ``{M-Adapter: Modality Adaptation for End-to-End Speech-to-Text Translation},''
+\newblock in {\em Proc. Interspeech 2022}, 2022, pp. 111--115.
+
+\bibitem{seamless}
+Lo{\"\i}c Barrault et~al.,
+\newblock ``{SeamlessM4T-Massively Multilingual \& Multimodal Machine Translation},''
+\newblock {\em arXiv preprint arXiv:2308.11596}, 2023.
+
+\bibitem{whisper}
+Alec Radford et~al.,
+\newblock ``Robust speech recognition via large-scale weak supervision,''
+\newblock in {\em International conference on machine learning}. PMLR, 2023, pp. 28492--28518.
+
+\bibitem{hubert}
+Wei-Ning Hsu et~al.,
+\newblock ``Hubert: Self-supervised speech representation learning by masked prediction of hidden units,''
+\newblock {\em IEEE/ACM transactions on audio, speech, and language processing}, vol. 29, pp. 3451--3460, 2021.
+
+\bibitem{librispeech}
+Vassil Panayotov et~al.,
+\newblock ``{Librispeech: An ASR corpus based on public domain audio books},''
+\newblock in {\em 2015 IEEE international conference on acoustics, speech and signal processing (ICASSP)}. IEEE, 2015, pp. 5206--5210.
+
+\bibitem{speechocean}
+Junbo Zhang et~al.,
+\newblock ``{Speechocean762: An Open-Source Non-Native English Speech Corpus for Pronunciation Assessment},''
+\newblock in {\em Proc. Interspeech 2021}, 2021, pp. 3710--3714.
+
+\bibitem{cot}
+Jason Wei et~al.,
+\newblock ``{Chain-of-thought prompting elicits reasoning in large language models},''
+\newblock {\em Advances in neural information processing systems}, vol. 35, pp. 24824--24837, 2022.
+
+\end{thebibliography}

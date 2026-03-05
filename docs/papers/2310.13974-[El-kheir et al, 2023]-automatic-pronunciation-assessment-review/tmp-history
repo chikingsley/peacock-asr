@@ -1,0 +1,1096 @@
+% This must be in the first 5 lines to tell arXiv to use pdfLaTeX, which is strongly recommended.
+\pdfoutput=1
+% In particular, the hyperref package requires pdfLaTeX in order to break URLs across lines.
+
+\documentclass[11pt]{article}
+\usepackage{tabularx}
+\usepackage{booktabs}
+
+% Remove the "review" option to generate the final version.
+\usepackage[review]{EMNLP2023}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{tikz}
+\usepackage{tikz-3dplot}
+
+\usetikzlibrary{shapes}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is not strictly necessary and may be commented out.
+% However, it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% This is also not strictly necessary and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\usepackage{inconsolata}
+\usepackage{tikz}
+
+
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+\title{Automatic Pronunciation Assessment: A Review}
+
+% Author information can be set in various styles:
+% For several authors from the same institution:
+% \author{Author 1 \and ... \and Author n \\
+%         Address line \\ ... \\ Address line}
+% if the names do not fit well on one line use
+%         Author 1 \\ {\bf Author 2} \\ ... \\ {\bf Author n} \\
+% For authors from different institutions:
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \And  ... \And
+%         Author n \\ Address line \\ ... \\ Address line}
+% To start a separate ``row'' of authors use \AND, as in
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \AND
+%         Author 2 \\ Address line \\ ... \\ Address line \And
+%         Author 3 \\ Address line \\ ... \\ Address line}
+
+\author{First Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  \texttt{email@domain} \\\And
+  Second Author \\
+  Affiliation / Address line 1 \\
+  Affiliation / Address line 2 \\
+  Affiliation / Address line 3 \\
+  \texttt{email@domain} \\}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+Pronunciation assessment and its application in computer-aided pronunciation training (CAPT) have seen impressive progress in recent years. End-to-end neural network models have replaced traditional systems, and various resources in multiple languages have been proposed. However, many of these systems are thought to be opaque in defining what wrong pronunciation is, with a wide range of spectrum, ranging from unintelligible speech to native-like speech. This has led researchers to analyze phonetic and prosodic features to build an automatic model for scoring speech learning accuracy. In this survey paper, we review methods in pronunciation assessment, categorize the main challenges in prominent research trends, highlight existing limitations, resources, and point to potential directions for future work.
+\end{abstract}
+
+% \cite{agarwal2019review} Computer aided pronunciation training (CAPT) systems are used by non-native English speakers for improving their English pronunciation. A typical CAPT tool records the speech of a learner, detects and diagnoses mispronunciations in it, and suggests a way for correcting them.
+
+% In a typical scenario, the system prompts the learner a sentence of paragraph to read aloud, and the detailed feedback is presented to the learner after the recorded speech is analyzed. For example, a learner may mispronounce the word “lamb” as /l ae n/ (“lane”), and the CAPT system should be able to respond: “You have mispronounced the phone /m/ as /n/. Try to press your lips together towards the end of the word.”
+
+% Supra-segmental: which constitute the perceptually most obvious distinction between the native and non-native speech.
+% Segmental: There also can be segmental errors, e.g. a common mispronunciation made by Cantonese learners of English is to produce /b ow f/ for /b ow th/ (“both”). This phenomenon is partially attribute to the L1 negative transfer - substituting some phonetic unit (it can be non-existent in the learners’ mother tongue) with the closest one in the mother tongue. Comparatively, the later one is more critical and can greatly harm the communication between each other. Throughout this work, we will consider segmental errors only.
+
+\section{Introduction}
+
+Computer-aided Pronunciation Training (\textbf{CAPT}) technologies are pivotal in promoting self-directed language learning, offering constant, and potentially tailored feedback for secondary language learners. The rising demand for foreign language learning and the tide of globalization fuels the increment in the development of CAPT systems. This surge has led to extensive research and development efforts in the field \cite{CAPT_2, kang2018routledge, CAPT}.
+CAPT can be divided into two categories: (\textit{i}) pronunciation assessment, where the user is the teacher or the education center; (\textit{ii}) pronunciation learning, where the user is the student who is learning a new language \cite{nancy2016}.
+
+\noindent What is pronunciation? According to the Cambridge Dictionary, the word pronunciation is "the way in which a word or letter is said, or said correctly, or the way in which a language is spoken" \cite{camb_define}. This can be regarded from multiple perspectives:
+\begin{itemize}
+    \item  \textbf{Modelling}: Mispronunciation detection and diagnosis (MDD), in many cases, are more challenging to model compared to the vanilla automatic speech recognition (ASR) system, which converts speech into text regardless of pronunciation mistakes. Robust ASR should perform well with dialects and non-native speakers. However, MDD should mark phonetic variations from the non-native, which may sometimes be subtle differences \cite{li2016mispronunciation}.
+    \item \textbf{Training Data}: Recent success in deep learning methods emphasized the need for in-domain training data. Language learners can be divided into two groups: adult secondary (L2) language learners and children language learners--- the former depends on whether to build a system that is native language dependant (L1). At the same time, the latter identifies the need for children's voice, which is a challenging corpus to build \cite{council2019improving, venkatasubramaniam2023end}, even the accuracy for ASR for children is still behind compared to adult ASR \cite {44268}.
+    %for example, Arabic native speakers may find it difficult to differentiate between /p/ and /b/ as both has the same phoneme in Arabic. While group of learners 
+    \item \textbf{Evaluation:} There is no clear definition of right or wrong in pronunciation, instead an entire scale from unintelligible speech to native-sounding speech \cite{witt2012automatic}. Given that, error in pronunciation is difficult to quantify, it can be split into: (\textit{i}): Phonetic or segmental; (\textit{ii}): prosodic or supra-segmental; and (\textit{iii}) place or articulation, manner of speech or sub-segmental. Figure \ref{fig:avenues} illustrates pronunciation errors. 
+    \item Users
+\end{itemize}
+
+
+
+Computer-aided Pronunciation Training (\textbf{CAPT}) technologies play a pivotal role in promoting self-directed language learning, offering learners constant access and tailored feedback. These technologies serve as a valuable adjunct to traditional instruction, effectively addressing the needs of an expanding learner population in a scarcity of qualified teachers \cite{CAPT_2, CAPT}. These systems generally operate by capturing the learner's speech, identifying and analyzing any mispronunciations present, and providing appropriate corrective suggestions. For example, let's say a learner mispronounces the word `lamb' as /l ae n/ (`lane'). The CAPT system should be able to respond by pointing out the error: "You mispronounced the the phone /m/ as /n/. Try to press your lips together towards the end of the word." 
+
+% With the rapid growth of the economy and advancements in technology, including increased computing power, widespread use of mobile devices, and improved speech recognition, there has been a remarkable surge in the demand for foreign language learning. This surge has fueled extensive research and development efforts in the field of CAPT systems. 
+% There are several papers summarizing the advancements, 
+% Shammur: We need to rewrite this part
+The increment of the development of CAPT systems is fueled by the rising demand for foreign language learning along with the tide of globalization. This surge has led to extensive research and development efforts in the field. 
+There are several papers summarizing the advancements in automatic error detection in pronunciation training \cite{eskenazi1999using, eskenazi2009overview, witt2012automatic, li2016mispronunciation, nancy2016}. In the realm of ASR for L2 pronunciation, Eskenazi provides a thorough examination of its potentials and limitations, showcasing its practical implementation within an interface developed at CMU \cite{eskenazi1999using}. Building upon this foundation, Eskenazi further delves into the historical progression and state-of-the-art methodologies of automatic scoring, with a notable emphasis on modalities of interaction, associated algorithms, and the challenges \cite{eskenazi2009overview}. Witt's comprehensive overview presents a meticulous exploration of automatic error detection, encompassing various scoring methodologies and an assessment of commercial CAPT systems \cite{witt2012automatic}. Although Witt's work has certain limitations towards phoneme error detection, \cite{nancy2016} provides a research summary, focusing on both phoneme errors and prosodic error detection. In this comprehensive review paper, we provide a thorough review of methods employed in the realm of pronunciation assessment for both phonemic and prosodic errors detection. We aim to categorize the primary challenges observed within prominent research trends, while also shedding light on existing limitations and available resources. Additionally, we will explore potential directions for future work. 
+This paper organizes the literature into distinct themes. In \textbf{Section 2}, we delve into various components that contribute to pronunciation, while also highlighting different types of pronunciation errors. \textbf{Section 3} focuses on the discussion of diverse datasets utilized in pronunciation assessment, emphasizing the intricacies involved in annotating data and exploring potential augmentations techniques for to generate more data. Moving forward to \textbf{Section 4}, we examine the range of technical features and approaches employed for assessing pronunciation. In \textbf{Section 5}, we explore the evaluation metrics commonly used. Finally, \textbf{Section 6} addresses additional challenges and provides insights into future directions for further advancement.
+
+% Eskenazi explores the potential and constraints of automatic speech recognition (\textbf{ASR}) in the context of second language (L2) pronunciation and delves into its application within an interface developed at CMU \cite{eskenazi1999using}. Several years later, Eskenazi examines the historical progression and state-of-the-art methodologies, with a particular emphasis on modalities of interaction, the algorithms,  challenges associated with automatic processing \cite{eskenazi2009overview}. In \cite{witt2012automatic}, Witt delivers also comprehensive overview of automatic error detection that encompasses multiple scoring methodologies with a review of commercial CAPT systems. While Witt’s work is limited in some ways on phoneme level errors, in \cite{nancy2016}, delivers a summary research work up to 2016, with focus on both phoneme errors and prosodic error detection. 
+% With the rapid growth of the economy and advancements in technology, including increased computing power, widespread use of mobile devices, and improved speech recognition, there has been a remarkable surge in the demand for foreign language learning. This surge has fueled extensive research and development efforts in the field of CAPT systems.
+
+% With the advent of globalization, increased computing power, mobile devices and improved speech recognition conduct to a significant increase in the demand for foreign language learning, one aspect of which is pronunciation learning, promoting the demand for CAPT systems. CAPT systems gain from the advancements in speech and language technologies to achieve human-like automatic assistant for mispronunciation detection, diagnoses and feedback. 
+
+
+
+
+
+
+% CAPT systems focus on automatic error detection in pronunciation training ranging from intelligible speech to native-sounding speech for non-native language (L$2$) learners. Mispronunciation detection and diagnosis can be approached from two perspectives. Firstly, the \textbf{segmental} aspect emphasizes the identification of phoneme segments errors, aiming to help L2 learners sound more like native speakers. Secondly, it is crucial to focus on the intelligibility of the learner, which is influenced by the \textbf{supra-segmental} aspect \cite{raux2002automatic}. This facet concentrates on prosodic features such as stress, rhythm and intonation which contribute to the overall clarity of speech, rather than focusing solely on segmental errors. 
+
+% The CAPT system potentially exploits the advancement of speech technology along with curriculum management and learner assessment among others. The initial foray into this field emerged in the 1990s \cite{kim1997automatic}, \cite{kawai1998call}, and \cite{GOP_WITT}. The proposed algorithms marked significant milestones in the advancement of such learning systems. Subsequently, advancements in the form of deep neural network approaches, and self-supervised models have revolutionized the field, leading to significant progress in mispronunciation detection (MD). 
+
+% Significant contributions have been made in this field through notable depth overviews that summarize the advancements \cite{eskenazi2009overview, witt2012automatic, li2016mispronunciation, nancy2016}. Eskenazi provides a comprehensive overview, including historical developments and state-of-the-art methods up until 2009 in \cite{eskenazi2009overview}. The focus of the overview revolves around modalities of interaction and the associated algorithms and issues in automatic processing using classical statistical architectures of automatic speech recognition (ASR) or Linear Discriminant Analysis (LDA) along with varieties of acoustic features, to detect and assess pronunciation and prosody errors. Additionally, the paper explores the utilization of speech synthesis in this domain. In \cite{witt2012automatic}, Witt delivers a comprehensive overview that encompasses multiple scoring methodologies and summarizes the advancements made in the field until $2012$. The overview includes an in-depth examination of the diverse phonemic and prosodic components that contribute to pronunciation. Furthermore, the paper extensively discusses various scoring approaches, ranging from likelihood-based methods utilizing pre-trained ASR systems to classifier-based approaches employing acoustic features such as MFCCs. Additionally, the study provides insights into commercial systems operating in this field and explores the designs of corrective feedback mechanisms. Building upon the later overviews and advancements, Li et al. \cite{li2016mispronunciation} explore a wide range of segmental error detection methods, including later approaches such as extended recognition networks (ERNs), and introduce the potential application of multi-distribution deep neural networks. 
+% Moreover, the authors introduce a hierarchically structured scoring system for phoneme evaluation in MDD. 
+
+% The existing overviews have contributed to the advancement of MDD, yet they often focused on addressing specific componenets of this field. In the present paper, we tackle this comprehensive problem by providing a clear definition of pronunciation and its error types and discussing newly features used in measuring MDD. Furthermore, we explore contemporary approaches that involve End-to-End models, which were previously unexplored, along with recently investigated augmentation techniques in this field. We also provide an overview of recent public datasets dedicated for MDD, along with a look to annotation guidelines. 
+
+% Additionally, we delve into the aspect of generative feedback and the utilization of commercial systems in MDD. 
+
+% The paper addresses the need of precise evaluation metrics by presenting a comprehensive set of evaluation metrics that are tailored to cover both segmental and prosodic aspects of MDD. 
+
+% By addressing these aspects, our paper aims to contribute to the ongoing advancement and understanding of pronunciation error detection and teaching, ultimately leading to align efforts, accelerate progress, and secure consistency.
+
+% Witt presents in \cite{witt2012automatic} a comprehensive system overview that encompasses various scoring methodologies and provides a summary of the advancements made until $2012$. The overview includes an examination of the diverse phonemic and prosodic components that contribute to pronunciation, followed by an extensive discussion of proposed scoring measuring these pronunciation components ranging from likelihood-based approaches relying on pre-trained ASR systems to classifier-based approcahes using insightful acoustic features such us MFCC. Additionally, the paper offers insights into commercial systems operating in this field, and corrective feedback designs.
+
+
+% In \cite{eskenazi2009overview}, Maxine presents an overview history a long with state-of-art methods up to $2009$, focusing on the modalities of interaction and related algorithms and issues in automatic processing, using the classical statistical architecture of automatic speech recognition (ASR), or Linear Discriminant Analysis (LDA) along with acoustic features in the detection and assessment of pronunciation errors; detection and correction of prosody errors; and the use of speech synthesis in this field.
+
+% These works provide valuable insights into the progress achieved in Mispronunciation Detection and Diagnosis (MDD) up until 2016.
+
+% \begin{figure*}
+% \centering
+% \begin{tikzpicture}[node distance=3cm, every node/.style={draw, rectangle, align=center}]
+% % Nodes representing key aspects
+% \node[fill=blue!20] (pron) {Pronunciation};
+% \node[fill=orange!20, below left of=pron] (phon) {Phonemic Errors};
+% \node[fill=green!20, below right of=pron] (pros) {Prosodic Errors};
+% \node[fill=yellow!20, below of=phon] (severe) {Severe Errors};
+% \node[fill=yellow!20, below of=pros] (stress) {Stress Errors};
+% \node[fill=yellow!20, right of=severe] (sub) {Substitution};
+% \node[fill=yellow!20, left of=severe] (del) {Deletion};
+% \node[fill=yellow!20, below of=del] (ins) {Insertion};
+% \node[fill=yellow!20, right of=stress] (rhythm) {Rhythm Errors};
+% \node[fill=yellow!20, below of=rhythm] (intonation) {Intonation Errors};
+% \node[fill=pink!20, below of=intonation] (accent) {Accent};
+% \node[fill=pink!20, below of=accent] (intelligibility) {Intelligibility};
+
+% % Arrows representing relationships
+% \draw[->] (pron) -- (phon);
+% \draw[->] (pron) -- (pros);
+% \draw[->] (phon) -- (severe);
+% \draw[->] (phon) -- (stress);
+% \draw[->] (severe) -- (sub);
+% \draw[->] (severe) -- (del);
+% \draw[->] (severe) -- (ins);
+% \draw[->] (stress) -- (rhythm);
+% \draw[->] (stress) -- (intonation);
+% \draw[->] (accent) -- (intelligibility);
+
+% \end{tikzpicture}
+% \caption{Relationships and Key Aspects in Pronunciation. Pronunciation is influenced by phonemic and prosodic errors, which include severe errors such as substitution, deletion, and insertion, as well as stress errors like rhythm and intonation errors. These errors contribute to the development of an accent, which, in turn, affects intelligibility.}
+% \end{figure*}
+% \begin{figure*}
+% \centering
+% \begin{tikzpicture}[node distance=3cm, every node/.style={draw, rectangle, align=center}]
+% % Nodes representing key aspects
+% \node[fill=blue!20] (pron) {Pronunciation};
+% \node[fill=orange!20, below left of=pron] (phon) {Phonemic Errors};
+% \node[fill=green!20, below right of=pron] (pros) {Prosodic Errors};
+% \node[fill=yellow!20, below of=pros] (rhythm) {Rhythm Errors};
+% \node[fill=yellow!20, right of=rhythm] (stress) {Stress Errors};
+% \node[fill=yellow!20, below of=rhythm] (intonation) {Intonation Errors};
+% \node[fill=pink!20, below of=phon] (accent) {Accent};
+% \node[fill=pink!20, below of=accent] (intelligibility) {Intelligibility};
+
+% % Arrows representing relationships
+% \draw[->] (pron) -- (phon);
+% \draw[->] (pron) -- (pros);
+% \draw[->] (pros) -- (rhythm);
+% \draw[->] (pros) -- (stress);
+% \draw[->] (pros) -- (intonation);
+% \draw[->] (accent) -- (intelligibility);
+
+% \end{tikzpicture}
+% \captionsetup{justification=centering}
+% \caption{Relationships and Key Aspects in Pronunciation. Pronunciation is influenced by phonemic and prosodic errors, including rhythm errors, stress errors, and intonation errors. These errors contribute to the development of an accent, which, in turn, affects intelligibility.}
+% \end{figure*}
+
+% \begin{figure}
+% \centering
+% \begin{tikzpicture}[node distance=3cm, every node/.style={draw, rectangle, align=center}]
+% % Nodes representing key aspects
+% \node[fill=blue!20] (pron) {Pronunciation};
+% \node[fill=orange!20, below left of=pron] (phon) {Phonemic Errors};
+% \node[fill=green!20, below right of=pron] (pros) {Prosodic Errors};
+% \node[fill=yellow!20, below of=pros] (rhythm) {Rhythm Errors};
+% \node[fill=yellow!20, right of=rhythm] (stress) {Stress Errors};
+% \node[fill=yellow!20, below of=rhythm] (intonation) {Intonation Errors};
+% \node[fill=pink!20, below of=phon] (accent) {Accent};
+% \node[fill=pink!20, below of=accent] (intelligibility) {Intelligibility};
+% \node[fill=cyan!20, below of=intelligibility] (native) {Native-like\\Pronunciation};
+
+% % Arrows representing relationships
+% \draw[->] (pron) -- (phon);
+% \draw[->] (pron) -- (pros);
+% \draw[->] (pros) -- (rhythm);
+% \draw[->] (pros) -- (stress);
+% \draw[->] (pros) -- (intonation);
+% \draw[->] (accent) -- (intelligibility);
+% \draw[->] (intelligibility) -- (native);
+
+% \end{tikzpicture}
+% \captionsetup{justification=centering}
+% \caption{Relationships and Key Aspects in Pronunciation. Pronunciation is influenced by phonemic and prosodic errors, including rhythm errors, stress errors, and intonation errors. These errors contribute to the development of an accent, which, in turn, affects intelligibility. The ultimate goal is to achieve a native-like pronunciation.}
+% \end{figure}
+
+
+% CAPT systems gain from the advancements in speech and language technologies to achieve human-like automatic assistant for mispronunciation detection, diagnoses and feedback. CAPT technologies focus on
+% mispronunciation detection and diagnosis (MDD).
+
+% \begin{figure}
+% \begin{tikzpicture}
+%   % Triangle coordinates
+%   \coordinate (A) at (0,0);
+%   \coordinate (B) at (4,0);
+%   \coordinate (C) at (0,4);
+
+%   % Head labels
+%   \node[above] at (C) {Intelligibility / Native-like};
+%   \node[below] at (B) {Supra-segmental Errors};
+%   \node[below] at (A) {Segmental Errors};
+
+
+%   % Transparent color fill
+%   \shade[top color=green, bottom color=red, opacity=0.5] (A) -- (B) -- (C) -- cycle;
+%   \node at (barycentric cs:A=1,B=1,C=2.5) {Accent};
+
+%   % Arrows
+%   \draw[->, thick] (C) -- (A);
+%   \draw[->, thick] (C) -- (B);
+  
+% \end{tikzpicture}
+% \caption{The impact of Pronunciation Errors. The gradient color quantifies the degree of mispronunciations, ranging from green for good pronunciation, to red representing mispronunciation}
+% \label{fig:fig1}
+% \end{figure}
+\begin{figure}
+\centering
+\scalebox{0.7}{
+
+\begin{tikzpicture}
+  % Triangle coordinates
+  \coordinate (A) at (0,0);
+  \coordinate (B) at (3,4);
+  \coordinate (C) at (-3,4);
+
+  % Head labels
+  \node[above] at (C) {Supra-segmental Errors};
+  \node[above] at (B) {Segmental Errors};
+  \node[below] at (A) {O};
+  \shade[top color=red, bottom color=green, opacity=0.5] (A) -- (B) -- (C) -- cycle;
+
+  \node at (barycentric cs:A=2.5,B=1,C=1) {Accent};
+
+  % Arrows
+  \draw[->, line width=2pt] (A) -- (C);
+  \draw[->, line width=2pt] (A) -- (B);
+  
+\end{tikzpicture}
+}
+\caption{The impact of pronunciation errors. The gradient colors quantifies the degree of goodness of speech in terms of intelligibility and native-like characteristics, ranging from green for good pronunciation, to red representing bad pronunciation.}
+\label{fig:fig1}
+\end{figure}
+\section{Pronunciation Errors}
+
+\begin{figure*} [!ht]
+% \centering
+\includegraphics[width=1\textwidth]{emnlp2023-latex/overall_errors.png}
+% \includegraphics[width=1\textwidth]{emnlp2023-latex/errors.png}
+\caption{Types of Pronunciation Errors}
+\label{fig:avenues}
+\end{figure*}
+
+According to the Cambridge Dictionary, pronunciation is defined as: "the way in which a word or letter is said, or said correctly, or the way in which a language is spoken". While the word 'error' assumes, we can quantify exactly how much error there is in a measurement. However, pronunciation encompasses various components, is evaluated using diverse features, and is often challenging to quantify. By exploring pronunciation errors (mispronunciations), we gain insights into its characteristics. Figure \ref{fig:fig1} shows that pronunciation errors can be categorized into two types that affect intelligibility and sound: segmental (phonetic) errors and supra-segmental (prosodic) errors.
+
+\noindent \textbf{How to perceive accented speech?} 
+To answer this question, it is necessary to establish the purpose of assessing pronunciation. Should the emphasis be placed on intelligibility or striving to sound like a native speaker? Considering that accents are inherent variations in language influenced by regional and cultural backgrounds, the present emphasis lies on intelligibility, which is crucial for effective communication, whereas sounding like a native speaker holds significance for more advanced learners \cite{celce1996teaching,witt2012automatic}.
+%Segmental errors typically involve severe distinguishing between correct and incorrect pronunciation. However, 
+%It is important to note that not all deviations from perfect native-like pronunciation are considered strictly incorrect. Some lenient segmental/supra-segmental errors occur when the sound produced is different from that of a native speaker, yet it is still intelligible. These errors are often attributed to accents as illustrated in Figure \ref{fig:fig1}. 
+
+% As outlined in \cite{witt2012automatic, nancy2016}, pronunciation errors can be categorized into two types: segmental (phonetic) errors and supra-segmental (prosodic) errors. 
+
+\subsection{Segmental Errors}
+Segmental errors involve the production of individual sounds, such as vowels, consonants, and consonant clusters and it can be subdivided into three types: substitution, deletion, and insertion. The causes leading to segmental errors can be attributed to several factors including language transfer, incorrect letter-to-sound conversion, and misreading of text prompts \cite{meng2007deriving, qian2010capturing, kartushina2014effects, li2016mispronunciation}. For example, L2 learners tend to substitute a phone in the target language that is absent in their native language with a similar phone. For instance, Arabic learners of English may replace the sound /p/ with the sound /b/ resulting in pronouncing "cab" as "cap".
+
+% such us $/b, d, g/$, so "cap" for "cab" for Cantonese learners, and $/p, b/$, so "berfect" for "perfect". 
+
+Deletion errors occur when a sound is left out altogether. For example, Hindi learners might say "cah" for "car" \cite{zhao2018l2}. 
+
+
+% Chinese learners of English might say "tee" for "tree" because the Chinese language does not have the /r/ phoneme. 
+Insertion errors manifest when an additional sound is introduced into a word. English learners may pronounce the n sound at the end of words like "bon" in French because they are used to pronouncing final consonants in English. In English, many words end in consonants, such as "can", "man", and "sun". So, when English learners learn French, they may mistakenly apply this rule to French words and pronounce the final n sound in words like "bon".
+
+Another factor contributing to segmental errors is incorrect letter-to-sound conversion. When encountering unfamiliar words, L2 learners may rely on guessing to pronounce them. Or simply learners may misread certain words, resulting in pronunciation errors.
+
+\subsection{Supra-segmental Errors}
+% Supra-segmental features are features that affect the pronunciation of a word or sentence as a whole, such as stress, intonation, and rhythm. Supra-segmental errors involve the production of larger units of sound. In terms of intelligibility, Supra-segmental features are often more important \cite{raux2002automatic}, as they can help to convey the meaning of a sentence. 
+
+% Suprasegmental errors can also be further subdivided into three types: stress, intonation, and rhythm errors. 
+
+Supra-segmental features encompass elements that influence the pronunciation of an entire word or sentence, including stress, rhythm, and intonation. Errors related to supra-segmental features involve the production of larger sound units. In terms of intelligibility, supra-segmental features have been recognized as particularly significant \cite{raux2002automatic}, and especially for tone target languages \cite{dahmen2023prosodic}, as they aid in conveying the meaning of a sentence effectively. Supra-segmental errors can be categorized into three distinct types: stress errors, rhythm errors, and intonation errors.
+
+\paragraph{Stress:} Stress is the emphasis placed on certain syllables in a word or sentence. It is articulated by increasing the loudness, duration, and pitch of the stressed syllable. It can be categorized as \textbf{lexical stress}, if the stress is placed on syllables within the word, or \textbf{sentence stress} if the stress is placed on words within sentences. Mandarin learners of English has contrastive stress at the word-level that is absent in Korean, Mandarin speakers can have an advantage over Korean speakers in stress processing of English words \cite{wang2022segmental}. 
+
+% Chinese learners of English encounter significant challenges when it comes to the stress in English pronunciation since Chinese is a tonal language \cite{han2013pronunciation}. 
+
+\paragraph{Rythm:} Rythm is the pattern of stressed and unstressed syllables in a word or sentence. A language can be classified as either stress-timed or syllable-timed \cite{ohata2004phonological, matthews2014concise}. In stress-timed languages, the duration of stressed syllables tends to dominate the overall time required to complete a sentence. Conversely, in syllable-timed languages, each syllable receives an equal amount of time during production. For instance, when articulating an English sentence, the duration of sentence completion largely depends on the number of stressed syllables present. In contrast, the time needed to generate a Chinese sentence is determined by the total number of syllables, as all the syllables contribute to the recurring rhythmic pattern within the sentence.
+
+\paragraph{Intonation:} Intonation encompasses pitch variations in speech. L2 learners of Vietnamese and Mandarin Chinese encounter significant difficulty in acquiring the distinct tones, particularly if their native language lacks tonality. As tonal languages, Vietnamese and Mandarin Chinese rely on different pitch patterns to convey distinct meanings, making it challenging for learners to accurately grasp and reproduce these tonal variations \cite{nguyen2014intonation, chen2015icall}.
+
+
+
+
+% For example, the word "important" has two syllables, and the stress is typically placed on the first syllable. If a learner were to say "im-port-ant" instead of "im-por-tant", they would be placing the stress on the wrong syllable, which could change the meaning of the word.
+
+
+
+
+% Stress errors occur when a word is stressed incorrectly. For example, a learner might say "im-port-ant" instead of "im-por-tant" \cite{}. Intonation errors occur when the pitch of the voice is used incorrectly. For example, a learner might say "I'm going to the store" with a rising intonation, which would make it sound like a question \cite{}. Rhythm errors occur when the words in a sentence are not stressed or pronounced in the correct rhythm. For example, a learner might say "I'm going to the store" with a very slow and even rhythm, which would make it sound unnatural.
+
+
+
+% From supra-segmental perspective, an accent implies a variation in stress, rythm or intonation features while still allowing for understandable speech.
+\section{Datasets}
+% In this section of the paper, we discuss mispronunications detection (MD) datasets, focusing on both the segmental and supra-segmental levels. Furthermore, we explore commonly used methods of human annotation. Subsequently, we will provide an overview of existing research to the generation and/or augmentation of MD datasets.
+
+% Ver2
+Obtaining datasets for pronunciation assessment is often challenging and expensive. Most of the available research work focused on private data, leaving only handful of publicly accessible data to the research community. Table \ref{tab:datasets} provides an overview of available datasets, indicating English as a popular choice for the target language (L2). Within these handful of datasets, a few dataset include phonetic/segmental-level transcription, and even a fewer provide manually rated word and sentence-level prosodic features, fluency along with overall proficiency scores offering insights to learner's L2 speech intelligibility and comprehensiveness \cite{arvaniti2000greek, chen2016singakids, cole2017crowd, speechocean762}. More details on datasets and annotation is in Appendix \ref{}
+
+% where linguits experts transcribe the actual sequence of phonemes spoken by the learner. Furthermore, only a small fraction annotate
+% even a fewer have proficiency ratings.
+
+
+% Among the listed datasets, few have phonetic/segmental-level segmental annotation, where linguits experts transcribe the actual sequence of phonemes spoken by the learner.
+
+
+
+% Ver1
+% Table \ref{tab:datasets} provides an overview of existing MD datasets. It is observed that the majority of the datasets are in English. However, recent publications demonstrate an increasing variability in the native languages represented within these datasets. The majority of these datasets primarily focus on segmental annotation, where linguits experts transcribe the actual sequence of phonemes spoken by the learner. However, research on the annotation of supra-segmental features is limited \cite{arvaniti2000greek}, \cite{chen2016singakids}, and \cite{cole2017crowd}. Among these features, lexical stress and tones have received the most investigation, often numerically annotated to differentiate between different stress levels and tone contours. Nevertheless, the primary objective of annotating these supra-segmental aspects remains ensuring the fluency and intelligibility of L2 learners' speech. As a result, the most commonly used annotated datasets at the prosodic level provide human-scored words and sentences based on overall pronunciation quality and fluency.
+
+% However, limited research has been conducted regarding the annotation of supra-segmental features, as seen in few studies like \cite{arvaniti2000greek}, \cite{chen2016singakids}, and \cite{cole2017crowd}. Lexical stress, and tones are the most investigated which  numerically annotated by differentiating between different stress levels, and different tones countours. Yet, the ultimate objective of annotating these supra-segmental aspects is to ensure the fluency and intelligibility of L2 learners' speech. Therefore, the most commonly used annotated datasets at the prosodic level provide human-scored words and sentences based on overall pronunciation quality and fluency.
+
+
+% \subsection{LATIC}
+% \subsection{Other Datasets}
+\begin{table}
+  % \centering
+\scalebox{0.48}{
+  \setlength{\tabcolsep}{6pt} % Adjust the spacing between columns
+  \renewcommand{\arraystretch}{0.9} % Adjust the spacing between rows
+  \begin{tabularx}{\textwidth}{p{3cm}p{2cm}p{3cm}ccc}
+  
+  % {*{7}{>{\centering\arraybackslash}X}}
+    \toprule
+    Corpus & Languages (L2) & Native Language (L1) & Dur / \#Utt & \#Speakers & Released  \\
+    \midrule
+    \midrule
+    ISLE \cite{ISLE} & English & German and Italian & 18h & 46 & 2000$\ast$\\    \midrule
+    ERJ \cite{ERJ} & English & Japanese & - / 68000 & 200 & 2002$\ast$ \\    \midrule
+    % ATR-Gruhn \cite{gruhn} & English & Chinese, German, French, Japanese, and Indonesian & - / 15000 & 96 & 2004\\    \midrule
+    % Cross Towns \cite{Cross_Town}  & English, French, German, Italien, Czesh, and Dutch & English, French, German, Italien, and Spanish & 133h / 72000 & 161 & 2006\\     \midrule
+    CU-CHLOE \cite{CH-CHLOE} & English & Cantonese and Mandarin & - & 210 & 2007\\    \midrule
+    % CSLU \cite{CSLU} & English & 22 countries & - / 5000 & - & 2007\\    \midrule
+    EURONOUNCE \cite{euronounce} & Polish & German & / 721 & 18 & 2009\\    \midrule
+    iCALL \cite{chen2015icall} & Mandarin & 24 countries & 142 / 90841 & 305 & 2015$^+$\\    \midrule
+    SingaKids-Mandarin \cite{singa} & Mandarin & Singaporean (English) & 125h & 255 & 2016$^+$\\    \midrule
+    SHEFCE \cite{shefce} & English, Cantonese & English, Cantonese & 25h & 31 & 2017$\ast$ \\    \midrule
+    VoisTUTOR \cite{voistutor} & English & Kannada, Malayalam, Telugu, Tamil, Hindi and Gujarati & 1676 & 16 & 2019\\    \midrule
+    EpaDB \cite{epadb} & English & Spanish &  / 3200 & 50 & 2019$^+$\\    \midrule
+    SELL-CORPUS  \cite{sell-corpus}  & English & Chinese & 31.6 & 389 & 2019$\ast$\\    \midrule
+    L2-ARCTIC  \cite{L2-ARCTIC} & English & Hindi, Korean, Mandarin, Spanish, and Arabic & $3.66$h & 24  & 2018 (v5 2020)$\ast$ \\       \midrule
+    SpeechOcean762 \cite{speechocean762}  & English & Chinese & / 5000 & 250 & 2021$\ast$\\    \midrule
+    LATIC \cite{mqtj-qh10-21} & Chinese & Russian, Korean, French, and Arabic & 4 / 2579 & 4 & 2021$\ast$\\\midrule
+    Arabic-CAPT \cite{algabri2022mispronunciation} & Arabic & India, Pakistan, Indonesia, Nepal, Afghanistan, Bangladesh, Nigeria, Uganda & 2.36h / 1611 & 62 & 2021\\ \midrule
+    AraVoiceL2 \cite{speechblender} & Arabic & Turkey, Nigeria, Bangladesh, Indonesia, Malaysia & 5.5h / 7062 & 11 & 2022\\
+    \midrule
+    \midrule
+  \end{tabularx}
+  \newline
+  }
+    \caption{Available Datasets. * represent publicly available dataset, + is available on request. Dur: Total Duration in hrs. Utt: Total number of utterances.} %MD Annotated Datasets. This table is sorted by release year. Blanks indicate unavailable information.
+    \label{tab:datasets}
+\end{table}
+
+% \paragraph{Data Augmentation Approaches:}
+
+% While there have been advancements in scoring approaches for MD, the exploration of data augmentation techniques to enhance segmental and supra-segmental pronunciation error detection remains limited. 
+
+% One significant challenge observed in these datasets is the scarcity of data, which is compounded by the extensive time and expertise required for human annotation. To address these challenges, various augmentation and generation techniques are proposed. These methods aim to overcome data scarcity and hypothesize non-native mispronunciations in order to supplement the existing datasets. In \cite{text-aug}, a simple text-augmentation is proposed to overcome the scarcity at phoneme level, by randomly repalcing phonemes in the reference text and associate with a good speech, replacing vowels and consonants based on L2-ARCTIC statistics \cite{L2-ARCTIC}, and substituting phonemes with commonly confused counterparts. This augmentation has shown promising results, yet it's limited as it's not generating any speech, or features. In \cite{mixup}, inspired by the success of mixup in image classification, a new mixup of speech features is proposed to enhance word level scoring, by creating word features from mixup randomly phoneme level features selected from training corpus. this method primarily rely on reusing existing information without generating new variations at the phoneme level. To overcome these limitations, SpeechBlender \cite{speechblender} is introduced as a fine-grained data augmentation pipeline specifically designed to generate mispronunciation classes in low-resource settings using only good pronunciations, The SpeechBlender utilizes varieties of masks to target different regions of phonetic units and use the mixing factors to linearly interpolate raw speech signals. Likewise, \cite{zhang2022l2} propose L2-GEN, a novel framework for generating annotated synthetic L2 Speech generation framework. L2-GEN can synthesize realistic L2 phonemes sequences by building a novel Seq2Seq phoneme paraphrasing model. From Supra-segmental point of view, In \cite{7953214}, a proposed an augmentation technique based on applying voice transformations to the training data that modify the pitch baseline and range, as well as the vocal-tract and vocal-source characteristics of the speakers to generate further training examples, is shown to be effective on a classification task of prosodic and pitch accent using a RNN classifier. Moreover, Korzekwa et al. \cite{Korzekwa2020DetectionOL} propose an augmentation technique by setting incorrectly stressed words generated with Neural TTS.
+
+% V1
+% One significant challenge observed in present datasets is the scarcity of data, which is further compounded with the extensive time and expertise required for human annotation. To tackle these challenges, researchers have proposed various augmentation and generation techniques. These methods aim to address data scarcity and hypothesize non-native mispronunciations to supplement the existing datasets. For instance, in recent studies, innovative approaches have been introduced. In \cite{text-aug}, a straightforward text augmentation technique is proposed to overcome scarcity at the phoneme level. This approach involves randomly replacing phonemes in the reference text and associating them with good pronounced speech samples. Vowels and consonants are replaced based on L2-ARCTIC statistics \cite{L2-ARCTIC}, and phonemes are substituted with commonly confused counterparts. Although this augmentation method has shown promising results, it is limited as it does not generate any new speech features. Inspired by the success of MixUP in image classification, \cite{mixup} introduces a mixup technique for speech features to enhance word-level scoring. This method involves creating word features by mixing randomly selected phoneme-level features from the training corpus. It primarily relies on reusing existing information without generating new variations at the phoneme level. To overcome this, a fine-grained data augmentation pipeline called SpeechBlender \cite{speechblender} is introduced. This pipeline is specifically designed to generate mispronunciation classes using only good pronunciations. The SpeechBlender utilizes a variety of masks to target different regions of phonetic units and applies mixing factors to linearly interpolate raw speech signals.
+% Similarly, L2-GEN \cite{Zhang2022L2} proposes a novel framework for generating annotated synthetic L2 speech. It can synthesize realistic L2 phoneme sequences by utilizing a novel Seq2Seq phoneme paraphrasing model. From a supra-segmental perspective, an effective augmentation technique based on voice transformations is presented in \cite{7953214}. This technique modifies the pitch baseline and range, as well as the vocal-tract and vocal-source characteristics of the speakers to generate additional training examples. It has been shown to be effective in a classification task of prosodic and pitch accent using an RNN classifier. Additionally, Korzekwa et al. \cite{Korzekwa2020DetectionOL} propose an augmentation technique by generating incorrectly stressed words using Neural TTS.
+
+% Overall, these innovative approaches and techniques address the scarcity of data and the need for human annotation in present datasets. They provide effective ways to augment and generate data, leading to improved performance and accuracy in various speech-related tasks.
+
+% \paragraph{Segmental Approaches:}
+
+% To address the scarcity of the data, a text-augmentation technique is proposed in \cite{text-aug} to overcome the scarcity at phoneme level. To generate more positive samples, good pronunciation speech samples are paired with an augmented text. The text-augmentation block includes randomly replacing phonemes in the original text, replacing vowels and consonants based on L2-ARCTIC statistics \cite{L2-ARCTIC}, and substituting phonemes with commonly confused counterparts. This simple text-based augmentation technique exhibits a significant increase in the F1-score, rising from 52.2\% to 56.06\% in F1-measure. Recent work \cite{mixup} has also demonstrated notable improvements in word-level pronunciation scoring by utilizing mixup of phoneme deep acoustic features, inspired by the success of mixup in image classification. The artificial augmented word samples are created by selecting phonemes from a lexicon and randomly sampling corresponding phone-level features deep acoustic features from the training data. The score for these augmented words is computed as the average of their selected phoneme scores. 
+
+% % Although the aforementioned techniques simulate mispronunciation errors by replacing phoneme units in different text, feature, their effectiveness may be limited as these methods primarily rely on reusing existing information without generating new variations at the phoneme level. To overcome these limitations, SpeechBlender \cite{speechblender} is introduced as a fine-grained data augmentation pipeline specifically designed to generate mispronunciation classes in low-resource settings using only good pronunciations, The SpeechBlender utilizes varieties of masks to target different regions of phonetic units and use the mixing factors to linearly interpolate raw speech signals while augmenting pronunciation. The masks facilitate smooth blending of the signals, generating more effective samples than the ‘Cut/Paste’ method. Likewise, \cite{zhang2022l2} propose L2-GEN, a novel framework for generating annotated synthetic L2 Speech generation framework. L2-GEN can synthesize realistic L2 phonemes sequences by building a novel Seq2Seq phoneme paraphrasing model.
+
+% \paragraph{Supra-segmental Approaches:}
+
+% In \cite{7953214}, a proposed an augmentation technique based on applying voice transformations to the training data that modify the pitch baseline and range, as well as the vocal-tract and vocal-source characteristics of the speakers to generate further training examples, is shown to be effective on a classification task of prosodic and pitch accent using a RNN classifier. Moreover, Korzekwa et al. \cite{Korzekwa2020DetectionOL} propose an augmentation technique by setting incorrectly stressed words generated with Neural TTS.
+
+
+
+% \textit{Although there have been advancements in the scoring approaches, and features used for MDD, research on data augmentation techniques to improve segmental and supra-segmental pronunounciation error detection is limited. 
+
+% One major challenge faced by current techniques and models is the issue of imbalanced distribution of the dataset labels, with a lack of bad pronunciation samples particularly those with accents, and a surplus of good pronunciation samples.
+
+% The text-augmentation was proposed in \cite{text-aug}. A positive sample is defined as a mispronounced phone, and a negative sample is one that is canonical. To make more positives samples, good pronunciation features in acoustic spaces were attached with an augmented text The text-augmentation block can be done as follows: 
+
+% \begin{itemize}
+%     \item randomly replacing phonemes in the prior text with other phonemes or a silence symbol
+%     \item replacing vowels and consonants with other vowels and consonants based on L2-ARCTIC statistics \cite{L2-ARCTIC}.
+%     \item replacing phonemes in the reading text with their commonly confused counterparts.
+% \end{itemize}
+
+
+% This simple text-based augmentation technique proposed by \cite{text-aug}, showed a significant increase in F1-score from 52.2\% to 56.06\%. 
+% Recent work showed a significant improvement in word-level pronunciation scoring using mixup of phoneme deep acoustic features, drawing inspiration from the success of mixup in image classification.
+
+% The artificial augmented word samples are created by selecting phonemes from a lexicon and randomly sampling corresponding phone-level features from the training data. The score for these augmented words is computed as the average of their phoneme GOP scores.
+
+% The techniques previously mentioned simulate mispronunciation errors by replacing a target phoneme unit in a different text, feature, or audio space. However, these methods may not be as effective because they do not take into account the influence of a learner's native phoneme set, and they simply reuse existing information without generating new variations at the phoneme level. 
+% }
+% The \textbf{SpeechBlender} is a fine-grained data augmentation pipeline, designed to generate mispronunciation classes in low-resource settings\footnote{Presence of a few or zero erroneous pronunciation examples in the data.}.
+
+
+
+% \begin{table*}[htbp]
+%   \centering
+%   \setlength{\tabcolsep}{7pt} % Adjust the spacing between columns
+%   \renewcommand{\arraystretch}{1.5} % Adjust the spacing between rows
+%   \begin{tabularx}{\textwidth}{p{6cm}cccc}
+  
+%   % {*{6}{>{\centering\arraybackslash}X}}
+%     \toprule
+%     Corpus & Languages & Dur / \#Utt & \#Speakers & Date  \\
+%     \midrule
+%     \midrule
+%     Boulder Learning—MyST Corpus \cite{boulder} & English & 393h / 228874 & 1371 & 2019\\    \midrule
+
+%     CMU Kids Corpus \cite{cmu} & English & / 5180 & 76 & 1997\\    \midrule
+
+%     PF-STAR Children's Speech Corpus \cite{pfstar} & English & 14.5h & 158 & 2006\\    \midrule
+
+%     CALL-SLT \cite{callslt} & German & 5000 & - & 2014\\\midrule
+%     TBALL \cite{tball} & English & 40h / 5000 & 256 & 2005\\    \midrule
+
+%     CASS\_CHILD \cite{casschild} & Mandarin & - & 23 & 2012\\    \midrule
+
+%     CU Children's Read and Prompted Speech Corpus \cite{cu_children} & English & 100 & 663 & 2001\\\midrule
+%     CU Story Corpus \cite{cu_children} & English & 40h / 7062 & 106 & 2003\\    \midrule
+
+%     Providence Corpus \cite{providence_corpus} & English & 363h & 6 & 2006\\    \midrule
+
+%     Lyon Corpus \cite{lyon} & French & 185h & 4 & 2007\\ \midrule
+%     Demuth Sesotho Corpus \cite{demuth1992acquisition} & Sesotho & 98h / 13250 & 4 & 1992\\    \midrule
+
+%     CHIEDE \cite{chiede} & Spanish & 8h / 15444 & 59 & 2008\\    \midrule
+
+%     TIDIGITS \cite{tidigits} & English & - & 326 & 1993\\    \midrule
+
+%     Swedish NICE Corpus \cite{swedish} & Swedish & - & 5580 & 2005\\    \midrule
+
+%     CFSC \cite{CFSC} & Filipino & 8h & 57 & 2012 \\
+%     \midrule
+%     TLT-school \cite{gretter2020tlt} & English and German & ~119.1h / 26059 & 6547 & 2016-2017 \\
+%     \midrule
+%     \midrule
+%   \end{tabularx}
+%   \newline
+%     \caption{L2 Speech Datasets}
+
+% \end{table*}
+
+
+
+% \section{Human Annotation}
+% In this section, we provide an overview of the standard approaches to annotate segmental and supra-segmental errors widely used in MDD research. 
+
+% \subsection{Annotation Keys}
+
+% \subsection{Segmental Annotation}
+
+% Segmental human annotation can be approached from two perspectives. The first and the commonly utilized approach in most available MDD corpora involves linguistics experts transcribing the actual sequence of phonemes spoken by the learner \cite{bonaventura2000phonetic, zhao2018l2, vidal2019epadb}. The resulted transcription is commonly referred as hypothesis annotation. Additionally, extra tasks can be incorporated, such as providing time boundaries for each pronounced phoneme, to further enhance the annotation process. This approaches may have limitations in capturing non-clear speech instances, such as heavily accented pronunciations that may not be easily detected by human annotators. This leads to the second approach, which incorporates scoring-based methods in addition to hypothesis annotation \cite{zhang2021speechocean762}. In this approach, a score is assigned to each phoneme: $0$ represents deleted or mispronounced phonemes, $1$ indicates heavily accented pronunciation, and $2$ signifies good pronunciation. This scoring-based approach provides a more comprehensive assessment of pronunciation quality, particularly in cases where clear detection by human annotators may be challenging.
+
+% % Segmental errors annotation is a major task for automatic pronunication teaching and learning, yet phonetic annotations is very costly, requires time, and pointed linguistic expertise. The phoneme-level scoring requires determining the canonical phone sequence.
+
+
+% % \subsection{Supra-segmental Annotation}
+% % \label{sec:supra_anno}
+% % Limited research has been conducted regarding the annotation of supra-segmental features at the rhythm, stress, and intonation levels such as in \cite{arvaniti2000greek, chen2016singakids, cole2017crowd}. However, the ultimate objective of annotating these supra-segmental aspects is to ensure the fluency and intelligibility of L2 learners' speech. Hence the most commonly used annotated datasets at the prosodic level provide human-scored words, and sentences based on overall pronunciation quality and fluency. Multiple tiers of human scoring annotations can be applied in this context. This includes providing the accuracy of pronounced words to assess their intelligibility, assigning scores to evaluate the positioning of stress within individual words or within sentences, and evaluating sentence fluency by considering factors such as pauses, repetitions, and stammering in speech as adapted in \cite{zhang2021speechocean762}.
+
+
+
+% where $\text{{Cov}}(X, Y)$ denotes the covariance between predicted scores ($X$) and human assessment scores ($Y$), and $\sigma\_X$ and $\sigma\_Y$ represent their respective standard deviations. The resulting PCC value ranges from -1 to 1, with a value of 1 indicating a perfect positive correlation, 0 indicating no correlation, and -1 indicating a perfect negative correlation. 
+\section{Pronunciation Error Detection: Research Avenues}
+\label{sec:avenues}
+
+% Initial mispronunciation detection approaches can be broadly categorized into \textit{(i)} likelihood-based, \textit{(ii)} classifier-based, and \textit{(iii)} extended recognition networks (ERNs) based approaches. 
+% 
+\subsection{Classification based on Acoustic Phonetics}
+Classifier-based approaches has been explored both segmental and supra-segmental aspects of pronunciation. \textit{Segmental} approaches involve the use of classifiers targeting specific phoneme pair errors, utilizing different acoustic features such as MFCCs along with its first and second derivative, energy, zero-cross, and spectral features \cite{van2009automatic,huang2020mispronunciation}, with different techniques such as Linear Discriminant Analysis (LDA) \cite{truong2004automatic,strik2009comparing}, decision trees \cite{strik2009comparing}. \textit{Supra-segmental} approaches focus on detecting lexical stress and tones, utilizing features such as energy, pitch, duration, and spectral characteristics, with classifiers like GMMs \cite{ferrer2015classification}, SVMs \cite{chen2010automatic,shahin2016automatic}, and DNNs \cite{shahin2016automatic}. 
+
+\subsection{Traditional Likelihood-based Scoring and GOP Formulation}
+The initial likelihood-based MD algorithms aims to detect errors at the phoneme level using pre-trained HMM-GMM ASR models. Notably, \citet{kim1997automatic} introduce a set of three HMM-based scores, including likelihood scores, log posterior scores and segment-duration based score. Among these three, the log-based posterior scores are widely adapted due to its high correlation with human scores, and is also used to calculate the popular `goodness of pronunciation' (GOP) measure. 
+The GMM-HMM based GOP scores can be defined by $GOP(p)=P(p|O) = \frac{p(O|p) \ P(p)}{\sum_{q} \ p(O|q)\ P(q)}$,
+% the Equation \ref{eq:GOP}, 
+representing the posterior probability of a target phone $p$ given a sequence of acoustic features $O$, considering a set of phones $Q$.
+Moreover, these scores are further improved using forced alignment framework \cite{kawai1998call}. More details are presented in \citet{GOP_WITT}. 
+
+
+
+
+
+
+
+% while Kawai et al. \cite{kawai1998call} utilize log-likelihood scores within a forced alignment framework. These scoring approaches primarily involve comparing the scores obtained from forced alignment with those obtained from Viterbi decoding at the phoneme level, with the objective of identifying discrepancies. 
+
+% In a comprehensive study by Witt et al. \cite{GOP_WITT}, a thorough overview of diverse likelihood-based approaches is provided, and the term "goodness of pronunciation" (GOP) is proposed, which encompasses these previously proposed likelihood-scores approaches and has gained widespread recognition within the field. Equation \ref{eq:GOP} defines the GOP based on a GMM-HMM ASR model. It represents the posterior probability of a target phone $p$ given a sequence of acoustic features $O$, considering a set of phones $Q$.
+
+% \begin{equation}
+% \label{eq:GOP}
+% \small
+% GOP(p)=P(p|O) = \frac{p(O|p) \ P(p)}{\sum_{q} \ p(O|q)\ P(q)}
+% \end{equation}
+
+
+
+
+% In this section, we focus on the research methodologies that specifically target Mispronunciation Detection (MD) in both segmental and supra-segmental aspects of speech. To begin, we provide a summary of previous approaches that have received significant attention and have been extensively studied \cite{witt2012automatic, nancy2016, zhang2020end}. Previous MD approaches can be broadly categorized into \textit{likelihood-based scoring}, \textit{classifier-based}, and \textit{extended recognition networks (ERNs)} approaches. Likelihood-based algorithms aim at detecting errors at the phoneme level using pre-trained HMM-GMM ASR models. Notably, Kim et al. \cite{kim1997automatic} introduce a set of three HMM-based scores, while Kawai et al. \cite{kawai1998call} utilize log-likelihood scores within a forced alignment framework. These likelihood-based scoring approaches primarily involve comparing the scores obtained from forced alignment with those obtained from Viterbi decoding at the phoneme level, with the objective of identifying discrepancies. In a comprehensive study by Witt et al. \cite{GOP_WITT}, a thorough overview of diverse likelihood-based approaches is provided, and the term "goodness of pronunciation" (GOP) is proposed, which encompasses these previously proposed likelihood-scores approaches and has gained widespread recognition within the field. Equation \ref{eq:GOP} defines the GOP based on a GMM-HMM ASR model. It represents the posterior probability of a target phone $p$ given a sequence of acoustic features $O$, considering a set of phones $Q$.
+
+% \begin{equation}
+% \label{eq:GOP}
+% \small
+% GOP(p)=P(p|O) = \frac{p(O|p) \ P(p)}{\sum_{q} \ p(O|q)\ P(q)}
+% \end{equation}
+
+% In classifier-based approaches, researchers have explored both segmental and supra-segmental aspects of pronunciation. Segmental approaches involve the use of classifiers targeting specific phoneme pair errors, utilizing different acoustic features such as MFCCs along with its first and second derivative, energy, zero-cross, and spectral features \cite{van2009automatic,huang2020mispronunciation}, with different techniques such as Linear Discriminant Analysis (LDA) \cite{truong2004automatic,strik2009comparing}, decision trees \cite{strik2009comparing}. Supra-segmental approaches focus on detecting lexical stress and tones, utilizing features such as energy, pitch, duration, and spectral characteristics, with classifiers like GMMs \cite{ferrer2015classification}, SVMs \cite{chen2010automatic,shahin2016automatic}, and DNNs \cite{shahin2016automatic}. On the other hand, ERNs leverage enhanced lexicons in combination with ASR systems. They cover canonical transcriptions as well as error patterns, enabling the detection of mispronunciations beyond standard transcriptions \cite{meng2007deriving,ronen1997automatic,qian2010capturing,li2016using}. 
+
+% While these previous approaches have shown promise in addressing MD, new and innovative methodologies have emerged in recent years, which we explore in the subsequent sections.
+
+% With advancement of deep learning technology and high power computation, the field of pronunciation assessment has also undergone a transformative shift. Below, we explore the new research direction taken for automatic pronunciation  assessment.
+
+% These previous approaches have demonstrated promise in addressing pronunciation error detection, although each approach has its own strengths and limitations.
+
+% In this section, we focus on the research methodologies that specifically target MD in both segmental and supra-segmental aspects of speech. To begin, we provide a summary of previous approaches that have received significant attention and have been extensively studied in \cite{witt2012automatic, nancy2016, zhang2020end}. Following that, we explore novel and innovative approaches in the subsequent section.
+
+% As decipted in previous works \cite{witt2012automatic, nancy2016, zhang2020end}, previous MD approaches can be broadly categorized into likelihood-based scoring, classifier-based approaches and extended recognition networks (ERNs). Various likelihood-based algorithms aim at detecting errors at the phoneme level using pre-trained HMM-GMM ASR models. Notably, Kim et al. \cite{kim1997automatic} introduce a set of three HMM-based scores, while Kawai et al. \cite{kawai1998call} utilise log-likelihood scores within a forced alignment framework. These likelihood-based scoring approaches primarily involve comparing the scores obtained from forced alignment with those obtained from Viterbi decoding at the phoneme level, with the objective of identifying discrepancies. In a comprehensive study by Witt et al. \cite{GOP_WITT}, a thorough overview of diverse likelihood-based approaches is provided, the term "goodness of pronunciation" (GOP) is proposed then which encompasses these previous proposed likelihood-scores approaches and has gained widespread recognition within the field. Equation \ref{eq:GOP} defines the GOP based on a GMM-HMM ASR model. It represents the posterior probability of a target phone $p$ given a sequence of acoustic features $O$, considering a set of phones $Q$.
+% \begin{equation}
+% \label{eq:GOP}
+% \begin{small}
+% GOP(p)=P(p|O) = \frac{p(O|p) \ P(p)}{\sum_{q} \ p(O|q)\ P(q)}
+% \end{small}
+% \end{equation}. In classifier-based approaches, researchers have explored segmental and supra-segmental aspects of pronunciation. Segmental approaches involve the use of classifiers targeting specific phoneme pair errors, utilizing techniques such as Linear Discriminant Analysis (LDA) \cite{truong2004automatic,strik2009comparing}, decision trees \cite{strik2009comparing}, and acoustic phonetic features \cite{van2009automatic,huang2020mispronunciation}. Supra-segmental approaches focus on detecting lexical stress and tones, utilizing features such as energy, pitch, duration, and spectral characteristics, with classifiers like Gaussian Mixture Models (GMMs) \cite{ferrer2015classification}, Support Vector Machines (SVMs) \cite{chen2010automatic,shahin2016automatic}, and Deep Neural Networks (DNNs) \cite{shahin2016automatic}. On the other hand, ERNs leverage enhanced lexicons in combination with Automatic Speech Recognition (ASR) systems. They cover canonical transcriptions as well as error patterns, enabling the detection of mispronunciations beyond standard transcriptions \cite{meng2007deriving,ronen1997automatic,qian2010capturing,li2016using}. These previous approaches have demonstrated promise in addressing pronunciation error detection, although each approach has its own strengths and limitations.
+
+% \begin{figure}
+%   \centering
+%   \begin{tikzpicture}[x=0.5cm, y=0.5cm]
+%     \draw[->,thick] (0,0) -- (12,0) node[right] {Year};
+%     \foreach \x/\year in {0/2000,2/2002,4/2004,6/2006,8/2008,10/2010,12/2012} {
+%       \draw (\x,0.1) -- (\x,-0.1) node[below] {\year};
+%     }
+    
+%     \draw (2,2) node[circle,fill,inner sep=1.5pt,label=above:Paper 1] {};
+%     \draw (6,2) node[circle,fill,inner sep=1.5pt,label=above:Paper 2] {};
+%     \draw (10,2) node[circle,fill,inner sep=1.5pt,label=above:Paper 3] {};
+    
+%     \draw[->,thick] (2,2.5) -- (2,0.5);
+%     \draw[->,thick] (6,2.5) -- (6,0.5);
+%     \draw[->,thick] (10,2.5) -- (10,0.5);
+%   \end{tikzpicture}
+%   \caption{Timeline of Papers}
+%   \label{fig:timeline}
+% \end{figure}
+
+\begin{figure*} [!ht]
+% \centering
+\includegraphics[width=1.15\textwidth]{emnlp2023-latex/avenues.png}
+\caption{A selection of papers discussed in Section . The papers are categorized as segmental or supra-segmental}
+\label{fig:avenues}
+\end{figure*}
+
+% \subsection{Previous Works}
+Extended Recognition Network (ERN) leverage enhanced lexicons in combination with ASR systems. They cover canonical transcriptions as well as error patterns, enabling the detection of mispronunciations beyond standard transcriptions \cite{meng2007deriving,ronen1997automatic,qian2010capturing,li2016using}. 
+
+More detailed on these prior approaches are presented in \cite{witt2012automatic, nancy2016, zhang2020end}.
+
+\subsection{Reformulation of GOP}
+% \subsubsection{Segmental:}
+\paragraph{Segmental:}
+% Various likelihood-based algorithms aim at detecting errors at the phoneme level using pre-trained HMM-GMM ASR models. Notably, Kim et al. \cite{kim1997automatic} introduce a set of three HMM-based scores, while Kawai et al. \cite{kawai1998call} utilise log-likelihood scores within a forced alignment framework. These likelihood-based scoring approaches primarily involve comparing the scores obtained from forced alignment with those obtained from Viterbi decoding at the phoneme level, with the objective of identifying discrepancies. In a comprehensive study by Witt et al. \cite{GOP_WITT}, a thorough overview of diverse likelihood-based approaches is provided, the term "goodness of pronunciation" (GOP) is proposed then which encompasses these previous proposed likelihood-scores approaches and has gained widespread recognition within the field. Equation \ref{eq:GOP} defines the GOP based on a GMM-HMM ASR model. It represents the posterior probability of a target phone $p$ given a sequence of acoustic features $O$, considering a set of phones $Q$.
+
+% \begin{equation}
+% \label{eq:GOP}
+% \begin{small}
+% GOP(p)=P(p|O) = \frac{p(O|p) \ P(p)}{\sum_{q} \ p(O|q)\ P(q)}
+% \end{small}
+% \end{equation}
+
+\citet{normalized} are first to propose a more effective reformulation of the base formulation of the GOP score . They introduce a scaling factor by normalizing the log-posteriors, as shown in Equation \ref{eq:probas}. This approach enhances the computation of the GOP score.
+
+\begin{equation} 
+    \label{eq:probas} 
+    \begin{small} 
+        GOP_r(p) = |\frac{p(o_t|p) P(p)}{\max_q p(o_t|q)}|
+    \end{small} 
+\end{equation}
+
+Luo et al. develop a formulation of GOP by utilizing the selected state sequence obtained from the forward-backward algorithm \cite{luo2009analysis}. Building upon this formulation, Wang et al. adopt the GOP framework and incorporate error pattern detectors for phoneme mispronunciation diagnosis tasks \cite{wang2012improved}. Besides, and with the emergence of DNN in the field of ASR, Hu et al. demonstrate that using a DNN-HMM ASR for GOP yields improved correlation scores of 22\% and 15\% at the word and sentence levels, respectively, surpassing non-DNN models and GMM-HMM based acoustic models \cite{DNN1, DNN4, DNN5}. 
+
+The GOP and its reformulation represent a significant milestone. It leverages pre-trained acoustic models on L1 and/or L2 without necessitating any L2 knowledge. Furthermore, it offers the advantage of being computationally efficient to calculate. However, it is important to note that these scores lack context-aware information that is crucial for accurate pronunciation analysis. To overcome this, Shi et al. \cite{CA-GOP} propose a context-dependent duration model to predict the duration of a given phoneme sequence. They introduce a duration factor, denoted as $\alpha_i$, which represents the phonetic mismatch between the reference and test utterances. Furthermore, a contextual factor called the Transition Factor is proposed by incorporating phone transitions inspired by the concept of entropy in information theory, as depicted in Equations \ref{eq:entropy} and \ref{eq:TA}. The formulated GOP score combines all the contextual scores, as illustrated in Equation \ref{eq:CAGOP}.
+
+\begin{equation} 
+    \label{eq:entropy} 
+    \begin{small} 
+        E_t = - \sum p(q_i|y_t)\: log(p(q_i|y_t)) 
+    \end{small}
+\end{equation} 
+
+\begin{equation} 
+    \label{eq:TA} 
+    \begin{small} 
+    TAScore(q_i) = \sum_{t} \frac{\frac{1}{E_t}}{\sum_{t'} \frac{1}{E_{t'}}} log (p(q_i|y_t)) 
+    \end{small} 
+\end{equation}
+
+\begin{equation} 
+    \label{eq:CAGOP} 
+    \begin{small} 
+    GOP(q_i) = (1-\alpha_i) * \: TAScore(q_i) 
+    \end{small} 
+\end{equation} 
+
+
+Likewise, Sudhakara et al. present a context-aware GOP formulation by adding phoneme state transition probabilities (STP) to the GOP score calculation \cite{STP}. This modification, shown in Equation \ref{eq:STP}, leads to a significant improvement in computer-human correlation compared to the original GOP formulation, assuming all phonemes are equally likely.
+
+\begin{equation} 
+    \label{eq:STP} 
+    \begin{small} 
+        GOP(q_i) = \frac{1}{d_i} [log \: P(q_i|y_t) + log \: P(q_i|q_{i-1})] 
+    \end{small} 
+\end{equation} 
+
+% The GOP represents a significant milestone. It leverages pre-trained acoustic models on L1 and/or L2 without necessitating any L2 knowledge. Furthermore, it offers the advantage of being computationally efficient to calculate.
+
+While efforts have been made to improve the GOP, it is important to acknowledge that the GOP score still has limitations, specifically in its ability to identify specific types of mispronunciation errors. 
+
+
+% \subsubsection{Supra-segmental:}
+\paragraph{Supra-segmental:}
+To evaluate the overall accuracy of a word or sentence, one common approach is to calculate the average GOP scores across phonemes \cite{kim1997automatic, STP}. However, relying solely on averaging GOP scores at the phoneme level is limited to assess prosodic features accurately. To address this limitation, a novel method proposed in \cite{10042421} suggests combining GOP scores for prosodic, fluency, completeness, and accuracy. This approach involves utilizing context-aware GOP in conjunction with dynamic time warping (DTW) matching of pitch contours. Specifically, a weighted average of the context tokens found in the audio file is used to compute the combined GOP scores, enabling a more comprehensive assessment of the word and the sentence. Besides, and inspired from GOP, \cite{tong2015goodness} propose Goodness of Tone (GOT) by computing a vector of confidence scores for all the possible lexical tones. The GOT is based on posterior probabilities of tonal phones, and giving promising result for non-native mandarin tone assessment.
+
+% \subsection{Classifier-based approaches}
+% \paragraph{Segmental Approaches:}
+% To address the challenge of identifying error types, researchers have explored the integration of classifiers that specifically target specific phoneme pair errors. These classifiers utilize different acoustic features to enhance the accuracy of mispronunciation detection. For instance, Truong et al. \cite{truong2004automatic} and Hemer Strik et al. \cite{strik2009comparing} develop classifiers using techniques such as Linear Discriminant Analysis (LDA) and decision trees using different acoustic feaures. These classifiers are designed to detect mispronunciations of specific sounds made by second language (L2) learners of Dutch. Similarly, Doremalen et al. \cite{van2009automatic} investigate the use of acoustic phonetic features, in conjunction with MFCC, to improve the classification. The same trend of investigating useful features to distinguish between specific phonemes, in this \cite{huang2020mispronunciation}, additional acoustic feature are extracted such as Duration, formant, Pitch to help distinguishing between vowels. \cite{maqsood2016complete} using SVM. 
+
+% Doremalen et al. \cite{doremalen2013automatic} propose further a newly metric  that takes into account the observed error patterns and captures relevant acoustic differences which demonstrate that error patterns contain valuable information that can be effectively utilized in weighted automatic measures of pronunciation quality. 
+
+
+% Franco et al. \cite{franco2014adaptive} have built two systems are developed: one based on Bayesian adaptation of Gaussian Mixture Models (GMMs) and likelihood-ratio-based detection, and another system based on Support Vector Machines (SVM) classification of supervectors derived from adapted GMMs. suggests that incorporating model adaptation and discriminative modeling techniques can enhance the automatic detection of specific phone mispronunciations by nonnative speakers. 
+
+% Maqsood et al \cite{maqsood2017comparative} used Mel-frequency cepstral coefficients (MFCCs) along with its first and second derivative, energy, zero-cross, spectral features and pitch to classify most confusing Arabic phoneme pairs, four different machine learning classifiers were compared, the results showed that Random Forest outperforms all other methods by a significant margin. 
+
+
+% This approach demonstrate its efficacy in detecting segmental mispronunciation errors of specific phones pairs. However, a drawback of this approach is that it requires prior knowledge of the mispronunciation rules specific to the given language pair.
+
+% \paragraph{Supra-segmental Approaches:}
+% The classifier-based approach is the most proposed, to detect lexical stress and tones. Most of the existing approaches  are based on carefully designed features that are extracted from fixed regions of speech signal such as the syllable nucleus. \cite{ferrer2015classification} proposes a GMM model to capture the distribution of acoustic features to classify unstressed vowels, primary stress on vowels, and secondary stress on vowels of L1-English and L1-Japanese speakers. The features include normalized energy, pitch, spectral tilt, and duration measurements, along with log-posterior probabilities derived from frame-level MFCCs. \cite{chen2010automatic} investigate differential frame acoustic features to classify  the lexical stress of polysyllabic words using SVMs for Chinese L2-English learners. Likewise, \cite{shahin2016automatic} propose two DNN stress classifiers using intensity, duration, pitch, and energies various frequency bands and showed its efficacy on L1-English and L1-Arabic learners. For tones classification, the majority of classifier-based approaches depend on force-aligned syllable boundaries. Subsequently, they employ either frame-level tonal features \cite{zhang2004tone, cheng2012automatic} or segmental-level tonal features such as slope and mean pitch \cite{wang2008tone, liao2010decision} within each syllable to train tone classifiers. Examples of such classifiers include DNN \cite{wang2008tone}, hidden Markov models (HMM) \cite{zhang2004tone}, or decision trees \cite{liao2010decision}.
+
+
+
+
+% \subsection{Extended Recognition Networks}
+% \paragraph{Segmental Approaches:}
+% ERNs employ ASR with an enhancement of lexicon with additional and possible error patterns, so ERNs cover not only the canonical transcriptions but also error patterns as well obtained from experts or hand-crafted \cite{meng2007deriving, harrison2008improving, harrison2009implementation}, or extracted from non-native speech transcriptions \cite{lo2010automatic}. Ronen et al. \cite{ronen1997automatic} are the first to explore this approach by constructing mispronunciation networks comprising two sets of phone-based acoustic models. These models are specifically trained on native and non-native speech, respectively. The selection of the optimal path, characterized by the highest probability, is performed among these two models. In subsequent research, Qian et al. \cite{qian2010capturing, qian2011mispronunciation} introduce two approaches for generating potential error patterns caused by letter-to-sound conversion, utilizing a joint-sequence multi-gram model (JSM) \cite{bisani2008joint}. The JSM is trained on pairs of target words. The first approach, phoneme-to-likely-pronunciation (P2PL), and the second approach, grapheme-to-likely-pronunciation (G2LP), aim to capture different aspects of mispronunciations. G2LP demonstrates a wider coverage of mispronunciations and exhibits superior recognition performance compared to P2PL.
+
+% \paragraph{Supra-segmental Approaches:}
+
+% Li et al. \cite{li2016using} investigate a DNN tone-based ERNs approach to Mandarin tone recognition and tone mispronunciation detection. They construct a the metwork by assigning five different tones to each toneless syllable, thereby obtaining a fully expanded tonal syllable network.
+
+
+
+
+% Lee et al. \cite{6424254}
+% investigate firstly a compraison-based approach analyzes the degree of misalignment between a student’s speech and a teacher’s without requiring linguistic knowledge, further, Lee et al \cite{lee2015mispronunciation, lee2016personalized} investigate mispronunication error discorvery without non-native training data, and without expert inputs by just analyzing indivudual lerners acoustic similatries across their utterances subsequently, then they propose an nbest nbest filtering to disambiguate uncertain
+% error candidate hypotheses obtained from acoustic similarity clustering. In \cite{mao2018unsupervised}, they propose an unsupervised method to extended phoneme Set in L2 speech and then apply k-means clustering on phoneme based phonemic posterior-grams (PPGs) generated through DNN-based acoustic-phonemic model (APM). Recently, in \cite{sini2023phone}, a weighted DTW aignmnet using introduced an alternative to the GOP algorithm for pronunciation predicted PPG and the sequence of target phonemes is proposed achieving comparable results to the GOP scoring. 
+
+
+
+% investigates the discovery of an Extended Phoneme Set in L2 speech (L2-EPS) which includes both categorical and non-categorical
+% phoneme segments. We cluster L2 speech frames [19, 20], and then analyze the clustering results to obtain the L2-EPS. Finally, we
+% design experiments to verify the existence of non-categorical
+% phonemes in the L2-EPS.
+
+% A COMPARISON-BASED APPROACH TO MISPRONUNCIATION DETECTION
+% In this paper, we present our efforts to build a mispronunciation detection system that analyzes the degree of misalignment between a student’s speech and a teacher’s without
+% requiring linguistic knowledge.
+
+% This work aims to discover an Extended Phoneme Set for L2
+% speech, to achieve better coverage beyond the canonical L1
+% phoneme set. We apply k-means clustering on phoneme based phonemic posterior-grams (PPGs) generated through
+% DNN-based acoustic-phonemic model (APM). 
+
+
+% This work aims to discover an Extended Phoneme Set for L2 speech, to achieve better coverage beyond the canonical L1 phoneme set. We apply k-means clustering on phoneme based phonemic posterior-grams (PPGs) generated through DNN-based acoustic-phonemic model (APM). 
+
+% \subsubsection{Deep Neural Networks}
+% \subsubsection{Acoustic based Networks}
+
+
+% \subsection{Recent Works}
+% \subsection{GOP reformulations}
+
+% % Zhang et al. \cite{normalized} are the first to propose a reformulation of the base formulation of GOP, where they use scaled log-posteriors instead of posteriors to compute the score, as depicted in Equation \ref{eq:probas}. Building upon this reformulation, Luo et al. \cite{luo2009analysis} develop a formulation of GOP by utilizing the selected state sequence derived from the forward-backward algorithm. This approach leverages the state sequence information to enhance the GOP score calculation. Expanding on the base GOP formulation, Wang et al. \cite{wang2012improved} incorporate error pattern detectors for phoneme mispronunciation diagnosis tasks. They adopt the GOP formulation and introduce additional measures to capture error patterns effectively. Haricio et al. \cite{posterior2} extend the GOP score by incorporating segment duration and timing scores, which result in increased computer-human consistent correlation. The duration score, computed using a discrete distribution of durations for the corresponding context-independent phone, is represented by Equation \ref{eq:duration}. To improve the estimation of the duration score, Qin et al. \cite{CA-GOP} propose a context-dependent duration model. Instead of statistically computing the duration score, they predict the duration for a given phoneme sequence using a duration factor $\alpha_i$. This factor represents the phonetic mismatch between the reference and test utterances, adding a contextual dimension to the GOP formulation. Furthermore, Sudhakara et al. \cite{STP} introduce a context-aware GOP formulation by incorporating phoneme state transition probabilities (STP) in the GOP score calculation. This modification, as shown in Equation \ref{eq:STP}, leads to a significant increase in computer-human correlation compared to the original GOP formulation. The inclusion of STP accounts for the likelihood of phone transitions, improving the sensitivity of the GOP score to phoneme errors. With the advancement of DNN models in Speech Technology, Hu et al. \cite{DNN1, DNN4, DNN5} adapt the GOP formulation to suit DNN-HMM terminologies. They utilize senone posterior probabilities instead of phoneme probabilities, resulting in improved correlation between the computer-based GOP scores and human scores. This adaptation leverages the superior modeling capabilities of DNNs and outperforms non-DNN models and GMM-HMM based acoustic models.
+
+% % Overall, these reformulations and adaptations of the GOP formula highlight the continuous efforts to enhance the accuracy and effectiveness of phoneme mispronunciation assessment. The incorporation of additional contextual factors, such as duration scores, timing scores, and state transition probabilities, contributes to a more comprehensive evaluation of pronunciation errors in speech processing systems.
+
+% Zhang et al. \cite{normalized} propose a more effective reformulation of the base formulation of the GOP score formulation. They introduce a scaling factor by normalizing the log-posteriors, as shown in Equation \ref{eq:probas}. This approach enhances the computation of the GOP score.
+
+% \begin{equation} 
+%     \label{eq:probas} 
+%     \begin{small} 
+%         GOP_r(p) = |\frac{p(o_t|p) P(p)}{\max_q p(o_t|q)}|
+%     \end{small} 
+% \end{equation}
+
+% Luo et al. \cite{luo2009analysis} develop a formulation of GOP by utilizing the selected state sequence obtained from the forward-backward algorithm. Building upon this base formulation, Wang et al.  \cite{wang2012improved} adopt the GOP framework and incorporate error pattern detectors for phoneme mispronunciation diagnosis tasks. Hu et al. \cite{DNN1, DNN4, DNN5} demonstrate that using a DNN-HMM trained acoustic model for GOP yields improved correlation scores of 22\% and 15\% at the word and sentence levels, respectively, surpassing non-DNN models and GMM-HMM based acoustic models. Recently, Qin et al. \cite{CA-GOP} propose a context-dependent duration model to predict the duration of a given phoneme sequence. They introduce a duration factor, denoted as $\alpha_i$, which represents the phonetic mismatch between the reference and test utterances. Furthermore, a contextual factor called the Transition Factor is proposed by incorporating phone transitions inspired by the concept of entropy in information theory, as depicted in Equations \ref{eq:entropy} and \ref{eq:TA}. The formulated GOP score combines all the contextual scores, as illustrated in Equation \ref{eq:CAGOP}.
+
+
+% \begin{equation} 
+%     \label{eq:entropy} 
+%     \begin{small} 
+%         E_t = - \sum p(q_i|y_t)\: log(p(q_i|y_t)) 
+%     \end{small}
+% \end{equation} 
+
+% \begin{equation} 
+%     \label{eq:TA} 
+%     \begin{small} 
+%     TAScore(q_i) = \sum_{t} \frac{\frac{1}{E_t}}{\sum_{t'} \frac{1}{E_{t'}}} log (p(q_i|y_t)) 
+%     \end{small} 
+% \end{equation}
+
+% \begin{equation} 
+%     \label{eq:CAGOP} 
+%     \begin{small} 
+%     GOP(q_i) = (1-\alpha_i) * \: TAScore(q_i) 
+%     \end{small} 
+% \end{equation} 
+
+
+% Sudhakara et al. \cite{STP} present a context-aware GOP formulation by adding phoneme state transition probabilities (STP) to the GOP score calculation. This modification, shown in Equation \ref{eq:STP}, leads to a significant improvement in computer-human correlation compared to the original GOP formulation, assuming all phonemes are equally likely.
+
+% \begin{equation} 
+%     \label{eq:STP} 
+%     \begin{small} 
+%         GOP(q_i) = \frac{1}{d_i} [log \: P(q_i|y_t) + log \: P(q_i|q_{i-1})] 
+%     \end{small} 
+% \end{equation} 
+
+
+
+
+% Zhang et al. \cite{normalized} are first to propose a more effective reformulation of the base formulation of GOP, by scaling the log-posteriors to compute the score
+
+% \begin{equation} 
+%     \label{eq:probas} 
+%     \begin{small} 
+%         GOP_r(p) = |\frac{p(o_t|p) P(p)}{\max_q p(o_t|q)}|
+%     \end{small} 
+% \end{equation}
+
+% Luo et al. \cite{luo2009analysis} develop a formulation of GOP by utilizing the selected state sequence derived from the forward-backward algorithm. Building upon the base formulation of GOP, Wang et al. \cite{wang2012improved} adopt the GOP formulation and incorporated error pattern detectors for phoneme mispronunciation diagnosis tasks. 
+
+% Instead of computing statistically the duration score, Qin et al. \cite{CA-GOP} propose a context-dependent duration model to predict the duration for the given phoneme sequence, then a duration factor $\alpha_i$ of a given phoneme $p$ in the given sequence is deducted as the phonetic mismatch between the reference and the test utterance. 
+
+% Another contextual factor is proposed, Transition Factor, that encodes the phone transition inspired by the entropy concept in information theory as shown in Equations \ref{eq:entropy} and \ref{eq:TA} \begin{equation} \label{eq:entropy} \begin{small} E_t = - \sum p(q_i|y_t)\: log(p(q_i|y_t)) \end{small} \end{equation} \begin{equation} \label{eq:TA} \begin{small} TAScore(q_i) = \sum_{t} \frac{\frac{1}{E_t}}{\sum_{t'} \frac{1}{E_{t'}}} log (p(q_i|y_t)) \end{small} \end{equation}. The formulated GOP score encapsulates all the last contextual score as shown in Equation \ref{eq:CAGOP} \begin{equation} \label{eq:CAGOP} \begin{small} GOP(q_i) = (1-\alpha_i) * \: TAScore(q_i) \end{small} \end{equation} 
+
+% Sudhakara et al. \cite{STP} propose a context-aware GOP formulation by adding phoneme state transition probabilities (STP) as shown in the Equation \ref{eq:STP} \footnote{I have adapted the given formulation to phonemes as he proposed for senones (a sub-phoneme unit)}, it leads to more than 14\% increase in computer-human correlation compared to the original formulation of GOP, it is assumed that all phoneme are equally likely. 
+% \begin{equation} 
+%     \label{eq:STP} 
+%     \begin{small} 
+%         GOP(q_i) = \frac{1}{d_i} [log \: P(q_i|y_t) + log \: P(q_i|q_{i-1})] 
+%     \end{small} 
+% \end{equation} 
+
+% Hu et al. \cite{DNN1, DNN4, DNN5} shows that GOP with DNN-HMM trained acoustic model improved the correlation computer-human score to 22\% and 15\% at word and sentence level respectively, outperforming all non-DNN models and GMM-HMM based acoustic models.
+
+\subsection{End-to-End MD}
+
+In the new era of DNNs, there are significant exploration by researchers in leveraging the power of these models and training End2End MD systems. These advancements involve various approaches such as extracting acoustic information or even utilizing raw speech directly as input. This shift towards DNN-based architectures and the utilization of acoustic features or raw speech data has revolutionized the field of MD, enabling more efficient and accurate detection of mispronunciations in speech.
+
+\paragraph{Segmental:}
+
+In \cite{li2017improving}, DNNs are trained to classify phonetic attributes such as place, manner, aspiration, voicing, and phone using FBANK vectors and their derivatives. These DNNs produce posterior probabilities which are subsequently combined with phone posterior probability. Additionally, phone-level time boundary information (using force-alignment) is incorporated as input for the LSTM mispronunciation detector. This integration enhances the performance and accuracy of the mispronunciation detection system. In contrast, \cite{kyriakopoulos2018deep} introduces a siamese network architecture with a bidirectional LSTM (BD-LSTM) model. This approach directly extracts distance metrics between pairs of phone instances from audio frames and employs them for pronunciation scoring.
+
+
+% In \cite{li2017improving}, DNNs are trained to classify phonetic attributes such as place, manner, aspiration, voicing, and phone using FBANK vectors and their derivatives. The posterior probabilities obtained from these DNNs are then incorporated with phone posterior probability along with phone- level time boundary information as input for the LSTM mispronunciation detector.  
+
+% In \cite{li2017improving}, a DNN model is proposed that utilizes an LSTM to enhance the prediction of phoneme sequences for L2 learners. The model takes a window of speech frames as input, with each frame represented by a 69-dimensional FBANK+$\delta$+$\delta\delta$ vector. Separate DNNs with 6 hidden layers classify phonetic attributes like place, manner, aspiration, voicing, and phone. The posteriors from these DNNs are used as input for the LSTM mispronunciation detector.
+
+% In \cite{li2017improving}, a DNN model is proposed, it leverages an LSTM to enhance the prediction of phoneme sequences for L2 learners. The input features is a window of speech frames, with each frame consisting of a 69-dimensional FBANK+$\delta$+$\delta\delta$ vector. These input features are fed into separate DNNs, which consist of 6 hidden layers, to classify place, manner, aspiration, voicing, and phone. The posteriors obtained from these DNNs are then utilized as input for the LSTM mispronunciation detector. In contrast, the work presented in \cite{kyriakopoulos2018deep} introduces a siamese network architecture based on a bidirectional long short-term memory (BD-LSTM) model. This approach directly extracts distance metrics between pairs of phone instances from audio frames, which are then employed for pronunciation scoring. 
+
+Furthermore, researchers have been actively exploring various research directions in the training of end-to-end DNN systems for phoneme sequence prediction from raw speech data. The availability of considerable amounts of MD datasets annotated at the phoneme level has fueled this avenue. A notable approach presented in \cite{leung2019cnn} introduces a CNN-RNN-CTC model, where the CNN is utilized to extract relevant features. The RNN captures sequential information, while the Connectionist Temporal Classification (CTC) component effectively predicts the phoneme sequence without any alignment component dependency. Furtherly, \cite{9746604}, a triplet of features consisting of acoustic, phonetic, and linguistic embeddings are fused using a similar CNN-RNN structure with an additional attention mechanism (APL). This exploration of multiple input features has shown promising results. Numerous other advancements have followed, such as architectural modifications and the adoption of transformer encoder-decoder structures instead of the CNN-RNN model. An example is presented in \cite{wu2021transformer}, where CNN layers are combined with transformer blocks. These improvements have further enhanced the performance of the models. Likewise, PEPPANET is a transformer based MD model that can jointly model the dictation process and the alignment process, and it provides corresponding diagnostic feedback \cite{10022472}. In \cite{JIM}, GOP features are explored in a multi-task framework, wherein GOP features are combined with phoneme textual embeddings to predict a range of scores, including sentence prosodic scores, word scores, and phoneme scores. The combined features serve as input for a Transformer Encoder model. Building upon this approach, a subsequent study by \cite{3M} further enhances the score predictions by incorporating additional features derived from pre-trained self-supervised learning (SSL) models, energy and duration features at the phoneme level. The same architecture is followed in \cite{fan2023multifaceted}, using a Conformer encoder instead. Zhang et al highlight two limitations of these approaches \cite{zhang2023phonetic}. Firstly, current models often assume independence in predicted phonemes using CTC, which overlooks prominent mispronunciation patterns. Secondly, these models are restricted to training data from a language-specific phoneme set, making it difficult to distinguish accented sounds not present in the predefined set. To overcome these limitations, Zhang et al propose recurrent neural network transducer RNN-T model for MD. These models capture the temporal dependence of mispronunciation patterns. Additionally, an extended phoneme set and weakly supervised training strategy are introduced to enable the model to differentiate similar-sounding phonemes from different languages.
+
+To add
+\cite{10097226}
+
+
+
+% Recent research has demonstrated promising results in the evaluation of pronunciation using scores computed with Transformer models, the approach was proposed in this paper \cite{JIM}, it utilizes multi-task learning with GOP features extracted from pre-trained ASR and additional phonetic embeddings, as shown in the architecture in \cite{JIM}, this architecture has shown the state-of-the-art results in phoneme, word and sentence level Pearson correlation.
+
+% \cite{10022472} Peppanet: PeppaNet, building on a unified structure that can jointly model the dictation process and the alignment process. The model of our method learns to directly predict the pronunciation correctness of each canonical phone of the text prompt and in turn provides its corresponding diagnostic feedback. Transformer based
+
+
+% \cite{zhang2023phonetic}: CTC-based MDD models often assume conditional independence in the predicted phonemes, and therefore prominent mispronunciation patterns are underutilized. Second, existing MDD approaches are constrained to use training data from a language-specific phoneme set, and therefore cannot distinguish accented sounds that are not present in the predefined phoneme set. In this paper, we propose a set of autoregressive phonetic Recurrent Neural Network Transducer (RNN-T) MDD models that are capable of capturing temporal dependence of mispronunciation patterns. We further devise an extended phoneme set and weakly supervised training strategy to allow the model to distinguish similar sounding phonemes from different languages.
+
+
+% Multi-Feature and Multi-Modal Mispronunciation Detection and Diagnosis Method Based on the Squeezeformer Encoder
+% \cite{10130529} this paper proposes an end-to-end multi-feature and multi-modal mispronunciation detection and diagnosis method based on the Squeezeformer encoder. The model uses Squeezeformer as an audio encoder, a Bi-LSTM network as a phoneme encoder, and Transformer as a decoder. The model fuses phoneme information before speech encoding and decoding, respectively, and uses a secondary decoding mechanism during the decoding process.
+
+
+% \cite{fan2023multifaceted}
+% conformer: A Multifaceted Approach to Oral Assessment Based on the Conformer Architecture.
+% In the past, researchers have usually focused their research on only one specific aspect of the speaking assessment task. Research on multifaceted speaking tasks has been rare, and model building has often led to reduced performance due to the omission of local feature details. In this paper, we propose a multi-width band (MB) method and apply it to the Conformer model. This method can effectively increase the ability of the model to obtain local feature information at different scales. At the same time, we used a multi-task learning approach to train a multifaceted speaking assessment model based on GOP features.
+
+
+\paragraph{Supra-segmental:}
+
+Several approaches have been proposed for prosodic scoring in pronunciation models. In \cite{chen2018end}, an end2end solution is presented, which involves using DNNs to encode both lexical and acoustical cues for automatic feature learning. The architecture includes CNN layers followed by Bidirectional LSTMs (BD-LSTM) and attention mechanisms, the end goal is to predict sentence pronunciation scores. In \cite{lin2021deep}, the focus is on utilizing deep features directly from the acoustic model instead of relying on complex feature computations like GOP scores. A scoring module, incorporating a self-attention mechanism, is designed to model human scoring. A different approach is proposed in \cite{7404814}, where traditional time-aggregated features are replaced with time-sequence features, such as pitch, to preserve more information without requiring manual feature engineering. The paper proposes the use of a BD-LSTM model for fluency predictions. 
+
+Towards lexical stress detection, several methods have been proposed to improve accuracy and performance. Among these methods, \cite{li2018automatic} focuses on supervised classification using syllable-based prosodic features, lexical features, and syntactic features trained with multi-distribution deep neural networks. They leverage maximum syllable loudness, syllable nucleus duration, dynamic pitch values, and binary encoded lexical and syntactic features. Building upon the need for long-distance contextual information, \cite{ruan2019end} proposes a sequence-to-sequence approach using the Transformer model. Their method translates audio feature sequences to phoneme sequences with lexical stress marks directly, utilizing the encoder-decoder structure. The training process involves the audio feature sequence and the corresponding phoneme sequence with lexical stress marks. During the detection process, the recognized phoneme sequence is restricted by the phoneme sequence of the utterance, without limitations on the lexical stress marks of each phoneme. Furthermore, \cite{korzekwa2020detection} introduces an attention-based neural network that significantly improves the detection of lexical stress errors in L2 English speech. Their method focuses on the automatic extraction of syllable-level features. By leveraging attention mechanisms, they achieve enhanced performance compared to baseline models.
+
+Tone classification has received significant attention in Mandarin language learning due to the crucial role that tones play in Mandarin Chinese. To address the challenge of tone classification in Mandarin, several methods have been proposed. One approach involves training a DNN to classify speech frames into six tone classes \cite{ryant2014mandarin}. Inspired by this, DNNs have been used to map combined cepstral and tonal features to frame-level tone posteriors. These tone posteriors are then fed into tone verifiers to assess the correctness of tone pronunciation \cite{lin2018improving, li2018improving}. Another study utilizes CNN to classify syllables into the four Mandarin tones \cite{chen2016tone}. Similarly, ToneNet, a CNN-based network, is been introduced for Chinese syllable tone classification using mel-spectrogram as a feature representation. ToneNet employs a customized CNN and multi-layer perceptron for tone classification \cite{gao2019tonenet}. Additionally, bidirectional long short-term memory (BLSTM) based recurrent neural networks have been proposed as an alternative to DNNs for tone classification \cite{li2019improving}. BLSTMs are advantageous for capturing long-term dependencies in acoustic and prosodic features, enabling improved modeling of tone-level co-articulation and non-native tone production.
+% \cite{lin2021deep} : Instead of relying on com- plex and approximate feature computation, such as GOP scores, we directly utilize the deep features from the acoustic model. A scoring module followed by deep features is designed to model the human scoring based on the self-attention mecha- nism. For efficient adaptation to different pronunciation as- sessment tasks, we conduct a second-stage pre-training with a significant amount of synthetic scoring data, and fine-tune the scoring module with a small amount of task-specific scoring data.
+
+
+
+% \cite{chen2018end} :  an end-to-end solution that consists of using deep neural network models to encode both lexical and acoustical cues to learn predictive features automatically , CNN BD-LSTM BD-LSTM w/ attention.
+
+% \cite{7404814} :  Traditional automated response grading approaches use manually engineered time-aggregated features (such as mean length of pauses). We propose to incorporate general time-sequence features (such as pitch) which preserve more information than time-aggregated fea- tures and do not require human effort to design. We use a type of recurrent neural network to jointly optimize the learning of high level abstractions from time-sequence features with the time-aggregated features. We first automatically learn high level abstractions from time-sequence features with a Bidirectional Long Short Term Memory (BLSTM) and then combine the high level abstractions with time-aggregated features in a Multilayer Perceptron (MLP)/Linear Regression (LR). We optimize the BLSTM and the MLP/LR jointly.
+
+% Timesequence features extracted by a BLSTM network were combined with low-level time-aggregated features for automatic scoring of non-native spontaneous speech
+
+
+% \textit{Recently, the end-to-end structure shows a good talent for ASR tasks [11, 12], and gets promising performance in MDD [10, 13, 14]. A CNN-RNN-CTC free phone recognize model was proposed [10] firstly, which showed an outperformed re- sult comparied with previously approaches [15]. The hybrid CTC-Attention architecture [14] with expanding the original L2 phone set was used to detect categorial and non-categorial errors. Those CTC-based methods does not require forced align- ment, and intergrate the whole training pipeline. However, in the case of the reading text already known, the above research does not use the existing prior text information. To utilize the prior linguistic information, previous study [13] proposed a text-dependent end to end model that uses attention mecha- nism to combine the high-level hidden features of acoustics and the sentence-to-character encoder feature.}
+% \subsubsection{Transformers}
+
+\subsection{Transfer learning using self-supervised ASR models:}
+
+Motivated by the recent success of self-supervised learning methods \cite{baevski2020wav2vec, hsu2021hubert, chen2022wavlm, 9893562} in speech recognition and related downstream tasks such as emotion recognition, speaker verification, and language identification \cite{chen2023exploring, fan2020exploring}, self-supervised approaches is employed also in MDD tasks for both segmental and supra-segemtal aspects. The model is trained exclusively on unannotated native data, and subsequently, linear classifiers are incorporated atop the model for fine-tuning. 
+
+\paragraph{Segmental:}
+In recent studies, wav2vec 2.0 has been employed as a pretraining method for MD in \cite{xu2021explore}. By utilizing canonical phones and aligning time extracted from a trained HMM-DNN using force-alignment, the models are subsequently fine-tuned on L2-ARCTIC annotated non-native data. The objective of this fine-tuning process is to determine whether the pronunciation is correct or not, utilizing cross entropy loss. However, it is important to note that this method heavily relies on time alignment and the use of an accurate pre-trained HMM-DNN to achieve accurate alignments. To overcome the dependency on time alignment, researchers have explored alternative approaches. In one study \cite{peng2021study}, a CTC-based wav2vec 2.0 is used to predict sequences based on human-labeled non-native data. Remarkably, this approach demonstrates promising performance without relying on time alignment. Building upon this work, Yang et al. \cite{yang2022improving} adopt the same proposed CTC wav2vec structure and propose an approach that leverages unlabeled L2 speech to enhance MDD performance through pseudo-labeling. In their recent study, Kheir et al. \cite{kheir2023multi} explore the utilization of mono- and multilingual pre-trained wav2vec encoders to capture different aspects of speech production with additional auxiliary tasks, including articulatory features sequences prediction, alongside the primary task of human-labeled phoneme sequence prediction. The approach achieve a well-balanced trade-off between recall and precision, surpassing existing state-of-the-art models. In a contrasting approach, the study presented in \cite{9746727} combines wav2vec 2.0 features and textual embeddings by jointly learning to predict the phoneme sequence and detect boundaries. 
+
+% To accomplish this, an attention mechanism is implemented to fuse acoustic and phoneme representations. These representations are obtained from a pre-trained acoustic encoder and a phoneme encoder respectively. The fused representations are then utilized to predict the phoneme sequence along with its boundaries. This approach demonstrates the integration of multiple modalities for improved phoneme sequence prediction.
+
+% Using Wav2vec 2.0 as pretraining for MD \cite{xu2021explore}. With given canonical phones, alignment time extracted from trained HMM-DNN using force-alignment and waveform, the model is fine-tuned then on L2-ARCTIC annotated non-native data to recognize whether the pronunciation is correct or not using cross entropy loss, this method is very effective yet depending on time-alignment, and a pre-trained HMM-DNN to get accurate alignments.
+% To overcome the time-alignment dependencny, 
+% In \cite{peng2021study}, they used CTC based wav2vec to predict sequence of human labeled data and achieved promising performance without relyting on time alignment. Subsequetly, Yang et al. \cite{yang2022improving} used same CTC wav2vec structure with an approach to use unlabeled L2 speech to enhance MDD performance via pseudo-labeling.
+
+% \textit{There are also some non-GOP based methods such as a wav2vec2-based method [20] and a deep feature based method [21] where transfer learning is usually needed due to the limited L2 training material.
+% Conversely, automatic assessment of other aspects of pro- nunciation quality are usually modeled independently, e.g., fluency [11, 12], prosody [13, 14], intonation [15, 16]. There are only a few previous efforts on multi-granularity pronun- ciation assessment [19, 22]. In these works, however, only a single score is considered for each granularity. In addition, the hierarchical architecture in [19] requires a relatively so- phisticated training scheme to optimize.}
+\paragraph{Supra-segmental:}
+% SSL is used also eefectivly to predict prosodic human labeled scores, \cite{kim2022automatic}  propose a method utilizing acoustic features representation from SSL models such as wav2vec 2.0 and hubert, and tuning them for pronunciation assessment. The moethod is shown to be effective to predict porsodic, fluency annotated scores of Korean and Chinese learners of English. Likewise, \cite{10022486} re-train the pre-trained wav2vec 2.0 encoder based on a CTC-based phoneme recognition model to obtain discriminative representations at the phoneme level, then they fuse it phoneme respresentations embeddings. then they optimize the network based on MTL combing an MSE regression loss for scoring prosodic.
+
+SSL techniques have proven to be effective in predicting prosodic scores assigned by human annotators. In a recent study by \cite{kim2022automatic}, a method is proposed that leverages acoustic feature representations extracted from SSL models such as wav2vec 2.0 and hubert. These representations are fine-tuned specifically for pronunciation assessment. The results demonstrate the effectiveness of this approach in accurately predicting prosodic and fluency scores for Korean and Chinese learners of English. Similarly, another research conducted in \cite{10022486} focuses on retraining the pre-trained wav2vec 2.0 encoder. The retraining process involves utilizing a CTC-based phoneme recognition model and then the fused representations with phoneme embeddings are optimized in a multi-task seting using an MSE regression loss for scoring prosodic aspects, and CTC for phoneme recognition. Subsequently and following the same later proposed architecture, \cite{lin2023multi} introduces a fusion of language embedding, representation features and build a unified framework for multi-lingual prosodic scoring.
+
+% \subsection{Data Augmentation Approaches}
+
+% While there have been advancements in scoring approaches and features used for MDD, the exploration of data augmentation techniques to enhance segmental and supra-segmental pronunciation error detection remains limited. One of the major challenges faced by current techniques and models is the imbalanced distribution of dataset labels, with a scarcity of pronunciation error samples, especially related to accents, and an abundance of good pronunciation samples. 
+
+% \paragraph{Segmental Approaches:}
+
+% To address the scarcity of the data, a text-augmentation technique is proposed in \cite{text-aug} to overcome the scarcity at phoneme level. To generate more positive samples, good pronunciation speech samples are paired with an augmented text. The text-augmentation block includes randomly replacing phonemes in the original text, replacing vowels and consonants based on L2-ARCTIC statistics \cite{L2-ARCTIC}, and substituting phonemes with commonly confused counterparts. This simple text-based augmentation technique exhibits a significant increase in the F1-score, rising from 52.2\% to 56.06\% in F1-measure. Recent work \cite{mixup} has also demonstrated notable improvements in word-level pronunciation scoring by utilizing mixup of phoneme deep acoustic features, inspired by the success of mixup in image classification. The artificial augmented word samples are created by selecting phonemes from a lexicon and randomly sampling corresponding phone-level features deep acoustic features from the training data. The score for these augmented words is computed as the average of their selected phoneme scores. 
+
+% Although the aforementioned techniques simulate mispronunciation errors by replacing phoneme units in different text, feature, their effectiveness may be limited as these methods primarily rely on reusing existing information without generating new variations at the phoneme level. To overcome these limitations, SpeechBlender \cite{speechblender} is introduced as a fine-grained data augmentation pipeline specifically designed to generate mispronunciation classes in low-resource settings using only good pronunciations, The SpeechBlender utilizes varieties of masks to target different regions of phonetic units and use the mixing factors to linearly interpolate raw speech signals while augmenting pronunciation. The masks facilitate smooth blending of the signals, generating more effective samples than the ‘Cut/Paste’ method. Likewise, \cite{zhang2022l2} propose L2-GEN, a novel framework for generating annotated synthetic L2 Speech generation framework. L2-GEN can synthesize realistic L2 phonemes sequences by building a novel Seq2Seq phoneme paraphrasing model.
+
+% \paragraph{Supra-segmental Approaches:}
+
+% In \cite{7953214}, a proposed an augmentation technique based on applying voice transformations to the training data that modify the pitch baseline and range, as well as the vocal-tract and vocal-source characteristics of the speakers to generate further training examples, is shown to be effective on a classification task of prosodic and pitch accent using a RNN classifier. Moreover, Korzekwa et al. \cite{Korzekwa2020DetectionOL} propose an augmentation technique by setting incorrectly stressed words generated with Neural TTS.
+
+
+
+% % \textit{Although there have been advancements in the scoring approaches, and features used for MDD, research on data augmentation techniques to improve segmental and supra-segmental pronunounciation error detection is limited. 
+
+% % One major challenge faced by current techniques and models is the issue of imbalanced distribution of the dataset labels, with a lack of bad pronunciation samples particularly those with accents, and a surplus of good pronunciation samples.
+
+% % The text-augmentation was proposed in \cite{text-aug}. A positive sample is defined as a mispronounced phone, and a negative sample is one that is canonical. To make more positives samples, good pronunciation features in acoustic spaces were attached with an augmented text The text-augmentation block can be done as follows: 
+
+% % \begin{itemize}
+% %     \item randomly replacing phonemes in the prior text with other phonemes or a silence symbol
+% %     \item replacing vowels and consonants with other vowels and consonants based on L2-ARCTIC statistics \cite{L2-ARCTIC}.
+% %     \item replacing phonemes in the reading text with their commonly confused counterparts.
+% % \end{itemize}
+
+
+% % This simple text-based augmentation technique proposed by \cite{text-aug}, showed a significant increase in F1-score from 52.2\% to 56.06\%. 
+% % Recent work showed a significant improvement in word-level pronunciation scoring using mixup of phoneme deep acoustic features, drawing inspiration from the success of mixup in image classification.
+
+% % The artificial augmented word samples are created by selecting phonemes from a lexicon and randomly sampling corresponding phone-level features from the training data. The score for these augmented words is computed as the average of their phoneme GOP scores.
+
+% % The techniques previously mentioned simulate mispronunciation errors by replacing a target phoneme unit in a different text, feature, or audio space. However, these methods may not be as effective because they do not take into account the influence of a learner's native phoneme set, and they simply reuse existing information without generating new variations at the phoneme level. 
+% % }
+% % The \textbf{SpeechBlender} is a fine-grained data augmentation pipeline, designed to generate mispronunciation classes in low-resource settings\footnote{Presence of a few or zero erroneous pronunciation examples in the data.}.
+\subsection{Unsupervised Approaches}
+
+It is important to note that the aforementioned approaches for deriving mispronunciation detection typically involve the need for expert knowledge, laborious manual labeling, or dependable ASR results, all of which come with significant costs. In contrast, recent years have witnessed considerable endeavors in unsupervised acoustic pattern discovery, albeit yielding sub-optimal outcomes. 
+Lee et al. \cite{6424254} initially investigate a comparison-based approach that analyzes the extent of misalignment between a student's speech and a teacher's speech, without requiring linguistic expertise. Furthermore, in subsequent studies Lee et al. \cite{lee2015mispronunciation, lee2016personalized}, they explore the discovery of mispronunciation errors without utilizing non-native training data or expert input. Instead, they focus on analyzing the acoustic similarities across individual learners' utterances. Subsequently, they propose an n-best filtering method to resolve ambiguous error candidate hypotheses derived from acoustic similarity clustering. In another study \cite{mao2018unsupervised}, an unsupervised method to expand the phoneme set in L2 speech is proposed and then they apply k-means clustering on phoneme-based phonemic posterior-grams (PPGs) generated using a DNN-based acoustic-phonemic model (APM). More recently, Sini et al. \cite{sini2023phone} introduce a weighted dynamic time warping (DTW) alignment as an alternative to the GOP algorithm for predicting probabilities and the sequence of target phonemes. Their proposed method achieves comparable results to the GOP scoring algorithm.
+
+% \section{Pronunciation Assessment: Research Avenues}
+% However, the ultimate objective of CAPT systems is to ensure the fluency and intelligibility of L2 learners' speech. Hence the most commonly used approaches at the prosodic level are human-scored words, and sentences based on overall pronunciation quality and fluency. 
+
+
+
+% Multiple tiers of human scoring annotations can be applied in this context. This includes providing the accuracy of pronounced words to assess their intelligibility, assigning scores to evaluate the positioning of stress within individual words or within sentences, and evaluating sentence fluency by considering factors such as pauses, repetitions, and stammering in speech
+
+\section{Evaluation Metrics}
+\subsection{Segmental Evaluation}
+\paragraph{Phoneme Error Rate (PER):}
+PER is a commonly metric used in the segmental MD measuring. It measures the accuracy of phoneme recognition by comparing the predicted phoneme sequence with the hypothesis sequence (human annotated). However, it is crucial to note that PER might not provide a comprehensive assessment of model performance when mispronunciations are infrequent  which is the case for MD datasets. Hence the need for more robust metrics to assess the trade-off between false acceptances and false rejections ratios of the evaluated model.
+
+% The formulation of PER involves counting the number of substitution, deletion, and insertion errors made by the system when compared to the ground truth. 
+% Formally, the PER is expressed using the following formula:
+
+% \begin{equation}
+% PER = \frac{{S + D + I}}{{N}}
+% \end{equation}
+
+% where $S$ is the number of substitution errors, $D$ is the number of deletion errors, $I$ is the number of insertion errors, and $N$ is the total number of phonemes in the reference.
+
+
+% \subsubsection{Is PER sufficient for segmental MDD?}
+\paragraph{Hierarchical Evaluation Structure:}
+We adhere to the hierarchical evaluation structure developed in \cite{qian2010capturing}, which has also been adopted in \cite{wang2015supervised} and it's the most used in recent segmental MD studies \cite{li2016mispronunciation}. As shown in Figure \ref{fig:tree-graph-mdd}, in hierarchical mispronunciation detection we distinguish between different outcomes. Specifically, true acceptance (TA) corresponds to the number of phones that are annotated and recognized as correct pronunciations. True rejection (TR) signifies the number of phones that are annotated as mispronunciations and correctly identified as such by CAPT systems. On the other hand, false rejection (FR) represents the number of phones that are recognized as mispronunciations even though the actual pronunciations are correct. False acceptance (FA) denotes the number of phones that are misclassified as correct pronunciations, but are actually mispronounced. For mispronunciation diagnosis, the primary focus is on cases of true rejection (TR). Those instances are examined to derive where diagnostic errors (DE) occur. The number of phones correctly classified as mispronunciations and accurately identified as matching the annotated phones is denoted as CD. As a result, we can calculate the false rejection rate (FRR), false acceptance rate (FAR), and diagnostic error rate (DER) using the following equations:
+
+
+
+% The hierarchical evaluation structure introduced in [15], which has also been utilized in [43], is the most used evaluation metrics for MDD segmental error measuring. As shown in Figure \ref{fig:tree-graph-mdd}, after comparing the hypothesis phoneme sequence with the predicted phoneme sequence, the unit outcomes are classified as either true acceptance (TA) or true rejection (TR) for correct pronunciations, and as false rejection (FR) or false acceptance (FA) for incorrect pronunciations. When it comes to mispronunciation diagnosis, the focus is on cases of true rejection (TR), specifically examining those that involve diagnostic errors (DE). As a result, we can calculate the false rejection rate (FRR), false acceptance rate (FAR), and diagnostic error rate (DER) using the following equations:
+
+\begin{equation}
+FRR = \frac{FR}{TA + FR}
+\end{equation}
+
+\begin{equation}
+FAR = \frac{FA}{FA + TR}
+\end{equation}
+
+\begin{equation}
+DER = \frac{DE}{CD + DE}
+\end{equation}
+
+
+\begin{figure}
+\scalebox{0.8}{
+  \begin{tikzpicture}[level distance=2cm,
+    level 1/.style={sibling distance=4cm},
+    level 2/.style={sibling distance=2cm},
+    every node/.style={align=center},
+    trueaccept/.style={fill=green!30},
+    correctdiag/.style={fill=green!30},
+    falsereject/.style={fill=red!30},
+    falseaccept/.style={fill=red!30},
+    diagnosiserror/.style={fill=red!30}]
+    
+    \node {Manually Transcribed Phonetic Units}
+      child {node {Correct \\ Pronunciations}
+        child {node[trueaccept] {True \\ Acceptance}}
+        child {node[falsereject] {False \\ Rejection}}
+      }
+      child {node {Mispronunciations}
+        child {node[falseaccept] {False \\ Acceptance}}
+        child {node {True \\ Rejection}
+          child {node[correctdiag] {Correct \\ Diagnosis}}
+          child {node[diagnosiserror] {Diagnosis \\ Error}}
+        }
+      };
+  \end{tikzpicture}}
+  \caption{Hierarchical Evaluation Structure for MDD adapted from \cite{li2016mispronunciation}.}
+  \label{fig:tree-graph-mdd}
+\end{figure}
+
+% where TA is the number of phones annotated and recognized as correct pronunciation, TR is the number of phones annotated as mispronunciation and identified as incorrect by CAPT systems, FR is the number of phones recognized as mispronunciations when the actual pronunciations are correct, FA is the number of phones misclassified as correct but are actually mispronounced, CD is the number of phones correctly classified as mispronunciations and correctly identified as those that are the same as the annotated phones, and DE is the number of phones correctly identified as mispronunciations but incorrectly diagnosed as those different from the annotated phones. 
+
+\paragraph{Precision, Recall and F-measure:}
+Besides using FRR, FAR and DER to evaluate the performance of MDD, other metrics such
+as precision, recall and F-measure are also widely used as the performance measures for mispronunciation detection. These metrics are defined as follows:
+
+\begin{equation}
+Precision = \frac{TR}{TR + FR}
+\end{equation}
+
+\begin{equation}
+Recall = \frac{TR}{TR + FA} = 1 - FAR
+\end{equation}
+
+\begin{equation}
+F-measure = 2 \cdot \frac{Precision \cdot Recall}{Precision + Recall}
+\end{equation}
+
+
+\subsection{Supra-segmental Evaluation}
+As discussed in Section \ref{sec:supra_anno}, supra-segmental labeling in most cases relies on human scoring, encompassing aspects such as fluency, stress, and prosody. To ensure precise measurements, it is essential to establish inter-rater agreement among human annotators using metrics like Pearson Correlation Coefficient (PCC). Additionally, evaluating the model's performance using PCC with the average scores assigned by human annotators. It's crucial to note that human scoring is subjective, though it's hard to get an high inter-rater agreement. 
+
+
+
+% \begin{equation}
+% \text{{PCC}} = \frac{{\text{{Cov}}(X, Y)}}{{\sigma\_X \cdot \sigma\_Y}}
+% \end{equation}
+
+
+
+\section{Challenges}
+\section{Apps}
+
+
+% Rythm
+% Generally, there are two main methods for rhythm evaluation of non-native speakers: (1) comparing acoustic features of L2 learners (e.g., F0, duration, or intensity) with the corresponding features of the native speakers; (2) investigating metrics for quantifying rhythmic differences between languages based on the acoustic features of segmental durations. For the first method, many rhythm measures are proposed based on comparison of acoustic features between languages. There were many approaches to compare the prosodic characteristics, such as fundamental frequency (F0), intensity, and duration with the corresponding features of native speakers [5, 6, 7, 8]. 
+
+% Y. Xiao and F. K. Soong, “Proficiency Assessment of
+% ESL Learner’s Sentence Prosody with TTS Synthesized Voice as Reference.” in INTERSPEECH, 2017, pp.
+% 1755–1759.
+
+%  J. Cheng, “Automatic assessment of prosody in highstakes English tests,” in Twelfth Annual Conference of
+% the International Speech Communication Association,
+% 2011.
+
+% D. Escudero-Mancebo, C. Gonzalez-Ferreras, ´
+% L. Aguilar, and E. Estebas-Vilaplana, “Automatic
+% assessment of non-native prosody by measuring distances on prosodic label sequences,” Proc. Interspeech
+% 2017, pp. 1442–1446, 2017.
+
+% T. Kato, Q.-T. Truong, K. Kitamura, and S. Yamamoto,
+% “Referential vowel duration ratio as a feature for automatic assessment of l2 word prosody,” in ICASSP
+% 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). IEEE,
+% 2019, pp. 6595–6599.
+
+% IMPROVING L2 ENGLISH RHYTHM EVALUATION WITH AUTOMATIC SENTENCE
+% STRESS DETECTION:
+% In this paper, we investigate how to improve the rhythm evaluation based on the sentence stress for Chinese who learn English as a second language (ESL). Particularly, we explore some rhythm measures to quantify rhythmic differences among second language (L2) learners based on sentence stress. To relieve the dependency on labeled data of sentence stress, we predict sentence stress automatically utilizing a hierarchical network with bidirectional Long Short-Term Memory (BLSTM)
+
+% https://www.frontiersin.org/articles/10.3389/fcomm.2020.626985/full
+% Language learners—especially those in the early stages of language learning—tend to show improvement in their pronunciation over time. Thus, in order to determine whether a given type of training is effective, it is important when conducting research to include both a comparison group that receives a different type of training and a control group that receives no training. In addition, a delayed posttest allows researchers to determine whether the effects of training are long lasting (Thomson and Derwing, 2015).
+
+% Pronunciation improvement can be determined in two main ways: listener ratings and acoustic analyses. While listener ratings of understanding are considered the gold standard in pronunciation research (Derwing and Munro, 2009), some training studies also make use of acoustic analyses. Much of the research investigating the effectiveness of pronunciation training uses measures of understanding including comprehensibility ratings (e.g., Foote and McDonough, 2017; Martin, 2018) or intelligibility tasks (e.g., Derwing et al., 2014), often together with ratings of fluency and/or foreign accentedness. Acoustic analyses, completed by hand (e.g., Counselman, 2015) or automatically (e.g., Suemitsu et al., 2015; Tejedor-García et al., 2020) are also common and can be used to determine the extent to which certain pronunciation features change over time. Researchers note, however, that significant acoustic differences may not align with listener judgments (Derwing and Munro, 2015).
+
+% While few classroom teachers are able to carry out systematic analyses of their students’ pronunciation development, they are encouraged to rely upon pronunciation training methods whose effectiveness has been demonstrated via research. Some of this work is outlined below.
+
+
+\bibliography{anthology,custom}
+\bibliographystyle{acl_natbib}
+
+% \appendix
+
+% \section{Example Appendix}
+% \label{sec:appendix}
+
+% This is a section in the appendix.
+
+\end{document}
+
+
+Although in this overview, we tackled Pronunciation assessment, its constructs, and different scientific approaches to detect errors, and predict prosodic and dluency scores, Another aspect of pronunciation not discussed so far, pronunciation assessment feedback such as audiovisual articulatory feature inversion to estimate the learner’s current articulation and to provide audiovisual feedback by showing the movement of the tongue with computer animations, and we didn't explore corrective feedback that it most effective for learning. Another limitation of our work can be seen from the qualitative study perspectives and user study summaries that has been done on finding different pronunication constructs such as native-like, intelligibilivty, comprehemsibility, and accentendness, and qualitivae study on the effective way of measuring that. 
+
+very detailed discussion of CAPT systems that provide prosodic feedback can be found in
+
+

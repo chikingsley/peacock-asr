@@ -1,0 +1,330 @@
+
+@misc{schulman_proximal_2017,
+	title = {Proximal {Policy} {Optimization} {Algorithms}},
+	url = {http://arxiv.org/abs/1707.06347},
+	abstract = {We propose a new family of policy gradient methods for reinforcement learning, which alternate between sampling data through interaction with the environment, and optimizing a “surrogate” objective function using stochastic gradient ascent. Whereas standard policy gradient methods perform one gradient update per data sample, we propose a novel objective function that enables multiple epochs of minibatch updates. The new methods, which we call proximal policy optimization (PPO), have some of the beneﬁts of trust region policy optimization (TRPO), but they are much simpler to implement, more general, and have better sample complexity (empirically). Our experiments test PPO on a collection of benchmark tasks, including simulated robotic locomotion and Atari game playing, and we show that PPO outperforms other online policy gradient methods, and overall strikes a favorable balance between sample complexity, simplicity, and wall-time.},
+	language = {en},
+	urldate = {2024-09-03},
+	publisher = {arXiv},
+	author = {Schulman, John and Wolski, Filip and Dhariwal, Prafulla and Radford, Alec and Klimov, Oleg},
+	month = aug,
+	year = {2017},
+	note = {arXiv:1707.06347 [cs]},
+	keywords = {Computer Science - Machine Learning},
+	annote = {强化学习的PPO策略，沿着reward为正的方向优化，但要尽量减少对模型的改动
+},
+	file = {Schulman 等 - 2017 - Proximal Policy Optimization Algorithms.pdf:C\:\\Users\\gcf\\Zotero\\storage\\U7Y38ZD8\\Schulman 等 - 2017 - Proximal Policy Optimization Algorithms.pdf:application/pdf},
+}
+
+@misc{rafailov_direct_2023,
+	title = {Direct {Preference} {Optimization}: {Your} {Language} {Model} is {Secretly} a {Reward} {Model}},
+	shorttitle = {Direct {Preference} {Optimization}},
+	url = {https://arxiv.org/abs/2305.18290v3},
+	abstract = {While large-scale unsupervised language models (LMs) learn broad world knowledge and some reasoning skills, achieving precise control of their behavior is difficult due to the completely unsupervised nature of their training. Existing methods for gaining such steerability collect human labels of the relative quality of model generations and fine-tune the unsupervised LM to align with these preferences, often with reinforcement learning from human feedback (RLHF). However, RLHF is a complex and often unstable procedure, first fitting a reward model that reflects the human preferences, and then fine-tuning the large unsupervised LM using reinforcement learning to maximize this estimated reward without drifting too far from the original model. In this paper we introduce a new parameterization of the reward model in RLHF that enables extraction of the corresponding optimal policy in closed form, allowing us to solve the standard RLHF problem with only a simple classification loss. The resulting algorithm, which we call Direct Preference Optimization (DPO), is stable, performant, and computationally lightweight, eliminating the need for sampling from the LM during fine-tuning or performing significant hyperparameter tuning. Our experiments show that DPO can fine-tune LMs to align with human preferences as well as or better than existing methods. Notably, fine-tuning with DPO exceeds PPO-based RLHF in ability to control sentiment of generations, and matches or improves response quality in summarization and single-turn dialogue while being substantially simpler to implement and train.},
+	language = {en},
+	urldate = {2024-09-05},
+	journal = {arXiv.org},
+	author = {Rafailov, Rafael and Sharma, Archit and Mitchell, Eric and Ermon, Stefano and Manning, Christopher D. and Finn, Chelsea},
+	month = may,
+	year = {2023},
+	annote = {强化学习DPO策略，沿着好样本概率增大坏样本概率减少的方向优化，把分母去掉，把好样本设为ground truth就退化成MWER了。
+},
+	file = {2305.pdf:C\:\\Users\\gcf\\Zotero\\storage\\BZ7S6UPT\\2305.pdf:application/pdf;Full Text PDF:C\:\\Users\\gcf\\Zotero\\storage\\BDFMSY9F\\Rafailov 等 - 2023 - Direct Preference Optimization Your Language Mode.pdf:application/pdf},
+}
+
+
+@misc{chen_enhancing_2024,
+	title = {Enhancing {Zero}-shot {Text}-to-{Speech} {Synthesis} with {Human} {Feedback}},
+	url = {http://arxiv.org/abs/2406.00654},
+	doi = {10.48550/arXiv.2406.00654},
+	abstract = {In recent years, text-to-speech (TTS) technology has witnessed impressive advancements, particularly with large-scale training datasets, showcasing human-level speech quality and impressive zero-shot capabilities on unseen speakers. However, despite human subjective evaluations, such as the mean opinion score (MOS), remaining the gold standard for assessing the quality of synthetic speech, even state-of-the-art TTS approaches have kept human feedback isolated from training that resulted in mismatched training objectives and evaluation metrics. In this work, we investigate a novel topic of integrating subjective human evaluation into the TTS training loop. Inspired by the recent success of reinforcement learning from human feedback, we propose a comprehensive sampling-annotating-learning framework tailored to TTS optimization, namely uncertainty-aware optimization (UNO). Specifically, UNO eliminates the need for a reward model or preference data by directly maximizing the utility of speech generations while considering the uncertainty that lies in the inherent variability in subjective human speech perception and evaluations. Experimental results of both subjective and objective evaluations demonstrate that UNO considerably improves the zero-shot performance of TTS models in terms of MOS, word error rate, and speaker similarity. Additionally, we present a remarkable ability of UNO that it can adapt to the desired speaking style in emotional TTS seamlessly and flexibly.},
+	urldate = {2024-11-27},
+	publisher = {arXiv},
+	author = {Chen, Chen and Hu, Yuchen and Wu, Wen and Wang, Helin and Chng, Eng Siong and Zhang, Chao},
+	month = jun,
+	year = {2024},
+	note = {arXiv:2406.00654},
+	keywords = {Electrical Engineering and Systems Science - Audio and Speech Processing, Computer Science - Sound, Computer Science - Computation and Language},
+	annote = {RL-TTS，由于TTS模型输出的多样性并不高，因此是不再构造成对的正负样本，而是直接增大正样本的概率，减小负样本的概率，同时增加一个可信度来作为正负样本的you
+},
+	file = {全文:C\:\\Users\\gcf\\Zotero\\storage\\SDMMLDP7\\Chen 等 - 2024 - Enhancing Zero-shot Text-to-Speech Synthesis with .pdf:application/pdf;Full Text PDF:C\:\\Users\\gcf\\Zotero\\storage\\W65BNY5X\\Chen 等 - 2024 - Enhancing Zero-shot Text-to-Speech Synthesis with .pdf:application/pdf;Snapshot:C\:\\Users\\gcf\\Zotero\\storage\\QZUVBTHI\\2406.html:text/html},
+}
+
+@misc{anastassiou_seed-tts_2024,
+	title = {Seed-{TTS}: {A} {Family} of {High}-{Quality} {Versatile} {Speech} {Generation} {Models}},
+	shorttitle = {Seed-{TTS}},
+	url = {http://arxiv.org/abs/2406.02430},
+	doi = {10.48550/arXiv.2406.02430},
+	abstract = {We introduce Seed-TTS, a family of large-scale autoregressive text-to-speech (TTS) models capable of generating speech that is virtually indistinguishable from human speech. Seed-TTS serves as a foundation model for speech generation and excels in speech in-context learning, achieving performance in speaker similarity and naturalness that matches ground truth human speech in both objective and subjective evaluations. With fine-tuning, we achieve even higher subjective scores across these metrics. Seed-TTS offers superior controllability over various speech attributes such as emotion and is capable of generating highly expressive and diverse speech for speakers in the wild. Furthermore, we propose a self-distillation method for speech factorization, as well as a reinforcement learning approach to enhance model robustness, speaker similarity, and controllability. We additionally present a non-autoregressive (NAR) variant of the Seed-TTS model, named \${\textbackslash}text\{Seed-TTS\}\_{\textbackslash}text\{DiT\}\$, which utilizes a fully diffusion-based architecture. Unlike previous NAR-based TTS systems, \${\textbackslash}text\{Seed-TTS\}\_{\textbackslash}text\{DiT\}\$ does not depend on pre-estimated phoneme durations and performs speech generation through end-to-end processing. We demonstrate that this variant achieves comparable performance to the language model-based variant and showcase its effectiveness in speech editing. We encourage readers to listen to demos at {\textbackslash}url\{https://bytedancespeech.github.io/seedtts\_tech\_report\}.},
+	urldate = {2024-12-02},
+	publisher = {arXiv},
+	author = {Anastassiou, Philip and Chen, Jiawei and Chen, Jitong and Chen, Yuanzhe and Chen, Zhuo and Chen, Ziyi and Cong, Jian and Deng, Lelai and Ding, Chuang and Gao, Lu and Gong, Mingqing and Huang, Peisong and Huang, Qingqing and Huang, Zhiying and Huo, Yuanyuan and Jia, Dongya and Li, Chumin and Li, Feiya and Li, Hui and Li, Jiaxin and Li, Xiaoyang and Li, Xingxing and Liu, Lin and Liu, Shouda and Liu, Sichao and Liu, Xudong and Liu, Yuchen and Liu, Zhengxi and Lu, Lu and Pan, Junjie and Wang, Xin and Wang, Yuping and Wang, Yuxuan and Wei, Zhen and Wu, Jian and Yao, Chao and Yang, Yifeng and Yi, Yuanhao and Zhang, Junteng and Zhang, Qidi and Zhang, Shuo and Zhang, Wenjie and Zhang, Yang and Zhao, Zilin and Zhong, Dejian and Zhuang, Xiaobin},
+	month = jun,
+	year = {2024},
+	note = {arXiv:2406.02430},
+	keywords = {Electrical Engineering and Systems Science - Audio and Speech Processing, Computer Science - Sound},
+	file = {Full Text PDF:C\:\\Users\\gcf\\Zotero\\storage\\RDJHIDF6\\Anastassiou 等 - 2024 - Seed-TTS A Family of High-Quality Versatile Speec.pdf:application/pdf;Snapshot:C\:\\Users\\gcf\\Zotero\\storage\\S5E876F7\\2406.html:text/html},
+}
+
+@misc{gao_emo-dpo_2024,
+	title = {Emo-{DPO}: {Controllable} {Emotional} {Speech} {Synthesis} through {Direct} {Preference} {Optimization}},
+	shorttitle = {Emo-{DPO}},
+	url = {http://arxiv.org/abs/2409.10157},
+	doi = {10.48550/arXiv.2409.10157},
+	abstract = {Current emotional text-to-speech (TTS) models predominantly conduct supervised training to learn the conversion from text and desired emotion to its emotional speech, focusing on a single emotion per text-speech pair. These models only learn the correct emotional outputs without fully comprehending other emotion characteristics, which limits their capabilities of capturing the nuances between different emotions. We propose a controllable Emo-DPO approach, which employs direct preference optimization to differentiate subtle emotional nuances between emotions through optimizing towards preferred emotions over less preferred emotional ones. Instead of relying on traditional neural architectures used in existing emotional TTS models, we propose utilizing the emotion-aware LLM-TTS neural architecture to leverage LLMs' in-context learning and instruction-following capabilities. Comprehensive experiments confirm that our proposed method outperforms the existing baselines.},
+	urldate = {2024-12-10},
+	publisher = {arXiv},
+	author = {Gao, Xiaoxue and Zhang, Chen and Chen, Yiming and Zhang, Huayun and Chen, Nancy F.},
+	month = sep,
+	year = {2024},
+	note = {arXiv:2409.10157 [eess]},
+	keywords = {Electrical Engineering and Systems Science - Audio and Speech Processing, Computer Science - Sound, Electrical Engineering and Systems Science - Signal Processing},
+	annote = {Comment: 5 pages},
+	file = {Preprint PDF:C\:\\Users\\gcf\\Zotero\\storage\\2SW8MNH5\\Gao 等 - 2024 - Emo-DPO Controllable Emotional Speech Synthesis t.pdf:application/pdf;Snapshot:C\:\\Users\\gcf\\Zotero\\storage\\WBXPSYQJ\\2409.html:text/html},
+}
+
+@misc{hu_robust_2024,
+	title = {Robust {Zero}-{Shot} {Text}-to-{Speech} {Synthesis} with {Reverse} {Inference} {Optimization}},
+	url = {http://arxiv.org/abs/2407.02243},
+	doi = {10.48550/arXiv.2407.02243},
+	abstract = {In this paper, we propose reverse inference optimization (RIO), a simple and effective method designed to enhance the robustness of autoregressive-model-based zero-shot text-to-speech (TTS) systems using reinforcement learning from human feedback (RLHF). To assess the quality of speech produced by the TTS system without human annotations, RIO introduces a novel concept termed as reverse inference based on the Bayesian principle, which suggests that a high-quality generated speech should be able to be used as a prompt for subsequent generation using the same TTS model. By leveraging reverse inference as the standard to select exemplars used in RLHF from the speech samples generated by the TTS system itself, RIO steers the subsequent optimization towards a direction of enhancing the TTS robustness. The RIO framework, comprising sampling, automatic annotating, and learning, obviates the need for a reward model or pairwise preference data, and significantly improves the stability of zero-shot TTS performance by reducing the discrepancies between training and inference conditions. Our experimental results verify that RIO can effectively improve both subjective and objective metrics, including mean opinion scores, word error rates, and speaker similarity. Remarkably, RIO can also diminish the incidence of bad outputs to nearly zero percent, rivalling the robustness when using ground-truth speech as the prompt.},
+	urldate = {2024-12-13},
+	publisher = {arXiv},
+	author = {Hu, Yuchen and Chen, Chen and Wang, Siyin and Chng, Eng Siong and Zhang, Chao},
+	month = jul,
+	year = {2024},
+	note = {arXiv:2407.02243 [cs]},
+	keywords = {Electrical Engineering and Systems Science - Audio and Speech Processing, Computer Science - Sound, Computer Science - Computation and Language},
+	annote = {包含了一种有趣的正样本提取方式，使用克隆模式，交换prompt音频和合成音频的位置，来构造正样本。
+
+Comment: 12 pages, Work in progress
+},
+	file = {Preprint PDF:C\:\\Users\\gcf\\Zotero\\storage\\TM45ZSGR\\Hu 等 - 2024 - Robust Zero-Shot Text-to-Speech Synthesis with Rev.pdf:application/pdf;Snapshot:C\:\\Users\\gcf\\Zotero\\storage\\I8DSX8P3\\2407.html:text/html},
+}
+
+@misc{chen2024airbench,
+      title={AIR-Bench: Automated Heterogeneous Information Retrieval Benchmark}, 
+      author={Jianlyu Chen and Nan Wang and Chaofan Li and Bo Wang and Shitao Xiao and Han Xiao and Hao Liao and Defu Lian and Zheng Liu},
+      year={2024},
+      eprint={2412.13102},
+      archivePrefix={arXiv},
+      primaryClass={cs.IR},
+      url={https://arxiv.org/abs/2412.13102}, 
+}
+
+
+@article{chen-etal-2024-f5tts,
+      title={F5-TTS: A Fairytaler that Fakes Fluent and Faithful Speech with Flow Matching}, 
+      author={Yushen Chen and Zhikang Niu and Ziyang Ma and Keqi Deng and Chunhui Wang and Jian Zhao and Kai Yu and Xie Chen},
+      journal={arXiv preprint arXiv:2410.06885},
+      year={2024},
+}
+
+
+
+@misc{du2024cosyvoice2scalablestreaming,
+      title={CosyVoice 2: Scalable Streaming Speech Synthesis with Large Language Models}, 
+      author={Zhihao Du and Yuxuan Wang and Qian Chen and Xian Shi and Xiang Lv and Tianyu Zhao and Zhifu Gao and Yexin Yang and Changfeng Gao and Hui Wang and Fan Yu and Huadai Liu and Zhengyan Sheng and Yue Gu and Chong Deng and Wen Wang and Shiliang Zhang and Zhijie Yan and Jingren Zhou},
+      year={2024},
+      eprint={2412.10117},
+      archivePrefix={arXiv},
+      primaryClass={cs.SD},
+      url={https://arxiv.org/abs/2412.10117}, 
+}
+
+
+@article{busso2008iemocap,
+  title={IEMOCAP: Interactive emotional dyadic motion capture database},
+  author={Busso, Carlos and Bulut, Murtaza and Lee, Chi-Chun and Kazemzadeh, Abe and Mower, Emily and Kim, Samuel and Chang, Jeannette N and Lee, Sungbok and Narayanan, Shrikanth S},
+  journal={Language resources and evaluation},
+  volume={42},
+  pages={335--359},
+  year={2008},
+  publisher={Springer}
+}
+
+@inproceedings{huang22f_interspeech,
+  title     = {The VoiceMOS Challenge 2022},
+  author    = {Wen Chin Huang and Erica Cooper and Yu Tsao and Hsin-Min Wang and Tomoki Toda and Junichi Yamagishi},
+  year      = {2022},
+  booktitle = {Interspeech 2022},
+  pages     = {4536--4540},
+  doi       = {10.21437/Interspeech.2022-970},
+  issn      = {2958-1796},
+}
+
+
+@misc{schulman2017proximalpolicyoptimizationalgorithms,
+      title={Proximal Policy Optimization Algorithms}, 
+      author={John Schulman and Filip Wolski and Prafulla Dhariwal and Alec Radford and Oleg Klimov},
+      year={2017},
+      eprint={1707.06347},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/1707.06347}, 
+}
+
+@misc{ziegler2020finetuninglanguagemodelshuman,
+      title={Fine-Tuning Language Models from Human Preferences}, 
+      author={Daniel M. Ziegler and Nisan Stiennon and Jeffrey Wu and Tom B. Brown and Alec Radford and Dario Amodei and Paul Christiano and Geoffrey Irving},
+      year={2020},
+      eprint={1909.08593},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/1909.08593}, 
+}
+
+@ARTICLE{10374223,
+  author={Ye, Lingxuan and Gao, Changfeng and Cheng, Gaofeng and Luo, Liuping and Zhao, Qingwei},
+  journal={IEEE Signal Processing Letters}, 
+  title={ASQ: An Ultra-Low Bit Rate ASR-Oriented Speech Quantization Method}, 
+  year={2024},
+  volume={31},
+  number={},
+  pages={221-225},
+  keywords={Speech recognition;Quantization (signal);Transformers;Training;Speech processing;Servers;Decoding;Neural speech quantization;automatic speech recognition;low bit rate},
+  doi={10.1109/LSP.2023.3347148}}
+
+
+@misc{an2024funaudiollmvoiceunderstandinggeneration,
+      title={FunAudioLLM: Voice Understanding and Generation Foundation Models for Natural Interaction Between Humans and LLMs}, 
+      author={Keyu An and Qian Chen and Chong Deng and Zhihao Du and Changfeng Gao and Zhifu Gao and Yue Gu and Ting He and Hangrui Hu and Kai Hu and Shengpeng Ji and Yabin Li and Zerui Li and Heng Lu and Haoneng Luo and Xiang Lv and Bin Ma and Ziyang Ma and Chongjia Ni and Changhe Song and Jiaqi Shi and Xian Shi and Hao Wang and Wen Wang and Yuxuan Wang and Zhangyu Xiao and Zhijie Yan and Yexin Yang and Bin Zhang and Qinglin Zhang and Shiliang Zhang and Nan Zhao and Siqi Zheng},
+      year={2024},
+      eprint={2407.04051},
+      archivePrefix={arXiv},
+      primaryClass={cs.SD},
+      url={https://arxiv.org/abs/2407.04051}, 
+}
+
+@misc{ma2024emoboxmultilingualmulticorpusspeech,
+      title={EmoBox: Multilingual Multi-corpus Speech Emotion Recognition Toolkit and Benchmark}, 
+      author={Ziyang Ma and Mingjie Chen and Hezhao Zhang and Zhisheng Zheng and Wenxi Chen and Xiquan Li and Jiaxin Ye and Xie Chen and Thomas Hain},
+      year={2024},
+      eprint={2406.07162},
+      archivePrefix={arXiv},
+      primaryClass={cs.SD},
+      url={https://arxiv.org/abs/2406.07162}, 
+}
+
+@article{Qwen-Audio,
+  title={Qwen-Audio: Advancing Universal Audio Understanding via Unified Large-Scale Audio-Language Models},
+  author={Chu, Yunfei and Xu, Jin and Zhou, Xiaohuan and Yang, Qian and Zhang, Shiliang and Yan, Zhijie  and Zhou, Chang and Zhou, Jingren},
+  journal={arXiv preprint arXiv:2311.07919},
+  year={2023}
+}
+
+@inproceedings{reddy2022dnsmos,
+  title={DNSMOS P.835: A non-intrusive perceptual objective speech quality metric to evaluate noise suppressors},
+  author={Reddy, Chandan KA and Gopal, Vishak and Cutler, Ross},
+  booktitle={ICASSP 2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+  year={2022},
+  organization={IEEE}
+}
+
+@inproceedings{commonvoice:2020,
+  author = {Ardila, R. and Branson, M. and Davis, K. and Henretty, M. and Kohler, M. and Meyer, J. and Morais, R. and Saunders, L. and Tyers, F. M. and Weber, G.},
+  title = {Common Voice: A Massively-Multilingual Speech Corpus},
+  booktitle = {Proceedings of the 12th Conference on Language Resources and Evaluation (LREC 2020)},
+  pages = {4211--4215},
+  year = 2020
+}
+
+@misc{radford2022robustspeechrecognitionlargescale,
+      title={Robust Speech Recognition via Large-Scale Weak Supervision}, 
+      author={Alec Radford and Jong Wook Kim and Tao Xu and Greg Brockman and Christine McLeavey and Ilya Sutskever},
+      year={2022},
+      eprint={2212.04356},
+      archivePrefix={arXiv},
+      primaryClass={eess.AS},
+      url={https://arxiv.org/abs/2212.04356}, 
+}
+
+@inproceedings{gao22b_interspeech,
+  author={Zhifu Gao and ShiLiang Zhang and Ian McLoughlin and Zhijie Yan},
+  title={Paraformer: Fast and Accurate Parallel Transformer for Non-autoregressive End-to-End Speech Recognition},
+  year=2022,
+  booktitle={Proc. Interspeech 2022},
+  pages={2063--2067},
+  doi={10.21437/Interspeech.2022-9996}
+}
+
+@misc{chen2025minmomultimodallargelanguage,
+      title={MinMo: A Multimodal Large Language Model for Seamless Voice Interaction}, 
+      author={Qian Chen and Yafeng Chen and Yanni Chen and Mengzhe Chen and Yingda Chen and Chong Deng and Zhihao Du and Ruize Gao and Changfeng Gao and Zhifu Gao and Yabin Li and Xiang Lv and Jiaqing Liu and Haoneng Luo and Bin Ma and Chongjia Ni and Xian Shi and Jialong Tang and Hui Wang and Hao Wang and Wen Wang and Yuxuan Wang and Yunlan Xu and Fan Yu and Zhijie Yan and Yexin Yang and Baosong Yang and Xian Yang and Guanrou Yang and Tianyu Zhao and Qinglin Zhang and Shiliang Zhang and Nan Zhao and Pei Zhang and Chong Zhang and Jinren Zhou},
+      year={2025},
+      eprint={2501.06282},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2501.06282}, 
+}
+
+@inproceedings{NEURIPS2020_4c5bcfec,
+    author      = {Ho, Jonathan and Jain, Ajay and Abbeel, Pieter},
+    booktitle   = {Advances in Neural Information Processing Systems},
+    editor      = {H. Larochelle and M. Ranzato and R. Hadsell and M.F. Balcan and H. Lin},
+    pages       = {6840--6851},
+    publisher   = {Curran Associates, Inc.},
+    title       = {Denoising Diffusion Probabilistic Models},
+    volume      = {33},
+    year        = {2020}
+}
+
+@ARTICLE{lmtts1,
+  author={Chen, Sanyuan and Wang, Chengyi and Wu, Yu and Zhang, Ziqiang and Zhou, Long and Liu, Shujie and Chen, Zhuo and Liu, Yanqing and Wang, Huaming and Li, Jinyu and He, Lei and Zhao, Sheng and Wei, Furu},
+  journal={IEEE Transactions on Audio, Speech and Language Processing}, 
+  title={Neural Codec Language Models are Zero-Shot Text to Speech Synthesizers}, 
+  year={2025},
+  volume={33},
+  number={},
+  pages={705-718},
+  keywords={Codes;Codecs;Data models;Acoustics;Speech coding;Training data;Recording;Speech recognition;Decoding;Vocoders;Zero-shot text to speech synthesis;speech generation;voice cloning;language modeling;pre-training;in-Context learning},
+  doi={10.1109/TASLPRO.2025.3530270}}
+
+
+@misc{lmtts2,
+      title={Speak Foreign Languages with Your Own Voice: Cross-Lingual Neural Codec Language Modeling}, 
+      author={Ziqiang Zhang and Long Zhou and Chengyi Wang and Sanyuan Chen and Yu Wu and Shujie Liu and Zhuo Chen and Yanqing Liu and Huaming Wang and Jinyu Li and Lei He and Sheng Zhao and Furu Wei},
+      year={2023},
+      eprint={2303.03926},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2303.03926}, 
+}
+
+@article{tts_rlhf,
+  title={BATON: Aligning Text-to-Audio Model with Human Preference Feedback},
+  author={Huan Liao and Haonan Han and Kai Yang and Tianjiao Du and Rui Yang and Zunnan Xu and Qinmei Xu and Jingquan Liu and Jiasheng Lu and Xiu Li},
+  journal={ArXiv},
+  year={2024},
+  volume={abs/2402.00744},
+  url={https://api.semanticscholar.org/CorpusID:267365170}
+}
+
+@misc{hu2024robustzeroshottexttospeechsynthesis,
+      title={Robust Zero-Shot Text-to-Speech Synthesis with Reverse Inference Optimization}, 
+      author={Yuchen Hu and Chen Chen and Siyin Wang and Eng Siong Chng and Chao Zhang},
+      year={2024},
+      eprint={2407.02243},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2407.02243}, 
+}
+
+@article{Kumar2023TorchaudioSquimRS,
+  title={Torchaudio-Squim: Reference-Less Speech Quality and Intelligibility Measures in Torchaudio},
+  author={Anurag Kumar and Ke Tan and Zhaoheng Ni and Pranay Manocha and Xiaohui Zhang and Ethan Henderson and Buye Xu},
+  journal={ICASSP 2023 - 2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+  year={2023},
+  pages={1-5},
+  url={https://api.semanticscholar.org/CorpusID:257921409}
+}
+
+@article{Kong2019PANNsLP,
+  title={PANNs: Large-Scale Pretrained Audio Neural Networks for Audio Pattern Recognition},
+  author={Qiuqiang Kong and Yin Cao and Turab Iqbal and Yuxuan Wang and Wenwu Wang and Mark D. Plumbley},
+  journal={IEEE/ACM Transactions on Audio, Speech, and Language Processing},
+  year={2019},
+  volume={28},
+  pages={2880-2894},
+  url={https://api.semanticscholar.org/CorpusID:209444382}
+}

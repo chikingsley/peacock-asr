@@ -1,0 +1,368 @@
+\begin{thebibliography}{73}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Abramson and Whalen(2017)}]{abramson2017voice}
+Arthur~S Abramson and Douglas~H Whalen. 2017.
+\newblock Voice onset time (vot) at 50: Theoretical and practical issues in measuring voicing distinctions.
+\newblock \emph{Journal of phonetics}, 63:75--86.
+
+\bibitem[{Anderson et~al.(2023)Anderson, Tresoldi, Greenhill, Forkel, Gray, and List}]{anderson2023variation}
+Cormac Anderson, Tiago Tresoldi, Simon~J Greenhill, Robert Forkel, Russell Gray, and Johann-Mattis List. 2023.
+\newblock Variation in phoneme inventories: quantifying the problem and improving comparability.
+\newblock \emph{Journal of Language Evolution}, page lzad011.
+
+\bibitem[{Ardila et~al.(2020)Ardila, Branson, Davis, Kohler, Meyer, Henretty, Morais, Saunders, Tyers, and Weber}]{ardila-etal-2020-common}
+Rosana Ardila, Megan Branson, Kelly Davis, Michael Kohler, Josh Meyer, Michael Henretty, Reuben Morais, Lindsay Saunders, Francis Tyers, and Gregor Weber. 2020.
+\newblock \href {https://aclanthology.org/2020.lrec-1.520/} {Common voice: A massively-multilingual speech corpus}.
+\newblock In \emph{Proceedings of the Twelfth Language Resources and Evaluation Conference}, pages 4218--4222, Marseille, France. European Language Resources Association.
+
+\bibitem[{Babu et~al.(2022)Babu, Wang, Tjandra, Lakhotia, Xu, Goyal, Singh, {von Platen}, Saraf, Pino, Baevski, Conneau, and Auli}]{babu22_interspeech}
+Arun Babu, Changhan Wang, Andros Tjandra, Kushal Lakhotia, Qiantong Xu, Naman Goyal, Kritika Singh, Patrick {von Platen}, Yatharth Saraf, Juan Pino, Alexei Baevski, Alexis Conneau, and Michael Auli. 2022.
+\newblock \href {https://doi.org/10.21437/Interspeech.2022-143} {Xls-r: Self-supervised cross-lingual speech representation learning at scale}.
+\newblock In \emph{Interspeech 2022}, pages 2278--2282.
+
+\bibitem[{Babu et~al.(2021)Babu, Wang, Tjandra, Lakhotia, Xu, Goyal, Singh, von Platen, Saraf, Pino et~al.}]{babu2021xls}
+Arun Babu, Changhan Wang, Andros Tjandra, Kushal Lakhotia, Qiantong Xu, Naman Goyal, Kritika Singh, Patrick von Platen, Yatharth Saraf, Juan Pino, et~al. 2021.
+\newblock Xls-r: Self-supervised cross-lingual speech representation learning at scale.
+\newblock \emph{arXiv preprint arXiv:2111.09296}.
+
+\bibitem[{Baevski et~al.(2020)Baevski, Zhou, Mohamed, and Auli}]{baevski2020wav2vec}
+Alexei Baevski, Yuhao Zhou, Abdelrahman Mohamed, and Michael Auli. 2020.
+\newblock wav2vec 2.0: A framework for self-supervised learning of speech representations.
+\newblock \emph{Advances in neural information processing systems}, 33:12449--12460.
+
+\bibitem[{Bu et~al.(2017)Bu, Du, Na, Wu, and Zheng}]{bu2017aishell}
+Hui Bu, Jiayu Du, Xingyu Na, Bengu Wu, and Hao Zheng. 2017.
+\newblock Aishell-1: An open-source mandarin speech corpus and a speech recognition baseline.
+\newblock In \emph{2017 20th conference of the oriental chapter of the international coordinating committee on speech databases and speech I/O systems and assessment (O-COCOSDA)}, pages 1--5. IEEE.
+
+\bibitem[{Chen et~al.(2024)Chen, Zhang, Peng, Li, Tian, Shi, Chang, Maiti, Livescu, and Watanabe}]{chen-etal-2024-towards-robust}
+William Chen, Wangyou Zhang, Yifan Peng, Xinjian Li, Jinchuan Tian, Jiatong Shi, Xuankai Chang, Soumi Maiti, Karen Livescu, and Shinji Watanabe. 2024.
+\newblock \href {https://doi.org/10.18653/v1/2024.emnlp-main.570} {Towards robust speech representation learning for thousands of languages}.
+\newblock In \emph{Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing}, pages 10205--10224, Miami, Florida, USA. Association for Computational Linguistics.
+
+\bibitem[{Cho and Ladefoged(1999)}]{cho1999variation}
+Taehong Cho and Peter Ladefoged. 1999.
+\newblock Variation and universals in vot: evidence from 18 languages.
+\newblock \emph{Journal of phonetics}, 27(2):207--229.
+
+\bibitem[{Chodroff et~al.(2019)Chodroff, Golden, and Wilson}]{chodroff2019covariation}
+Eleanor Chodroff, Alessandra Golden, and Colin Wilson. 2019.
+\newblock Covariation of stop voice onset time across languages: Evidence for a universal constraint on phonetic realization.
+\newblock \emph{The Journal of the Acoustical Society of America}, 145(1):EL109--EL115.
+
+\bibitem[{Chodroff et~al.(2024)Chodroff, Pa{\v{z}}on, Baker, and Moran}]{chodroff-etal-2024-phonetic}
+Eleanor Chodroff, Bla{\v{z}} Pa{\v{z}}on, Annie Baker, and Steven Moran. 2024.
+\newblock \href {https://aclanthology.org/2024.lrec-main.1114/} {Phonetic segmentation of the {UCLA} phonetics lab archive}.
+\newblock In \emph{Proceedings of the 2024 Joint International Conference on Computational Linguistics, Language Resources and Evaluation (LREC-COLING 2024)}, pages 12724--12733, Torino, Italia. ELRA and ICCL.
+
+\bibitem[{Conneau et~al.(2020)Conneau, Baevski, Collobert, Mohamed, and Auli}]{conneau2020unsupervised}
+Alexis Conneau, Alexei Baevski, Ronan Collobert, Abdelrahman Mohamed, and Michael Auli. 2020.
+\newblock Unsupervised cross-lingual representation learning for speech recognition.
+\newblock \emph{arXiv preprint arXiv:2006.13979}.
+
+\bibitem[{Feng et~al.(2023)Feng, Tu, Xia, Huang, and Wang}]{feng23b_interspeech}
+Siyuan Feng, Ming Tu, Rui Xia, Chuanzeng Huang, and Yuxuan Wang. 2023.
+\newblock \href {https://doi.org/10.21437/Interspeech.2023-621} {Language-universal phonetic encoder for low-resource speech recognition}.
+\newblock In \emph{Interspeech 2023}, pages 1429--1433.
+
+\bibitem[{Fuchs et~al.(2022)Fuchs, Hoshen, and Keshet}]{fuchs22_interspeech}
+Tzeviya Fuchs, Yedid Hoshen, and Yossi Keshet. 2022.
+\newblock \href {https://doi.org/10.21437/Interspeech.2022-11474} {Unsupervised word segmentation using k nearest neighbors}.
+\newblock In \emph{Interspeech 2022}, pages 4646--4650.
+
+\bibitem[{Gao et~al.(2021)Gao, Ni, Zhang, Qian, Chang, and Hasegawa-Johnson}]{gao2021zero}
+Heting Gao, Junrui Ni, Yang Zhang, Kaizhi Qian, Shiyu Chang, and Mark Hasegawa-Johnson. 2021.
+\newblock Zero-shot cross-lingual phonetic recognition with external language embedding.
+\newblock In \emph{Interspeech}, pages 1304--1308.
+
+\bibitem[{Ghodsi et~al.(2020)Ghodsi, Liu, Apfel, Cabrera, and Weinstein}]{ghodsi2020rnn}
+Mohammadreza Ghodsi, Xiaofeng Liu, James Apfel, Rodrigo Cabrera, and Eugene Weinstein. 2020.
+\newblock Rnn-transducer with stateless prediction network.
+\newblock In \emph{ICASSP 2020-2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 7049--7053. IEEE.
+
+\bibitem[{Glocker et~al.(2023)Glocker, Herygers, and Georges}]{glocker23_interspeech}
+Kevin Glocker, Aaricia Herygers, and Munir Georges. 2023.
+\newblock \href {https://doi.org/10.21437/Interspeech.2023-772} {Allophant: Cross-lingual phoneme recognition with articulatory attributes}.
+\newblock In \emph{INTERSPEECH 2023}, pages 2258--2262.
+
+\bibitem[{Gong et~al.(2022)Gong, Chen, Chu, Chang, and Glass}]{gong2022transformer}
+Yuan Gong, Ziyi Chen, Iek-Heng Chu, Peng Chang, and James Glass. 2022.
+\newblock Transformer-based multi-aspect multi-granularity non-native english speaker pronunciation assessment.
+\newblock In \emph{ICASSP 2022-2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 7262--7266. IEEE.
+
+\bibitem[{Graves et~al.(2006)Graves, Fern{\'a}ndez, Gomez, and Schmidhuber}]{graves2006connectionist}
+Alex Graves, Santiago Fern{\'a}ndez, Faustino Gomez, and J{\"u}rgen Schmidhuber. 2006.
+\newblock Connectionist temporal classification: labelling unsegmented sequence data with recurrent neural networks.
+\newblock In \emph{Proceedings of the 23rd international conference on Machine learning}, pages 369--376.
+
+\bibitem[{Gulati et~al.(2020)Gulati, Qin, Chiu, Parmar, Zhang, Yu, Han, Wang, Zhang, Wu, and Pang}]{gulati20_interspeech}
+Anmol Gulati, James Qin, Chung-Cheng Chiu, Niki Parmar, Yu~Zhang, Jiahui Yu, Wei Han, Shibo Wang, Zhengdong Zhang, Yonghui Wu, and Ruoming Pang. 2020.
+\newblock \href {https://doi.org/10.21437/Interspeech.2020-3015} {Conformer: Convolution-augmented transformer for speech recognition}.
+\newblock In \emph{Interspeech 2020}, pages 5036--5040.
+
+\bibitem[{Hwang et~al.(2022{\natexlab{a}})Hwang, Misra, Huo, Siddhartha, Garg, Qiu, Sim, Strohman, Beaufays, and He}]{hwang2022large}
+Dongseong Hwang, Ananya Misra, Zhouyuan Huo, Nikhil Siddhartha, Shefali Garg, David Qiu, Khe~Chai Sim, Trevor Strohman, Fran{\c{c}}oise Beaufays, and Yanzhang He. 2022{\natexlab{a}}.
+\newblock Large-scale asr domain adaptation using self-and semi-supervised learning.
+\newblock In \emph{ICASSP 2022-2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 6627--6631. IEEE.
+
+\bibitem[{Hwang et~al.(2022{\natexlab{b}})Hwang, Sim, Huo, and Strohman}]{hwang22c_interspeech}
+Dongseong Hwang, Khe~Chai Sim, Zhouyuan Huo, and Trevor Strohman. 2022{\natexlab{b}}.
+\newblock \href {https://doi.org/10.21437/Interspeech.2022-11034} {Pseudo label is better than human label}.
+\newblock In \emph{Interspeech 2022}, pages 1421--1425.
+
+\bibitem[{International Phonetic~Association(1999)}]{international1999handbook}
+IPA International Phonetic~Association. 1999.
+\newblock \emph{Handbook of the International Phonetic Association: A guide to the use of the International Phonetic Alphabet}.
+\newblock Cambridge University Press.
+
+\bibitem[{Kerswill and Wright(1990)}]{kerswill1990validity}
+Paul Kerswill and Susan Wright. 1990.
+\newblock The validity of phonetic transcription: Limitations of a sociolinguistic research tool.
+\newblock \emph{Language variation and change}, 2(3):255--275.
+
+\bibitem[{Khassanov et~al.(2021)Khassanov, Mussakhojayeva, Mirzakhmetov, Adiyev, Nurpeiissov, and Varol}]{khassanov-etal-2021-crowdsourced}
+Yerbolat Khassanov, Saida Mussakhojayeva, Almas Mirzakhmetov, Alen Adiyev, Mukhamet Nurpeiissov, and Huseyin~Atakan Varol. 2021.
+\newblock \href {https://doi.org/10.18653/v1/2021.eacl-main.58} {A crowdsourced open-source {K}azakh speech corpus and initial speech recognition baseline}.
+\newblock In \emph{Proceedings of the 16th Conference of the European Chapter of the Association for Computational Linguistics: Main Volume}, pages 697--706, Online. Association for Computational Linguistics.
+
+\bibitem[{Kim et~al.(2023)Kim, Wu, Peng, Pan, Sridhar, Han, and Watanabe}]{kim2023branchformer}
+Kwangyoun Kim, Felix Wu, Yifan Peng, Jing Pan, Prashant Sridhar, Kyu~J Han, and Shinji Watanabe. 2023.
+\newblock E-branchformer: Branchformer with enhanced merging for speech recognition.
+\newblock In \emph{2022 IEEE Spoken Language Technology Workshop (SLT)}, pages 84--91. IEEE.
+
+\bibitem[{Kjartansson et~al.(2018)Kjartansson, Sarin, Pipatsrisawat, Jansche, and Ha}]{kjartansson-etal-sltu2018}
+Oddur Kjartansson, Supheakmungkol Sarin, Knot Pipatsrisawat, Martin Jansche, and Linne Ha. 2018.
+\newblock \href {http://dx.doi.org/10.21437/SLTU.2018-11} {{Crowd-Sourced Speech Corpora for Javanese, Sundanese, Sinhala, Nepali, and Bangladeshi Bengali}}.
+\newblock In \emph{Proc. The 6th Intl. Workshop on Spoken Language Technologies for Under-Resourced Languages (SLTU)}, pages 52--55, Gurugram, India.
+
+\bibitem[{Kuang et~al.(2022)Kuang, Guo, Kang, Lin, Luo, Yao, and Povey}]{kuang22_interspeech}
+Fangjun Kuang, Liyong Guo, Wei Kang, Long Lin, Mingshuang Luo, Zengwei Yao, and Daniel Povey. 2022.
+\newblock \href {https://doi.org/10.21437/Interspeech.2022-10340} {Pruned rnn-t for fast, memory-eﬀicient asr training}.
+\newblock In \emph{Interspeech 2022}, pages 2068--2072.
+
+\bibitem[{K{\"u}rzinger et~al.(2020)K{\"u}rzinger, Winkelbauer, Li, Watzel, and Rigoll}]{kurzinger2020ctc}
+Ludwig K{\"u}rzinger, Dominik Winkelbauer, Lujun Li, Tobias Watzel, and Gerhard Rigoll. 2020.
+\newblock Ctc-segmentation of large corpora for german end-to-end speech recognition.
+\newblock In \emph{International Conference on Speech and Computer}, pages 267--278. Springer.
+
+\bibitem[{Ladefoged and Johnson(2014)}]{ladefoged2014course}
+Peter Ladefoged and Keith Johnson. 2014.
+\newblock \emph{A course in phonetics}.
+\newblock Cengage learning.
+
+\bibitem[{Lane and Bird(2021)}]{lane2021local}
+William Lane and Steven Bird. 2021.
+\newblock Local word discovery for interactive transcription.
+\newblock In \emph{Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing}, pages 2058--2067.
+
+\bibitem[{Lee et~al.(2022)Lee, Noh, Nam, and Lee}]{lee2022duration}
+Sang-Hoon Lee, Hyeong-Rae Noh, Woo-Jeoung Nam, and Seong-Whan Lee. 2022.
+\newblock Duration controllable voice conversion via phoneme-based information bottleneck.
+\newblock \emph{IEEE/ACM Transactions on Audio, Speech, and Language Processing}, 30:1173--1183.
+
+\bibitem[{Li(2017)}]{li2017divination}
+Xiaochang Li. 2017.
+\newblock \emph{Divination engines: A media history of text prediction}.
+\newblock Ph.D. thesis, New York University.
+
+\bibitem[{Li et~al.(2020)Li, Dalmia, Li, Lee, Littell, Yao, Anastasopoulos, Mortensen, Neubig, Black et~al.}]{li2020universal}
+Xinjian Li, Siddharth Dalmia, Juncheng Li, Matthew Lee, Patrick Littell, Jiali Yao, Antonios Anastasopoulos, David~R Mortensen, Graham Neubig, Alan~W Black, et~al. 2020.
+\newblock Universal phone recognition with a multilingual allophone system.
+\newblock In \emph{ICASSP 2020-2020 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 8249--8253. IEEE.
+
+\bibitem[{Li et~al.(2021)Li, Mortensen, Metze, and Black}]{li2021multilingual}
+Xinjian Li, David~R Mortensen, Florian Metze, and Alan~W Black. 2021.
+\newblock Multilingual phonetic dataset for low resource speech recognition.
+\newblock In \emph{ICASSP 2021-2021 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 6958--6962. IEEE.
+
+\bibitem[{Liu et~al.(2023)Liu, Ling, and Chen}]{liu2023pronunciation}
+Chang Liu, Zhen-Hua Ling, and Ling-Hui Chen. 2023.
+\newblock Pronunciation dictionary-free multilingual speech synthesis using learned phonetic representations.
+\newblock \emph{IEEE/ACM Transactions on Audio, Speech, and Language Processing}.
+
+\bibitem[{Liu et~al.(2021)Liu, Peng, Xiong, and Lu}]{liu2021phoneme}
+Yajing Liu, Xiulian Peng, Zhiwei Xiong, and Yan Lu. 2021.
+\newblock Phoneme-based distribution regularization for speech enhancement.
+\newblock In \emph{ICASSP 2021-2021 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 726--730. IEEE.
+
+\bibitem[{Madhavaraj et~al.(2022{\natexlab{a}})Madhavaraj, Pilar, and G}]{mile_2}
+A~Madhavaraj, Bharathi Pilar, and Ramakrishnan~A G. 2022{\natexlab{a}}.
+\newblock \href {https://doi.org/10.48550/ARXIV.2207.13333} {Knowledge-driven subword grammar modeling for automatic speech recognition in tamil and kannada}.
+\newblock \emph{arXiv preprint}.
+
+\bibitem[{Madhavaraj et~al.(2022{\natexlab{b}})Madhavaraj, Pilar, and G}]{mile_1}
+A~Madhavaraj, Bharathi Pilar, and Ramakrishnan~A G. 2022{\natexlab{b}}.
+\newblock \href {https://doi.org/10.48550/ARXIV.2207.13331} {Subword dictionary learning and segmentation techniques for automatic speech recognition in tamil and kannada}.
+\newblock \emph{arXiv preprint}.
+
+\bibitem[{Mansurova and Kadyrbek(2023)}]{mansurova-kadyrbek-2023-kazakh-speech-dataset}
+Madina Mansurova and Nurgali Kadyrbek. 2023.
+\newblock \href {https://doi.org/10.3390/bdcc7030132} {The development of a kazakh speech recognition model using a convolutional neural network with fixed character level filters}.
+\newblock In \emph{Proceedings of the Big Data and Cognitive Computing}, pages 5--9.
+
+\bibitem[{Moran et~al.(2014)Moran, McCloy, and Wright}]{moran2014phoible}
+Steven Moran, Daniel McCloy, and Richard Wright. 2014.
+\newblock Phoible online.
+
+\bibitem[{Mortensen et~al.(2018)Mortensen, Dalmia, and Littell}]{mortensen-etal-2018-epitran}
+David~R. Mortensen, Siddharth Dalmia, and Patrick Littell. 2018.
+\newblock \href {https://aclanthology.org/L18-1429/} {{E}pitran: Precision {G}2{P} for many languages}.
+\newblock In \emph{Proceedings of the Eleventh International Conference on Language Resources and Evaluation ({LREC} 2018)}, Miyazaki, Japan. European Language Resources Association (ELRA).
+
+\bibitem[{Mortensen et~al.(2016)Mortensen, Littell, Bharadwaj, Goyal, Dyer, and Levin}]{mortensen-etal-2016-panphon}
+David~R. Mortensen, Patrick Littell, Akash Bharadwaj, Kartik Goyal, Chris Dyer, and Lori Levin. 2016.
+\newblock \href {https://aclanthology.org/C16-1328/} {{P}an{P}hon: A resource for mapping {IPA} segments to articulatory feature vectors}.
+\newblock In \emph{Proceedings of {COLING} 2016, the 26th International Conference on Computational Linguistics: Technical Papers}, pages 3475--3484, Osaka, Japan. The COLING 2016 Organizing Committee.
+
+\bibitem[{Panayotov et~al.(2015)Panayotov, Chen, Povey, and Khudanpur}]{panayotov2015librispeech}
+Vassil Panayotov, Guoguo Chen, Daniel Povey, and Sanjeev Khudanpur. 2015.
+\newblock Librispeech: an asr corpus based on public domain audio books.
+\newblock In \emph{2015 IEEE international conference on acoustics, speech and signal processing (ICASSP)}, pages 5206--5210. IEEE.
+
+\bibitem[{Park et~al.(2019)Park, Chan, Zhang, Chiu, Zoph, Cubuk, and Le}]{park19e_interspeech}
+Daniel~S. Park, William Chan, Yu~Zhang, Chung-Cheng Chiu, Barret Zoph, Ekin~D. Cubuk, and Quoc~V. Le. 2019.
+\newblock \href {https://doi.org/10.21437/Interspeech.2019-2680} {Specaugment: A simple data augmentation method for automatic speech recognition}.
+\newblock In \emph{Interspeech 2019}, pages 2613--2617.
+
+\bibitem[{Park et~al.(2020)Park, Zhang, Jia, Han, Chiu, Li, Wu, and Le}]{park20d_interspeech}
+Daniel~S. Park, Yu~Zhang, Ye~Jia, Wei Han, Chung-Cheng Chiu, Bo~Li, Yonghui Wu, and Quoc~V. Le. 2020.
+\newblock \href {https://doi.org/10.21437/Interspeech.2020-1470} {Improved noisy student training for automatic speech recognition}.
+\newblock In \emph{Interspeech 2020}, pages 2817--2821.
+
+\bibitem[{Paschen et~al.(2020)Paschen, Delafontaine, Draxler, Fuchs, Stave, and Seifart}]{paschen2020building}
+Ludger Paschen, Fran{\c{c}}ois Delafontaine, Christoph Draxler, Susanne Fuchs, Matthew Stave, and Frank Seifart. 2020.
+\newblock Building a time-aligned cross-linguistic reference corpus from language documentation data (doreco).
+\newblock In \emph{Proceedings of the Twelfth Language Resources and Evaluation Conference}, pages 2657--2666.
+
+\bibitem[{Peng et~al.(2022)Peng, Dalmia, Lane, and Watanabe}]{peng2022branchformer}
+Yifan Peng, Siddharth Dalmia, Ian Lane, and Shinji Watanabe. 2022.
+\newblock Branchformer: Parallel mlp-attention architectures to capture local and global context for speech recognition and understanding.
+\newblock In \emph{International Conference on Machine Learning}, pages 17627--17643. PMLR.
+
+\bibitem[{Peng et~al.(2024{\natexlab{a}})Peng, Sudo, Shakeel, and Watanabe}]{peng2024owsm}
+Yifan Peng, Yui Sudo, Muhammad Shakeel, and Shinji Watanabe. 2024{\natexlab{a}}.
+\newblock Owsm-ctc: An open encoder-only speech foundation model for speech recognition, translation, and language identification.
+\newblock \emph{arXiv preprint arXiv:2402.12654}.
+
+\bibitem[{Peng et~al.(2024{\natexlab{b}})Peng, Sudo, Shakeel, and Watanabe}]{peng-etal-2024-owsm}
+Yifan Peng, Yui Sudo, Muhammad Shakeel, and Shinji Watanabe. 2024{\natexlab{b}}.
+\newblock \href {https://doi.org/10.18653/v1/2024.acl-long.549} {{OWSM}-{CTC}: An open encoder-only speech foundation model for speech recognition, translation, and language identification}.
+\newblock In \emph{Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)}, pages 10192--10209, Bangkok, Thailand. Association for Computational Linguistics.
+
+\bibitem[{Pirklbauer et~al.(2023)Pirklbauer, Sach, Fluyt, Tirry, Wardah, Moeller, and Fingscheidt}]{pirklbauer2023evaluation}
+Jan Pirklbauer, Marvin Sach, Kristoff Fluyt, Wouter Tirry, Wafaa Wardah, Sebastian Moeller, and Tim Fingscheidt. 2023.
+\newblock Evaluation metrics for generative speech enhancement methods: Issues and perspectives.
+\newblock In \emph{Speech Communication; 15th ITG Conference}, pages 265--269. VDE.
+
+\bibitem[{Pitt et~al.(2005)Pitt, Johnson, Hume, Kiesling, and Raymond}]{pitt2005buckeye}
+Mark~A Pitt, Keith Johnson, Elizabeth Hume, Scott Kiesling, and William Raymond. 2005.
+\newblock The buckeye corpus of conversational speech: Labeling conventions and a test of transcriber reliability.
+\newblock \emph{Speech Communication}, 45(1):89--95.
+
+\bibitem[{Pratap et~al.(2024)Pratap, Tjandra, Shi, Tomasello, Babu, Kundu, Elkahky, Ni, Vyas, Fazel-Zarandi et~al.}]{pratap2024scaling}
+Vineel Pratap, Andros Tjandra, Bowen Shi, Paden Tomasello, Arun Babu, Sayani Kundu, Ali Elkahky, Zhaoheng Ni, Apoorv Vyas, Maryam Fazel-Zarandi, et~al. 2024.
+\newblock Scaling speech technology to 1,000+ languages.
+\newblock \emph{Journal of Machine Learning Research}, 25(97):1--52.
+
+\bibitem[{Pratap et~al.(2020)Pratap, Xu, Sriram, Synnaeve, and Collobert}]{pratap20_interspeech}
+Vineel Pratap, Qiantong Xu, Anuroop Sriram, Gabriel Synnaeve, and Ronan Collobert. 2020.
+\newblock \href {https://doi.org/10.21437/Interspeech.2020-2826} {Mls: A large-scale multilingual dataset for speech research}.
+\newblock In \emph{Interspeech 2020}, pages 2757--2761.
+
+\bibitem[{Radford et~al.(2023)Radford, Kim, Xu, Brockman, McLeavey, and Sutskever}]{radford2023robust}
+Alec Radford, Jong~Wook Kim, Tao Xu, Greg Brockman, Christine McLeavey, and Ilya Sutskever. 2023.
+\newblock Robust speech recognition via large-scale weak supervision.
+\newblock In \emph{International Conference on Machine Learning}, pages 28492--28518. PMLR.
+
+\bibitem[{Ramirez et~al.(2024)Ramirez, Chkhetiani, Ehrenberg, McHardy, Botros, Khare, Vanzo, Peyash, Oexle, Liang et~al.}]{ramirez2024anatomy}
+Francis~McCann Ramirez, Luka Chkhetiani, Andrew Ehrenberg, Robert McHardy, Rami Botros, Yash Khare, Andrea Vanzo, Taufiquzzaman Peyash, Gabriel Oexle, Michael Liang, et~al. 2024.
+\newblock Anatomy of industrial scale multilingual asr.
+\newblock \emph{arXiv preprint arXiv:2404.09841}.
+
+\bibitem[{Ronneberger et~al.(2015)Ronneberger, Fischer, and Brox}]{ronneberger2015u}
+Olaf Ronneberger, Philipp Fischer, and Thomas Brox. 2015.
+\newblock U-net: Convolutional networks for biomedical image segmentation.
+\newblock In \emph{Medical image computing and computer-assisted intervention--MICCAI 2015: 18th international conference, Munich, Germany, October 5-9, 2015, proceedings, part III 18}, pages 234--241. Springer.
+
+\bibitem[{Salesky et~al.(2020)Salesky, Chodroff, Pimentel, Wiesner, Cotterell, Black, and Eisner}]{salesky-etal-2020-corpus}
+Elizabeth Salesky, Eleanor Chodroff, Tiago Pimentel, Matthew Wiesner, Ryan Cotterell, Alan~W Black, and Jason Eisner. 2020.
+\newblock \href {https://doi.org/10.18653/v1/2020.acl-main.415} {A corpus for large-scale phonetic typology}.
+\newblock In \emph{Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics}, pages 4526--4546, Online. Association for Computational Linguistics.
+
+\bibitem[{Samir et~al.(2024)Samir, Ahn, Prakash, Soskuthy, Shwartz, and Zhu}]{samir2024efficiently}
+Farhan Samir, Emily~P Ahn, Shreya Prakash, M{\'a}rton Soskuthy, Vered Shwartz, and Jian Zhu. 2024.
+\newblock Efficiently identifying low-quality language subsets in multilingual datasets: A case study on a large-scale multilingual audio dataset.
+\newblock \emph{arXiv preprint arXiv:2410.04292}.
+
+\bibitem[{Sebasti{\'a}n-Gall{\'e}s(2005)}]{sebastian2005cross}
+N{\'u}ria Sebasti{\'a}n-Gall{\'e}s. 2005.
+\newblock Cross-language speech perception.
+\newblock \emph{The handbook of speech perception}, pages 546--566.
+
+\bibitem[{Shan et~al.(2024)Shan, Li, Banerjee, and Oliva}]{shan2024phoneme}
+Siyuan Shan, Yang Li, Amartya Banerjee, and Junier~B Oliva. 2024.
+\newblock Phoneme hallucinator: One-shot voice conversion via set expansion.
+\newblock In \emph{Proceedings of the AAAI Conference on Artificial Intelligence}, volume~38, pages 14910--14918.
+
+\bibitem[{Shriberg and Lof(1991)}]{shriberg1991reliability}
+Lawrence~D Shriberg and Gregory~L Lof. 1991.
+\newblock Reliability studies in broad and narrow phonetic transcription.
+\newblock \emph{Clinical Linguistics \& Phonetics}, 5(3):225--279.
+
+\bibitem[{Taguchi et~al.(2023)Taguchi, Sakai, Haghani, and Chiang}]{taguchi23_interspeech}
+Chihiro Taguchi, Yusuke Sakai, Parisa Haghani, and David Chiang. 2023.
+\newblock \href {https://doi.org/10.21437/Interspeech.2023-2584} {Universal automatic phonetic transcription into the international phonetic alphabet}.
+\newblock In \emph{INTERSPEECH 2023}, pages 2548--2552.
+
+\bibitem[{Valk and Alum{\"a}e(2021)}]{valk2021voxlingua107}
+J{\"o}rgen Valk and Tanel Alum{\"a}e. 2021.
+\newblock Voxlingua107: a dataset for spoken language recognition.
+\newblock In \emph{2021 IEEE Spoken Language Technology Workshop (SLT)}, pages 652--658. IEEE.
+
+\bibitem[{Xu et~al.(2022)Xu, Baevski, and Auli}]{xu22b_interspeech}
+Qiantong Xu, Alexei Baevski, and Michael Auli. 2022.
+\newblock \href {https://doi.org/10.21437/Interspeech.2022-60} {Simple and effective zero-shot cross-lingual phoneme recognition}.
+\newblock In \emph{Interspeech 2022}, pages 2113--2117.
+
+\bibitem[{Yao et~al.(2023)Yao, Guo, Yang, Kang, Kuang, Yang, Jin, Lin, and Povey}]{yao2023zipformer}
+Zengwei Yao, Liyong Guo, Xiaoyu Yang, Wei Kang, Fangjun Kuang, Yifan Yang, Zengrui Jin, Long Lin, and Daniel Povey. 2023.
+\newblock Zipformer: A faster and better encoder for automatic speech recognition.
+\newblock In \emph{The Twelfth International Conference on Learning Representations}.
+
+\bibitem[{Yao et~al.(2025)Yao, Kang, Yang, Kuang, Guo, Zhu, Jin, Li, Lin, and Povey}]{yao2025crctc}
+Zengwei Yao, Wei Kang, Xiaoyu Yang, Fangjun Kuang, Liyong Guo, Han Zhu, Zengrui Jin, Zhaoqing Li, Long Lin, and Daniel Povey. 2025.
+\newblock \href {https://openreview.net/forum?id=CIs9x2ZRgh} {{CR}-{CTC}: Consistency regularization on {CTC} for improved speech recognition}.
+\newblock In \emph{The Thirteenth International Conference on Learning Representations}.
+
+\bibitem[{Yusuyin et~al.(2025)Yusuyin, Ma, Huang, Zhao, and Ou}]{yusuyin2025whistle}
+Saierdaer Yusuyin, Te~Ma, Hao Huang, Wenbo Zhao, and Zhijian Ou. 2025.
+\newblock Whistle: Data-efficient multilingual and crosslingual speech recognition via weakly phonetic supervision.
+\newblock \emph{IEEE Transactions on Audio, Speech and Language Processing}.
+
+\bibitem[{{\.Z}elasko et~al.(2022){\.Z}elasko, Feng, Velazquez, Abavisani, Bhati, Scharenborg, Hasegawa-Johnson, and Dehak}]{zelasko2022discovering}
+Piotr {\.Z}elasko, Siyuan Feng, Laureano~Moro Velazquez, Ali Abavisani, Saurabhchand Bhati, Odette Scharenborg, Mark Hasegawa-Johnson, and Najim Dehak. 2022.
+\newblock Discovering phonetic inventories with crosslingual automatic speech recognition.
+\newblock \emph{Computer Speech \& Language}, 74:101358.
+
+\bibitem[{Zhang et~al.(2021)Zhang, Zhang, Wang, Yan, Song, Huang, Li, Povey, and Wang}]{speechocean762}
+Junbo Zhang, Zhiwen Zhang, Yongqing Wang, Zhiyong Yan, Qiong Song, Yukai Huang, Ke~Li, Daniel Povey, and Yujun Wang. 2021.
+\newblock \href {https://doi.org/10.21437/Interspeech.2021-1259} {speechocean762: An open-source non-native english speech corpus for pronunciation assessment}.
+\newblock In \emph{Interspeech 2021}, pages 3710--3714.
+
+\bibitem[{Zhao et~al.(2018)Zhao, Sonsaat, Silpachai, Lucic, Chukharev-Hudilainen, Levis, and Gutierrez-Osuna}]{zhao2018l2}
+Guanlong Zhao, Sinem Sonsaat, Alif Silpachai, Ivana Lucic, Evgeny Chukharev-Hudilainen, John Levis, and Ricardo Gutierrez-Osuna. 2018.
+\newblock L2-arctic: A non-native english speech corpus.
+\newblock \emph{Interspeech 2018}.
+
+\bibitem[{Zhu et~al.(2024)Zhu, Yang, Samir, and Islam}]{zhu-etal-2024-taste}
+Jian Zhu, Changbing Yang, Farhan Samir, and Jahurul Islam. 2024.
+\newblock \href {https://doi.org/10.18653/v1/2024.naacl-long.43} {The taste of {IPA}: Towards open-vocabulary keyword spotting and forced alignment in any language}.
+\newblock In \emph{Proceedings of the 2024 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers)}, pages 750--772, Mexico City, Mexico. Association for Computational Linguistics.
+
+\bibitem[{Zhu et~al.(2022)Zhu, Zhang, and Jurgens}]{zhu22_interspeech}
+Jian Zhu, Cong Zhang, and David Jurgens. 2022.
+\newblock \href {https://doi.org/10.21437/Interspeech.2022-538} {{ByT5 model for massively multilingual grapheme-to-phoneme conversion}}.
+\newblock In \emph{Proc. Interspeech 2022}, pages 446--450.
+
+\end{thebibliography}

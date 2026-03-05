@@ -1,0 +1,37 @@
+\begin{table}[t]
+\caption{
+Kendall's rank coefficient between GoP \& intelligibility severity levels. A higher absolute value indicates a stronger correlation between the two variables.
+}
+\label{tab:results}
+\centering
+\resizebox{0.45\textwidth}{!}
+{
+\begin{tabular}{c|c|c|c|c}
+\hline
+Experiment & Classifier & English & Korean & Tamil \\
+\hline
+\multirow{4}{*}{Baselines} 
+& GMM-GoP \cite{witt2000phone,hmm-gop} & -0.57 & -0.59 & - \\
+& NN-GoP (LPP) \cite{hu2015improved} & -0.49 & -0.65 & -  \\
+& ASR free-GoP \cite{Cheng2020ASRFreePA} & -0.58 & -0.70 & - \\
+& SSL-GoP \cite{xu2021explore} & &  &\\
+% \cline{2-5}
+% & ASR-GOP & & &   \\
+\hline
+\multirow{7}{*}{Proposed} 
+& Probability Entropy-GoP & &  &   \\
+& Probability Margin-GoP & & &  \\
+& Max Logit-GoP & & &   \\
+\cline{2-5}
+& Normalized Logit-GoP & &  &  \\
+& Temperature Scaling-GoP & &  &  \\
+& ODIN-GoP & &  &  \\
+& Mahalannobis-GoP & & &   \\
+\hline
+\end{tabular}
+}
+\vspace{-1em}
+\end{table}
+
+% GMM-GOP \cite{hmm-gop} & & &\\
+%
