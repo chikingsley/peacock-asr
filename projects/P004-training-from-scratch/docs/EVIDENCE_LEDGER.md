@@ -846,6 +846,90 @@ Next action:
 
 ---
 
+## 0.10.5 `F0` Remote H100 FA4 Benchmark Probe (2026-03-07)
+
+Validation ID:
+
+- `F0` remote FA4 benchmark on Vast `H100 SXM`
+
+Current status:
+
+- `mixed`
+- benchmark report written:
+  `experiments/benchmarks/canonical_phone_ctc/f0_remote_h100_fa4_benchmark_20260307_c/report.json`
+
+Validated facts:
+
+- The remote `H100 SXM` nightly env installed cleanly with:
+  `torch 2.12.0.dev20260307+cu128` and `flash-attn-4 4.0.0b4`.
+- The hardware is in the expected FA4 support range:
+  compute capability `9.0`.
+- Compiled nightly `flex_attention` with `AUTO` and explicit `TRITON` both
+  worked on this H100 target.
+
+Observed issues:
+
+- The FA4-specific paths did not clear:
+  direct FLASH and compiled `BACKEND=FLASH` both failed with:
+  `OpError: expects the M-mode to be 64, but got 32`.
+- So the benchmark was only green for the non-FLASH nightly backends, not for
+  the actual FA4 backend we wanted to validate.
+
+Implication:
+
+- Supported hardware alone does not make the current FA4 path viable for this
+  project.
+- FA4 remains unproven even on the correct class of GPU.
+
+Next action:
+
+- Try one real `flex_flash` trainer smoke before deciding whether FA4 is even a
+  semi-stable higher-cost option.
+
+---
+
+## 0.10.6 `F0` Remote H100 Flex-FLASH Trainer Smoke (2026-03-07)
+
+Validation ID:
+
+- `F0` remote trainer smoke with `attention_backend=flex_flash`
+
+Current status:
+
+- `failed`
+- smoke report written:
+  `experiments/checkpoints/canonical_phone_ctc/f0_remote_h100_flex_flash_smoke_20260307_c/report.json`
+
+Validated facts:
+
+- The canonical trainer now records hard backend exceptions into the run report,
+  so this failure is captured as structured evidence rather than only a raw
+  traceback.
+- On Vast `H100 SXM`, a real one-epoch smoke with:
+  `attention_backend=flex_flash`, `hidden_dim=256`, `attention_heads=4`
+  failed in the trainer path.
+
+Observed issues:
+
+- The trainer failed with the same backend error seen in the benchmark:
+  `OpError: expects the M-mode to be 64, but got 32`.
+
+Implication:
+
+- `F0` is red.
+- FA4 is not currently a legitimate semi-stable higher-cost option for this
+  project, even on supported H100 hardware.
+- The only nightly path that remains practically usable is still benchmark-only
+  `AUTO` / `TRITON`, not FLASH / FA4 training.
+
+Next action:
+
+- Keep the production path on eager + SDPA.
+- If we revisit nightly work, choose either `C2.6` diagnostics on the TRITON
+  branch or wait for upstream FA4 changes before spending more H100 time.
+
+---
+
 ## 1. Claim Map
 
 | ID | Claim | Evidence Status | Primary Citations |

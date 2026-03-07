@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from p004_training_from_scratch.nightly.attention_benchmark import (
     _build_comparison,
+    _extract_flash_attn_output,
     _supports_fa4_capability,
 )
 
@@ -38,3 +39,11 @@ def test_build_comparison_handles_missing_flash_backend() -> None:
     assert comparison["flash_backend_supported"] is False
     assert comparison["flash_backend_expected_supported"] is False
     assert comparison["direct_flash_attn_ok"] is False
+
+
+def test_extract_flash_attn_output_accepts_tuple_payload() -> None:
+    tensor = object()
+
+    extracted = _extract_flash_attn_output((tensor, {"aux": True}))
+
+    assert extracted is tensor

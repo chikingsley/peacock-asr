@@ -104,13 +104,20 @@ earns its way into the canonical lab setup.
   lowering LR to `1e-4` and `1e-5`, switching to `flex_auto`, and forcing
   the CTC loss path to `float32` all still produced the same non-finite train
   loss at `epoch=0, batch_index=1`.
+- `F0` is now probed on remote `H100 SXM` at about `$1.49/hr`: the nightly env
+  plus `flash-attn-4` installs cleanly, but the current FLASH / FA4 path still
+  is not promotable for this project. The H100 benchmark kept `AUTO` and
+  `TRITON` green, while FLASH failed with
+  `OpError: expects the M-mode to be 64, but got 32`, and a real
+  `attention_backend=flex_flash` trainer smoke failed with the same error.
 - Immediate next move: keep `enable_compile=false` as the stable local baseline
   for the current canonical trainer, keep nightly `flex_attention` /
-  `TRITON` as benchmark-only for now, and choose between two next branches:
+  `TRITON` as benchmark-only for now, treat FA4 as not yet viable on our
+  current path, and choose between two next branches:
   a full-precision / first-step diagnostic branch on the nightly path, or
   demotion of nightly training work until upstream support changes.
-  Keep a separate remote FA4 validation target for `H100/H200/B200`-class
-  hardware in the backlog.
+  Keep FA4 in the backlog only as an upstream-retry path, not an active
+  higher-cost training option today.
 
 ## GPU Activation Rule
 
@@ -159,8 +166,9 @@ If any item is missing, stay local and keep editing, validating, or testing.
   backend choice, and `float32` CTC loss did not stabilize the nightly branch.
 - `C2.6`: next diagnostic branch is either full-fp32 / first-step finiteness
   instrumentation or demotion of nightly flex training back to benchmark-only.
-- `F0`: keep a separate remote FA4 validation target for `H100/H200/B200`
-  hardware instead of forcing it onto the local GeForce box.
+- `F0`: initial remote `H100 SXM` FA4 probe is red; the nightly env installs,
+  but the FLASH backend and `flex_flash` trainer path currently fail with
+  `OpError: expects the M-mode to be 64, but got 32`.
 - `Z0`: only branch to Zipformer after the Conformer reference path is stable.
 
 ## UV Project Layout

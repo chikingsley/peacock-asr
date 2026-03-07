@@ -229,11 +229,15 @@ Current local status on `2026-03-07`:
 - `C2.5` is now complete and red on isolated Vast Blackwell hardware:
   lower LR (`1e-4`, `1e-5`), `flex_auto`, and `float32` CTC loss all failed
   with the same post-update `NaN` at `epoch=0`, `batch_index=1`
+- `F0` is now also probed on remote `H100 SXM`: the nightly env and
+  `flash-attn-4` install cleanly, but the FLASH backend still fails with
+  `OpError: expects the M-mode to be 64, but got 32`, and the real
+  `flex_flash` trainer smoke fails with the same error
 - the next branch is no longer a cheap sweep; it is either
   full-fp32 / first-step finiteness diagnostics or demotion of nightly flex
   training back to benchmark-only status
-- keep a separate remote FA4 validation target for `H100/H200/B200`-class
-  hardware
+- keep FA4 only as a future upstream-retry branch, not a currently viable
+  higher-cost training path
 
 ## Architecture Branches
 

@@ -198,10 +198,11 @@ def _run_flash_attn_direct_case(
         seq_len=seq_len,
         head_dim=head_dim,
     )
-    out, forward_seconds = _measure_cuda(
+    flash_result, forward_seconds = _measure_cuda(
         torch,
         lambda: flash_attn_func(q, k, v, causal=False),
     )
+    out = _extract_flash_attn_output(flash_result)
     loss = out.float().square().mean()
     _, backward_seconds = _measure_cuda(torch, loss.backward)
     return {
@@ -211,6 +212,15 @@ def _run_flash_attn_direct_case(
         "backward_seconds": round(backward_seconds, 6),
         "mean_abs": round(float(out.float().abs().mean().item()), 6),
     }
+
+
+def _extract_flash_attn_output(result: Any) -> Any:
+    if isinstance(result, tuple):
+        if not result:
+            msg = "flash_attn_func returned an empty tuple"
+            raise ValueError(msg)
+        return result[0]
+    return result
 
 
 def _run_compiled_flex_case(

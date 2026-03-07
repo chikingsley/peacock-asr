@@ -1,0 +1,154 @@
+{
+  "captured_at": "2026-03-07T19:30:49Z",
+  "comparison": {
+    "auto_vs_sdpa_forward_ratio": 0.194283,
+    "direct_flash_attn_ok": false,
+    "flash_backend_error": {
+      "message": "OpError: expects the M-mode to be 64, but got 32\n\u001b[1mError Code:\u001b[0m MmaF16BF16Op error\n\n\u001b[92m\ud83d\udca1 Suggestions:\u001b[0m\n Check your Op construction code",
+      "type": "OpError"
+    },
+    "flash_backend_expected_supported": true,
+    "flash_backend_supported": false,
+    "flash_vs_sdpa_forward_ratio": null,
+    "triton_vs_sdpa_forward_ratio": 0.010231
+  },
+  "config": {
+    "attention_heads": 4,
+    "batch_size": 2,
+    "head_dim": 64,
+    "seq_len": 512,
+    "timed_iters": 1,
+    "warmup_iters": 1
+  },
+  "environment": {
+    "cuda_available": true,
+    "cuda_version": "12.8",
+    "device_capability": [
+      9,
+      0
+    ],
+    "device_count": 1,
+    "device_name": "NVIDIA H100 80GB HBM3",
+    "flash_attn_4_version": "4.0.0b4",
+    "torch_version": "2.12.0.dev20260307+cu128"
+  },
+  "fa4_expected_supported_on_device": true,
+  "flash_attn_direct": {
+    "error": {
+      "message": "OpError: expects the M-mode to be 64, but got 32\n\u001b[1mError Code:\u001b[0m MmaF16BF16Op error\n\n\u001b[92m\ud83d\udca1 Suggestions:\u001b[0m\n Check your Op construction code",
+      "type": "OpError"
+    },
+    "ok": false
+  },
+  "flex_attention_compiled": {
+    "auto": {
+      "kernel_options": null,
+      "mean_abs": 0.059237,
+      "mean_backward_seconds": 0.005036,
+      "mean_forward_seconds": 0.070795,
+      "ok": true,
+      "shape": [
+        2,
+        4,
+        512,
+        64
+      ],
+      "warmup_total_seconds": 0.883821
+    },
+    "flash": {
+      "error": {
+        "message": "OpError: expects the M-mode to be 64, but got 32\n\u001b[1mError Code:\u001b[0m MmaF16BF16Op error\n\n\u001b[92m\ud83d\udca1 Suggestions:\u001b[0m\n Check your Op construction code",
+        "type": "OpError"
+      },
+      "ok": false
+    },
+    "triton": {
+      "kernel_options": {
+        "BACKEND": "TRITON"
+      },
+      "mean_abs": 0.057169,
+      "mean_backward_seconds": 0.00512,
+      "mean_forward_seconds": 0.003728,
+      "ok": true,
+      "shape": [
+        2,
+        4,
+        512,
+        64
+      ],
+      "warmup_total_seconds": 0.464027
+    }
+  },
+  "machine_manifest": {
+    "captured_at": "2026-03-07T19:30:49.082895+00:00",
+    "git_sha": null,
+    "hardware": {
+      "disk_free_bytes": 91577999360,
+      "disk_total_bytes": 107374182400,
+      "disk_used_bytes": 15796183040,
+      "gpus": [
+        {
+          "driver_version": "580.95.05",
+          "memory_total_mb": 81559,
+          "memory_used_mb": 0,
+          "name": "NVIDIA H100 80GB HBM3",
+          "utilization_gpu_pct": 0,
+          "uuid": "GPU-c0f7a715-52e2-d1a0-ed3f-5adb4714ae76"
+        }
+      ],
+      "logical_cpu_count": 208,
+      "memory_total_bytes": 1978434207744
+    },
+    "host": {
+      "hostname": "f5a26fa34cd5",
+      "machine": "x86_64",
+      "platform": "Linux",
+      "platform_release": "6.8.0-1043-gcp",
+      "platform_version": "#46~22.04.1-Ubuntu SMP Wed Oct 22 19:00:03 UTC 2025",
+      "processor": "x86_64",
+      "python_executable": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/env/nightly-fa4/bin/python",
+      "python_version": "3.11.15"
+    },
+    "project_root": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch",
+    "public_env": {
+      "WANDB_ENTITY": "peacockery",
+      "WANDB_MODE": "online",
+      "WANDB_PROJECT": "peacock-asr-p004-training-from-scratch"
+    },
+    "software": {
+      "dependency_versions": {
+        "k2": null,
+        "lhotse": null,
+        "python-dotenv": "1.2.2",
+        "torch": "2.12.0.dev20260307+cu128",
+        "torchcodec": null,
+        "vastai-sdk": "0.5.1",
+        "wandb": "0.25.0"
+      },
+      "pyproject_sha256": "14dd0ca083a699ff5cfb3df98b8545e50bf47f806d17179ab50b9bf182d6e0b8",
+      "uv_lock_sha256": null,
+      "uv_version": "uv 0.10.9"
+    },
+    "tracking": {
+      "wandb_enabled": true,
+      "wandb_entity": "peacockery",
+      "wandb_mode": "online",
+      "wandb_project": "peacock-asr-p004-training-from-scratch"
+    }
+  },
+  "machine_manifest_path": "experiments/benchmarks/canonical_phone_ctc/f0_remote_h100_fa4_benchmark_20260307_c/machine_manifest.json",
+  "output_dir": "experiments/benchmarks/canonical_phone_ctc/f0_remote_h100_fa4_benchmark_20260307_c",
+  "sdpa": {
+    "backward_seconds": 0.412101,
+    "forward_seconds": 0.364391,
+    "mean_abs": 0.058443,
+    "ok": true,
+    "shape": [
+      2,
+      4,
+      512,
+      64
+    ]
+  },
+  "success": true
+}

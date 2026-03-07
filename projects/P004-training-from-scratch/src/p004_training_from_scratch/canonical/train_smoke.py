@@ -522,31 +522,61 @@ def run_canonical_train_smoke(
     if accelerator.device.type == "cuda":
         torch.cuda.reset_peak_memory_stats(accelerator.device)
 
-    for epoch_index in range(initial_epoch, epochs):
-        model.train()
-        epoch_losses: list[float] = []
-        for batch_index, batch in enumerate(train_loader):
-            step_start = time.perf_counter()
-            optimizer.zero_grad(set_to_none=True)
-            with accelerator.autocast():
-                _mark_cudagraph_step_begin(
-                    torch=torch,
-                    compile_enabled=enable_compile,
-                    attention_backend=attention_backend,
-                )
-                logits = model(batch["features"])
-                log_probs = _build_ctc_log_probs(
-                    logits=logits,
-                    loss_compute_dtype=loss_compute_dtype,
-                ).transpose(0, 1)
-                loss = loss_fn(
-                    log_probs,
-                    batch["targets"],
-                    batch["input_lengths"],
-                    batch["target_lengths"],
-                )
-            loss_value = float(loss.detach().float().item())
-            if not math.isfinite(loss_value):
+    try:
+        for epoch_index in range(initial_epoch, epochs):
+            model.train()
+            epoch_losses: list[float] = []
+            for batch_index, batch in enumerate(train_loader):
+                step_start = time.perf_counter()
+                optimizer.zero_grad(set_to_none=True)
+                with accelerator.autocast():
+                    _mark_cudagraph_step_begin(
+                        torch=torch,
+                        compile_enabled=enable_compile,
+                        attention_backend=attention_backend,
+                    )
+                    logits = model(batch["features"])
+                    log_probs = _build_ctc_log_probs(
+                        logits=logits,
+                        loss_compute_dtype=loss_compute_dtype,
+                    ).transpose(0, 1)
+                    loss = loss_fn(
+                        log_probs,
+                        batch["targets"],
+                        batch["input_lengths"],
+                        batch["target_lengths"],
+                    )
+                loss_value = float(loss.detach().float().item())
+                if not math.isfinite(loss_value):
+                    batch_metric = {
+                        "epoch": epoch_index,
+                        "batch_index": batch_index,
+                        "train_loss": loss_value,
+                        "batch_size": len(batch["cut_ids"]),
+                        "max_input_frames": int(batch["input_lengths"].max().item()),
+                        "max_target_length": int(batch["target_lengths"].max().item()),
+                        "step_time_seconds": round(time.perf_counter() - step_start, 6),
+                    }
+                    metrics_log.append(batch_metric)
+                    report["error"] = {
+                        "type": "RuntimeError",
+                        "message": (
+                            "non-finite train loss detected "
+                            f"at epoch={epoch_index}, batch_index={batch_index}"
+                        ),
+                    }
+                    report["failed_batch"] = batch_metric
+                    if accelerator.is_main_process:
+                        _write_metrics(metrics_log, metrics_path)
+                    if wandb_run is not None:
+                        with contextlib.suppress(Exception):
+                            wandb.finish()
+                    return _write_report(report, report_path)
+                accelerator.backward(loss)
+                optimizer.step()
+                _synchronize_if_cuda(torch, accelerator.device)
+                step_duration_seconds = time.perf_counter() - step_start
+
                 batch_metric = {
                     "epoch": epoch_index,
                     "batch_index": batch_index,
@@ -554,80 +584,100 @@ def run_canonical_train_smoke(
                     "batch_size": len(batch["cut_ids"]),
                     "max_input_frames": int(batch["input_lengths"].max().item()),
                     "max_target_length": int(batch["target_lengths"].max().item()),
-                    "step_time_seconds": round(time.perf_counter() - step_start, 6),
+                    "step_time_seconds": round(step_duration_seconds, 6),
                 }
                 metrics_log.append(batch_metric)
-                report["error"] = {
-                    "type": "RuntimeError",
-                    "message": (
-                        "non-finite train loss detected "
-                        f"at epoch={epoch_index}, batch_index={batch_index}"
-                    ),
+                epoch_losses.append(loss_value)
+                step_durations_seconds.append(step_duration_seconds)
+                if wandb_run is not None and accelerator.is_main_process:
+                    wandb.log(batch_metric)
+
+            train_epoch_summaries.append(
+                {
+                    "epoch": epoch_index,
+                    "mean_train_loss": _mean(epoch_losses),
+                    "last_train_loss": epoch_losses[-1],
+                    "batch_count": len(epoch_losses),
                 }
-                report["failed_batch"] = batch_metric
-                if accelerator.is_main_process:
-                    _write_metrics(metrics_log, metrics_path)
-                if wandb_run is not None:
-                    with contextlib.suppress(Exception):
-                        wandb.finish()
-                return _write_report(report, report_path)
-            accelerator.backward(loss)
-            optimizer.step()
-            _synchronize_if_cuda(torch, accelerator.device)
-            step_duration_seconds = time.perf_counter() - step_start
-
-            batch_metric = {
-                "epoch": epoch_index,
-                "batch_index": batch_index,
-                "train_loss": loss_value,
-                "batch_size": len(batch["cut_ids"]),
-                "max_input_frames": int(batch["input_lengths"].max().item()),
-                "max_target_length": int(batch["target_lengths"].max().item()),
-                "step_time_seconds": round(step_duration_seconds, 6),
-            }
-            metrics_log.append(batch_metric)
-            epoch_losses.append(loss_value)
-            step_durations_seconds.append(step_duration_seconds)
-            if wandb_run is not None and accelerator.is_main_process:
-                wandb.log(batch_metric)
-
-        train_epoch_summaries.append(
-            {
-                "epoch": epoch_index,
-                "mean_train_loss": _mean(epoch_losses),
-                "last_train_loss": epoch_losses[-1],
-                "batch_count": len(epoch_losses),
-            }
-        )
-        accelerator.wait_for_everyone()
-        if accelerator.is_main_process:
-            import torch
-
-            epoch_checkpoint_path = output_dir / f"epoch-{epoch_index}.pt"
-            checkpoint_payload = _build_training_checkpoint(
-                accelerator=accelerator,
-                model=model,
-                optimizer=optimizer,
-                epoch=epoch_index,
-                config=report["config"],
             )
-            torch.save(checkpoint_payload, epoch_checkpoint_path)
-            torch.save(checkpoint_payload, checkpoint_path)
-            epoch_checkpoint_paths.append(str(epoch_checkpoint_path))
+            accelerator.wait_for_everyone()
+            if accelerator.is_main_process:
+                import torch
 
-    dev_summary = _evaluate_dev(
-        model=model,
-        dev_loader=dev_loader,
-        accelerator=accelerator,
-        loss_fn=loss_fn,
-        blank_id=blank_id,
-        attention_backend=attention_backend,
-        compile_enabled=enable_compile,
-        loss_compute_dtype=loss_compute_dtype,
-    )
-    if "error" in dev_summary:
+                epoch_checkpoint_path = output_dir / f"epoch-{epoch_index}.pt"
+                checkpoint_payload = _build_training_checkpoint(
+                    accelerator=accelerator,
+                    model=model,
+                    optimizer=optimizer,
+                    epoch=epoch_index,
+                    config=report["config"],
+                )
+                torch.save(checkpoint_payload, epoch_checkpoint_path)
+                torch.save(checkpoint_payload, checkpoint_path)
+                epoch_checkpoint_paths.append(str(epoch_checkpoint_path))
+
+        dev_summary = _evaluate_dev(
+            model=model,
+            dev_loader=dev_loader,
+            accelerator=accelerator,
+            loss_fn=loss_fn,
+            blank_id=blank_id,
+            attention_backend=attention_backend,
+            compile_enabled=enable_compile,
+            loss_compute_dtype=loss_compute_dtype,
+        )
+        if "error" in dev_summary:
+            report["dev"] = dev_summary
+            report["error"] = dev_summary["error"]
+            report["elapsed_seconds"] = round(time.perf_counter() - start, 3)
+            if accelerator.is_main_process:
+                _write_metrics(metrics_log, metrics_path)
+            if wandb_run is not None:
+                with contextlib.suppress(Exception):
+                    wandb.finish()
+            return _write_report(report, report_path)
+        dev_metric = {
+            "epoch": epochs - 1,
+            "dev_loss": dev_summary["dev_loss"],
+            "dev_per": dev_summary["dev_per"],
+        }
+        metrics_log.append(dev_metric)
+        if wandb_run is not None and accelerator.is_main_process:
+            wandb.log(dev_metric)
+
+        if accelerator.is_main_process:
+            model_state = _normalize_model_state_dict(accelerator.get_state_dict(model))
+            torch.save(model_state, model_state_path)
+            _write_metrics(metrics_log, metrics_path)
+
+        elapsed_seconds = round(time.perf_counter() - start, 3)
+        report["train"] = {
+            "epochs": train_epoch_summaries,
+            "step_count": sum(epoch["batch_count"] for epoch in train_epoch_summaries),
+        }
         report["dev"] = dev_summary
-        report["error"] = dev_summary["error"]
+        report["artifacts"] = {
+            "checkpoint_path": str(checkpoint_path),
+            "epoch_checkpoint_paths": epoch_checkpoint_paths,
+            "metrics_path": str(metrics_path),
+            "model_state_path": str(model_state_path),
+        }
+        report["benchmark"] = _summarize_benchmark_metrics(
+            step_durations_seconds=step_durations_seconds,
+            elapsed_seconds=elapsed_seconds,
+            torch=torch,
+            device=accelerator.device,
+            compile_enabled=enable_compile,
+        )
+        report["elapsed_seconds"] = elapsed_seconds
+        report["success"] = checkpoint_path.is_file() and bool(train_epoch_summaries)
+
+        if wandb_run is not None:
+            with contextlib.suppress(Exception):
+                wandb.finish()
+        return _write_report(report, report_path)
+    except Exception as exc:
+        report["error"] = _format_exception(exc)
         report["elapsed_seconds"] = round(time.perf_counter() - start, 3)
         if accelerator.is_main_process:
             _write_metrics(metrics_log, metrics_path)
@@ -635,46 +685,6 @@ def run_canonical_train_smoke(
             with contextlib.suppress(Exception):
                 wandb.finish()
         return _write_report(report, report_path)
-    dev_metric = {
-        "epoch": epochs - 1,
-        "dev_loss": dev_summary["dev_loss"],
-        "dev_per": dev_summary["dev_per"],
-    }
-    metrics_log.append(dev_metric)
-    if wandb_run is not None and accelerator.is_main_process:
-        wandb.log(dev_metric)
-
-    if accelerator.is_main_process:
-        model_state = _normalize_model_state_dict(accelerator.get_state_dict(model))
-        torch.save(model_state, model_state_path)
-        _write_metrics(metrics_log, metrics_path)
-
-    elapsed_seconds = round(time.perf_counter() - start, 3)
-    report["train"] = {
-        "epochs": train_epoch_summaries,
-        "step_count": sum(epoch["batch_count"] for epoch in train_epoch_summaries),
-    }
-    report["dev"] = dev_summary
-    report["artifacts"] = {
-        "checkpoint_path": str(checkpoint_path),
-        "epoch_checkpoint_paths": epoch_checkpoint_paths,
-        "metrics_path": str(metrics_path),
-        "model_state_path": str(model_state_path),
-    }
-    report["benchmark"] = _summarize_benchmark_metrics(
-        step_durations_seconds=step_durations_seconds,
-        elapsed_seconds=elapsed_seconds,
-        torch=torch,
-        device=accelerator.device,
-        compile_enabled=enable_compile,
-    )
-    report["elapsed_seconds"] = elapsed_seconds
-    report["success"] = checkpoint_path.is_file() and bool(train_epoch_summaries)
-
-    if wandb_run is not None:
-        with contextlib.suppress(Exception):
-            wandb.finish()
-    return _write_report(report, report_path)
 
 
 def _evaluate_dev(
