@@ -744,6 +744,108 @@ Next action:
 
 ---
 
+## 0.10.2 `C2.5a` Remote LR Stabilization Ladder (2026-03-07)
+
+Validation ID:
+
+- `C2.5a` isolated bounded validation on Vast `RTX PRO 4000 Blackwell`
+  with lower LR only
+
+Current status:
+
+- `failed`
+- reports written:
+  `experiments/checkpoints/canonical_phone_ctc/c2_5a_remote_vast_rtxpro4000_lr1e4_20260307_a/report.json`
+  and
+  `experiments/checkpoints/canonical_phone_ctc/c2_5a_remote_vast_rtxpro4000_lr1e5_20260307_b/report.json`
+
+Validated facts:
+
+- Lowering LR from `3e-4` to `1e-4` did not change the failure signature.
+- Lowering LR again to `1e-5` also did not change the failure signature.
+- Both runs still failed at:
+  `epoch=0`, `batch_index=1`, `train_loss=NaN`.
+
+Implication:
+
+- LR alone does not stabilize the nightly `flex_triton` trainer path on this
+  Blackwell target.
+
+Next action:
+
+- Hold LR fixed at the lower value and change backend only.
+
+---
+
+## 0.10.3 `C2.5b` Remote Backend Comparison (2026-03-07)
+
+Validation ID:
+
+- `C2.5b` isolated bounded validation on Vast `RTX PRO 4000 Blackwell`
+  with `attention_backend=flex_auto`
+
+Current status:
+
+- `failed`
+- report written:
+  `experiments/checkpoints/canonical_phone_ctc/c2_5b_remote_vast_rtxpro4000_flex_auto_lr1e5_20260307_a/report.json`
+
+Validated facts:
+
+- Switching from `flex_triton` to `flex_auto` while keeping the lowered
+  `1e-5` LR did not stabilize the trainer.
+- The run again failed at:
+  `epoch=0`, `batch_index=1`, `train_loss=NaN`.
+
+Implication:
+
+- The instability is not fixed by backend choice alone between the currently
+  working nightly flex backends.
+
+Next action:
+
+- Keep the original `flex_triton` target and narrow dtype scope for the CTC
+  loss path.
+
+---
+
+## 0.10.4 `C2.5c` Remote Float32 CTC Loss Path (2026-03-07)
+
+Validation ID:
+
+- `C2.5c` isolated bounded validation on Vast `RTX PRO 4000 Blackwell`
+  with `loss_compute_dtype=float32`
+
+Current status:
+
+- `failed`
+- report written:
+  `experiments/checkpoints/canonical_phone_ctc/c2_5c_remote_vast_rtxpro4000_triton_lr1e5_lossfp32_20260307_a/report.json`
+
+Validated facts:
+
+- Promoting the CTC log-probs / loss path to `float32` did not stabilize the
+  nightly `flex_triton` trainer.
+- The run still failed at:
+  `epoch=0`, `batch_index=1`, `train_loss=NaN`.
+
+Implication:
+
+- `C2.5` is red end-to-end.
+- The stable canonical path remains:
+  eager execution + default SDPA path.
+- The nightly flex branch is valuable for benchmark work, but not promotable
+  for bounded training on this Blackwell setup yet.
+
+Next action:
+
+- Either open a full-fp32 / first-step finiteness diagnostic branch, or demote
+  nightly flex training back to benchmark-only status until upstream behavior
+  changes.
+- Keep true FA4 as a separate future branch on `H100/H200/B200`-class hardware.
+
+---
+
 ## 1. Claim Map
 
 | ID | Claim | Evidence Status | Primary Citations |

@@ -16,6 +16,7 @@ experiments/checkpoints/**/checkpoint.pt
 experiments/checkpoints/**/epoch-*.pt
 experiments/checkpoints/**/model_state.pt
 experiments/checkpoints/**/metrics.jsonl
+experiments/checkpoints/**/train_stdout.log
 experiments/benchmarks/**/*.pt
 experiments/benchmarks/**/metrics.jsonl
 experiments/benchmarks/**/benchmark_stdout.log

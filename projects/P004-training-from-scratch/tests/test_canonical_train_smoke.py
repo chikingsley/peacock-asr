@@ -8,6 +8,7 @@ import pytest
 
 from p004_training_from_scratch.canonical.train_smoke import (
     ResumeCheckpoint,
+    _build_ctc_log_probs,
     _edit_distance,
     _load_resume_checkpoint,
     _mark_cudagraph_step_begin,
@@ -140,6 +141,46 @@ def test_mark_cudagraph_step_begin_uses_compiler_hook() -> None:
     )
 
     assert calls == ["marked"]
+
+
+def test_build_ctc_log_probs_can_promote_to_float32() -> None:
+    class LogitsStub:
+        def __init__(self) -> None:
+            self.float_called = False
+
+        def float(self) -> LogitsStub:
+            self.float_called = True
+            return self
+
+        def log_softmax(self, dim: int) -> tuple[str, int]:
+            return ("log_softmax", dim)
+
+    logits = LogitsStub()
+
+    result = _build_ctc_log_probs(logits=logits, loss_compute_dtype="float32")
+
+    assert logits.float_called is True
+    assert result == ("log_softmax", -1)
+
+
+def test_build_ctc_log_probs_keeps_model_dtype_by_default() -> None:
+    class LogitsStub:
+        def __init__(self) -> None:
+            self.float_called = False
+
+        def float(self) -> LogitsStub:
+            self.float_called = True
+            return self
+
+        def log_softmax(self, dim: int) -> tuple[str, int]:
+            return ("log_softmax", dim)
+
+    logits = LogitsStub()
+
+    result = _build_ctc_log_probs(logits=logits, loss_compute_dtype="model")
+
+    assert logits.float_called is False
+    assert result == ("log_softmax", -1)
 
 
 def test_run_canonical_train_smoke_rejects_flex_without_compile(tmp_path: Path) -> None:

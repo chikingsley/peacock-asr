@@ -19,7 +19,7 @@ import time
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from p004_training_from_scratch.canonical.common import (
     DEFAULT_NUM_MELS,
@@ -53,6 +53,7 @@ DEFAULT_TOKENS_PATH = (
 DEFAULT_OUTPUT_ROOT = (
     PROJECT_ROOT / "experiments" / "checkpoints" / "canonical_phone_ctc"
 )
+LossComputeDType = Literal["model", "float32"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -262,6 +263,7 @@ def run_canonical_train_smoke(
     conv_kernel_size: int = 15,
     dropout: float = 0.1,
     learning_rate: float = 3e-4,
+    loss_compute_dtype: LossComputeDType = "model",
     seed: int = 42,
     resume_from: Path | None = None,
     enable_compile: bool = True,
@@ -309,6 +311,7 @@ def run_canonical_train_smoke(
             "conv_kernel_size": conv_kernel_size,
             "dropout": dropout,
             "learning_rate": learning_rate,
+            "loss_compute_dtype": loss_compute_dtype,
             "seed": seed,
             "resume_from": str(resume_from) if resume_from is not None else None,
             "enable_compile": enable_compile,
@@ -532,7 +535,10 @@ def run_canonical_train_smoke(
                     attention_backend=attention_backend,
                 )
                 logits = model(batch["features"])
-                log_probs = logits.log_softmax(dim=-1).transpose(0, 1)
+                log_probs = _build_ctc_log_probs(
+                    logits=logits,
+                    loss_compute_dtype=loss_compute_dtype,
+                ).transpose(0, 1)
                 loss = loss_fn(
                     log_probs,
                     batch["targets"],
@@ -617,6 +623,7 @@ def run_canonical_train_smoke(
         blank_id=blank_id,
         attention_backend=attention_backend,
         compile_enabled=enable_compile,
+        loss_compute_dtype=loss_compute_dtype,
     )
     if "error" in dev_summary:
         report["dev"] = dev_summary
@@ -679,6 +686,7 @@ def _evaluate_dev(
     blank_id: int,
     attention_backend: CanonicalAttentionBackend,
     compile_enabled: bool,
+    loss_compute_dtype: LossComputeDType,
 ) -> dict[str, Any]:
     import torch
 
@@ -696,7 +704,10 @@ def _evaluate_dev(
                     attention_backend=attention_backend,
                 )
                 logits = model(batch["features"])
-                log_probs = logits.log_softmax(dim=-1).transpose(0, 1)
+                log_probs = _build_ctc_log_probs(
+                    logits=logits,
+                    loss_compute_dtype=loss_compute_dtype,
+                ).transpose(0, 1)
                 loss = loss_fn(
                     log_probs,
                     batch["targets"],
@@ -740,6 +751,16 @@ def _evaluate_dev(
 
 def _uses_flex_attention(attention_backend: CanonicalAttentionBackend) -> bool:
     return attention_backend != "mha"
+
+
+def _build_ctc_log_probs(
+    *,
+    logits: Any,
+    loss_compute_dtype: LossComputeDType,
+) -> Any:
+    if loss_compute_dtype == "float32":
+        logits = logits.float()
+    return logits.log_softmax(dim=-1)
 
 
 def _mark_cudagraph_step_begin(

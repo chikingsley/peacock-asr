@@ -1,0 +1,165 @@
+{
+  "attention": {
+    "flash_sdp_enabled": true,
+    "math_sdp_enabled": true,
+    "mem_efficient_sdp_enabled": true
+  },
+  "captured_at": "2026-03-07T10:32:25Z",
+  "config": {
+    "attention_backend": "flex_triton",
+    "attention_heads": 4,
+    "batch_size": 4,
+    "conv_kernel_size": 15,
+    "dev_limit": 8,
+    "dropout": 0.1,
+    "enable_compile": true,
+    "encoder_layers": 3,
+    "epochs": 3,
+    "hidden_dim": 192,
+    "learning_rate": 1e-05,
+    "loss_compute_dtype": "model",
+    "model_type": "conformer_like",
+    "resume_from": null,
+    "seed": 42,
+    "train_limit": 24
+  },
+  "dataset": {
+    "blank_id": 0,
+    "dev_cut_count": 8,
+    "dev_cut_ids": [
+      "dev-clean-00000000",
+      "dev-clean-00000001",
+      "dev-clean-00000002",
+      "dev-clean-00000003",
+      "dev-clean-00000004",
+      "dev-clean-00000005",
+      "dev-clean-00000006",
+      "dev-clean-00000007"
+    ],
+    "train_cut_count": 24,
+    "train_cut_ids": [
+      "train-clean-100-00000000",
+      "train-clean-100-00000001",
+      "train-clean-100-00000002",
+      "train-clean-100-00000003",
+      "train-clean-100-00000004",
+      "train-clean-100-00000005",
+      "train-clean-100-00000006",
+      "train-clean-100-00000007",
+      "train-clean-100-00000008",
+      "train-clean-100-00000009",
+      "train-clean-100-00000010",
+      "train-clean-100-00000011",
+      "train-clean-100-00000012",
+      "train-clean-100-00000013",
+      "train-clean-100-00000014",
+      "train-clean-100-00000015",
+      "train-clean-100-00000016",
+      "train-clean-100-00000017",
+      "train-clean-100-00000018",
+      "train-clean-100-00000019",
+      "train-clean-100-00000020",
+      "train-clean-100-00000021",
+      "train-clean-100-00000022",
+      "train-clean-100-00000023"
+    ],
+    "vocab_size": 43
+  },
+  "dev_manifest": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_smoke/librispeech_cuts_dev-clean.jsonl.gz",
+  "device": {
+    "device": "cuda",
+    "mixed_precision": "bf16"
+  },
+  "error": {
+    "message": "non-finite train loss detected at epoch=0, batch_index=1",
+    "type": "RuntimeError"
+  },
+  "failed_batch": {
+    "batch_index": 1,
+    "batch_size": 4,
+    "epoch": 0,
+    "max_input_frames": 1530,
+    "max_target_length": 142,
+    "step_time_seconds": 1.831938,
+    "train_loss": NaN
+  },
+  "machine_manifest": {
+    "captured_at": "2026-03-07T10:32:25.785829+00:00",
+    "git_sha": null,
+    "hardware": {
+      "disk_free_bytes": 91675602944,
+      "disk_total_bytes": 107374182400,
+      "disk_used_bytes": 15698579456,
+      "gpus": [
+        {
+          "driver_version": "580.95.05",
+          "memory_total_mb": 24467,
+          "memory_used_mb": 1,
+          "name": "NVIDIA RTX PRO 4000 Blackwell",
+          "utilization_gpu_pct": 0,
+          "uuid": "GPU-77e3eaae-d2cb-c561-1e9b-e87823066635"
+        }
+      ],
+      "logical_cpu_count": 128,
+      "memory_total_bytes": 270067019776
+    },
+    "host": {
+      "hostname": "5e7b99693a9f",
+      "machine": "x86_64",
+      "platform": "Linux",
+      "platform_release": "5.15.0-164-generic",
+      "platform_version": "#174-Ubuntu SMP Fri Nov 14 20:25:16 UTC 2025",
+      "processor": "x86_64",
+      "python_executable": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/env/nightly-fa4/bin/python",
+      "python_version": "3.11.15"
+    },
+    "project_root": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch",
+    "public_env": {
+      "WANDB_ENTITY": "peacockery",
+      "WANDB_MODE": "online",
+      "WANDB_PROJECT": "peacock-asr-p004-training-from-scratch"
+    },
+    "software": {
+      "dependency_versions": {
+        "k2": null,
+        "lhotse": null,
+        "python-dotenv": "1.2.2",
+        "torch": "2.12.0.dev20260306+cu128",
+        "torchcodec": null,
+        "vastai-sdk": "0.5.1",
+        "wandb": "0.25.0"
+      },
+      "pyproject_sha256": "14dd0ca083a699ff5cfb3df98b8545e50bf47f806d17179ab50b9bf182d6e0b8",
+      "uv_lock_sha256": null,
+      "uv_version": "uv 0.10.9"
+    },
+    "tracking": {
+      "wandb_enabled": true,
+      "wandb_entity": "peacockery",
+      "wandb_mode": "online",
+      "wandb_project": "peacock-asr-p004-training-from-scratch"
+    }
+  },
+  "machine_manifest_path": "experiments/checkpoints/canonical_phone_ctc/c2_5a_remote_vast_rtxpro4000_lr1e5_20260307_b/machine_manifest.json",
+  "model": {
+    "attention_backend": "flex_triton",
+    "attention_heads": 4,
+    "conv_kernel_size": 15,
+    "dropout": 0.1,
+    "encoder_layers": 3,
+    "hidden_dim": 192,
+    "model_type": "conformer_like",
+    "parameter_count": 1702699
+  },
+  "output_dir": "experiments/checkpoints/canonical_phone_ctc/c2_5a_remote_vast_rtxpro4000_lr1e5_20260307_b",
+  "success": false,
+  "tokens_path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/lang_phone/tokens.txt",
+  "train_manifest": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_smoke/librispeech_cuts_train-clean-100.jsonl.gz",
+  "versions": {
+    "accelerate": "1.13.0",
+    "torch": "2.12.0.dev20260306+cu128",
+    "torchaudio": "2.11.0.dev20260306+cu128",
+    "torchcodec": null,
+    "wandb": "0.25.0"
+  }
+}

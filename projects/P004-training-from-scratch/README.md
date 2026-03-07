@@ -100,11 +100,15 @@ earns its way into the canonical lab setup.
   isolated Vast `RTX PRO 4000 Blackwell` at about `$0.242/hr`: non-finite
   train loss appeared at `epoch=0, batch_index=1` in both places, so the
   current `flex_triton` trainer path is still experimental and not promotable.
+- `C2.5` is now also closed red on isolated Vast Blackwell hardware:
+  lowering LR to `1e-4` and `1e-5`, switching to `flex_auto`, and forcing
+  the CTC loss path to `float32` all still produced the same non-finite train
+  loss at `epoch=0, batch_index=1`.
 - Immediate next move: keep `enable_compile=false` as the stable local baseline
-  for the current canonical trainer, keep local `C2.3` as an experimental
-  nightly `flex_attention` / `TRITON` branch, and run a narrow stabilization
-  ladder one variable at a time: lower LR first, then backend comparison
-  (`flex_auto` vs `flex_triton`), then dtype narrowing if needed.
+  for the current canonical trainer, keep nightly `flex_attention` /
+  `TRITON` as benchmark-only for now, and choose between two next branches:
+  a full-precision / first-step diagnostic branch on the nightly path, or
+  demotion of nightly training work until upstream support changes.
   Keep a separate remote FA4 validation target for `H100/H200/B200`-class
   hardware in the backlog.
 
@@ -151,8 +155,10 @@ If any item is missing, stay local and keep editing, validating, or testing.
 - `C2.4`: failed locally and on isolated Vast `RTX PRO 4000 Blackwell`; the
   current `flex_triton` trainer path goes non-finite on the bounded validation
   run.
-- `C2.5`: stabilize the nightly trainer branch one variable at a time:
-  `lr`, backend choice, then dtype scope.
+- `C2.5`: failed on isolated Vast `RTX PRO 4000 Blackwell`; lower LR,
+  backend choice, and `float32` CTC loss did not stabilize the nightly branch.
+- `C2.6`: next diagnostic branch is either full-fp32 / first-step finiteness
+  instrumentation or demotion of nightly flex training back to benchmark-only.
 - `F0`: keep a separate remote FA4 validation target for `H100/H200/B200`
   hardware instead of forcing it onto the local GeForce box.
 - `Z0`: only branch to Zipformer after the Conformer reference path is stable.

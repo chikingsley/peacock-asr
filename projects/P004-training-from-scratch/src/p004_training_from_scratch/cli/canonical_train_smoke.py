@@ -43,6 +43,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--conv-kernel-size", type=int, default=15)
     parser.add_argument("--dropout", type=float, default=0.1)
     parser.add_argument("--learning-rate", type=float, default=3e-4)
+    parser.add_argument(
+        "--loss-compute-dtype",
+        choices=("model", "float32"),
+        default="model",
+        help="Compute CTC log-probs/loss in model dtype or force float32.",
+    )
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(
         "--resume-from",
@@ -86,6 +92,7 @@ def main() -> int:
         conv_kernel_size=args.conv_kernel_size,
         dropout=args.dropout,
         learning_rate=args.learning_rate,
+        loss_compute_dtype=args.loss_compute_dtype,
         seed=args.seed,
         resume_from=args.resume_from,
         enable_compile=not args.disable_compile,

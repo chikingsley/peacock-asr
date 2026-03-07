@@ -226,9 +226,12 @@ Current local status on `2026-03-07`:
 - the same bounded failure reproduced on an isolated Vast `RTX PRO 4000
   Blackwell`, so the instability is in the current trainer path, not just local
   workstation interference
-- the next stabilization order is fixed:
-  lower LR first, then compare `flex_auto` vs `flex_triton`, then narrow dtype
-  scope if needed
+- `C2.5` is now complete and red on isolated Vast Blackwell hardware:
+  lower LR (`1e-4`, `1e-5`), `flex_auto`, and `float32` CTC loss all failed
+  with the same post-update `NaN` at `epoch=0`, `batch_index=1`
+- the next branch is no longer a cheap sweep; it is either
+  full-fp32 / first-step finiteness diagnostics or demotion of nightly flex
+  training back to benchmark-only status
 - keep a separate remote FA4 validation target for `H100/H200/B200`-class
   hardware
 
