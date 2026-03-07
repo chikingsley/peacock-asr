@@ -1,0 +1,170 @@
+{
+  "audio_paths": [
+    "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_raw/audio/dev_clean/dev-clean-00000000.wav",
+    "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_raw/audio/dev_clean/dev-clean-00000001.wav"
+  ],
+  "captured_at": "2026-03-07T03:58:10Z",
+  "checks": [
+    {
+      "details": {
+        "compute_capability": "12.0",
+        "multi_processor_count": 48,
+        "name": "NVIDIA GeForce RTX 5070",
+        "total_memory_bytes": 12346785792
+      },
+      "name": "cuda_available",
+      "passed": true
+    },
+    {
+      "details": {
+        "elapsed_ms": 147.92,
+        "loss": 0.013424661010503769
+      },
+      "name": "bf16_matmul_backward",
+      "passed": true
+    },
+    {
+      "details": {
+        "elapsed_ms": 47.327,
+        "loss": 0.021039962768554688,
+        "output_shape": [
+          2,
+          4,
+          128,
+          64
+        ]
+      },
+      "name": "scaled_dot_product_attention",
+      "passed": true
+    },
+    {
+      "error": "Could not load libtorchcodec. Likely causes:\n          1. FFmpeg is not properly installed in your environment. We support\n             versions 4, 5, 6, 7, and 8, and we attempt to load libtorchcodec\n             for each of those versions. Errors for versions not installed on\n             your system are expected; only the error for your installed FFmpeg\n             version is relevant. On Windows, ensure you've installed the\n             \"full-shared\" version which ships DLLs.\n          2. The PyTorch version (2.9.1+cu128) is not compatible with\n             this version of TorchCodec. Refer to the version compatibility\n             table:\n             https://github.com/pytorch/torchcodec?tab=readme-ov-file#installing-torchcodec.\n          3. Another runtime dependency; see exceptions below.\n\n        The following exceptions were raised as we tried to load libtorchcodec:\n        \n[start of libtorchcodec loading traceback]\nFFmpeg version 8:\nTraceback (most recent call last):\n  File \"/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torch/_ops.py\", line 1488, in load_library\n    ctypes.CDLL(path)\n  File \"/home/simon/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu/lib/python3.11/ctypes/__init__.py\", line 376, in __init__\n    self._handle = _dlopen(self._name, mode)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^\nOSError: /home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torchcodec/libtorchcodec_core8.so: undefined symbol: _ZN3c1013MessageLogger6streamB5cxx11Ev\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torchcodec/_core/ops.py\", line 57, in load_torchcodec_shared_libraries\n    torch.ops.load_library(core_library_path)\n  File \"/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torch/_ops.py\", line 1490, in load_library\n    raise OSError(f\"Could not load this library: {path}\") from e\nOSError: Could not load this library: /home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torchcodec/libtorchcodec_core8.so\n\nFFmpeg version 7:\nTraceback (most recent call last):\n  File \"/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torch/_ops.py\", line 1488, in load_library\n    ctypes.CDLL(path)\n  File \"/home/simon/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu/lib/python3.11/ctypes/__init__.py\", line 376, in __init__\n    self._handle = _dlopen(self._name, mode)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^\nOSError: libavutil.so.59: cannot open shared object file: No such file or directory\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torchcodec/_core/ops.py\", line 57, in load_torchcodec_shared_libraries\n    torch.ops.load_library(core_library_path)\n  File \"/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torch/_ops.py\", line 1490, in load_library\n    raise OSError(f\"Could not load this library: {path}\") from e\nOSError: Could not load this library: /home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torchcodec/libtorchcodec_core7.so\n\nFFmpeg version 6:\nTraceback (most recent call last):\n  File \"/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torch/_ops.py\", line 1488, in load_library\n    ctypes.CDLL(path)\n  File \"/home/simon/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu/lib/python3.11/ctypes/__init__.py\", line 376, in __init__\n    self._handle = _dlopen(self._name, mode)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^\nOSError: libavutil.so.58: cannot open shared object file: No such file or directory\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torchcodec/_core/ops.py\", line 57, in load_torchcodec_shared_libraries\n    torch.ops.load_library(core_library_path)\n  File \"/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torch/_ops.py\", line 1490, in load_library\n    raise OSError(f\"Could not load this library: {path}\") from e\nOSError: Could not load this library: /home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torchcodec/libtorchcodec_core6.so\n\nFFmpeg version 5:\nTraceback (most recent call last):\n  File \"/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torch/_ops.py\", line 1488, in load_library\n    ctypes.CDLL(path)\n  File \"/home/simon/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu/lib/python3.11/ctypes/__init__.py\", line 376, in __init__\n    self._handle = _dlopen(self._name, mode)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^\nOSError: libavutil.so.57: cannot open shared object file: No such file or directory\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torchcodec/_core/ops.py\", line 57, in load_torchcodec_shared_libraries\n    torch.ops.load_library(core_library_path)\n  File \"/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torch/_ops.py\", line 1490, in load_library\n    raise OSError(f\"Could not load this library: {path}\") from e\nOSError: Could not load this library: /home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torchcodec/libtorchcodec_core5.so\n\nFFmpeg version 4:\nTraceback (most recent call last):\n  File \"/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torch/_ops.py\", line 1488, in load_library\n    ctypes.CDLL(path)\n  File \"/home/simon/.local/share/uv/python/cpython-3.11.14-linux-x86_64-gnu/lib/python3.11/ctypes/__init__.py\", line 376, in __init__\n    self._handle = _dlopen(self._name, mode)\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^\nOSError: libavutil.so.56: cannot open shared object file: No such file or directory\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torchcodec/_core/ops.py\", line 57, in load_torchcodec_shared_libraries\n    torch.ops.load_library(core_library_path)\n  File \"/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torch/_ops.py\", line 1490, in load_library\n    raise OSError(f\"Could not load this library: {path}\") from e\nOSError: Could not load this library: /home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/lib/python3.11/site-packages/torchcodec/libtorchcodec_core4.so\n[end of libtorchcodec loading traceback].",
+      "error_type": "RuntimeError",
+      "name": "torchcodec_runtime",
+      "passed": false
+    },
+    {
+      "details": {
+        "batch_shape": [
+          2,
+          401,
+          80
+        ],
+        "input_lengths": [
+          231,
+          401
+        ]
+      },
+      "name": "torchcodec_melspec_batch",
+      "passed": true
+    },
+    {
+      "details": {
+        "compiled_model_type": "OptimizedModule",
+        "elapsed_ms": 4539.225,
+        "losses": [
+          28.093891143798828,
+          13.223129272460938,
+          11.902897834777832
+        ]
+      },
+      "name": "compiled_ctc_train_smoke",
+      "passed": true
+    },
+    {
+      "details": {
+        "device": "cuda",
+        "losses": [
+          1.25496506690979,
+          1.2257436513900757
+        ],
+        "mixed_precision": "bf16"
+      },
+      "name": "accelerate_train_step",
+      "passed": true
+    },
+    {
+      "details": {
+        "mode": "offline",
+        "reason": "forcing offline mode for local canonical preflight",
+        "run_id": "j2488xun",
+        "run_path": "peacockery/peacock-asr-p004-training-from-scratch/j2488xun"
+      },
+      "name": "wandb_smoke",
+      "passed": true
+    }
+  ],
+  "device": {
+    "compute_capability": "12.0",
+    "multi_processor_count": 48,
+    "name": "NVIDIA GeForce RTX 5070",
+    "total_memory_bytes": 12346785792
+  },
+  "machine_manifest": {
+    "captured_at": "2026-03-07T03:58:10.870821+00:00",
+    "git_sha": "24d9f31a7f4554a904e25b54df10cabec6743031",
+    "hardware": {
+      "disk_free_bytes": 722110976000,
+      "disk_total_bytes": 1966788050944,
+      "disk_used_bytes": 1144694149120,
+      "gpus": [
+        {
+          "driver_version": "590.48.01",
+          "memory_total_mb": 12227,
+          "memory_used_mb": 2,
+          "name": "NVIDIA GeForce RTX 5070",
+          "utilization_gpu_pct": 0,
+          "uuid": "GPU-8550b8e7-d27d-3ca8-0c38-8243e5c8ec24"
+        }
+      ],
+      "logical_cpu_count": 16,
+      "memory_total_bytes": 100731383808
+    },
+    "host": {
+      "hostname": "gmk-server",
+      "machine": "x86_64",
+      "platform": "Linux",
+      "platform_release": "6.18.9-arch1-2",
+      "platform_version": "#1 SMP PREEMPT_DYNAMIC Mon, 09 Feb 2026 17:16:33 +0000",
+      "processor": null,
+      "python_executable": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/bin/python3",
+      "python_version": "3.11.14"
+    },
+    "project_root": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch",
+    "public_env": {
+      "WANDB_ENTITY": "peacockery",
+      "WANDB_MODE": "online",
+      "WANDB_PROJECT": "peacock-asr-p004-training-from-scratch"
+    },
+    "software": {
+      "dependency_versions": {
+        "k2": null,
+        "lhotse": null,
+        "python-dotenv": "1.2.2",
+        "torch": "2.9.1+cu128",
+        "torchcodec": "0.10.0",
+        "vastai-sdk": "0.5.1",
+        "wandb": "0.25.0"
+      },
+      "pyproject_sha256": "015d2f8968cb1e2dff4b0dd68a9149221bb450c1ca3f1869f09e7c2e7ab93a3a",
+      "uv_lock_sha256": "98cbfbc1b49533cfe28c877d1f934e636cfa95a1985314f6792b6260a9d75956",
+      "uv_version": "uv 0.10.4"
+    },
+    "tracking": {
+      "wandb_enabled": true,
+      "wandb_entity": "peacockery",
+      "wandb_mode": "online",
+      "wandb_project": "peacock-asr-p004-training-from-scratch"
+    }
+  },
+  "machine_manifest_path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/validation/canonical_local_machine_manifest.json",
+  "overall_passed": false,
+  "project_root": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch",
+  "versions": {
+    "accelerate": "1.13.0",
+    "torch": "2.9.1+cu128",
+    "torchaudio": "2.9.1+cu128",
+    "torchcodec": "0.10.0",
+    "wandb": "0.25.0"
+  }
+}

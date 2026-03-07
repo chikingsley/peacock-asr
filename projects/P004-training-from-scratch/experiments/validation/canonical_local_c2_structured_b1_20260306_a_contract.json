@@ -1,0 +1,49 @@
+{
+  "run_id": "canonical_local_c2_structured_b1_20260306_a",
+  "lane": "canonical",
+  "run_class": "B1",
+  "goal": "Replace the tiny smoke model with the first structured encoder variant on local Blackwell-compatible hardware.",
+  "hardware_target": "local RTX 5070 12GB",
+  "output_dir": "experiments/checkpoints/canonical_phone_ctc/canonical_local_c2_structured_b1_20260306_a",
+  "command": [
+    "uv",
+    "run",
+    "p004-canonical-train-smoke",
+    "--run-id",
+    "canonical_local_c2_structured_b1_20260306_a",
+    "--train-limit",
+    "24",
+    "--dev-limit",
+    "8",
+    "--epochs",
+    "3",
+    "--batch-size",
+    "4",
+    "--model-type",
+    "conformer_like",
+    "--hidden-dim",
+    "192",
+    "--encoder-layers",
+    "3",
+    "--attention-heads",
+    "4",
+    "--conv-kernel-size",
+    "15",
+    "--dropout",
+    "0.1"
+  ],
+  "success_signal": [
+    "CLI exits with status 0",
+    "report.json has success=true",
+    "checkpoint.pt is written",
+    "train step_count is positive",
+    "dev_loss is finite"
+  ],
+  "stop_conditions": [
+    "CUDA OOM after one bounded parameter reduction retry",
+    "compile or attention path fails before first optimizer step",
+    "report.json is missing or success=false"
+  ],
+  "next_if_pass": "Record C2.0 structured encoder baseline and proceed to canonical resume validation.",
+  "next_if_fail": "Reduce structured model size or disable compile only if the failure is model-specific, then rerun the same bounded gate."
+}

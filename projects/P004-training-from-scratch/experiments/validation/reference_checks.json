@@ -1,0 +1,90 @@
+{
+  "generated_at": "2026-03-07T01:01:36.330143+00:00",
+  "output_path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/validation/reference_checks.json",
+  "validation_output_path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/validation/reference_checks_reference_setup.json",
+  "overall_ok": false,
+  "checks": [
+    {
+      "name": "reference_setup",
+      "description": "Run the saved reference-lane workspace validator.",
+      "kind": "script",
+      "ok": false,
+      "returncode": 0,
+      "duration_s": 2.2354139579692855,
+      "command": [
+        "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv-icefall/bin/python",
+        "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/code/validate_reference_setup.py",
+        "--output",
+        "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/validation/reference_checks_reference_setup.json"
+      ],
+      "stdout": "Wrote /home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/validation/reference_checks_reference_setup.json\noverall=partial\ncheck: All required reference-lane paths exist.\ncheck: Prepared-env import probe succeeded.\ncheck: Manifest build summary is present.\nissue: Target GPU is already occupied by another process.",
+      "stderr": "",
+      "details": {
+        "overall": "partial",
+        "checks": [
+          "All required reference-lane paths exist.",
+          "Prepared-env import probe succeeded.",
+          "Manifest build summary is present."
+        ],
+        "issues": [
+          "Target GPU is already occupied by another process."
+        ]
+      }
+    },
+    {
+      "name": "icefall_checkpoint",
+      "description": "Run upstream icefall checkpoint I/O tests.",
+      "kind": "pytest",
+      "ok": true,
+      "returncode": 0,
+      "duration_s": 1.7644905699416995,
+      "command": [
+        "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv-icefall/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "third_party/icefall/test/test_checkpoint.py"
+      ],
+      "stdout": "..                                                                       [100%]\n=============================== warnings summary ===============================\n<frozen importlib._bootstrap>:241\n  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute\n\n<frozen importlib._bootstrap>:241\n  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 2 warnings in 0.97s",
+      "stderr": "sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute",
+      "details": null
+    },
+    {
+      "name": "icefall_graph_compiler",
+      "description": "Run upstream icefall CTC graph compiler tests.",
+      "kind": "pytest",
+      "ok": true,
+      "returncode": 0,
+      "duration_s": 1.855076779029332,
+      "command": [
+        "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv-icefall/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "third_party/icefall/test/test_graph_compiler.py"
+      ],
+      "stdout": "..                                                                       [100%]\n=============================== warnings summary ===============================\n<frozen importlib._bootstrap>:241\n  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute\n\n<frozen importlib._bootstrap>:241\n  <frozen importlib._bootstrap>:241: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n2 passed, 2 warnings in 1.01s",
+      "stderr": "sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute",
+      "details": null
+    },
+    {
+      "name": "icefall_conformer_components",
+      "description": "Run recipe-local Conformer component tests.",
+      "kind": "pytest",
+      "ok": true,
+      "returncode": 0,
+      "duration_s": 19.063451998052187,
+      "command": [
+        "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv-icefall/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "third_party/icefall/egs/librispeech/ASR/conformer_ctc/test_subsampling.py",
+        "third_party/icefall/egs/librispeech/ASR/conformer_ctc/test_label_smoothing.py"
+      ],
+      "stdout": "...                                                                      [100%]\n=============================== warnings summary ===============================\nthird_party/icefall/egs/librispeech/ASR/conformer_ctc/test_label_smoothing.py:23\n  /home/simon/github/peacock-asr/projects/P004-training-from-scratch/third_party/icefall/egs/librispeech/ASR/conformer_ctc/test_label_smoothing.py:23: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.\n    torch_ver = LooseVersion(torch.__version__)\n\nthird_party/icefall/egs/librispeech/ASR/conformer_ctc/test_label_smoothing.py::test_with_torch_label_smoothing_loss\n  /home/simon/github/peacock-asr/projects/P004-training-from-scratch/third_party/icefall/egs/librispeech/ASR/conformer_ctc/test_label_smoothing.py:27: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.\n    if torch_ver < LooseVersion(\"1.10.0\"):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n3 passed, 2 warnings in 18.56s",
+      "stderr": "",
+      "details": null
+    }
+  ]
+}

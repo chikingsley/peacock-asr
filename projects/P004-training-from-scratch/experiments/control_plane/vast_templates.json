@@ -1,0 +1,17 @@
+{
+  "p004_ref_icefall_ssh": {
+    "count_created": 0,
+    "creator_id": 218294,
+    "description": "P004 reference-lane SSH template for bounded icefall smoke runs. Compatibility-first fallback while the canonical Blackwell stack is still under validation.",
+    "hash_id": "86ba9f2d188dfb4a3215babe232434f6",
+    "image": "nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04",
+    "jup_direct": false,
+    "name": "p004_ref_icefall_ssh",
+    "private": true,
+    "recommended_disk_space_gb": 100.0,
+    "ssh_direct": true,
+    "tag": null,
+    "template_id": 357191,
+    "use_ssh": true
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "run_id": "r1_smoke_vast_4090_20260306_191106",
+  "lane": "reference",
+  "run_class": "S1 smoke",
+  "purpose": "Re-run the bounded icefall Conformer phone-CTC smoke test on a non-Blackwell RTX 4090 to separate reference-lane correctness from Blackwell compatibility.",
+  "target_machine": {
+    "provider": "Vast",
+    "gpu_name": "RTX 4090",
+    "num_gpus": 1,
+    "query_clauses": [
+      "reliability > 0.995",
+      "cpu_cores >= 16"
+    ],
+    "order": "dph",
+    "template_name": "p004_ref_icefall_ssh",
+    "template_hash": "86ba9f2d188dfb4a3215babe232434f6",
+    "image": "nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04",
+    "disk_gb": 100.0
+  },
+  "launch_command": [
+    "uv",
+    "run",
+    "p004-vast-launch-instance",
+    "--gpu-name",
+    "RTX 4090",
+    "--image",
+    "nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04",
+    "--template-hash",
+    "86ba9f2d188dfb4a3215babe232434f6",
+    "--disk-gb",
+    "100",
+    "--order",
+    "dph",
+    "--limit",
+    "3",
+    "--label",
+    "p004-r1-4090",
+    "--query-clause",
+    "reliability > 0.995",
+    "--query-clause",
+    "cpu_cores >= 16"
+  ],
+  "output_dir": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/checkpoints/conformer_ctc_phone/r1_smoke_vast_4090_20260306_191106",
+  "machine_manifest_output": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/validation/r1_smoke_vast_4090_20260306_191106_machine_manifest.json",
+  "train_command_file": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/checkpoints/conformer_ctc_phone/r1_smoke_vast_4090_20260306_191106/run_command.sh",
+  "success_signal": [
+    "train log progresses past initialization",
+    "at least one optimizer step is logged",
+    "a recoverable artifact exists under the output directory"
+  ],
+  "stop_conditions": [
+    "import or startup failure from torch, k2, or data paths",
+    "no first optimizer step within the bounded smoke window",
+    "repeated OOM after one reduced-load retry",
+    "no recoverable output written to the output directory"
+  ],
+  "monitoring_cadence": "Poll the remote run every 2 minutes until the first optimizer step or a terminal failure is visible.",
+  "next_action_if_pass": "Promote the same path to R2 stable small reference validation on the same non-Blackwell class.",
+  "next_action_if_fail": "Fix the concrete reference-lane blocker before spending more GPU time or touching the canonical Blackwell lane."
+}

@@ -1,0 +1,177 @@
+{
+  "timestamp_utc": "2026-03-06T20:47:13.770950+00:00",
+  "paths": {
+    "output": {
+      "path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/validation/reference_setup.json",
+      "exists": true,
+      "is_file": true,
+      "is_dir": false,
+      "size_bytes": 6671
+    },
+    "p004_root": {
+      "path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch",
+      "exists": true,
+      "is_file": false,
+      "is_dir": true,
+      "size_bytes": null
+    },
+    "env_python": {
+      "path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv-icefall/bin/python",
+      "exists": true,
+      "is_file": true,
+      "is_dir": false,
+      "size_bytes": 21338208
+    },
+    "icefall_root": {
+      "path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/third_party/icefall",
+      "exists": true,
+      "is_file": false,
+      "is_dir": true,
+      "size_bytes": null
+    },
+    "recipe_dir": {
+      "path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/third_party/icefall/egs/librispeech/ASR/conformer_ctc",
+      "exists": true,
+      "is_file": false,
+      "is_dir": true,
+      "size_bytes": null
+    },
+    "manifest_dir": {
+      "path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_raw",
+      "exists": true,
+      "is_file": false,
+      "is_dir": true,
+      "size_bytes": null
+    },
+    "lang_dir": {
+      "path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/lang_phone",
+      "exists": true,
+      "is_file": false,
+      "is_dir": true,
+      "size_bytes": null
+    }
+  },
+  "build_summary": {
+    "train_clean_100": {
+      "kept": 28538,
+      "skipped": 0,
+      "manifest": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_raw/librispeech_cuts_train-clean-100.jsonl.gz",
+      "audio_dir": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_raw/audio/train_clean_100"
+    },
+    "dev_clean": {
+      "kept": 2703,
+      "skipped": 0,
+      "manifest": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_raw/librispeech_cuts_dev-clean.jsonl.gz",
+      "audio_dir": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_raw/audio/dev_clean"
+    }
+  },
+  "manifests": {
+    "librispeech_cuts_dev-clean.jsonl.gz": {
+      "path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_raw/librispeech_cuts_dev-clean.jsonl.gz",
+      "first_cut_id": "dev-clean-00000000",
+      "duration": 2.305,
+      "num_supervisions": 1,
+      "first_phone_text": "M IH S T ER W AH Z F UH L IY R IH S P AA N S IH V N AW",
+      "sampling_rate": 16000,
+      "num_samples": 36880
+    },
+    "librispeech_cuts_train-clean-100.jsonl.gz": {
+      "path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_raw/librispeech_cuts_train-clean-100.jsonl.gz",
+      "first_cut_id": "train-clean-100-00000000",
+      "duration": 12.35,
+      "num_supervisions": 1,
+      "first_phone_text": "HH AH B IH CH UW AH L S EH L F P AH Z EH SH AH N AE N D S EH L F R IH S P EH K T HH AE P IY AE N D G R EY SH AH S W IH L IH NG N AH S HH AA R D S AW L D AE N D JH OY AH S L IY JH OY AH S",
+      "sampling_rate": 16000,
+      "num_samples": 197600
+    }
+  },
+  "lang_files": {
+    "tokens": {
+      "path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/lang_phone/tokens.txt",
+      "exists": true,
+      "is_file": true,
+      "is_dir": false,
+      "size_bytes": 235
+    },
+    "lexicon": {
+      "path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/lang_phone/lexicon.txt",
+      "exists": true,
+      "is_file": true,
+      "is_dir": false,
+      "size_bytes": 211
+    },
+    "phone_list": {
+      "path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/lang_phone/phone_list.txt",
+      "exists": true,
+      "is_file": true,
+      "is_dir": false,
+      "size_bytes": 101
+    },
+    "words": {
+      "path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/lang_phone/words.txt",
+      "exists": true,
+      "is_file": true,
+      "is_dir": false,
+      "size_bytes": 247
+    }
+  },
+  "lang_counts": {
+    "tokens": 43,
+    "lexicon": 40,
+    "phone_list": 39,
+    "words": 44
+  },
+  "import_probes": {
+    "raw_env": {
+      "prepared_env": false,
+      "returncode": 1,
+      "stderr": "Traceback (most recent call last):\n  File \"<string>\", line 4, in <module>\n  File \"/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv-icefall/lib/python3.11/site-packages/k2/__init__.py\", line 23, in <module>\n    from _k2 import DeterminizeWeightPushingType\nImportError: libnvrtc.so.12: cannot open shared object file: No such file or directory",
+      "details": null
+    },
+    "prepared_env": {
+      "prepared_env": true,
+      "returncode": 0,
+      "stderr": "",
+      "details": {
+        "python": {
+          "executable": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv-icefall/bin/python",
+          "version": "3.11.14"
+        },
+        "torch": {
+          "version": "2.4.1+cu124",
+          "cuda_available": true,
+          "cuda_version": "12.4"
+        },
+        "k2": {
+          "version": "unknown"
+        },
+        "lhotse": {
+          "version": "1.32.2"
+        }
+      }
+    }
+  },
+  "gpu": {
+    "summary": "NVIDIA GeForce RTX 5070, 12227 MiB, 590.48.01, 98 %, 8 %",
+    "active_processes": [
+      {
+        "pid": 1453596,
+        "process_name": "/home/simon/github/peacock-asr/.venv/bin/python3",
+        "used_gpu_memory_mib": 10980,
+        "ps": "1453596 1453592    04:17:41 /home/simon/github/peacock-asr/.venv/bin/python3 projects/P003-compact-backbones/code/launch_hubert_base_local.py --resume-from-checkpoint /home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/checkpoints/hubert-base-phoneme-en/checkpoint-500"
+      }
+    ]
+  },
+  "status": {
+    "overall": "partial",
+    "checks": [
+      "All required reference-lane paths exist.",
+      "Prepared-env import probe succeeded.",
+      "Manifest build summary is present."
+    ],
+    "issues": [
+      "Raw .venv-icefall imports need LD_LIBRARY_PATH to locate libnvrtc.so.12.",
+      "Target GPU is already occupied by another process."
+    ]
+  }
+}

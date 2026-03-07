@@ -1,0 +1,14 @@
+{
+  "train_clean_100": {
+    "kept": 28538,
+    "skipped": 0,
+    "manifest": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_raw/librispeech_cuts_train-clean-100.jsonl.gz",
+    "audio_dir": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_raw/audio/train_clean_100"
+  },
+  "dev_clean": {
+    "kept": 2703,
+    "skipped": 0,
+    "manifest": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_raw/librispeech_cuts_dev-clean.jsonl.gz",
+    "audio_dir": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_raw/audio/dev_clean"
+  }
+}

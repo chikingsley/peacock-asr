@@ -1,0 +1,57 @@
+{
+  "captured_at": "2026-03-07T06:02:42.182098+00:00",
+  "git_sha": "24d9f31a7f4554a904e25b54df10cabec6743031",
+  "hardware": {
+    "disk_free_bytes": 718439464960,
+    "disk_total_bytes": 1966788050944,
+    "disk_used_bytes": 1148365660160,
+    "gpus": [
+      {
+        "driver_version": "590.48.01",
+        "memory_total_mb": 12227,
+        "memory_used_mb": 2,
+        "name": "NVIDIA GeForce RTX 5070",
+        "utilization_gpu_pct": 0,
+        "uuid": "GPU-8550b8e7-d27d-3ca8-0c38-8243e5c8ec24"
+      }
+    ],
+    "logical_cpu_count": 16,
+    "memory_total_bytes": 100731383808
+  },
+  "host": {
+    "hostname": "gmk-server",
+    "machine": "x86_64",
+    "platform": "Linux",
+    "platform_release": "6.18.9-arch1-2",
+    "platform_version": "#1 SMP PREEMPT_DYNAMIC Mon, 09 Feb 2026 17:16:33 +0000",
+    "processor": null,
+    "python_executable": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/bin/python3",
+    "python_version": "3.11.14"
+  },
+  "project_root": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch",
+  "public_env": {
+    "WANDB_ENTITY": "peacockery",
+    "WANDB_MODE": "online",
+    "WANDB_PROJECT": "peacock-asr-p004-training-from-scratch"
+  },
+  "software": {
+    "dependency_versions": {
+      "k2": null,
+      "lhotse": null,
+      "python-dotenv": "1.2.2",
+      "torch": "2.9.1+cu128",
+      "torchcodec": "0.10.0",
+      "vastai-sdk": "0.5.1",
+      "wandb": "0.25.0"
+    },
+    "pyproject_sha256": "9784db522eda9213e4933cad1f1311807636ca92fc7f9d2d84d0ab70bb8d3d06",
+    "uv_lock_sha256": "98cbfbc1b49533cfe28c877d1f934e636cfa95a1985314f6792b6260a9d75956",
+    "uv_version": "uv 0.10.4"
+  },
+  "tracking": {
+    "wandb_enabled": true,
+    "wandb_entity": "peacockery",
+    "wandb_mode": "online",
+    "wandb_project": "peacock-asr-p004-training-from-scratch"
+  }
+}

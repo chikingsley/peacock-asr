@@ -1,173 +1,274 @@
-# Track 07 Ablation Plan: Training from Scratch
+# P004 Ablation Plan
 
-## Research Question
+The point of this file is not to predict the whole paper. It is to define the
+next bounded experiments so we can validate the path one step at a time.
 
-Can a Conformer model trained from scratch on LibriSpeech produce GOP posteriors
-that are competitive with fine-tuned w2v-BERT 2.0 for pronunciation scoring?
+## Core Rule
 
-Specifically:
+- `reference lane` first, `canonical lane` second
+- one change per run when the change can affect correctness or throughput
+- no new architecture branch until the previous gate is green
+- no GPU should be running while we are still deciding what the run is
 
-- Does encoder-CTC trained from scratch generalize as well as fine-tuned SSL encoders
-  when used as a posterior source for GOP features?
-- Which architecture (Conformer vs Zipformer) gives the best phone posteriors per GPU-hour?
-- What is the minimum viable dataset size for competitive phone posteriors?
+## Run Classes
 
-## Frozen Evaluation Protocol (inherited from Track 05)
+- `P0 local preflight`: zero-rental checks, dry-runs, env validation, and
+  manifest inspection
+- `S1 smoke run`: first real train launch, capped to prove one optimizer step
+  and recoverable outputs
+- `B1 bounded validation`: short repeatable training window used to prove loss
+  movement and restart or resume behavior
+- `A1 ablation`: one controlled change against a known-good baseline
 
-- Dataset: SpeechOcean762 (2500 train / 2500 test, pinned revision)
-- Evaluation: phone-level PCC with 95% CI, minimum 3 seeds on the GOPT scorer
-- Feature extraction: GOP-SF from CTC posteriors (same pipeline as Track 05)
-- Track 05 baseline (w2v-BERT 2.0 fine-tuned): PCC 0.648
+## `G0` Rental Readiness Gate
 
-Posterior quality proxy: Phone Error Rate (PER) on TIMIT or LibriSpeech test-clean,
-measured before applying to the GOP pipeline.
+Goal:
+- make the next GPU run exact enough that turning a GPU on is a deliberate act,
+  not part of exploration
 
----
+Required before any rented or dedicated GPU is activated:
+- the exact command is written down
+- the target machine class is chosen
+- the output directory and run ID are chosen
+- the success signal is written down
+- the stop or kill conditions are written down
+- the monitoring cadence is written down
+- the next action after pass and the next action after fail are written down
 
-## Phase 1: Reproduce icefall TIMIT TDNN-LSTM Recipe (Learning Sandbox)
+Acceptance:
+- all seven items above are filled in for the next run
+- if any item is missing, the answer is `not ready`
 
-Goal: Learn the icefall training pipeline before committing to expensive runs.
-This phase has no paper value — it is infrastructure and process validation only.
+Blackwell note:
+- the local Blackwell GPU is not the first validation target for the reference
+  lane
+- the reference lane is still the older `icefall` + `k2` stack pinned around
+  `torch 2.4.1+cu124`
+- treat that lane as a compatibility proof, not as the final performance stack
 
-Recipe: `github.com/k2-fsa/icefall egs/timit/ASR`
+## Reference Lane
 
-| Run ID | Architecture | Dataset | Expected PER | Purpose |
-|--------|-------------|---------|-------------|---------|
-| P1-A | TDNN-LSTM (icefall default) | TIMIT | ~17.66% | Reproduce paper number |
-| P1-B | TDNN-LSTM + minor tuning | TIMIT | < 17% | Verify we can modify training |
+### `R0` Workspace Validation
 
-Implementation needed:
+Goal:
+- prove the P004 reference workspace is materially ready to train
 
-- Install k2, lhotse, icefall dependencies
-- Run data prep for TIMIT
-- Verify k2 graph compilation works on our GPU (RTX 5070)
-- Confirm CTC posteriors can be extracted in the format GOP pipeline expects
+Checks:
+- `icefall` recipe exists locally
+- `.venv-icefall` can import `torch`, `k2`, and `lhotse` when launched with the
+  required runtime env
+- phone manifests and `lang_phone` exist and are readable
+- current GPU state is known before any training run starts
 
-Expected effort: 2-3 days
-Decision gate: If we cannot reproduce TIMIT PER within 1% relative of paper, stop and diagnose.
+Artifact:
+- `experiments/validation/reference_setup.json`
 
----
+Acceptance:
+- all required paths exist
+- prepared-env import probe succeeds
+- manifest summary and first-record checks succeed
 
-## Phase 2: Adapt icefall Conformer Recipe for Phoneme CTC on LibriSpeech
+Move-on rule:
+- `R0` is only good enough to unblock `G0`; it is not enough to justify a long
+  run by itself
 
-Goal: Replace TDNN-LSTM with Conformer and scale to LibriSpeech 960h with phoneme labels.
+### `R1` Conformer Smoke Train
 
-Starting point: `github.com/k2-fsa/icefall egs/librispeech/ASR/conformer_ctc/`
+Goal:
+- prove the upstream `icefall` Conformer CTC loop can take phone manifests,
+  start stepping, and write artifacts
 
-The existing recipe uses BPE/word-level output. We need to adapt it for:
+Command shape:
+- `code/run_conformer_phone_ctc.py -- --num-epochs 1 ...`
 
-1. Phoneme-level output vocabulary (ARPABET, ~40 phones)
-2. Phone-labeled training data (gilkeyio/librispeech-alignments or G2P-derived)
-3. CTC posterior extraction in GOP format
+Acceptance:
+- train log progresses past initialization
+- at least one optimizer step is logged
+- at least one checkpoint or recoverable artifact is written
 
-| Run ID | Architecture | Dataset | Output | Purpose |
-|--------|-------------|---------|--------|---------|
-| P2-A | Conformer-S (small) | LS-100h clean | ARPABET CTC | Feasibility check, fast |
-| P2-B | Conformer-M (medium) | LS-960h | ARPABET CTC | Full LibriSpeech |
-| P2-C | Conformer-M | LS-960h | ARPABET CTC + phone-aligned | GOP posterior extraction |
+Notes:
+- run only on a compatibility-first GPU or a dedicated cheap node
+- do not mix in new kernels, W&B, or refactors here
+- the run should be treated as `S1 smoke`, not as a performance run
+- current state on `2026-03-07`: `R1` is green on rented `RTX 4090` and failed
+  on rented `RTX PRO 4000 Blackwell`, so the lane is proven but still
+  compatibility-bound
 
-For P2-C, posterior extraction must match the format expected by `gop.py`:
+Required pre-commits before launch:
+- exact launch command written into the ledger or run notes
+- output directory reserved
+- first failure owner decided in advance: env, recipe, data, or hardware
 
-- Shape: `(T, num_phones)` log-probabilities from CTC output layer
-- No beam search — raw softmax over ARPABET vocabulary
+Immediate stop conditions:
+- import or startup failure from `torch`, `k2`, or data paths
+- explicit `sm_120` / `no kernel image is available` failure on Blackwell with
+  the old `torch 2.4.1+cu124` reference env
+- no first optimizer step within the allowed smoke window
+- repeated OOM after one reduced-load retry
+- no recoverable output written to the target experiment directory
 
-Implementation needed:
+Smoke window:
+- the purpose is only to prove `start -> step -> write`
+- if we need more time than that to decide whether the run is healthy, the gate
+  was not defined tightly enough
 
-- Adapt BPE tokenizer to ARPABET phone set
-- Write phone-level label preparation script from LibriSpeech alignments
-- Write posterior extraction script compatible with `_compute_lpr_features_batched`
-- Run GOPT scorer on extracted posteriors to get PCC on SpeechOcean762
+### `R2` Stable Small Reference Run
 
-Expected effort: 1-2 weeks
-Expected PER: 8-15% on TIMIT (Conformer-M trained on 960h, evaluated on TIMIT)
-Expected PCC: Unknown — this is the key experiment
+Goal:
+- get a clean small-scale run that can be repeated without hand-fixing the env
 
-Decision gate:
+Acceptance:
+- same command can be re-run from a clean shell
+- resume or restart behavior is understood
+- train and dev loss both move in the expected direction
 
-- If PCC >= 0.60 on SpeechOcean762: from-scratch is viable, continue to Phase 3.
-- If PCC < 0.55: fine-tuned SSL is clearly better, document and stop.
-- If PCC 0.55-0.60: ambiguous, run Phase 3 before deciding.
+Required evidence:
+- one clean fresh run
+- one clean rerun or resume
+- recorded note on whether the environment still needs special shell prep beyond
+  the launcher itself
 
----
+Current state on `2026-03-07`:
+- `R2` is green on a RunPod `RTX A5000`
+- the fresh run wrote `epoch-0.pt` and `epoch-1.pt`
+- the explicit resume run loaded `epoch-1.pt` and wrote `epoch-2.pt`
+- the old reference lane is now repeatable on compatible non-Blackwell hardware
 
-## Phase 3: Head-to-Head vs Fine-Tuned w2v-BERT 2.0
+## Canonical Lane
 
-Goal: Direct comparison with Track 05 best result under identical scoring conditions.
+### `C0` Canonical Workspace Bootstrap
 
-Identical setup: same GOPT scorer, same SpeechOcean762 split, same GOP-SF pipeline.
-Only variable: the acoustic model providing posteriors.
+Goal:
+- lift the validated path into the lab-standard project layout
 
-| Run ID | Acoustic Model | Training | PCC | GPU-hours | Notes |
-|--------|---------------|----------|-----|-----------|-------|
-| P3-A | w2v-BERT 2.0 (fine-tuned) | Track 05 | 0.648 | ~4h | Baseline |
-| P3-B | Conformer-M (from scratch) | Phase 2 best | TBD | TBD | Our from-scratch |
-| P3-C | Conformer-L (large) | LS-960h | TBD | TBD | Scale test |
-| P3-D | Conformer-M + CommonVoice | 960+1000h | TBD | TBD | More data |
+Scope:
+- `uv` project config and lockfile
+- exact dependency groups
+- run metadata and artifact layout
+- cleaner launch entrypoints
 
-Comparisons to report:
+Acceptance:
+- canonical env can be reproduced from scratch
+- run configuration is explicit and versioned
+- the reference lane result that is being lifted is identified by run ID
+- current local status on `2026-03-07`: canonical env and CUDA preflight are
+  running on the `RTX 5070`; the lane also has a real-data local smoke and a
+  bounded validation run using the WAV fallback loader, but native
+  `torchcodec` runtime is still a workstation-specific blocker
 
-- PCC delta (from-scratch vs fine-tuned)
-- PER delta (acoustic quality proxy)
-- Total training GPU-hours (from-scratch is much more expensive)
-- Posterior distribution quality (entropy, calibration)
+### `C1` Tracking And Artifacts
 
-Decision gate:
+Goal:
+- add tracking once the reference lane is stable enough that logs are worth
+  keeping
 
-- If from-scratch PCC >= 0.64 (within 1% of baseline): architecturally competitive.
-- If from-scratch PCC >= 0.648: from-scratch matches or beats fine-tuning.
-- Either outcome is publishable with the framing: "how much data/compute does from-scratch need?"
+Scope:
+- local machine-manifest capture
+- W&B runs and artifacts
+- optional HF Hub milestone uploads
 
----
+Acceptance:
+- run config, metrics, checkpoints, and dataset identity are recoverable
+- local run metadata and remote tracker metadata agree on the run identity
+- current local status on `2026-03-07`: machine manifest capture, offline W&B
+  runs, metrics logs, and checkpoints are already written for canonical local
+  smoke runs; canonical resume is now also proven, so the next gap is optional
+  online or Hub sync
 
-## Phase 4: Zipformer Phoneme CTC (If Phase 2-3 Show Promise)
+### `C2` Blackwell / New-Kernel Branch
 
-Goal: Test whether Zipformer (ZIPA's architecture) improves over Conformer.
+Goal:
+- evaluate newer PyTorch and Blackwell-oriented kernels without contaminating
+  the stable reference lane
 
-Zipformer is k2-fsa's improved architecture. ZIPA used it with 17K hours.
-We would use the same 960h LibriSpeech training set for a fair comparison.
+Scope:
+- current stable PyTorch lane
+- separate nightly/experimental lane for newer attention kernels
 
-| Run ID | Architecture | Dataset | Purpose |
-|--------|-------------|---------|---------|
-| P4-A | Zipformer-S | LS-960h | Architecture comparison vs Conformer-S |
-| P4-B | Zipformer-M | LS-960h | Fair match to Conformer-M |
+Acceptance:
+- correctness check against the stable lane
+- measured speed delta
+- measured memory delta
+- no silent training instability during a bounded run
+- no contamination of the reference lane command or environment
 
-This phase is gated on Phase 2-3 showing Conformer is at least competitive with
-fine-tuned SSL. If fine-tuning wins decisively, Zipformer is not worth the engineering effort.
+Immediate sequence after `R2`:
+- `C2.0`: keep the stable local lane on `torch 2.9.1+cu128` and the WAV
+  fallback loader; swap the tiny smoke model for the first structured encoder
+  variant before touching kernels
+- `C2.1`: prove the structured encoder path can run fresh and resume on the
+  local `RTX 5070`
+- `C2.2`: benchmark stable-lane `scaled_dot_product_attention` and
+  `torch.compile` as the local baseline
+- `C2.3`: open a separate nightly branch for Blackwell-specific kernel work
+  such as FA4 or newer attention paths
+- `C2.4`: only keep a new kernel path if the bounded run is numerically sane
+  and the measured speed or memory delta is real
 
-Expected effort: 3-5 days (recipe adaptation, same data pipeline as Phase 2)
+Current local status on `2026-03-07`:
+- `C2.0` is green with a `conformer_like` encoder (`1.7M` params) on the local
+  `RTX 5070`
+- `C2.1` is green with explicit resume from `epoch-1.pt` into later epochs on
+  the same stack
+- `C2.2` is green on the local `RTX 5070`
+- on this structured-smoke benchmark, eager beat `torch.compile` in both total
+  elapsed time and post-warmup mean step time
+- the stable local baseline for `C2.3` should therefore keep
+  `enable_compile=false`
+- `C2.3` is now open locally in `env/nightly-fa4`
+- compiled nightly `flex_attention` passes with `AUTO` and explicit `TRITON`
+  on the local `RTX 5070`
+- current `FLASH` / FA4 fails on this local device with
+  `Unsupported compute capability. Supported: 9.x, 10.x, 11.x`
+- the trainer-level `flex_triton` smoke passes locally
+- the bounded `flex_triton` validation is not numerically sane yet: it goes
+  non-finite at `epoch=0, batch_index=1`
+- the next decision is whether to stabilize the local `flex_triton` branch or
+  drop it back to benchmark-only status
+- keep a separate remote FA4 validation target for `H100/H200/B200`-class
+  hardware
 
----
+## Architecture Branches
 
-## Decision Rules Summary
+### `Z0` Zipformer
 
-| Gate | Condition | Action |
-|------|-----------|--------|
-| Phase 1 done | Reproduce TIMIT PER within 1% of paper | Proceed to Phase 2 |
-| Phase 2 done | PCC >= 0.55 on SpeechOcean762 | Proceed to Phase 3 |
-| Phase 2 done | PCC < 0.55 | Write negative result, stop |
-| Phase 3 done | PCC >= 0.64 | Proceed to Phase 4, write full paper |
-| Phase 3 done | PCC 0.55-0.64 | Write data efficiency paper, stop |
-| Phase 3 done | PCC < 0.55 | Write negative result, fine-tuning wins |
+Start only after `R2` is green.
 
----
+Reason:
+- Zipformer may be the stronger long-term efficiency bet
+- Conformer is still the shorter path for proving the data and recipe flow
 
-## Paper Structure Preview (if Phase 3 positive)
+Acceptance:
+- reuse the same manifests, vocab, and eval wiring
+- change the architecture, not the whole stack
 
-- **Section 1**: Introduction — from-scratch vs fine-tuning for pronunciation scoring
-- **Section 2**: Related Work — ZIPA, POWSM, PRiSM, Conformer, icefall
-- **Section 3**: Method — icefall Conformer adapted for phoneme CTC, GOP extraction
-- **Table 1**: Phase 2 results — Conformer PER vs training data size
-- **Table 2**: Phase 3 results — from-scratch vs fine-tuned, PCC on SpeechOcean762
-- **Table 3**: Phase 4 results (if run) — Conformer vs Zipformer
-- **Discussion**: Data efficiency, compute cost, practical recommendation
-- **Conclusion**: Under what conditions does from-scratch beat fine-tuning?
+### `H0` Attach-Head / Fine-Tune Modes
 
-## Deliverables per Run
+Start only after the from-scratch reference lane is stable.
 
-- Config snapshot (architecture, dataset, phoneme vocab, CTC settings)
-- MLflow run ID + metrics JSON
-- PER on TIMIT test set (acoustic quality proxy)
-- PCC on SpeechOcean762 (end-task quality)
-- Wall-clock training time, GPU-hours
-- Checkpoint location
-- Random seeds used (minimum 3 seeds for scoring runs)
+Reason:
+- otherwise we will not know whether a failure came from the encoder strategy
+  or the training stack itself
+
+## Decision Gates
+
+- If `G0` is incomplete, do not turn on a GPU.
+- If `R0` fails, fix the reference setup before running more training.
+- If `R1` cannot get past initialization, stop adding complexity and repair the
+  reference lane.
+- If `R2` is not repeatable, do not start the canonical lane yet.
+- If `C2` makes training faster but less stable, keep it experimental.
+- If Zipformer requires widespread stack changes, defer it until after the
+  canonical lane is clean.
+
+## What Counts As Ready
+
+The workspace is ready for a GPU only when:
+
+- `G0` is green for the next run
+- the command and kill conditions are already fixed
+- the result will clearly answer one question
+- passing the run would immediately unlock the next bounded step
+
+If any of those are false, the correct action is another `P0` local preflight,
+not another GPU hour.

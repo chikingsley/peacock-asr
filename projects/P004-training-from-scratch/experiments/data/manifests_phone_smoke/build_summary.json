@@ -1,0 +1,25 @@
+{
+  "kind": "phone_smoke_subset",
+  "manifests": {
+    "librispeech_cuts_train-clean-100.jsonl.gz": {
+      "cuts": 64,
+      "total_duration_seconds": 786.6299999999997,
+      "source_manifest": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_raw/librispeech_cuts_train-clean-100.jsonl.gz",
+      "output_manifest": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_smoke/librispeech_cuts_train-clean-100.jsonl.gz"
+    },
+    "librispeech_cuts_dev-clean.jsonl.gz": {
+      "cuts": 16,
+      "total_duration_seconds": 127.47,
+      "source_manifest": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_raw/librispeech_cuts_dev-clean.jsonl.gz",
+      "output_manifest": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_smoke/librispeech_cuts_dev-clean.jsonl.gz"
+    },
+    "librispeech_cuts_dev-other.jsonl.gz": {
+      "cuts": 16,
+      "total_duration_seconds": 127.47,
+      "source_manifest": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_raw/librispeech_cuts_dev-clean.jsonl.gz",
+      "output_manifest": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_smoke/librispeech_cuts_dev-other.jsonl.gz",
+      "note": "Temporary smoke-run alias of dev-clean because dev-other phone manifests are not built yet."
+    }
+  },
+  "audio_files": 80
+}

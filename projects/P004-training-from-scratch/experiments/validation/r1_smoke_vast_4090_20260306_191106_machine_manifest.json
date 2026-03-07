@@ -1,0 +1,32 @@
+{
+  "captured_at": "2026-03-07T03:27:28.457725+00:00",
+  "git_sha": null,
+  "hardware": {
+    "gpus": [
+      {
+        "driver_version": "580.95.05",
+        "memory_total_mb": 24564,
+        "memory_used_mb": 1,
+        "name": "NVIDIA GeForce RTX 4090",
+        "utilization_gpu_pct": 0,
+        "uuid": "GPU-2440d7b4-b252-2312-e683-41b970ce593d"
+      }
+    ],
+    "logical_cpu_count": 128
+  },
+  "host": {
+    "hostname": "274bd6c6cd66",
+    "machine": "x86_64",
+    "platform": "Linux",
+    "platform_release": "6.8.0-90-generic",
+    "platform_version": "#91~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Thu Nov 20 15:20:45 UTC 2",
+    "python_executable": "/usr/bin/python3",
+    "python_version": "3.10.12"
+  },
+  "project_root": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch",
+  "public_env": {
+    "WANDB_ENTITY": null,
+    "WANDB_MODE": null,
+    "WANDB_PROJECT": null
+  }
+}

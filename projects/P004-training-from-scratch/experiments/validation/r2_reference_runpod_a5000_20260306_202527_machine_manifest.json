@@ -1,0 +1,21 @@
+{
+  "captured_at": "2026-03-07T05:06:05.567848+00:00",
+  "git_sha": null,
+  "host": {
+    "hostname": "de7408cff6a3",
+    "machine": "x86_64",
+    "platform": "Linux",
+    "platform_release": "5.15.0-102-generic",
+    "platform_version": "#112-Ubuntu SMP Tue Mar 5 16:50:32 UTC 2024",
+    "python_executable": "/usr/bin/python3",
+    "python_version": "3.12.3"
+  },
+  "nvidia_smi": [
+    "NVIDIA RTX A5000, 24564, 2529, 0, 580.126.09"
+  ],
+  "provider": {
+    "name": "RunPod",
+    "pod_id": "5gpoxrtamdt1wx",
+    "pod_name": "peacock-training"
+  }
+}

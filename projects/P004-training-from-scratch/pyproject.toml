@@ -1,0 +1,87 @@
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "p004-training-from-scratch"
+version = "0.1.0"
+description = "Control-plane and validation helpers for P004."
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "python-dotenv>=1.0.0",
+  "vastai-sdk>=0.5.0",
+  "wandb>=0.25.0",
+]
+
+[project.scripts]
+p004-canonical-benchmark = "p004_training_from_scratch.cli.canonical_benchmark:main"
+p004-canonical-preflight = "p004_training_from_scratch.cli.canonical_preflight:main"
+p004-canonical-train-smoke = "p004_training_from_scratch.cli.canonical_train_smoke:main"
+p004-nightly-attention-benchmark = "p004_training_from_scratch.cli.nightly_attention_benchmark:main"
+p004-vast-search-offers = "p004_training_from_scratch.cli.vast_search_offers:main"
+p004-vast-show-instances = "p004_training_from_scratch.cli.vast_show_instances:main"
+p004-vast-launch-instance = "p004_training_from_scratch.cli.vast_launch_instance:main"
+p004-vast-destroy-instance = "p004_training_from_scratch.cli.vast_destroy_instance:main"
+p004-vast-search-templates = "p004_training_from_scratch.cli.vast_search_templates:main"
+p004-vast-upsert-template = "p004_training_from_scratch.cli.vast_upsert_template:main"
+p004-vast-delete-template = "p004_training_from_scratch.cli.vast_delete_template:main"
+p004-reference-checks = "p004_training_from_scratch.cli.reference_checks:main"
+p004-capture-machine-manifest = "p004_training_from_scratch.cli.capture_machine_manifest:main"
+
+[dependency-groups]
+canonical = [
+  "accelerate>=1.11.0",
+  "torch==2.9.1",
+  "torchcodec>=0.10.0,<0.11",
+  "torchaudio==2.9.1",
+]
+dev = [
+  "pytest>=8.4.1",
+  "ruff>=0.13.2",
+  "ty>=0.0.1a19",
+]
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cu128", marker = "sys_platform == 'linux'" },
+  { index = "pytorch-cpu", marker = "sys_platform != 'linux'" },
+]
+torchaudio = [
+  { index = "pytorch-cu128", marker = "sys_platform == 'linux'" },
+  { index = "pytorch-cpu", marker = "sys_platform != 'linux'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.ruff]
+target-version = "py311"
+src = ["src", "tests"]
+extend-exclude = [
+  ".venv",
+  ".venv-icefall",
+  "env",
+  "experiments",
+  "papers",
+  "third_party",
+]
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "N", "RUF", "SIM", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["p004_training_from_scratch"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/p004_training_from_scratch"]

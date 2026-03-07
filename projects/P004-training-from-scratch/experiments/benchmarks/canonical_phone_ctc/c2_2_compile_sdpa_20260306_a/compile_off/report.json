@@ -1,0 +1,208 @@
+{
+  "artifacts": {
+    "checkpoint_path": "experiments/benchmarks/canonical_phone_ctc/c2_2_compile_sdpa_20260306_a/compile_off/checkpoint.pt",
+    "epoch_checkpoint_paths": [
+      "experiments/benchmarks/canonical_phone_ctc/c2_2_compile_sdpa_20260306_a/compile_off/epoch-0.pt",
+      "experiments/benchmarks/canonical_phone_ctc/c2_2_compile_sdpa_20260306_a/compile_off/epoch-1.pt",
+      "experiments/benchmarks/canonical_phone_ctc/c2_2_compile_sdpa_20260306_a/compile_off/epoch-2.pt",
+      "experiments/benchmarks/canonical_phone_ctc/c2_2_compile_sdpa_20260306_a/compile_off/epoch-3.pt"
+    ],
+    "metrics_path": "experiments/benchmarks/canonical_phone_ctc/c2_2_compile_sdpa_20260306_a/compile_off/metrics.jsonl",
+    "model_state_path": "experiments/benchmarks/canonical_phone_ctc/c2_2_compile_sdpa_20260306_a/compile_off/model_state.pt"
+  },
+  "attention": {
+    "flash_sdp_enabled": true,
+    "math_sdp_enabled": true,
+    "mem_efficient_sdp_enabled": true
+  },
+  "benchmark": {
+    "compile_enabled": false,
+    "first_step_seconds": 0.438621,
+    "mean_step_seconds": 0.029624,
+    "median_step_seconds": 0.010912,
+    "peak_memory_allocated_mb": 298.881,
+    "peak_memory_reserved_mb": 356.0,
+    "steady_state_mean_step_seconds": 0.011842,
+    "steady_state_median_step_seconds": 0.010882,
+    "step_count": 24,
+    "steps_per_second": 21.126761
+  },
+  "captured_at": "2026-03-07T06:02:43Z",
+  "config": {
+    "attention_heads": 4,
+    "batch_size": 4,
+    "conv_kernel_size": 15,
+    "dev_limit": 8,
+    "dropout": 0.1,
+    "enable_compile": false,
+    "encoder_layers": 3,
+    "epochs": 4,
+    "hidden_dim": 192,
+    "learning_rate": 0.0003,
+    "model_type": "conformer_like",
+    "resume_from": null,
+    "seed": 42,
+    "train_limit": 24
+  },
+  "dataset": {
+    "blank_id": 0,
+    "dev_cut_count": 8,
+    "dev_cut_ids": [
+      "dev-clean-00000000",
+      "dev-clean-00000001",
+      "dev-clean-00000002",
+      "dev-clean-00000003",
+      "dev-clean-00000004",
+      "dev-clean-00000005",
+      "dev-clean-00000006",
+      "dev-clean-00000007"
+    ],
+    "train_cut_count": 24,
+    "train_cut_ids": [
+      "train-clean-100-00000000",
+      "train-clean-100-00000001",
+      "train-clean-100-00000002",
+      "train-clean-100-00000003",
+      "train-clean-100-00000004",
+      "train-clean-100-00000005",
+      "train-clean-100-00000006",
+      "train-clean-100-00000007",
+      "train-clean-100-00000008",
+      "train-clean-100-00000009",
+      "train-clean-100-00000010",
+      "train-clean-100-00000011",
+      "train-clean-100-00000012",
+      "train-clean-100-00000013",
+      "train-clean-100-00000014",
+      "train-clean-100-00000015",
+      "train-clean-100-00000016",
+      "train-clean-100-00000017",
+      "train-clean-100-00000018",
+      "train-clean-100-00000019",
+      "train-clean-100-00000020",
+      "train-clean-100-00000021",
+      "train-clean-100-00000022",
+      "train-clean-100-00000023"
+    ],
+    "vocab_size": 43
+  },
+  "dev": {
+    "dev_loss": 13.382122039794922,
+    "dev_per": 0.9913669064748202,
+    "token_count": 695,
+    "token_error_count": 689
+  },
+  "dev_manifest": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_smoke/librispeech_cuts_dev-clean.jsonl.gz",
+  "device": {
+    "device": "cuda",
+    "mixed_precision": "bf16"
+  },
+  "elapsed_seconds": 1.136,
+  "machine_manifest": {
+    "captured_at": "2026-03-07T06:02:43.151203+00:00",
+    "git_sha": "24d9f31a7f4554a904e25b54df10cabec6743031",
+    "hardware": {
+      "disk_free_bytes": 718439428096,
+      "disk_total_bytes": 1966788050944,
+      "disk_used_bytes": 1148365697024,
+      "gpus": [
+        {
+          "driver_version": "590.48.01",
+          "memory_total_mb": 12227,
+          "memory_used_mb": 222,
+          "name": "NVIDIA GeForce RTX 5070",
+          "utilization_gpu_pct": 5,
+          "uuid": "GPU-8550b8e7-d27d-3ca8-0c38-8243e5c8ec24"
+        }
+      ],
+      "logical_cpu_count": 16,
+      "memory_total_bytes": 100731383808
+    },
+    "host": {
+      "hostname": "gmk-server",
+      "machine": "x86_64",
+      "platform": "Linux",
+      "platform_release": "6.18.9-arch1-2",
+      "platform_version": "#1 SMP PREEMPT_DYNAMIC Mon, 09 Feb 2026 17:16:33 +0000",
+      "processor": null,
+      "python_executable": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/.venv/bin/python3",
+      "python_version": "3.11.14"
+    },
+    "project_root": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch",
+    "public_env": {
+      "WANDB_ENTITY": "peacockery",
+      "WANDB_MODE": "online",
+      "WANDB_PROJECT": "peacock-asr-p004-training-from-scratch"
+    },
+    "software": {
+      "dependency_versions": {
+        "k2": null,
+        "lhotse": null,
+        "python-dotenv": "1.2.2",
+        "torch": "2.9.1+cu128",
+        "torchcodec": "0.10.0",
+        "vastai-sdk": "0.5.1",
+        "wandb": "0.25.0"
+      },
+      "pyproject_sha256": "9784db522eda9213e4933cad1f1311807636ca92fc7f9d2d84d0ab70bb8d3d06",
+      "uv_lock_sha256": "98cbfbc1b49533cfe28c877d1f934e636cfa95a1985314f6792b6260a9d75956",
+      "uv_version": "uv 0.10.4"
+    },
+    "tracking": {
+      "wandb_enabled": true,
+      "wandb_entity": "peacockery",
+      "wandb_mode": "online",
+      "wandb_project": "peacock-asr-p004-training-from-scratch"
+    }
+  },
+  "machine_manifest_path": "experiments/benchmarks/canonical_phone_ctc/c2_2_compile_sdpa_20260306_a/compile_off/machine_manifest.json",
+  "model": {
+    "attention_heads": 4,
+    "conv_kernel_size": 15,
+    "dropout": 0.1,
+    "encoder_layers": 3,
+    "hidden_dim": 192,
+    "model_type": "conformer_like",
+    "parameter_count": 1702699
+  },
+  "output_dir": "experiments/benchmarks/canonical_phone_ctc/c2_2_compile_sdpa_20260306_a/compile_off",
+  "success": true,
+  "tokens_path": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/lang_phone/tokens.txt",
+  "train": {
+    "epochs": [
+      {
+        "batch_count": 6,
+        "epoch": 0,
+        "last_train_loss": 17.17174530029297,
+        "mean_train_loss": 20.65918223063151
+      },
+      {
+        "batch_count": 6,
+        "epoch": 1,
+        "last_train_loss": 18.710376739501953,
+        "mean_train_loss": 8.829685926437378
+      },
+      {
+        "batch_count": 6,
+        "epoch": 2,
+        "last_train_loss": 6.483192443847656,
+        "mean_train_loss": 8.592680136362711
+      },
+      {
+        "batch_count": 6,
+        "epoch": 3,
+        "last_train_loss": 14.640527725219727,
+        "mean_train_loss": 7.887277444203694
+      }
+    ],
+    "step_count": 24
+  },
+  "train_manifest": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/manifests_phone_smoke/librispeech_cuts_train-clean-100.jsonl.gz",
+  "versions": {
+    "accelerate": "1.13.0",
+    "torch": "2.9.1+cu128",
+    "torchaudio": "2.9.1+cu128",
+    "torchcodec": "0.10.0",
+    "wandb": "0.25.0"
+  }
+}
