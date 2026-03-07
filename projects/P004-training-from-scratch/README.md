@@ -96,13 +96,17 @@ earns its way into the canonical lab setup.
   `attention_backend=flex_triton`: real optimizer steps, `epoch-0.pt`, and a
   recoverable checkpoint were written under
   `experiments/checkpoints/canonical_phone_ctc/c2_3_local_flex_triton_smoke_20260306_a`.
-- But the bounded `C2.4` validation failed immediately as a quality gate:
-  non-finite train loss appeared at `epoch=0, batch_index=1`, so the current
-  local `flex_triton` path is still experimental and not promotable.
+- The bounded `C2.4` validation failed locally and then reproduced on an
+  isolated Vast `RTX PRO 4000 Blackwell` at about `$0.242/hr`: non-finite
+  train loss appeared at `epoch=0, batch_index=1` in both places, so the
+  current `flex_triton` trainer path is still experimental and not promotable.
 - Immediate next move: keep `enable_compile=false` as the stable local baseline
   for the current canonical trainer, keep local `C2.3` as an experimental
-  nightly `flex_attention` / `TRITON` branch, and keep a separate remote FA4
-  validation target for `H100/H200/B200`-class hardware in the backlog.
+  nightly `flex_attention` / `TRITON` branch, and run a narrow stabilization
+  ladder one variable at a time: lower LR first, then backend comparison
+  (`flex_auto` vs `flex_triton`), then dtype narrowing if needed.
+  Keep a separate remote FA4 validation target for `H100/H200/B200`-class
+  hardware in the backlog.
 
 ## GPU Activation Rule
 
@@ -144,8 +148,11 @@ If any item is missing, stay local and keep editing, validating, or testing.
 - `C2.3`: active locally in `env/nightly-fa4`; compiled nightly
   `flex_attention` works with `AUTO` and `TRITON`, but current `FLASH` / FA4 is
   blocked on compute capability `12.0`.
-- `C2.4`: failed locally; the current `flex_triton` trainer path goes
-  non-finite on the bounded validation run.
+- `C2.4`: failed locally and on isolated Vast `RTX PRO 4000 Blackwell`; the
+  current `flex_triton` trainer path goes non-finite on the bounded validation
+  run.
+- `C2.5`: stabilize the nightly trainer branch one variable at a time:
+  `lr`, backend choice, then dtype scope.
 - `F0`: keep a separate remote FA4 validation target for `H100/H200/B200`
   hardware instead of forcing it onto the local GeForce box.
 - `Z0`: only branch to Zipformer after the Conformer reference path is stable.

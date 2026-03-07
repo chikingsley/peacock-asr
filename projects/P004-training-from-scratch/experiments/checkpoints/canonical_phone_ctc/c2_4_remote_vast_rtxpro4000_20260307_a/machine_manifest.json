@@ -1,0 +1,57 @@
+{
+  "captured_at": "2026-03-07T10:17:42.777198+00:00",
+  "git_sha": null,
+  "hardware": {
+    "disk_free_bytes": 91846299648,
+    "disk_total_bytes": 107374182400,
+    "disk_used_bytes": 15527882752,
+    "gpus": [
+      {
+        "driver_version": "580.95.05",
+        "memory_total_mb": 24467,
+        "memory_used_mb": 1,
+        "name": "NVIDIA RTX PRO 4000 Blackwell",
+        "utilization_gpu_pct": 0,
+        "uuid": "GPU-77e3eaae-d2cb-c561-1e9b-e87823066635"
+      }
+    ],
+    "logical_cpu_count": 128,
+    "memory_total_bytes": 270067019776
+  },
+  "host": {
+    "hostname": "84cb7a52122f",
+    "machine": "x86_64",
+    "platform": "Linux",
+    "platform_release": "5.15.0-164-generic",
+    "platform_version": "#174-Ubuntu SMP Fri Nov 14 20:25:16 UTC 2025",
+    "processor": "x86_64",
+    "python_executable": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/env/nightly-fa4/bin/python",
+    "python_version": "3.11.15"
+  },
+  "project_root": "/home/simon/github/peacock-asr/projects/P004-training-from-scratch",
+  "public_env": {
+    "WANDB_ENTITY": "peacockery",
+    "WANDB_MODE": "online",
+    "WANDB_PROJECT": "peacock-asr-p004-training-from-scratch"
+  },
+  "software": {
+    "dependency_versions": {
+      "k2": null,
+      "lhotse": null,
+      "python-dotenv": "1.2.2",
+      "torch": "2.12.0.dev20260306+cu128",
+      "torchcodec": null,
+      "vastai-sdk": "0.5.1",
+      "wandb": "0.25.0"
+    },
+    "pyproject_sha256": "14dd0ca083a699ff5cfb3df98b8545e50bf47f806d17179ab50b9bf182d6e0b8",
+    "uv_lock_sha256": null,
+    "uv_version": "uv 0.10.9"
+  },
+  "tracking": {
+    "wandb_enabled": true,
+    "wandb_entity": "peacockery",
+    "wandb_mode": "online",
+    "wandb_project": "peacock-asr-p004-training-from-scratch"
+  }
+}

@@ -696,6 +696,54 @@ Next action:
 
 ---
 
+## 0.10.1 `C2.4` Remote Blackwell Reproduction On Vast (2026-03-07)
+
+Validation ID:
+
+- `C2.4` isolated bounded validation on Vast `RTX PRO 4000 Blackwell`
+
+Current status:
+
+- `failed`
+- remote bounded validation report written:
+  `experiments/checkpoints/canonical_phone_ctc/c2_4_remote_vast_rtxpro4000_20260307_a/report.json`
+
+Validated facts:
+
+- The same bounded nightly trainer configuration reproduced on an isolated
+  remote Blackwell box using `torch 2.12.0.dev20260306+cu128` and
+  `attention_backend=flex_triton`.
+- The remote GPU was not sharing the run with the local `P003` process, so this
+  run removes local workstation contention as the primary explanation.
+- The failure again happened at:
+  `epoch=0`, `batch_index=1`, `train_loss=NaN`.
+- The rented Vast box cost about `$0.242/hr`, and the instance was destroyed
+  immediately after the validation completed.
+
+Observed issues:
+
+- The instability is reproducible across two Blackwell environments:
+  local `RTX 5070` and remote `RTX PRO 4000 Blackwell`.
+- That means the current nightly `flex_triton` trainer path should be treated as
+  a real numerical-stability bug, not a one-off scheduling artifact.
+
+Implication:
+
+- `C2.4` remains red after remote reproduction.
+- The stable canonical path still remains:
+  eager execution + default SDPA path.
+- The nightly branch stays experimental until a stabilization branch produces a
+  bounded run with finite loss.
+
+Next action:
+
+- Run the stabilization ladder in a fixed order:
+  lower LR first, then compare `flex_auto` vs `flex_triton`, then narrow dtype
+  scope if needed.
+- Keep true FA4 as a separate future branch on `H100/H200/B200`-class hardware.
+
+---
+
 ## 1. Claim Map
 
 | ID | Claim | Evidence Status | Primary Citations |

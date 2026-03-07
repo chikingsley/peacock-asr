@@ -223,8 +223,12 @@ Current local status on `2026-03-07`:
 - the trainer-level `flex_triton` smoke passes locally
 - the bounded `flex_triton` validation is not numerically sane yet: it goes
   non-finite at `epoch=0, batch_index=1`
-- the next decision is whether to stabilize the local `flex_triton` branch or
-  drop it back to benchmark-only status
+- the same bounded failure reproduced on an isolated Vast `RTX PRO 4000
+  Blackwell`, so the instability is in the current trainer path, not just local
+  workstation interference
+- the next stabilization order is fixed:
+  lower LR first, then compare `flex_auto` vs `flex_triton`, then narrow dtype
+  scope if needed
 - keep a separate remote FA4 validation target for `H100/H200/B200`-class
   hardware
 
