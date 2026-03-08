@@ -1,0 +1,41 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage[numbers]{natbib}
+
+\title{Pronunciation Scoring with Segmentation-Free GOP Backends and Contextual Scorers}
+\author{Working Draft}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This draft abstracts the completed P001 benchmark campaign into a paper-shaped
+artifact. The final abstract should be written only after the introduction,
+methods, and results are locked to avoid over-claiming.
+\end{abstract}
+
+\input{sections/introduction}
+\input{sections/related_work}
+\input{sections/task_definition}
+\input{sections/method}
+\input{sections/experimental_setup}
+\input{sections/results}
+\input{sections/discussion}
+\input{sections/conclusion}
+
+\bibliographystyle{plainnat}
+\bibliography{../../docs/refs}
+
+\end{document}

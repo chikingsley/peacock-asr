@@ -1,0 +1,123 @@
+p	voiceless bilabial plosive
+b	voiced bilabial plosive
+m	voiced bilabial nasal
+ʙ	voiced bilabial trill
+ɸ	voiceless bilabial fricative
+β	voiced bilabial fricative
+ɱ	voiced labiodental nasal
+ⱱ	voiced labiodental flap
+f	voiceless labiodental fricative
+v	voiced labiodental fricative
+ʋ	voiced labiodental approximant
+t	voiceless alveolar plosive
+d	voiced alveolar plosive
+n	voiced alveolar nasal
+r	voiced alveolar trill
+ɾ	voiced alveolar tap
+θ	voiceless dental fricative
+ð	voiced dental fricative
+s	voiceless alveolar fricative
+z	voiced alveolar fricative
+ʃ	voiceless postalveolar fricative
+ʒ	voiced postalveolar fricative
+ɬ	voiceless lateral alveolar fricative
+ɮ	voiced lateral alveolar fricative
+ɹ	voiced alveolar approximant
+l	voiced lateral alveolar approximant
+ʈ	voiceless retroflex plosive
+ɖ	voiced retroflex plosive
+ɳ	voiced retroflex nasal
+ɽ	voiced retroflex flap
+ʂ	voiceless retroflex fricative
+ʐ	voiced retroflex fricative
+ɻ	voiced retroflex approximant
+ɭ	voiced retroflex lateral approximant
+c	voiceless palatal plosive
+ɟ	voiced palatal plosive
+ɲ	voiced palatal nasal
+ç	voiceless palatal fricative
+ʝ	voiced palatal fricative
+j	voiced palatal approximant
+ʎ	voiced palatal lateral approximant
+k	voiceless velar plosive
+g	voiced velar plosive
+ŋ	voiced velar nasal
+x	voiceless velar fricative
+ɣ	voiced velar fricative
+ɰ	voiced velar approximant
+ʟ	voiced velar lateral approximant
+q	voiceless uvular plosive
+ɢ	voiced uvular plosive
+ɴ	voiced uvular nasal
+ʀ	voiced uvular trill
+χ	voiceless uvular fricative
+ʁ	voiced uvular fricative
+ħ	voiceless pharyngeal fricative
+ʕ	voiced pharyngeal fricative
+ʔ	voiceless glottal plosive
+h	voiceless glottal fricative
+ɦ	voiced glottal fricative
+ʘ	bilabial click
+ǀ	dental click
+ǃ	(post)alveolar click
+ǂ	palatoalveolar click
+ǁ	alveolar lateral click
+ɓ	voiced bilabial implosive
+ɗ	voiced dental/alveolar implosive
+ʄ	voiced palatal implosive
+ɠ	voiced velar implosive
+ʛ	voiced uvular implosive
+ᶑ	voiced retroflex implosive
+ʍ	voiceless labial-velar fricative
+w	voiced labial-velar approximant
+ɥ	voiced labial-palatal approximant
+ʜ	voiceless epiglottal fricative
+ʢ	voiced epiglottal fricative
+ʡ	voiced epiglottal plosive
+ɕ	voiceless alveolo-palatal fricative
+ʑ	voiced alveolo-palatal fricative
+ɺ	voiced alveolar lateral flap
+ɧ	simultaneous ʃ and x
+i	close front unrounded vowel
+y	close front rounded vowel
+ɪ	lowered-close front unrounded vowel
+ʏ	lowered-close front rounded vowel
+e	close-mid front unrounded vowel
+ø	close-mid front rounded vowel
+ɛ	open-mid front unrounded vowel
+œ	open-mid front rounded vowel
+æ	raised-open front unrounded vowel
+a	open front unrounded vowel
+ɶ	open front rounded vowel
+ɨ	close central unrounded vowel
+ʉ	close central rounded vowel
+ɘ	close-mid central unrounded vowel
+ɵ	close-mid central rounded vowel
+ə	mid central unrounded vowel
+ɜ	open-mid central unrounded vowel
+ɞ	open-mid central rounded vowel
+ɐ	raised-open central unrounded vowel
+ɯ	close back unrounded vowel
+u	close back rounded vowel
+ʊ	lowered-close back rounded vowel
+ɤ	close-mid back unrounded vowel
+o	close-mid back rounded vowel
+ʌ	open-mid back unrounded vowel
+ɔ	open-mid back rounded vowel
+ɑ	open back unrounded vowel
+ɒ	open back rounded vowel
+ʼ	ejective diacritic
+̥	voiceless (under)
+ʰ	aspirated
+̩	syllabic
+˞	rhoticity
+ʷ	labialized
+ʲ	palatalized
+ˠ	velarized
+ˤ	pharyngealized
+̴	velarized or pharyngealized
+̪	dental
+̺	apical
+̃	nasalized
+̚	no audible release
+ː	long

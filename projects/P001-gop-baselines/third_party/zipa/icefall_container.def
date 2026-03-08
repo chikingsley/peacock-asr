@@ -1,0 +1,82 @@
+BootStrap: docker
+From: pytorch/pytorch:2.4.0-cuda12.4-cudnn9-devel
+
+%post
+    mkdir -p /project
+    mkdir -p /scratch
+    # Update package manager and install necessary packages
+    apt-get update && apt-get install -y \
+        curl vim htop \
+        ca-certificates \
+        openssh-server \
+        cmake \
+        sudo \
+        git \
+        bzip2 \
+        libx11-6 \
+        zip \
+        unzip ssh \
+        tmux \
+        ffmpeg \
+        ninja-build \
+    && rm -rf /var/lib/apt/lists/*
+
+    # Set environment variables
+    echo "PATH=\"~/.local/bin:/usr/local/cuda/bin:\$PATH\"" >> /etc/environment
+    echo "LD_LIBRARY_PATH=\"/usr/local/cuda/lib64\"" >> /etc/environment
+
+    # Install Python packages
+    pip --no-cache-dir install \
+        easydict \
+        h5py \
+        pyyaml \
+        tqdm \
+        pillow \
+        protobuf \
+        seaborn \
+        scipy \
+        scikit-learn \
+        wandb \
+        hydra-core \
+        transformers \
+        datasets \
+        evaluate \
+        accelerate \
+        sentencepiece \
+        panphon \
+        lhotse \
+        ipatok \
+        soundfile \
+        librosa \
+        poetry \
+        ninja
+    
+    # install megablocks 
+    cd / && git clone https://github.com/databricks/megablocks && cd megablocks && pip install .
+    
+    # Install specific versions of libraries
+    pip install torchaudio --index-url https://download.pytorch.org/whl/cu124
+    pip --no-cache-dir install k2==1.24.4.dev20240725+cuda12.4.torch2.4.0 -f https://k2-fsa.github.io/k2/cuda.html
+    pip --no-cache-dir install kaldifeat==1.25.4.dev20240725+cuda12.4.torch2.4.0 -f https://csukuangfj.github.io/kaldifeat/cuda.html
+    cd / && git clone https://github.com/k2-fsa/icefall && cd icefall && pip install -r requirements.txt
+    pip --no-cache-dir install transformers accelerate --force-reinstall --no-deps
+    #MAX_JOBS=1 pip install flash-attn --no-build-isolation --upgrade
+
+    # Set additional environment variables
+    echo "PYTHONPATH=/icefall:\$PYTHONPATH" >> /etc/environment
+    echo "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/local/cuda-12.4/compat/lib.real" >> /etc/environment
+    echo "LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/usr/local/lib/python3.10/dist-packages/nvidia/nvjitlink/lib" >> /etc/environment
+
+    # Upgrade protobuf
+    pip install --upgrade protobuf==3.20.0
+
+    # Create entrypoints directory
+    mkdir -p /opt/entrypoints
+
+%environment
+    export PATH="~/.local/bin:/usr/local/cuda/bin:$PATH"
+    export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
+    export PYTHONPATH=/icefall:$PYTHONPATH
+
+%help
+    This container includes a PyTorch environment with various machine learning libraries installed.

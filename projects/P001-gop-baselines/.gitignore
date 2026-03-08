@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+.venv/
+.cache/
+.pytest_cache/
+wandb/
+__pycache__/
+*.pyc
+*.log
+*.pid
+experiments/**/.venv/
+experiments/**/agents/
+experiments/**/checkpoints/
+experiments/**/prepared/
+third_party/CTC-based-GOP/is24/models/

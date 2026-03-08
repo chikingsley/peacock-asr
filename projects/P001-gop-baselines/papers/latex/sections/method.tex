@@ -1,0 +1,37 @@
+\section{Method}
+
+\subsection{Pipeline}
+
+The common pipeline is:
+\begin{equation}
+\text{audio} \rightarrow \text{phoneme posteriors over time} \rightarrow \text{GOP-derived features} \rightarrow \text{scorer} \rightarrow \hat{y}.
+\end{equation}
+
+The backend produces phoneme posterior probabilities over time. A
+segmentation-free GOP procedure then derives scalar or feature-based evidence
+for each expected phone. A downstream scorer maps that evidence to predicted
+pronunciation scores.
+
+\subsection{Score Variants}
+
+The scalar phase compares multiple score constructions, including GOP-SF,
+logit-margin scoring, and their linear mixture:
+\begin{equation}
+s_{\alpha} = (1 - \alpha)\, s_{\mathrm{gop}} + \alpha\, s_{\mathrm{margin}}.
+\end{equation}
+
+The dense alpha sweep then evaluates the full curve over candidate values of
+$\alpha$.
+
+\subsection{Scorer Families}
+
+The final paper should formalize the three scorer families used in the campaign:
+
+\begin{enumerate}
+  \item scalar GOP features with a simple regressor,
+  \item richer per-phone feature vectors with SVR,
+  \item contextual GOPT scoring over phone sequences.
+\end{enumerate}
+
+This section should also state clearly which components are fixed across
+conditions and which components vary by experiment.

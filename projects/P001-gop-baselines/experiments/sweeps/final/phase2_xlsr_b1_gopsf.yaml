@@ -1,0 +1,32 @@
+name: p001-paper-close-phase2-xlsr-b1-gopsf
+entity: peacockery
+project: peacock-asr-p001-gop-baselines
+method: grid
+metric:
+  name: pcc
+  goal: maximize
+
+command:
+  - ${env}
+  - PEACOCK_WANDB_GROUP=p001-paper-close-phase2-xlsr-b1-gopsf
+  - PEACOCK_WANDB_TRACK=track05
+  - PEACOCK_WANDB_PROJECT_ID=P001
+  - PEACOCK_WANDB_PHASE=phase2
+  - PEACOCK_WANDB_JOB_ID=b1
+  - PEACOCK_WANDB_RUN_PREFIX=p001-paper-close
+  - PEACOCK_WANDB_JOB_TYPE=eval
+  - PEACOCK_WANDB_TAGS=p001,paper-close,phase2,xlsr,b1,gop_sf
+  - uv
+  - run
+  - --project
+  - projects/P001-gop-baselines
+  - peacock-asr
+  - run
+  - --backend=xlsr-espeak
+  - --score-variant=gop_sf
+  - --score-alpha=0.5
+  - ${args}
+
+parameters:
+  seed:
+    values: [501]

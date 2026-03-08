@@ -41,42 +41,50 @@ Notes:
 
 These are not external papers; they are reproducibility anchors for our own claims:
 
-- Run logs for current GOPT experiments:
-  - `/home/simon/github/peacock-asr/runs/2026-03-02_mlflow_batch/original_gopt.log`
-  - `/home/simon/github/peacock-asr/runs/2026-03-02_mlflow_batch/xlsr-espeak_gopt.log`
-- Phase-1 baseline batch artifacts:
-  - `/home/simon/github/peacock-asr/runs/2026-03-03_001037_track05_phase1_baseline/summary.tsv`
-  - `/home/simon/github/peacock-asr/runs/2026-03-03_001037_track05_phase1_baseline/aggregates.tsv`
-- Phase-2 scalar logit batch artifacts:
-  - `/home/simon/github/peacock-asr/runs/2026-03-03_045426_track05_phase2_logit_scalar/summary.tsv`
-  - `/home/simon/github/peacock-asr/runs/2026-03-03_045426_track05_phase2_logit_scalar/aggregates.tsv`
-- Phase-2b dense alpha sweep artifacts:
-  - `/home/simon/github/peacock-asr/runs/2026-03-03_080157_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/alpha_sweep.tsv`
-  - `/home/simon/github/peacock-asr/runs/2026-03-03_080157_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/alpha_sweep_meta.json`
+- Final paper-close summaries:
+  - `/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/results/aggregate_summary.tsv`
+  - `/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/results/per_run_summary.tsv`
+  - `/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/results/alpha_best.tsv`
+- Final phase-2b dense alpha sweep artifacts:
+  - `/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/alpha_sweeps/2026-03-06_092428_alpha_sweep_original__checkpoint-8000/alpha_sweep.tsv`
+  - `/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/alpha_sweeps/2026-03-06_092439_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/alpha_sweep.tsv`
+- Archived ad hoc evidence:
+  - `/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/legacy/batches/2026-03-02_mlflow_batch/original_gopt.log`
+  - `/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/legacy/batches/2026-03-02_mlflow_batch/xlsr-espeak_gopt.log`
 - 05_ source narrative:
   - `/home/simon/github/peacock-asr/docs/research/archived/05_PHONEME_HEADS.md`
 - GOP implementation used in repo:
-  - `/home/simon/github/peacock-asr/src/peacock_asr/gop.py`
+  - `/home/simon/github/peacock-asr/projects/P001-gop-baselines/code/p001_gop/gop.py`
 
 Recommendation for paper rewrite:
 
 - Treat these as `Method implementation evidence` and `Experimental evidence`.
 - Keep them separate from bibliography citations.
 
-Phase-2 scalar logit ablation snapshot (2026-03-03):
+Final paper-close snapshot (2026-03-06):
 
-- `B1 gop_sf`: PCC `0.3195`, MSE `0.6655`
-- `B2 logit_margin`: PCC `0.1849`, MSE `0.8177`
-- `B3 logit_combined a=0.25`: PCC `0.3452`, MSE `0.5981`
-- `B4 logit_combined a=0.50`: PCC `0.3222`, MSE `0.6322`
-- `B5 logit_combined a=0.75`: PCC `0.2664`, MSE `0.7131`
+- `original` phase 1: `A1 0.3104`, `A2 0.5481`, `A3 0.6368 ± 0.0115`
+- `xlsr-espeak` phase 1: `A1 0.3195`, `A2 0.5747`, `A3 0.6774 ± 0.0127`
+- `original` best scalar alpha: `0.20`, `PCC 0.3361`, `MSE 0.6147`
+- `xlsr-espeak` best scalar alpha: `0.25`, `PCC 0.3452`, `MSE 0.5981`
 
 Interpretation note:
 
-- In this stack, pure `logit_margin` underperforms baseline scalar GOP-SF.
-- A low-weight mixture (`a=0.25`) improves over baseline.
-- Dense sweep (`a=0.00..1.00`, step `0.05`) confirms the best point at
-  `a=0.25` with PCC `0.3452` and MSE `0.5981`.
+- In both backends, pure `logit_margin` underperforms baseline scalar GOP-SF.
+- Low-weight mixing helps, but only modestly compared with the jump from scalar
+  scoring to SVR/GOPT.
+- Dense sweeps confirm the useful region is backend-specific but low-alpha:
+  `0.20` for `original`, `0.25` for `xlsr-espeak`.
+
+Exploratory scorer branch (2026-03-08):
+
+- `HMamba`, full-run, `original`, seed `501`: `PCC 0.6341`, `MSE 0.0813`
+- Evidence anchor:
+  `/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/spikes/hmamba_original_full_seed501.md`
+- Interpretation:
+  - the current phone-level HMamba adaptation is competitive with the
+    `original` GOPT line on a single-seed exploratory run
+  - this is not yet a canonical multi-seed paper-close result
 
 ---
 
@@ -146,19 +154,18 @@ Local PDF: [[Li et al, 2020]-universal-phone-recognition-multilingual-allophone-
 ### Internal Experimental Evidence (non-bibliographic)
 
 [13] Our GOPT benchmark logs (2026-03-02):  
-`/home/simon/github/peacock-asr/runs/2026-03-02_mlflow_batch/original_gopt.log`  
-`/home/simon/github/peacock-asr/runs/2026-03-02_mlflow_batch/xlsr-espeak_gopt.log`
+`/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/legacy/batches/2026-03-02_mlflow_batch/original_gopt.log`  
+`/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/legacy/batches/2026-03-02_mlflow_batch/xlsr-espeak_gopt.log`
 
 [14] `05_PHONEME_HEADS.md` tracked benchmark statement:  
 `/home/simon/github/peacock-asr/docs/research/archived/05_PHONEME_HEADS.md`
 
 [15] Track05 reproducible batch tables (2026-03-03):  
-`/home/simon/github/peacock-asr/runs/2026-03-03_001037_track05_phase1_baseline/summary.tsv`  
-`/home/simon/github/peacock-asr/runs/2026-03-03_001037_track05_phase1_baseline/aggregates.tsv`  
-`/home/simon/github/peacock-asr/runs/2026-03-03_045426_track05_phase2_logit_scalar/summary.tsv`  
-`/home/simon/github/peacock-asr/runs/2026-03-03_045426_track05_phase2_logit_scalar/aggregates.tsv`  
-`/home/simon/github/peacock-asr/runs/2026-03-03_080157_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/alpha_sweep.tsv`  
-`/home/simon/github/peacock-asr/runs/2026-03-03_080157_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/alpha_sweep_meta.json`
+`/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/results/aggregate_summary.tsv`  
+`/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/results/per_run_summary.tsv`  
+`/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/results/alpha_best.tsv`  
+`/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/alpha_sweeps/2026-03-06_092428_alpha_sweep_original__checkpoint-8000/alpha_sweep.tsv`  
+`/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/alpha_sweeps/2026-03-06_092439_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/alpha_sweep.tsv`
 
 ---
 

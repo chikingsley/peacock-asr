@@ -1,0 +1,46 @@
+{
+  "baseline_seconds": 3.537246020976454,
+  "cases": 256,
+  "device": "cuda",
+  "exact_avg_arcs_per_graph": 5759.21875,
+  "exact_build_seconds": 4.097555525018834,
+  "exact_denom_parity": {
+    "max_abs_diff": 9.494781636476546e-07,
+    "mean_abs_diff": 2.8748795033450847e-07
+  },
+  "exact_occupancy_parity": {
+    "max_abs_diff": 0.03453841297177007,
+    "mean_abs_diff": 0.00014000907553583103
+  },
+  "exact_occupancy_seconds": 3.5445214540231973,
+  "exact_parse_seconds": 0.5371787759941071,
+  "exact_score_seconds": 0.04100106202531606,
+  "exact_total_seconds": 8.220256817061454,
+  "frames": 64,
+  "seq_len": 8,
+  "topology_avg_arcs_per_graph": 5759.21875,
+  "topology_build_seconds": 3.223303342005238,
+  "topology_denom_parity": {
+    "max_abs_diff": 9.494781636476546e-07,
+    "mean_abs_diff": 2.8748795033450847e-07
+  },
+  "topology_intersect_seconds": 0.16449951299000531,
+  "topology_occupancy_parity": {
+    "max_abs_diff": 0.03453841297176741,
+    "mean_abs_diff": 0.00014000907553643298
+  },
+  "topology_occupancy_seconds": 0.09151084301993251,
+  "topology_parse_seconds": 0.3088247539708391,
+  "topology_score_seconds": 0.008003116003237665,
+  "topology_speedup_score_only_vs_baseline": 441.9835998310482,
+  "topology_speedup_score_only_vs_exact_score": 5.123137289117022,
+  "topology_speedup_total_vs_baseline": 0.9318003445403826,
+  "topology_speedup_total_vs_exact_total": 2.165424199765968,
+  "topology_total_seconds": 3.7961415679892525,
+  "topology_vs_exact_occupancy_parity": {
+    "max_abs_diff": 3.552713678800501e-14,
+    "mean_abs_diff": 4.904063266586434e-15
+  },
+  "utterances": 32,
+  "vocab_size": 16
+}

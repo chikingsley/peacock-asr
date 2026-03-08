@@ -1,0 +1,101 @@
+[project]
+name = "p001-gop-baselines"
+version = "0.1.0"
+description = "P001 GOP baseline scoring and evaluation"
+requires-python = ">=3.13"
+dependencies = [
+    "torch==2.8.0",
+    "transformers>=4.40",
+    "datasets>=4.0",
+    "accelerate>=1.1.0",
+    "soundfile>=0.12",
+    "numpy>=2.0",
+    "scipy>=1.14",
+    "pydantic>=2.12",
+    "pydantic-settings>=2.13",
+    "python-dotenv>=1.2.1",
+    "scikit-learn>=1.6",
+    "protobuf>=6.33.5",
+    "phonemizer>=3.3.0",
+    "huggingface-hub>=1.4.1",
+    "onnxruntime>=1.24.2",
+    "tqdm>=4.67.3",
+    "wandb>=0.25.0",
+]
+
+[project.scripts]
+peacock-asr = "p001_gop.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["code/p001_gop"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.15.2",
+    "ty>=0.0.18",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "F","E","W","I","UP","B","SIM","C4","FA","ISC","ICN","RET","TID","TC",
+    "PTH","S","A","N","T20","PT","ARG","PERF","RUF","FURB","PL","ERA","FLY",
+    "PIE","RSE","SLF","SLOT","TD","LOG","G","FBT","EM","TRY","BLE","DTZ","NPY",
+]
+ignore = ["ISC001","S101","TRY003","EM101","EM102"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101","ARG","FBT","PLR2004","SLF001","T20","TC"]
+"code/p001_gop/k2_scalar.py" = ["PLR0912","PLR0915"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["p001_gop"]
+
+[tool.ruff.lint.pylint]
+max-args = 8
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
+
+[tool.ty]
+
+[tool.ty.rules]
+possibly-unresolved-reference = "error"
+deprecated = "error"
+ambiguous-protocol-member = "error"
+ineffective-final = "error"
+invalid-ignore-comment = "error"
+ignore-comment-unknown-rule = "error"
+invalid-legacy-positional-parameter = "error"
+division-by-zero = "warn"
+
+[tool.ty.environment]
+python-version = "3.13"
+
+[tool.ty.src]
+include = ["code", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["code"]
+addopts = ["--strict-markers", "--strict-config", "-ra"]
+filterwarnings = ["error"]
+
+[tool.vulture]
+paths = ["code", "tests", "scripts"]
+exclude = ["third_party", "papers", ".venv"]
+ignore_names = ["return_tensors", "sampling_rate", "output_names", "input_feed", "cls"]
+min_confidence = 100

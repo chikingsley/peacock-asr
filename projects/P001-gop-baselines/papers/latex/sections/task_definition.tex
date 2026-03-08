@@ -1,0 +1,14 @@
+\section{Task Definition}
+
+P001 studies \emph{transcript-known} pronunciation assessment. The system is
+given learner audio together with the expected transcript. The transcript is
+converted to a canonical phone sequence, and the scoring pipeline estimates how
+well the observed speech realizes those expected phones.
+
+This distinction matters. The task in this paper is not unscripted or
+free-response CAPT. It assumes the target content is known, which removes ASR
+hypothesis errors from the evaluation and lets the paper focus on the scoring
+mechanism itself.
+
+The final version should define the evaluation target precisely, including the
+human phone-level and utterance-level supervision available in SpeechOcean762.

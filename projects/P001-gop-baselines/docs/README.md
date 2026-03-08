@@ -25,3 +25,15 @@ Process:
 2. Lock experiment table schema and report all runs in one format.
 3. Write Results only from reproducible logs/artifacts.
 4. Run evidence audit before finalizing claims.
+
+Operational pattern:
+- Prepare/posterior caching and `k2` topology prewarm happen before the real
+  eval run when using the `k2` scalar backend.
+- Prewarm command:
+
+```bash
+uv run --project projects/P001-gop-baselines python -m p001_gop.cli \
+  prewarm-k2 \
+  --backend xlsr-espeak \
+  --split both
+```

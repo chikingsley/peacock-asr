@@ -1,0 +1,27 @@
+{
+  "device": "cuda",
+  "ll_denom_abs_diff": 14.372235594112649,
+  "ll_denom_k2": 18.14644482339474,
+  "ll_denom_ref": 32.51868041750739,
+  "ll_denom_topology": 32.518680447135274,
+  "ll_denom_topology_abs_diff": 2.9627884146066208e-08,
+  "ll_denom_unrolled": 32.51868044713528,
+  "ll_denom_unrolled_abs_diff": 2.9627891251493566e-08,
+  "ll_self_abs_diff": 0.16697063757437292,
+  "ll_self_k2": 33.854048052905526,
+  "ll_self_ref": 33.68707741533115,
+  "ll_self_unrolled": 33.68707741323936,
+  "ll_self_unrolled_abs_diff": 2.0917951815135893e-09,
+  "occ_ref": 1.7488495720017498,
+  "occ_topology": 1.7488495896537377,
+  "occ_topology_abs_diff": 1.7651987871403207e-08,
+  "occ_unrolled": 1.7488495896537377,
+  "occ_unrolled_abs_diff": 1.7651987871403207e-08,
+  "pos": 1,
+  "seq": [
+    6,
+    3,
+    2,
+    7
+  ]
+}

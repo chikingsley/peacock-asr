@@ -1,0 +1,25 @@
+{
+  "avg_arcs_per_graph": 5759.265625,
+  "baseline_seconds": 0.8247415180085227,
+  "cases": 64,
+  "denom_parity": {
+    "max_abs_diff": 9.494781636476546e-07,
+    "mean_abs_diff": 3.7628890980911933e-07
+  },
+  "device": "cuda",
+  "frames": 64,
+  "k2_build_seconds": 1.0227753249928355,
+  "k2_occupancy_seconds": 1.0385452590417117,
+  "k2_parse_seconds": 0.24975615600124002,
+  "k2_score_seconds": 0.06147140101529658,
+  "k2_total_seconds": 2.372548141051084,
+  "occupancy_parity": {
+    "max_abs_diff": 0.0004928574099629657,
+    "mean_abs_diff": 8.463604042566186e-06
+  },
+  "seq_len": 8,
+  "speedup_score_only_vs_baseline": 13.416670262701407,
+  "speedup_total_vs_baseline": 0.3476184544955731,
+  "utterances": 8,
+  "vocab_size": 16
+}

@@ -1,0 +1,6 @@
+{
+  "per_run_summary": "/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/results/per_run_summary.tsv",
+  "aggregate_summary": "/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/results/aggregate_summary.tsv",
+  "alpha_best": "/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/results/alpha_best.tsv",
+  "row_count": 24
+}

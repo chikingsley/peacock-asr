@@ -1,0 +1,18 @@
+\section{Introduction}
+
+Computer-assisted pronunciation training requires a scoring pipeline that maps
+learner speech to phone-level or utterance-level judgments that correlate with
+human ratings. In this project, the narrow question is not whether large speech
+models can recognize speech in general, but which scorer family best converts
+phoneme posterior evidence into pronunciation scores on a fixed benchmark.
+
+The completed P001 campaign isolates that question. We compare multiple
+posterior backends under a common scoring contract and evaluate three scorer
+families: scalar GOP-based regression, richer feature regression, and a
+contextual GOPT scorer. The paper should ultimately argue for a clean boundary:
+backbone quality and scorer quality are separable axes, and this benchmark is
+primarily about the latter.
+
+The final introduction should be rewritten against the target venue and should
+explicitly define CAPT, GOP, segmentation-free scoring, and the role of
+SpeechOcean762 in the evaluation protocol.

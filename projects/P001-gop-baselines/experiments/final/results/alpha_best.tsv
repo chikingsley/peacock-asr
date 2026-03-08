@@ -1,0 +1,3 @@
+backend_tag	alpha	pcc	pcc_low	pcc_high	mse	n_phones	source
+original	0.2000	0.3361	0.3281	0.3441	0.6147	47369	/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/alpha_sweeps/2026-03-06_092428_alpha_sweep_original__checkpoint-8000/alpha_sweep.tsv
+xlsr	0.2500	0.3452	0.3372	0.3532	0.5981	46314	/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/alpha_sweeps/2026-03-06_092439_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/alpha_sweep.tsv

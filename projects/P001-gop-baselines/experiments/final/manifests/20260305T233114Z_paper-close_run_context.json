@@ -1,0 +1,41 @@
+{
+  "captured_at": "2026-03-05T23:31:17.184143+00:00",
+  "dataset": {
+    "name": "SpeechOcean762",
+    "revision": "f95618ea1353303f34cf186b9c310fa2c1eb02c8"
+  },
+  "environment": {
+    "selected_env": {}
+  },
+  "host_manifest": {
+    "path": "projects/P001-gop-baselines/experiments/final/manifests/20260305T233114Z_paper-close_host_manifest.json",
+    "sha256": "35a229fc4eb0006d032b9c143c50950328ef15f71e972161e446a0fd46528d62"
+  },
+  "launcher": {
+    "entrypoint": "projects/P001-gop-baselines/experiments/final/launch_p001_paper_close.py",
+    "notes": "Captured during the live P001 paper-close rerun campaign."
+  },
+  "paths": {
+    "cache_dir": "/home/simon/github/peacock-asr/.cache",
+    "campaign_alpha_sweeps_dir": "/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/alpha_sweeps",
+    "campaign_batches_dir": "/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/batches",
+    "campaign_checkpoints_dir": "/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/checkpoints",
+    "final_root": "/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final",
+    "manifests_dir": "/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/manifests",
+    "output_root": "/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final",
+    "repo_root": "/home/simon/github/peacock-asr",
+    "settings_checkpoints_dir": "/home/simon/github/peacock-asr/.cache/checkpoints"
+  },
+  "project": {
+    "campaign_label": "paper-close",
+    "phase": "all",
+    "project_id": "P001",
+    "project_slug": "gop-baselines"
+  },
+  "wandb": {
+    "entity": "peacockery",
+    "group_prefix": "p001-paper-close",
+    "project": "peacock-asr-p001-gop-baselines",
+    "track": "track05"
+  }
+}

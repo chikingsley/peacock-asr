@@ -1,0 +1,40 @@
+name: p001_paper_close_phase2_scalar_original
+defaults:
+  limit: 0
+  no_cache: false
+  workers: 0
+jobs:
+  - id: b1_scalar_gopsf
+    backend: original
+    mode: scalar
+    repeats: 1
+    score_variant: gop_sf
+    score_alpha: 0.5
+
+  - id: b2_scalar_logit_margin
+    backend: original
+    mode: scalar
+    repeats: 1
+    score_variant: logit_margin
+    score_alpha: 0.5
+
+  - id: b3_scalar_logit_combined_a025
+    backend: original
+    mode: scalar
+    repeats: 1
+    score_variant: logit_combined
+    score_alpha: 0.25
+
+  - id: b4_scalar_logit_combined_a050
+    backend: original
+    mode: scalar
+    repeats: 1
+    score_variant: logit_combined
+    score_alpha: 0.50
+
+  - id: b5_scalar_logit_combined_a075
+    backend: original
+    mode: scalar
+    repeats: 1
+    score_variant: logit_combined
+    score_alpha: 0.75

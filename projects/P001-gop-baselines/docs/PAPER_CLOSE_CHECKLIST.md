@@ -51,7 +51,8 @@ Related standard:
 - [ ] Log full config payload to W&B config (backend, score variant, alpha, seed, eval mode).
 - [ ] Log artifact links/paths for:
   - `summary.tsv`, `aggregates.tsv`, per-run logs, sweep TSV/JSON.
-- [ ] Keep local `runs/...` outputs unchanged so manuscript/evidence links stay stable.
+- [ ] Keep canonical evidence under `projects/P001-gop-baselines/experiments/final/`
+  and archive historical ad hoc outputs under `projects/P001-gop-baselines/experiments/legacy/`.
 
 ## 3) Rerun Matrix (Paper-Close Minimum)
 

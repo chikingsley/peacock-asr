@@ -1,0 +1,31 @@
+name: p001-paper-close-phase1-original-a2-feats
+entity: peacockery
+project: peacock-asr-p001-gop-baselines
+method: grid
+metric:
+  name: pcc
+  goal: maximize
+
+command:
+  - ${env}
+  - PEACOCK_WANDB_GROUP=p001-paper-close-phase1-original-a2-feats
+  - PEACOCK_WANDB_TRACK=track05
+  - PEACOCK_WANDB_PROJECT_ID=P001
+  - PEACOCK_WANDB_PHASE=phase1
+  - PEACOCK_WANDB_JOB_ID=a2
+  - PEACOCK_WANDB_RUN_PREFIX=p001-paper-close
+  - PEACOCK_WANDB_JOB_TYPE=eval
+  - PEACOCK_WANDB_TAGS=p001,paper-close,phase1,original,a2,feats
+  - uv
+  - run
+  - --project
+  - projects/P001-gop-baselines
+  - peacock-asr
+  - run
+  - --backend=original
+  - --feats
+  - ${args}
+
+parameters:
+  seed:
+    values: [501]

@@ -43,7 +43,10 @@ Use one backend first (current strongest/reliable) to isolate effects.
 
 Phase-1 status (2026-03-03):
 - Completed baseline trio with frozen backend `xlsr-espeak`.
-- Results folder: `runs/2026-03-03_001037_track05_phase1_baseline/`.
+- Historical legacy folder:
+  `projects/P001-gop-baselines/experiments/legacy/batches/2026-03-03_001037_track05_phase1_baseline/`.
+- Canonical final aggregate table:
+  `projects/P001-gop-baselines/experiments/final/results/aggregate_summary.tsv`.
 - Observed means: `A1 PCC 0.3195`, `A2 PCC 0.5747`, `A3 PCC 0.6774 ± 0.0127` (5 seeds).
 
 ## Phase 2 (if Logit is Promising)

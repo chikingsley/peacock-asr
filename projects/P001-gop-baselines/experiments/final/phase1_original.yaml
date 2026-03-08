@@ -1,0 +1,21 @@
+name: p001_paper_close_phase1_original
+defaults:
+  limit: 0
+  no_cache: false
+  workers: 0
+jobs:
+  - id: a1_scalar
+    backend: original
+    mode: scalar
+    repeats: 1
+
+  - id: a2_feats
+    backend: original
+    mode: feats
+    repeats: 1
+
+  - id: a3_gopt
+    backend: original
+    mode: gopt
+    repeats: 5
+    seeds: [501, 502, 503, 504, 505]

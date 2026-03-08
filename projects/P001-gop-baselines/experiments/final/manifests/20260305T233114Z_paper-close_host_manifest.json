@@ -1,0 +1,63 @@
+{
+  "captured_at": "2026-03-05T23:31:15.932888+00:00",
+  "hardware": {
+    "cores_per_socket": "16",
+    "cpu_model": "Intel(R) Core(TM) Ultra 9 285H",
+    "disk_free_bytes": 811711512576,
+    "disk_total_bytes": 1966788050944,
+    "disk_used_bytes": 1055093612544,
+    "gpus": [
+      {
+        "driver_version": "590.48.01",
+        "memory_total_mb": 12227,
+        "memory_used_mb": 6047,
+        "name": "NVIDIA GeForce RTX 5070",
+        "temperature_c": 43,
+        "utilization_gpu_pct": 0,
+        "uuid": "GPU-8550b8e7-d27d-3ca8-0c38-8243e5c8ec24"
+      }
+    ],
+    "logical_cpu_count": 16,
+    "memory_total_bytes": 100731383808,
+    "socket_count": "1",
+    "threads_per_core": "1"
+  },
+  "host": {
+    "hostname": "gmk-server",
+    "machine": "x86_64",
+    "platform": "Linux",
+    "platform_release": "6.18.9-arch1-2",
+    "platform_version": "#1 SMP PREEMPT_DYNAMIC Mon, 09 Feb 2026 17:16:33 +0000",
+    "processor": null
+  },
+  "provider": "local",
+  "runpod": {},
+  "software": {
+    "dependency_versions": {
+      "accelerate": "1.12.0",
+      "huggingface-hub": "1.4.1",
+      "numpy": "2.4.2",
+      "pydantic": "2.12.5",
+      "pydantic-settings": "2.13.1",
+      "scipy": "1.17.0",
+      "torch": "2.8.0",
+      "transformers": "5.2.0",
+      "wandb": "0.25.0"
+    },
+    "pyproject_sha256": "c6a60fda81d7311f3edcb38ff6813b9217dff22a7f4767511890a4c283b9afa2",
+    "python_executable": "/home/simon/github/peacock-asr/.venv/bin/python3",
+    "python_version": "3.13.12",
+    "torch": {
+      "cuda_available": true,
+      "cuda_version": "12.8",
+      "device_count": 1
+    },
+    "uv_lock_sha256": "f87c4043564237e8ba50367d9cd1e61f42f1964e7fbcf5cc60dd676959be080d",
+    "uv_version": "uv 0.10.4"
+  },
+  "source": {
+    "git_sha": "24d9f31a7f4554a904e25b54df10cabec6743031",
+    "repo_root": "/home/simon/github/peacock-asr",
+    "script": "projects/P001-gop-baselines/experiments/final/capture_machine_manifest.py"
+  }
+}

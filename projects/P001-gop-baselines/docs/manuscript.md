@@ -2,284 +2,362 @@
 
 ## Abstract
 
-We study pronunciation assessment in a constrained but practical setting: fixed
-CTC phoneme posteriors, fixed data protocol, and controlled changes only in the
-scoring layer. Our pipeline uses segmentation-free goodness of pronunciation
-(GOP) derived from CTC posteriors, then compares three downstream scoring
-heads: per-phone polynomial regression on scalar GOP, per-phone SVR on GOP
-feature vectors, and a phone-level GOPT transformer on the same feature vectors.
-Experiments are run on SpeechOcean762 with a frozen backend
-(`xlsr-espeak`) and a fixed evaluation protocol. The completed Phase-1
-ablation shows a large gap between scalar and feature-based scoring:
-PCC improves from 0.3195 (scalar+poly) to 0.5747 (SVR+features), and to
-0.6774 mean PCC with GOPT over five seeds (std 0.0127), with corresponding MSE
-drop from 0.6655 to 0.0729. These results indicate that, in this stack, most
-performance gain comes from richer GOP representations and contextual
-downstream scoring rather than from changing the upstream posterior model. In a
-Phase-2 scalar logit ablation, pure `logit_margin` underperforms baseline
-(PCC 0.1849), while a mixed score `logit_combined` with alpha 0.25 improves to
-PCC 0.3452, indicating limited but real upside from score mixing in the scalar
-regime.
+We study pronunciation assessment in a constrained but practical setting:
+canonical text is known, phone-level human scores are available, and the main
+question is how to score pronunciation once a phoneme posterior model is fixed.
+Our pipeline uses a frozen CTC phoneme backend to produce phone posteriors over
+time, computes segmentation-free goodness of pronunciation (GOP-SF) features
+from those posteriors, and compares three downstream scoring heads: scalar GOP
+with polynomial regression, GOP feature vectors with per-phone SVR, and GOP
+feature vectors with a phone-level transformer scorer (GOPT)
+[@cao2026segmentation_free_gop; @gong2022gopt_transformer_pronunciation_assessment].
+The goal of this paper is narrow by design: isolate where the gain comes from
+in a modern GOP-SF stack. In the completed `P001` paper-close campaign,
+feature-vector scoring substantially outperformed scalar GOP, and GOPT reached
+the best phone-level PCC on both frozen backends (`0.6368 ± 0.0115` on
+`original`, `0.6774 ± 0.0127` on `xlsr-espeak`).
 
 ## 1. Introduction
 
-Automatic pronunciation assessment is commonly framed as a posterior scoring
-problem: given speech and a canonical phone sequence, produce phone-level (or
-utterance-level) scores that correlate with expert ratings. In classic GOP
-pipelines, this often depends on explicit alignment, which introduces failure
-modes when timestamps or phone boundaries are noisy.
+Automatic pronunciation assessment is often framed as a constrained prediction
+task: given a spoken utterance and the canonical text, estimate how well each
+expected phone was produced. The central difficulty is that phone boundaries in
+real speech are uncertain, especially for non-native speech. Traditional
+alignment-heavy pipelines therefore inherit failure modes from forced alignment.
 
-Segmentation-free GOP avoids forced alignment by marginalizing over CTC paths
-[@cao2026segmentation_free_gop]. That makes it attractive as a robust scoring
-core, but practical performance still depends on how those scores are consumed:
-scalar per-phone scoring, richer feature vectors, or contextual models such as
-GOPT [@gong2022gopt_transformer_pronunciation_assessment].
+Segmentation-free GOP addresses that problem by computing pronunciation
+evidence directly from CTC posteriors without requiring explicit phone
+boundaries [@cao2026segmentation_free_gop]. That gives us a robust scoring
+core, but it does not settle the next question: once those GOP signals exist,
+what is the right downstream scorer? A single scalar per phone may be too weak.
+Richer feature vectors may help. Contextual sequence modeling may help more.
 
-This paper isolates that downstream question. We fix the upstream posterior
-generator and dataset protocol, then run controlled ablations over scoring
-heads. The goal is to answer a narrow but actionable question: where does most
-quality gain come from in a modern GOP-SF stack?
+This paper isolates that downstream question. We keep the dataset protocol
+fixed, use frozen phoneme-posterior backends, and vary only the scoring head
+and scalar score definition. The contribution is not a new speech foundation
+model. It is a controlled paper-grade ablation over the scoring layer.
 
-Contributions:
-- A reproducible Track-05 scoring-layer benchmark protocol on SpeechOcean762.
-- A controlled ablation of scalar GOP, feature-vector GOP+SVR, and feature-vector GOP+GOPT.
-- Empirical evidence that feature richness plus contextual scoring dominates scalar GOP in this setup.
-- A scalar logit-variant ablation showing mixture sensitivity and a best point at low alpha.
+Our working contributions are:
 
-## 2. Related Work
+- A reproducible pronunciation-scoring benchmark built around SpeechOcean762
+  [@zhang2021speechocean762].
+- A controlled comparison of scalar GOP, GOP feature vectors with SVR, and GOP
+  feature vectors with GOPT.
+- A scalar score-variant study comparing baseline GOP-SF, logit margin, and a
+  convex mixture of the two.
+- A project structure that separates backend quality questions (`P003`) from
+  scoring-layer questions (`P001`).
 
-### 2.1 Pronunciation Scoring and GOP
+## 2. Task Definition
 
-Segmentation-free GOP formulates pronunciation scoring directly from CTC
-posteriors without forced alignment [@cao2026segmentation_free_gop]. Recent
-extensions include phonologically constrained substitution spaces
-[@parikh2025enhancing_gop_ctc_mdd] and logit-oriented scoring variants
-[@parikh2025logit_based_gop]. Our work does not propose a new GOP objective in
-this draft; we evaluate how existing GOP-derived signals behave under different
-downstream heads.
+The task in this paper is not open-ended ASR. We assume the expected text is
+known. That text is converted to a canonical phone sequence, and the system
+predicts phone-level pronunciation scores that should correlate with human
+ratings.
 
-### 2.2 Downstream Scoring Models
+The full pipeline is:
 
-GOPT-style transformer models consume per-phone GOP features and predict human
-scores with contextual phone-sequence modeling
-[@gong2022gopt_transformer_pronunciation_assessment]. We adapt this idea as one
-of the compared heads, alongside non-contextual baselines.
+1. Audio waveform -> frozen phoneme-posterior backend.
+2. Backend output -> phone posterior matrix `P(t, v)` over time `t` and phone
+   vocabulary `v`.
+3. Posterior matrix + canonical phone sequence `y` -> segmentation-free GOP
+   features.
+4. GOP features -> downstream scorer.
+5. Downstream scorer -> predicted phone-level scores.
 
-### 2.3 Phoneme Modeling Context
+This task framing matters. It means:
 
-The broader space includes SSL-based pronunciation assessment
-[@kim2022ssl_pronunciation_assessment], cross-lingual phoneme recognition
-[@xu2021zeroshot_crosslingual_phoneme_recognition], large multilingual speech
-models [@pratap2023mms_scaling_1000_languages], and universal phone recognition
-systems [@li2020allosaurus_universal_phone_recognition]. Recent multilingual
-phone-centric models (ZIPA/POWSM/PRiSM) further motivate robust phone-level
-representations [@zhu2025zipa; @li2026powsm; @bharadwaj2026prism]. In this
-paper we freeze backend choice to isolate scoring effects.
+- we are not solving unrestricted transcription here;
+- we do not require forced phone boundaries;
+- we care about correlation with human pronunciation scores, not only token
+  accuracy.
 
-## 3. Methods
+## 3. Related Work
 
-### 3.1 Pipeline Overview
+### 3.1 GOP and Mispronunciation Detection
 
-Pipeline:
-- Audio -> CTC phone posterior matrix `P(t, v)`.
-- Canonical phone sequence `y` from dataset annotations.
-- Segmentation-free GOP computations from CTC forward/denominator passes.
-- Downstream score prediction via one of three heads (Poly, SVR, GOPT).
+Segmentation-free GOP computes pronunciation evidence directly from CTC
+posteriors, avoiding forced alignment and making the scoring core more robust
+to boundary noise [@cao2026segmentation_free_gop]. Recent extensions explore
+phonological constraints and logit-based variants
+[@parikh2025enhancing_gop_ctc_mdd; @parikh2025logit_based_gop].
+
+### 3.2 Downstream Scoring
+
+GOPT-style models show that phone-level transformer scoring can improve
+pronunciation assessment by modeling contextual information across phone
+positions [@gong2022gopt_transformer_pronunciation_assessment]. That is the
+main contextual scorer baseline in this paper.
+
+### 3.3 SSL and Phoneme Modeling Context
+
+Self-supervised speech models such as wav2vec 2.0 and related encoders are now
+standard backbones for phoneme-centric speech tasks, including pronunciation
+assessment and cross-lingual phoneme recognition
+[@kim2022ssl_pronunciation_assessment; @xu2021zeroshot_crosslingual_phoneme_recognition].
+Large multilingual speech models and modern phone-recognition systems further
+motivate strong phone-level representations
+[@pratap2023mms_scaling_1000_languages; @li2020allosaurus_universal_phone_recognition; @zhu2025zipa; @li2026powsm; @bharadwaj2026prism].
+
+Our scope is intentionally narrower. We use this broader literature as backend
+context, but the paper's main claim is about scoring-layer design, not about
+foundation-model pretraining itself.
+
+## 4. Method
+
+### 4.1 Frozen Phoneme-Posterior Backends
+
+The backend takes raw audio and produces a posterior distribution over phones
+at each time step. Architecturally, this is easiest to think about as:
+
+- a speech encoder that maps waveform segments to contextual embeddings;
+- an output head that maps those embeddings to phone logits;
+- a softmax that converts logits into phone probabilities.
+
+In this paper, the backend is frozen during scoring experiments. That allows us
+to isolate the scoring layer. Backend training and phoneme-head adaptation live
+in `P003`, not here.
+
+### 4.2 Segmentation-Free GOP Core
+
+Given a posterior matrix `P(t, v)` and canonical phone sequence `y`, we compute
+per-phone pronunciation evidence using the segmentation-free GOP formulation
+[@cao2026segmentation_free_gop]. The scalar score for phone position `i` is:
+
+`GOP_i = -L_self + L_denom(i)`
+
+where:
+
+- `L_self` is the CTC negative log-likelihood of the canonical sequence;
+- `L_denom(i)` is the CTC negative log-likelihood when phone position `i` is
+  replaced by an arbitrary phone.
+
+This paper keeps only the core equation in the main text. Low-level dynamic
+programming details are implementation material and can stay in code and the
+appendix.
 
 Implementation anchors:
-- GOP core: `src/peacock_asr/gop.py`.
-- Evaluation heads: `src/peacock_asr/evaluate.py`.
-- GOPT adaptation: `src/peacock_asr/gopt_model.py`.
 
-For phone position `i`, scalar GOP is computed as a log-likelihood ratio:
-`GOP_i = -L_self + L_denom(i)`, where `L_self` is CTC NLL of canonical `y` and
-`L_denom(i)` is CTC NLL when position `i` is replaced by an arbitrary state.
+- GOP core: `projects/P001-gop-baselines/code/p001_gop/gop.py`
+- evaluation/scoring glue: `projects/P001-gop-baselines/code/p001_gop/evaluate.py`
+- GOPT scorer: `projects/P001-gop-baselines/code/p001_gop/gopt_model.py`
 
-### 3.2 GOP-SF Feature Extraction
+### 4.3 GOP Feature Extraction
 
-For each phone position, we extract:
-- `LPP`: canonical CTC loss term.
-- `LPR[k]`: substitution/deletion log-likelihood-ratio features over vocabulary.
-- `occupancy`: expected count proxy from denominator forward pass.
+For each phone position, we derive a feature vector from the GOP computation.
+The exact feature family depends on the backend and scoring mode, but the main
+ingredients are:
 
-This yields a per-phone feature vector of dimension `1 + |V| + 1`.
-For the current backend in this study, that is 394 dimensions.
-Feature extraction follows the batched CTC-loss implementation in `gop.py`
-(`_compute_lpr_features_batched`), matching the reference formulation while
-remaining practical on full splits.
+- canonical loss evidence;
+- substitution-oriented likelihood-ratio features;
+- occupancy-style signals from the denominator computation.
 
-### 3.3 Downstream Prediction Heads
+These features are richer than a single scalar GOP score and are the input to
+both the SVR baseline and the GOPT scorer.
 
-We compare three heads:
+### 4.4 Downstream Scoring Heads
 
-1. Scalar + Poly:
-- Input: scalar GOP only.
-- Model: per-phone polynomial regression (order 2).
+We compare three downstream scorers:
 
-2. Features + SVR:
-- Input: per-phone GOP feature vectors.
-- Model: per-phone SVR with class balancing and cross-phone negatives.
+1. Scalar + Poly
 
-3. Features + GOPT:
-- Input: per-phone GOP feature vectors + phone IDs.
-- Model: phone-level transformer (embed=24, heads=1, depth=3, seq_len=50),
-  trained with masked MSE for 100 epochs.
+- Input: one scalar GOP value per phone.
+- Scorer: per-phone polynomial regression.
 
-### 3.4 Scalar Score Variants (Phase 2)
+2. Features + SVR
 
-For scalar-only experiments we evaluate three score variants:
+- Input: GOP feature vector per phone.
+- Scorer: per-phone SVR.
 
-1. `gop_sf`:
-- Baseline scalar GOP-SF score from CTC forward/denominator computation.
+3. Features + GOPT
 
-2. `logit_margin`:
-- Per-phone frame-weighted margin proxy:
-`log p(target) - max log p(other)`, weighted by target posterior.
+- Input: GOP feature vectors plus phone identities across the sequence.
+- Scorer: a lightweight phone-level transformer in the style of GOPT
+  [@gong2022gopt_transformer_pronunciation_assessment].
 
-3. `logit_combined`:
-- Convex mixture of margin and baseline:
-`score = alpha * logit_margin + (1 - alpha) * gop_sf`.
-- We sweep `alpha in {0.25, 0.50, 0.75}`.
-- We also run a dense cached sweep `alpha in {0.00, 0.05, ..., 1.00}` to
-  localize the scalar optimum without recomputing posteriors.
+The key point is that GOPT does not replace GOP. It sits after GOP feature
+extraction as a learned contextual scorer.
 
-## 4. Experimental Setup
+### 4.5 Scalar Score Variants
 
-### 4.1 Dataset and Splits
+Phase 2 studies whether the scalar score itself can be improved without moving
+to full feature-vector scoring. We compare:
 
-We use SpeechOcean762 [@zhang2021speechocean762] with its standard split
-protocol as implemented in this repo (2,500 train / 2,500 test utterances).
-All reported runs evaluate on the full test split.
+- `gop_sf`: baseline scalar GOP-SF;
+- `logit_margin`: a margin-style score derived from target vs alternative
+  logits;
+- `logit_combined`: a convex mixture of the two.
 
-### 4.2 Metrics
+The mixture is:
+
+`score = alpha * logit_margin + (1 - alpha) * gop_sf`
+
+We evaluate three coarse settings in the seeded matrix
+`alpha in {0.25, 0.50, 0.75}`, then run a dense cached alpha sweep over
+`0.00..1.00` in steps of `0.05`.
+
+## 5. Experimental Setup
+
+### 5.1 Dataset
+
+We use SpeechOcean762 [@zhang2021speechocean762], a standard benchmark for
+non-native English pronunciation assessment with phone-level supervision.
+
+### 5.2 Metrics
 
 Primary metric is Pearson correlation coefficient (PCC) between predicted and
-human phone-level scores. We report 95% confidence intervals from SciPy
-`pearsonr(...).confidence_interval(...)`. Secondary metric is MSE.
-Each completed run in Phase-1 and Phase-2 evaluates on 46,314 phones.
+human phone-level scores. We also report 95% confidence intervals and mean
+squared error (MSE).
 
-### 4.3 Reproducibility
+### 5.3 Canonical `P001` Matrix
 
-We run two fixed batch configs:
-- Phase 1: `runs/track05_phase1_baseline.yaml`
-- Phase 2: `runs/track05_phase2_logit_scalar.yaml`
+The canonical paper-close campaign contains two phases plus a dense analysis
+pass:
 
-Phase-1 jobs:
-- `A1`: `scalar` (1 run)
-- `A2`: `feats` (1 run)
-- `A3`: `gopt` (5 runs; seeds 501-505)
+Phase 1:
 
-Phase-2 jobs:
-- `B1`: `scalar`, `score_variant=gop_sf`
-- `B2`: `scalar`, `score_variant=logit_margin`
-- `B3`: `scalar`, `score_variant=logit_combined`, `alpha=0.25`
-- `B4`: `scalar`, `score_variant=logit_combined`, `alpha=0.50`
-- `B5`: `scalar`, `score_variant=logit_combined`, `alpha=0.75`
+- `A1`: scalar + polynomial regression
+- `A2`: features + SVR
+- `A3`: features + GOPT, five seeds (`501..505`)
 
-Execution commands:
-- `uv run peacock-asr batch --config runs/track05_phase1_baseline.yaml --output-dir runs`
-- `MLFLOW_TRACKING_URI=https://mlflow.peacockery.studio MLFLOW_EXPERIMENT_NAME=peacock-asr-track05 uv run peacock-asr batch --config runs/track05_phase2_logit_scalar.yaml --output-dir runs`
+Phase 2:
 
-Artifacts:
-- `runs/2026-03-03_001037_track05_phase1_baseline/{summary.tsv,aggregates.tsv}`
-- `runs/2026-03-03_045426_track05_phase2_logit_scalar/{summary.tsv,aggregates.tsv}`
-- `runs/2026-03-03_080157_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/{alpha_sweep.tsv,alpha_sweep_meta.json}`
+- `B1`: `gop_sf`
+- `B2`: `logit_margin`
+- `B3`: `logit_combined`, `alpha=0.25`
+- `B4`: `logit_combined`, `alpha=0.50`
+- `B5`: `logit_combined`, `alpha=0.75`
 
-## 5. Results
+Phase 2b:
 
-### 5.1 Main Ablation Table (Frozen Backend: xlsr-espeak)
+- dense alpha sweep for `original`
+- dense alpha sweep for `xlsr-espeak`
 
-| ID | Mode | PCC | 95% CI | MSE | Notes |
-|---|---|---:|---|---:|---|
-| A1 | Scalar + Poly | 0.3195 | [0.3113, 0.3277] | 0.6655 | single run |
-| A2 | Features + SVR | 0.5747 | [0.5686, 0.5808] | 0.2052 | single run |
-| A3 | Features + GOPT | 0.6774 ± 0.0127 | per-run CIs in summary | 0.0729 ± 0.0024 | mean/std over 5 seeds |
+Backends:
 
-### 5.2 GOPT Seeded Runs (A3)
+- `original`
+- `xlsr-espeak`
 
-| Seed | PCC | 95% CI | MSE |
-|---:|---:|---|---:|
-| 501 | 0.6958 | [0.6911, 0.7005] | 0.0694 |
-| 502 | 0.6655 | [0.6604, 0.6706] | 0.0750 |
-| 503 | 0.6782 | [0.6732, 0.6831] | 0.0727 |
-| 504 | 0.6820 | [0.6771, 0.6868] | 0.0721 |
-| 505 | 0.6653 | [0.6602, 0.6704] | 0.0751 |
+The campaign spec and naming contract are defined in
+`docs/FINAL_CAMPAIGN_SPEC.md`.
 
-### 5.3 Scalar Logit Variant Ablation (Phase 2)
+### 5.4 Reproducibility Contract
 
-| ID | Variant | Alpha | PCC | 95% CI | MSE |
-|---|---|---:|---:|---|---:|
-| B1 | gop_sf | 0.50 | 0.3195 | [0.3113, 0.3277] | 0.6655 |
-| B2 | logit_margin | 0.50 | 0.1849 | [0.1761, 0.1937] | 0.8177 |
-| B3 | logit_combined | 0.25 | 0.3452 | [0.3372, 0.3532] | 0.5981 |
-| B4 | logit_combined | 0.50 | 0.3222 | [0.3140, 0.3304] | 0.6322 |
-| B5 | logit_combined | 0.75 | 0.2664 | [0.2579, 0.2748] | 0.7131 |
+The canonical evidence lives in:
 
-Dense cached alpha sweep (`0.00..1.00`, step `0.05`) confirms the same optimum
-at `alpha=0.25` (PCC `0.3452`, MSE `0.5981`). Relative to baseline scalar
-GOP-SF (`alpha=0.00`), this is `+0.0257` PCC and `-0.0674` MSE.
+- project-local batch artifacts under
+  `projects/P001-gop-baselines/experiments/final/batches/`
+- dense alpha sweep artifacts under
+  `projects/P001-gop-baselines/experiments/final/alpha_sweeps/`
+- machine and run manifests under
+  `projects/P001-gop-baselines/experiments/final/manifests/`
+- grouped W&B runs under
+  `peacockery/peacock-asr-p001-gop-baselines`
 
-### 5.4 Findings
+This is the evidence source for the final tables, not older ad hoc `runs/`
+folders.
 
-- Moving from scalar GOP to feature-vector GOP with SVR increases PCC from
-  `0.3195 -> 0.5747` (+0.2552 absolute).
-- Replacing SVR with GOPT on the same feature family yields
-  `0.5747 -> 0.6774` (+0.1027 mean absolute).
-- Relative to scalar baseline, GOPT mean PCC is ~112% higher.
-- In scalar-only score variants, pure `logit_margin` degrades strongly
-  (`0.3195 -> 0.1849`), while `logit_combined` at `alpha=0.25` improves
-  baseline (`0.3195 -> 0.3452`, +0.0257 absolute).
-- Increasing alpha beyond 0.25 reduces PCC (`0.3222` at 0.50, `0.2664` at 0.75).
+## 6. Results
 
-In this constrained experiment, downstream representation/scorer choice is the
-dominant factor.
+### 6.1 Phase 1: Downstream Scorer Comparison
 
-## 6. Discussion
+Phase 1 answers the main paper question directly: richer GOP-derived features
+help a great deal, and contextual sequence scoring helps again on top of that.
+The effect is consistent across both frozen backends.
 
-The main empirical signal is clear: scalar GOP is not enough for strong
-correlation in this setup, while richer GOP-derived vectors plus contextual
-modeling provide substantial gains. This aligns with prior intuition that
-downstream scoring capacity can dominate once posterior quality is adequate.
+| Backend | A1 Scalar | A2 Features+SVR | A3 Features+GOPT |
+|---|---:|---:|---:|
+| original | 0.3104 | 0.5481 | 0.6368 ± 0.0115 |
+| xlsr-espeak | 0.3195 | 0.5747 | 0.6774 ± 0.0127 |
 
-Scope boundaries:
-- This is not evidence that backend quality is unimportant.
-- This does not establish cross-dataset or cross-language generalization.
-- We tested only lightweight scalar logit variants, not constrained-substitution
-  or full DP-level GOP changes.
+Per-seed GOPT results are recorded in
+`projects/P001-gop-baselines/experiments/final/results/per_run_summary.tsv`.
 
-## 7. Limitations and Threats to Validity
+Interpretation:
 
-- Single benchmark dataset (SpeechOcean762).
-- Single frozen backend in this phase (`xlsr-espeak`).
-- GOPT has non-trivial seed variance; we report mean/std but wider stability
-  analysis is still limited.
-- Results are phone-level correlation oriented; we do not evaluate end-user CAPT
-  outcomes here.
+- moving from scalar GOP to SVR on GOP features gives the largest jump;
+- GOPT improves again over SVR on the same feature family;
+- `xlsr-espeak` is the stronger frozen backend, but the ranking of
+  `A1 < A2 < A3` holds on both backends.
 
-## 8. Conclusion
+### 6.2 Phase 2: Scalar Variant Ablation
 
-This paper presents a narrow, reproducible ablation of scoring-layer design in
-a segmentation-free GOP pipeline. Under a frozen backend and fixed protocol,
-feature-vector GOP plus contextual GOPT scoring substantially outperforms
-scalar GOP baselines. Scalar logit variants show that a small-margin mixture can
-improve baseline scalar performance, but pure margin scoring hurts substantially
-in this setup. The immediate next step is to test constrained-substitution and
-DP-level GOP variants under the same evaluation contract.
+This section is the scalar-only follow-up question:
 
-## Reproducibility Appendix (Draft)
+- if we stay in the scalar regime, is plain GOP-SF already the best scalar?
+- does logit information help?
+- if it helps, where is the useful mixing range?
 
-Run folder:
-- `runs/2026-03-03_001037_track05_phase1_baseline/`
-- `runs/2026-03-03_045426_track05_phase2_logit_scalar/`
-- `runs/2026-03-03_080157_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/`
+Observed scalar results:
 
-Primary artifacts:
-- `batch_spec.yaml`
-- `summary.tsv`
-- `aggregates.tsv`
-- per-run logs (`a1_scalar_r1.log`, `a2_feats_r1.log`, `a3_gopt_r1..r5.log`)
-- per-run logs (`b1_scalar_gopsf_r1.log` ... `b5_scalar_logit_combined_a075_r1.log`)
+| Backend | B1 gop_sf | B2 logit_margin | B3 alpha=.25 | B4 alpha=.50 | B5 alpha=.75 |
+|---|---:|---:|---:|---:|---:|
+| original | 0.3104 | 0.2206 | 0.3338 | 0.3022 | 0.2561 |
+| xlsr-espeak | 0.3195 | 0.1849 | 0.3452 | 0.3222 | 0.2664 |
 
-## Bibliography
+Interpretation:
 
-Use `./refs.bib`.
+- pure `logit_margin` is worse than baseline `gop_sf` on both backends;
+- a low-weight mixture improves scalar PCC on both backends;
+- even the best scalar mixture remains far below `A2` and `A3`.
+
+### 6.3 Phase 2b: Dense Alpha Sweep
+
+The dense sweep confirms that the useful scalar-mixing region is low-alpha for
+both backends, but the exact optimum shifts slightly by backend:
+
+| Backend | Best alpha | Best PCC | Best MSE |
+|---|---:|---:|---:|
+| original | 0.20 | 0.3361 | 0.6147 |
+| xlsr-espeak | 0.25 | 0.3452 | 0.5981 |
+
+The dense sweep is not another training phase. It is an analysis pass that
+reuses cached scalar outputs to trace the full `alpha` response curve.
+
+## 7. Discussion
+
+The discussion should stay narrow and avoid overselling:
+
+- If GOPT wins, the paper's main conclusion is that downstream representation
+  and contextual scoring matter more than a scalar-only formulation under a
+  fixed posterior backend.
+- If the scalar mixture helps only slightly, the conclusion is not that scalar
+  GOP is solved. It is that scalar score shaping has some upside, but does not
+  close the gap to richer downstream scorers.
+- If backend effects differ between `original` and `xlsr-espeak`, we should say
+  that directly instead of collapsing them into one narrative.
+
+## 8. Limitations
+
+- Single benchmark dataset.
+- Controlled, transcript-known evaluation setting.
+- Frozen-backend framing means the paper does not address whether stronger
+  phoneme backends alone would change the ordering.
+- We evaluate phone-score correlation, not full end-user CAPT workflow quality.
+
+## 9. Conclusion
+
+This paper is a controlled study of pronunciation scoring once phoneme
+posteriors are already available. The core question is not how to build the
+largest speech model. It is how to turn phone posteriors into pronunciation
+scores that align with human judgments. In this completed study, richer
+GOP-derived features and contextual scoring dominate scalar-only scoring on
+both frozen backends, while scalar logit mixing offers only a secondary gain.
+
+## Appendix A. Figure Plan
+
+Recommended main figure:
+
+- Figure 1: `audio -> phoneme posterior matrix -> GOP feature extraction -> scorer -> phone-level scores`
+
+Recommended appendix figure:
+
+- Figure 2: dense `alpha` sweep curves for `original` and `xlsr-espeak`
+
+## Appendix B. Writing Notes
+
+- Keep only the two core equations in the main text.
+- Leave low-level DP derivations in the appendix or code references.
+- Use citekeys from `./refs.bib`.
+- Populate final tables from the canonical campaign artifacts, not stale
+  historical run folders.
