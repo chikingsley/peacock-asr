@@ -18,15 +18,20 @@ Each project workspace uses the same shape:
 - `experiments/` - sweep configs, run manifests, outputs metadata
 - `third_party/` - upstream/reference repos for this project
 - `env/` - project-specific environment files
+- `.env.example` - checked-in template for local secrets and project defaults
+- `scripts/` - project-local utility scripts, including remote env sync helpers
 
 ## Rules
 
-- Keep reusable shared code in `src/peacock_asr/`.
+- Keep runtime code inside the owning project workspace, even when it means duplication.
 - Keep project-specific logic in `projects/P###-.../code/`.
-- Keep root-level `runs/` and `docs/research/track*` paths as compatibility paths during migration.
+- Give each active project its own `pyproject.toml`, `.venv`, tests, and W&B command surface.
+- Keep `docs/research/archived/0X_*.md` narratives as historical notes.
+- Do not reintroduce root-level experiment directories like `runs/`.
 - Do not mix unrelated papers/references across project directories.
 
 ## Migration Policy
 
 - Migrate in small steps by project.
 - Keep legacy path mappings in `projects/INDEX.yaml` until each project is fully cut over.
+- Remove root runtime/package surfaces once the owning projects pass independently.

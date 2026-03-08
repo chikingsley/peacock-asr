@@ -9,8 +9,8 @@ projects:
     active_paths:
       - projects/P001-gop-baselines/docs
       - projects/P001-gop-baselines/experiments
-      - runs/track05_phase1_baseline.yaml
-      - runs/track05_phase2_logit_scalar.yaml
+      - projects/P001-gop-baselines/experiments/final
+      - projects/P001-gop-baselines/experiments/sweeps/final
   - id: P002
     slug: conpco-scoring
     name: ConPCO Scoring
@@ -20,13 +20,13 @@ projects:
     wandb_project: peacock-asr-p002-conpco-scoring
     active_paths:
       - projects/P002-conpco-scoring/docs
+      - projects/P002-conpco-scoring/code
       - projects/P002-conpco-scoring/experiments
-      - runs/reproduce_conpco.py
-      - runs/sweep_conpco_v3_paper.yaml
-      - runs/sweep_conpco_v4_rng_fix.yaml
-      - references/ConPCO
+      - projects/P002-conpco-scoring/experiments/sweeps/final
+      - projects/P002-conpco-scoring/experiments/sweeps/legacy
+      - projects/P002-conpco-scoring/third_party/ConPCO
     notes:
-      - "Keep references/ConPCO and runs/reproduce_conpco.py in place until active sweeps finish."
+      - "Project-local code and third_party paths are canonical."
   - id: P003
     slug: compact-backbones
     name: Compact Backbones
@@ -36,10 +36,11 @@ projects:
     wandb_project: peacock-asr-p003-compact-backbones
     active_paths:
       - projects/P003-compact-backbones/docs
+      - projects/P003-compact-backbones/code
+      - projects/P003-compact-backbones/code/p003_backends
+      - projects/P003-compact-backbones/code/training
       - projects/P003-compact-backbones/experiments
-      - runs/sweep_track10_wav2vec2_base.yaml
-      - training/train_phoneme_head.py
-      - training/preprocess_features.py
+      - projects/P003-compact-backbones/experiments/sweeps/final
   - id: P004
     slug: training-from-scratch
     name: Training From Scratch
@@ -70,8 +71,19 @@ projects:
     active_paths:
       - projects/P006-realtime-streaming/docs
       - projects/P006-realtime-streaming/experiments
+  - id: P008
+    slug: capt-runtime
+    name: CAPT Runtime
+    status: planning
+    legacy_track: null
+    root: projects/P008-capt-runtime
+    wandb_project: peacock-asr-p008-capt-runtime
+    active_paths:
+      - projects/P008-capt-runtime/docs
+      - projects/P008-capt-runtime/code
+      - projects/P008-capt-runtime/experiments
 
 conventions:
   canonical_naming: P###-slug
   enforce_project_id_on_runs: true
-  keep_legacy_paths_during_migration: true
+  keep_legacy_paths_during_migration: false
