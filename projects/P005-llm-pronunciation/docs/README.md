@@ -16,7 +16,7 @@ Source of truth:
 - Evidence ledger: `./EVIDENCE_LEDGER.md`
 - Bibliography: `./refs.bib`
 - Ablation plan: `./ABLATION_PLAN.md`
-- Track narrative: `../06_LLM_PRONUNCIATION.md`
+- Historical narrative: `../../../docs/research/archived/06_LLM_PRONUNCIATION.md`
 
 Draft files:
 

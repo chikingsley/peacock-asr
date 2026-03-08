@@ -117,13 +117,13 @@ quantization. Qwen2-Audio-7B in 4-bit is the more accessible option for our hard
 ## 4. Internal Evidence Anchors
 
 - GOPT baseline runs: Track 05 Phase 1 (`runs/2026-03-03_001037_track05_phase1_baseline/`)
-- GOPT model: `/home/simon/github/peacock-asr/src/peacock_asr/gopt_model.py`
-- GOP feature extraction: `/home/simon/github/peacock-asr/src/peacock_asr/gop.py`
-- Track 06 narrative: `/home/simon/github/peacock-asr/docs/research/06_LLM_PRONUNCIATION.md`
+- GOPT model: `/home/simon/github/peacock-asr/projects/P001-gop-baselines/code/p001_gop/gopt_model.py`
+- GOP feature extraction: `/home/simon/github/peacock-asr/projects/P001-gop-baselines/code/p001_gop/gop.py`
+- Track 06 narrative: `/home/simon/github/peacock-asr/docs/research/archived/06_LLM_PRONUNCIATION.md`
 
 ---
 
-## 5. Open Questions (from 06_LLM_PRONUNCIATION.md)
+## 5. Open Questions (from archived 06_LLM_PRONUNCIATION.md)
 
 - Does LoRA fine-tuning on SpeechOcean762 overfit? The dataset has only ~5h of audio.
 - Can an LLM give per-phone scores or only word/utterance level?

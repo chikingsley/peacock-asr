@@ -107,7 +107,7 @@ Pipeline:
 - Segmentation-free GOP feature extraction [@cao2026segmentation_free_gop]
 - Phone-level transformer scoring (GOPT) [@gong2022gopt_transformer_pronunciation_assessment]
 
-Implementation: `src/peacock_asr/gop.py`, `src/peacock_asr/gopt_model.py`.
+Implementation: `projects/P001-gop-baselines/code/p001_gop/gop.py`, `projects/P001-gop-baselines/code/p001_gop/gopt_model.py`.
 
 Baseline result: phone-level PCC 0.677 +/- 0.013 (5 seeds), MSE 0.073 (Track 05 Phase 1 A3).
 
