@@ -1,1 +1,0 @@
-{"audio_filepath": "/Users/ronanmcgovern/TR/ADVANCED-transcription/voice-detection/nemo/data/an4_diarize_test.wav", "offset": 0, "duration": null, "label": "infer", "text": "-", "num_speakers": 3, "rttm_filepath": "/Users/ronanmcgovern/TR/ADVANCED-transcription/voice-detection/nemo/data/an4_diarize_test.rttm", "uem_filepath": null}

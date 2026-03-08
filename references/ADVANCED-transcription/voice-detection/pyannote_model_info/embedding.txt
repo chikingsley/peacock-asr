@@ -1,5 +1,0 @@
-=== embedding Model Information ===
-
-Model Structure:
-<pyannote.audio.pipelines.speaker_verification.SpeechBrainPretrainedSpeakerEmbedding object at 0x17af228c0>
-

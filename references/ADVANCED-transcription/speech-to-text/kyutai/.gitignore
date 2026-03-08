@@ -1,7 +1,0 @@
-
-.DS_Store
-
-delayed-streams-modeling/
-fine-tuning/kyutai-lora-finetuned/*
-wandb/
-*.pkl

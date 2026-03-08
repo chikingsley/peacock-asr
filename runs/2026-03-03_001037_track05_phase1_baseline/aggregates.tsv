@@ -1,4 +1,0 @@
-job_id	backend	mode	n_runs	n_success	pcc_mean	pcc_std	mse_mean	mse_std
-a1_scalar	xlsr-espeak	scalar	1	1	0.3195	0.0000	0.6655	0.0000
-a2_feats	xlsr-espeak	svr-feats	1	1	0.5747	0.0000	0.2052	0.0000
-a3_gopt	xlsr-espeak	gopt	5	5	0.6774	0.0127	0.0729	0.0024
