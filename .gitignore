@@ -40,6 +40,7 @@ processed-features/
 # Other agent configs
 .pi/
 .agents/
+.claude/skills/
 
 # Local binaries / archives
 runpodctl.tar.gz
