@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh api:*)",
+      "WebFetch(domain:by.afadingthought.com)",
+      "Bash(grep:*)",
+      "Bash(cp:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv run:*)",
+      "Bash(env:*)",
+      "Bash(ps aux:*)",
+      "Bash(git status:*)",
+      "Bash(git:*)",
+      "Bash(nvidia-smi:*)",
+      "Bash(python3:*)",
+      "Bash(ls:*)",
+      "Bash(xargs:*)",
+      "Bash(python:*)",
+      "Bash(mm stop:*)",
+      "Bash(docker ps:*)",
+      "WebFetch(domain:github.com)"
+    ]
+  }
+}
