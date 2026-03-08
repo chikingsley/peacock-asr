@@ -930,6 +930,250 @@ Next action:
 
 ---
 
+## 0.10.7 `P1` Promoted Stable Canonical Runner (2026-03-07)
+
+Validation ID:
+
+- `P1` promoted stable canonical trainer on the local `RTX 5070`
+
+Current status:
+
+- `passed`
+- promoted bounded-validation report written:
+  `experiments/checkpoints/canonical_phone_ctc/canonical_local_prod_b1_20260307_a/report.json`
+- W&B run:
+  `peacockery/peacock-asr-p004-training-from-scratch/y3h2393n`
+
+Validated facts:
+
+- The stable canonical choices are now frozen in code behind a non-smoke
+  entrypoint: `uv run p004-canonical-train`.
+- The promoted runner keeps the stable local baseline:
+  `attention_backend=mha`, `enable_compile=false`, `bf16`,
+  `model_type=conformer_like`, `hidden_dim=192`, `encoder_layers=3`,
+  `attention_heads=4`, `conv_kernel_size=15`, `dropout=0.1`,
+  `learning_rate=3e-4`.
+- A real bounded validation passed locally with online W&B sync, per-epoch
+  checkpoints, machine-manifest capture, and final model-state export.
+- The run completed `18` optimizer steps over `3` epochs, wrote `epoch-0.pt`
+  through `epoch-2.pt`, and reported mean train loss moving
+  `20.66 -> 8.83 -> 8.59`.
+- The run finished with `dev_loss=15.0485`, `dev_per=0.9914`,
+  `steady_state_mean_step_seconds=0.0151`, and
+  `peak_memory_reserved_mb=354.0`.
+
+Observed issues:
+
+- The current promoted model is still `conformer_like`, not yet a literal
+  full Conformer implementation.
+- `dev_per` remains poor on this tiny bounded dataset, so this result validates
+  the trainer and stable stack, not end-task quality.
+
+Implication:
+
+- `P1` is green.
+- The stable production branch is now a real, named canonical trainer instead
+  of only a smoke harness.
+- The next production step is architectural: implement a real Conformer module
+  on this frozen stack and rerun the same bounded gate before scaling up.
+
+Next action:
+
+- Keep nightly `TRITON` and FA4 as separate experiment branches.
+- Build the real Conformer module on the promoted stable trainer.
+- Rerun bounded validation through `p004-canonical-train`, then scale toward a
+  full run.
+
+---
+
+## 0.10.8 `P1` Real Conformer On The Promoted Stable Runner (2026-03-07)
+
+Validation ID:
+
+- `P1` bounded validation with the real Conformer on the local `RTX 5070`
+
+Current status:
+
+- `passed`
+- bounded-validation report written:
+  `experiments/checkpoints/canonical_phone_ctc/canonical_local_conformer_prod_b1_20260307_a/report.json`
+- W&B run:
+  `peacockery/peacock-asr-p004-training-from-scratch/r79clsmu`
+
+Validated facts:
+
+- The frozen production entrypoint `uv run p004-canonical-train` now defaults
+  to `model_type=conformer`, not the temporary `conformer_like` block.
+- The real Conformer path stayed stable on the same frozen stack:
+  `attention_backend=mha`, `enable_compile=false`, `bf16`,
+  `hidden_dim=192`, `encoder_layers=3`, `attention_heads=4`,
+  `conv_kernel_size=15`, `dropout=0.1`, `learning_rate=3e-4`.
+- The bounded validation passed with online W&B sync, `18` optimizer steps,
+  `epoch-0.pt` through `epoch-2.pt`, machine-manifest capture, and final
+  model-state export.
+- The run reported mean train loss moving `18.31 -> 4.03 -> 4.00`,
+  `dev_loss=3.9507`, `peak_memory_reserved_mb=508.0`, and
+  `steady_state_mean_step_seconds=0.0214`.
+- The real Conformer model has `2,593,771` parameters in this bounded local
+  configuration.
+
+Observed issues:
+
+- `dev_per=1.0` on this tiny bounded dataset, so the result validates stable
+  training behavior and stack correctness, not useful recognition quality yet.
+- This run still uses the smoke-manifest subset, not the full prepared
+  manifests.
+
+Implication:
+
+- The stable production branch now has a real Conformer, not just a placeholder
+  structured encoder.
+- The next production task is no longer architecture replacement. It is data
+  scale-up on the same stable trainer.
+
+Next action:
+
+- Keep the same frozen stack and real Conformer defaults.
+- Move from smoke manifests to a larger bounded subset or the full prepared
+  manifests.
+- Only revisit nightly `TRITON` or FA4 separately from this production path.
+
+---
+
+## 0.10.9 `P1` Larger Raw-Manifest Bounded Run (2026-03-07)
+
+Validation ID:
+
+- `P1` larger bounded validation on raw prepared manifests with the real
+  Conformer on the local `RTX 5070`
+
+Current status:
+
+- `passed`
+- bounded-validation report written:
+  `experiments/checkpoints/canonical_phone_ctc/canonical_local_conformer_b2_raw_20260307_a/report.json`
+- W&B run:
+  `peacockery/peacock-asr-p004-training-from-scratch/evi2eptj`
+
+Validated facts:
+
+- The stable production stack can train the real Conformer on the raw prepared
+  manifests, not just the tiny smoke subset.
+- A bounded run with `2048` train cuts, `256` dev cuts, `2` epochs, and
+  `batch_size=4` completed successfully.
+- The run completed `1024` optimizer steps, wrote `epoch-0.pt` and `epoch-1.pt`,
+  and reported mean train loss moving `3.52 -> 2.47`.
+- Final metrics were `dev_loss=1.8293`, `dev_per=0.6021`,
+  `peak_memory_reserved_mb=588.0`, and
+  `steady_state_mean_step_seconds=0.0226`.
+
+Observed issues:
+
+- The current trainer still eagerly materializes features for all selected cuts
+  before W&B init and the first optimizer step.
+- On this run, that front-loaded preprocessing consumed several minutes of wall
+  time before actual training began, even though the recorded training window
+  itself was only about `55` seconds.
+
+Implication:
+
+- The production path is now validated beyond the smoke subset.
+- The next blocker to a full run is no longer model stability. It is the
+  current data-loader and batching design.
+
+Next action:
+
+- Keep the same stable Conformer defaults.
+- Replace eager feature materialization with lazy loading and more appropriate
+  batching on the same trainer.
+- After that, run the next larger bounded slice or the full prepared manifests.
+
+---
+
+## 0.10.10 `P1` Lazy Loader And Bounded Raw-Manifest Re-Run (2026-03-07)
+
+Validation ID:
+
+- `P1` stable production stack with the lazy manifest-backed dataset and
+  duration-aware batching on the local `RTX 5070`
+
+Current status:
+
+- `passed`
+- bounded-validation report written:
+  `experiments/checkpoints/canonical_phone_ctc/canonical_local_conformer_b2_raw_lazy_20260307_a/report.json`
+- W&B run:
+  `peacockery/peacock-asr-p004-training-from-scratch/q9oem355`
+
+Validated facts:
+
+- The stable production stack now starts training from the prepared manifests
+  without the old front-loaded feature materialization delay.
+- W&B initialized immediately at run start instead of waiting for a long
+  preprocessing phase.
+- The same `2048` train-cut / `256` dev-cut bounded run completed cleanly with
+  the lazy loader and duration-aware batching.
+- Final metrics improved to `dev_loss=1.7656`, `dev_per=0.5697`,
+  `peak_memory_reserved_mb=592.0`, and
+  `steady_state_mean_step_seconds=0.0231`.
+
+Implication:
+
+- The data path is now compatible with real prepared-manifest training on the
+  frozen production stack.
+- The production lane can move from bounded slices to full manifests without a
+  separate loader rewrite branch.
+
+Next action:
+
+- Keep the same frozen stack and real Conformer defaults.
+- Run the full prepared manifests on `train-clean-100` / `dev-clean`.
+
+---
+
+## 0.10.11 `P1` Full Prepared-Manifest Train-Clean-100 Run And Resume (2026-03-07)
+
+Validation ID:
+
+- `P1` full prepared-manifest Conformer training on the local `RTX 5070`
+
+Current status:
+
+- `passed`
+- full-epoch report written:
+  `experiments/checkpoints/canonical_phone_ctc/canonical_local_conformer_full_trainclean100_e1_20260307_a/report.json`
+- resumed full-run report written:
+  `experiments/checkpoints/canonical_phone_ctc/canonical_local_conformer_full_trainclean100_e3_resume_20260307_a/report.json`
+- W&B runs:
+  `peacockery/peacock-asr-p004-training-from-scratch/195j4c71`
+  and `peacockery/peacock-asr-p004-training-from-scratch/yfupd8rl`
+
+Validated facts:
+
+- The stable production stack trained on all `28,538` cuts in
+  `train-clean-100` and evaluated on all `2,703` cuts in `dev-clean`.
+- The first full epoch completed cleanly with `7135` optimizer steps,
+  `dev_loss=0.9180`, `dev_per=0.2697`, `peak_memory_reserved_mb=820.0`, and
+  `steps_per_second=41.60`.
+- Resume from `epoch-0.pt` also worked on the full manifests: the follow-on run
+  loaded the checkpoint, completed epochs `1` and `2`, and finished with
+  `dev_loss=0.6969`, `dev_per=0.1982`, `mean_train_loss=0.7906 -> 0.6911`,
+  and `steps_per_second=38.53`.
+
+Implication:
+
+- The production lane is now proven on a real full `train-clean-100` Conformer
+  run, not just smoke subsets or bounded slices.
+- The stable Blackwell-compatible stack is ready for actual scaling work.
+
+Next action:
+
+- Keep the same frozen stack and real Conformer defaults.
+- Choose the next scale branch explicitly: bigger data coverage, a larger
+  Conformer, or stronger decoding / eval on the same production lane.
+
+---
+
 ## 1. Claim Map
 
 | ID | Claim | Evidence Status | Primary Citations |

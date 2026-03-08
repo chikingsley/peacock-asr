@@ -35,7 +35,7 @@ def run_canonical_benchmark(
     dev_limit: int = 8,
     epochs: int = 4,
     batch_size: int = 4,
-    model_type: str = "conformer_like",
+    model_type: str = "conformer",
     hidden_dim: int = 192,
     encoder_layers: int = 3,
     attention_heads: int = 4,

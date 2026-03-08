@@ -10,6 +10,7 @@ readme = "README.md"
 requires-python = ">=3.11,<3.14"
 dependencies = [
   "python-dotenv>=1.0.0",
+  "runpod>=1.8.1",
   "vastai-sdk>=0.5.0",
   "wandb>=0.25.0",
 ]
@@ -17,8 +18,16 @@ dependencies = [
 [project.scripts]
 p004-canonical-benchmark = "p004_training_from_scratch.cli.canonical_benchmark:main"
 p004-canonical-preflight = "p004_training_from_scratch.cli.canonical_preflight:main"
+p004-canonical-train = "p004_training_from_scratch.cli.canonical_train:main"
 p004-canonical-train-smoke = "p004_training_from_scratch.cli.canonical_train_smoke:main"
 p004-nightly-attention-benchmark = "p004_training_from_scratch.cli.nightly_attention_benchmark:main"
+p004-runpod-create-pod = "p004_training_from_scratch.cli.runpod_create_pod:main"
+p004-runpod-list-gpus = "p004_training_from_scratch.cli.runpod_list_gpus:main"
+p004-runpod-list-pods = "p004_training_from_scratch.cli.runpod_list_pods:main"
+p004-runpod-resume-pod = "p004_training_from_scratch.cli.runpod_resume_pod:main"
+p004-runpod-show-user = "p004_training_from_scratch.cli.runpod_show_user:main"
+p004-runpod-stop-pod = "p004_training_from_scratch.cli.runpod_stop_pod:main"
+p004-runpod-terminate-pod = "p004_training_from_scratch.cli.runpod_terminate_pod:main"
 p004-vast-search-offers = "p004_training_from_scratch.cli.vast_search_offers:main"
 p004-vast-show-instances = "p004_training_from_scratch.cli.vast_show_instances:main"
 p004-vast-launch-instance = "p004_training_from_scratch.cli.vast_launch_instance:main"

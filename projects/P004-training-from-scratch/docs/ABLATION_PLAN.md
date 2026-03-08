@@ -174,6 +174,53 @@ Acceptance:
   runs, metrics logs, and checkpoints are already written for canonical local
   smoke runs; canonical resume is now also proven, so the next gap is optional
   online or Hub sync
+- current local status on `2026-03-07`: the promoted stable production runner
+  `p004-canonical-train` is now green with online W&B sync on the local
+  `RTX 5070`
+
+### `P1` Stable Production Promotion
+
+Goal:
+- freeze the stable Blackwell-compatible stack choices and expose them as the
+  production trainer entrypoint
+
+Frozen choices:
+- `torch 2.9.1+cu128`
+- `torchaudio 2.9.1+cu128`
+- `accelerate 1.13.0`
+- `bf16`
+- `attention_backend=mha`
+- `enable_compile=false`
+- `model_type=conformer`
+- `hidden_dim=192`, `encoder_layers=3`, `attention_heads=4`
+- machine manifest capture and W&B-enabled tracking
+
+Acceptance:
+- the stable stack is codified in one canonical config
+- the production runner is no longer named like a smoke-only harness
+- a bounded validation passes through the promoted entrypoint
+
+Current state on `2026-03-07`:
+- `P1` is green
+- `uv run p004-canonical-train` is now the promoted stable entrypoint
+- bounded validation `canonical_local_conformer_prod_b1_20260307_a` passed
+  with online W&B sync, `18` optimizer steps, per-epoch checkpoints, and the
+  real Conformer model on the frozen stable stack
+- a larger bounded raw-manifest run
+  `canonical_local_conformer_b2_raw_20260307_a` also passed with `2048`
+  train cuts, `256` dev cuts, `2` epochs, `1024` optimizer steps,
+  `dev_loss=1.8293`, and `dev_per=0.6021`
+- the lazy manifest-backed dataset and duration-aware batching path are now
+  green in `canonical_local_conformer_b2_raw_lazy_20260307_a`
+- the first full prepared-manifest epoch is green in
+  `canonical_local_conformer_full_trainclean100_e1_20260307_a` with all
+  `28,538` `train-clean-100` cuts and all `2,703` `dev-clean` cuts
+- full-manifest resume is also green in
+  `canonical_local_conformer_full_trainclean100_e3_resume_20260307_a`,
+  which resumed from `epoch-0.pt` and finished epochs `1` and `2`
+- the current production blocker is no longer the data path
+- the next production move should be scale on the same frozen stack:
+  either larger data coverage or a larger real Conformer
 
 ### `C2` Blackwell / New-Kernel Branch
 
@@ -238,6 +285,9 @@ Current local status on `2026-03-07`:
   training back to benchmark-only status
 - keep FA4 only as a future upstream-retry branch, not a currently viable
   higher-cost training path
+- the stable production branch is now frozen separately from the nightly lane;
+  production next work should move architecture forward, not reopen the kernel
+  stack
 
 ## Architecture Branches
 

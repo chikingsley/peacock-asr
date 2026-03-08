@@ -24,6 +24,7 @@ import io
 import json
 import logging
 import math
+import os
 import re
 from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict, cast
@@ -60,14 +61,14 @@ class PhonemeEntry(TypedDict):
 
 TARGET_SAMPLE_RATE = 16_000
 STRESS_RE = re.compile(r"[012]$")
+PROJECT_ROOT = Path(
+    os.environ.get("P004_PROJECT_ROOT", str(Path(__file__).resolve().parents[1]))
+).expanduser()
 DEFAULT_SOURCE_REPO = "gilkeyio/librispeech-alignments"
-DEFAULT_VOCAB = Path(
-    "/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/training/vocab.json"
+DEFAULT_ALLOWED_PHONES = (
+    PROJECT_ROOT / "experiments" / "data" / "lang_phone" / "phone_list.txt"
 )
-DEFAULT_OUTPUT_DIR = Path(
-    "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/"
-    "experiments/data/manifests_phone_raw"
-)
+DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "experiments" / "data" / "manifests_phone_raw"
 
 
 def parse_args() -> argparse.Namespace:
@@ -98,8 +99,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--vocab-json",
         type=Path,
-        default=DEFAULT_VOCAB,
-        help=f"Path to ARPABET vocab JSON (default: {DEFAULT_VOCAB})",
+        default=DEFAULT_ALLOWED_PHONES,
+        help=(
+            "Path to the allowed-phone vocabulary. Accepts the legacy JSON vocab, "
+            "the project phone_list.txt, or tokens.txt "
+            f"(default: {DEFAULT_ALLOWED_PHONES})"
+        ),
     )
     parser.add_argument(
         "--max-examples-per-split",
@@ -117,13 +122,40 @@ def strip_stress(phone: str) -> str:
     return STRESS_RE.sub("", phone)
 
 
-def load_vocab(vocab_json: Path) -> set[str]:
-    vocab = json.loads(vocab_json.read_text(encoding="utf-8"))
-    return {
-        token
-        for token in vocab
-        if not token.startswith("[") and not token.startswith("<")
-    }
+def load_vocab(vocab_path: Path) -> set[str]:
+    text = vocab_path.read_text(encoding="utf-8").strip()
+    if not text:
+        msg = f"allowed-phone vocabulary is empty: {vocab_path}"
+        raise ValueError(msg)
+
+    if vocab_path.suffix == ".json" or text.startswith(("{", "[")):
+        vocab = json.loads(text)
+        if isinstance(vocab, dict):
+            items = vocab.keys()
+        elif isinstance(vocab, list):
+            items = vocab
+        else:
+            msg = f"Unsupported JSON vocabulary payload in {vocab_path}"
+            raise TypeError(msg)
+        return {
+            str(token)
+            for token in items
+            if not str(token).startswith("[") and not str(token).startswith("<")
+        }
+
+    phones: set[str] = set()
+    for raw_line in text.splitlines():
+        stripped = raw_line.strip()
+        if not stripped:
+            continue
+        token = stripped.split(maxsplit=1)[0]
+        if token.startswith("[") or token.startswith("<"):
+            continue
+        phones.add(token)
+    if not phones:
+        msg = f"No usable phones found in vocabulary file: {vocab_path}"
+        raise ValueError(msg)
+    return phones
 
 
 def _load_audio_array(audio: AudioPayload) -> tuple[np.ndarray, int]:
@@ -204,7 +236,11 @@ def main() -> int:
     audio_root = args.output_dir / "audio"
     audio_root.mkdir(parents=True, exist_ok=True)
 
-    build_summary: dict[str, dict[str, int | str]] = {}
+    summary_path = args.output_dir / "build_summary.json"
+    if summary_path.is_file():
+        build_summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    else:
+        build_summary = {}
 
     for split in args.splits:
         split_audio_dir = audio_root / split
@@ -286,7 +322,6 @@ def main() -> int:
             skipped,
         )
 
-    summary_path = args.output_dir / "build_summary.json"
     summary_path.write_text(json.dumps(build_summary, indent=2), encoding="utf-8")
     logger.info("Wrote summary to %s", summary_path)
     return 0

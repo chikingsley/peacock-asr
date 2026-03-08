@@ -118,6 +118,42 @@ earns its way into the canonical lab setup.
   demotion of nightly training work until upstream support changes.
   Keep FA4 in the backlog only as an upstream-retry path, not an active
   higher-cost training option today.
+- The promoted stable production baseline is now frozen as:
+  `torch 2.9.1+cu128`, `torchaudio 2.9.1+cu128`, `accelerate 1.13.0`,
+  `bf16`, `attention_backend=mha`, `enable_compile=false`,
+  `model_type=conformer`, `hidden_dim=192`, `encoder_layers=3`,
+  `attention_heads=4`, `conv_kernel_size=15`, `dropout=0.1`,
+  `learning_rate=3e-4`, machine-manifest capture, and W&B-enabled tracking.
+- That frozen path is now exposed as `uv run p004-canonical-train`.
+- The first promoted real-Conformer bounded validation
+  `canonical_local_conformer_prod_b1_20260307_a` passed locally on the
+  `RTX 5070` with online W&B sync, `18` optimizer steps, `epoch-0.pt` through
+  `epoch-2.pt`, mean train loss moving `18.31 -> 4.03 -> 4.00`,
+  `dev_loss=3.95`, and `peak_memory_reserved_mb=508.0`.
+- The first larger raw-manifest bounded run
+  `canonical_local_conformer_b2_raw_20260307_a` also passed locally on the
+  same stack with `2048` train cuts, `256` dev cuts, `2` epochs, `1024`
+  optimizer steps, `dev_loss=1.83`, `dev_per=0.602`, and
+  `peak_memory_reserved_mb=588.0`.
+- The lazy manifest-backed dataset and duration-aware batching path are now
+  green on the same stack: the larger bounded run
+  `canonical_local_conformer_b2_raw_lazy_20260307_a` started W&B immediately,
+  completed the same `2048` / `256` slice cleanly, and improved to
+  `dev_loss=1.7656`, `dev_per=0.5697`, and
+  `steady_state_mean_step_seconds=0.0231`.
+- A full prepared-manifest epoch is now green locally on the `RTX 5070`:
+  `canonical_local_conformer_full_trainclean100_e1_20260307_a` trained on all
+  `28,538` `train-clean-100` cuts and evaluated on all `2,703` `dev-clean`
+  cuts, finishing with `dev_loss=0.9180`, `dev_per=0.2697`, and
+  `peak_memory_reserved_mb=820.0`.
+- Full-manifest resume is also green on the same stack:
+  `canonical_local_conformer_full_trainclean100_e3_resume_20260307_a`
+  resumed from `epoch-0.pt`, completed epochs `1` and `2`, and finished at
+  `dev_loss=0.6969` and `dev_per=0.1982`.
+- Production next move: keep this real Conformer on the stable trainer and
+  scale the actual training problem, not the loader. The next useful branches
+  are larger data coverage or a wider / deeper Conformer on the same frozen
+  stack. Nightly `TRITON` and FA4 remain separate experiments.
 
 ## GPU Activation Rule
 
@@ -178,6 +214,8 @@ be clean, linted, and testable.
 
 - `pyproject.toml`: project metadata, dependencies, entrypoints, Ruff, pytest
 - `.python-version`: pins the project interpreter target for `uv`
+- `src/p004_training_from_scratch/runpod/client.py`: the only module that talks to
+  the official `runpod` Python SDK
 - `src/p004_training_from_scratch/vast/models.py`: typed request and response models
 - `src/p004_training_from_scratch/vast/query.py`: query and env-string builders
 - `src/p004_training_from_scratch/vast/client.py`: the only module that talks to
@@ -208,8 +246,12 @@ uv sync --group dev --group canonical
 Set auth:
 
 ```bash
+export RUNPOD_API_KEY=...
 export VAST_API_KEY=...
 ```
+
+If `RUNPOD_API_KEY` is unset, the RunPod wrapper will also fall back to the
+existing `~/.runpod/config.toml` `apikey` on this machine.
 
 Project `.env`:
 
@@ -223,6 +265,29 @@ Search offers:
 
 ```bash
 uv run p004-vast-search-offers --gpu-name "RTX 4090" --num-gpus 1
+```
+
+List RunPod GPUs with pricing:
+
+```bash
+uv run p004-runpod-list-gpus --priced
+```
+
+List current RunPod pods:
+
+```bash
+uv run p004-runpod-list-pods
+```
+
+Create a standard PyTorch pod on RunPod:
+
+```bash
+uv run p004-runpod-create-pod \
+  --name p004-trainclean360 \
+  --gpu-id "NVIDIA RTX PRO 6000 Blackwell Server Edition" \
+  --template-id runpod-torch-v280 \
+  --volume-in-gb 200 \
+  --container-disk-in-gb 40
 ```
 
 Search templates:
@@ -267,13 +332,29 @@ Run the local canonical real-data smoke:
 uv run p004-canonical-train-smoke
 ```
 
-Run the bounded local canonical validation:
+Run the promoted stable canonical trainer with the frozen production defaults:
 
 ```bash
-uv run p004-canonical-train-smoke \
-  --train-limit 24 \
-  --dev-limit 8 \
-  --epochs 3 \
+uv run p004-canonical-train
+```
+
+Run the bounded local canonical validation with an explicit run ID:
+
+```bash
+uv run p004-canonical-train \
+  --run-id canonical_local_conformer_prod_b1_20260307_a
+```
+
+Run a larger bounded validation on the raw prepared manifests:
+
+```bash
+uv run p004-canonical-train \
+  --run-id canonical_local_conformer_b2_raw_20260307_a \
+  --train-manifest experiments/data/manifests_phone_raw/librispeech_cuts_train-clean-100.jsonl.gz \
+  --dev-manifest experiments/data/manifests_phone_raw/librispeech_cuts_dev-clean.jsonl.gz \
+  --train-limit 2048 \
+  --dev-limit 256 \
+  --epochs 2 \
   --batch-size 4
 ```
 
@@ -297,20 +378,11 @@ uv run p004-canonical-train-smoke \
 Resume a canonical run from an epoch checkpoint:
 
 ```bash
-uv run p004-canonical-train-smoke \
-  --run-id canonical_local_c2_structured_r2_resume_20260306_a \
-  --train-limit 24 \
-  --dev-limit 8 \
+uv run p004-canonical-train \
+  --run-id canonical_local_prod_resume_20260307_a \
   --epochs 4 \
-  --batch-size 4 \
-  --model-type conformer_like \
-  --hidden-dim 192 \
-  --encoder-layers 3 \
-  --attention-heads 4 \
-  --conv-kernel-size 15 \
-  --dropout 0.1 \
   --resume-from \
-  experiments/checkpoints/canonical_phone_ctc/canonical_local_c2_structured_r2_fresh_20260306_a/epoch-1.pt
+  experiments/checkpoints/canonical_phone_ctc/canonical_local_conformer_prod_b1_20260307_a/epoch-1.pt
 ```
 
 Run the stable-lane compile versus eager benchmark:

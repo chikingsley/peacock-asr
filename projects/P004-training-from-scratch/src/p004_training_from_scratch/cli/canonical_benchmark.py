@@ -32,8 +32,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument(
         "--model-type",
-        choices=("tiny", "conformer_like"),
-        default="conformer_like",
+        choices=("tiny", "conformer_like", "conformer"),
+        default="conformer",
     )
     parser.add_argument("--hidden-dim", type=int, default=192)
     parser.add_argument("--encoder-layers", type=int, default=3)

@@ -24,20 +24,15 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 logger = logging.getLogger(__name__)
 
-DEFAULT_VOCAB = Path(
-    "/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/training/vocab.json"
+PROJECT_ROOT = Path(
+    os.environ.get("P004_PROJECT_ROOT", str(Path(__file__).resolve().parents[1]))
+).expanduser()
+DEFAULT_VOCAB = PROJECT_ROOT / "resources" / "arpabet_vocab.json"
+DEFAULT_LANG_DIR = PROJECT_ROOT / "experiments" / "data" / "lang_phone"
+DEFAULT_ICEFALL_PREPARE_LANG = (
+    PROJECT_ROOT / "third_party" / "icefall" / "egs" / "timit" / "ASR" / "local" / "prepare_lang.py"
 )
-DEFAULT_LANG_DIR = Path(
-    "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/data/lang_phone"
-)
-DEFAULT_ICEFALL_PREPARE_LANG = Path(
-    "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/third_party/"
-    "icefall/egs/timit/ASR/local/prepare_lang.py"
-)
-DEFAULT_ICEFALL_ROOT = Path(
-    "/home/simon/github/peacock-asr/projects/P004-training-from-scratch/third_party/"
-    "icefall"
-)
+DEFAULT_ICEFALL_ROOT = PROJECT_ROOT / "third_party" / "icefall"
 
 
 def parse_args() -> argparse.Namespace:

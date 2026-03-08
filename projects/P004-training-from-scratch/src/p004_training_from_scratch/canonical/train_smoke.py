@@ -11,12 +11,10 @@ References
 from __future__ import annotations
 
 import contextlib
-import gzip
 import importlib.metadata as metadata
 import json
 import math
 import time
-from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
@@ -27,7 +25,17 @@ from p004_training_from_scratch.canonical.common import (
     CanonicalModelConfig,
     CanonicalModelType,
     build_canonical_ctc_model,
-    load_log_mel_features,
+)
+from p004_training_from_scratch.canonical.data import (
+    CanonicalManifestDataset,
+    DurationBucketBatchSampler,
+    PreparedExample,
+    PreparedExampleCollator,
+    load_phone_token_table,
+    read_manifest_cuts,
+)
+from p004_training_from_scratch.canonical.data import (
+    ManifestCut as SmokeCut,
 )
 from p004_training_from_scratch.machine_manifest import capture_machine_manifest
 from p004_training_from_scratch.settings import PROJECT_ROOT, ProjectSettings
@@ -57,192 +65,10 @@ LossComputeDType = Literal["model", "float32"]
 
 
 @dataclass(frozen=True, slots=True)
-class SmokeCut:
-    cut_id: str
-    audio_path: Path
-    phones: tuple[str, ...]
-    duration_seconds: float | None
-
-
-@dataclass(frozen=True, slots=True)
-class PreparedExample:
-    cut_id: str
-    features: Any
-    target_ids: tuple[int, ...]
-    duration_seconds: float | None
-
-
-@dataclass(frozen=True, slots=True)
 class ResumeCheckpoint:
     epoch: int
     model_state: Any
     optimizer_state: Any
-
-
-def load_phone_token_table(tokens_path: Path = DEFAULT_TOKENS_PATH) -> dict[str, int]:
-    if not tokens_path.is_file():
-        msg = f"token table not found: {tokens_path}"
-        raise FileNotFoundError(msg)
-
-    token_table: dict[str, int] = {}
-    for line in tokens_path.read_text(encoding="utf-8").splitlines():
-        stripped = line.strip()
-        if not stripped:
-            continue
-        token, token_id = stripped.rsplit(maxsplit=1)
-        token_table[token] = int(token_id)
-    if "<eps>" not in token_table:
-        msg = f"blank token <eps> missing from token table: {tokens_path}"
-        raise ValueError(msg)
-    return token_table
-
-
-def read_smoke_cuts(
-    manifest_path: Path,
-    *,
-    limit: int,
-    token_table: dict[str, int] | None = None,
-) -> list[SmokeCut]:
-    if limit <= 0:
-        msg = "limit must be positive"
-        raise ValueError(msg)
-    if not manifest_path.is_file():
-        msg = f"manifest not found: {manifest_path}"
-        raise FileNotFoundError(msg)
-
-    if manifest_path.suffix == ".gz":
-        with gzip.open(manifest_path, "rt", encoding="utf-8") as handle:
-            cuts = _read_smoke_cut_lines(
-                handle,
-                limit=limit,
-                token_table=token_table,
-            )
-    else:
-        with manifest_path.open("rt", encoding="utf-8") as handle:
-            cuts = _read_smoke_cut_lines(
-                handle,
-                limit=limit,
-                token_table=token_table,
-            )
-
-    if not cuts:
-        msg = f"no usable cuts found in manifest: {manifest_path}"
-        raise ValueError(msg)
-    return cuts
-
-
-def prepare_examples(
-    *,
-    cuts: list[SmokeCut],
-    token_table: dict[str, int],
-    torch: Any,
-    torchaudio: Any,
-) -> list[PreparedExample]:
-    examples: list[PreparedExample] = []
-    for cut in cuts:
-        features = load_log_mel_features(
-            path=cut.audio_path,
-            torch=torch,
-            torchaudio=torchaudio,
-            device=None,
-            n_mels=DEFAULT_NUM_MELS,
-        )
-        examples.append(
-            PreparedExample(
-                cut_id=cut.cut_id,
-                features=features,
-                target_ids=tuple(token_table[phone] for phone in cut.phones),
-                duration_seconds=cut.duration_seconds,
-            )
-        )
-    return examples
-
-
-def _read_smoke_cut_lines(
-    lines: Iterable[str],
-    *,
-    limit: int,
-    token_table: dict[str, int] | None,
-) -> list[SmokeCut]:
-    cuts: list[SmokeCut] = []
-    for raw_line in lines:
-        payload = json.loads(raw_line)
-        phones = tuple(
-            phone for phone in str(payload["supervisions"][0]["text"]).split() if phone
-        )
-        if not phones:
-            continue
-
-        source = Path(str(payload["recording"]["sources"][0]["source"]))
-        if not source.is_file():
-            msg = f"manifest listed missing audio file: {source}"
-            raise FileNotFoundError(msg)
-
-        if token_table is not None:
-            unknown = sorted(
-                {phone for phone in phones if phone not in token_table}
-            )
-            if unknown:
-                msg = f"manifest contains unknown phones: {', '.join(unknown)}"
-                raise ValueError(msg)
-
-        cuts.append(
-            SmokeCut(
-                cut_id=str(payload["id"]),
-                audio_path=source,
-                phones=phones,
-                duration_seconds=_coerce_optional_float(payload.get("duration")),
-            )
-        )
-        if len(cuts) == limit:
-            break
-    return cuts
-
-
-def collate_prepared_examples(
-    examples: list[PreparedExample],
-    *,
-    torch: Any,
-) -> dict[str, Any]:
-    feature_rows = [example.features for example in examples]
-    input_lengths = torch.tensor(
-        [int(feature.shape[0]) for feature in feature_rows],
-        dtype=torch.long,
-    )
-    target_lengths = torch.tensor(
-        [len(example.target_ids) for example in examples],
-        dtype=torch.long,
-    )
-    pairs = zip(
-        input_lengths.tolist(),
-        target_lengths.tolist(),
-        [example.cut_id for example in examples],
-        strict=True,
-    )
-    for input_length, target_length, cut_id in pairs:
-        if int(target_length) >= int(input_length):
-            msg = (
-                f"CTC target sequence is longer than its input sequence for {cut_id}: "
-                f"target_length={target_length}, input_length={input_length}"
-            )
-            raise ValueError(msg)
-
-    flat_targets = torch.tensor(
-        [token for example in examples for token in example.target_ids],
-        dtype=torch.long,
-    )
-    if flat_targets.numel() == 0:
-        msg = "CTC targets cannot be empty"
-        raise ValueError(msg)
-
-    padded_features = torch.nn.utils.rnn.pad_sequence(feature_rows, batch_first=True)
-    return {
-        "cut_ids": [example.cut_id for example in examples],
-        "features": padded_features,
-        "input_lengths": input_lengths,
-        "targets": flat_targets,
-        "target_lengths": target_lengths,
-    }
 
 
 def run_canonical_train_smoke(
@@ -251,8 +77,8 @@ def run_canonical_train_smoke(
     train_manifest: Path = DEFAULT_TRAIN_MANIFEST,
     dev_manifest: Path = DEFAULT_DEV_MANIFEST,
     tokens_path: Path = DEFAULT_TOKENS_PATH,
-    train_limit: int = 12,
-    dev_limit: int = 4,
+    train_limit: int | None = 12,
+    dev_limit: int | None = 4,
     epochs: int = 1,
     batch_size: int = 3,
     model_type: CanonicalModelType = "tiny",
@@ -267,6 +93,9 @@ def run_canonical_train_smoke(
     seed: int = 42,
     resume_from: Path | None = None,
     enable_compile: bool = True,
+    num_workers: int = 4,
+    bucket_size_multiplier: int = 50,
+    pin_memory: bool = True,
     allow_online_trackers: bool = False,
     with_wandb: bool = True,
 ) -> dict[str, Any]:
@@ -275,6 +104,12 @@ def run_canonical_train_smoke(
         raise ValueError(msg)
     if batch_size <= 0:
         msg = "batch_size must be positive"
+        raise ValueError(msg)
+    if num_workers < 0:
+        msg = "num_workers must be non-negative"
+        raise ValueError(msg)
+    if bucket_size_multiplier <= 0:
+        msg = "bucket_size_multiplier must be positive"
         raise ValueError(msg)
     if _uses_flex_attention(attention_backend) and not enable_compile:
         msg = (
@@ -315,6 +150,9 @@ def run_canonical_train_smoke(
             "seed": seed,
             "resume_from": str(resume_from) if resume_from is not None else None,
             "enable_compile": enable_compile,
+            "num_workers": num_workers,
+            "bucket_size_multiplier": bucket_size_multiplier,
+            "pin_memory": pin_memory,
         },
         "success": False,
     }
@@ -326,7 +164,7 @@ def run_canonical_train_smoke(
         import torch
         import torchaudio
         import wandb
-        from torch.utils.data import DataLoader, Dataset
+        from torch.utils.data import DataLoader
     except Exception as exc:  # pragma: no cover - exercised by real runtime
         report["error"] = _format_exception(exc)
         return _write_report(report, report_path)
@@ -356,58 +194,62 @@ def run_canonical_train_smoke(
 
     token_table = load_phone_token_table(tokens_path)
     blank_id = token_table["<eps>"]
-    train_cuts = read_smoke_cuts(
+    train_cuts = read_manifest_cuts(
         train_manifest,
         limit=train_limit,
         token_table=token_table,
     )
-    dev_cuts = read_smoke_cuts(dev_manifest, limit=dev_limit, token_table=token_table)
-    train_examples = prepare_examples(
-        cuts=train_cuts,
+    dev_cuts = read_manifest_cuts(
+        dev_manifest,
+        limit=dev_limit,
         token_table=token_table,
-        torch=torch,
-        torchaudio=torchaudio,
-    )
-    dev_examples = prepare_examples(
-        cuts=dev_cuts,
-        token_table=token_table,
-        torch=torch,
-        torchaudio=torchaudio,
     )
 
     report["dataset"] = {
         "blank_id": blank_id,
         "vocab_size": len(token_table),
-        "train_cut_count": len(train_examples),
-        "dev_cut_count": len(dev_examples),
-        "train_cut_ids": [example.cut_id for example in train_examples],
-        "dev_cut_ids": [example.cut_id for example in dev_examples],
+        "train_cut_count": len(train_cuts),
+        "dev_cut_count": len(dev_cuts),
+        "train_cut_id_preview": _summarize_cut_ids(train_cuts),
+        "dev_cut_id_preview": _summarize_cut_ids(dev_cuts),
     }
 
-    class PreparedExampleDataset(Dataset[PreparedExample]):
-        def __init__(self, examples: list[PreparedExample]) -> None:
-            self._examples = examples
-
-        def __len__(self) -> int:
-            return len(self._examples)
-
-        def __getitem__(self, index: int) -> PreparedExample:
-            return self._examples[index]
-
-    generator = torch.Generator()
-    generator.manual_seed(seed)
-    train_loader = DataLoader(
-        PreparedExampleDataset(train_examples),
+    train_dataset = CanonicalManifestDataset(cuts=train_cuts, token_table=token_table)
+    dev_dataset = CanonicalManifestDataset(cuts=dev_cuts, token_table=token_table)
+    collator = PreparedExampleCollator()
+    train_batch_sampler = DurationBucketBatchSampler(
+        cuts=train_cuts,
         batch_size=batch_size,
         shuffle=True,
-        generator=generator,
-        collate_fn=lambda rows: collate_prepared_examples(rows, torch=torch),
+        seed=seed,
+        bucket_size_multiplier=bucket_size_multiplier,
     )
-    dev_loader = DataLoader(
-        PreparedExampleDataset(dev_examples),
+    dev_batch_sampler = DurationBucketBatchSampler(
+        cuts=dev_cuts,
         batch_size=batch_size,
         shuffle=False,
-        collate_fn=lambda rows: collate_prepared_examples(rows, torch=torch),
+        seed=seed,
+        bucket_size_multiplier=bucket_size_multiplier,
+    )
+
+    dataloader_kwargs: dict[str, Any] = {
+        "collate_fn": collator,
+        "num_workers": num_workers,
+        "pin_memory": pin_memory,
+    }
+    if num_workers > 0:
+        dataloader_kwargs["persistent_workers"] = True
+        dataloader_kwargs["prefetch_factor"] = 2
+
+    train_loader = DataLoader(
+        train_dataset,
+        batch_sampler=train_batch_sampler,
+        **dataloader_kwargs,
+    )
+    dev_loader = DataLoader(
+        dev_dataset,
+        batch_sampler=dev_batch_sampler,
+        **dataloader_kwargs,
     )
 
     model_config = CanonicalModelConfig(
@@ -499,8 +341,8 @@ def run_canonical_train_smoke(
                     "train_manifest": str(train_manifest),
                     "dev_manifest": str(dev_manifest),
                     "tokens_path": str(tokens_path),
-                    "train_cut_count": len(train_examples),
-                    "dev_cut_count": len(dev_examples),
+                    "train_cut_count": len(train_cuts),
+                    "dev_cut_count": len(dev_cuts),
                 },
                 "versions": report["versions"],
                 "wandb_mode_reason": reason,
@@ -524,6 +366,7 @@ def run_canonical_train_smoke(
 
     try:
         for epoch_index in range(initial_epoch, epochs):
+            train_batch_sampler.set_epoch(epoch_index)
             model.train()
             epoch_losses: list[float] = []
             for batch_index, batch in enumerate(train_loader):
@@ -535,7 +378,7 @@ def run_canonical_train_smoke(
                         compile_enabled=enable_compile,
                         attention_backend=attention_backend,
                     )
-                    logits = model(batch["features"])
+                    logits = model(batch["features"], batch["input_lengths"])
                     log_probs = _build_ctc_log_probs(
                         logits=logits,
                         loss_compute_dtype=loss_compute_dtype,
@@ -713,7 +556,7 @@ def _evaluate_dev(
                     compile_enabled=compile_enabled,
                     attention_backend=attention_backend,
                 )
-                logits = model(batch["features"])
+                logits = model(batch["features"], batch["input_lengths"])
                 log_probs = _build_ctc_log_probs(
                     logits=logits,
                     loss_compute_dtype=loss_compute_dtype,
@@ -999,10 +842,14 @@ def _package_version(name: str) -> str | None:
         return None
 
 
-def _coerce_optional_float(value: Any) -> float | None:
-    if value is None:
-        return None
-    return float(value)
+def _summarize_cut_ids(cuts: list[SmokeCut], *, max_items: int = 16) -> dict[str, Any]:
+    preview = [cut.cut_id for cut in cuts[:max_items]]
+    remaining = max(0, len(cuts) - len(preview))
+    return {
+        "preview": preview,
+        "preview_count": len(preview),
+        "remaining_count": remaining,
+    }
 
 
 def _inference_mode():
@@ -1023,6 +870,9 @@ def _write_report(report: dict[str, Any], report_path: Path) -> dict[str, Any]:
     return report
 
 
+read_smoke_cuts = read_manifest_cuts
+
+
 __all__ = [
     "DEFAULT_DEV_MANIFEST",
     "DEFAULT_OUTPUT_ROOT",
@@ -1035,9 +885,7 @@ __all__ = [
     "_load_resume_checkpoint",
     "_mark_cudagraph_step_begin",
     "_uses_flex_attention",
-    "collate_prepared_examples",
     "load_phone_token_table",
-    "prepare_examples",
     "read_smoke_cuts",
     "run_canonical_train_smoke",
 ]

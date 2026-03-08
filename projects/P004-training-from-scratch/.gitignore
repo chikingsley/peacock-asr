@@ -11,7 +11,12 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.log
+*.pid
 experiments/data/manifests_phone_raw/audio/
+experiments/data/corpora/
+experiments/data/manifests_phone_raw/*.jsonl.gz
+experiments/logs/
 experiments/checkpoints/**/checkpoint.pt
 experiments/checkpoints/**/epoch-*.pt
 experiments/checkpoints/**/model_state.pt

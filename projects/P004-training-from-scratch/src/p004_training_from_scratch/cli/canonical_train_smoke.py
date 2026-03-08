@@ -29,7 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--batch-size", type=int, default=3)
     parser.add_argument(
         "--model-type",
-        choices=("tiny", "conformer_like"),
+        choices=("tiny", "conformer_like", "conformer"),
         default="tiny",
     )
     parser.add_argument(
@@ -50,6 +50,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="Compute CTC log-probs/loss in model dtype or force float32.",
     )
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--num-workers", type=int, default=4)
+    parser.add_argument("--bucket-size-multiplier", type=int, default=50)
+    parser.add_argument(
+        "--disable-pin-memory",
+        action="store_true",
+        help="Disable DataLoader pin_memory for debugging or constrained hosts.",
+    )
     parser.add_argument(
         "--resume-from",
         type=Path,
@@ -96,6 +103,9 @@ def main() -> int:
         seed=args.seed,
         resume_from=args.resume_from,
         enable_compile=not args.disable_compile,
+        num_workers=args.num_workers,
+        bucket_size_multiplier=args.bucket_size_multiplier,
+        pin_memory=not args.disable_pin_memory,
         allow_online_trackers=args.allow_online_trackers,
         with_wandb=not args.disable_wandb,
     )

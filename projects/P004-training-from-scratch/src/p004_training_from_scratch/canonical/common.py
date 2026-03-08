@@ -18,9 +18,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
 
+from p004_training_from_scratch.canonical.conformer import (
+    build_conformer_canonical_ctc,
+)
+
 DEFAULT_SAMPLE_RATE = 16_000
 DEFAULT_NUM_MELS = 80
-CanonicalModelType = Literal["tiny", "conformer_like"]
+CanonicalModelType = Literal["tiny", "conformer_like", "conformer"]
 CanonicalAttentionBackend = Literal["mha", "flex_auto", "flex_triton", "flex_flash"]
 
 
@@ -63,6 +67,9 @@ def build_canonical_ctc_model(
     if config.model_type == "tiny" and config.attention_backend != "mha":
         msg = "tiny model only supports attention_backend='mha'"
         raise ValueError(msg)
+    if config.model_type == "conformer" and config.attention_backend != "mha":
+        msg = "conformer model currently only supports attention_backend='mha'"
+        raise ValueError(msg)
 
     if config.model_type == "tiny":
         return build_tiny_canonical_ctc(
@@ -70,6 +77,18 @@ def build_canonical_ctc_model(
             input_dim=input_dim,
             hidden_dim=config.hidden_dim,
             vocab_size=vocab_size,
+        )
+    if config.model_type == "conformer":
+        return build_conformer_canonical_ctc(
+            torch=torch,
+            input_dim=input_dim,
+            hidden_dim=config.hidden_dim,
+            vocab_size=vocab_size,
+            encoder_layers=config.encoder_layers,
+            attention_heads=config.attention_heads,
+            conv_kernel_size=config.conv_kernel_size,
+            dropout=config.dropout,
+            attention_backend=config.attention_backend,
         )
     if config.model_type == "conformer_like":
         return build_conformer_like_canonical_ctc(
@@ -115,7 +134,12 @@ def build_tiny_canonical_ctc(
             )
             self.output = torch.nn.Linear(hidden_dim, vocab_size)
 
-        def forward(self, features: Any) -> Any:
+        def forward(
+            self,
+            features: Any,
+            input_lengths: Any | None = None,
+        ) -> Any:
+            del input_lengths
             x = self.input_proj(features)
             residual = x
             x = self.conv(x.transpose(1, 2)).transpose(1, 2)
@@ -260,7 +284,12 @@ def build_conformer_like_canonical_ctc(
             self.output_norm = torch.nn.LayerNorm(hidden_dim)
             self.output = torch.nn.Linear(hidden_dim, vocab_size)
 
-        def forward(self, features: Any) -> Any:
+        def forward(
+            self,
+            features: Any,
+            input_lengths: Any | None = None,
+        ) -> Any:
+            del input_lengths
             hidden = self.input_dropout(self.input_proj(features))
             for block in self.blocks:
                 hidden = block(hidden)
@@ -345,6 +374,7 @@ __all__ = [
     "CanonicalModelType",
     "_resolve_attention_kernel_options",
     "build_canonical_ctc_model",
+    "build_conformer_canonical_ctc",
     "build_conformer_like_canonical_ctc",
     "build_tiny_canonical_ctc",
     "load_log_mel_features",
