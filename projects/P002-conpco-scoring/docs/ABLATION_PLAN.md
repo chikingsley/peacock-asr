@@ -7,10 +7,18 @@ How much of the ConPCO+HierCB SOTA performance (PCC 0.701) comes from:
 1. The ConPCO loss function alone (added to our existing GOPT)?
 2. Additional input features (energy, duration, SSL embeddings)?
 3. The HierCB architecture itself (BlockCNN, hierarchical levels)?
+4. Alternative richer scorer families such as faithful HMamba and HiPAMA?
 
 ## Goal
 
 Isolate each factor's contribution to PCC on SpeechOcean762 through incremental additions, following lab methodology (one change at a time, controlled compute).
+
+Phase-1 status:
+
+- effectively complete for the current repo question
+- loss-only ConPCO gain on our 42-d GOP-SF + GOPT stack is too small to be the
+  main story
+- the next priority is feature enrichment, not more loss-only reruns
 
 ## Frozen Setup (inherited from Track 05)
 
@@ -43,6 +51,8 @@ Expected gain: +1-3% PCC (based on PCO predecessor paper, ASRU 2023)
 
 Keep GOPT architecture. Add features incrementally to the input.
 
+This is now the active priority for `P002`.
+
 | Run ID | Model | Loss | Features | Purpose |
 |---|---|---|---|---|
 | P2-A | GOPT | MSE + ConPCO (best from P1) | LPP+LPR + duration (43-dim) | Duration feature effect |
@@ -57,7 +67,7 @@ Implementation needed:
 
 Expected effort: 3-5 days (Phase 2A/B easy, 2C needs phone-segmented SSL pooling)
 
-## Phase 3: Architecture Ablation (If Phase 1-2 Show Promise)
+## Phase 3: Architecture / Scorer Ablation (If Phase 1-2 Show Promise)
 
 Replace GOPT blocks with HierCB-style components.
 
@@ -66,9 +76,17 @@ Replace GOPT blocks with HierCB-style components.
 | P3-A | GOPT + BlockCNN | Best from P2 | Best from P2 | CNN branch effect |
 | P3-B | HierCB (phone only) | Best from P2 | Best from P2 | Full HierCB phone-level |
 | P3-C | HierCB (phone + word) | Best from P2 | Best from P2 | Hierarchical word aggregation |
+| P3-D | HMamba (faithful) | Best from P2 | Best from P2 | Hierarchical Mamba scorer effect |
+| P3-E | HiPAMA | Best from P2 | Best from P2 | Multi-aspect scorer effect |
 
 Expected effort: 1-2 weeks
 Expected gain: Unknown, this is where the bulk of HierCB's advantage may lie
+
+Boundary note:
+
+- the simple phone-level HMamba scorer swap tested in `P001` is not this phase
+- `P3-D` means a faithful richer-contract HMamba comparison, grouped with
+  HiPAMA and other non-drop-in scorers
 
 ## Phase 4: Full Replication (If Worth It)
 

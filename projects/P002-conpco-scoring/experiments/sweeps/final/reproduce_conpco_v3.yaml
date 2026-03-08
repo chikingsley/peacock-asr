@@ -1,0 +1,60 @@
+# v3: Paper's ACTUAL hyperparameters from train_hierCB.sh
+# Key differences from v1/v2: embed_dim=24, p_depth=3, w_depth=2,
+# pco_ld=0.5 (was 5.0!), clap_t2a=0.5 (was 0.1!), ssl_drop=0.2
+program: projects/P002-conpco-scoring/code/reproduce_conpco.py
+entity: peacockery
+project: peacock-asr-p002-conpco-scoring
+method: grid
+metric:
+  name: best/phn_pcc
+  goal: maximize
+
+command:
+  - ${env}
+  - PEACOCK_WANDB_GROUP=p002-reproduce-conpco-v3
+  - PEACOCK_WANDB_RUN_PREFIX=p002
+  - PEACOCK_WANDB_JOB_TYPE=reproduce
+  - PEACOCK_WANDB_TAGS=p002,conpco,reproduction,v3
+  - uv
+  - run
+  - --project
+  - projects/P002-conpco-scoring
+  - python
+  - ${program}
+  - ${args}
+
+parameters:
+  seed:
+    values: [22, 33, 44, 55, 66]
+  conpco:
+    values: ["on", "off"]
+  n-epochs:
+    value: 100
+  batch-size:
+    value: 25
+  lr:
+    value: 0.001
+  # --- Paper's actual architecture (from train_hierCB.sh) ---
+  embed-dim:
+    value: 24
+  heads:
+    value: 1
+  p-depth:
+    value: 3
+  w-depth:
+    value: 2
+  u-depth:
+    value: 1
+  ssl-drop:
+    value: 0.2
+  # --- Paper's actual ConPCO weights ---
+  pco-ld:
+    value: 0.5
+  pco-lt:
+    value: 0.1
+  pco-mg:
+    value: 1.0
+  clap-t2a:
+    value: 0.5
+  tag:
+    value: v3

@@ -1,7 +1,9 @@
 # Track 09 Performance Acceleration Playbook (ConPCO/HierCB)
 
 Last updated: 2026-03-04  
-Scope: `runs/reproduce_conpco.py` + `references/ConPCO/src/*` training loop performance
+Scope: `projects/P002-conpco-scoring/code/reproduce_conpco.py` +
+`projects/P002-conpco-scoring/third_party/ConPCO/src/*` training loop
+performance
 
 ## 1. Executive Summary
 
@@ -40,9 +42,10 @@ This rubric is tailored to your request: "how drop-in is this for our exact setu
 In the HierCB model:
 
 - Word-position mask builds via Python nested loops per batch:  
-  `references/ConPCO/src/models/gopt_ssl_3m_bfr_cat_utt_clap.py:412`
+  `projects/P002-conpco-scoring/third_party/ConPCO/src/models/gopt_ssl_3m_bfr_cat_utt_clap.py:412`
 - One-hot expansion for phone and word IDs every batch:  
-  `references/ConPCO/src/models/gopt_ssl_3m_bfr_cat_utt_clap.py:532` and `:553`
+  `projects/P002-conpco-scoring/third_party/ConPCO/src/models/gopt_ssl_3m_bfr_cat_utt_clap.py:532`
+  and `:553`
 
 These patterns can bottleneck host-side preprocessing and kernel launch cadence.
 
@@ -51,21 +54,22 @@ These patterns can bottleneck host-side preprocessing and kernel launch cadence.
 Current local training loader config in reproduce script:
 
 - `DataLoader(..., num_workers=0 by default, pin_memory=False by default)`  
-  `runs/reproduce_conpco.py:265`
+  `projects/P002-conpco-scoring/code/reproduce_conpco.py:265`
 
 This often under-feeds the GPU on single-node training.
 
 ### 3.3 Single-GPU run still wrapped in `DataParallel`
 
 - `model = nn.DataParallel(model)` on one GPU:  
-  `runs/reproduce_conpco.py:279`
+  `projects/P002-conpco-scoring/code/reproduce_conpco.py:279`
 
 `DataParallel` is designed for multi-GPU splitting/replication and can add overhead for single-GPU execution.
 
 ### 3.4 Evaluation path also has Python loops
 
-- Token-level and word-level PCC are computed via Python loops and NumPy conversion each eval:  
-  `runs/reproduce_conpco.py:148`, `:170`, `:199`
+- Token-level and word-level PCC are computed via Python loops and NumPy
+  conversion each eval:  
+  `projects/P002-conpco-scoring/code/reproduce_conpco.py:148`, `:170`, `:199`
 
 This contributes to epoch-end latency.
 
@@ -320,8 +324,8 @@ What:
 
 Where in this repo:
 
-- `references/ConPCO/src/models/gopt_ssl_3m_bfr_cat_utt_clap.py:196`
-- `references/ConPCO/src/models/gopt_ssl_3m_bfr_cat_utt_clap.py:546`
+- `projects/P002-conpco-scoring/third_party/ConPCO/src/models/gopt_ssl_3m_bfr_cat_utt_clap.py:196`
+- `projects/P002-conpco-scoring/third_party/ConPCO/src/models/gopt_ssl_3m_bfr_cat_utt_clap.py:546`
 
 Why:
 
@@ -343,7 +347,7 @@ What:
 
 Where in this repo:
 
-- `references/ConPCO/src/models/gopt_ssl_3m_bfr_cat_utt_clap.py:412`
+- `projects/P002-conpco-scoring/third_party/ConPCO/src/models/gopt_ssl_3m_bfr_cat_utt_clap.py:412`
 
 Why:
 
@@ -372,8 +376,8 @@ Poor Triton candidates in this pipeline:
 
 Where to inspect first:
 
-- `references/ConPCO/src/models/conPCO_norm.py:48`
-- `src/peacock_asr/losses.py:132`
+- `projects/P002-conpco-scoring/third_party/ConPCO/src/models/conPCO_norm.py:48`
+- `projects/P002-conpco-scoring/code/p002_conpco/conpco_losses.py`
 
 Confidence:
 
@@ -410,9 +414,9 @@ not the first choice for core GPU training kernels.
 
 Where:
 
-- `training/preprocess_features.py:53`
-- `training/preprocess_features.py:73`
-- `training/preprocess_features.py:87`
+- `projects/P003-compact-backbones/code/training/preprocess_features.py:47`
+- `projects/P003-compact-backbones/code/training/preprocess_features.py:67`
+- `projects/P003-compact-backbones/code/training/preprocess_features.py:81`
 
 Idea:
 
@@ -433,9 +437,9 @@ Risk:
 
 Where:
 
-- `src/peacock_asr/dataset.py:63`
-- `src/peacock_asr/dataset.py:70`
-- `src/peacock_asr/dataset.py:82`
+- `projects/P001-gop-baselines/code/p001_gop/dataset.py`
+- `projects/P001-gop-baselines/code/p001_gop/dataset.py`
+- `projects/P001-gop-baselines/code/p001_gop/dataset.py`
 
 Idea:
 
@@ -455,10 +459,10 @@ Risk:
 
 Where:
 
-- `runs/reproduce_conpco.py:148`
-- `runs/reproduce_conpco.py:170`
-- `runs/reproduce_conpco.py:199`
-- `src/peacock_asr/evaluate.py:87`
+- `projects/P002-conpco-scoring/code/reproduce_conpco.py:148`
+- `projects/P002-conpco-scoring/code/reproduce_conpco.py:170`
+- `projects/P002-conpco-scoring/code/reproduce_conpco.py:199`
+- `projects/P002-conpco-scoring/code/p002_conpco/evaluate.py`
 
 Idea:
 
@@ -477,7 +481,7 @@ Risk:
 
 Where:
 
-- `src/peacock_asr/gop.py:530`
+- `projects/P001-gop-baselines/code/p001_gop/gop.py`
 
 Idea:
 

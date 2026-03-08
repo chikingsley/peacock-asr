@@ -1,0 +1,16 @@
+{
+  "batch_size": 25,
+  "conpco": "on",
+  "data_parallel": true,
+  "dataset_load_s": 1.9096454130485654,
+  "device": "cuda",
+  "first_batch_s": 0.009060426033101976,
+  "loader_build_s": 0.00020934897474944592,
+  "mean_step_s": 0.2397991386242211,
+  "num_workers": 0,
+  "p95_step_s": 0.6408042899565771,
+  "pin_memory": false,
+  "preconcat_ssl": false,
+  "split": "train",
+  "steps": 3
+}

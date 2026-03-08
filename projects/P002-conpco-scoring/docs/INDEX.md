@@ -54,4 +54,4 @@ Ordinal Entropy (ICLR 2023, Zhang et al.) ─── math foundation
 
 ## Also In Repo
 
-The ConPCO reference implementation is cloned at `references/ConPCO/` (includes code + poster PNG, no paper PDF).
+The ConPCO reference implementation is cloned at `projects/P002-conpco-scoring/third_party/ConPCO/` (includes code + poster PNG, no paper PDF).

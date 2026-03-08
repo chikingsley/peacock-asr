@@ -1,0 +1,50 @@
+program: projects/P002-conpco-scoring/code/reproduce_conpco.py
+entity: peacockery
+project: peacock-asr-p002-final
+method: grid
+metric:
+  name: best/phn_pcc
+  goal: maximize
+
+command:
+  - ${env}
+  - PEACOCK_WANDB_GROUP=p002-final-reproduce-conpco-legacy
+  - PEACOCK_WANDB_RUN_PREFIX=p002-final
+  - PEACOCK_WANDB_JOB_TYPE=reproduce
+  - PEACOCK_WANDB_TAGS=p002,conpco,reproduction,legacy
+  - uv
+  - run
+  - ${program}
+  - ${args}
+
+parameters:
+  seed:
+    values: [42, 123, 456]
+  conpco:
+    values: ["on", "off"]
+  n-epochs:
+    value: 100
+  batch-size:
+    value: 25
+  lr:
+    value: 0.001
+  embed-dim:
+    value: 12
+  heads:
+    value: 1
+  p-depth:
+    value: 1
+  w-depth:
+    value: 1
+  u-depth:
+    value: 1
+  ssl-drop:
+    value: 0.1
+  pco-ld:
+    value: 5.0
+  pco-lt:
+    value: 0.1
+  pco-mg:
+    value: 1.0
+  clap-t2a:
+    value: 0.1

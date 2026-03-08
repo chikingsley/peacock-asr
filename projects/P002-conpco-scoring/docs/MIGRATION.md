@@ -4,23 +4,20 @@
 
 Consolidate ConPCO reproduction work into `P002` without disrupting active sweeps.
 
-## Freeze Constraints (active reproduction)
+## Current Compatibility Constraints
 
-Do not move these yet:
+No root-level runtime shims remain for `P002`.
 
-- `references/ConPCO/`
-- `runs/reproduce_conpco.py`
-
-## Current Canonical Inputs (legacy paths)
+## Current Canonical Inputs
 
 - Docs: `projects/P002-conpco-scoring/docs/`
+- Code: `projects/P002-conpco-scoring/code/`
+- Upstream reference repo: `projects/P002-conpco-scoring/third_party/ConPCO/`
 - Run specs:
-  - `runs/sweep_conpco_v3_paper.yaml`
-  - `runs/sweep_conpco_v4_rng_fix.yaml`
+  - `projects/P002-conpco-scoring/experiments/sweeps/final/reproduce_conpco_v3.yaml`
+  - `projects/P002-conpco-scoring/experiments/sweeps/final/reproduce_conpco_v4_rng_fix.yaml`
+  - `projects/P002-conpco-scoring/experiments/sweeps/final/track09_p1_ablation.yaml`
 
-## Post-sweep target layout
+## Compatibility Cleanup Target
 
-- Upstream reference repo target:
-  - `projects/P002-conpco-scoring/third_party/conpco-upstream/`
-- Reproduction script wrapper target:
-  - `projects/P002-conpco-scoring/code/reproduce_conpco.py` (or project wrapper that calls legacy path)
+- Keep all new automation on the project-local entrypoints only.

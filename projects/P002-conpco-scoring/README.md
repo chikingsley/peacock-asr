@@ -2,9 +2,10 @@
 
 Legacy mapping: `projects/P002-conpco-scoring/docs`
 
-Reference repo target location (post-sweep migration):
-- `projects/P002-conpco-scoring/third_party/conpco-upstream/`
+Canonical project-local locations:
+- `projects/P002-conpco-scoring/code/`
+- `projects/P002-conpco-scoring/third_party/ConPCO/`
+- `projects/P002-conpco-scoring/experiments/sweeps/final/`
 
-Temporary policy:
-- Keep `references/ConPCO/` in place while active sweeps are running.
-- Keep `runs/reproduce_conpco.py` in place while active sweeps are running.
+Root-level compatibility shims have been removed. Use the project-local scripts
+under `projects/P002-conpco-scoring/code/`.

@@ -23,6 +23,7 @@ Citation policy:
 | C4 | SSL embeddings provide large marginal gain over handcrafted features | Needs experiment (Phase 2C) | [1], [3] |
 | C5 | HierCB's SOTA (0.701) is primarily from architecture+features, not just loss | **Supported** — ConPCO adds +0.014 on HierCB but only +0.003 on GOPT/GOP-SF | [1] |
 | C6 | Our GOPT baseline (0.6774) is a valid compute-fair comparison point | Supported (Track 05 Phase 1 A3, 5 seeds) | Internal |
+| C7 | Faithful HMamba and HiPAMA should be treated as richer-contract scorer families, not simple `P001` scorer swaps | Supported by method/data-contract differences | [6], Internal |
 
 ---
 
@@ -35,15 +36,32 @@ Citation policy:
 | [3] | Yan et al. (ACL 2024) "HierTFR: Hierarchical Transformer" | Phone+word+utterance hierarchical scoring | Architecture predecessor to HierCB |
 | [4] | Cao et al. (TASLP 2026) "Segmentation-Free GOP" | GOP-SF algorithm we use as feature extractor | Our GOP implementation source |
 | [5] | Gong et al. (ICASSP 2022) "GOPT" | Transformer scoring on GOP features, PCC 0.612 | Our scoring baseline |
+| [6] | Do et al. (ICASSP 2023) "HiPAMA" | Multi-aspect attention over richer pronunciation structure | Richer scorer family |
+
+## 2B. Boundary Update
+
+The repo now draws a hard distinction between two kinds of scorer work:
+
+- `P001`: simple scorer swaps on the frozen phone-level feature contract
+- `P002`: richer-contract scorers that require more structure, more features,
+  or multi-aspect supervision
+
+Implication:
+
+- the exploratory `P001` phone-level HMamba run (`PCC 0.6341`, `original`,
+  seed `501`) is useful local evidence, but it is not the faithful HMamba
+  experiment
+- faithful HMamba and HiPAMA both belong in `P002`
 
 ---
 
 ## 3. Internal Evidence Anchors
 
-- GOPT baseline runs: Track 05 Phase 1 (`runs/2026-03-03_001037_track05_phase1_baseline/`)
-- GOPT model: `/home/simon/github/peacock-asr/src/peacock_asr/gopt_model.py`
-- GOP feature extraction: `/home/simon/github/peacock-asr/src/peacock_asr/gop.py`
-- ConPCO reference code: `references/ConPCO/` (to be cloned)
+- GOPT baseline runs: Track 05 Phase 1
+  (`projects/P001-gop-baselines/experiments/legacy/batches/2026-03-03_001037_track05_phase1_baseline/`)
+- GOPT model: `/home/simon/github/peacock-asr/projects/P002-conpco-scoring/code/p002_conpco/gopt_model.py`
+- GOP feature extraction feeding Track 09: `/home/simon/github/peacock-asr/projects/P001-gop-baselines/code/p001_gop/gop.py`
+- ConPCO reference code: `projects/P002-conpco-scoring/third_party/ConPCO/`
 - Precomputed features: `a2d8a4v/SpeechOcean762_for_ConPCO` on HuggingFace
 
 ---
