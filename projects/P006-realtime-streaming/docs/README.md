@@ -1,21 +1,26 @@
-# Track 08 Paper Workspace: Real-Time and Streaming Pronunciation Scoring
+# Track 08 Workspace: Unscripted / ASR-Conditioned CAPT
 
-Working title:
+Working titles:
 
+- **Unscripted Pronunciation Assessment via ASR-Conditioned Phoneme Scoring**
 - **Chunked GOP-SF for Low-Latency Pronunciation Scoring: Toward Real-Time Feedback**
 
 Purpose:
 
-- Determine whether GOP-SF can be applied word-by-word (chunked) as utterances arrive.
-- Evaluate streaming ASR models (Voxtral, Moshi, Moonshine v2) as CTC posterior sources.
-- Characterize latency and score stability under incremental processing.
-- Establish what "real-time" pronunciation scoring actually requires in practice.
+- Define the unscripted / free-speaking CAPT problem for this repo.
+- Evaluate whether ASR output can serve as the temporary transcript for
+  pronunciation scoring when canonical text is not known in advance.
+- Measure how ASR transcript errors propagate into pronunciation scoring.
+- Evaluate low-latency and streaming variants as deployment constraints inside
+  that broader unscripted setting.
 
 Source of truth:
 
 - Evidence ledger: `./EVIDENCE_LEDGER.md`
 - Bibliography: `./refs.bib`
 - Ablation plan: `./ABLATION_PLAN.md`
+- Unscripted note: `./UNSCRIPTED_ASR_CAPT_PLAN.md`
+- Data taxonomy: `./DATA_TAXONOMY.md`
 
 Draft files:
 
@@ -28,13 +33,19 @@ Citation convention:
 
 Process:
 
-1. Phase 1 (chunked GOP-SF) first — no new model needed, reuses existing pipeline.
-2. Lock latency measurement protocol before any streaming model experiments.
-3. Write Results only from reproducible logs/artifacts.
-4. Run evidence audit before finalizing claims.
+1. Define the unscripted / ASR-conditioned task contract first.
+2. Separate pronunciation scoring, ASR recognition, and semantic judging into
+   distinct metrics.
+3. Treat low-latency or streaming variants as system constraints, not as the
+   only research question.
+4. Write Results only from reproducible logs/artifacts.
+5. Run evidence audit before finalizing claims.
 
 Papers (PDFs in `./papers/`):
 
+- `[Yan et al, 2025]-hippo-hierarchical-apa-unscripted-speech.pdf` — HiPPO: unscripted / spoken-language APA
+- `[Chen et al, 2023]-multipa-multitask-open-response-pronunciation.pdf` — MultiPA: open-response pronunciation assessment
+- `[Chen et al, 2025]-textpa-zero-shot-pronunciation-llm.pdf` — Read to Hear: textual descriptions + coherence-aware LLM scoring
 - `[Shi et al, 2021]-coca-mdd-streaming-coupled-cross-attention.pdf` — CoCA-MDD: only paper directly on streaming + pronunciation
 - `[Nachmani et al, 2026]-voxtral-realtime-streaming-asr.pdf` — Voxtral: streaming ASR, vLLM serving, word boundaries
 - `[Defossez et al, 2024]-moshi-speech-text-foundation-model-for-realtime-dialogue.pdf` — Moshi: full-duplex speech, real-time by design
@@ -47,6 +58,9 @@ Papers (PDFs in `./papers/`):
 
 Key references (in `./refs.bib`):
 
+- `[@yan2025hippo]` — HiPPO: hierarchical APA for spoken / unscripted language
+- `[@chen2024multipa]` — MultiPA: open-response pronunciation assessment
+- `[@chen2025read_to_hear]` — Read to Hear: zero-shot pronunciation scoring from textual speech descriptions
 - `[@shi2021coca_mdd]` — CoCA-MDD: streaming coupled cross-attention MDD (2111.08191)
 - `[@defossez2024moshi]` — Moshi: real-time speech-text foundation model
 - `[@nachmani2025voxtral]` — Voxtral: Mistral streaming ASR
@@ -59,5 +73,11 @@ Key references (in `./refs.bib`):
 
 Upstream dependencies:
 
-- Track 05: GOP-SF pipeline (chunked approach reuses this directly)
-- Track 07: from-scratch streaming model is the long-horizon version of Phase 3/4 here
+- Track 05: transcript-known GOP-SF pipeline
+- Track 06: multimodal / LLM-based pronunciation scoring
+- Track 07: from-scratch phoneme backbones
+
+Scope note:
+
+- The earlier chunked-streaming draft remains relevant, but it is now treated as
+  one sub-path inside Track 08 rather than the entire definition of the track.

@@ -1,5 +1,11 @@
 # Track 08 Ablation Plan: Real-Time Streaming Pronunciation Scoring
 
+Scope note:
+
+- This file now represents the low-latency / streaming subpath within Track 08.
+- The broader Track 08 definition is unscripted / ASR-conditioned CAPT; see
+  `UNSCRIPTED_ASR_CAPT_PLAN.md` for the primary project framing.
+
 ## Research Question
 
 Can pronunciation scoring be made real-time (word-level feedback within ~500 ms of word

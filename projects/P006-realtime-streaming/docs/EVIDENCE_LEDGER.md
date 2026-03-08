@@ -45,9 +45,9 @@ Citation policy:
 
 ## 3. Internal Evidence Anchors
 
-- GOP-SF implementation: `/home/simon/github/peacock-asr/src/peacock_asr/gop.py`
-- GOPT scorer: `/home/simon/github/peacock-asr/src/peacock_asr/gopt_model.py`
-- Track 05 baseline runs: `runs/2026-03-03_001037_track05_phase1_baseline/`
+- GOP-SF implementation: `/home/simon/github/peacock-asr/projects/P001-gop-baselines/code/p001_gop/gop.py`
+- GOPT scorer: `/home/simon/github/peacock-asr/projects/P001-gop-baselines/code/p001_gop/gopt_model.py`
+- Track 05 final results: `/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/final/results/aggregate_summary.tsv`
 - Chunked GOP-SF (to be implemented): new module, will link here once created
 - Latency harness (to be implemented): will link here once created
 
