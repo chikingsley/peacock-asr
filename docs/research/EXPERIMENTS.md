@@ -42,9 +42,9 @@ Paper target: PCC = 0.648 (GOPT transformer on feature vectors).
     `score = (1 - alpha) * gop_sf + alpha * logit_margin`,
     `alpha=0.00..1.00` step `0.05`.
 - **Batch artifact**:
-  - `runs/2026-03-03_045426_track05_phase2_logit_scalar/summary.tsv`
+  - `projects/P001-gop-baselines/experiments/legacy/batches/2026-03-03_045426_track05_phase2_logit_scalar/summary.tsv`
 - **Dense sweep artifact**:
-  - `runs/2026-03-03_080157_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/alpha_sweep.tsv`
+  - `projects/P001-gop-baselines/experiments/legacy/alpha_sweeps/2026-03-03_080157_alpha_sweep_xlsr-espeak__wav2vec2-xlsr-53-espeak-cv-ft/alpha_sweep.tsv`
 - **Phase-2 points (`B1..B5`)**:
 
 | ID | Variant | Alpha | PCC | MSE |
@@ -149,7 +149,8 @@ Paper target: PCC = 0.648 (GOPT transformer on feature vectors).
 
 - **Changed**: Trained GOPT phone-level transformer on 42-dim feature vectors.
   3-layer Pre-LN transformer, 1 head, embed_dim=24, ~4K params.
-  Adapted from `references/gopt-transformer/` (Gong et al., ICASSP 2022).
+  Adapted from `projects/P001-gop-baselines/third_party/gopt-transformer/`
+  (Gong et al., ICASSP 2022).
   Input: 42-dim GOP features (1 LPP + 40 LPR + 1 occupancy) per phone,
   padded to 50 phones per utterance. MSE loss with padding mask, 100 epochs.
 - **Backend**: original (checkpoint-8000)

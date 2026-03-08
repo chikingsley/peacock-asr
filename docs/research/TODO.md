@@ -1,66 +1,104 @@
 # TODO
 
-Best single PCC: **0.6900** | Stochastic mean: **0.6704 ± 0.0121** (xlsr-espeak + GOPT, run 11) | See [EXPERIMENTS.md](EXPERIMENTS.md) for full run history.
+Best historical single PCC: **0.6958**  
+Best historical stochastic mean: **0.6774 +/- 0.0127** (`xlsr-espeak + GOPT`, `P001` final)  
+Canonical active workspace: [`projects/P001-gop-baselines/`](../../projects/P001-gop-baselines/)
+Lab north star: [`docs/research/LAB_GOALS.md`](./LAB_GOALS.md)
 
-## Next
+## Active Now
 
-- [ ] Track05 closeout: generate missing `original` backend scalar variant caches
-      (`gop_sf`, `logit_margin`) under `.cache/features/original__checkpoint-8000_/`
-- [ ] Track05 closeout: run `sweep-alpha` on `original` backend and append results to
-      `docs/research/EXPERIMENTS.md` + `projects/P001-gop-baselines/docs/*`
-- [ ] Track05 claim lock: decide final statement after `original` sweep
-      (`scorer variant gain` vs `stack-specific/noise-limited`)
-- [x] Pull LibriSpeech alignments subset (`train_clean_100`, `dev_clean`, `test_clean`)
-      to `/home/simon/github/peacock-asr/.cache/data/librispeech-alignments`
-- [x] Compare: original vs xlsr-espeak backends with GOPT (fast now with caching)
-- [x] Run 5 repeats for top GOPT configs (original, xlsr-espeak) and report mean/std
-- [x] Move all caches into repo `.cache/` dir (gitignored), update settings.py default,
-      pass `cache_dir` to `load_dataset()` and `from_pretrained()` calls
-- [ ] Replace shell one-offs with a committed run script (`runs/` logging + summary)
-- [ ] Investigate deeper `_ctc_forward_denom` acceleration (true vectorization / Rust / k2)
+- [x] Finish `P001` paper-close live batch under
+      `projects/P001-gop-baselines/experiments/final/`
+- [x] Confirm and export the final `P001` result set:
+      `aggregate_summary.tsv`, `per_run_summary.tsv`, `alpha_best.tsv`,
+      machine manifests, W&B artifact links, and final manuscript tables
+- [x] Reconcile the final batch outputs back into:
+      `docs/research/EXPERIMENTS.md`,
+      `projects/P001-gop-baselines/docs/RUNBOOK.md`,
+      `projects/P001-gop-baselines/docs/EVIDENCE_LEDGER.md`, and
+      `projects/P001-gop-baselines/docs/manuscript.md`
+- [x] Close the remaining original-backend scalar claim:
+      low-weight logit mixing helps modestly on both backends, but scalar gains
+      remain far below feature-based scoring
 
-### Done (Cleanup + Caching)
+## Immediate Next Tranche
 
-- [x] Add feature caching to disk (`.cache/features/`, `--no-cache` to bypass)
-- [x] Parallelize scalar GOP across utterances with `ProcessPoolExecutor` (3-phase pipeline)
-- [x] Standardize run outputs under `runs/` with per-run log files
-- [x] Extract shared PCC computation in evaluate.py (`_compute_pcc()` helper)
-- [x] Remove dead `GOPResult.phones` field
-- [x] Move env var `GOPT_BENCH_CTC_BACKEND` → `settings.ctc_feature_backend`
-- [x] Replace `Path(__file__).parents[3]` with `_find_repo_root()` (walks up to `pyproject.toml`)
-- [x] `_step_denom` helpers — kept split (each handles a distinct CTC case, re-merging triggers ruff)
+- [x] Remove the root `runs/` contract after the project-local campaign outputs
+      were verified; keep legacy artifacts under each project workspace
+- [x] Delete the legacy shell launcher; keep the `uv` launcher as the only
+      canonical campaign entrypoint
+- [x] Add a remote/pod machine manifest companion for RunPod-style runs:
+      provider, pod/template IDs, GPU type/count, hourly price, mounted volume,
+      and launch notes now fit into the project-local manifest flow
+- [ ] Expand remote manifest coverage with image hash and any provider-specific
+      fields that `runpodctl` exposes on future pods
+- [ ] Upgrade `ruff` and `ty` after the live batch, then rerun lint + types
+- [ ] Add `vulture --min-confidence 100` as a non-blocking hygiene pass
+- [x] Split the old root CLI/runtime surface into project-local packages for
+      `P001`, `P002`, and `P003`
 
-## Then: Better Backends (the actual research)
+## Repo Structure Cleanup
 
-Once caching enables fast iteration, swap in better phoneme models.
+- [x] Remove the root `src/peacock_asr/` package once `P001`/`P002`/`P003`
+      pass independently
+- [ ] Move project-specific scripts, references, and paper helpers into their
+      owning project workspaces where possible
+- [ ] Audit project-local `third_party/` ownership and keep upstream repos
+      only where they are actually used
+- [ ] Move standalone training entrypoints into project-owned locations unless
+      they are truly shared infrastructure
+- [ ] Standardize project-local launcher patterns so `P001`, `P002`, and `P003`
+      use similar metadata conventions without requiring a shared root package
 
-- [ ] Build ARPABET vocabulary (39 phones + blank + pad = 41 tokens)
-- [ ] Prepare LibriSpeech with phoneme labels (text → ARPABET via CMU dict / G2P)
-- [ ] Fine-tune w2v-BERT 2.0 with CTC on LibriSpeech (A100 80GB, ~6-12h)
-- [ ] Create new backend (`w2v_bert_phoneme.py`), plug into benchmark
-- [ ] Compare PCC with original baseline
+## Acceleration Backlog
 
-## Later
+- [ ] Profile the current GOP pipeline again after `P001` closes so the next
+      speed pass is based on current evidence, not older track assumptions
+- [ ] Investigate deeper `_ctc_forward_denom` acceleration for scalar GOP:
+      vectorization, Rust/PyO3, or a more specialized graph/runtime path
+- [ ] Review and extract repo-wide actions from
+      `projects/P001-gop-baselines/docs/PERFORMANCE_CODE_AUDIT_2026-03-05.md`,
+      `projects/P002-conpco-scoring/docs/PERFORMANCE_ACCELERATION_PLAYBOOK.md`
+      and `projects/P002-conpco-scoring/docs/PERFORMANCE_CODE_AUDIT_2026-03-05.md`
+- [ ] Keep `k2/icefall` as a strategic path for graph-based training work,
+      not as the first fix for the current CPU-bound scalar/eval bottlenecks
 
-- [ ] omniASR head swap (9812 chars → 41 phones, fairseq2 ecosystem)
-- [ ] Per-phone improvement analysis across backends
-- [ ] Data efficiency study (100h vs 460h vs 960h LibriSpeech)
-- [ ] Logit-based GOP-SF (pre-softmax values in CTC forward) — arXiv: 2506.12067
+## Project Roadmap
 
-## Research Infrastructure
+- [x] `P001`: finish paper-close batch, freeze canonical manifests, and lock
+      manuscript claims
+- [ ] `P002`: decide whether feature enrichment
+      (duration, energy, SSL embeddings) becomes the main continuation path
+- [ ] `P003`: finish full cutover to project-local sweeps / manifests and rerun
+      any final compact-backbone confirmations under canonical naming
+- [ ] `P004-P006`: keep as incubators until their evidence ledgers justify
+      promotion to active-paper status
+- [ ] Reframe `P006` around unscripted / ASR-conditioned CAPT and decide the
+      first paper-grade experiment contract for that track
+- [ ] Define the product-facing conversational CAPT layer
+      (pronunciation + intelligibility + semantic/coherence judgment) as a
+      separate evaluation problem, not as a hidden extension of the current
+      pronunciation metrics
 
-- [ ] Build paper management system (Zotero replacement)
+## Research / Paper Infrastructure
 
-## Key Papers to Process
+- [ ] Build a lightweight paper-management flow for citations, PDFs, notes, and
+      project-local reference mapping
+- [ ] Standardize what goes in the main paper vs supplement vs repo manifests:
+      hardware, timing, seeds, configs, prompts, figures, and failure counts
+- [ ] Decide whether the repo should export a single paper-grade result manifest
+      format shared across projects
 
-- [x] ZIPA (2505.23170) — saved to docs/papers/pdf/
-- [x] POWSM (2510.24992) — saved to docs/papers/pdf/
-- [x] PRiSM (2601.14046) — saved to docs/papers/pdf/
-- [x] CTC-based-GOP (2507.16838) — saved to docs/papers/pdf/
-- [ ] Xu et al. 2022 — wav2vec2-xlsr-53-espeak-cv-ft paper (arXiv: 2109.11680)
-- [ ] Allosaurus (ICASSP 2020) — universal phone recognizer
+## Key Papers To Process
+
+- [x] ZIPA (2505.23170)
+- [x] POWSM (2510.24992)
+- [x] PRiSM (2601.14046)
+- [x] CTC-based-GOP (2507.16838)
+- [x] GOPT Transformer paper (Gong et al. ICASSP 2022)
+- [ ] Xu et al. 2022 (`wav2vec2-xlsr-53-espeak-cv-ft`)
+- [ ] Allosaurus (ICASSP 2020)
 - [ ] Enhancing GOP with Phonological Knowledge (2506.02080)
 - [ ] Logit-based GOP Scores (2506.12067)
 - [ ] Original GOP paper (Witt & Young 2000)
-- [x] GOPT Transformer paper (Gong et al. ICASSP 2022)
 - [ ] SpeechOcean762 dataset paper (2104.01378)

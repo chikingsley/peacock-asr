@@ -122,20 +122,20 @@ The [HF datasets docs](https://huggingface.co/docs/datasets/process) recommend `
 
 ## Training Script Flags
 
-`training/train_phoneme_head.py` handles both paths:
+`projects/P003-compact-backbones/code/training/train_phoneme_head.py` handles both paths:
 
 ```bash
 # With preprocessed data (w2v-bert-2.0)
-python training/train_phoneme_head.py \
+uv run --project projects/P003-compact-backbones python projects/P003-compact-backbones/code/training/train_phoneme_head.py \
   --preprocessed-dataset Peacockery/librispeech-phoneme-features \
   --model-name facebook/w2v-bert-2.0
 
 # With raw audio (wav2vec2-base) — no preprocessing needed
-python training/train_phoneme_head.py \
+uv run --project projects/P003-compact-backbones python projects/P003-compact-backbones/code/training/train_phoneme_head.py \
   --model-name facebook/wav2vec2-base
 
 # With raw audio (w2v-bert-2.0) — works but slower
-python training/train_phoneme_head.py \
+uv run --project projects/P003-compact-backbones python projects/P003-compact-backbones/code/training/train_phoneme_head.py \
   --model-name facebook/w2v-bert-2.0
 ```
 
@@ -161,7 +161,7 @@ If you need to preprocess for a new model family (e.g., Whisper), the general ap
 3. Save the extracted features + labels as a new dataset
 4. Push to Hub
 
-See `training/preprocess_features.py` for the w2v-bert-2.0 implementation and `docs/lessons/preprocessing-at-scale.md` for lessons learned about doing this at scale on RunPod.
+See `projects/P003-compact-backbones/code/training/preprocess_features.py` for the w2v-bert-2.0 implementation and `docs/lessons/preprocessing-at-scale.md` for lessons learned about doing this at scale on RunPod.
 
 Key gotchas:
 

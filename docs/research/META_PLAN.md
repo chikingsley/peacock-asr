@@ -2,7 +2,7 @@
 
 *Personal lab notebook. Updated as things change.*
 
-Last updated: 2026-03-03
+Last updated: 2026-03-05
 
 We're building a segmentation-free GOP pipeline using CTC posteriors for
 pronunciation assessment on SpeechOcean762. We already beat every published
@@ -24,11 +24,11 @@ graph TD
     Q4["Q4: Can we train CTC<br/>from scratch?<br/><i>Track 07 — planned</i>"]
     Q5["Q5: Can this work<br/>in real-time?<br/><i>Track 08 — planned</i>"]
 
-    Q2a["Q2a: Does ConPCO loss<br/>improve GOPT?<br/><i>Track 09 — next up</i>"]
-    Q2b["Q2b: Do we need the<br/>300M backbone?<br/><i>Track 10</i>"]
-    Q2c["Q2c: Does logit-margin GOP<br/>beat posterior GOP?<br/><i>Track 05 Phase 2 — running</i>"]
+    Q2a["Q2a: Does ConPCO loss<br/>improve GOPT?<br/><i>Track 09 Phase 1 done</i>"]
+    Q2b["Q2b: Do we need the<br/>300M backbone?<br/><i>Track 10 active</i>"]
+    Q2c["Q2c: Does logit-margin GOP<br/>beat posterior GOP?<br/><i>Track 05 xlsr done; original pending</i>"]
 
-    P0["RUNNING NOW:<br/>w2v-bert CTC fine-tune<br/>on LibriSpeech<br/><i>Track 10 Phase 0</i>"]
+    P0["LATEST P003 RESULT:<br/>wav2vec2-base 95M<br/>PCC 0.640 +/- 0.009<br/><i>Track 10 Phase 1B</i>"]
 
     ROOT --> Q1
     ROOT --> Q2
@@ -55,27 +55,25 @@ graph TD
 
 ## Status Right Now
 
-**Running:**
+**Latest completed:**
 
-- **Track 05 Phase 2** — logit-scalar GOP variants. Runs in `runs/2026-03-03_*`.
-  Testing whether margin-based GOP features beat posterior GOP features.
-- **Track 10 Phase 0** (backbone prep) — `training/train_phoneme_head.py` on
-  RunPod L4. Fine-tuning w2v-bert-2.0 with CTC on LibriSpeech (41 ARPABET tokens).
-  Validates the recipe Track 10 Phase 1 needs for wav2vec2-base and HuBERT-base.
-  Model pushes to `Peacockery/w2v-bert-phoneme-en` on HuggingFace Hub.
-
-**Done:**
-
-- **Track 05 Phase 1** — xlsr-53 + GOPT baseline. PCC 0.677 +/- 0.013 (5 seeds).
-  Beats all published GOP methods. Runs in `runs/2026-03-03_001037_track05_phase1_baseline/`.
+- **Track 05 paper-close** — complete across both canonical backends.
+  `xlsr-espeak + GOPT` reached `0.6774 +/- 0.0127` PCC (5 seeds), and the final
+  scalar closeout shows low-weight logit mixing helps modestly but remains well
+  below feature-based scoring. Canonical outputs now live in
+  `projects/P001-gop-baselines/experiments/final/results/`.
+- **Track 09 Phase 1** — ConPCO loss ablation on GOPT + GOP-SF completed.
+  Ordinal entropy adds only a small gain on the 42-d GOP-SF stack; the main
+  remaining upside appears to be richer features, not loss alone.
+- **Track 10 Phase 1B** — `wav2vec2-base` backbone result landed:
+  `0.640 +/- 0.009` PCC with 3.3x fewer parameters than the 300M baseline.
 
 **Next:**
 
-- **Track 09 Phase 1** — Port ConPCO loss into GOPT trainer. Loss function swap only,
-  same architecture, same features. Code at `references/ConPCO/`. Smallest possible
-  experiment to test whether ordinal loss improves phone-level PCC.
-- **Track 05 Phase 2 completion** — finish logit-scalar variants, decide whether
-  logit GOP replaces posterior GOP as baseline.
+- **Track 10 Phase 1C** — fine-tune/evaluate `HuBERT-base` under the same GOP-SF + GOPT
+  protocol as `wav2vec2-base`.
+- **Track 09 decision point** — either continue with feature enrichment or fold the current
+  result into a broader paper as a negative/clarifying ablation.
 
 ---
 
@@ -88,6 +86,7 @@ graph TD
 |Gradformer|0.646|Pei et al. 2023|
 |HIA|0.657|Han et al. 2026, best prior GOP method|
 |**Ours (xlsr-53 + GOPT + GOP-SF)**|**0.677**|Track 05 Phase 1, 5 seeds|
+|Ours (wav2vec2-base + GOPT + GOP-SF)|0.640|Track 10 Phase 1B, 5 seeds|
 |HierCB + ConPCO|0.701|Yan et al. 2025, target (different paradigm)|
 
 The 0.677 to 0.701 gap is the working frontier. HierCB uses 3164-dim SSL
@@ -107,11 +106,12 @@ code, and its GOPT baseline number (0.677).
 Track 10 (re-test compact backbones with the better loss) and Track 08
 (use the better loss in streaming).
 
-**Track 10 depends on backbone fine-tuning.** Phase 0 (running now on
-RunPod L4) validates the CTC fine-tuning recipe. Phase 1 then does the
-backbone swap (wav2vec2-base 95M, HuBERT-base 95M vs xlsr-53 300M).
-If a 95M backbone matches within CI, that's the headline result and it
-unlocks Track 08 (streaming only makes sense with a smaller model).
+**Track 10 depends on backbone fine-tuning.** The fine-tuning recipe is now
+validated well enough to produce a first compact-backbone point
+(`wav2vec2-base` at `0.640 +/- 0.009`). Phase 1 continues with additional
+95M backbones (especially `HuBERT-base`) against the same xlsr-53 baseline.
+If a 95M backbone matches within CI, that's the headline result and it unlocks
+Track 08 (streaming only makes sense with a smaller model).
 
 **Track 06 is independent.** Phi-4 / Qwen2-Audio scores pronunciation
 without GOP. Can run in parallel any time. If it beats the GOP pipeline,
@@ -130,9 +130,10 @@ Streaming before the backbone question is resolved would be premature.
 - **Primary metric: PCC** (not MSE). Matches all published work on SpeechOcean762.
 - **Minimum 3 seeds per configuration.** Per lab methodology.
 - **BF16 default on L4.** 21% throughput gain, no accuracy loss. Runtime check via `torch.cuda.is_bf16_supported()`.
-- **ConPCO before compact backbones.** Higher potential PCC gain, lower effort.
-- **Track workspaces are source of truth.** This file does not duplicate experiment plans, claim maps, or run logs. Those live in each track's ABLATION_PLAN and EVIDENCE_LEDGER.
-- **w2v-bert CTC fine-tune = Track 10 Phase 0.** Fine-tuning a pretrained SSL model with a CTC head is backbone preparation (Track 10), not training from scratch (Track 07).
+- **Compact backbones are the active priority.** ConPCO phase 1 is complete;
+  further P002 work needs a stronger feature-based justification.
+- **Project workspaces are the source of truth.** Use this file as the front
+  door only; project-level ledgers and runbooks outrank this summary.
 
 ---
 
@@ -143,6 +144,6 @@ Streaming before the backbone question is resolved would be premature.
 |05|Does GOP-SF + GOPT beat published methods?|`projects/P001-gop-baselines/docs/`|
 |06|Can an LLM score pronunciation without GOP?|`projects/P005-llm-pronunciation/docs/`|
 |07|Can we train a CTC model from scratch?|`projects/P004-training-from-scratch/docs/`|
-|08|Can GOP-SF work in real-time?|`projects/P006-realtime-streaming/docs/`|
+|08|Can pronunciation be scored without a known transcript?|`projects/P006-realtime-streaming/docs/`|
 |09|Does ConPCO loss improve GOPT?|`projects/P002-conpco-scoring/docs/`|
 |10|Do we need the 300M backbone?|`projects/P003-compact-backbones/docs/`|
