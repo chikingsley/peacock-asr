@@ -1,0 +1,88 @@
+{
+  "benchmark_name": "full",
+  "backend": "hf:Peacockery/wav2vec2-base-phoneme-en",
+  "backend_name": "hf-ctc (wav2vec2-base-phoneme-en)",
+  "limit": 8,
+  "workers": 1,
+  "extract_features": true,
+  "use_gopt": true,
+  "score_variant": "gop_sf",
+  "score_alpha": 0.5,
+  "label": "batchk2-full8-budget",
+  "posterior_batch_size": 8,
+  "transport_dtype": "float32",
+  "dataset_revision": "f95618ea1353303f34cf186b9c310fa2c1eb02c8",
+  "device": "cuda",
+  "backend_load_seconds": 2.660690921009518,
+  "dataset_load_seconds": 1.0548874730011448,
+  "prepared_path": null,
+  "scalar_results_path": null,
+  "prep_reports": [
+    {
+      "split": "train",
+      "utterances_seen": 8,
+      "utterances_prepared": 8,
+      "skipped": 0,
+      "posterior_seconds": 0.33165909606032073,
+      "posterior_bytes": 198604,
+      "transport_dtype": "float32"
+    },
+    {
+      "split": "test",
+      "utterances_seen": 8,
+      "utterances_prepared": 8,
+      "skipped": 0,
+      "posterior_seconds": 0.0328382879961282,
+      "posterior_bytes": 199752,
+      "transport_dtype": "float32"
+    }
+  ],
+  "scalar_reports": [
+    {
+      "split": "train",
+      "prepared_utterances": 8,
+      "workers": 1,
+      "scalar_seconds": 12.197702893987298
+    },
+    {
+      "split": "test",
+      "prepared_utterances": 8,
+      "workers": 1,
+      "scalar_seconds": 13.548133426927961
+    }
+  ],
+  "collect_reports": [
+    {
+      "split": "train",
+      "scalar_rows": 101,
+      "utterance_features": 8,
+      "collect_seconds": 0.0951206850586459
+    },
+    {
+      "split": "test",
+      "scalar_rows": 105,
+      "utterance_features": 8,
+      "collect_seconds": 0.0878965959418565
+    }
+  ],
+  "total_seconds": 31.22504968207795,
+  "eval_name": "hf-ctc (wav2vec2-base-phoneme-en) (GOPT)",
+  "eval_result": {
+    "pcc": 0.4683428555743157,
+    "pcc_low": 0.3039628483373564,
+    "pcc_high": 0.6056425679314711,
+    "mse": 0.07621055900088057,
+    "n_phones": 105,
+    "per_phone_pcc": {
+      "AH": 0.583546500009269,
+      "EH": 0.9277185166173652,
+      "EY": 0.9920966595039009,
+      "IH": 0.673881806121428,
+      "R": -0.23808715166435637,
+      "T": -0.010232488609403,
+      "V": 0.9785923405929611,
+      "Z": -0.34130885744355366
+    }
+  },
+  "extras": null
+}

@@ -1,0 +1,24 @@
+{
+  "audio_probe": {
+    "alignment_inner_len": 257,
+    "alignment_len": 74,
+    "audio_path": "projects/P001-gop-baselines/third_party/zipa/sample.wav",
+    "transcript": "[CLS] mister quilter is the apostle of the middle clas [UNK]s and we are glad to welcome his gospel [SEP]"
+  },
+  "config": {
+    "decoder_type": "nemo.collections.asr.modules.ConvASRDecoder",
+    "encoder_type": "nemo.collections.asr.modules.ConvASREncoder",
+    "features": 80,
+    "model_class": "EncDecCTCModelBPE",
+    "num_classes": 256,
+    "sample_rate": 16000,
+    "window_stride": 0.01
+  },
+  "model_name": "nvidia/stt_en_citrinet_256_ls",
+  "tokenizer": {
+    "labels_len": 256,
+    "tokenizer_class": "AutoTokenizer",
+    "tokenizer_dir": null,
+    "tokenizer_vocab_size": 256
+  }
+}

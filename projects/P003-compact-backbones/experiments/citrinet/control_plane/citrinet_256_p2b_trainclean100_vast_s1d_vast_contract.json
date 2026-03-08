@@ -1,0 +1,22 @@
+{
+  "billing_policy": {
+    "destroy_on_completion": false,
+    "reason": "Vast bills compute per second while running; storage keeps billing while the instance exists."
+  },
+  "last_observed_finished": false,
+  "last_observed_running": false,
+  "last_polled_at": "2026-03-08T03:15:14Z",
+  "launch_result": {
+    "error": null,
+    "instance_id": 32518764,
+    "message": null,
+    "response": {
+      "instance_api_key": "adf011c07fa19af7a60b6930152ecb55300417efa8042791e01840f29e4f5e16",
+      "new_contract": 32518764,
+      "success": true
+    },
+    "success": true
+  },
+  "local_tail_path": "/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/citrinet/logs/citrinet_256_p2b_trainclean100_vast_s1d.tail.log",
+  "run_name": "citrinet_256_p2b_trainclean100_vast_s1d"
+}

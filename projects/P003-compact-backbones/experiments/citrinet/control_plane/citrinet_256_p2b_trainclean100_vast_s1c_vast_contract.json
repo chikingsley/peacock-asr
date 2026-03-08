@@ -1,0 +1,18 @@
+{
+  "billing_policy": {
+    "destroy_on_completion": true,
+    "reason": "Vast bills compute per second while running; storage keeps billing while the instance exists."
+  },
+  "launch_result": {
+    "error": null,
+    "instance_id": 32516385,
+    "message": null,
+    "response": {
+      "instance_api_key": "8360aae953d0e4a46ba670befdb66c4d69f43a179abdc9f528012a667592e964",
+      "new_contract": 32516385,
+      "success": true
+    },
+    "success": true
+  },
+  "run_name": "citrinet_256_p2b_trainclean100_vast_s1c"
+}

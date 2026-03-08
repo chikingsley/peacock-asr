@@ -1,0 +1,29 @@
+entity: peacockery
+project: peacock-asr-p003-compact-backbones
+program: projects/P003-compact-backbones/code/p003_compact/cli.py
+method: grid
+metric:
+  name: pcc
+  goal: maximize
+
+command:
+  - ${env}
+  - uv
+  - run
+  - --project
+  - projects/P003-compact-backbones
+  - python
+  - -m
+  - p003_compact.cli
+  - run
+  - ${args}
+
+parameters:
+  backend:
+    value: hf:Peacockery/wav2vec2-large-phoneme-en
+  gopt:
+    value: true
+  device:
+    value: cuda
+  seed:
+    values: [1, 2, 3, 4, 5]

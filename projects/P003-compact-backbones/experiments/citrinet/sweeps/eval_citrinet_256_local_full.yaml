@@ -1,0 +1,24 @@
+entity: peacockery
+project: peacock-asr-p003-compact-backbones
+program: code/citrinet/scripts/run_citrinet_eval.py
+method: grid
+metric:
+  name: pcc
+  goal: maximize
+
+command:
+  - /home/simon/github/peacock-asr/projects/P003-compact-backbones/env/citrinet/.venv/bin/python
+  - code/citrinet/scripts/run_citrinet_eval.py
+  - run
+  - --gopt
+  - --device
+  - cuda
+  - --workers
+  - "8"
+  - ${args}
+
+parameters:
+  backend:
+    value: "nemo:Peacockery/citrinet-256-phoneme-en"
+  seed:
+    values: [1, 2, 3, 4, 5]

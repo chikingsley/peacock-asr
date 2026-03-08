@@ -1,0 +1,24 @@
+entity: peacockery
+project: peacock-asr-p003-compact-backbones
+program: peacock-asr
+method: grid
+metric:
+  name: pcc
+  goal: maximize
+
+command:
+  - ${env}
+  - uv
+  - run
+  - --project
+  - projects/P003-compact-backbones
+  - peacock-asr
+  - run
+  - --gopt
+  - ${args}
+
+parameters:
+  backend:
+    value: "hf:Peacockery/hubert-base-phoneme-en"
+  seed:
+    values: [1, 2, 3, 4, 5]

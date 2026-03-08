@@ -1,0 +1,38 @@
+{
+  "benchmark_name": "scalar",
+  "backend": "hf:Peacockery/wav2vec2-base-phoneme-en",
+  "backend_name": "hf-ctc (wav2vec2-base-phoneme-en)",
+  "limit": 4,
+  "workers": 4,
+  "extract_features": false,
+  "score_variant": "gop_sf",
+  "score_alpha": 0.5,
+  "label": "memmapcheckcpu",
+  "posterior_batch_size": 8,
+  "transport_dtype": "float32",
+  "dataset_revision": "f95618ea1353303f34cf186b9c310fa2c1eb02c8",
+  "device": "cpu",
+  "backend_load_seconds": 0.0,
+  "dataset_load_seconds": 0.0,
+  "prepared_path": "/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/benchmarks/scoring/prepared/Peacockery__wav2vec2-base-phoneme-en_both_limit4_float32_scalar_gop_sf_memmapcheckcpu.bundle",
+  "scalar_results_path": "/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/benchmarks/scoring/prepared/Peacockery__wav2vec2-base-phoneme-en_both_limit4_float32_scalar_gop_sf_memmapcheckcpu.scalar.pt",
+  "prep_reports": [],
+  "scalar_reports": [
+    {
+      "split": "test",
+      "prepared_utterances": 4,
+      "workers": 4,
+      "scalar_seconds": 1.7628023580182344
+    },
+    {
+      "split": "train",
+      "prepared_utterances": 4,
+      "workers": 4,
+      "scalar_seconds": 0.860486758989282
+    }
+  ],
+  "collect_reports": [],
+  "total_seconds": 3.1991286909906194,
+  "eval_name": null,
+  "eval_result": null
+}

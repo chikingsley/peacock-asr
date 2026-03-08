@@ -1,0 +1,50 @@
+{
+  "benchmark_name": "prototype_batch",
+  "backend": "hf:Peacockery/wav2vec2-base-phoneme-en",
+  "backend_name": "hf-ctc (wav2vec2-base-phoneme-en)",
+  "limit": 4,
+  "workers": 1,
+  "extract_features": false,
+  "score_variant": "gop_sf",
+  "score_alpha": 0.5,
+  "label": "gpuproto",
+  "posterior_batch_size": 8,
+  "transport_dtype": "float32",
+  "dataset_revision": "f95618ea1353303f34cf186b9c310fa2c1eb02c8",
+  "device": "cuda",
+  "backend_load_seconds": 0.0,
+  "dataset_load_seconds": 0.0,
+  "prepared_path": "/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/benchmarks/scoring/prepared/Peacockery__wav2vec2-base-phoneme-en_train_limit4_float32_scalar_gop_sf_gpuproto.bundle",
+  "scalar_results_path": null,
+  "prep_reports": [],
+  "scalar_reports": [
+    {
+      "split": "train",
+      "prepared_utterances": 4,
+      "workers": 1,
+      "scalar_seconds": 5.070985611062497
+    },
+    {
+      "split": "train-batch-k2",
+      "prepared_utterances": 4,
+      "workers": 4,
+      "scalar_seconds": 1.576273711048998
+    }
+  ],
+  "collect_reports": [],
+  "total_seconds": 6.647829018998891,
+  "eval_name": null,
+  "eval_result": null,
+  "extras": {
+    "max_utts": 4,
+    "batch_utts": 4,
+    "baseline_seconds": 5.070985611062497,
+    "batch_seconds": 1.576273711048998,
+    "speedup_vs_baseline": 3.217071740470629,
+    "max_score_abs_diff": 1.5987211554602254e-14,
+    "max_occupancy_abs_diff": null,
+    "scalar_backend": "k2",
+    "scalar_device": "cuda",
+    "batch_self_method": "exact"
+  }
+}

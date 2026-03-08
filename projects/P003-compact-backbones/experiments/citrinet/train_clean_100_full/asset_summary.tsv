@@ -1,0 +1,10 @@
+artifact	path
+tokenizer_vocab	/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/citrinet/tokenizers/arpabet_41_wpe/vocab.txt
+train_manifest	/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/citrinet/train_clean_100_full/manifests/train.jsonl
+train_rows	28538
+train_hours	98.595
+eval_manifest	/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/citrinet/train_clean_100_full/manifests/eval.jsonl
+eval_rows	2703
+eval_hours	5.133
+train_samples_requested	0
+eval_samples_requested	0

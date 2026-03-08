@@ -1,0 +1,13 @@
+name: preflight
+output_dir: projects/P003-compact-backbones/experiments/preflight/train_preflight
+num_epochs: 1
+batch_size: 2
+gradient_accumulation: 2
+learning_rate: 3.0e-5
+train_splits:
+  - train_clean_100
+eval_split: dev_clean
+max_train_samples: 256
+max_eval_samples: 64
+push_to_hub: false
+dataloader_workers: 4

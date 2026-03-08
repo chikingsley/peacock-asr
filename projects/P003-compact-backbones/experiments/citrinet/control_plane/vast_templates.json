@@ -1,0 +1,17 @@
+{
+  "p003_citrinet_nemo_ssh": {
+    "count_created": 0,
+    "creator_id": 218294,
+    "description": "P003 Citrinet SSH template for NeMo fine-tuning on Vast. Use with local volume reuse for dataset and env cache.",
+    "hash_id": "8f7fbe1d04eb8cf31765bc715143c148",
+    "image": "nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04",
+    "jup_direct": false,
+    "name": "p003_citrinet_nemo_ssh",
+    "private": true,
+    "recommended_disk_space_gb": 150.0,
+    "ssh_direct": true,
+    "tag": null,
+    "template_id": 357745,
+    "use_ssh": true
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "model_name": "facebook/hubert-base-ls960",
+  "device": "cpu",
+  "hf_home": "/home/simon/github/peacock-asr/.cache/models/huggingface",
+  "dataset_examples": 32,
+  "batch_size": 4,
+  "dataloader_workers": 0,
+  "dataloader_pin_memory": false,
+  "is_w2v_bert": false,
+  "gradient_checkpointing": true,
+  "torch_compile": false,
+  "precision": "auto",
+  "autocast_dtype": null,
+  "dataset_setup_s": 3.2763798169326037,
+  "model_load_s": 0.4516211620066315,
+  "dataloader_batch_s": {
+    "mean": 0.07364372455049306,
+    "min": 0.07216526207048446,
+    "max": 0.07512218703050166
+  },
+  "forward_s": {
+    "mean": 7.6603595999768,
+    "min": 7.6603595999768,
+    "max": 7.6603595999768
+  },
+  "backward_s": {
+    "mean": 26.391413328005,
+    "min": 26.391413328005,
+    "max": 26.391413328005
+  },
+  "step_total_s": {
+    "mean": 34.0517729279818,
+    "min": 34.0517729279818,
+    "max": 34.0517729279818
+  }
+}

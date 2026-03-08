@@ -1,0 +1,35 @@
+entity: peacockery
+project: peacock-asr-p003-compact-backbones
+program: projects/P003-compact-backbones/code/train_phoneme_head_p003.py
+method: grid
+metric:
+  name: eval_loss
+  goal: minimize
+
+command:
+  - ${env}
+  - uv
+  - run
+  - --project
+  - projects/P003-compact-backbones
+  - python
+  - ${program}
+  - ${args}
+
+parameters:
+  model-name:
+    value: facebook/wav2vec2-base
+  output-dir:
+    value: projects/P003-compact-backbones/experiments/checkpoints/wav2vec2-base-phoneme-en
+  hub-repo:
+    value: Peacockery/wav2vec2-base-phoneme-en
+  batch-size:
+    value: 8
+  gradient-accumulation:
+    value: 8
+  learning-rate:
+    value: 3e-5
+  num-epochs:
+    value: 3
+  dataloader-workers:
+    value: 4

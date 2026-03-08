@@ -1,0 +1,88 @@
+{
+  "benchmark_name": "full",
+  "backend": "hf:Peacockery/wav2vec2-base-phoneme-en",
+  "backend_name": "hf-ctc (wav2vec2-base-phoneme-en)",
+  "limit": 8,
+  "workers": 1,
+  "extract_features": true,
+  "use_gopt": true,
+  "score_variant": "gop_sf",
+  "score_alpha": 0.5,
+  "label": "python-full8",
+  "posterior_batch_size": 8,
+  "transport_dtype": "float32",
+  "dataset_revision": "f95618ea1353303f34cf186b9c310fa2c1eb02c8",
+  "device": "cuda",
+  "backend_load_seconds": 3.9341270599979907,
+  "dataset_load_seconds": 1.192087807925418,
+  "prepared_path": null,
+  "scalar_results_path": null,
+  "prep_reports": [
+    {
+      "split": "train",
+      "utterances_seen": 8,
+      "utterances_prepared": 8,
+      "skipped": 0,
+      "posterior_seconds": 0.5568457120098174,
+      "posterior_bytes": 198604,
+      "transport_dtype": "float32"
+    },
+    {
+      "split": "test",
+      "utterances_seen": 8,
+      "utterances_prepared": 8,
+      "skipped": 0,
+      "posterior_seconds": 0.03319385391660035,
+      "posterior_bytes": 199752,
+      "transport_dtype": "float32"
+    }
+  ],
+  "scalar_reports": [
+    {
+      "split": "train",
+      "prepared_utterances": 8,
+      "workers": 1,
+      "scalar_seconds": 5.281843816046603
+    },
+    {
+      "split": "test",
+      "prepared_utterances": 8,
+      "workers": 1,
+      "scalar_seconds": 6.239318453008309
+    }
+  ],
+  "collect_reports": [
+    {
+      "split": "train",
+      "scalar_rows": 101,
+      "utterance_features": 8,
+      "collect_seconds": 0.01897811994422227
+    },
+    {
+      "split": "test",
+      "scalar_rows": 105,
+      "utterance_features": 8,
+      "collect_seconds": 0.00014409003779292107
+    }
+  ],
+  "total_seconds": 18.507088445010595,
+  "eval_name": "hf-ctc (wav2vec2-base-phoneme-en) (GOPT)",
+  "eval_result": {
+    "pcc": 0.4294004642089613,
+    "pcc_low": 0.2590558067410973,
+    "pcc_high": 0.5738381722093736,
+    "mse": 0.08730484921609061,
+    "n_phones": 105,
+    "per_phone_pcc": {
+      "AH": 0.6435829481330425,
+      "EH": 0.8268087794964432,
+      "EY": 0.9351961397930854,
+      "IH": 0.8861423004912963,
+      "R": -0.18932345178477733,
+      "T": -0.3874354785742154,
+      "V": 0.9918372413241445,
+      "Z": 0.0875546724301385
+    }
+  },
+  "extras": null
+}

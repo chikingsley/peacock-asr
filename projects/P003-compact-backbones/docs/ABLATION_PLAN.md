@@ -28,7 +28,7 @@ for any HuggingFace SSL model with a 41-token ARPABET vocabulary on LibriSpeech.
 
 | Run ID | Backbone | Params | Script | Status | Purpose |
 |---|---|---|---|---|---|
-| P0-A | w2v-bert-2.0 | 600M | `training/train_phoneme_head.py` | **Running** (RunPod L4) | Validate recipe, produce 600M Pareto point |
+| P0-A | w2v-bert-2.0 | 600M | `projects/P003-compact-backbones/code/training/train_phoneme_head.py` | **Training + eval complete** | Validate recipe, produce 600M Pareto point |
 
 Details:
 
@@ -40,7 +40,8 @@ Details:
 
 The w2v-bert-2.0 result is useful in two ways: (1) it validates the fine-tuning
 pipeline end-to-end, and (2) it adds a 600M data point to the Pareto plot,
-establishing the upper bound for backbone size.
+establishing the upper bound for backbone size. Final `P003` eval result:
+`0.6755 +/- 0.0066 PCC`, effectively matching the `xlsr-53 + GOPT` baseline.
 
 ## Phase 1: Drop-In Backbone Swap (Same GOP Pipeline)
 
@@ -54,15 +55,23 @@ Each backbone needs CTC fine-tuning on LibriSpeech with 41-token ARPABET vocab.
 | P1-C | HuBERT-base | 95M | English 960h | LibriSpeech 100h | Different pre-training |
 | P1-D | wav2vec2-large | 317M | English 960h | LibriSpeech 100h | Size control (bigger ≠ better?) |
 
-Implementation needed:
+Current Phase 1 status:
 
-- Fine-tune wav2vec2-base with CTC on LibriSpeech (41 ARPABET tokens)
-- Fine-tune HuBERT-base with CTC on LibriSpeech (41 ARPABET tokens)
-- Create backend adapters for each (same interface as `original` backend)
+- `P1-B` complete: `wav2vec2-base + GOPT = 0.640 +/- 0.009 PCC`
+- `P1-C` complete: `HuBERT-base + GOPT = 0.6489 +/- 0.0093 PCC`
+- `P1-D` still pending
+
+Implementation still needed:
+
+- Fine-tune wav2vec2-large with CTC on LibriSpeech (41 ARPABET tokens)
+- Create backend adapter for wav2vec2-large (same interface as `original` backend)
 - Feature dim remains 42 (LPP 20 + LPR 20 + occupancy 2) for all
 
-Expected effort: 3-5 days (fine-tuning 3 models + backend integration)
-Expected result: wav2vec2-base may lose 2-5% PCC; HuBERT-base is the wildcard.
+Interpretation so far:
+
+- HuBERT-base modestly improves on wav2vec2-base at the same 95M scale
+- Neither 95M model matches the `xlsr-53 + GOPT` baseline
+- `wav2vec2-large` is now the cleanest remaining Phase 1 backbone question
 
 ## Phase 2: Citrinet-256 (Extreme Compression)
 
@@ -109,8 +118,9 @@ Combine results into a compute-accuracy tradeoff plot.
 | Configuration | Backbone Params | Head Params | Total FLOPs | PCC |
 |---|---|---|---|---|
 | P1-A (baseline) | 300M | ~31K | TBD | 0.677 |
-| P1-B (small) | 95M | ~31K | TBD | TBD |
-| P1-C (HuBERT) | 95M | ~31K | TBD | TBD |
+| P1-B (small) | 95M | ~31K | TBD | 0.640 |
+| P1-C (HuBERT) | 95M | ~31K | TBD | 0.649 |
+| P0-A (w2v-BERT) | 600M | ~31K | TBD | 0.676 |
 | P2-B (tiny) | 10M | ~31K | TBD | TBD |
 | P3-B (Mamba) | best | ~31K | TBD | TBD |
 

@@ -1,0 +1,30 @@
+{
+  "benchmark_name": "scalar",
+  "backend": "hf:Peacockery/wav2vec2-base-phoneme-en",
+  "backend_name": "hf-ctc (wav2vec2-base-phoneme-en)",
+  "limit": 2,
+  "workers": 1,
+  "extract_features": false,
+  "score_variant": "gop_sf",
+  "score_alpha": 0.5,
+  "transport_dtype": "float32",
+  "dataset_revision": "f95618ea1353303f34cf186b9c310fa2c1eb02c8",
+  "device": "cuda",
+  "backend_load_seconds": 2.69960641709622,
+  "dataset_load_seconds": 0.925635457970202,
+  "prepared_path": "/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/benchmarks/scoring/prepared/Peacockery__wav2vec2-base-phoneme-en_test_limit2_float32_scalar_gop_sf.pt",
+  "scalar_results_path": "/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/benchmarks/scoring/prepared/Peacockery__wav2vec2-base-phoneme-en_test_limit2_float32_scalar_gop_sf.scalar.pt",
+  "prep_reports": [],
+  "scalar_reports": [
+    {
+      "split": "test",
+      "prepared_utterances": 2,
+      "workers": 1,
+      "scalar_seconds": 2.3739062290405855
+    }
+  ],
+  "collect_reports": [],
+  "total_seconds": 6.571384537033737,
+  "eval_name": null,
+  "eval_result": null
+}

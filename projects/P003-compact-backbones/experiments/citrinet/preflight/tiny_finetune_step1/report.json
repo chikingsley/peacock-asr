@@ -1,0 +1,12 @@
+{
+  "batch_size": 2,
+  "decoder_num_classes": 44,
+  "eval_manifest": "/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/citrinet/preflight/manifests/eval.jsonl",
+  "global_step": 1,
+  "lr": 0.0001,
+  "max_steps": 1,
+  "model_name": "nvidia/stt_en_citrinet_256_ls",
+  "tokenizer_dir": "/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/citrinet/tokenizers/arpabet_41_wpe",
+  "tokenizer_vocab_size": 44,
+  "train_manifest": "/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/citrinet/preflight/manifests/train.jsonl"
+}

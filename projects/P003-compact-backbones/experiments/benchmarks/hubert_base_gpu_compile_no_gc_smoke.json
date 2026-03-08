@@ -1,0 +1,37 @@
+{
+  "model_name": "facebook/hubert-base-ls960",
+  "device": "cuda",
+  "hf_home": "/home/simon/github/peacock-asr/.cache/models/huggingface",
+  "dataset_examples": 8,
+  "batch_size": 1,
+  "dataloader_workers": 0,
+  "dataloader_pin_memory": true,
+  "is_w2v_bert": false,
+  "gradient_checkpointing": false,
+  "torch_compile": true,
+  "precision": "auto",
+  "autocast_dtype": "torch.bfloat16",
+  "dataset_setup_s": 2.451519272988662,
+  "model_load_s": 2.3964480590075254,
+  "dataloader_batch_s": {
+    "mean": 0.13320025289431214,
+    "min": 0.13320025289431214,
+    "max": 0.13320025289431214
+  },
+  "forward_s": {
+    "mean": 9.466474376968108,
+    "min": 9.466474376968108,
+    "max": 9.466474376968108
+  },
+  "backward_s": {
+    "mean": 4.637677435996011,
+    "min": 4.637677435996011,
+    "max": 4.637677435996011
+  },
+  "step_total_s": {
+    "mean": 14.104151812964119,
+    "min": 14.104151812964119,
+    "max": 14.104151812964119
+  },
+  "cuda_max_memory_bytes": 1851459584
+}

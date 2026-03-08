@@ -1,0 +1,22 @@
+{
+  "accumulate_grad_batches": 1,
+  "batch_size": 2,
+  "decoder_num_classes": 44,
+  "eval_manifest": "/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/citrinet/preflight/manifests/eval.jsonl",
+  "finished_at_utc": "2026-03-07T21:54:13.134583+00:00",
+  "global_step": 1,
+  "lr": 0.0001,
+  "max_epochs": 3,
+  "max_steps": 1,
+  "model_name": "nvidia/stt_en_citrinet_256_ls",
+  "nemo_artifact": "/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/citrinet/preflight/real_train_smoke/artifacts/citrinet-p2b-smoke.nemo",
+  "num_workers": 0,
+  "output_dir": "/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/citrinet/preflight/real_train_smoke",
+  "precision": "32-true",
+  "run_name": "citrinet-p2b-smoke",
+  "seed": 17,
+  "tokenizer_dir": "/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/citrinet/tokenizers/arpabet_41_wpe",
+  "tokenizer_vocab_size": 44,
+  "train_manifest": "/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/citrinet/preflight/manifests/train.jsonl",
+  "warmup_steps": 100
+}

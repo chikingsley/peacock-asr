@@ -1,0 +1,36 @@
+{
+  "benchmark_name": "prepare",
+  "backend": "hf:Peacockery/wav2vec2-base-phoneme-en",
+  "backend_name": "hf-ctc (wav2vec2-base-phoneme-en)",
+  "limit": 4,
+  "workers": 1,
+  "extract_features": false,
+  "score_variant": "gop_sf",
+  "score_alpha": 0.5,
+  "label": "gpuproto",
+  "posterior_batch_size": 8,
+  "transport_dtype": "float32",
+  "dataset_revision": "f95618ea1353303f34cf186b9c310fa2c1eb02c8",
+  "device": "cpu",
+  "backend_load_seconds": 4.516255203052424,
+  "dataset_load_seconds": 1.3029242740012705,
+  "prepared_path": "/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/benchmarks/scoring/prepared/Peacockery__wav2vec2-base-phoneme-en_train_limit4_float32_scalar_gop_sf_gpuproto.bundle",
+  "scalar_results_path": null,
+  "prep_reports": [
+    {
+      "split": "train",
+      "utterances_seen": 4,
+      "utterances_prepared": 4,
+      "skipped": 0,
+      "posterior_seconds": 2.0574742869939655,
+      "posterior_bytes": 103484,
+      "transport_dtype": "float32"
+    }
+  ],
+  "scalar_reports": [],
+  "collect_reports": [],
+  "total_seconds": 8.461810176959261,
+  "eval_name": null,
+  "eval_result": null,
+  "extras": null
+}

@@ -1,0 +1,44 @@
+{
+  "benchmark_name": "prepare",
+  "backend": "hf:Peacockery/w2v-bert-phoneme-en",
+  "backend_name": "hf-ctc (w2v-bert-phoneme-en)",
+  "limit": 16,
+  "workers": 1,
+  "extract_features": false,
+  "score_variant": "gop_sf",
+  "score_alpha": 0.5,
+  "label": "runpodcoldmemmap16",
+  "posterior_batch_size": 8,
+  "transport_dtype": "float32",
+  "dataset_revision": "f95618ea1353303f34cf186b9c310fa2c1eb02c8",
+  "device": "cuda",
+  "backend_load_seconds": 105.1301144938916,
+  "dataset_load_seconds": 8.24245443707332,
+  "prepared_path": "/runpod/peacock-asr/experiments/benchmarks/scoring/prepared/Peacockery__w2v-bert-phoneme-en_both_limit16_float32_scalar_gop_sf_runpodcoldmemmap16.bundle",
+  "scalar_results_path": null,
+  "prep_reports": [
+    {
+      "split": "train",
+      "utterances_seen": 16,
+      "utterances_prepared": 16,
+      "skipped": 0,
+      "posterior_seconds": 4.728815738111734,
+      "posterior_bytes": 198440,
+      "transport_dtype": "float32"
+    },
+    {
+      "split": "test",
+      "utterances_seen": 16,
+      "utterances_prepared": 16,
+      "skipped": 0,
+      "posterior_seconds": 0.5884850332513452,
+      "posterior_bytes": 206640,
+      "transport_dtype": "float32"
+    }
+  ],
+  "scalar_reports": [],
+  "collect_reports": [],
+  "total_seconds": 145.38010200997815,
+  "eval_name": null,
+  "eval_result": null
+}
