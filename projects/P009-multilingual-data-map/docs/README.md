@@ -8,6 +8,7 @@ Start here:
 Per-language notes:
 
 - [`languages/ru.md`](./languages/ru.md)
+- [`languages/ru_dossier.md`](./languages/ru_dossier.md)
 - [`languages/es.md`](./languages/es.md)
 - [`languages/it.md`](./languages/it.md)
 - [`languages/fr.md`](./languages/fr.md)

@@ -66,6 +66,8 @@ rules vary by dataset.
 - `docs/LANGUAGE_MATRIX.md`: cross-language summary
 - `docs/AGENT_RUNBOOK.md`: instructions for research agents
 - `docs/languages/`: per-language inventory notes
+- `docs/languages/*_dossier.md`: deeper evidence dossiers for high-priority
+  languages
 - `docs/agent_briefs/`: one brief per language for delegated research
 - `inventories/drafts/`: per-language machine-readable draft inventories
 - `inventories/seed_datasets.tsv`: machine-readable seed inventory
