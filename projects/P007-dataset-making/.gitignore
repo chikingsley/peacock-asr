@@ -1,0 +1,11 @@
+node_modules/
+dist/
+vite.config.ts.timestamp-*
+*.tsbuildinfo
+references/speechocean762/
+references/**/.git/
+references/**/paper.bbl
+references/**/paper.fdb_latexmk
+references/**/paper.fls
+references/**/paper.out
+references/**/paper.synctex

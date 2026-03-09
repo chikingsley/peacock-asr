@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@import "tw-animate-css";
+
+:root {
+  --font-sans: "Manrope", sans-serif;
+  --font-display: "Fraunces", serif;
+  --background: oklch(0.145 0.012 22);
+  --foreground: oklch(0.955 0.02 71);
+  --card: oklch(0.19 0.015 20);
+  --card-foreground: oklch(0.955 0.02 71);
+  --popover: oklch(0.19 0.015 20);
+  --popover-foreground: oklch(0.955 0.02 71);
+  --primary: oklch(0.73 0.16 47);
+  --primary-foreground: oklch(0.19 0.015 20);
+  --secondary: oklch(0.27 0.02 21);
+  --secondary-foreground: oklch(0.955 0.02 71);
+  --muted: oklch(0.25 0.015 22);
+  --muted-foreground: oklch(0.73 0.015 70);
+  --accent: oklch(0.31 0.04 32);
+  --accent-foreground: oklch(0.955 0.02 71);
+  --destructive: oklch(0.61 0.22 26);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.32 0.02 25);
+  --input: oklch(0.26 0.015 23);
+  --ring: oklch(0.72 0.16 47);
+  --radius: 1rem;
+}
+
+.dark {
+  --background: oklch(0.145 0.012 22);
+  --foreground: oklch(0.955 0.02 71);
+  --card: oklch(0.19 0.015 20);
+  --card-foreground: oklch(0.955 0.02 71);
+  --popover: oklch(0.19 0.015 20);
+  --popover-foreground: oklch(0.955 0.02 71);
+  --primary: oklch(0.73 0.16 47);
+  --primary-foreground: oklch(0.19 0.015 20);
+  --secondary: oklch(0.27 0.02 21);
+  --secondary-foreground: oklch(0.955 0.02 71);
+  --muted: oklch(0.25 0.015 22);
+  --muted-foreground: oklch(0.73 0.015 70);
+  --accent: oklch(0.31 0.04 32);
+  --accent-foreground: oklch(0.955 0.02 71);
+  --destructive: oklch(0.61 0.22 26);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.32 0.02 25);
+  --input: oklch(0.26 0.015 23);
+  --ring: oklch(0.72 0.16 47);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  background-image:
+    radial-gradient(circle at 15% 15%, color-mix(in oklab, var(--primary) 24%, transparent) 0%, transparent 35%),
+    radial-gradient(circle at 85% 80%, color-mix(in oklab, var(--accent) 28%, transparent) 0%, transparent 30%),
+    linear-gradient(140deg, oklch(0.11 0.01 22) 0%, oklch(0.16 0.015 20) 58%, oklch(0.2 0.02 18) 100%);
+}
+
+button {
+  font: inherit;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}

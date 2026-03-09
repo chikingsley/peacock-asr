@@ -1,0 +1,1573 @@
+// SpeechLab — Typed data layer
+// Source of truth: data/schema.sql + data/seed.sql
+
+import type { SentenceScores } from "@/components/sentence-level-score";
+import type { WordEntry } from "@/components/word-level-score";
+
+// ─── Corpus ───────────────────────────────────────────────────────────────────
+
+export interface CorpusEntry {
+  audioSize: string;
+  file: string;
+  sentence: SentenceScores;
+  totalLength: string;
+  transcript: string;
+  words: WordEntry[];
+}
+
+export const CORPUS: CorpusEntry[] = [
+  {
+    file: "029810234.wav",
+    audioSize: "0.11M",
+    totalLength: "3.62s",
+    transcript: "whatever the difficulty there's a solution",
+    words: [
+      {
+        word: "whatever",
+        phonetic: "wɒt'evə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "the",
+        phonetic: "ðə",
+        phonemeScore: 0,
+        phonemeAccuracy: 3,
+        stressAccuracy: 10,
+      },
+      {
+        word: "difficulty",
+        phonetic: "'dɪfɪkəlti",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "there's",
+        phonetic: "ðɛəz",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "a",
+        phonetic: "ə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "solution",
+        phonetic: "sə'luːʃn",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+    ],
+    sentence: { accuracy: 7, fluency: 7, prosody: 8, integrityWords: 6 },
+  },
+  {
+    file: "029810235.wav",
+    audioSize: "0.09M",
+    totalLength: "2.91s",
+    transcript: "she sells seashells by the seashore",
+    words: [
+      {
+        word: "she",
+        phonetic: "ʃiː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "sells",
+        phonetic: "sɛlz",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "seashells",
+        phonetic: "'siːʃɛlz",
+        phonemeScore: 0,
+        phonemeAccuracy: 5,
+        stressAccuracy: 5,
+      },
+      {
+        word: "by",
+        phonetic: "baɪ",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "the",
+        phonetic: "ðə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "seashore",
+        phonetic: "'siːʃɔː",
+        phonemeScore: 0,
+        phonemeAccuracy: 4,
+        stressAccuracy: 5,
+      },
+    ],
+    sentence: { accuracy: 5, fluency: 6, prosody: 5, integrityWords: 4 },
+  },
+  {
+    file: "029810236.wav",
+    audioSize: "0.13M",
+    totalLength: "4.20s",
+    transcript: "the quick brown fox jumps over the lazy dog",
+    words: [
+      {
+        word: "the",
+        phonetic: "ðə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "quick",
+        phonetic: "kwɪk",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "brown",
+        phonetic: "braʊn",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "fox",
+        phonetic: "fɒks",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "jumps",
+        phonetic: "dʒʌmps",
+        phonemeScore: 1,
+        phonemeAccuracy: 8,
+        stressAccuracy: 10,
+      },
+      {
+        word: "over",
+        phonetic: "'əʊvə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "the",
+        phonetic: "ðə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "lazy",
+        phonetic: "'leɪzi",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "dog",
+        phonetic: "dɒɡ",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+    ],
+    sentence: { accuracy: 9, fluency: 9, prosody: 9, integrityWords: 9 },
+  },
+  {
+    file: "029810237.wav",
+    audioSize: "0.08M",
+    totalLength: "2.55s",
+    transcript: "how much wood would a woodchuck chuck",
+    words: [
+      {
+        word: "how",
+        phonetic: "haʊ",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "much",
+        phonetic: "mʌtʃ",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "wood",
+        phonetic: "wʊd",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "would",
+        phonetic: "wʊd",
+        phonemeScore: 0,
+        phonemeAccuracy: 6,
+        stressAccuracy: 10,
+      },
+      {
+        word: "a",
+        phonetic: "ə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "woodchuck",
+        phonetic: "'wʊdtʃʌk",
+        phonemeScore: 0,
+        phonemeAccuracy: 4,
+        stressAccuracy: 5,
+      },
+      {
+        word: "chuck",
+        phonetic: "tʃʌk",
+        phonemeScore: 1,
+        phonemeAccuracy: 8,
+        stressAccuracy: 10,
+      },
+    ],
+    sentence: { accuracy: 6, fluency: 7, prosody: 6, integrityWords: 5 },
+  },
+  {
+    file: "029810238.wav",
+    audioSize: "0.07M",
+    totalLength: "2.10s",
+    transcript: "to be or not to be that is the question",
+    words: [
+      {
+        word: "to",
+        phonetic: "tuː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "be",
+        phonetic: "biː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "or",
+        phonetic: "ɔː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "not",
+        phonetic: "nɒt",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "to",
+        phonetic: "tuː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "be",
+        phonetic: "biː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "that",
+        phonetic: "ðæt",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "is",
+        phonetic: "ɪz",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "the",
+        phonetic: "ðə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "question",
+        phonetic: "'kwɛstʃən",
+        phonemeScore: 1,
+        phonemeAccuracy: 8,
+        stressAccuracy: 10,
+      },
+    ],
+    sentence: { accuracy: 9, fluency: 8, prosody: 9, integrityWords: 10 },
+  },
+  {
+    file: "029810239.wav",
+    audioSize: "0.06M",
+    totalLength: "1.88s",
+    transcript: "i can't believe it's already friday",
+    words: [
+      {
+        word: "i",
+        phonetic: "aɪ",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "can't",
+        phonetic: "kɑːnt",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "believe",
+        phonetic: "bɪ'liːv",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "it's",
+        phonetic: "ɪts",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "already",
+        phonetic: "ɔːl'rɛdi",
+        phonemeScore: 0,
+        phonemeAccuracy: 5,
+        stressAccuracy: 5,
+      },
+      {
+        word: "friday",
+        phonetic: "'fraɪdeɪ",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+    ],
+    sentence: { accuracy: 7, fluency: 8, prosody: 7, integrityWords: 5 },
+  },
+  {
+    file: "029810240.wav",
+    audioSize: "0.10M",
+    totalLength: "3.15s",
+    transcript: "the weather forecast calls for heavy rain tomorrow",
+    words: [
+      {
+        word: "the",
+        phonetic: "ðə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "weather",
+        phonetic: "'wɛðə",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "forecast",
+        phonetic: "'fɔːkɑːst",
+        phonemeScore: 0,
+        phonemeAccuracy: 6,
+        stressAccuracy: 5,
+      },
+      {
+        word: "calls",
+        phonetic: "kɔːlz",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "for",
+        phonetic: "fɔː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "heavy",
+        phonetic: "'hɛvi",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "rain",
+        phonetic: "reɪn",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "tomorrow",
+        phonetic: "tə'mɒrəʊ",
+        phonemeScore: 0,
+        phonemeAccuracy: 4,
+        stressAccuracy: 5,
+      },
+    ],
+    sentence: { accuracy: 6, fluency: 7, prosody: 6, integrityWords: 6 },
+  },
+  {
+    file: "029810241.wav",
+    audioSize: "0.05M",
+    totalLength: "1.65s",
+    transcript: "please turn off the lights when you leave",
+    words: [
+      {
+        word: "please",
+        phonetic: "pliːz",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "turn",
+        phonetic: "tɜːn",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "off",
+        phonetic: "ɒf",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "the",
+        phonetic: "ðə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "lights",
+        phonetic: "laɪts",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "when",
+        phonetic: "wɛn",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "you",
+        phonetic: "juː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "leave",
+        phonetic: "liːv",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+    ],
+    sentence: { accuracy: 10, fluency: 10, prosody: 9, integrityWords: 8 },
+  },
+  {
+    file: "029810242.wav",
+    audioSize: "0.08M",
+    totalLength: "2.80s",
+    transcript: "artificial intelligence is transforming our world",
+    words: [
+      {
+        word: "artificial",
+        phonetic: "ˌɑːtɪ'fɪʃl",
+        phonemeScore: 0,
+        phonemeAccuracy: 5,
+        stressAccuracy: 5,
+      },
+      {
+        word: "intelligence",
+        phonetic: "ɪn'tɛlɪdʒəns",
+        phonemeScore: 1,
+        phonemeAccuracy: 8,
+        stressAccuracy: 10,
+      },
+      {
+        word: "is",
+        phonetic: "ɪz",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "transforming",
+        phonetic: "træns'fɔːmɪŋ",
+        phonemeScore: 0,
+        phonemeAccuracy: 6,
+        stressAccuracy: 5,
+      },
+      {
+        word: "our",
+        phonetic: "aʊə",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "world",
+        phonetic: "wɜːld",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+    ],
+    sentence: { accuracy: 6, fluency: 6, prosody: 7, integrityWords: 4 },
+  },
+  {
+    file: "029810243.wav",
+    audioSize: "0.04M",
+    totalLength: "1.30s",
+    transcript: "good morning how are you doing today",
+    words: [
+      {
+        word: "good",
+        phonetic: "ɡʊd",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "morning",
+        phonetic: "'mɔːnɪŋ",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "how",
+        phonetic: "haʊ",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "are",
+        phonetic: "ɑː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "you",
+        phonetic: "juː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "doing",
+        phonetic: "'duːɪŋ",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "today",
+        phonetic: "tə'deɪ",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+    ],
+    sentence: { accuracy: 10, fluency: 10, prosody: 10, integrityWords: 7 },
+  },
+  {
+    file: "029810244.wav",
+    audioSize: "0.12M",
+    totalLength: "3.95s",
+    transcript: "the children were playing in the park all afternoon",
+    words: [
+      {
+        word: "the",
+        phonetic: "ðə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "children",
+        phonetic: "'tʃɪldrən",
+        phonemeScore: 0,
+        phonemeAccuracy: 5,
+        stressAccuracy: 10,
+      },
+      {
+        word: "were",
+        phonetic: "wɜː",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "playing",
+        phonetic: "'pleɪɪŋ",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "in",
+        phonetic: "ɪn",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "the",
+        phonetic: "ðə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "park",
+        phonetic: "pɑːk",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "all",
+        phonetic: "ɔːl",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "afternoon",
+        phonetic: "ˌɑːftə'nuːn",
+        phonemeScore: 0,
+        phonemeAccuracy: 6,
+        stressAccuracy: 5,
+      },
+    ],
+    sentence: { accuracy: 7, fluency: 8, prosody: 7, integrityWords: 7 },
+  },
+  {
+    file: "029810245.wav",
+    audioSize: "0.06M",
+    totalLength: "2.00s",
+    transcript: "can you repeat that more slowly please",
+    words: [
+      {
+        word: "can",
+        phonetic: "kæn",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "you",
+        phonetic: "juː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "repeat",
+        phonetic: "rɪ'piːt",
+        phonemeScore: 1,
+        phonemeAccuracy: 8,
+        stressAccuracy: 10,
+      },
+      {
+        word: "that",
+        phonetic: "ðæt",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "more",
+        phonetic: "mɔː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "slowly",
+        phonetic: "'sləʊli",
+        phonemeScore: 0,
+        phonemeAccuracy: 5,
+        stressAccuracy: 5,
+      },
+      {
+        word: "please",
+        phonetic: "pliːz",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+    ],
+    sentence: { accuracy: 7, fluency: 6, prosody: 7, integrityWords: 6 },
+  },
+  {
+    file: "029810246.wav",
+    audioSize: "0.09M",
+    totalLength: "3.05s",
+    transcript: "we need to submit the report by end of day",
+    words: [
+      {
+        word: "we",
+        phonetic: "wiː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "need",
+        phonetic: "niːd",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "to",
+        phonetic: "tuː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "submit",
+        phonetic: "səb'mɪt",
+        phonemeScore: 0,
+        phonemeAccuracy: 6,
+        stressAccuracy: 5,
+      },
+      {
+        word: "the",
+        phonetic: "ðə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "report",
+        phonetic: "rɪ'pɔːt",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "by",
+        phonetic: "baɪ",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "end",
+        phonetic: "ɛnd",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "of",
+        phonetic: "ɒv",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "day",
+        phonetic: "deɪ",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+    ],
+    sentence: { accuracy: 8, fluency: 8, prosody: 8, integrityWords: 9 },
+  },
+  {
+    file: "029810247.wav",
+    audioSize: "0.07M",
+    totalLength: "2.44s",
+    transcript: "three thousand three hundred and thirty three",
+    words: [
+      {
+        word: "three",
+        phonetic: "θriː",
+        phonemeScore: 0,
+        phonemeAccuracy: 4,
+        stressAccuracy: 10,
+      },
+      {
+        word: "thousand",
+        phonetic: "'θaʊzənd",
+        phonemeScore: 0,
+        phonemeAccuracy: 5,
+        stressAccuracy: 5,
+      },
+      {
+        word: "three",
+        phonetic: "θriː",
+        phonemeScore: 0,
+        phonemeAccuracy: 4,
+        stressAccuracy: 10,
+      },
+      {
+        word: "hundred",
+        phonetic: "'hʌndrəd",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "and",
+        phonetic: "ænd",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "thirty",
+        phonetic: "'θɜːti",
+        phonemeScore: 0,
+        phonemeAccuracy: 5,
+        stressAccuracy: 5,
+      },
+      {
+        word: "three",
+        phonetic: "θriː",
+        phonemeScore: 0,
+        phonemeAccuracy: 4,
+        stressAccuracy: 10,
+      },
+    ],
+    sentence: { accuracy: 3, fluency: 4, prosody: 4, integrityWords: 2 },
+  },
+  {
+    file: "029810248.wav",
+    audioSize: "0.11M",
+    totalLength: "3.70s",
+    transcript: "she has been working at the company for fifteen years",
+    words: [
+      {
+        word: "she",
+        phonetic: "ʃiː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "has",
+        phonetic: "hæz",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "been",
+        phonetic: "biːn",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "working",
+        phonetic: "'wɜːkɪŋ",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "at",
+        phonetic: "æt",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "the",
+        phonetic: "ðə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "company",
+        phonetic: "'kʌmpəni",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "for",
+        phonetic: "fɔː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "fifteen",
+        phonetic: "fɪf'tiːn",
+        phonemeScore: 0,
+        phonemeAccuracy: 6,
+        stressAccuracy: 5,
+      },
+      {
+        word: "years",
+        phonetic: "jɪəz",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+    ],
+    sentence: { accuracy: 8, fluency: 9, prosody: 8, integrityWords: 9 },
+  },
+  {
+    file: "029810249.wav",
+    audioSize: "0.05M",
+    totalLength: "1.55s",
+    transcript: "what time does the next train arrive",
+    words: [
+      {
+        word: "what",
+        phonetic: "wɒt",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "time",
+        phonetic: "taɪm",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "does",
+        phonetic: "dʌz",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "the",
+        phonetic: "ðə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "next",
+        phonetic: "nɛkst",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "train",
+        phonetic: "treɪn",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "arrive",
+        phonetic: "ə'raɪv",
+        phonemeScore: 0,
+        phonemeAccuracy: 5,
+        stressAccuracy: 5,
+      },
+    ],
+    sentence: { accuracy: 7, fluency: 8, prosody: 7, integrityWords: 6 },
+  },
+  {
+    file: "029810250.wav",
+    audioSize: "0.14M",
+    totalLength: "4.60s",
+    transcript: "the pronunciation of this particular word is very challenging",
+    words: [
+      {
+        word: "the",
+        phonetic: "ðə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "pronunciation",
+        phonetic: "prəˌnʌnsi'eɪʃn",
+        phonemeScore: 0,
+        phonemeAccuracy: 3,
+        stressAccuracy: 5,
+      },
+      {
+        word: "of",
+        phonetic: "ɒv",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "this",
+        phonetic: "ðɪs",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "particular",
+        phonetic: "pə'tɪkjʊlə",
+        phonemeScore: 0,
+        phonemeAccuracy: 5,
+        stressAccuracy: 5,
+      },
+      {
+        word: "word",
+        phonetic: "wɜːd",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "is",
+        phonetic: "ɪz",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "very",
+        phonetic: "'vɛri",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "challenging",
+        phonetic: "'tʃælɪndʒɪŋ",
+        phonemeScore: 0,
+        phonemeAccuracy: 4,
+        stressAccuracy: 5,
+      },
+    ],
+    sentence: { accuracy: 4, fluency: 5, prosody: 4, integrityWords: 6 },
+  },
+  {
+    file: "029810251.wav",
+    audioSize: "0.06M",
+    totalLength: "2.20s",
+    transcript: "the meeting has been rescheduled to next monday",
+    words: [
+      {
+        word: "the",
+        phonetic: "ðə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "meeting",
+        phonetic: "'miːtɪŋ",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "has",
+        phonetic: "hæz",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "been",
+        phonetic: "biːn",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "rescheduled",
+        phonetic: "riː'ʃɛdjuːld",
+        phonemeScore: 0,
+        phonemeAccuracy: 5,
+        stressAccuracy: 5,
+      },
+      {
+        word: "to",
+        phonetic: "tuː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "next",
+        phonetic: "nɛkst",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "monday",
+        phonetic: "'mʌndeɪ",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+    ],
+    sentence: { accuracy: 7, fluency: 8, prosody: 7, integrityWords: 7 },
+  },
+  {
+    file: "029810252.wav",
+    audioSize: "0.10M",
+    totalLength: "3.40s",
+    transcript: "i would like to order a large coffee with no sugar",
+    words: [
+      {
+        word: "i",
+        phonetic: "aɪ",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "would",
+        phonetic: "wʊd",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "like",
+        phonetic: "laɪk",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "to",
+        phonetic: "tuː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "order",
+        phonetic: "'ɔːdə",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "a",
+        phonetic: "ə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "large",
+        phonetic: "lɑːdʒ",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "coffee",
+        phonetic: "'kɒfi",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "with",
+        phonetic: "wɪð",
+        phonemeScore: 0,
+        phonemeAccuracy: 6,
+        stressAccuracy: 10,
+      },
+      {
+        word: "no",
+        phonetic: "nəʊ",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "sugar",
+        phonetic: "'ʃʊɡə",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+    ],
+    sentence: { accuracy: 9, fluency: 9, prosody: 8, integrityWords: 10 },
+  },
+  {
+    file: "029810253.wav",
+    audioSize: "0.08M",
+    totalLength: "2.70s",
+    transcript: "the results were far below our expectations this quarter",
+    words: [
+      {
+        word: "the",
+        phonetic: "ðə",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "results",
+        phonetic: "rɪ'zʌlts",
+        phonemeScore: 1,
+        phonemeAccuracy: 8,
+        stressAccuracy: 10,
+      },
+      {
+        word: "were",
+        phonetic: "wɜː",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "far",
+        phonetic: "fɑː",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "below",
+        phonetic: "bɪ'ləʊ",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+      {
+        word: "our",
+        phonetic: "aʊə",
+        phonemeScore: 0,
+        phonemeAccuracy: 5,
+        stressAccuracy: 10,
+      },
+      {
+        word: "expectations",
+        phonetic: "ˌɛkspɛk'teɪʃnz",
+        phonemeScore: 0,
+        phonemeAccuracy: 4,
+        stressAccuracy: 5,
+      },
+      {
+        word: "this",
+        phonetic: "ðɪs",
+        phonemeScore: 1,
+        phonemeAccuracy: 10,
+        stressAccuracy: 10,
+      },
+      {
+        word: "quarter",
+        phonetic: "'kwɔːtə",
+        phonemeScore: 1,
+        phonemeAccuracy: 9,
+        stressAccuracy: 10,
+      },
+    ],
+    sentence: { accuracy: 6, fluency: 7, prosody: 6, integrityWords: 7 },
+  },
+];
+
+// ─── Tasks ────────────────────────────────────────────────────────────────────
+
+export interface Task {
+  audioSize: string;
+  batch: number;
+  completed: number;
+  due: string;
+  id: number;
+  lang: string;
+  project: number;
+  status: "completed" | "in-progress" | "pending";
+  total: number;
+}
+
+export const TASKS: Task[] = [
+  {
+    id: 113_373,
+    project: 56,
+    batch: 722,
+    total: 100,
+    completed: 60,
+    audioSize: "0.10M",
+    status: "in-progress",
+    due: "2024-03-15",
+    lang: "EN-US",
+  },
+  {
+    id: 113_201,
+    project: 54,
+    batch: 710,
+    total: 80,
+    completed: 80,
+    audioSize: "0.08M",
+    status: "completed",
+    due: "2024-03-10",
+    lang: "EN-UK",
+  },
+  {
+    id: 113_450,
+    project: 57,
+    batch: 730,
+    total: 120,
+    completed: 0,
+    audioSize: "0.14M",
+    status: "pending",
+    due: "2024-03-20",
+    lang: "EN-US",
+  },
+  {
+    id: 113_088,
+    project: 53,
+    batch: 698,
+    total: 60,
+    completed: 45,
+    audioSize: "0.06M",
+    status: "in-progress",
+    due: "2024-03-14",
+    lang: "ZH-CN",
+  },
+  {
+    id: 112_990,
+    project: 52,
+    batch: 685,
+    total: 50,
+    completed: 50,
+    audioSize: "0.05M",
+    status: "completed",
+    due: "2024-03-08",
+    lang: "EN-US",
+  },
+  {
+    id: 113_600,
+    project: 58,
+    batch: 741,
+    total: 200,
+    completed: 12,
+    audioSize: "0.22M",
+    status: "in-progress",
+    due: "2024-03-22",
+    lang: "FR-FR",
+  },
+];
+
+// ─── Projects ─────────────────────────────────────────────────────────────────
+
+export interface Project {
+  applied: boolean;
+  deadline: string;
+  description: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+  id: number;
+  lang: string;
+  rate: string;
+  slots: number;
+  tags: string[];
+  tasks: number;
+  title: string;
+  type: string;
+}
+
+export const PROJECTS: Project[] = [
+  {
+    id: 59,
+    title: "English Conversational Speech",
+    lang: "EN-US",
+    type: "Transcription + Scoring",
+    rate: "$0.12/task",
+    tasks: 500,
+    deadline: "2024-04-01",
+    difficulty: "Medium",
+    description:
+      "Spontaneous conversational speech from native speakers. Annotators must assess phoneme accuracy, stress and fluency.",
+    tags: ["Phonetic", "Scoring", "Native"],
+    slots: 8,
+    applied: false,
+  },
+  {
+    id: 60,
+    title: "Mandarin Tone Annotation",
+    lang: "ZH-CN",
+    type: "Transcription",
+    rate: "$0.15/task",
+    tasks: 300,
+    deadline: "2024-03-28",
+    difficulty: "Hard",
+    description:
+      "Tonal speech data from multiple regional dialects. Requires Mandarin native proficiency and IPA knowledge.",
+    tags: ["Tonal", "IPA", "Expert"],
+    slots: 3,
+    applied: false,
+  },
+  {
+    id: 61,
+    title: "British English Read Speech",
+    lang: "EN-UK",
+    type: "Transcription + QA",
+    rate: "$0.09/task",
+    tasks: 800,
+    deadline: "2024-04-15",
+    difficulty: "Easy",
+    description:
+      "Read aloud sentences from a prompted corpus. Clean, studio-quality recordings with standard British accents.",
+    tags: ["Read Speech", "Studio", "QA"],
+    slots: 20,
+    applied: true,
+  },
+  {
+    id: 62,
+    title: "French Prosody Evaluation",
+    lang: "FR-FR",
+    type: "Scoring",
+    rate: "$0.18/task",
+    tasks: 200,
+    deadline: "2024-03-30",
+    difficulty: "Hard",
+    description:
+      "Evaluate prosodic patterns in French speech: rhythm, stress, intonation and linking. Native French required.",
+    tags: ["Prosody", "Native", "Scoring"],
+    slots: 5,
+    applied: false,
+  },
+];
+
+// ─── Statistics ───────────────────────────────────────────────────────────────
+
+export interface ProjectBreakdown {
+  avgScore: number;
+  completed: number;
+  project: string;
+  total: number;
+}
+
+export const PROJECT_BREAKDOWN: ProjectBreakdown[] = [
+  { project: "P52", completed: 50, total: 50, avgScore: 8.9 },
+  { project: "P53", completed: 45, total: 60, avgScore: 8.2 },
+  { project: "P54", completed: 80, total: 80, avgScore: 9.1 },
+  { project: "P56", completed: 60, total: 100, avgScore: 7.8 },
+];
+
+export interface StatCard {
+  label: string;
+  sub: string;
+  value: string;
+}
+
+export const STATS_CARDS: StatCard[] = [
+  { label: "Total Completed", value: "235", sub: "tasks" },
+  { label: "Avg. Quality Score", value: "8.4", sub: "/ 10" },
+  { label: "Hours Contributed", value: "64.2", sub: "hrs" },
+  { label: "Acceptance Rate", value: "97%", sub: "approved" },
+];
+
+export const WEEKLY_ACTIVITY = [
+  { day: "Mon", tasks: 18 },
+  { day: "Tue", tasks: 24 },
+  { day: "Wed", tasks: 31 },
+  { day: "Thu", tasks: 20 },
+  { day: "Fri", tasks: 28 },
+  { day: "Sat", tasks: 10 },
+  { day: "Sun", tasks: 5 },
+];
+
+export const MONTHLY_SCORES = [
+  { week: "W1", avg: 7.2 },
+  { week: "W2", avg: 7.8 },
+  { week: "W3", avg: 8.1 },
+  { week: "W4", avg: 7.9 },
+  { week: "W5", avg: 8.4 },
+  { week: "W6", avg: 8.7 },
+  { week: "W7", avg: 8.5 },
+  { week: "W8", avg: 9.0 },
+];
+
+// ─── User Profile Defaults ───────────────────────────────────────────────────
+
+export const LANGUAGES = [
+  "English (US)",
+  "English (UK)",
+  "Mandarin Chinese",
+  "French",
+  "Spanish",
+  "German",
+  "Japanese",
+];
+export const PROFICIENCY_LEVELS = [
+  "Native",
+  "C2 – Mastery",
+  "C1 – Advanced",
+  "B2 – Upper Intermediate",
+  "B1 – Intermediate",
+];
+
+export const DEFAULT_USER_PROFILE = {
+  name: "Alex Chen",
+  email: "alex.chen@speechlab.io",
+  userId: "10109",
+  timezone: "UTC+8 – Asia/Shanghai",
+  primaryLang: "English (US)",
+  proficiency: "Native",
+  secondaryLangs: ["Mandarin Chinese"],
+  notifyNewTask: true,
+  notifyScore: true,
+  notifyPayment: false,
+};
+
+// ─── Shared Constants ─────────────────────────────────────────────────────────
+
+export const DIFFICULTY_COLORS: Record<string, string> = {
+  Easy: "text-[var(--score-good)] bg-[var(--score-good)]/10 border-[var(--score-good)]/30",
+  Medium:
+    "text-[var(--score-warn)] bg-[var(--score-warn)]/10 border-[var(--score-warn)]/30",
+  Hard: "text-[var(--score-bad)] bg-[var(--score-bad)]/10 border-[var(--score-bad)]/30",
+};

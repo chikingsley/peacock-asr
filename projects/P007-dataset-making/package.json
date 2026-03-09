@@ -1,0 +1,36 @@
+{
+  "name": "p007-dataset-making",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot src/server/index.ts",
+    "start": "NODE_ENV=production bun src/server/index.ts",
+    "build": "bun build src/server/index.ts --outdir dist --target bun --minify --sourcemap",
+    "typecheck": "tsc --noEmit",
+    "seed": "bun src/server/seed.ts",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.2.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.564.0",
+    "next-themes": "^0.4.6",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-router-dom": "^7.1.5",
+    "tailwind-merge": "^3.4.0",
+    "wavesurfer.js": "^7.12.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.9",
+    "@types/react": "19.2.8",
+    "@types/react-dom": "^19.2.3",
+    "bun-plugin-tailwind": "^0.1.2",
+    "tailwindcss": "^4.1.18",
+    "tw-animate-css": "^1.4.0",
+    "typescript": "^5.9.3"
+  }
+}
