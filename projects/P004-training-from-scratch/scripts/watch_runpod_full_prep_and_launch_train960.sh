@@ -224,7 +224,7 @@ remote_train_already_started() {
     -i "$key_path" \
     "root@${host}" \
     -p "$port" \
-    "bash -lc 'ls \"$REMOTE_ROOT\"/experiments/checkpoints/canonical_phone_ctc/canonical_runpod_a100_train960_conformer_h512_l12_b16_e5_*/launcher.pid >/dev/null 2>&1 || pgrep -f \"p004-canonical-train.*librispeech_cuts_train-960.jsonl.gz\" >/dev/null 2>&1'"
+    "bash -lc 'ls \"$REMOTE_ROOT\"/experiments/checkpoints/canonical_phone_ctc/canonical_runpod_a100_train960_conformer_h512_l12_b16_e5_*/launcher.pid >/dev/null 2>&1'"
 }
 
 launch_remote_train() {

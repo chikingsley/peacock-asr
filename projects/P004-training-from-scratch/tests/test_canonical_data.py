@@ -3,6 +3,7 @@ from __future__ import annotations
 import gzip
 import json
 from pathlib import Path
+from typing import Any
 
 from p004_training_from_scratch.canonical.data import (
     DurationBucketBatchSampler,
@@ -58,6 +59,47 @@ def test_read_manifest_cuts_treats_zero_limit_as_full_read(tmp_path: Path) -> No
 
     assert len(cuts) == 1
     assert cuts[0].cut_id == "cut-1"
+
+
+def test_read_manifest_cuts_limits_audio_path_probes(
+    tmp_path: Path,
+    monkeypatch: Any,
+) -> None:
+    audio_path = tmp_path / "sample.wav"
+    audio_path.write_bytes(b"fake")
+    manifest_path = tmp_path / "cuts.jsonl.gz"
+    payloads = [
+        {
+            "id": f"cut-{index}",
+            "duration": 1.0 + index,
+            "recording": {"sources": [{"source": str(audio_path)}]},
+            "supervisions": [{"text": "AA BB"}],
+        }
+        for index in range(5)
+    ]
+    with gzip.open(manifest_path, "wt", encoding="utf-8") as handle:
+        for payload in payloads:
+            handle.write(f"{json.dumps(payload)}\n")
+
+    call_count = 0
+    original_is_file = Path.is_file
+
+    def counting_is_file(path: Path) -> bool:
+        nonlocal call_count
+        call_count += 1
+        return original_is_file(path)
+
+    monkeypatch.setattr(Path, "is_file", counting_is_file)
+
+    cuts = read_manifest_cuts(
+        manifest_path,
+        limit=None,
+        token_table={"<eps>": 0, "AA": 1, "BB": 2},
+        audio_path_probe_count=2,
+    )
+
+    assert len(cuts) == 5
+    assert call_count == 3
 
 
 def test_duration_bucket_batch_sampler_emits_all_indices_once() -> None:

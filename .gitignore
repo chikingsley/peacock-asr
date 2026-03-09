@@ -36,6 +36,7 @@ wandb/
 
 # Processed features (large Arrow files)
 processed-features/
+data/corpora/
 
 # Other agent configs
 .pi/

@@ -59,6 +59,7 @@ def read_manifest_cuts(
     *,
     limit: int | None,
     token_table: dict[str, int] | None = None,
+    audio_path_probe_count: int | None = 32,
 ) -> list[ManifestCut]:
     normalized_limit = _normalize_limit(limit)
     if not manifest_path.is_file():
@@ -71,6 +72,7 @@ def read_manifest_cuts(
                 handle,
                 limit=normalized_limit,
                 token_table=token_table,
+                audio_path_probe_count=audio_path_probe_count,
             )
     else:
         with manifest_path.open("rt", encoding="utf-8") as handle:
@@ -78,6 +80,7 @@ def read_manifest_cuts(
                 handle,
                 limit=normalized_limit,
                 token_table=token_table,
+                audio_path_probe_count=audio_path_probe_count,
             )
 
     if not cuts:
@@ -243,8 +246,10 @@ def _read_manifest_cut_lines(
     *,
     limit: int | None,
     token_table: dict[str, int] | None,
+    audio_path_probe_count: int | None,
 ) -> list[ManifestCut]:
     cuts: list[ManifestCut] = []
+    remaining_audio_path_probes = audio_path_probe_count
     for raw_line in lines:
         payload = json.loads(raw_line)
         phones = tuple(
@@ -254,9 +259,15 @@ def _read_manifest_cut_lines(
             continue
 
         source = Path(str(payload["recording"]["sources"][0]["source"]))
-        if not source.is_file():
-            msg = f"manifest listed missing audio file: {source}"
-            raise FileNotFoundError(msg)
+        should_probe_path = remaining_audio_path_probes is None or (
+            remaining_audio_path_probes > 0
+        )
+        if should_probe_path:
+            if not source.is_file():
+                msg = f"manifest listed missing audio file: {source}"
+                raise FileNotFoundError(msg)
+            if remaining_audio_path_probes is not None:
+                remaining_audio_path_probes -= 1
 
         if token_table is not None:
             unknown = sorted({phone for phone in phones if phone not in token_table})
