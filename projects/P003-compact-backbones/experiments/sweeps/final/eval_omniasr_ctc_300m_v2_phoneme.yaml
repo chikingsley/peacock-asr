@@ -1,0 +1,26 @@
+program: peacock-asr
+entity: peacockery
+project: peacock-asr-p003-compact-backbones
+method: grid
+metric:
+  name: pcc
+  goal: maximize
+command:
+  - ${env}
+  - uv
+  - run
+  - --project
+  - projects/P003-compact-backbones
+  - peacock-asr
+  - run
+  - --gopt
+  - --backend=${backend}
+  - --device=${device}
+  - --seed=${seed}
+parameters:
+  backend:
+    value: omni:/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/checkpoints/omniasr-ctc-300m-v2-phoneme-en
+  device:
+    value: cuda
+  seed:
+    values: [1, 2, 3, 4, 5]

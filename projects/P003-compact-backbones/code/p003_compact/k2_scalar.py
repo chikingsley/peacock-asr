@@ -764,8 +764,6 @@ def compute_scalar_terms_k2_batch(
         cases,
         blank=blank,
     )
-    fsas = [topology.to_fsa() for topology in topologies]
-    fsa_vec = k2.Fsa.from_fsas(fsas).to(device)
 
     if use_ctc_self:
         ll_selfs = _compute_ll_selfs_ctc_batch(cases, blank=blank, device=device)
@@ -784,22 +782,64 @@ def compute_scalar_terms_k2_batch(
         device=device,
     )
 
-    lattice = k2.intersect_dense_pruned(
-        fsa_vec,
-        k2.DenseFsaVec(log_probs_batch, supervisions),
-        search_beam=_PRUNED_SEARCH_BEAM,
-        output_beam=_OUTPUT_BEAM,
-        min_active_states=0,
-        max_active_states=_MAX_ACTIVE_STATES,
-        allow_partial=False,
-        seqframe_idx_name="seqframe",
-        frame_idx_name="frame",
-    )
-    totals = lattice.get_tot_scores(log_semiring=True, use_double_scores=True)
-    if not torch.isfinite(totals).all():
+    dense_fsas = k2.DenseFsaVec(log_probs_batch, supervisions)
+
+    def solve_case_range(case_indices: list[int]) -> tuple[list[float], list[float]]:
+        subset_topologies = [topologies[idx] for idx in case_indices]
+        subset_fsas = [topology.to_fsa() for topology in subset_topologies]
+        subset_fsa_vec = k2.Fsa.from_fsas(subset_fsas).to(device)
+        try:
+            lattice = k2.intersect_dense_pruned(
+                subset_fsa_vec,
+                dense_fsas,
+                search_beam=_PRUNED_SEARCH_BEAM,
+                output_beam=_OUTPUT_BEAM,
+                min_active_states=0,
+                max_active_states=_MAX_ACTIVE_STATES,
+                allow_partial=False,
+                seqframe_idx_name="seqframe",
+                frame_idx_name="frame",
+            )
+        except RuntimeError as exc:
+            if len(case_indices) == 1:
+                raise
+            split_at = max(1, len(case_indices) // 2)
+            logger.warning(
+                "k2 case batch of %d denominator topologies failed (%s); "
+                "retrying as %d + %d.",
+                len(case_indices),
+                exc.__class__.__name__,
+                split_at,
+                len(case_indices) - split_at,
+            )
+            left = solve_case_range(case_indices[:split_at])
+            right = solve_case_range(case_indices[split_at:])
+            return (
+                [*left[0], *right[0]],
+                [*left[1], *right[1]],
+            )
+
+        totals = lattice.get_tot_scores(log_semiring=True, use_double_scores=True)
+        if not torch.isfinite(totals).all():
+            msg = "k2 batch scalar lattice was non-finite."
+            raise RuntimeError(msg)
+
+        occupancies_subset = _occupancies_from_pruned_lattice(
+            lattice,
+            subset_topologies,
+        )
+        return (
+            [float(x) for x in (-totals).detach().cpu().tolist()],
+            occupancies_subset,
+        )
+
+    try:
+        ll_denoms, occupancies_flat = solve_case_range(list(range(len(case_map))))
+    except (IndexError, RuntimeError) as exc:
         logger.warning(
-            "k2 batch scalar lattice was non-finite; falling back to per-utterance "
+            "k2 batch scalar path failed (%s); falling back to per-utterance "
             "Python scalar path.",
+            exc,
         )
         results: list[tuple[float, list[float], list[float]]] = []
         for posteriors, phone_indices in cases:
@@ -812,32 +852,17 @@ def compute_scalar_terms_k2_batch(
             results.append(_compute_scalar_terms_python(params, seq, blank))
         return results
 
-    ll_denoms = [float(x) for x in (-totals).detach().cpu().tolist()]
-    try:
-        occupancies_flat = _occupancies_from_pruned_lattice(lattice, topologies)
-    except (IndexError, RuntimeError) as exc:
-        logger.warning(
-            "k2 batch occupancy reconstruction failed (%s); falling back to "
-            "per-utterance Python scalar path.",
-            exc,
-        )
-        results = []
-        for posteriors, phone_indices in cases:
-            post_mat = torch.from_numpy(posteriors).double()
-            params = post_mat.transpose(0, 1)
-            seq = torch.tensor(
-                tuple(int(phone) for phone in phone_indices),
-                dtype=torch.int32,
-            )
-            results.append(_compute_scalar_terms_python(params, seq, blank))
-        return results
     mutable_scores = [[] for _ in cases]
     mutable_occupancies = [[] for _ in cases]
-    for case_idx, (utt_idx, _pos) in enumerate(case_map):
+    for ll_denom, occupancy, (utt_idx, _pos) in zip(
+        ll_denoms,
+        occupancies_flat,
+        case_map,
+        strict=True,
+    ):
         ll_self = ll_selfs[utt_idx]
-        ll_denom = ll_denoms[case_idx]
         mutable_scores[utt_idx].append(-ll_self + ll_denom)
-        mutable_occupancies[utt_idx].append(occupancies_flat[case_idx])
+        mutable_occupancies[utt_idx].append(occupancy)
 
     return [
         (ll_selfs[utt_idx], mutable_scores[utt_idx], mutable_occupancies[utt_idx])

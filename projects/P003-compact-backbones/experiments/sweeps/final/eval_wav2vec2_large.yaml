@@ -1,6 +1,6 @@
 entity: peacockery
 project: peacock-asr-p003-compact-backbones
-program: projects/P003-compact-backbones/code/p003_compact/cli.py
+program: peacock-asr
 method: grid
 metric:
   name: pcc
@@ -12,17 +12,14 @@ command:
   - run
   - --project
   - projects/P003-compact-backbones
-  - python
-  - -m
-  - p003_compact.cli
+  - peacock-asr
   - run
+  - --gopt
   - ${args}
 
 parameters:
   backend:
     value: hf:Peacockery/wav2vec2-large-phoneme-en
-  gopt:
-    value: true
   device:
     value: cuda
   seed:

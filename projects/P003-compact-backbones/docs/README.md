@@ -53,10 +53,14 @@ Key references:
   `../experiments/sweeps/final/train_wav2vec2_base.yaml`
 - Training sweep:
   `../experiments/sweeps/final/train_hubert_base.yaml`
+- Training sweep:
+  `../experiments/sweeps/final/train_wav2vec2_large.yaml`
 - Eval sweep:
   `../experiments/sweeps/final/eval_wav2vec2_base.yaml`
 - Eval sweep:
   `../experiments/sweeps/final/eval_hubert_base.yaml`
+- Eval sweep:
+  `../experiments/sweeps/final/eval_wav2vec2_large.yaml`
 - Eval sweep:
   `../experiments/sweeps/final/eval_w2v_bert.yaml`
 - Local launcher:
@@ -100,6 +104,12 @@ Phase 1: HuBERT-base local training:
 uv run --project projects/P003-compact-backbones python projects/P003-compact-backbones/code/launch_hubert_base_local.py
 ```
 
+Phase 1: wav2vec2-large local training:
+
+```bash
+uv run --project projects/P003-compact-backbones python projects/P003-compact-backbones/code/launch_wav2vec2_large_local.py
+```
+
 Scoring optimization loop:
 
 ```bash
@@ -139,6 +149,7 @@ Current result snapshot:
 
 - `wav2vec2-base` (95M): `0.640 +/- 0.009` PCC
 - `HuBERT-base` (95M): `0.6489 +/- 0.0093` PCC
+- `wav2vec2-large` (317M): `0.6512 +/- 0.0057` PCC
 - `w2v-BERT-2.0` (600M): `0.6755 +/- 0.0066` PCC
 - `Citrinet-256` (10M, NeMo branch): `0.5574 +/- 0.0133` PCC
 
@@ -147,5 +158,7 @@ Key insight:
 - No published paper has used wav2vec2-base or HuBERT-base as a CTC backbone
   for GOP-based pronunciation assessment on SpeechOcean762. This is a genuine
   gap.
+- `wav2vec2-large` does not buy a meaningful jump over `HuBERT-base` in the
+  current setup, so size alone is not carrying the result.
 - Citrinet now has a real branch result rather than a pure feasibility note,
   but it is not competitive with the SSL CTC backbones in the current form.

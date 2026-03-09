@@ -1,0 +1,5 @@
+name: peacock_librispeech_phone_manifest_v1
+dataset_family: manifest_asr_dataset
+dataset_config:
+  data: /home/simon/github/peacock-asr/projects/P003-compact-backbones/code/omni/datasets/librispeech_phone_manifest_v1
+tokenizer_ref: omniASR_tokenizer_arpabet_41_v1

@@ -4,13 +4,21 @@ Canonical W&B sweep specs now live under:
 
 - [`projects/P003-compact-backbones/experiments/sweeps/final/train_wav2vec2_base.yaml`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/sweeps/final/train_wav2vec2_base.yaml)
 - [`projects/P003-compact-backbones/experiments/sweeps/final/train_hubert_base.yaml`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/sweeps/final/train_hubert_base.yaml)
+- [`projects/P003-compact-backbones/experiments/sweeps/final/train_parakeet_ctc_0_6b.yaml`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/sweeps/final/train_parakeet_ctc_0_6b.yaml)
 - [`projects/P003-compact-backbones/experiments/sweeps/final/eval_wav2vec2_base.yaml`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/sweeps/final/eval_wav2vec2_base.yaml)
 - [`projects/P003-compact-backbones/experiments/sweeps/final/eval_hubert_base.yaml`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/sweeps/final/eval_hubert_base.yaml)
+- [`projects/P003-compact-backbones/experiments/sweeps/final/eval_parakeet_ctc_0_6b.yaml`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/sweeps/final/eval_parakeet_ctc_0_6b.yaml)
+- [`projects/P003-compact-backbones/experiments/sweeps/final/eval_omniasr_ctc_300m_v2_phoneme.yaml`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/sweeps/final/eval_omniasr_ctc_300m_v2_phoneme.yaml)
 - [`projects/P003-compact-backbones/experiments/sweeps/final/eval_w2v_bert.yaml`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/sweeps/final/eval_w2v_bert.yaml)
 
 Project-local wrapper scripts now live under:
 
 - [`projects/P003-compact-backbones/code/launch_hubert_base_local.py`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/launch_hubert_base_local.py)
+- [`projects/P003-compact-backbones/code/launch_parakeet_ctc_0_6b_local.py`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/launch_parakeet_ctc_0_6b_local.py)
+- [`projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_local.py`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_local.py)
+- [`projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_probe.py`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_probe.py)
+- [`projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_phoneme_train_local.py`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_phoneme_train_local.py)
+- [`projects/P003-compact-backbones/code/start_parakeet_then_queue_omni.py`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/start_parakeet_then_queue_omni.py)
 - [`projects/P003-compact-backbones/code/benchmark_hubert_base_local.py`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/benchmark_hubert_base_local.py)
 
 ## 1) Train wav2vec2-base phoneme head
@@ -99,13 +107,108 @@ uv run --project projects/P003-compact-backbones python projects/P003-compact-ba
 That command is intentionally cloud-agnostic. It uses the `P003` project-local
 trainer instead of any provider-specific path.
 
-## 6) Run the local HuBERT benchmark wrapper
+## 6) Launch Parakeet CTC 0.6B locally
+
+Parakeet can use the same Transformers/CTC fine-tuning path as the other HF
+backbones, but it requires `librosa` in the project environment because the
+Parakeet feature extractor imports it.
+
+```bash
+uv sync --project projects/P003-compact-backbones
+uv run --project projects/P003-compact-backbones python projects/P003-compact-backbones/code/launch_parakeet_ctc_0_6b_local.py
+```
+
+Target HF repo:
+
+```text
+Peacockery/parakeet-ctc-0.6b-phoneme-en
+```
+
+After training, evaluate with:
+
+```bash
+uv run --project projects/P003-compact-backbones wandb sweep projects/P003-compact-backbones/experiments/sweeps/final/eval_parakeet_ctc_0_6b.yaml
+```
+
+The local launchers now chain scoring automatically after successful training:
+
+- prewarm `k2`
+- create the canonical eval sweep
+- start the W&B agent
+
+Disable that only if you explicitly want training-only:
+
+```bash
+uv run --project projects/P003-compact-backbones python projects/P003-compact-backbones/code/launch_parakeet_ctc_0_6b_local.py --no-score-after
+```
+
+The queued local order is now:
+
+1. `wav2vec2-large` scoring sweep
+2. `P004` conformer scoring
+3. `Parakeet 0.6B` train + score
+4. `OmniASR CTC 300M v2` phoneme train + score
+
+## 7) Probe OmniASR CTC 300M v2
+
+This validates the upstream fairseq2 inference stack and the local third-party
+checkout for the stock text-CTC model.
+
+```bash
+uv run --project projects/P003-compact-backbones \
+  python projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_local.py \
+  --check-only
+```
+
+## 8) Preflight the OmniASR phoneme-adaptation path
+
+This builds a local `41`-token ARPABET tokenizer, registers local fairseq2
+asset cards, and proves the current workable load mode:
+
+- stock checkpoint load
+- replace `final_proj` with a `41`-class phoneme head
+- pair with the new tokenizer
+
+```bash
+uv run --project projects/P003-compact-backbones \
+  python projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_phoneme_local.py \
+  --device cuda
+```
+
+## 9) Launch OmniASR CTC 300M v2 phoneme fine-tuning locally
+
+```bash
+uv run --project projects/P003-compact-backbones \
+  python projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_phoneme_train_local.py
+```
+
+This now chains scoring automatically after successful training:
+
+- prewarm `k2`
+- create the canonical eval sweep
+- start the W&B agent
+
+Disable that only if you explicitly want training-only:
+
+```bash
+uv run --project projects/P003-compact-backbones \
+  python projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_phoneme_train_local.py \
+  --no-score-after
+```
+
+The canonical scoring backend is:
+
+```text
+omni:/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/checkpoints/omniasr-ctc-300m-v2-phoneme-en
+```
+
+## 10) Run the local HuBERT benchmark wrapper
 
 ```bash
 uv run --project projects/P003-compact-backbones python projects/P003-compact-backbones/code/benchmark_hubert_base_local.py
 ```
 
-## 7) Benchmark scoring optimizations without a rewrite
+## 11) Benchmark scoring optimizations without a rewrite
 
 Use the project-local scoring benchmark to measure one phase at a time on a
 small fixed subset before changing production code:
@@ -154,7 +257,7 @@ Prepared posterior bundles are written under:
 projects/P003-compact-backbones/experiments/benchmarks/scoring/prepared/
 ```
 
-## 8) Prewarm the k2 topology cache
+## 12) Prewarm the k2 topology cache
 
 `k2` is now the default scalar backend for `P003`, but first-run cold starts are
 slower because denominator topologies must be built and cached. Prewarm the

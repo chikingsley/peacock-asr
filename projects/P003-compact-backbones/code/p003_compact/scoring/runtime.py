@@ -560,7 +560,16 @@ def _compute_scalar_gop_phase_k2_batched(
         ]
 
     results: list[ScalarGOPResult] = []
-    for chunk in prepared_chunks:
+    total_chunks = len(prepared_chunks)
+    for chunk_idx, chunk in enumerate(prepared_chunks, start=1):
+        if chunk_idx in {1, total_chunks} or chunk_idx % 100 == 0:
+            logger.info(
+                "[%s] k2 scalar chunk %d/%d (%d utts).",
+                split_name,
+                chunk_idx,
+                total_chunks,
+                len(chunk),
+            )
         results.extend(run_chunk(chunk))
     return results
 

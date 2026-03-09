@@ -1,0 +1,3 @@
+name: omniASR_tokenizer_arpabet_41_v1
+tokenizer_family: char_tokenizer
+tokenizer: /home/simon/github/peacock-asr/projects/P003-compact-backbones/code/omni/tokenizers/arpabet_41_spm/arpabet_41.model

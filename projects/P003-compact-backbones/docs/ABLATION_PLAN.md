@@ -54,24 +54,26 @@ Each backbone needs CTC fine-tuning on LibriSpeech with 41-token ARPABET vocab.
 | P1-B | wav2vec2-base | 95M | English 960h | LibriSpeech 100h | 3x smaller, same family |
 | P1-C | HuBERT-base | 95M | English 960h | LibriSpeech 100h | Different pre-training |
 | P1-D | wav2vec2-large | 317M | English 960h | LibriSpeech 100h | Size control (bigger ≠ better?) |
+| P1-E | Parakeet CTC 0.6B | ~600M | English ASR | LibriSpeech 100h | Modern CTC control / speed-quality frontier |
 
 Current Phase 1 status:
 
 - `P1-B` complete: `wav2vec2-base + GOPT = 0.640 +/- 0.009 PCC`
 - `P1-C` complete: `HuBERT-base + GOPT = 0.6489 +/- 0.0093 PCC`
-- `P1-D` still pending
+- `P1-D` complete: `wav2vec2-large + GOPT = 0.6512 +/- 0.0057 PCC`
+- `P1-E` staged, not started
 
 Implementation still needed:
 
-- Fine-tune wav2vec2-large with CTC on LibriSpeech (41 ARPABET tokens)
-- Create backend adapter for wav2vec2-large (same interface as `original` backend)
+- Fine-tune Parakeet CTC 0.6B with CTC on LibriSpeech (41 ARPABET tokens)
 - Feature dim remains 42 (LPP 20 + LPR 20 + occupancy 2) for all
 
 Interpretation so far:
 
 - HuBERT-base modestly improves on wav2vec2-base at the same 95M scale
-- Neither 95M model matches the `xlsr-53 + GOPT` baseline
-- `wav2vec2-large` is now the cleanest remaining Phase 1 backbone question
+- `wav2vec2-large` only modestly improves on the 95M points
+- Neither the 95M models nor `wav2vec2-large` matches the `xlsr-53 + GOPT` baseline
+- The next immediate backbone question is `Parakeet 0.6B`
 
 ## Phase 2: Citrinet-256 (Extreme Compression)
 

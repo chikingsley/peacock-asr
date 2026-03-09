@@ -25,6 +25,7 @@ Citation policy:
 | C6 | No published paper tests wav2vec2-base or HuBERT-base as GOP backbone | Supported by literature search | [3] |
 | C7 | Our xlsr-53 + GOPT baseline (0.677) already exceeds HIA SOTA (0.657) | Supported (Track 05 data vs [7]) | Internal, [7] |
 | C8 | w2v-BERT-2.0 (600M) reaches near-parity with our xlsr-53 + GOPT baseline | **CONFIRMED: PCC 0.6755 +/- 0.0066** (5 seeds) | [1], [2] |
+| C9 | wav2vec2-large (317M) is only a modest gain over the 95M backbones and still sits below xlsr-53 / w2v-BERT-2.0 | **CONFIRMED: PCC 0.6512 +/- 0.0057** (5 seeds), above HuBERT-base by a small margin but below the stronger 300M/600M points | [1], [2] |
 
 ---
 
@@ -80,6 +81,7 @@ Citation policy:
 | **Ours (xlsr-53 + GOPT)** | **0.677 ± 0.003** | **GOP-SF + transformer** | **xlsr-53 300M** |
 | **Ours (wav2vec2-base + GOPT)** | **0.640 ± 0.009** | **GOP-SF + transformer** | **wav2vec2-base 95M** |
 | **Ours (HuBERT-base + GOPT)** | **0.649 +/- 0.009** | **GOP-SF + transformer** | **HuBERT-base 95M** |
+| **Ours (wav2vec2-large + GOPT)** | **0.651 +/- 0.006** | **GOP-SF + transformer** | **wav2vec2-large 317M** |
 | **Ours (w2v-BERT-2.0 + GOPT)** | **0.676 +/- 0.007** | **GOP-SF + transformer** | **w2v-BERT-2.0 600M** |
 | HierCB + ConPCO | >0.657 (exact unknown) | SSL + ordinal loss | HuBERT/WavLM 3072-dim |
 
@@ -217,6 +219,49 @@ Interpretation:
 Claims supported: `C8`
 
 ### E4: Citrinet-256 (10M) — Phase 2B
+
+### E4: wav2vec2-large (317M) — Phase 1D
+
+- **Date**: 2026-03-09
+- **Model**: `Peacockery/wav2vec2-large-phoneme-en` (HF Hub)
+- **Training**: local run completed successfully with 41-token ARPABET CTC head
+  - Canonical train sweep:
+    `projects/P003-compact-backbones/experiments/sweeps/final/train_wav2vec2_large.yaml`
+  - Local training log:
+    `projects/P003-compact-backbones/experiments/logs/wav2vec2_large_local_2026-03-07.log`
+  - Hub artifact:
+    `Peacockery/wav2vec2-large-phoneme-en`
+- **Eval**: GOPT scoring head, 5 seeds, SpeechOcean762
+  - Canonical eval sweep:
+    `projects/P003-compact-backbones/experiments/sweeps/final/eval_wav2vec2_large.yaml`
+  - W&B sweep:
+    `peacockery/peacock-asr-p003-compact-backbones/sweeps/u8kw10sm`
+  - Sweep log:
+    `projects/P003-compact-backbones/experiments/logs/sweep_eval_wav2vec2_large_u8kw10sm.log`
+  - Backend:
+    `hf:Peacockery/wav2vec2-large-phoneme-en`
+
+| Seed | PCC | MSE |
+|------|-----|-----|
+| 1 | 0.6445 | 0.0801 |
+| 2 | 0.6549 | 0.0784 |
+| 3 | 0.6506 | 0.0791 |
+| 4 | 0.6586 | 0.0773 |
+| 5 | 0.6474 | 0.0792 |
+| **Mean ± std** | **0.6512 +/- 0.0057** | **0.0788 +/- 0.0010** |
+
+Interpretation:
+
+- Improves slightly over `HuBERT-base` (`0.6489 +/- 0.0093`) and more clearly
+  over `wav2vec2-base` (`0.640 +/- 0.009`).
+- Does **not** approach the `xlsr-53 + GOPT` baseline (`0.6774 +/- 0.0127`) or
+  the `w2v-BERT-2.0` point (`0.6755 +/- 0.0066`).
+- So the 317M size-control result does not justify a “bigger wav2vec2 solves
+  the gap” claim in the current setup.
+
+Claims supported: `C9`
+
+### E5: Citrinet-256 (10M) — Phase 2B
 
 - **Date**: 2026-03-07
 - **Model**: `Peacockery/citrinet-256-phoneme-en` (NeMo artifact / `nemo:` backend)

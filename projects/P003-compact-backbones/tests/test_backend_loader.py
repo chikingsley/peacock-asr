@@ -17,6 +17,16 @@ def test_get_backend_accepts_nemo_prefix() -> None:
     assert isinstance(backend_ctor, partial)
 
 
+def test_get_backend_accepts_p004_prefix() -> None:
+    backend_ctor = get_backend("p004:/tmp/p004-run")
+    assert isinstance(backend_ctor, partial)
+
+
+def test_get_backend_accepts_omni_prefix() -> None:
+    backend_ctor = get_backend("omni:/tmp/omni-run")
+    assert isinstance(backend_ctor, partial)
+
+
 def test_get_backend_rejects_unknown_prefix() -> None:
     with pytest.raises(ValueError, match="only supports"):
         get_backend("original")

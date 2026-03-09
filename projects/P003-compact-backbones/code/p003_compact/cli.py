@@ -17,7 +17,7 @@ def _register_run_parser(
         "--backend",
         "-b",
         required=True,
-        help="Backend: hf:<repo_id> or nemo:<path-or-repo>",
+        help="Backend: hf:<repo_id>, nemo:<path-or-repo>, or p004:<run-dir>",
     )
     run_p.add_argument("--feats", action="store_true")
     run_p.add_argument(
@@ -62,7 +62,7 @@ def _register_prewarm_k2_parser(
         "--backend",
         "-b",
         required=True,
-        help="Backend: hf:<repo_id> or nemo:<path-or-repo>",
+        help="Backend: hf:<repo_id>, nemo:<path-or-repo>, or p004:<run-dir>",
     )
     prewarm_p.add_argument(
         "--split",

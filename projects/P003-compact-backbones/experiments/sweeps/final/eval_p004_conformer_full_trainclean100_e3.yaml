@@ -1,0 +1,26 @@
+entity: peacockery
+project: peacock-asr-p003-compact-backbones
+program: peacock-asr
+method: grid
+metric:
+  name: pcc
+  goal: maximize
+
+command:
+  - ${env}
+  - uv
+  - run
+  - --project
+  - projects/P003-compact-backbones
+  - peacock-asr
+  - run
+  - --gopt
+  - ${args}
+
+parameters:
+  backend:
+    value: p004:/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/checkpoints/canonical_phone_ctc/canonical_local_conformer_full_trainclean100_e3_resume_20260307_a
+  device:
+    value: cuda
+  seed:
+    values: [1, 2, 3, 4, 5]

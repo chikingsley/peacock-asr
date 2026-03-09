@@ -1,0 +1,8 @@
+name: omniASR_CTC_300M_v2_arpabet_41
+model_family: wav2vec2_asr
+model_arch: 300m_v2
+checkpoint: https://dl.fbaipublicfiles.com/mms/omniASR-CTC-300M-v2.pt
+tokenizer_ref: omniASR_tokenizer_arpabet_41_v1
+restrict: false
+model_config_override:
+  target_vocab_size: 41
