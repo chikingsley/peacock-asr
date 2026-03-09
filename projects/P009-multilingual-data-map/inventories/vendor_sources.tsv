@@ -1,0 +1,4 @@
+vendor	access_class	languages	scope	url	notes
+LDC	licensed	multilingual	corpus_catalog	https://catalog.ldc.upenn.edu/	Main licensed catalog for speech and text corpora; useful when a recipe includes Fisher or other restricted corpora.
+Appen	commercial	multilingual	off_the_shelf_and_custom	https://www.appen.com/ots-datasets	Commercial speech and audio dataset collection plus custom data programs.
+DataTang	commercial	multilingual	off_the_shelf_datasets	https://www.datatang.ai/	Commercial marketplace with many speech datasets; language availability must be audited case by case.

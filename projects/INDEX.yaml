@@ -82,6 +82,16 @@ projects:
       - projects/P008-capt-runtime/docs
       - projects/P008-capt-runtime/code
       - projects/P008-capt-runtime/experiments
+  - id: P009
+    slug: multilingual-data-map
+    name: Multilingual Data Map
+    status: planning
+    legacy_track: null
+    root: projects/P009-multilingual-data-map
+    wandb_project: peacock-asr-p009-multilingual-data-map
+    active_paths:
+      - projects/P009-multilingual-data-map/docs
+      - projects/P009-multilingual-data-map/inventories
 
 conventions:
   canonical_naming: P###-slug

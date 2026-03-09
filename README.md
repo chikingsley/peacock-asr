@@ -36,6 +36,8 @@ Planning/incubation workspaces:
 - `P004` training from scratch
 - `P005` LLM pronunciation
 - `P006` realtime streaming
+- `P008` CAPT runtime
+- `P009` multilingual data map
 
 ## Common Commands
 

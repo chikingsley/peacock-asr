@@ -1,0 +1,16 @@
+language	dataset_name	hours_used_in_nvidia_recipe	access_class	role	source_url	notes
+ru	Golos	1200	needs_audit	nvidia_seed_recipe	https://huggingface.co/nvidia/stt_ru_fastconformer_hybrid_large_pc	Verify official source and license.
+ru	SOVA	310	needs_audit	nvidia_seed_recipe	https://huggingface.co/nvidia/stt_ru_fastconformer_hybrid_large_pc	Verify official source and license.
+ru	Dusha	200	needs_audit	nvidia_seed_recipe	https://huggingface.co/nvidia/stt_ru_fastconformer_hybrid_large_pc	Verify official source and license.
+ru	Russian LibriSpeech (RuLS)	92.5	needs_audit	nvidia_seed_recipe	https://huggingface.co/nvidia/stt_ru_fastconformer_hybrid_large_pc	Verify official source and license.
+ru	Common Voice 12 (ru)	36.7	public_open	nvidia_seed_recipe	https://huggingface.co/nvidia/stt_ru_fastconformer_hybrid_large_pc	Public Mozilla corpus branch.
+es	Fisher Spanish	141	licensed	nvidia_seed_recipe	https://huggingface.co/nvidia/stt_es_fastconformer_hybrid_large_pc	Recipe is not public-only because of Fisher.
+es	Common Voice 12 (es)	395	public_open	nvidia_seed_recipe	https://huggingface.co/nvidia/stt_es_fastconformer_hybrid_large_pc	Public Mozilla corpus branch.
+es	MLS Spanish	780	public_open	nvidia_seed_recipe	https://huggingface.co/nvidia/stt_es_fastconformer_hybrid_large_pc	Public MLS branch.
+es	VoxPopuli Spanish	108	public_open	nvidia_seed_recipe	https://huggingface.co/nvidia/stt_es_fastconformer_hybrid_large_pc	Public European Parliament speech.
+it	Common Voice 12 (it)	220	public_open	nvidia_seed_recipe	https://huggingface.co/nvidia/stt_it_fastconformer_hybrid_large_pc	Public Mozilla corpus branch.
+it	MLS Italian	214	public_open	nvidia_seed_recipe	https://huggingface.co/nvidia/stt_it_fastconformer_hybrid_large_pc	Public MLS branch.
+it	VoxPopuli Italian	53	public_open	nvidia_seed_recipe	https://huggingface.co/nvidia/stt_it_fastconformer_hybrid_large_pc	Public European Parliament speech.
+fr	Common Voice 12 (fr)	710	public_open	nvidia_seed_recipe	https://huggingface.co/nvidia/stt_fr_fastconformer_hybrid_large_pc	Public Mozilla corpus branch.
+fr	MLS French	925	public_open	nvidia_seed_recipe	https://huggingface.co/nvidia/stt_fr_fastconformer_hybrid_large_pc	Public MLS branch.
+fr	VoxPopuli French	165	public_open	nvidia_seed_recipe	https://huggingface.co/nvidia/stt_fr_fastconformer_hybrid_large_pc	Public European Parliament speech.
