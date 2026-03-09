@@ -1,1 +1,12 @@
 language	dataset_name	hours_used_in_nvidia_recipe	estimated_total_public_hours	access_class	role	source_url	notes
+fr	Common Voice 12 (fr)	710	710	public_open	nvidia_seed_recipe	https://commonvoice.mozilla.org/fr/datasets	Clean public seed corpus; NVIDIA explicitly cites the French v12 slice at about 710h.
+fr	MLS French	925	1333	public_open	nvidia_seed_recipe	https://www.openslr.org/94/	Strong public audiobook seed; the public French pool appears materially larger than the NVIDIA-used subset.
+fr	VoxPopuli French	165	211	public_open	nvidia_seed_recipe	https://huggingface.co/datasets/facebook/voxpopuli	Public parliamentary speech; the official dataset appears larger than the slice NVIDIA used.
+fr	Audiocite.net (OpenSLR 139)		6682	needs_audit	public_scale_candidate	https://www.openslr.org/139/	Huge French audiobook pool and the best obvious scale-up candidate, but file-level licenses are mixed and need filtering.
+fr	African Accented French (OpenSLR 57)		22	public_open	public_replacement_candidate	https://www.openslr.org/57/	Small but valuable accent-diversity add-on under Apache 2.0; good robustness supplement, not a core scale source.
+fr	TCOF (Traitement de Corpus Oraux en Francais)		124	needs_audit	public_replacement_candidate	https://www.cnrtl.fr/corpus/tcof/	Useful spontaneous French speech, but the noncommercial license needs policy review before training use.
+fr	FLEURS French		12	public_open	eval_only	https://huggingface.co/datasets/google/fleurs	Public standardized multilingual benchmark; strong eval set, not a serious scaling source.
+fr	ESTER / EPAC French broadcast news			licensed	licensed_option	https://catalogue.elra.info/en-us/repository/browse/ELRA-S0305/	Classic French broadcast-news lane distributed through ELRA rather than public-open.
+fr	ETAPE			licensed	licensed_option	http://www.elda.org/projects/archived-projects/etape/	French TV and radio benchmark with more spontaneous speech than read and audiobook sets.
+fr	Appen French SpeechDat II FDB-5000			commercial	commercial_option	https://datasets.appen.com/product/french_speechdat_ii_fdb-5000/	Clear commercial telephony-scale French option if cleaner phone or domain coverage is needed.
+fr	Appen French conversational telephony (FRF_ASR001)			commercial	commercial_option	https://datasets.appen.com/product/frf_asr001/	Smaller conversational-phone add-on that helps domain balance more than raw scale.

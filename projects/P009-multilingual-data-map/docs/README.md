@@ -2,19 +2,25 @@
 
 Start here:
 
-- [LANGUAGE_MATRIX.md](/home/simon/github/peacock-asr/projects/P009-multilingual-data-map/docs/LANGUAGE_MATRIX.md)
-- [AGENT_RUNBOOK.md](/home/simon/github/peacock-asr/projects/P009-multilingual-data-map/docs/AGENT_RUNBOOK.md)
+- [`LANGUAGE_MATRIX.md`](./LANGUAGE_MATRIX.md)
+- [`AGENT_RUNBOOK.md`](./AGENT_RUNBOOK.md)
 
 Per-language notes:
 
-- [ru.md](/home/simon/github/peacock-asr/projects/P009-multilingual-data-map/docs/languages/ru.md)
-- [es.md](/home/simon/github/peacock-asr/projects/P009-multilingual-data-map/docs/languages/es.md)
-- [it.md](/home/simon/github/peacock-asr/projects/P009-multilingual-data-map/docs/languages/it.md)
-- [fr.md](/home/simon/github/peacock-asr/projects/P009-multilingual-data-map/docs/languages/fr.md)
+- [`languages/ru.md`](./languages/ru.md)
+- [`languages/es.md`](./languages/es.md)
+- [`languages/it.md`](./languages/it.md)
+- [`languages/fr.md`](./languages/fr.md)
 
 Agent briefs:
 
-- [ru.md](/home/simon/github/peacock-asr/projects/P009-multilingual-data-map/docs/agent_briefs/ru.md)
-- [es.md](/home/simon/github/peacock-asr/projects/P009-multilingual-data-map/docs/agent_briefs/es.md)
-- [it.md](/home/simon/github/peacock-asr/projects/P009-multilingual-data-map/docs/agent_briefs/it.md)
-- [fr.md](/home/simon/github/peacock-asr/projects/P009-multilingual-data-map/docs/agent_briefs/fr.md)
+- [`agent_briefs/ru.md`](./agent_briefs/ru.md)
+- [`agent_briefs/es.md`](./agent_briefs/es.md)
+- [`agent_briefs/it.md`](./agent_briefs/it.md)
+- [`agent_briefs/fr.md`](./agent_briefs/fr.md)
+
+Inventories:
+
+- [`../inventories/seed_datasets.tsv`](../inventories/seed_datasets.tsv)
+- [`../inventories/vendor_sources.tsv`](../inventories/vendor_sources.tsv)
+- [`../inventories/drafts/`](../inventories/drafts/)

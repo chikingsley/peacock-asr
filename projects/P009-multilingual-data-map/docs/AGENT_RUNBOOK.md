@@ -55,6 +55,9 @@ Each language draft file should use this header:
 language	dataset_name	hours_used_in_nvidia_recipe	estimated_total_public_hours	access_class	role	source_url	notes
 ```
 
+The shared `inventories/seed_datasets.tsv` file uses the same header so draft
+rows can be consolidated without losing the estimated public-hours column.
+
 ## Current Seed Sources
 
 - NVIDIA FastConformer model cards

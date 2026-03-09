@@ -67,8 +67,11 @@ rules vary by dataset.
 - `docs/AGENT_RUNBOOK.md`: instructions for research agents
 - `docs/languages/`: per-language inventory notes
 - `docs/agent_briefs/`: one brief per language for delegated research
+- `inventories/drafts/`: per-language machine-readable draft inventories
 - `inventories/seed_datasets.tsv`: machine-readable seed inventory
 - `inventories/vendor_sources.tsv`: commercial / licensed source registry
+- `scripts/validate_inventories.py`: TSV/header/consistency validator for draft
+  and shared inventories
 
 ## Scope
 

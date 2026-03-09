@@ -1,1 +1,9 @@
 language	dataset_name	hours_used_in_nvidia_recipe	estimated_total_public_hours	access_class	role	source_url	notes
+ru	Golos	1200	1240	needs_audit	nvidia_seed_recipe	https://developers.sber.ru/portal/products/golos	Official Sber/OpenSLR-distributed Russian ASR corpus; public download is clear but license obligations still need audit.
+ru	SOVA	310		needs_audit	nvidia_seed_recipe	https://sova.ai/dataset/	Official SOVA page says the dataset is free and CC-BY-4.0, but the headline hours mix Russian and English rather than a clean Russian-only total.
+ru	Dusha	200	350	needs_audit	nvidia_seed_recipe	https://developers.sber.ru/portal/products/dusha	Official Sber speech-emotion corpus with transcripts and public access, but reusable training terms still need audit.
+ru	Russian LibriSpeech (RuLS)	92.5	98	public_open	nvidia_seed_recipe	https://www.openslr.org/96/	OpenSLR corpus based on LibriVox public-domain audiobooks; clean small seed component.
+ru	Common Voice 12 (ru)	36.7		public_open	nvidia_seed_recipe	https://huggingface.co/datasets/mozilla-foundation/common_voice_12_0	Mozilla public corpus branch used in the released recipe.
+ru	Common Voice Scripted Speech 24.0 (ru)		290.23	public_open	public_scale_candidate	https://datacollective.mozillafoundation.org/datasets/cmj8u3prj00o9nxxbg5pbn88l	Best clean extension of the Common Voice branch beyond the smaller CV12 slice NVIDIA used.
+ru	FLEURS (ru)		10	needs_audit	eval_only	https://huggingface.co/datasets/google/fleurs	Strong multilingual benchmark-style Russian set; better for evaluation than scale.
+ru	Multilingual TEDx Russian (OpenSLR 100)		61.12	needs_audit	eval_only	https://www.openslr.org/100	Useful domain-shift benchmark, but the noncommercial/no-derivatives license needs review before training use.

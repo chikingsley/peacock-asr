@@ -1,1 +1,11 @@
 language	dataset_name	hours_used_in_nvidia_recipe	estimated_total_public_hours	access_class	role	source_url	notes
+it	Common Voice 12 (it)	220		public_open	nvidia_seed_recipe	https://huggingface.co/datasets/mozilla-foundation/common_voice_12_0	Core NVIDIA seed corpus; public and easy to obtain, but the clean Italian-only CV12 total still needs confirmation.
+it	MLS Italian	214	279.43	public_open	nvidia_seed_recipe	https://huggingface.co/datasets/facebook/multilingual_librispeech	Strong public read-speech seed; the full public Italian branch appears larger than the NVIDIA-used subset.
+it	VoxPopuli Italian	53	91	public_open	nvidia_seed_recipe	https://huggingface.co/datasets/facebook/voxpopuli	Public parliament-speech seed; the official dataset appears larger than the slice NVIDIA used.
+it	FLEURS Italian (it_it)		10	public_open	eval_only	https://huggingface.co/datasets/google/fleurs	Best obvious open Italian evaluation set to add immediately, but too small to matter for training scale.
+it	ASR-ItaCSC		10.43	needs_audit	public_scale_candidate	https://magichub.com/datasets/italian-conversational-speech-corpus/	Useful conversational Italian speech, but the gated download and restrictive license need review before training use.
+it	KIParla			needs_audit	eval_only	https://kiparla.it/en/il-corpus/	Important spoken-Italian corpus with aligned transcripts, but current audio access is not a frictionless public-training path.
+it	EVALITA 2011 ASR (Italian Parliament)			needs_audit	eval_only	https://www.evalita.it/campaigns/evalita-2011/tasks/asr/	Official Italian ASR benchmark with useful task data, but current reuse and access packaging needs audit before training use.
+it	Italian Speech Data by Mobile Phone - 1,441 Hours (ELRA-S0450)			licensed	licensed_option	https://catalog.elra.info/en-us/repository/browse/ELRA-S0450/	Best obvious large licensed Italian scale-up option if the public-only lane proves too small.
+it	Italian (Italy) scripted microphone (ITA_ASR001)			commercial	commercial_option	https://datasets.appen.com/product/ita_asr001/	Off-the-shelf commercial add-on that is small but cleanly packaged.
+it	499 Hours Italian spontaneous dialogue telephony (Nexdata)			commercial	commercial_option	https://www.nexdata.ai/datasets/speechrecog/1232	Commercial conversational and telephony option if more spontaneous Italian is needed.
