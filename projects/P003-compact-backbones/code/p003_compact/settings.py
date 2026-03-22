@@ -101,6 +101,20 @@ class Settings(BaseSettings):
             "CTC_POSTERIOR_TRANSPORT_DTYPE",
         ),
     )
+    p004_posterior_time_reduction: int = Field(
+        default=1,
+        validation_alias=AliasChoices(
+            "PEACOCK_P004_POSTERIOR_TIME_REDUCTION",
+            "P004_POSTERIOR_TIME_REDUCTION",
+        ),
+    )
+    p004_posterior_time_reduction_mode: str = Field(
+        default="mean_logits",
+        validation_alias=AliasChoices(
+            "PEACOCK_P004_POSTERIOR_TIME_REDUCTION_MODE",
+            "P004_POSTERIOR_TIME_REDUCTION_MODE",
+        ),
+    )
     num_workers: int = 1
     device: str = Field(
         default="auto",

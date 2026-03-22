@@ -17,7 +17,7 @@ CODE_ROOT = Path(__file__).resolve().parents[2]
 if str(CODE_ROOT) not in sys.path:
     sys.path.insert(0, str(CODE_ROOT))
 
-from citrinet_vast.cli.vast_show_instances import main
+from vast.cli.vast_show_instances import main
 
 
 if __name__ == "__main__":

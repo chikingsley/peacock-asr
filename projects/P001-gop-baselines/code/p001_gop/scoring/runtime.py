@@ -863,7 +863,7 @@ def _log_eval_checkpoint_artifact(
     artifact_phase = settings.wandb_phase or "phase"
     seed_slug = "none" if payload.seed is None else str(payload.seed)
     artifact_name = (
-        f"{settings.wandb_project_id.lower()}-"
+        f"{_safe_slug(settings.wandb_project_id.lower())}-"
         f"{_safe_slug(artifact_phase)}-"
         f"{_safe_slug(artifact_job)}-"
         f"{_safe_slug(payload.backend_name)}-"
@@ -973,7 +973,7 @@ def _log_alpha_artifact(
     artifact_phase = settings.wandb_phase or "phase"
     artifact_job = settings.wandb_job_id or "alpha-sweep"
     artifact_name = (
-        f"{settings.wandb_project_id.lower()}-"
+        f"{_safe_slug(settings.wandb_project_id.lower())}-"
         f"{_safe_slug(artifact_phase)}-"
         f"{_safe_slug(artifact_job)}-"
         f"{_safe_slug(payload.backend_name)}"

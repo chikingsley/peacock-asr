@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 EXPECTED_SAMPLE_RATE = 16_000
 DEFAULT_NUM_MELS = 80
 _SMALL_CHANNEL_COUNT = 8
+_LOGITS_NDIM = 2
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -45,9 +46,15 @@ class P004ConformerCTCBackend:
 
     @property
     def name(self) -> str:
+        reduction = settings.p004_posterior_time_reduction
+        suffix = (
+            f", tred={reduction}x"
+            if reduction > 1
+            else ""
+        )
         if self._bundle_dir is not None:
-            return f"p004-ctc ({self._bundle_dir.name})"
-        return f"p004-ctc ({Path(self._run_ref).name})"
+            return f"p004-ctc ({self._bundle_dir.name}{suffix})"
+        return f"p004-ctc ({Path(self._run_ref).name}{suffix})"
 
     @property
     def vocab(self) -> list[str]:
@@ -201,17 +208,26 @@ class P004ConformerCTCBackend:
         )
         with torch.inference_mode():
             logits = model(padded, length_tensor)
-            posteriors = logits.softmax(dim=-1)
 
         transport_dtype = self._posterior_transport_dtype()
-        posteriors_np = posteriors.float().cpu().numpy(force=True)
-        return [
-            posteriors_np[index, : min(length, posteriors_np.shape[1]), :].astype(
-                transport_dtype,
-                copy=False,
+        reduction = max(1, settings.p004_posterior_time_reduction)
+        reduction_mode = settings.p004_posterior_time_reduction_mode.lower()
+        outputs: list[np.ndarray] = []
+        for index, length in enumerate(input_lengths):
+            sample_logits = logits[index, : min(length, logits.shape[1]), :]
+            reduced_logits = _reduce_time_axis(
+                logits=sample_logits,
+                factor=reduction,
+                mode=reduction_mode,
             )
-            for index, length in enumerate(input_lengths)
-        ]
+            sample_posteriors = reduced_logits.softmax(dim=-1)
+            outputs.append(
+                sample_posteriors.float().cpu().numpy(force=True).astype(
+                    transport_dtype,
+                    copy=False,
+                )
+            )
+        return outputs
 
     def get_posteriors(self, audio: np.ndarray, sample_rate: int) -> np.ndarray:
         return self.get_posteriors_batch([audio], [sample_rate])[0]
@@ -514,3 +530,27 @@ def _build_key_padding_mask(
         return None
     positions = torch.arange(max_length, device=input_lengths.device)
     return positions.unsqueeze(0) >= input_lengths.unsqueeze(1)
+
+
+def _reduce_time_axis(
+    *,
+    logits: Any,
+    factor: int,
+    mode: str,
+) -> Any:
+    if factor <= 1:
+        return logits
+    if logits.ndim != _LOGITS_NDIM:
+        msg = f"expected [T, V] logits, got ndim={logits.ndim}"
+        raise ValueError(msg)
+    if mode != "mean_logits":
+        msg = (
+            "p004_posterior_time_reduction_mode must be 'mean_logits', "
+            f"got {mode!r}"
+        )
+        raise ValueError(msg)
+    time_steps, vocab_size = logits.shape
+    pad = (-time_steps) % factor
+    if pad:
+        logits = torch.nn.functional.pad(logits, (0, 0, 0, pad))
+    return logits.reshape(-1, factor, vocab_size).mean(dim=1)

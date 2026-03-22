@@ -15,6 +15,11 @@
       "source": "davila7/claude-code-templates",
       "sourceType": "github",
       "computedHash": "ca5ca05097e4ad9cc07db0a5f314303d751c447a78b80163058c75d586a7c9e9"
+    },
+    "wandb-primary": {
+      "source": "wandb/skills",
+      "sourceType": "github",
+      "computedHash": "e163c878486df4ad1720bfdf56b2257b8b454f6a8ef3d7b64b941bc5e34f1b79"
     }
   }
 }

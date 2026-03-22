@@ -8,14 +8,9 @@ import os
 import shutil
 import subprocess
 import sys
-from datetime import datetime
 from pathlib import Path
 
-
-def _write_state(path: Path, payload: dict[str, object]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    payload["updated_at"] = datetime.now().astimezone().isoformat()
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+from _launcher_lib import write_state as _write_state
 
 
 def main() -> int:
@@ -104,7 +99,7 @@ def main() -> int:
                 "--project",
                 str(project_root),
                 "python",
-                str(project_root / "code" / "watch_sweep_and_launch.py"),
+                str(project_root / "code" / "orchestration" / "watch_sweep_and_launch.py"),
                 "--sweep-ref",
                 sweep_ref,
                 "--label",
@@ -115,7 +110,7 @@ def main() -> int:
                     "/home/simon/github/peacock-asr/projects/P003-compact-backbones "
                     "python "
                     "/home/simon/github/peacock-asr/projects/P003-compact-backbones/"
-                    "code/start_p004_then_queue_parakeet.py"
+                    "code/orchestration/start_p004_then_queue_parakeet.py"
                 ),
                 "--poll-seconds",
                 "60",

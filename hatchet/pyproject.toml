@@ -1,0 +1,18 @@
+[project]
+name = "peacock-asr-hatchet"
+version = "0.1.0"
+description = "Repo-local Hatchet runtime for peacock-asr workflows"
+requires-python = ">=3.13"
+dependencies = [
+    "hatchet-sdk",
+    "python-dotenv",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "ruff",
+]
+
+[tool.pytest.ini_options]
+addopts = ["-ra"]

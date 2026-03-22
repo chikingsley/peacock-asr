@@ -1,0 +1,81 @@
+{
+  "benchmark_name": "full",
+  "backend": "p004:/home/simon/github/peacock-asr/projects/P004-training-from-scratch/experiments/checkpoints/canonical_phone_ctc/canonical_local_conformer_full_trainclean100_e3_resume_20260307_a",
+  "backend_name": "p004-ctc (canonical_local_conformer_full_trainclean100_e3_resume_20260307_a)",
+  "limit": 2,
+  "workers": 1,
+  "extract_features": true,
+  "use_gopt": true,
+  "score_variant": "gop_sf",
+  "score_alpha": 0.5,
+  "label": "p004-ds1",
+  "posterior_batch_size": 8,
+  "transport_dtype": "float32",
+  "dataset_revision": "f95618ea1353303f34cf186b9c310fa2c1eb02c8",
+  "device": "cpu",
+  "backend_load_seconds": 0.2454497090075165,
+  "dataset_load_seconds": 1.4823601150419563,
+  "prepared_path": null,
+  "scalar_results_path": null,
+  "prep_reports": [
+    {
+      "split": "train",
+      "utterances_seen": 2,
+      "utterances_prepared": 2,
+      "skipped": 0,
+      "posterior_seconds": 1.155111043015495,
+      "posterior_bytes": 103716,
+      "transport_dtype": "float32"
+    },
+    {
+      "split": "test",
+      "utterances_seen": 2,
+      "utterances_prepared": 2,
+      "skipped": 0,
+      "posterior_seconds": 0.05320808012038469,
+      "posterior_bytes": 108704,
+      "transport_dtype": "float32"
+    }
+  ],
+  "scalar_reports": [
+    {
+      "split": "train",
+      "prepared_utterances": 2,
+      "workers": 1,
+      "scalar_seconds": 4.018458770122379
+    },
+    {
+      "split": "test",
+      "prepared_utterances": 2,
+      "workers": 1,
+      "scalar_seconds": 7.522630566963926
+    }
+  ],
+  "collect_reports": [
+    {
+      "split": "train",
+      "scalar_rows": 23,
+      "utterance_features": 2,
+      "collect_seconds": 0.42613984388299286
+    },
+    {
+      "split": "test",
+      "scalar_rows": 32,
+      "utterance_features": 2,
+      "collect_seconds": 0.2157804649323225
+    }
+  ],
+  "total_seconds": 16.295168436830863,
+  "eval_name": "p004-ctc (canonical_local_conformer_full_trainclean100_e3_resume_20260307_a) (GOPT)",
+  "eval_result": {
+    "pcc": 0.1997826703100474,
+    "pcc_low": -0.1600616784922195,
+    "pcc_high": 0.512756479391515,
+    "mse": 0.05654163033219195,
+    "n_phones": 32,
+    "per_phone_pcc": {
+      "T": 0.9982357794987496
+    }
+  },
+  "extras": null
+}

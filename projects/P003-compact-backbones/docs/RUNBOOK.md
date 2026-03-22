@@ -13,13 +13,13 @@ Canonical W&B sweep specs now live under:
 
 Project-local wrapper scripts now live under:
 
-- [`projects/P003-compact-backbones/code/launch_hubert_base_local.py`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/launch_hubert_base_local.py)
-- [`projects/P003-compact-backbones/code/launch_parakeet_ctc_0_6b_local.py`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/launch_parakeet_ctc_0_6b_local.py)
-- [`projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_local.py`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_local.py)
-- [`projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_probe.py`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_probe.py)
-- [`projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_phoneme_train_local.py`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_phoneme_train_local.py)
-- [`projects/P003-compact-backbones/code/start_parakeet_then_queue_omni.py`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/start_parakeet_then_queue_omni.py)
-- [`projects/P003-compact-backbones/code/benchmark_hubert_base_local.py`](/home/simon/github/peacock-asr/projects/P003-compact-backbones/code/benchmark_hubert_base_local.py)
+- [`code/launch_hubert_base_local.py`](../code/launch_hubert_base_local.py)
+- [`code/launch_parakeet_ctc_0_6b_local.py`](../code/launch_parakeet_ctc_0_6b_local.py)
+- [`code/launch_wav2vec2_large_local.py`](../code/launch_wav2vec2_large_local.py)
+- [`code/omniasr/launch_local.py`](../code/omniasr/launch_local.py)
+- [`code/omniasr/launch_phoneme_local.py`](../code/omniasr/launch_phoneme_local.py)
+- [`code/omniasr/launch_train_local.py`](../code/omniasr/launch_train_local.py)
+- [`code/orchestration/start_parakeet_then_queue_omni.py`](../code/orchestration/start_parakeet_then_queue_omni.py)
 
 ## 1) Train wav2vec2-base phoneme head
 
@@ -156,7 +156,7 @@ checkout for the stock text-CTC model.
 
 ```bash
 uv run --project projects/P003-compact-backbones \
-  python projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_local.py \
+  python projects/P003-compact-backbones/code/omniasr/launch_local.py \
   --check-only
 ```
 
@@ -171,7 +171,7 @@ asset cards, and proves the current workable load mode:
 
 ```bash
 uv run --project projects/P003-compact-backbones \
-  python projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_phoneme_local.py \
+  python projects/P003-compact-backbones/code/omniasr/launch_phoneme_local.py \
   --device cuda
 ```
 
@@ -179,7 +179,7 @@ uv run --project projects/P003-compact-backbones \
 
 ```bash
 uv run --project projects/P003-compact-backbones \
-  python projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_phoneme_train_local.py
+  python projects/P003-compact-backbones/code/omniasr/launch_train_local.py
 ```
 
 This now chains scoring automatically after successful training:
@@ -192,7 +192,7 @@ Disable that only if you explicitly want training-only:
 
 ```bash
 uv run --project projects/P003-compact-backbones \
-  python projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_phoneme_train_local.py \
+  python projects/P003-compact-backbones/code/omniasr/launch_train_local.py \
   --no-score-after
 ```
 
@@ -202,13 +202,7 @@ The canonical scoring backend is:
 omni:/home/simon/github/peacock-asr/projects/P003-compact-backbones/experiments/checkpoints/omniasr-ctc-300m-v2-phoneme-en
 ```
 
-## 10) Run the local HuBERT benchmark wrapper
-
-```bash
-uv run --project projects/P003-compact-backbones python projects/P003-compact-backbones/code/benchmark_hubert_base_local.py
-```
-
-## 11) Benchmark scoring optimizations without a rewrite
+## 10) Benchmark scoring optimizations without a rewrite
 
 Use the project-local scoring benchmark to measure one phase at a time on a
 small fixed subset before changing production code:
@@ -257,7 +251,7 @@ Prepared posterior bundles are written under:
 projects/P003-compact-backbones/experiments/benchmarks/scoring/prepared/
 ```
 
-## 12) Prewarm the k2 topology cache
+## 11) Prewarm the k2 topology cache
 
 `k2` is now the default scalar backend for `P003`, but first-run cold starts are
 slower because denominator topologies must be built and cached. Prewarm the

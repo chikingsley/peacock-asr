@@ -34,7 +34,7 @@ fairseq2/Omnilingual runtime on demand:
 
 ```bash
 uv run --project projects/P003-compact-backbones \
-  python projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_local.py \
+  python projects/P003-compact-backbones/code/omniasr/launch_local.py \
   --check-only
 ```
 
@@ -47,8 +47,8 @@ Under the hood it:
 
 Entrypoints:
 
-- `projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_local.py`
-- `projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_probe.py`
+- `projects/P003-compact-backbones/code/omniasr/launch_local.py`
+- `projects/P003-compact-backbones/code/omniasr/probe.py`
 
 It is intentionally a text-ASR probe first. It validates that:
 
@@ -62,7 +62,7 @@ Build local phoneme tokenizer/model assets and preflight the adapted load path:
 
 ```bash
 uv run --project projects/P003-compact-backbones \
-  python projects/P003-compact-backbones/code/launch_omniasr_ctc_300m_v2_phoneme_local.py \
+  python projects/P003-compact-backbones/code/omniasr/launch_phoneme_local.py \
   --device cuda
 ```
 

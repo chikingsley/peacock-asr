@@ -68,7 +68,7 @@ class OmniCTCBackend:
             / "third_party"
             / "omnilingual-asr"
         )
-        worker_script = project_root / "code" / "launch_omni_ctc_posterior_worker.py"
+        worker_script = project_root / "code" / "omniasr" / "posterior_worker.py"
         resolved_uv = shutil.which("uv")
         if resolved_uv is None:
             raise RuntimeError("Could not resolve 'uv' on PATH.")

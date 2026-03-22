@@ -1,0 +1,6 @@
+dev:
+  preCmds: ["uv sync"]
+  runCmd: "/bin/sh -lc 'PYTHONPATH=.. uv run --project . python -m hatchet.worker.main'"
+  files:
+    - "./**/*.py"
+  reload: true

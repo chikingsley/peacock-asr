@@ -723,7 +723,7 @@ def main() -> None:  # noqa: PLR0912, PLR0915
     # We set env vars here so it works regardless of shell environment.
     os.environ.setdefault(
         "WANDB_PROJECT",
-        hub_repo.split("/")[-1] if hub_repo else "peacock-asr-training",
+        os.environ.get("PEACOCK_WANDB_PROJECT", "peacock-asr-p003-compact-backbones"),
     )
     os.environ.setdefault("WANDB_ENTITY", "peacockery")
     os.environ["WANDB_LOG_MODEL"] = args.wandb_log_model

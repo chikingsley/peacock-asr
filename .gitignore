@@ -37,11 +37,13 @@ wandb/
 # Processed features (large Arrow files)
 processed-features/
 data/corpora/
+data/
 
 # Other agent configs
 .pi/
 .agents/
 .claude/skills/
+.claude/settings.local.json
 
 # Local binaries / archives
 runpodctl.tar.gz

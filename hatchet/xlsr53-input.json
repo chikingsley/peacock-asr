@@ -1,0 +1,12 @@
+{
+  "label": "xlsr53-phase1-a3-gopt",
+  "project_id": "P001",
+  "backend": "xlsr-espeak",
+  "sweep_yaml": "projects/P001-gop-baselines/experiments/sweeps/final/phase1_xlsr_a3_gopt.yaml",
+  "wandb_entity": "peacockery",
+  "wandb_project": "peacock-asr-p001-gop-baselines",
+  "agent_count": 5,
+  "split": "both",
+  "device": "cuda",
+  "skip_prewarm": true
+}

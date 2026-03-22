@@ -454,34 +454,23 @@ def _compute_ll_selfs_ctc_batch(
     return [float(loss) for loss in losses.detach().cpu().tolist()]
 
 
-def _build_topology_case_batch(
+def _build_case_map_and_supervisions(
     cases: Sequence[tuple[np.ndarray, Sequence[int]]],
-    *,
-    blank: int,
-) -> tuple[list[DenomTopology], list[tuple[int, int]], torch.Tensor]:
-    topologies: list[DenomTopology] = []
+) -> tuple[list[tuple[int, int]], torch.Tensor, list[int]]:
+    """Build cheap per-position metadata without materializing topologies."""
     case_map: list[tuple[int, int]] = []
     case_frames: list[list[int]] = []
+    case_costs: list[int] = []
 
     for utt_idx, (posteriors, phone_indices) in enumerate(cases):
-        seq_key = tuple(int(phone) for phone in phone_indices)
-        frames = posteriors.shape[0]
-        vocab_size = posteriors.shape[1]
-        for pos in range(len(seq_key)):
-            topologies.append(
-                _build_unrolled_denom_topology_cached(
-                    seq_key,
-                    pos,
-                    frames,
-                    vocab_size,
-                    blank,
-                ),
-            )
+        frames = int(posteriors.shape[0])
+        for pos in range(len(phone_indices)):
             case_map.append((utt_idx, pos))
             case_frames.append([utt_idx, 0, frames])
+            case_costs.append(frames)
 
     supervisions = torch.tensor(case_frames, dtype=torch.int32)
-    return topologies, case_map, supervisions
+    return case_map, supervisions, case_costs
 
 
 def prewarm_topology_cache(
@@ -524,7 +513,7 @@ def prewarm_topology_cache(
     }
 
 
-@lru_cache(maxsize=8192)
+@lru_cache(maxsize=64)
 def _build_unrolled_denom_topology_cached(
     seq_key: tuple[int, ...],
     pos: int,
@@ -661,6 +650,11 @@ def _build_unrolled_denom_topology_cached(
     return topology
 
 
+def clear_topology_memory_cache() -> None:
+    """Drop the in-process topology cache; persistent disk cache remains."""
+    _build_unrolled_denom_topology_cached.cache_clear()
+
+
 def compute_scalar_terms_k2(
     posteriors: np.ndarray,
     phone_indices: Sequence[int],
@@ -750,6 +744,8 @@ def compute_scalar_terms_k2_batch(
 ) -> list[tuple[float, list[float], list[float]]]:
     _compute_scalar_terms_python, _ctc_forward = _python_scalar_fns()
     k2 = _require_k2()
+    from p003_compact.settings import settings  # noqa: PLC0415
+
     if device is None:
         device = torch.device("cpu")
     if not cases:
@@ -760,10 +756,7 @@ def compute_scalar_terms_k2_batch(
             msg = f"Expected rank-2 posterior matrix, got shape {posteriors.shape}"
             raise ValueError(msg)
 
-    topologies, case_map, supervisions = _build_topology_case_batch(
-        cases,
-        blank=blank,
-    )
+    case_map, supervisions, case_costs = _build_case_map_and_supervisions(cases)
 
     if use_ctc_self:
         ll_selfs = _compute_ll_selfs_ctc_batch(cases, blank=blank, device=device)
@@ -782,16 +775,49 @@ def compute_scalar_terms_k2_batch(
         device=device,
     )
 
-    dense_fsas = k2.DenseFsaVec(log_probs_batch, supervisions)
+    max_case_budget = max(1, settings.ctc_scalar_batch_case_frame_budget)
+    max_case_positions = max(1, settings.ctc_scalar_batch_phone_positions)
+
+    def build_subset_topologies(case_indices: Sequence[int]) -> list[DenomTopology]:
+        subset: list[DenomTopology] = []
+        for case_idx in case_indices:
+            utt_idx, pos = case_map[case_idx]
+            posteriors, phone_indices = cases[utt_idx]
+            seq_key = tuple(int(phone) for phone in phone_indices)
+            subset.append(
+                _build_unrolled_denom_topology_cached(
+                    seq_key,
+                    pos,
+                    int(posteriors.shape[0]),
+                    int(posteriors.shape[1]),
+                    blank,
+                )
+            )
+        return subset
 
     def solve_case_range(case_indices: list[int]) -> tuple[list[float], list[float]]:
-        subset_topologies = [topologies[idx] for idx in case_indices]
+        estimated_cost = sum(case_costs[idx] for idx in case_indices)
+        if (
+            len(case_indices) > 1
+            and (
+                len(case_indices) > max_case_positions
+                or estimated_cost > max_case_budget
+            )
+        ):
+            split_at = max(1, len(case_indices) // 2)
+            left = solve_case_range(case_indices[:split_at])
+            right = solve_case_range(case_indices[split_at:])
+            return ([*left[0], *right[0]], [*left[1], *right[1]])
+
+        subset_topologies = build_subset_topologies(case_indices)
         subset_fsas = [topology.to_fsa() for topology in subset_topologies]
         subset_fsa_vec = k2.Fsa.from_fsas(subset_fsas).to(device)
+        subset_supervisions = supervisions[case_indices]
+        subset_dense_fsas = k2.DenseFsaVec(log_probs_batch, subset_supervisions)
         try:
             lattice = k2.intersect_dense_pruned(
                 subset_fsa_vec,
-                dense_fsas,
+                subset_dense_fsas,
                 search_beam=_PRUNED_SEARCH_BEAM,
                 output_beam=_OUTPUT_BEAM,
                 min_active_states=0,
@@ -834,40 +860,43 @@ def compute_scalar_terms_k2_batch(
         )
 
     try:
-        ll_denoms, occupancies_flat = solve_case_range(list(range(len(case_map))))
-    except (IndexError, RuntimeError) as exc:
-        logger.warning(
-            "k2 batch scalar path failed (%s); falling back to per-utterance "
-            "Python scalar path.",
-            exc,
-        )
-        results: list[tuple[float, list[float], list[float]]] = []
-        for posteriors, phone_indices in cases:
-            post_mat = torch.from_numpy(posteriors).double()
-            params = post_mat.transpose(0, 1)
-            seq = torch.tensor(
-                tuple(int(phone) for phone in phone_indices),
-                dtype=torch.int32,
+        try:
+            ll_denoms, occupancies_flat = solve_case_range(list(range(len(case_map))))
+        except (IndexError, RuntimeError) as exc:
+            logger.warning(
+                "k2 batch scalar path failed (%s); falling back to per-utterance "
+                "Python scalar path.",
+                exc,
             )
-            results.append(_compute_scalar_terms_python(params, seq, blank))
-        return results
+            results: list[tuple[float, list[float], list[float]]] = []
+            for posteriors, phone_indices in cases:
+                post_mat = torch.from_numpy(posteriors).double()
+                params = post_mat.transpose(0, 1)
+                seq = torch.tensor(
+                    tuple(int(phone) for phone in phone_indices),
+                    dtype=torch.int32,
+                )
+                results.append(_compute_scalar_terms_python(params, seq, blank))
+            return results
 
-    mutable_scores = [[] for _ in cases]
-    mutable_occupancies = [[] for _ in cases]
-    for ll_denom, occupancy, (utt_idx, _pos) in zip(
-        ll_denoms,
-        occupancies_flat,
-        case_map,
-        strict=True,
-    ):
-        ll_self = ll_selfs[utt_idx]
-        mutable_scores[utt_idx].append(-ll_self + ll_denom)
-        mutable_occupancies[utt_idx].append(occupancy)
+        mutable_scores = [[] for _ in cases]
+        mutable_occupancies = [[] for _ in cases]
+        for ll_denom, occupancy, (utt_idx, _pos) in zip(
+            ll_denoms,
+            occupancies_flat,
+            case_map,
+            strict=True,
+        ):
+            ll_self = ll_selfs[utt_idx]
+            mutable_scores[utt_idx].append(-ll_self + ll_denom)
+            mutable_occupancies[utt_idx].append(occupancy)
 
-    return [
-        (ll_selfs[utt_idx], mutable_scores[utt_idx], mutable_occupancies[utt_idx])
-        for utt_idx in range(len(cases))
-    ]
+        return [
+            (ll_selfs[utt_idx], mutable_scores[utt_idx], mutable_occupancies[utt_idx])
+            for utt_idx in range(len(cases))
+        ]
+    finally:
+        clear_topology_memory_cache()
 
 
 def compute_scalar_scores_k2(

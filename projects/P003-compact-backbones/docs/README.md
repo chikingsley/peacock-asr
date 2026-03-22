@@ -65,8 +65,6 @@ Key references:
   `../experiments/sweeps/final/eval_w2v_bert.yaml`
 - Local launcher:
   `../code/launch_hubert_base_local.py`
-- Local benchmark wrapper:
-  `../code/benchmark_hubert_base_local.py`
 - Scoring benchmark:
   `../code/p003_compact/bench_scoring.py`
 - Citrinet workstream:
