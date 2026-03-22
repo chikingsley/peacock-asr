@@ -1,0 +1,35 @@
+\input{tables/mono1h_diff_lang}
+To examine the effect of interface design with different Speech Foundation Models, we reports the performance per languages for 
+Mono-1h experiment on ML-SUPERB.
+The results for both base and large models are shown in Table~\ref{tab:mono1h_diff_lang}.
+
+\subsection{Base Models}
+From the single model experiments, we see that Whisper greatly outperforms the SSL models on non-English languages but lags behind for all three English datasets, which is reasonable due to the differences in dataset scale and distribution these models are trained on.
+When switching the interface from Weighted Sum to Hierarchical Convolution, the improvements for SSL models are more consistent over all languages, while Whisper's improvements are marginal and mixed.
+
+For the two model fusion experiments, Hierarchical Convolution Interface shows consistent improvements over two other baseline interfaces across all languages no matter which type of models are fused.
+This demonstrates the robustness of our proposed methods when dealing with layer and model fusion together over baseline fusion methods.
+Additionally, we observe that our method can effectively fuse two SSL models on non-English ASR tasks, while the other baseline interfaces cannot, i.e. 
+On non-English tasks, ``WavLM \& Data2Vec'' get an average CER of $33.3$ when using WS. and  $31.8$ when using HConv.
+Nonetheless, the best performance of single models for the each interface is WavLM with WS.: $33.0$ and WavLM with HConv. : $31.9$.
+
+Comparing the difference between single and 2 model fusion, we see that ``WavLM \& Whisper'' performs the best by leveraging the strengths of WavLM model on English ASR and Whisper on non-English ASR.
+Furthermore, even for some non-English ASR tasks, combining SSL and SL models gets a significant performance boost.
+For example, the CER of ``fra2'' (using HConv.) for WavLM and Whisper are $42.8$ and $33.0$ respectively.
+Fusion further improves this to $29.7$.
+
+Lastly, we see that fusing all three models together does not get more improvement over the best 2 model fusion compared to the gap between single and 2 model fusion, i.e. ``WavLM \& Data2Vec \& Whisper''  outperform  ``WavLM \& Whisper'' by $0.13$ whereas ``WavLM \& Whisper'' outperform Whisper by $1.45$ on average.
+The improvements mainly come from English tasks, which is reasonable since we fuse another SSL model (Data2Vec) that does better in English ASR.
+% Fusing 3 models only improves the 2 model fusion on English tasks, which resonates with the findings in single model where WavLM and Data2Vec are better on English tasks and Whisper is good at non-English tasks.
+
+\subsection{Large Models}
+For single model experiments, WavLM Lg. is better on English tasks and worse on non-English tasks while Whisper Med. performs otherwise, which is the same trend as base models.
+Comparing fusion and single model, we see that the performance gain of using HConv. comes from the English tasks.
+Specifically, for non-English tasks, fusion gets the same average CER ($23.3$) as Whisper Med., while the average CER of English tasks goes from $23.77$ to $21.53$.
+On the other hand, when using WS., the non-English average CER of fusion falls between the performance of single models.
+This result shows the advantage of choosing HConv. as the fusion interface, especially for low-resource languages.
+
+For the 2 model fusion experiments, we see a large gap between using WS. and HConv. for large models compared to the base models consistent across all languages.
+For ``WavLM \& Whisper'', the average CER gaps between WS. and HConv. are $0.33$ and  $1.3$ for English and non-English respectively.
+In contrast, ``WavLM Lg. \& Whisper Med.'' achieve a improvement of $3.33$ and $3.90$.
+These results emphasize our proposed method's scalability on large SFMs, especially for low-resource languages.

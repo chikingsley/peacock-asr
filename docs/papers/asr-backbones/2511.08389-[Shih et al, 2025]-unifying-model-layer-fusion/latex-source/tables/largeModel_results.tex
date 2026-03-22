@@ -1,0 +1,58 @@
+\begin{table}[th]
+  \caption{Evaluation results for large models across ASR and Non-ASR tasks.``LS'' denotes LibriSpeech, ``Mono'' indicates Mono-1h on ML-SUPERB. Their metrics are WER/CER. ``SV'' and ``ER'' stands for Speaker Verification and Emotion Recognition respectively and their metrics are Equal Error Rate and Accuracy. 
+  For ``Best SSL'', we choose ``Data2Vec Large'' for LibriSpeech ASR and `WavLM Large'' for rest of them and for ``Whspr'', we choose``Whisper Medium''. 
+  The interfaces are abbreviated as the following: ``WS.'' : ``Weighted Sum'' and  ``HConv.'': ``Hierarchical Convolution''.}
+  \label{tab:largeModel_result}
+  % \footnotesize
+  \small
+  % \normalsize
+  \centering
+  \begin{tabular}{lccccc}
+    \hline
+    % \textbf{Model}      & \textbf{Fusion}   & \textbf{LS} & \textbf{Mono-1h} & \textbf{Multi-1h}  & \textbf{SV} & \textbf{ER}   \\
+    
+      \multirowcell{ 2}{\textbf{Model}} & \multirowcell{ 2}{\textbf{Fusion} } & \multicolumn{2}{c}{\textbf{ASR}}  & \multicolumn{2}{c}{\textbf{Non-ASR}} \\
+      % \cmidrule(lr){3-4}
+      % \cmidrule(lr){5-6}
+      \cline{3-6}
+          &   & \textbf{LS}~$\downarrow$ & \textbf{Mono-1h}~$\downarrow$  & \textbf{SV}~$\downarrow$ & \textbf{ER}~$\uparrow$   \\
+    \hline
+  \hline
+    \multicolumn{6}{c}{\textit{Single Model}} \\
+    \hline
+
+
+% \multirowcell{ 2}{D2v} 
+% & WS.			& 3.22  & --  & -- & --  \\
+% & HConv.		& 3.10  & --  & -- & -- \\
+% \hline
+% \multirowcell{ 2}{WavLM} 
+% & WS.			& --  & 29.45 & 2.80 & 68.67  \\
+% & HConv.		& --  & 28.26 & 2.21 & 72.49 \\
+
+\multirowcell{ 2}{Best SSL} 
+& WS.~\cite{yang21c_superb}			& 3.22 & 29.45 & 2.80 & 68.67  \\
+& HConv.		& \underline{\textbf{3.10}} & \underline{28.26} & \underline{2.21} & \underline{72.49} \\
+\hline
+\multirowcell{ 2}{Whspr} 
+& WS.~\cite{yang21c_superb}			& 5.59  & 24.78 & 3.76 & 71.48  \\
+& HConv.		& \underline{5.25}  & \underline{23.36} & \underline{3.24} & \underline{72.96} \\
+\hline
+\hline
+\multicolumn{6}{c}{\textit{2 Model Fusion}} \\
+\hline
+\multirowcell{ 2}{Whspr  \\ \& Best SSL } 
+& WS.~\cite{chiu24_sinica}			& \underline{3.12} & 26.48 & 2.71 & 68.55 \\
+& HConv.		& 3.55 & \underline{\textbf{22.87}} & \underline{\textbf{2.19}} & \underline{\textbf{73.52}} \\
+
+% \multirowcell{ 2}{Whspr  \\ \& WvLM } 
+% & WS.			& -- & 26.48 & 2.71 & 68.55 \\
+% & HConv.		& -- & 22.87 & 2.23 & 73.52 \\
+% \hline
+% \multirowcell{ 2}{Whspr\_EN  \\ \& D2v }
+% & WS.			& 3.12 & -- & -- & -- \\
+% & HConv.		& 3.55 & -- & -- & -- \\
+    
+    \hline
+  \end{tabular}
+\end{table}

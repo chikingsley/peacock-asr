@@ -1,0 +1,67 @@
+\subsection{Model Architecture}
+Following prior work using Wav2vec 2.0 on stuttered speech detection, we chose another Speech SSL model,  WavLM Large~\cite{Chen2021WavLMLS} as our backbone since it significantly outperforms Wav2vec 2.0 on most SUPERB~\cite{yang21c_superb} benchmark tasks.
+Our model structure is shown in Figure~\ref{fig:model_arch}.
+Furthermore, we adopt the recent Hierarchical Convolution Interface~(HConv.) as our method for utilizing the WavLM backbone according to recent work~\cite{shih_interface}, which was shown to improve overtaking a learnable weighted sum of layer activations.
+As pointed out in~\cite{bayerl22b_interspeech}, the information for stuttering detection exists in multiple layers, so we decided to use HConv. due to its ability to aggregate information across multiple layers.
+After that, we add a few non-linear layers as the prediction head to classify individual frames as stuttered or non-stuttered.
+
+In~\cite{bayerl22b_interspeech}, it was shown that phoneme recognition and stuttering detection tasks utilize the same set of layers in the upstream Speech SSL model.
+Motivated by this, we decided to add an auxiliary Connectionist Temporal Classification~(CTC) Loss to predict the phoneme sequences.
+The CTC loss is only applied in the pretraining stage where we have the ground truth phoneme sequences.
+
+We roughly follow the training pipeline in~\cite{harvill22_interspeech}, our framework consists of two stages: Pretrain on synthetic augmentation of LibriSpeech 360 and Finetune on SEP-28K.
+
+\noindent
+\textbf{Pretrain on LibriSpeech}:
+Different from previous works, we add our synthetic augmentations between the convolution layers and the transformer layers of WavLM rather than adding augmentation directly on the input waveform.
+We keep the augmentation types the same as~\cite{harvill22_interspeech}, which includes artificial prolongation, and word/sound repetition.
+% \david{Can you write a couple sentences describing the types of augmentations that are added?}
+By doing so, we significantly save on computation and speed up the online augmentation.
+Suppose the outputs of the prediction head for each input utterance are $\mathbf{o}=\left[ \mathbf{o}_1,\mathbf{o}_2,\dots \mathbf{o}_T \right]$, where $\mathbf{o}_i=\left[ o^p_i, o^n_i\right]$, corresponding to the probability of positive and negative for frame $i$ respectively.
+The labels are $\mathbf{l}=\left[ \mathbf{l}_1,\mathbf{l}_2,\dots \mathbf{l}_T \right]$.
+The loss is calculated as a cross entropy between the prediction head outputs and the label sequence.
+\begin{align}
+    \mathcal{L}_{\mathrm{dis}} = \frac{1}{T}\sum_{i=1}^{T}{
+    -o^p_i \log{l^p_i}
+    -o^n_i \log{l^n_i}},
+\end{align}
+$\mathcal{L}_{\mathrm{ctc}}$ is calculated between the frame level output of Phoneme Prediction head and the ground truth phoneme sequence in LibriSpeech~(which is obtained from a force aligner).
+The overall pretrain loss is:
+\begin{align}
+    \mathcal{L}_{\mathrm{pretrain}} = \mathcal{L}_{\mathrm{dis}} + w_{\mathrm{ctc}} \cdot \mathcal{L}_{\mathrm{ctc}},
+\end{align} where $w_{\mathrm{ctc}}$ is a scalar hyperparameter.
+
+\noindent
+\textbf{Finetune on SEP-28K}:
+For the fine-tuning stage, since we do not have frame-level labels for SEP-28K, we simply take the timestep with the largest positive class prediction to calculate cross entropy with the utterance level target in SEP-28K, which is same as~\cite{harvill22_interspeech}. Formally,
+\begin{align}
+   t'= \mathrm{argmax}_{1\leq i \leq T}{~o^p_i},
+\end{align}
+\begin{align}
+   \mathcal{L}_{\mathrm{dis}} = 
+    -o^p_{t'} \log{l^p_{t'}}
+    -o^n_{t'} \log{l^n_{t'}}.
+\end{align}
+
+
+% \subsection{Voice Conversion}
+% To solve the data scarcity problem of stuttering detection, we came up with the idea to generate more utterance from currently available SEP-28K dataset.
+% Though our preliminary experiment, we find out that voice conversion model from ElevenLabs preserve the characteristic of stuttering while changing the voice chacheristic of the speaker.
+% Hence, we decide to use ElevenLabs to convert speech utterance within SEP-28K to enhance the diversity of data, hoping that it will improve the generalizability of our model.
+% Practically, we generate equal amount of voice converted SEP-28K utterance for positive and negative examples in our training set.
+
+
+\subsection{Implementation Details}
+\textbf{Model and training details:}
+% Before pretraining, we first preprocess all LibriSpeech utterances by passing them through the WavLM convolutional waveform encoder and caching them on disk.
+% During the pretraining stage, we load the cached convolutional features from disk and randomly inject synthetic disfluencies onto the convolution features.
+% We follow the same probability of synthetic disfluencies injection as in~\cite{harvill22_interspeech}.
+The scalar hyperparameter $w_{\mathrm{ctc}}$ is set to $0.3$ empirically to balance the magnitude between the two losses.
+For the finetuning stage, we feed the entire audio without augmentation and calculate a global level loss with its corresponding label.
+In both stages, the HConv. interface and the stuttering detection head are trainable.
+We use Adam optimizer with a learning rate of $1e-4$.
+We select the checkpoint with the lowest validation loss for the pretraining stage and for the finetuneing stage, we select the one with the highest F1 score on the validation set.
+
+\noindent
+\textbf{Dataset:}
+For pretraining, we use LibriSpeech 360hr and for SEP-28K, we follow the split specified in~\cite{harvill22_interspeech} for SEP-28K as they make the dataset balanced across positive and negative classes.

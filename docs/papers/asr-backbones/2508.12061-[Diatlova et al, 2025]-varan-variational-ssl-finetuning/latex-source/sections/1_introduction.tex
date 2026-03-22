@@ -1,0 +1,9 @@
+Self-supervised learning (SSL) has revolutionized speech processing by enabling models like WavLM~\cite{chen2022wavlm} and Data2Vec~\cite{baevski2022data2vec} to learn rich, transferable representations from vast unlabeled audio corpora. These models excel in downstream tasks—such as ASR, SER, SV and others by leveraging hierarchical features across transformer encoder layers. However, effectively utilizing these features remains challenging. Conventional approaches aggregate layer-wise representations either by relying solely on the final layer or combining them via static, learnable weights. While simple, these methods suffer from two critical limitations: an \textit{information bottleneck}, where compressing multi-layer features into a single vector discards nuanced hierarchical information (e.g., phonetic details in lower layers vs. semantic context in higher ones), and \textit{static aggregation}, which applies fixed weights across all inputs, ignoring the variability in input complexity (e.g., ambiguous utterances requiring multi-layer analysis versus straightforward ones needing focused high-level features).
+
+To address these issues, we propose \textbf{VARAN} (Variational Adaptive Layer Aggregation Network), a novel framework that dynamically tailors layer aggregation to individual inputs. \varan introduces two key modifications:
+\begin{itemize}
+    \item Layer-Specialized Probing Heads: Lightweight task-specific models are applied to each encoder layer, preserving distinct hierarchical features without cross-layer interference.
+    \item Data-Dependent Weighting: A variational mechanism learns input-specific weights to prioritize layers, enabling the model to adaptively combine features based on input complexity.
+\end{itemize}
+
+Extensive experiments on ASR and SER tasks demonstrate \varan’s better or on-par results relative to static aggregation baselines, both in the standard fine-tuning setup and when applying LoRA.

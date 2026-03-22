@@ -1,0 +1,35 @@
+\begin{table*}[t]
+\caption{
+Kendall-tau correlation coefficient between the pronunciation scores and the dysfluency/disfluency (absolute value).
+Bigger is better.
+}
+\label{tab:melspec}
+\vspace{0.5em}
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccc|cccc}
+\toprule
+\multirow{3}{*}{Dataset} & \multirow{3}{*}{Feature} & \multicolumn{4}{c|}{Phoneme classification} & \multicolumn{4}{c}{Phoneme density modeling} \\
+\cmidrule{3-6} \cmidrule{7-10}
+ & & GMM- & NN- & DNN- & MaxLogit- & kNN & oSVM & p-oSVM & MixGoP \\
+  & & GoP & GoP & GoP & GoP &  &  &  & (Proposed) \\
+ % & & \citep{Witt2000PhonelevelPS} & \citep{hu2015improved} & \citep{hu2015improved} & \citep{yeo23_interspeech} & \citep{sun2022out} & \citep{scholkopf2001estimating,shahin2023phonological} & \citep{scholkopf2001estimating} & (Ours) \\
+\midrule
+UASpeech
+& MelSpec & 0.2093 & 0.1718 & 0.2422 & 0.2141 & 0.1012 & 0.0993 & 0.0863 & 0.0394 \\
+\midrule
+TORGO
+& MelSpec & 0.2707 & 0.2619 & 0.1497 & 0.2711 & 0.2869 & 0.2114 & 0.2405 & 0.1959 \\
+\midrule
+SSNCE
+& MelSpec & 0.1828 & 0.1609 & 0.0513 & 0.1869 & 0.1537 & 0.1139 & 0.1064 & 0.1739 \\
+\midrule
+speechocean762
+& MelSpec & 0.2135 & 0.0641 & 0.2318 & 0.2290 & 0.1111 & 0.1090 & 0.0709 & 0.0038 \\
+\midrule
+L2-ARCTIC
+& MelSpec & 0.0491 & 0.0389 & 0.0319 & 0.0319 & 0.0222 & 0.0034 & 0.0269 & 0.0103 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table*}

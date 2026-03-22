@@ -1,0 +1,344 @@
+\begin{thebibliography}{68}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Abdullah et~al.(2023)Abdullah, Shaik, M{\"o}bius, and Klakow}]{abdullah2023information}
+B.~M Abdullah, M.~M. Shaik, B.~M{\"o}bius, and D.~Klakow. 2023.
+\newblock An information-theoretic analysis of self-supervised discrete representations of speech.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{Babu et~al.(2022)Babu, Wang, Tjandra et~al.}]{babu22_interspeech}
+A.~Babu, C.~Wang, A.~Tjandra, et~al. 2022.
+\newblock {XLS-R: Self-supervised Cross-lingual Speech Representation Learning at Scale}.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{Baevski et~al.(2020)Baevski, Zhou, Mohamed, and Auli}]{baevski2020wav2vec}
+A.~Baevski, Y.~Zhou, A.~Mohamed, and M.~Auli. 2020.
+\newblock wav2vec 2.0: A framework for self-supervised learning of speech representations.
+\newblock In \emph{Proc. NeurIPS}.
+
+\bibitem[{Bilmes et~al.(1998)}]{bilmes1998gentle}
+J.A. Bilmes et~al. 1998.
+\newblock A gentle tutorial of the em algorithm and its application to parameter estimation for gaussian mixture and hidden markov models.
+\newblock \emph{International Computer Science Institute}.
+
+\bibitem[{Blondel et~al.(2020)Blondel, Teboul, Berthet, and Djolonga}]{blondel2020fast}
+M.~Blondel, O.~Teboul, Q.~Berthet, and J.~Djolonga. 2020.
+\newblock Fast differentiable sorting and ranking.
+\newblock In \emph{Proc. ICML}.
+
+\bibitem[{Cao et~al.(2024)Cao, Fan, Svendsen, and Salvi}]{cao2024framework}
+X.~Cao, Z.~Fan, T~Svendsen, and G.~Salvi. 2024.
+\newblock A framework for phoneme-level pronunciation assessment using ctc.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{Chang et~al.(2024)Chang, Yan, Choi et~al.}]{chang2024exploring}
+X.~Chang, B.~Yan, K.~Choi, et~al. 2024.
+\newblock Exploring speech recognition, translation, and understanding with discrete speech units: A comparative study.
+\newblock In \emph{Proc. ICASSP}.
+
+\bibitem[{Chao et~al.(2022)Chao, Lo, Wu et~al.}]{chao20223m}
+F-A. Chao, T-H. Lo, T-I. Wu, et~al. 2022.
+\newblock 3m: An effective multi-view, multi-granularity, and multi-aspect modeling approach to english pronunciation assessment.
+\newblock In \emph{Proc. APSIPA ASC}.
+
+\bibitem[{Chen et~al.(2022)Chen, Wang, Chen et~al.}]{chen2022wavlm}
+S.~Chen, C.~Wang, Z.~Chen, et~al. 2022.
+\newblock Wavlm: Large-scale self-supervised pre-training for full stack speech processing.
+\newblock \emph{IEEE JSTSP}.
+
+\bibitem[{Cheng et~al.(2020)Cheng, Liu, Li et~al.}]{cheng20_interspeech}
+S.~Cheng, Z.~Liu, L.~Li, et~al. 2020.
+\newblock {ASR-Free Pronunciation Assessment}.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{Choi et~al.(2024{\natexlab{a}})Choi, Jung, and Watanabe}]{choi2024understanding}
+K.~Choi, J-W. Jung, and S.~Watanabe. 2024{\natexlab{a}}.
+\newblock Understanding probe behaviors through variational bounds of mutual information.
+\newblock In \emph{Proc. ICASSP}.
+
+\bibitem[{Choi et~al.(2024{\natexlab{b}})Choi, Pasad, Nakamura et~al.}]{choi2024self}
+K.~Choi, A.~Pasad, T.~Nakamura, et~al. 2024{\natexlab{b}}.
+\newblock Self-supervised speech representations are more phonetic than semantic.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{Choi and Yeo(2022)}]{choi2022opening}
+K.~Choi and E-J. Yeo. 2022.
+\newblock Opening the black box of wav2vec feature encoder.
+\newblock \emph{arXiv preprint arXiv:2210.15386}.
+
+\bibitem[{Collins et~al.(2019)Collins, Mees, and Carley}]{collins2019phoneme}
+B.~Collins, I.~M Mees, and P.~Carley. 2019.
+\newblock Phoneme, allophone and syllable.
+\newblock In \emph{Practical English Phonetics and Phonology}. Routledge.
+
+\bibitem[{Do et~al.(2023)Do, Kim, and Lee}]{do2023hierarchical}
+H.~Do, Y.~Kim, and G-G. Lee. 2023.
+\newblock Hierarchical pronunciation assessment with multi-aspect attention.
+\newblock In \emph{Proc. ICASSP}.
+
+\bibitem[{Enderby(1980)}]{enderby1980frenchay}
+P.~Enderby. 1980.
+\newblock Frenchay dysarthria assessment.
+\newblock \emph{British Journal of Disorders of Communication}.
+
+\bibitem[{Feng et~al.(2023)Feng, Dong, Yeh et~al.}]{feng2023superb}
+T-H. Feng, A.~Dong, C-F Yeh, et~al. 2023.
+\newblock {SUPERB @ SLT 2022: Challenge on generalization and efficiency of self-supervised speech representation learning}.
+\newblock In \emph{Proc. SLT}.
+
+\bibitem[{Gong et~al.(2022)Gong, Chen, Chu, Chang, and Glass}]{gong2022transformer}
+Y.~Gong, Z.~Chen, I-H. Chu, P.~Chang, and J.~Glass. 2022.
+\newblock Transformer-based multi-aspect multi-granularity non-native english speaker pronunciation assessment.
+\newblock In \emph{Proc. ICASSP}.
+
+\bibitem[{Hendrycks and Gimpel(2017)}]{DBLP:conf/iclr/HendrycksG17}
+D.~Hendrycks and K.~Gimpel. 2017.
+\newblock A baseline for detecting misclassified and out-of-distribution examples in neural networks.
+\newblock In \emph{Proc. ICLR}.
+
+\bibitem[{Hernandez et~al.(2020)Hernandez, Yeo, Kim, and Chung}]{hernandez2020dysarthria}
+A.~Hernandez, E.J. Yeo, S.~Kim, and M.~Chung. 2020.
+\newblock Dysarthria detection and severity assessment using rhythm-based metrics.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{Hsu et~al.(2021)Hsu, Bolte, Tsai et~al.}]{hsu2021hubert}
+W-N. Hsu, B.~Bolte, Yao-Hung~H. Tsai, et~al. 2021.
+\newblock {HuBERT}: Self-supervised speech representation learning by masked prediction of hidden units.
+\newblock \emph{IEEE/ACM TASLP}.
+
+\bibitem[{Hu et~al.(2015{\natexlab{a}})Hu, Qian, and Soong}]{hu2015improved-slate}
+W.~Hu, Y.~Qian, and F.~K. Soong. 2015{\natexlab{a}}.
+\newblock An improved dnn-based approach to mispronunciation detection and diagnosis of l2 learners' speech.
+\newblock In \emph{SLaTE}.
+
+\bibitem[{Hu et~al.(2015{\natexlab{b}})Hu, Qian, Soong, and Wang}]{hu2015improved}
+W.~Hu, Y.~Qian, F.~K Soong, and Y.~Wang. 2015{\natexlab{b}}.
+\newblock Improved mispronunciation detection with deep neural network trained acoustic models and transfer learning based logistic regression classifiers.
+\newblock \emph{Speech Communication}.
+
+\bibitem[{Jokisch et~al.(2009)Jokisch, Wagner, Sabo et~al.}]{jokisch2009multilingual}
+O.~Jokisch, A.~Wagner, R.~Sabo, et~al. 2009.
+\newblock Multilingual speech data collection for the assessment of pronunciation and prosody in a language learning system.
+\newblock In \emph{Proc. of SPECOM}.
+
+\bibitem[{Kim et~al.(2008)Kim, Hasegawa-Johnson, Perlman et~al.}]{kim2008dysarthric}
+H.~Kim, M.~Hasegawa-Johnson, A.~Perlman, et~al. 2008.
+\newblock Dysarthric speech database for universal access research.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{Kim et~al.(2010)Kim, Martin, Hasegawa-Johnson, and Perlman}]{kim2010frequency}
+H.~Kim, K.~Martin, M.~Hasegawa-Johnson, and A.~Perlman. 2010.
+\newblock Frequency of consonant articulation errors in dysarthric speech.
+\newblock \emph{Clinical linguistics \& phonetics}.
+
+\bibitem[{Kingma and Ba(2015)}]{DBLP:journals/corr/KingmaB14}
+D.~P. Kingma and J.~Ba. 2015.
+\newblock Adam: {A} method for stochastic optimization.
+\newblock In \emph{Proc. ICLR}.
+
+\bibitem[{Kominek and Black(2004)}]{kominek2004cmu}
+J.~Kominek and A.~W. Black. 2004.
+\newblock The cmu arctic speech databases.
+\newblock In \emph{Proc. Speech Synthesis Workshop}.
+
+\bibitem[{Korzekwa et~al.(2021)Korzekwa, Lorenzo-Trueba, Zaporowski, Calamaro, Drugman, and Kostek}]{korzekwa2021mispronunciation}
+D.~Korzekwa, J.~Lorenzo-Trueba, S.~Zaporowski, S.~Calamaro, T.~Drugman, and B.~Kostek. 2021.
+\newblock Mispronunciation detection in non-native (l2) english with uncertainty modeling.
+\newblock In \emph{Proc. ICASSP}.
+
+\bibitem[{Ladefoged(1965)}]{ladefoged1965nature}
+P.~Ladefoged. 1965.
+\newblock The nature of general phonetic theories.
+\newblock \emph{Monograph Series on Languages and Linguistics}, pages 27--42.
+
+\bibitem[{Lee et~al.(2018)Lee, Lee, Lee, and Shin}]{lee2018simple}
+J.~Lee, K.~Lee, H.~Lee, and J.~Shin. 2018.
+\newblock A simple unified framework for detecting out-of-distribution samples and adversarial attacks.
+\newblock In \emph{Proc. NeurIPS}.
+
+\bibitem[{Lee et~al.(1990)Lee, Hayamizu, Hon et~al.}]{lee1990allophone}
+K-F. Lee, S.~Hayamizu, H-W. Hon, et~al. 1990.
+\newblock Allophone clustering for continuous speech recognition.
+\newblock In \emph{Proc. ICASSP}.
+
+\bibitem[{Li et~al.(2016)Li, Qian, and Meng}]{li2016mispronunciation}
+K.~Li, X.~Qian, and H.~Meng. 2016.
+\newblock Mispronunciation detection and diagnosis in l2 english speech using multidistribution deep neural networks.
+\newblock \emph{IEEE/ACM TASLP}.
+
+\bibitem[{Liu et~al.(2023)Liu, Tang, and Goldwater}]{liu23j_interspeech}
+O.~D. Liu, H.~Tang, and S.~Goldwater. 2023.
+\newblock Self-supervised predictive coding models encode speaker and phonetic information in orthogonal subspaces.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{MacKenzie and Turton(2020)}]{mackenzie2020assessing}
+L.~MacKenzie and D.~Turton. 2020.
+\newblock Assessing the accuracy of existing forced alignment software on varieties of british english.
+\newblock \emph{Linguistics Vanguard}, 6(s1):20180061.
+
+\bibitem[{Martin et~al.(2023)Martin, Gauthier, Breiss, and Levy}]{martin23_interspeech}
+K.~Martin, J.~Gauthier, C.~Breiss, and R.~Levy. 2023.
+\newblock {Probing Self-supervised Speech Models for Phonetic and Phonemic Information: A Case Study in Aspiration}.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{McAuliffe et~al.(2017)McAuliffe, Socolof, Mihuc, Wagner, and Sonderegger}]{mcauliffe2017montreal}
+M.~McAuliffe, M.~Socolof, S.~Mihuc, M.~Wagner, and M.~Sonderegger. 2017.
+\newblock Montreal forced aligner: Trainable text-speech alignment using kaldi.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{McFee et~al.(2015)McFee, Raffel, Liang et~al.}]{mcfee2015librosa}
+B.~McFee, C.~Raffel, D.~Liang, et~al. 2015.
+\newblock librosa: Audio and music signal analysis in python.
+\newblock In \emph{Proc. Python in Science Conference}.
+
+\bibitem[{McInnes et~al.(2018)McInnes, Healy, Saul, and Gro{\ss}berger}]{mcinnes2018umap}
+L.~McInnes, J.~Healy, N.~Saul, and L.~Gro{\ss}berger. 2018.
+\newblock Umap: Uniform manifold approximation and projection.
+\newblock \emph{The Journal of Open Source Software}.
+
+\bibitem[{Ng and Chiew(2023)}]{ng2023l1}
+B.~K. Ng and P.~S. Chiew. 2023.
+\newblock L1 influence on stop consonant production: A case study of malaysian mandarin-english bilinguals.
+\newblock \emph{Asian Englishes}.
+
+\bibitem[{Nguyen et~al.(2020)Nguyen, Nguyen, Chamroukhi, and McLachlan}]{nguyen2020approx}
+T.~Nguyen, H.~D. Nguyen, F.~Chamroukhi, and G.~J. McLachlan. 2020.
+\newblock Approximation by finite mixtures of continuous density functions that vanish at infinity.
+\newblock \emph{Cogent Mathematics \& Statistics}.
+
+\bibitem[{Pasad et~al.(2024)Pasad, Chien, Settle et~al.}]{pasad2023self}
+A.~Pasad, C-M. Chien, S.~Settle, et~al. 2024.
+\newblock {What Do Self-Supervised Speech Models Know About Words?}
+\newblock \emph{TACL}.
+
+\bibitem[{Pasad et~al.(2021)Pasad, Chou, and Livescu}]{pasad2021layer}
+A.~Pasad, J-C Chou, and K.~Livescu. 2021.
+\newblock Layer-wise analysis of a self-supervised speech representation model.
+\newblock In \emph{Proc. ASRU}, pages 914--921.
+
+\bibitem[{Pasad et~al.(2023)Pasad, Shi, and Livescu}]{pasad2023comparative}
+A.~Pasad, B.~Shi, and K.~Livescu. 2023.
+\newblock Comparative layer-wise analysis of self-supervised speech models.
+\newblock In \emph{Proc. ICASSP}.
+
+\bibitem[{Pedregosa et~al.(2011)Pedregosa, Varoquaux, Gramfort et~al.}]{scikit-learn}
+F.~Pedregosa, G.~Varoquaux, A.~Gramfort, et~al. 2011.
+\newblock Scikit-learn: Machine learning in {P}ython.
+\newblock \emph{Journal of Machine Learning Research}.
+
+\bibitem[{Povey et~al.(2018)Povey, Cheng, Wang et~al.}]{povey2018semi}
+D.~Povey, G.~Cheng, Y.~Wang, et~al. 2018.
+\newblock Semi-orthogonal low-rank matrix factorization for deep neural networks.
+\newblock In \emph{Proc. Interspeech}, pages 3743--3747.
+
+\bibitem[{Rudzicz et~al.(2012)Rudzicz, Namasivayam, and Wolff}]{rudzicz2012torgo}
+F.~Rudzicz, A.~K. Namasivayam, and T.~Wolff. 2012.
+\newblock The torgo database of acoustic and articulatory speech from speakers with dysarthria.
+\newblock \emph{Language Resources and Evaluation}.
+
+\bibitem[{Sagayama(1989)}]{sagayama1989phoneme}
+S.~Sagayama. 1989.
+\newblock Phoneme environment clustering for speech recognition.
+\newblock In \emph{Proc. ICASSP}.
+
+\bibitem[{Sch{\"o}lkopf et~al.(2001)Sch{\"o}lkopf, Platt, Shawe-Taylor et~al.}]{scholkopf2001estimating}
+B.~Sch{\"o}lkopf, J.~C Platt, J.~Shawe-Taylor, et~al. 2001.
+\newblock Estimating the support of a high-dimensional distribution.
+\newblock \emph{Neural computation}.
+
+\bibitem[{Shahin and Ahmed(2019)}]{shahin2019anomaly}
+M.~Shahin and B.~Ahmed. 2019.
+\newblock Anomaly detection based pronunciation verification approach using speech attribute features.
+\newblock \emph{Speech Communication}.
+
+\bibitem[{Shahin et~al.(2024)Shahin, Epps, and Ahmed}]{shahin2023phonological}
+M.~Shahin, J.~Epps, and B.~Ahmed. 2024.
+\newblock Phonological level wav2vec2-based mispronunciation detection and diagnosis method.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{Shi et~al.(2020)Shi, Huo, and Jin}]{Shi2020ContextawareGO}
+J.~Shi, N.~Huo, and Q.~Jin. 2020.
+\newblock Context-aware goodness of pronunciation for computer-assisted pronunciation training.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{Sicherman and Adi(2023)}]{sicherman2023analysing}
+A.~Sicherman and Y.~Adi. 2023.
+\newblock Analysing discrete self supervised speech representation for spoken language modeling.
+\newblock In \emph{Proc. ICASSP}.
+
+\bibitem[{Sudhakara et~al.(2019)Sudhakara, Ramanathi, Yarra, and Ghosh}]{sudhakara2019improved}
+S.~Sudhakara, M.~K. Ramanathi, C.~Yarra, and P.~K. Ghosh. 2019.
+\newblock An improved goodness of pronunciation (gop) measure for pronunciation evaluation with dnn-hmm system considering hmm transition probabilities.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{Sun et~al.(2022)Sun, Ming, Zhu, and Li}]{sun2022out}
+Y.~Sun, Y.~Ming, X.~Zhu, and Y.~Li. 2022.
+\newblock Out-of-distribution detection with deep nearest neighbors.
+\newblock In \emph{Proc. ICML}.
+
+\bibitem[{TA et~al.(2016)TA, Nagarajan, and Vijayalakshmi}]{ta2016dysarthric}
+M.~C. TA, T.~Nagarajan, and P.~Vijayalakshmi. 2016.
+\newblock Dysarthric speech corpus in tamil for rehabilitation research.
+\newblock In \emph{Proc. TENCON}.
+
+\bibitem[{Twaddell(1952)}]{twaddell1952phonemes}
+William~F Twaddell. 1952.
+\newblock Phonemes and allophones in speech analysis.
+\newblock \emph{Journal of the Acoustical Society of America}.
+
+\bibitem[{Vidal et~al.(2019)Vidal, Ferrer, and Brambilla}]{vidal2019epadb}
+J.~Vidal, L.~Ferrer, and L.~Brambilla. 2019.
+\newblock Epadb: A database for development of pronunciation assessment systems.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{Wang et~al.(2015)Wang, Gu, Ning, and Liu}]{wang2015high}
+Z.~Wang, Q.~Gu, Y.~Ning, and H.~Liu. 2015.
+\newblock High dimensional em algorithm: Statistical optimization and asymptotic normality.
+\newblock In \emph{Proc. NeurIPS}.
+
+\bibitem[{Wells et~al.(2022)Wells, Tang, and Richmond}]{wells22_interspeech}
+D.~Wells, H.~Tang, and K.~Richmond. 2022.
+\newblock {Phonetic Analysis of Self-supervised Representations of English Speech}.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{Witt and Young(2000)}]{Witt2000PhonelevelPS}
+S.~M. Witt and S.~J. Young. 2000.
+\newblock Phone-level pronunciation scoring and assessment for interactive language learning.
+\newblock \emph{Speech Communication}, 30:95--108.
+
+\bibitem[{Xu et~al.(2021)Xu, Kang, Cao et~al.}]{xu21k_interspeech}
+X.~Xu, Y.~Kang, S.~Cao, et~al. 2021.
+\newblock {Explore wav2vec 2.0 for Mispronunciation Detection}.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{Yang et~al.(2021)Yang, Chi, Chuang et~al.}]{yang21c_interspeech}
+S-W. Yang, P-H. Chi, Y-S. Chuang, et~al. 2021.
+\newblock {SUPERB: Speech Processing Universal PERformance Benchmark}.
+\newblock In \emph{Proc. Interspeech}, pages 1194--1198.
+
+\bibitem[{Yeo et~al.(2023{\natexlab{a}})Yeo, Choi, Kim, and Chung}]{yeo23_interspeech}
+E-J. Yeo, K.~Choi, S.~Kim, and M.~Chung. 2023{\natexlab{a}}.
+\newblock {Speech Intelligibility Assessment of Dysarthric Speech by using Goodness of Pronunciation with Uncertainty Quantification}.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{Yeo et~al.(2023{\natexlab{b}})Yeo, Ryu, Lee et~al.}]{yeo2023comparison}
+E-J. Yeo, H.~Ryu, J.~Lee, et~al. 2023{\natexlab{b}}.
+\newblock Comparison of l2 korean pronunciation error patterns from five l1 backgrounds by using automatic phonetic transcription.
+\newblock In \emph{Proc. ICPhS}.
+
+\bibitem[{Young et~al.(1994)Young, Odell, and Woodland}]{young1994tree}
+S.~J. Young, J.~J. Odell, and P.~C. Woodland. 1994.
+\newblock Tree-based state tying for high accuracy modelling.
+\newblock In \emph{Proc. HLT}.
+
+\bibitem[{Zhang et~al.(2021)Zhang, Zhang, Wang et~al.}]{speechocean762}
+J.~Zhang, Z.~Zhang, Y.~Wang, et~al. 2021.
+\newblock speechocean762: An open-source non-native english speech corpus for pronunciation assessment.
+\newblock In \emph{Proc. Interspeech}.
+
+\bibitem[{Zhao et~al.(2018)Zhao, Sonsaat, Silpachai et~al.}]{zhao2018l2}
+G.~Zhao, S.~Sonsaat, A.~Silpachai, et~al. 2018.
+\newblock L2-arctic: A non-native english speech corpus.
+\newblock In \emph{Proc. Interspeech}.
+
+\end{thebibliography}

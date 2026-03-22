@@ -1,0 +1,88 @@
+\section{Allophony of S3M features}\label{sec:motiv}
+\Cref{sec:exp} empirically demonstrates that leveraging S3M features with MixGoP helps enhance downstream performance compared to other features, such as MFCCs and Mel spectrograms.
+This section aims to further verify the suitability of S3Ms for representing individual phonemes with allophonic variations.
+First, we examine S3M features at the phoneme-level, using the dimensionality reduction technique in \Cref{subsec:motiv_qual}.
+Next, we design a metric to quantify the ability of capturing allophonic variations, comparing S3M features to MFCCs and Mel spectrogram in \Cref{subsec:motiv_quant}.
+For our analyses, we used the healthy speech recordings from the TORGO dataset \citep{rudzicz2012torgo}, which includes gold-standard phonemic transcriptions and alignments.
+
+
+\subsection{Motivating Observation}\label{subsec:motiv_qual}
+S3Ms are trained to reconstruct masked signals using surrounding information.
+Hence, we hypothesize that this will allow the S3Ms to capture local acoustic characteristics, including allophones from various phonetic environments.
+To verify such phenomena, we observed the final layer features of WavLM for each phoneme, which have generally shown the best performance across datasets (See \Cref{fig:layerwise}).
+Specifically, we use UMAP dimensionality reduction \citep{mcinnes2018umap} with the cosine distance metric to visualize the features, similar to \citet{choi2022opening}.
+We also extract the four utterances closest to each of the ten centroids to observe the phonetic environments of each cluster. 
+
+
+\Cref{fig:motiv} demonstrates one example, with the distribution of \textipa{/2/} (\texttt{/AH/} in ARPABET) and its environments of the healthy subset of TORGO.
+We observed multiple clusters for each phoneme, each with phonetically similar environments, which motivates the metric for quantifying allophony ability.
+
+
+\subsection{Quantifying Allophony}\label{subsec:motiv_quant}
+Previous studies have found that S3M features model the phoneme distributions with multiple clusters \citep{wells22_interspeech,martin23_interspeech}.
+However, there has been limited analysis on directly quantifying the relationship between the S3M feature subclusters and allophony.
+To this end, we design a setting that measures the mutual information between the S3M feature subcluster indices and the surrounding phonetic environment of each phoneme, which is an indicator of allophones.
+
+\input{figures/fig_motiv}
+
+First, to obtain the subclusters within MFCCs, Mel spectrograms, and S3M features, we apply the k-means algorithm with $k=32$ clusters to the features of each phoneme $V \in \mathcal{V}$.
+Then, each utterance has the designated k-means cluster index $I$.
+For a dataset with a total of $|\mathcal{V}|$ phonemes, we train $|\mathcal{V}|$ different k-means models.
+
+
+Note that our MixGoP uses k-means clusters as the initializer.
+Also, we observed few to no EM optimization steps due to high dimensionality \citep{wang2015high}.
+As a result, the initialized cluster centroids will likely be similar to the final centroids $\pmb{\mu}_p^c$ in \cref{eq:GM} for calculating phoneme likelihood $P_\theta(\mathbf{s}|p)$.
+
+
+We then compare the utterance-wise cluster indices with their allophony.
+Since the TORGO dataset does not provide phonetic transcriptions, we utilize the surrounding phonetic environment, which is closely linked to allophonic variation.
+For simplicity, we define the environment $E$ as the natural class of the preceding and following phonemes, similar to phoneme environment clustering \citep{sagayama1989phoneme}.
+We use the height, backness, and roundness for the vowels and the place and manner of the consonants for the natural class.
+For example, each \textipa{/i/} and \textipa{/k/} is represented as \texttt{close-front-unrounded} and \texttt{velar-plosive}, respectively.
+If the phoneme is word-initial or word-final, we also include them as the environment information.
+Therefore, with $|\mathcal{C}|$ number of natural classes, the number of all the possible environments is $(|\mathcal{C}| + 1)^2$.
+
+\input{figures/fig_pnmi}
+
+To quantify allophonic information within each subclusters, we measure the mutual information $\text{MI}(I; E)$ between the cluster indices $I$ and the environment $E$.
+We normalize the value by the environment entropy $H(E)$ so that the resulting value is between 0 and 1.
+We call the metric \textit{Allophone environment-Normalized Mutual Information} (ANMI) $\text{MI}(I; E) / H(E)$.
+% After obtaining the ANMI for each phoneme, we average the ANMI values to obtain the final value in \Cref{fig:pnmi}.
+The actual calculation is nearly identical to Phoneme Normalized Mutual Information (PNMI) \citep{hsu2021hubert}, except we replaced phoneme $V$ to environment $E$.
+
+
+\paragraph{Results.} 
+\Cref{fig:pnmi} shows the phonetic environment information inside cluster indices for MFCCs, Mel spectrograms, XLS-R, and WavLM.
+For S3M models, we plot across different layers.
+We can observe that S3Ms contain more information on the phonetic environment compared to traditional features, implying that S3Ms successfully capture allophony.
+This finding introduces an interesting implication regarding the effect of varying cluster sizes when applying k-means to S3M features for discrete units \citep{chang2024exploring}. 
+It is known that different cluster sizes lead to varying levels of granularity, with smaller cluster size capturing phoneme information while larger cluster size capturing speaker information \citep{sicherman2023analysing}.
+Our results suggest that cluster size in between may capture allophonic variations.
+
+
+
+\section{Analysis}\label{sec:discuss}
+\subsection{Does capturing phonetic environment leads to better downstream performance?} \label{subsec:pnmi_vs_task}
+\input{figures/fig_nmi_vs_downstream}
+It is crucial to examine whether capturing phonetic environments (or allophones) actually improves downstream performance. 
+To assess this, we compare the amount of phonetic environment information inside S3Ms and the actual downstream performance on the pronunciation assessment.
+In \Cref{fig:nmi_vs_downstream}, we observe that the downstream performance positively correlates until around NMI $< 0.72$, where the downstream performance saturates even if the amount of phonetic environment information increases.
+We suspect this behavior is due to S3Ms capturing more surrounding information, which may not be useful for the pronunciation assessment task.
+Our hypothesis aligns with the previous empirical observation of \citet{pasad2023comparative} and \citet{choi2024self} that S3Ms have non-negligible word-level modeling abilities, which requires a larger temporal receptive field.
+Moreover, the layerwise trends of \Cref{fig:pnmi}, \textit{i.e.}, WavLM persistently increasing and XLS-R peaking in the middle, are also similar to previous empirical observations on word-level layerwise information \citep{pasad2023comparative}.
+
+
+\subsection{Sample efficiency of MixGoP}\label{subsec:ablation}
+We randomly subsampled training set samples to check the influence of training data size.
+To train the GMM for each phoneme, we can either use all the occurrences in the dataset or limit the maximum number of samples.
+For optimal performance, we searched for the maximum number of samples between 64, 128, 256, 512, or using the full dataset.
+For example, if we set the maximum as 64, and \textipa{/a/} and \textipa{/i/} each have a total of 100 and 50 samples, to train the GMM of \textipa{/a/}, we randomly subsample 64 samples.
+On the other hand, since there are only 50 samples for \textipa{/i/}, all 50 samples are used.
+
+\input{figures/tab_nsample}
+
+\Cref{tab:numberGM} shows that increasing the number of training samples generally improves performance. 
+However, performance plateaus as the sample size increases, with 512 samples yielding the best results across various datasets, except for L2-ARCTIC. 
+This suggests MixGoP performs well even with a relatively small number of samples (fewer than 100), which is advantageous for dysarthric and nonnative speech, where data is often limited.
+However, this also indicates that adding more data does not necessarily lead to further improvements, indicating that the model's performance may be constrained by data scalability.

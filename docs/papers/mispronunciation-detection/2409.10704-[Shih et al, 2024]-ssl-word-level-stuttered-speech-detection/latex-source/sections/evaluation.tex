@@ -1,0 +1,85 @@
+\input{tables/sep28k}
+While we aim to evaluate the performance of our model on word-level stuttered speech detection,  we also want to compare it with previous works that studied utterance-level stuttering detection.
+Hence, we evaluate under both the utterance-level and word-level stuttering detection conditions.
+For the former, we evaluate on SEP-28K testing set and also report the F1 score for each stuttering type on Fluency Bank (a subset of SEP-28K).
+For the latter, we evaluate models on our word-level stuttering dataset and report F1, precision, and recall on each partition separately.
+Additionally, we report the F1 score and Average precision on the entire dataset.
+We choose to report F1 score instead of other metrics such as accuracy due to the fact that the data is highly imbalanced~(There are many more non-stuttered speech segments than stuttered segments).
+We sweep the detection threshold from 0 to 1 with a step of 0.05 to find the optimal threshold for all settings.
+Throughout our evaluation, we found out that the word-level dataset is very sensitive to the threshold selection.
+Hence, we also report Average Precision on the entire word-level stuttered speech dataset.
+F1 score on the one hand is more intuitive but sensitive to threshold selection especially on this dataset, while Average Precision is a threshold-independent metric that evaluates the classification model under all possible thresholds.
+With these two evaluation benchmarks, we further conduct ablation experiments on the effect of CTC loss, the SSL interface/model selection, and the size of the finetuning dataset.
+Finally, we show some qualitative examples of our model's outputs.
+
+\vspace{-10pt}
+\subsection{Utterance Level stuttered speech detection}
+Since our model is only trained to detect stuttering events and not to distinguish between different types of stuttering, we report the type-specific stuttering detection F1 score by selecting different subsets of the testing dataset.
+For example, to test the F1 score for blocks on SEP-28K - Fluency Bank, we filter the testing set to include only utterances with blocks and utterances without stuttering.
+
+As shown in Table~\ref{tab:Utt_level}, overall, our model surpasses the baseline systems.
+Specifically, \cite{bayerl22b_interspeech,bayerl23_interspeech} and our model outperforms ~\cite{harvill22_interspeech} by a large margin, indicating the benefit of using Speech SSL models and probably the transformer architecture.
+Interestingly, our model beats \cite{bayerl22b_interspeech,bayerl23_interspeech} in general, except for interjections.
+This could potentially be improved by adding synthesized sound interjections in the pretraining stage.
+
+\vspace{-10pt}
+\subsection{Word Level stuttered speech detection}
+\input{tables/word_level}
+
+In Table~\ref{tab:Word_level}, overall ``WavLMLg + HConv. + CTC'' outperforms the baseline model and other variations.
+In terms of different partitions, Fluency Bank has the highest F1 scores regardless of method.
+The reason might be the difference between native speakers and bilingual speakers.
+For Bilinguals Speech, stuttering bilinguals tend to have higher F1 scores compared to non-stuttering bilinguals.
+The reason is that our model tends to have a high recall and a low precision in most cases, which is also true for the baseline model.
+Compared to the baseline method, our model improves more on recall than precision.
+One avenue for future work would be to incorporate an improved prior over where stuttered speech is likely to occur within an utterance or a better way to condition the model on different patient demographics.
+
+\vspace{-10pt}
+\subsection{The effect of CTC loss and SSL interface selection}
+To study the effect of CTC loss and HConv. Interface we design several ablation experiments.
+For the utilization of WavLM, we design models using weighted sum~(which is a set of learnable weights that is multiplied layer-wisely on WavLM Large hidden layers and sum up) or simply select a single layer.
+Due to the extensive computing, we select every 4 layers of WavLM Large for our experiment.
+For HConv. and Weighted Sum, we also try adding CTC loss or not.
+
+\input{figs/weightedSum_Dist}
+\input{figs/qualitative_examples}
+On the utterance level (See Table~\ref{tab:Word_level}), we see that with the help of CTC loss, the performance with both HConv. and  Weighted Sum layer aggregation strategies improved.
+Interestingly, without CTC loss, both interfaces perform roughly the same overall.
+We hypothesize that HConv. could benefit more from the guidance of CTC loss in terms of word-level stuttered speech detection.
+The same trend can also be observed on the word-level stuttering speech dataset in Table~\ref{tab:Word_level}.
+Hence, we further visualize the learned weights of the weighted sum in ``WavLMLg + WS'' and ``WavLMLg + WS + CTC'' in Figure~\ref{fig:ws_dist}.
+With the help of CTC loss, the weight distribution becomes more concentrated on the peaks, indicating that CTC loss is helping the model to learn a better way of utilizing upstream model features.
+
+We also report the performance of using a single layer from WavLM-Large in Table~\ref{tab:Word_level}.
+Besides experiments with every four layers of WavLM-Large, we also include an experiment using the 22nd layer of WavLM-Large according to the layer with the highest learned weight in Figure~\ref{fig:ws_dist}.
+Interestingly, layers 8 and 22 have the highest learned weights, but overall the best performance falls roughly on the upper half of WavLM-Large layers~(from layer 12 to 24).
+We note that ``WavLMLg Layer 22'' has an overall F1 score close to our best model ``WavLMLg + HConv.+ CTC'', but falls behind in terms of average precision, indicating that the HConv. interface is an effective approach to utilizing WavLM-Large on word-level stuttered speech detection.
+
+\vspace{-14pt}
+\subsection{The effect of different Speech SSL models}
+\input{tables/different_ssl}
+\vspace{-4pt}
+In addition to the interface selection, we also tried using different sizes and types of upstream Speech SSL models.
+As shown in Table~\ref{tab:different_ssl}, overall, the Speech SSL models outperform the baseline model, indicating the effectiveness of self-supervised training.
+Furthermore, Large size models surpass Base size models in all cases.
+Last but not least, WavLM performs the best compared to Wav2vec2~\cite{wav2vec2} and Data2vec~\cite{baevski22a_data2vec}.
+From our results, we believe that WavLM is a more suitable choice for stuttering detection and that previous works~\cite{Payal_iccasp_Siamese,bayerl22b_interspeech,bayerl23_interspeech} might also benefit if they change their backbone from Wav2vec2 to WavLM.
+
+\vspace{-14pt}
+\subsection{The effect of fine-tuning dataset size}
+\vspace{-4pt}
+To test our model on the effect of fine-tuning dataset size, we tried using different proportions of our fine-tuning data: $0\%,25\%,50\%,75\%,100\%$.
+Notice that we keep the ratio of positive and negative examples in the training set the same while using different proportions of the data.
+We report both utterance and word level results on Table~\ref{tab:Utt_level} and Table~\ref{tab:Word_level}.
+On both datasets, we observe a large improvement from 0$\%$ to 50$\%$.
+Surprisingly, there is a little drop in the performance when using 75$\%$ of the data, but there's a large leap when using 100 $\%$ of the data.
+Overall, this again corroborates the problem of data scarcity in stuttered speech detection and shows our model's scalability.
+% potential for scaling if more data is available in the future.
+
+\vspace{-14pt}
+\subsection{Qualitative results of Stuttering Detection}
+\vspace{-4pt}
+To visualize our detection results, we show some of the examples in our word-level stuttered speech detection dataset.
+As shown in Figure~\ref{fig:qualititave_examples}, both the baseline and our model tend to predict stuttering events more frequently than the speech pathologist.
+However, compared with the baseline model, our model's predictions tend to be of higher precision.
+

@@ -1,0 +1,550 @@
+% Template for ICASSP-2026 paper; to be used with:
+%          spconf.sty  - ICASSP/ICIP LaTeX style file, and
+%          IEEEbib.bst - IEEE bibliography style file.
+% --------------------------------------------------------------------------
+\documentclass{article}
+\usepackage{spconf,amsmath,graphicx,hyperref,tabularx, booktabs, svg, pdfpages, textcomp}
+\usepackage{bibspacing}
+
+
+% Example definitions.
+% --------------------
+\def\x{{\mathbf x}}
+\def\L{{\cal L}}
+
+% Title.
+% ------
+\title{Layer-Aware Early Fusion of Acoustic and Linguistic Embeddings for Cognitive Status Classification}
+%
+% Single address.
+% ---------------
+% \name{Author(s) Name(s)\thanks{Thanks to XYZ agency for funding.}}
+% \address{Author Affiliation(s)}
+%
+% For example:
+% ------------
+%\address{School\\
+%	Department\\
+%	Address}
+%
+% Two addresses (uncomment and modify for two-address case).
+% ----------------------------------------------------------
+% \twoauthors{A. Author-one, B. Author-two}
+% 	{School A-B\\
+% 	Department A-B\\
+% 	Address A-B}
+%  {C. Author-three}
+% 	{School C\\
+% 	Department C\\
+% 	Address C}
+%
+
+% use "transcription" term (text-only too),  "to sell it better", what is novel
+% DONE: why 2 metrics, SOTA - what do we learn?, redo Evaluation part in diagram, , early/late layers, discussion about RQ, present baseline, anwear RQ,
+
+
+
+\name{Krystof Novotny$^{\star \dagger}$ \qquad Laureano Moro-Velázquez$^{\ddagger}$ \qquad Jiri Mekyska$^{\star \dagger}$}
+%\thanks{This work was supported by project no. CZ.02.01.01/00/23\_025/0008726 (A Lifetime with Language: The Nature and Ontogeny of Linguistic Communication), co-funded by the European Union.}
+  
+  \address{$^{\star}$ Department of Telecommunications, Brno University of Technology, Brno, Czech Republic \\
+      $^{\dagger}$Central European Institute of Technology (CEITEC), Masaryk University, Brno, Czech Republic \\
+      $^{\ddagger}$ Department of Electrical and Computer Engineering, Johns Hopkins University, Baltimore, MD, USA}
+
+\begin{document}
+%\ninept
+%
+\maketitle
+%
+{
+
+\ninept
+\fontsize{9.5pt}{12pt}\selectfont
+
+% 
+\begin{abstract}
+Speech contains both acoustic and linguistic patterns that reflect cognitive decline, and therefore models describing only one domain cannot fully capture such complexity. This study investigates how early fusion (EF) of speech and its corresponding transcription text embeddings, with attention to encoder layer depth, can improve cognitive status classification. Using a DementiaBank-derived collection of recordings (1,629 speakers; cognitively normal controls--CN, Mild Cognitive Impairment--MCI, and Alzheimer’s Disease and Related Dementias--ADRD), we extracted frame-aligned embeddings from different internal layers of wav2vec 2.0 or Whisper combined with DistilBERT or RoBERTa. Unimodal, EF and late fusion (LF) models were trained with a transformer classifier, optimized, and then evaluated across 10 seeds. Performance consistently peaked in mid encoder layers ($\sim$8--10), with the single best F1 at Whisper + RoBERTa layer 9 and the best log loss at Whisper + DistilBERT layer 10. Acoustic-only models consistently outperformed text-only variants. EF boosts discrimination for genuinely acoustic embeddings, whereas LF improves probability calibration. Layer choice critically shapes clinical multimodal synergy.
+
+\end{abstract}
+%
+\begin{keywords}
+Alzheimer's dementia detection, speech processing, multimodal fusion, machine learning, deep neural embeddings
+\end{keywords}
+%
+\section{Introduction}
+\label{sec:intro}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% body 
+
+% - klasifikace na základě kognitivního stavu (motivace)
+
+% - SOTA výsledky 
+
+% - výzkumné otázky:
+
+% - popři trénování s využitím fúze modelů - může za zlepšení výsledů fakt, že jde o fúzi akustického a lingvistického modelu, nebo je to obecně jen fúzí vícero výsledků?
+
+% - při používání akustických embeddingů pro trénování - je poslední vrstva tou  nejlepší reprezentací, kterou chceme použít?
+
+% - nakolik jsou reprezentace z akustických modelů skutečně akustické?
+
+% - textové modely postrádají časovou informaci, důležitou pro klasifikaci kognitivního stavu. Pomůže obohacení reprezentace o tuto informaci a jak to provést? 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%TODO (2P): I think that you should start stating why we need to detect cognitive impairment using automated means.
+
+Pre-trained models have become a central element of speech processing, offering rich acoustic and linguistic embeddings that are increasingly used in clinical tasks. Recent studies have shown that representations of both domains can successfully support the detection of cognitive impairment. However, while these models achieve strong classification performance, their interpretability and explainability remain limited. Understanding which aspects drive decisions, and how complementary information from different modalities contributes to cognitive state classification, is an open challenge that this study seeks to address. % TODO: citation
+
+Cognitive decline manifests in subtle speech cues, ranging from prosodic variation to lexical simplification and disfluencies. These cues span both the acoustic and linguistic domains, and no single modality fully captures the complexity of dementia-related speech. This motivates the hypothesis that models combining heterogeneous representations from both domains can provide better diagnostic performance than unimodal models. % TODO: citation
+
+Early fusion (EF), which integrates acoustic and linguistic embeddings at the feature level prior to classification, provides an attractive framework. Unlike late fusion (LF), which aggregates model outputs, EF enables richer joint representation learning and leverages temporal or semantic complementarities. In this work, we examine embeddings from multiple pre-trained models (both acoustic and linguistic), as well as EF and LF approaches, and evaluate their effectiveness for classifying participants as cognitively normal subjects (CN), individuals with mild cognitive impairment (MCI), or those with Alzheimer's disease and related dementias (ADRD). Beyond accuracy, our study aims to probe the mechanisms by which different embeddings contribute to classification.
+% , addressing open questions about modality complementarity and representation quality.
+
+\subsection{State of the Art}
+% martinc - regular handcrafted features combined over each word to some type of embedding
+% altinok - visualisations (explainability and interpretability)
+% zhang2025 - visualisations (explainability and interpretability)
+% javanmardi - layers
+% li - layers
+% krstev - both early and late fusion
+% pan2024 - acoustic x linguistic x early fusion
+% pan2025 - layer level attention weights
+% zhang2022 - dont use at all
+% syed - handcrafted and deep embedding fetures, differnt approaches to combining
+% campbell - handcrafted (acoustic, liguistic), mean of embeddings
+% cummins - dont use at all
+
+
+% Research on dementia detection from speech has shifted from simple handcrafted acoustic \cite{campbell2021,cummins2020} and linguistic \cite{martinc2021, krstev2022} features to deep, multimodal representation learning \cite{syed2021}. Current systems pair self-supervised acoustic encoders with transformer text models for robust embeddings.
+% Information fusion is organized as early, late, or hybrid. Alignment at the word and sentence level via Active Data Representation improves over unimodal baselines and benefits further from LF \cite{martinc2021}. Joint modeling of Sentence-BERT with spectrogram CNNs shows early fusion outperforming LF on DementiaBank, though best joint results approximate the strongest speech transcription-only model \cite{krstev2022}. Tighter cross-modal interaction includes gated/bilinear pooling in RNN-T \cite{zhang2022}, Swin-BERT fusing spectrogram encoders with word transcripts \cite{pan2024}, and TSAC-ATT with channel and layer attention weighting over wav2vec\,2.0 layers plus cross-attention to BERT \cite{pan2025}.
+
+% Layer selection matters. Shallow-to-mid wav2vec\,2.0 layers are proven to outperform final layers \cite{javanmardi2024}, similarly weighted aggregation across Whisper layers highlights mid-level gains \cite{Li2024}.
+
+% Explainability-focused fusion is emerging. ViT + RoBERTa with cross-attention visualizes modality contributions (function-word overuse, atypical silences) \cite{altinok2024}. Hybrid attention with expert priors has been proposed for multimodal, multi-task AD assessment \cite{zhang2025}. 
+
+Across recent studies on automated speech-based dementia detection, three themes emerge. First, research moves from single-modality baselines to multimodal designs. Combining acoustic features with transcripts and ensembling models yields complementary gains, with simple score fusion being a common initial tactic \cite{campbell2021,syed2021,martinc2021}.
+
+Second, how information is combined matters. Side-by-side evaluations report mixed outcomes for early or late combination, whereas methods that let one stream guide the other (such as cross-attention between speech and text) tend to be stronger and easier to inspect \cite{krstev2022,pan2024,altinok2024,zhang2025}.
+
+Third, representation depth is now a key lever. Selecting or weighting layers from pre-trained speech encoders delivers competitive acoustic models and clarifies which parts of the signal drive decisions \cite{pan2025,javanmardi2024,li2024}.
+
+Overall, the field is shifting from hand-crafted indicators to learned representations, from naive concatenation to guided interaction, and toward visualizable rationales -- hence, precisely the pivots addressed by our research.
+
+\subsection{Research Questions}
+% Overall, the field converges on adaptive fusion. 
+Building on this literature, our work is motivated by the following questions:
+
+\textbf{Multimodal synergy:} Does improved classification performance stem specifically from combining heterogeneous domains (acoustic and linguistic), or can the gains be explained by generic ensembling effects?
+
+\textbf{Layer selection:} For acoustic models such as wav2vec\,2.0 or Whisper, is the final-layer representation optimal for cognitive assessment, or do intermediate layers provide more relevant paralinguistic features?
+
+\textbf{Temporal grounding of linguistic features:} Since text embeddings lack timing and pause information, can integrating temporal structure (e.g., through EF with acoustic models) enhance detection performance?
+
+\textbf{Semantic leakage in acoustic models:} To what extent do self-supervised acoustic embeddings capture linguistic information? Does enriching them with text embeddings provide complementary signals or redundancy?
+
+By addressing these questions, we aim not only to optimize classification accuracy but also to advance understanding of how multimodal speech and language representations contribute to cognitive health assessment.
+
+\section{Methodology}
+\label{sec:format}
+
+\subsection{Materials}
+\label{sssec:subsubhead}
+
+% https://talkbank.org/dementia/access/
+% https://www.drivendata.org/competitions/299/competition-nih-alzheimers-acoustic-2/page/929/
+% https://drive.google.com/drive/u/0/folders/1dnOj1i0Wi75L6kriiJqA-Qj2bRm1jCmO
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% body
+
+% - challenge NIH
+
+% - rozdělení podle datasetů (dataset: M/F HC, M/F MCI, M/F ADRD)
+
+% - souhrnné demografické informace (cognitive state: M/F count, avg age ...)
+
+% - rozdělení na train, test, val set (procenta)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+The experiments presented in this study were inspired by the Pioneering Research for Early Prediction of Alzheimer’s and Related Dementias EUREKA Challenge\footnote{\href{https://www.drivendata.org/competitions/299/competition-nih-alzheimers-acoustic-2/page/929/}{PREPARE Challenge official website}} by the National
+Institute on Aging, which focused on developing models for automated classification of cognitive status from speech. 
+
+All experiments were conducted exclusively on the English-speaking subset of the challenge pre-processed dataset. This dataset comprises $\sim$30-second audio clips of speech from individuals collected across multiple studies and open-access corpora~\cite{DB}. Each recording corresponds to a unique individual. Demographic metadata (age, sex and original corpora) were also available. Our experimental subset included a total of 1,629 participants. Table~\ref{tab:demo} summarizes the age and sex distributions across the analyzed cohorts.
+% DB_baycrest, DB_delaware, DB_hopkins, DB_lu, DB_pitt, DB_vas, DB_wls, 
+%  (see Tab. \ref{tab:corpora}.
+% citations to all included corpora
+
+To train and evaluate the classification models, the dataset was divided into training (64\,\%), validation (16\,\%), and test (20\,\%) sets using stratified sampling based on diagnosis, sex and original corpora, ensuring proportional representation of cognitive classes across all subsets. The partitioning was performed with a fixed seed to ensure reproducibility.
+
+% \begin{table}[ht]
+% \centering
+% \begin{tabularx}{\linewidth}{>
+% {\arraybackslash}X|>
+% {\centering\arraybackslash}m{4.7em}>
+% {\centering\arraybackslash}m{4.7em}>
+% {\centering\arraybackslash}m{4.7em}}
+% \toprule
+% \textbf{Corpus} & \textbf{HC$_{\text{M / F}}$} & \textbf{MCI$_{\text{M / F}}$} & \textbf{ADRD$_{\text{M / F}}$} \\
+% \midrule
+% Baycrest & 0 / 0 & 3 / 4 & 6 / 7 \\
+% Delaware & 5 / 25 & 22 / 29 & 0 / 0 \\
+% Hopkins & 0 / 0 & 0 / 0 & 11 / 16 \\
+% Lu & 8 / 17 & 0 / 0 & 13 / 13 \\
+% Pitt & 89 / 148 & 25 / 16 & 89 / 169 \\
+% VAS & 19 / 17 & 16 / 19 & 12 / 17 \\
+% WLS & 267 / 334 & 0 / 0 & 108 / 105 \\
+% \bottomrule
+% \end{tabularx}
+% \caption{Summary statistics of contributions from included corpora.}
+% \label{tab:corpora}
+% \end{table}
+
+\begin{table}[ht]
+% \fontsize{9pt}{11pt}\selectfont
+\centering
+\caption{Summary statistics of the cognitive state classes distribution.}
+\vspace{0.5em}
+
+\label{tab:demo}
+\begin{tabularx}{\linewidth}{>
+{\arraybackslash}X|>
+{\centering\arraybackslash}m{7.2em}>
+{\centering\arraybackslash}m{7.2em}}
+\toprule
+\textbf{Cognitive state} & \textbf{Count (M / F)} & \textbf{Age (mean ± std)} \\
+\midrule
+CN & 929 (388 / 541) & 74.9 ± 8.4 \\ % 0/30/0/25/237/36/601
+MCI & 134 (66 / 68) & 72.5 ± 7.3 \\ % 7/51/0/0/41/35/0
+ADRD & 566 (239 / 327) & 75.9 ± 8.3 \\ % 13/0/27/26/258/29/213
+\bottomrule
+\end{tabularx}
+\vspace{-0.5em}
+\vspace{1em}
+
+\end{table}
+
+
+\subsection{Audio and Text Representations}
+\label{sssec:subsubhead}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% body
+
+% - výpis modelů (model: doména, velikost reprezentace)
+
+% - pipeline extrakce informací
+
+% - pipeline fúze (schéma)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+To model speech using both acoustic and linguistic information, we implemented a multimodal feature extraction pipeline that enables frame-level alignment for EF of audio and text representations (see Fig.~\ref{fig:diagram})\footnote{\textcolor{black}{\href{https://github.com/BDALab/ICASSP_2026/}{The code repository for reproducing our experiments is available at: https://github.com/BDALab/ICASSP\_2026.}}}. This process was applied across four model combinations: DistilBERT~\cite{sanh2019}\footnote{\href{https://huggingface.co/distilbert/distilbert-base-uncased}{HuggingFace: distilbert/distilbert-base-uncased}} with wav2vec\,2.0~\cite{baevski2020}\footnote{\href{https://huggingface.co/facebook/wav2vec2-base}{HuggingFace: facebook/wav2vec2-base}}, DistilBERT with Whisper~\cite{radford2023}\footnote{\href{https://huggingface.co/openai/whisper-small}{HuggingFace: openai/whisper-small}}, RoBERTa~\cite{liu2019}\footnote{\href{https://huggingface.co/FacebookAI/roberta-base}{HuggingFace: FacebookAI/roberta-base}} with wav2vec\,2.0, and RoBERTa with Whisper. For each combination, audio features were extracted from all encoder layers individually, resulting in 12 distinct audio representations per combination (both selected acoustic models have 12 internal layers). Each model extracts a 768-dimensional dense vector space ($D_\text{audio}$,  $D_\text{text}$).
+
+\textbf{Audio Representations.} Raw speech was resampled to 16\,kHz and, using wav2vec\,2.0 or Whisper, we extracted encoder-layer embeddings. Hidden states served as frame-wise features. Temporal resolution was derived from frame count and duration ($\sim$20\,ms step) and used consistently for EF alignment.
+
+% \textbf{Audio Representations} Raw audio signals were processed using either wav2vec2-base or whisper-small models. After resampling to 16 kHz, audio embeddings were extracted from a selected encoder layer using the Hugging Face transformers implementation. The output hidden states were used as frame-wise audio features. The effective temporal resolution of each embedding sequence was computed based on the number of frames and total duration, yielding a frame step size of approximately 20 ms. This resolution was used consistently throughout the alignment process.
+
+\textbf{Text Transcription and Word Alignment.} WhisperX~\cite{bain2022}\footnote{\href{https://github.com/m-bain/whisperX}{GitHub: WhisperX}} transcribed audio and produced word-level timestamps. Timestamps were converted to frame indices using the audio model’s temporal resolution. Minor postprocessing fixed boundary overlaps, ensuring non-overlapping, monotonically increasing frame spans.
+
+% \textbf{Text Transcription and Word Alignment} To align text with the corresponding acoustic features, the WhisperX toolkit was used. It first transcribed the input audio and then produced word-level timestamps by aligning the transcribed segments with the audio signal. These word-level timestamps were subsequently converted into frame indices using the audio model’s temporal resolution from the previous step. Minor postprocessing was applied to correct overlapping word boundaries and ensure that frame spans were non-overlapping and monotonically increasing.
+
+\textbf{Text Representations and Tokenization.} Transcripts were tokenized and encoded with DistilBERT or RoBERTa. Embeddings were taken as last hidden states. Subword tokens received per-token start/end frames, allocated proportionally to character lengths for accurate temporal alignment.
+
+% \textbf{Text Representations and Tokenization} The transcribed text was then tokenized using either distilbert-base or roberta-base tokenizers. For each token, we obtained a corresponding embedding by passing the tokenized input through the respective language model and extracting the last hidden state. Given that a single word can be split into multiple subword tokens, we assigned individual start and end frames to each of them. This allocation was performed proportionally based on character lengths to ensure accurate temporal alignment.
+
+\textbf{Token-Level Frame Mapping.} Frame-wise acoustic features were concatenated with token embeddings repeated over each token's frame span, yielding $[T, D_\text{audio} + D_\text{text}]$, where $T$ is the number of frames. The fused tensor captured both low-level acoustic properties and contextual linguistic information for frame-level learning.
+\vspace{1em}
+
+% \textbf{Token-Level Frame Mapping} The resulting token map was used to integrate language model embeddings with the acoustic signal on a per-frame basis. For each audio file, the aligned frame-wise acoustic features and temporally repeated token embeddings were concatenated along the feature dimension. Each token embedding was copied into its corresponding frame span, thereby producing a fused representation of shape [T, D\_audio + D\_text], where T is the number of frames. The resulting fused tensor captured both low-level acoustic properties and contextual linguistic information, enabling the downstream model to jointly learn from speech and language modalities at the frame level.
+
+This process was applied to each recording in the dataset, yielding a collection of multimodal tensors for downstream classification tasks. All precomputed outputs were cached for each model-layer combination (i.e., the acoustic and linguistic representations themselves before fusion). 
+
+% \textbf{Time-aware modifications of the linguistic encoder.}
+% To examine the role of word-level timing and inter-word pauses in the linguistic encoder, we implemented two alternative variants of the baseline DistilBERT and RoBERTa models.
+
+% First, in the time-aware positional encoding (TA-) condition, the standard monotonic token index used for positional encoding was replaced by a numerical index derived from the start time of each token. These start times, obtained from the alignment output of WhisperX, were converted to 20 ms frame-based indices matching the acoustic time resolution.
+
+% Second, in the combined time-aware and padding variant (TA-PAD-), additional [PAD] tokens were inserted between original words in the transcription. Each [PAD] token was assigned a positional index corresponding to the estimated onset of the inter-word silence, again mapped to the 20 ms frame scale. 
+
+\begin{figure*}[t]
+% \fontsize{9pt}{11pt}\selectfont
+    \centering
+        %\includesvg[width=0.98\linewidth]{images/ICASSP_new3.svg}
+        \includegraphics[width=0.98\linewidth]{images/ICASSP_new3.pdf}
+   \vspace{-0.3em}
+   \vspace{-0.3em}
+\caption{Block diagram of a pipeline for EF and training of classification models. $N$ -- number of tokens, $T$ -- number of frames, $D_\text{text}$ -- size of text vector representation, $D_\text{audio}$ -- size of audio vector representation.}
+  \label{fig:diagram}
+\vspace{-0.4em}
+\end{figure*}
+
+\textbf{Time-Aware Modifications of the Linguistic Encoder.} We evaluated two DistilBERT/RoBERTa variants encoding word timing and pauses. TA-\,variant replaces standard positional indices with WhisperX-derived token start times mapped to 20\,ms frames (i.e., the "Token Alignment: Frames" block in Fig.~\ref{fig:diagram}). TA-PAD-\,variant inserts \textit{[PAD]} tokens between words and assigns each of them a positional index corresponding to the beginning of the inter-word silence on the same scale of 20\,ms frames.
+
+\subsection{Classification}
+\label{sssec:subsubhead}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% body 
+
+% - klasifikační model
+
+% - optimalizace
+
+% - finální klasifikace
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% For each experimental scenario, the classification stage was performed on the extracted representations (audio embeddings, text embeddings, or their EF). The classification task consisted of assigning each speech recording to one of three diagnostic categories: HC, MCI, or ADRD. The pipeline was organized into two consecutive phases: hyperparameter optimization and repeated evaluation with fixed settings.
+
+Across scenarios, we classified extracted representations (audio, text, or EF) by assigning each recording to CN, MCI, or ADRD group. The pipeline had two phases: hyperparameter tuning, then 10 times repeated evaluation.
+
+% \textbf{Model architecture} We employed a Transformer-based classifier. Input sequences consisted of embedding vectors with variable temporal lengths, which were padded to the maximum sequence length in a batch. Corresponding binary attention masks ensured that padding did not contribute to the self-attention computations. 
+
+% The Transformer encoder was constructed from a configurable number of stacked encoder layer modules, each defined by the number of self-attention heads, hidden size, and dropout rate. Both sinusoidal and learned positional encodings were supported, as well as normalization before the encoder. Sequence outputs were aggregated either through mean pooling weighted by the attention mask or via a learnable attention pooling mechanism. The pooled representation was passed through a feed-forward classifier with a single hidden layer and dropout regularization, followed by a softmax output layer. Cross-entropy loss was used as the training objective.
+
+\textbf{Classifier architecture.} The transformer-based classifier consisted of a number of configurable stacked layers (heads, hidden size, dropout) with positional encodings. Sequence outputs were aggregated by mask-weighted mean or learnable attention pooling. The pooled vector fed a feed-forward head with dropout and softmax for 3-class prediction. The training objective followed the multiclass log loss.
+
+% over variable-length embedding sequences, padded per batch; binary masks excluded padding from attention. The encoder
+
+% \textbf{Hyperparameter optimization} Hyperparameter tuning was performed with Optuna using a Tree-structured Parzen Estimator sampler. The search space covered learning rate, model dimension, number of encoder layers, number of attention heads, dropout probabilities, weight decay, learning rate scheduler type, scheduler parameters, use of projection, pooling strategy, batch size, positional encoding type, and normalization strategy. Each trial trained a model with early stopping based on validation log loss. A maximum of 150 trials was conducted per experimental configuration. The trial with the lowest validation log loss defined the set of optimal hyperparameters for subsequent evaluation.
+
+\textbf{Hyperparameter optimization.} Models were tuned in Optuna using a TPE sampler. The search covered learning rate, model width/depth (layers, heads, hidden size), dropout, weight decay, batch size, projection use, pooling, positional encoding, normalization, and LR scheduling. Each trial used early stopping on validation log loss (150 trials). The best analyzed configuration was used for evaluation.
+
+ 
+ \textbf{Evaluation.} After determining the optimal hyperparameters, the entire process (data split, model initialization, and training) was executed independently ten times for evaluation purposes, with each run using a different seed. Seeds were applied consistently across pipeline backend modules to ensure reproducibility of each run. The evaluation metrics were log loss and F1 score, computed separately for training, validation, and test partitions. We report multiclass log loss alongside F1 because it evaluates probability calibration and penalizes overconfident errors, which is crucial for clinically oriented risk estimation and threshold selection under class imbalance. For each experimental condition, the final reported performance corresponds to the mean of the ten runs.
+
+This two-stage approach, first optimizing hyperparameters and then assessing across multiple seeds, ensured reliable estimation of generalization performance.
+
+% \textbf{Late fusion} As a reference point, we computed late fusion by averaging class probabilities from two separately trained models: one using audio features and one using text features. For each recording, we aligned predictions by unique identifiers and averaged corresponding posterior probabilities.
+
+\textbf{Late fusion.} For each recording, we averaged class probabilities from separately trained audio- and text-only models as a LF strategy. 
+
+\section{Results}
+\label{sec:pagestyle}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% body
+% - souhrnné grafy 
+
+% - tabulka s nejlepšími výsledky (ak. model, lin. model, ak. layer, train, test, val) (2x ? - logloss, f1)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Across all tested strategies, the highest F1 score (0.633) was achieved by EF using Whisper and RoBERTa at the 9th encoder layer. Similarly, EF achieved the best log loss (0.687) with the same model combination at the same layer again. However, the absolute best log loss (0.678) was obtained by late fusion (Whisper + DistilBERT) at the 9th layer. The best-performing acoustic-only system also used Whisper at layer 9 for both metrics (F1 = 0.622, log loss = 0.686). In contrast, the best-performing text-only model based on DistilBERT reached an F1 score of 0.492 and a log loss of 0.803. Enriching the text-only model with token-aligned ([TA]) embeddings or padding ([TA-PAD]) did not lead to substantial performance gains in either metric.
+
+% The EF strategy consistently outperformed other approaches in terms of F1 score. In 81.2\% of all evaluated model-layer combinations (n = 48), EF yielded the highest F1. LF dominated log loss performance, achieving the lowest score in 70.8\% of cases. Acoustic-only models outperformed text-only models in both metrics, and their best scores nearly matched the fusion-based strategies, particularly for Whisper. The text-only models, despite using advanced embedding variants, remained clearly behind all multimodal approaches.
+
+% Best-performing layers across strategies were usually found in the mid-to-upper encoder layers, particularly around layer 8 to 10. This trend was consistent for both early and LF. For instance, the best F1 score in EF was observed at layer 9 (Whisper + RoBERTa), and the best log loss in LF at layer 10 (Whisper + DistilBERT).
+
+% In several cases, the strategy that performed best on F1 did not achieve the lowest log loss. For example, LF at layer 9 yielded the best log loss overall, but EF at that layer achieved a better F1 score. This divergence suggests that different strategies may favor different optimization objectives, and that the choice of evaluation metric can influence conclusions about model performance.
+
+% Finally, while EF was the dominant strategy for maximizing classification accuracy (as measured by F1), LF offered competitive and often superior performance in terms of model calibration (log loss).
+
+The best results for EF, LF, and also for acoustic- and text-only models are presented in Table~\ref{tab:f1_results}. Figures \ref{fig:ll} and \ref{fig:f1} show the log loss and F1 score results for all experiments within one selected scenario (Whisper + RoBERTa). EF (Whisper + RoBERTa, layer~9) gave the top F1 score (0.633) overall, while the lowest log loss (0.678) was from LF (Whisper + DistilBERT, layer 10). TA- and TA-PAD- variants achieved similar or worse results than basic linguistic representations.
+
+Across 48 settings, EF yielded the highest F1 in 81.2\,\% of cases, while LF achieved the lowest log loss in 70.8\,\%. Acoustic-only models beat text-only in all cases and nearly matched EF and LF (notably Whisper). Peak performance clustered around layers 8–10. Metrics sometimes diverged (e.g., at layer 9, LF achieved the best log loss, whereas EF had the best F1 score).
+% . In sum, EF maximized accuracy (F1); LF often improved calibration (log loss).
+
+\begin{table}[ht]
+% \fontsize{9pt}{11pt}\selectfont
+\centering
+\caption{Best F1 score and log loss results for each strategy with its scenario and layer noted.}
+\label{tab:f1_results}
+\begin{tabularx}{\linewidth}{>
+{\arraybackslash}X|>
+{\centering\arraybackslash}m{2.5em}>
+{\centering\arraybackslash}m{2.5em}>
+{\centering\arraybackslash}m{2.5em}}
+\toprule
+\textbf{Modeling strategy} & \textbf{Layer} & \textbf{F1 score}  & \textbf{Log loss} \\
+\midrule
+EF (Whisper + RoBERTa) & 9 & \textbf{0.633} & \textbf{0.687} \\
+\midrule
+LF (Whisper + DistilBERT)    & 9 & \textbf{0.596} & 0.679 \\
+LF (Whisper + DistilBERT)     & 10 & 0.585 & \textbf{0.678} \\
+\midrule
+Acoustic-only (Whisper)            & 10 & \textbf{0.622} & \textbf{0.686} \\
+\midrule
+Text-only (TA-DistilBERT)           & — & \textbf{0.492} & 0.814 \\
+Text-only (DistilBERT)         & — & 0.491 & \textbf{0.803} \\
+\bottomrule
+\end{tabularx}
+\vspace{-1.5em}
+\end{table}
+
+% \begin{table}[ht]
+% \centering
+% \begin{tabularx}{\linewidth}{>
+% {\arraybackslash}X|>
+% {\centering\arraybackslash}m{3em}>
+% {\centering\arraybackslash}m{3em}>
+% {\centering\arraybackslash}m{3em}}
+% \toprule
+% \textbf{Modeling strategy} & \textbf{Layer} & \textbf{Log loss} \\
+% \midrule
+% EF (Whisper + RoBERTa) & 9 & 0.687 \\
+% LF (Whisper + DistilBERT)     & 10 & 0.678 \\
+% Acoustic-only (Whisper)             & 10 & 0.686 \\
+% Text-only (DistilBERT)         & — & 0.803 \\
+% \hline
+% \end{tabularx}
+% \caption{Best log loss results for each strategy with its scenario and layer noted.}
+% \label{tab:logloss_results}
+% \end{table}
+
+
+% 2nd table
+
+
+
+\section{Discussion}
+\label{sec:typestyle}
+
+EF yields the largest gains over unimodal baselines when the acoustic encoder operates in a genuinely acoustic regime. At lower to mid layers, acoustic embeddings are less dominated by linguistic content and still carry substantial prosodic and paralinguistic cues; fusing them with linguistic embeddings boosts discrimination without redundancy. \textcolor{black}{This interpretation is consistent with layer-wise analyses of self-supervised speech encoders, which
+report a progression from local acoustic cues to phonetic identity and then increasing word/semantic content as depth grows \cite{pasad2021, pasad2023}.} At higher layers, where the information stream increasingly carries lexical/semantic content, EF no longer surpasses the acoustic-only model and can even degrade performance, corresponding to an increased overlap of content-like information.
+%encoded in both streams.
+
+\begin{figure}[t!]
+% \fontsize{9pt}{11pt}\selectfont
+
+ \begin{center}
+   %\includesvg[width=0.91\linewidth]{images/ll-wp-rb.svg} %0.865
+   \includegraphics[width=0.91\linewidth]{images/ll-wp-rb.pdf} %0.865
+   % \vspace{-0.1em}
+   \vspace{-0.1em}
+   \caption{Log loss results of selected strategies depending on the acoustic model layer for Whisper + RoBERTa scenario.}
+    \label{fig:ll}
+\vspace{-1em}
+\vspace{-1.35em}
+% \vspace{-0.6em}
+ \end{center}
+
+
+\end{figure}
+
+Layer-wise trends were consistent: acoustic-only and thus also LF performance peaked around layers 8–10, whereas EF peaked earlier (layers 7–9). This leftward shift accords with EF’s dependence on heterogeneity. As depth increases, the acoustic representation becomes more linguistic and less complementary to text. \textcolor{black}{Such intermediate-layer optima and the frequent suboptimality of the very last layer have also been observed across different acoustic models and tasks, where single well-chosen layers can match or outperform using all layers in frozen settings \cite{pasad2023, maji2024, cooper2025}.} 
+% Complementary with that, both of our acoustic models didn't achieve their top result in their last layer. Moreover, based on Mann-Whitney U test, the difference was significantly important for both models and both metrics
+
+The same windows held for both F1 and log loss. We attempted to confirm this hypothesis by analyzing cosine similarities within the acoustic embeddings themselves. We did this in two cases — for the first and last layer of the model. Recurring patterns in the last layer confirmed semantic leakage. In contrast, we observed an absence of these lexical patterns in the first, therefore signal-driven, layer. \textcolor{black}{This aligns with reports that word-level (and partially semantic) structure emerges more strongly in higher layers, while lower layers remain predominantly signal-driven \cite{pasad2021, pasad2023}.} Thus, EF is best for fusing truly acoustic embeddings. Under semantic convergence, LF acts as robust probabilistic ensembling. Model-specific patterns align with this view. For Whisper, the final-layer acoustic-only model exceeded EF on F1, implying strong content integration and making other text features redundant. \textcolor{black}{This aligns with evidence that Whisper encoder embeddings increasingly encode linguistic structure with depth, blending acoustic and linguistic cues \cite{anderson2024}.}
+
+%% Internal cosine-similarity visualizations confirm semantic leakage in late acoustic layers, showing lexical-pattern motifs absent in early, signal-driven layers. Thus, EF is best for fusing truly acoustic embeddings; under semantic convergence, LF acts as robust probabilistic ensembling. Model-specific patterns align with this view. For Whisper, the final-layer acoustic-only model exceeded EF on F1, implying strong content integration, making other text features redundant.
+
+Comparing EF to LF reveals complementary strengths. EF typically improves F1, reflecting superior class separation in a single joint space that captures cross-modal interactions. LF, by averaging calibrated posteriors from independent models, more often achieves lower log loss, indicating better probability calibration. Clinically, maximizing F1 suits screening, whereas minimizing log loss better serves risk estimation and threshold setting, because it requires reliable probabilities.
+
+Related work converges with our observations: Krstev et al. (2022) report EF outperforming LF on dementia-speech classification task \cite{krstev2022}; both Javanmardi et al. (2024) and Pan et al. (2025) find that relying on the last layer underperforms and previous layers may be more informative \cite{javanmardi2024, pan2025}; similarly, Li et al. (2024) present learned layer weighting for Whisper showing results of comparable importance of selected layers to our study \cite{li2024}. \textcolor{black}{Additional layer-wise studies further support the general claim that representation depth controls which factors dominate (signal vs. content) and that the optimal layer is task-dependent \cite{pasad2021, pasad2023, maji2024, cooper2025}, including in other speech and neural modeling settings that explicitly evaluate layer variation effects \cite{anderson2024}.}
+
+% krstev: EF beating LF in accuracy
+% javanmardi, pan2025: last layer not providing the best result (proven by each of them in their own field)
+% li: reaching the similar layer-importance results for Whisper
+
+% EF yields the largest gains over unimodal baselines when the acoustic
+% encoder operates in a genuinely acoustic regime. At lower to mid layers,
+% acoustic embeddings are less dominated by linguistic content and still carry
+% substantial prosodic and paralinguistic cues; fusing them with linguistic
+% embeddings boosts discrimination without redundancy. This interpretation is
+% consistent with layer-wise analyses of self-supervised speech encoders, which
+% report a progression from local acoustic cues to phonetic identity and then
+% increasing word/semantic content as depth grows [17, 18]. At higher layers,
+% where the information stream increasingly carries lexical/semantic content,
+% EF no longer surpasses the acoustic-only model and can even degrade
+% performance, corresponding to an increased overlap of content-like information.
+
+% Layer-wise trends were consistent: acoustic-only and thus also LF performance
+% peaked around layers 8–10, whereas EF peaked earlier (layers 7–9). This
+% leftward shift accords with EF’s dependence on heterogeneity. As depth
+% increases, the acoustic representation becomes more linguistic and less
+% complementary to text. Such intermediate-layer optima and the frequent
+% suboptimality of the very last layer have also been observed across SSL speech
+% models and tasks, where single well-chosen layers can match or outperform
+% using all layers in frozen settings [18, 19, 21].
+
+% The same windows held for both F1 and log loss. We attempted to confirm this
+% hypothesis by analyzing cosine similarities within the acoustic embeddings
+% themselves. We did this in two cases — for the first and last layer of the model.
+% Recurring patterns in the last layer confirmed semantic leakage. In contrast,
+% we observed an absence of these lexical patterns in the first, therefore
+% signal-driven, layer. This aligns with reports that word-level (and partially
+% semantic) structure emerges more strongly in higher layers, while lower layers
+% remain predominantly signal-driven [17, 18]. Thus, EF is best for fusing truly
+% acoustic embeddings. Under semantic convergence, LF acts as robust
+% probabilistic ensembling. Model-specific patterns align with this view. For
+% Whisper, the final-layer acoustic-only model exceeded EF on F1, implying strong
+% content integration, making other text features redundant. Related evidence
+% also suggests that ASR outputs can carry diagnostically relevant cues beyond
+% manual transcripts in AD detection, including cues reflected in systematic ASR
+% error patterns [20].
+
+% Comparing EF to LF reveals complementary strengths. EF typically improves F1,
+% reflecting superior class separation in a single joint space that captures
+% cross-modal interactions. LF, by averaging calibrated posteriors from independent
+% models, more often achieves lower log loss, indicating better probability
+% calibration. Clinically, maximizing F1 suits screening, whereas minimizing log
+% loss better serves risk estimation and threshold setting, because it requires
+% reliable probabilities.
+
+% Related work converges with our observations: Krstev et al. (2022) report EF
+% outperforming LF on a dementia-speech classification task [4]; both Javanmardi
+% et al. (2024) and Pan et al. (2025) find that relying on the last layer
+% underperforms and previous layers may be more informative [9, 8]; similarly,
+% Li et al. (2024) present learned layer weighting for Whisper showing results of
+% comparable importance of selected layers to our study [10]. Beyond dementia,
+% layer-wise studies further support the general claim that representation depth
+% controls which factors dominate (signal vs. content) and that the optimal layer is
+% task-dependent [17, 18, 21], including in other clinical speech classification
+% settings that explicitly evaluate layer-wise variation and pooling effects [19].
+
+\begin{figure}[t!]
+% \fontsize{9pt}{11pt}\selectfont
+   % \vspace{-0.4em}
+    % \vspace{-0.05em}
+ \begin{center}
+   % \includesvg[width=0.9\linewidth]{images/f1-wp-rb.svg} %0.85
+      \includegraphics[width=0.9\linewidth]{images/f1-wp-rb.pdf} %0.85
+    \vspace{-0.1em}
+   \vspace{-0.1em}
+   \caption{F1 score results of selected strategies depending on the acoustic model layer for Whisper + RoBERTa scenario.}
+    \label{fig:f1}
+ \end{center}
+\vspace{-1em}
+\vspace{-1em}
+\end{figure}
+
+\section{Conclusion}
+\label{sec:conc}
+We compared acoustic and linguistic representations together with EF and LF for speech-based cognitive status classification. Mid to late acoustic layers (typically 8–10) consistently performed best across fusion types and in acoustic-only models, supporting their capture of cognitively relevant paralinguistic cues. EF improved discrimination (F1) by modeling joint representations prior to the last acoustic layers, thanks to the complementary coupling of heterogeneous information.
+
+EF maximized accuracy, whereas LF yielded better calibration (lower log loss), implying different clinical roles (classification vs. uncertainty estimation). Text-only variants (TA-, TA-PAD-) underperformed, indicating acoustic signals dominate and simple temporal alignment is insufficient. These findings underscore the importance of fusion design and layer choice; future work should pursue adaptive fusion and richer linguistic grounding to enhance interpretability and clinical utility.
+
+
+\textcolor{black}{Our aim was not to introduce a new architecture, but to provide a unified, reproducible comparison of acoustic-only, text-only, early/late fusion settings across encoder depth under consistent splits, tuning, and evaluation. The resulting guidance (what modality and what layer to use) targets practical model selection for cognitive screening pipelines.}
+
+% This study examined EF and LF strategies for classifying cognitive status based on speech, combining acoustic and linguistic representations. We observed that intermediate acoustic layers (typically 8–10) consistently yielded the best performance across fusion types (as well as the acoustic-only model), supporting the hypothesis that these layers capture cognitively relevant paralinguistic features. Put together with our another findings, this study suggests that EF  may improve classification accuracy (F1 score) when modelling joint representations of heterogeneous modalities (ie. before late layers in acoustic model). This provides complementary information beyond unimodal ensembling. 
+
+% While EF excelled in raw accuracy, LF achieved better calibration (lower log loss), suggesting that different strategies may serve distinct clinical goals—classification versus uncertainty estimation. The limited performance of enriched text-only models (using TA and TA-PAD embeddings) further indicates that acoustic signals remain the dominant source of discriminative information, and simple temporal alignment is insufficient to compensate for linguistic abstraction.
+
+% Together, these results highlight the importance of fusion architecture, layer selection, and modality interaction in speech-based cognitive modeling. Future work should explore adaptive fusion mechanisms and richer linguistic grounding to enhance both interpretability and clinical applicability.
+
+\newpage
+\section{Acknowledgements}
+\label{sec:ackn}
+
+This work was supported by project LangInLife (A Lifetime with Language: The Nature and Ontogeny of Linguistic Communication) no. CZ.02.01.01/00/23\_025/0008726, co-funded by the European Union, and COST Action CA24128 ``European Network to Advance the Development and Implementation of Vocal Biomarkers (eVoiceNet)''.
+
+This study was made possible by a grant from the Fulbright Visiting Student Researcher Program.
+
+% References should be produced using the bibtex program from suitable
+% BiBTeX files (here: strings, refs, manuals). The IEEEbib.bst bibliography
+% style file from IEEE produces unsorted bibliography list.
+% -------------------------------------------------------------------------
+}
+{
+% \fontsize{9pt}{10pt}\selectfont
+\ninept
+\fontsize{9pt}{11pt}\selectfont
+\setlength{\bibitemsep}{0.65\baselineskip}
+
+
+\bibliographystyle{IEEEbib}
+\bibliography{strings,refs}
+}
+
+\end{document}

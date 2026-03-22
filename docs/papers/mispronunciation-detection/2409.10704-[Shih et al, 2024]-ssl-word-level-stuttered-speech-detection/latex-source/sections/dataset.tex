@@ -1,0 +1,31 @@
+To make our system clinically applicable, students in speech-language pathology, trained in fluency disorders and stuttering, transcribed and annotated all the speech samples using CHAT, a transcription program that is
+part of CLAN and the Talk-Bank initiative~\cite{Macwhinney_2000}.
+% (MacWhinney, 2000). 
+We used a set of codes developed to be used with
+CHAT~\cite{Ratner_Brundage_2020}
+% CHAT (Bernstein Ratner and Brundage, 2020) 
+to annotate stuttering disfluencies and typical disfluencies.
+Our dataset comes from two sources:
+
+\noindent\textbf{FluencyBank:} This dataset included interview data from 36 adult individuals who stutter from the 
+FluencyBank~\cite{Ratner_2018}
+% FluencyBank (Bernstein Ratner and MacWinney, 2018) 
+English Voices-AWS Corpus. 
+% The total duration of the audio samples was 15 hours. 
+
+% \noindent\textbf{Bilingual Dataset- English Corpus from second author's lab:} 
+\noindent\textbf{Bilinguals Speech:} 
+This dataset included narrative samples produced in English by 62 bilingual adults, 6 of whom stuttered. 
+Participants were asked to generate a story based on a wordless picture book. 
+% The total duration of the audio samples was 2.5 hours.  
+In our evaluation, we have two partitions for this dataset: \textit{Stuttering Bilinguals Speech}, \textit{Non-stuttering Bilinguals Speech}.
+
+% The raw dataset comes with a CHAT file and an audio file.
+% CHAT is a conventional format for speech pathologists to annotate and transcribe the patient's speech.
+To conduct a word-level stuttering evaluation on the CHAT annotations, we need timestamp information.
+To this end, we first leverage Whisper Large~\cite{pmlr-v202-radford23a_whisper} to transcribe the corresponding audio file and get the transcripts as well as the timestamps for each word.
+Then, we employ Dynamic Time Warping(DTW) to align the Whisper ASR transcripts with the human transcriptions in CHAT files and slice the audio into multiple utterances according to the lines in CHAT files.
+For each aligned word between the Whisper ASR transcript and CHAT file transcript, we label the word as stutter if there is any stuttering annotation in its CHAT annotation, which includes: Prolongation, Epenthesis, Broken Word, Block, Sound/Syllable Repetition.
+We add a little margin~(less than 0.2 sec) on the Whisper timestamps of each word due to the fact that Whisper truncates the audio segment where Block manifests. 
+Notice that we only evaluate those words with exact alignment in DTW since we do not have word-level timestamps for unaligned words.
+We end up obtaining about 14.43 min of \textit{Non-stuttering Bilinguals Speech}, 8.28 min of \textit{Stuttering Bilinguals Speech}, 45.69  min of \textit{FluencyBank} and a total of 1.14 hr recordings.

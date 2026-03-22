@@ -1,0 +1,61 @@
+% \input{tables/main_results_singleCol}
+% \input{tables/largeModel_results}
+%\subsection{Setup}
+% \input{tables/main_results}
+\subsection{Tasks}
+As stated in our motivation, we aim to comprehensively evaluate fusion by covering both ASR and non-ASR tasks.
+For ASR, we use both the SUPERB~\cite{yang21c_superb} LibriSpeech ASR task as well as
+the Monolingual and Multilingual ASR tasks from ML-SUPERB~\cite{shi23g_mlsuperb}.
+In ML-SUPERB, ``Mono-1h'' is evaluated by training a model to conduct ASR on 13 languages respectively (each language 1h).
+The CER for each of the 13 languages is averaged to produce an overall evaluation metric.
+``Multi-1h'' on the other hand is the CER of doing Multilingual ASR simultaneously on 143 languages (each language 1h).
+For non-ASR tasks, we select Speaker Verification~(SV) and Emotion Recognition~(ER) from SUPERB.
+For SV, following~\cite{aldeneh24_SVDS}
+, we simplify the default downstream module in SUPERB.
+Although we were unable to reproduce the exact results from their paper, likely due to hardware differences, we observed improvements from simplifying the downstream model and adopted this architecture for all of our experiments.
+For ER, we follow the default SUPERB setting.
+
+\noindent
+\subsection{Upstream Models}
+To include both Self-supervised and Supervised Speech Models, we select 4 models: HuBERT Base, WavLM Base+, Data2Vec Base, and Whisper Small.
+All of them have hidden states with 13 layers and hidden dimensions of 768.
+%We choose the base models to save computation resources.
+Furthermore, to reduce the computation needed for fusion experiments, we constrain the combinations of these models.
+For the SSL models, we investigate all possible combinations in 2 and 3 model fusion scenarios.
+For SL + SSL fusion, we only select the best SSL model(s) to fuse with Whisper.
+Notice that there are two options for Whisper Small, we could either use the multilingual version or the English-only version.
+Through our preliminary experiments, we found out that the English version of Whisper does better than the multilingual version on LibriSpeech ASR.
+Hence, we use the English version of Whisper for all tasks on LibriSpeech ASR and use the multilingual version for the rest of the tasks.
+
+\subsection{Baselines and Proposed Interfaces}
+According to~\cite{chiu24_sinica}, their best layer fusion + model fusion methods are either weighted sum~\cite{yang21c_superb} or dimension-wise Gumbel selection combined with temporal interleaving fusion.
+For dimension-wise Gumbel selection, the authors used a Gumbel-softmax over a set of learned weights to determine which layer's dimension to select for the output.
+Notice that the temporal interleaving fusion causes the input of the downstream model's time dimension to double, making it hard to compare them fairly under our framework.
+Hence, we substitute temporal interleaving fusion as concatenation with projection (project back to the same dimension as the upstream models).
+In our preliminary experiments on LibriSpeech ASR, we do not observe any difference after this revision.
+In conclusion, we have two baselines in our experiments: either using weighted sum or dimension-wise Gumbel selection for layer fusion followed by concatenation and projection~\cite{chiu24_sinica}.
+We denote them as ``WS.'' and ``GumD.'' respectively in our results.
+
+For our proposed interfaces, we abbreviate the addition version as ``HConv.'' and the concatenation version as ``CHConv.''
+Notice that CHConv.'s parameter count is much larger than HConv's due to the dense projection matrix after concatenation.
+On the other hand, HConv. has roughly the same amount of trainable parameters as the baselines.
+To make a fair comparison in terms of trainable parameters in our experiments, we regard HConv. as our main proposed interface and include it in all experiments.
+For 2 model fusion experiments, we include CHConv. to demonstrate the potential improvement for HConv. if additional parameters are introduced.
+
+
+% \subsection{}
+
+% \subsection{ASR Result}
+% As shown in Table~\ref{tab:main_result_single_col}
+% % \input{tables/main_results_ASR}
+% % 1. fusion performance vs single model
+% % 2. FuseHConv vs baselines
+% % 3. 3 model
+
+% \subsection{Non-ASR Result}
+% % \input{tables/main_results_nonASR}
+
+% \subsection{Fusion between Self-supervised and Supervised  Speech Model Result}
+
+% \subsection{Large Model Results}
+% \input{tables/largeModel_results}

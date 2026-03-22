@@ -1,0 +1,111 @@
+\begin{table*}
+\centering
+\begin{tabular}{lccccccccccc}
+\toprule
+\multirow{2}{*}{Model} & \multicolumn{2}{c}{All} &  \multicolumn{3}{c}{Stut. Blngl. Speech} & \multicolumn{3}{c}{Non-stut. Blngl. Speech} &  \multicolumn{3}{c}{Stut. Fluency Bank} \\
+\cmidrule(lr){2-3}
+\cmidrule(lr){4-6}
+\cmidrule(lr){7-9}
+\cmidrule(lr){10-12}
+   & F1 & Avg.~P & 
+ F1	& P & R & 
+ F1	& P & R & 
+ F1	& P & R \\
+\midrule
+Baseline~\cite{harvill22_interspeech}& 0.411 & 0.864 &
+0.389 &	0.360 &	0.423 &	
+0.342 &	0.245 &	0.565 &	
+0.440 &	0.315 &	0.728 \\
+
+WavLMLg + HConv. & 
+	0.536 & 0.899  &	0.484 &	0.364 &	0.723 &	0.496 &	0.391 &	0.680 &	0.585 &	0.496 &	0.715 \\
+
+WavLMLg + HConv.+ CTC &
+	\textbf{0.554} & \textbf{0.927}  &	\textbf{0.490} &	0.375 &	0.708 &	\textbf{0.518} &	0.439 &	0.633 &	0.591 &	0.508 &	0.708 \\
+
+\midrule
+ & \multicolumn{10}{c}{\textit{Using Weighted Sum~(WS)}} \\
+\cmidrule(lr){2-12}
+WavLMLg + WS. &
+	0.536 & 0.898 &	0.425 &	0.356 &	0.529 &	0.425 &	0.356 &	0.529 &	0.594 &	0.507 &	0.718 \\
+
+
+WavLMLg + WS. + CTC &
+	0.540 & 0.888 &	0.460 &	0.336 &	0.730 &	0.403 &	0.344 &	0.486 &	\textbf{0.603} &	0.514 &	0.729 \\
+% \midrule
+%  & \multicolumn{10}{c}{\textit{Using WavLM Base}} \\
+% \cmidrule(lr){2-11}
+
+% WavLMBs + HConv. & 0.361 & 0.334 &	0.200 &	1.000 &			0.273 &	0.158 &	1.000 &	0.406 &	0.304 &	0.610 \\
+% WavLMBs + HConv. + CTC & 0.354  & 0.349 &	0.243 &	0.620 &			0.273 &	0.158 &	1.000 &	0.395 &	0.246 &	1.000 \\
+
+\midrule
+ & \multicolumn{10}{c}{\textit{Select Single WavLM Large Layer}} \\
+\cmidrule(lr){2-12}
+
+
+
+
+
+
+
+
+
+WavLMLg Layer~0 & 0.439 & 0.864 &	0.340 &	0.214 &	0.825 &	0.279 &	0.192 &	0.507 & 0.519 & 0.415 & 0.694 \\
+WavLMLg Layer~4 & 0.479 & 0.876 &	0.403 &	0.292 &	0.650 &	0.332 &	0.256 &	0.471 & 0.539 & 0.434 & 0.709 \\
+WavLMLg Layer~8 & 0.499 & 0.875 &	0.442 &	0.389 &	0.511 &	0.424 &	0.341 &	0.561 & 0.541 & 0.476 & 0.628 \\
+WavLMLg Layer~12 & 0.522 & 0.891 &	0.458 &	0.331 &	0.745 &	0.417 &	0.334 &	0.554 & 0.581 & 0.493 & 0.707 \\
+WavLMLg Layer~16 & 0.548 & 0.910 &	0.480 &	0.418 &	0.562 &	0.513 &	0.462 &	0.576 & 0.589 & 0.513 & 0.692 \\
+WavLMLg Layer~20 & 0.552 & 0.903 &	0.486 &	0.378 &	0.679 &	0.488 &	0.415 &	0.594 & 0.592 & 0.521 & 0.684 \\
+% WavLMLg Layer~22 &0.561 & 0.907 &	0.500 &	0.384 &	0.715 &	0.470 &	0.406 &	0.558 &	0.610 &	0.533 &	0.712 \\
+WavLMLg Layer~22 &	0.550 &  0.912 &	0.488 &	0.361 &	0.752 &	0.484 &	0.391 &	0.633 &	0.590 &	0.522 &	0.679 \\
+
+WavLMLg Layer~24 & 0.504 & 0.901 &	0.464 &	0.366 &	0.635 &	0.429 &	0.345 &	0.568 & 0.546 & 0.470 & 0.651 \\
+
+% Baseline~\cite{harvill22_interspeech} & 0.700 &
+% 0.68 &	0.34 &	0.62 &	0.28 &	0.39 &	0.39 \\
+% \midrule
+% WavLM + HierConv. & 0.785 &
+% 0.82 &	0.61 &	0.61 &	0.60 &	0.72 &	0.65 \\
+% WavLM + HierConv. + VC & 0.783 &
+% 0.80 &	0.54 &	0.60 &	0.50 &	0.66 &	0.59 \\
+
+
+
+\midrule
+ & \multicolumn{10}{c}{\textit{Different Finetune Dataset Size using ``WavLMLg + HConv. + CTC''}} \\
+\cmidrule(lr){2-12}
+Data Ratio: $0\%$  &
+ 0.469 & 0.872 & 0.377 & 0.299 & 0.511 & 0.305 & 0.259 & 0.371 & 0.545 & 0.457 & 0.674 \\
+Data Ratio: $25\%$ &
+  0.530 & 0.892 & 0.471 &  0.405 & 0.562 & 0.362 & 0.452 & 0.302 &	0.579 &	0.487 &	0.713 \\
+Data Ratio: $50\%$ &
+0.533 & 0.904 &	0.470 &	0.338 &	0.774 &	0.493 &	0.413 &	0.612 &	0.579 &	0.487 &	0.713 \\
+Data Ratio: $75\%$ &
+0.516 & 0.888 &	0.460 &	0.368 &	0.613 &	0.386 &	0.417 &	0.360 &	0.557 &	0.472 &	0.678 \\
+Data Ratio: $100\%$ &
+0.554 & 0.927  &	0.490 &	0.375 &	0.708 &	0.518 &	0.439 &	0.633 &	0.591 &	0.508 &	0.708 \\
+%     WavLMLg + HConv. Ft$_{1}$ &
+% f1 &
+%  & & &
+%  & & &
+%  & & \\
+
+
+
+
+
+
+
+
+% 0.516	0.460	0.368	0.613	0.386	0.417	0.360	0.557	0.472	0.678
+
+\bottomrule
+\end{tabular}
+\caption{Word Level Stuttered Speech Detection Evaluation. ``WavLMLg'' stands for WavLM Large.
+HConv. indicates Hierarchical Convolution Interface and WS means weighted sum interface. For the metrics, ``Avg.~P'' stands for Average Precision while ``P'' and ``R'' indicate precision and recall respectively.
+``Stut. Blngl. Speech'' and ``Non-stut. Blngl. Speech'' stands for Stuttering Bilinguals Speech and Non-stuttering Bilinguals Speech.
+}
+\label{tab:Word_level}
+\vspace{-10pt}
+\end{table*}

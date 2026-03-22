@@ -1,0 +1,168 @@
+\begin{thebibliography}{10}
+
+\bibitem{Smith_and_Weber}
+Anne Smith and Christine Weber,
+\newblock ``How stuttering develops: The multifactorial dynamic pathways theory,''
+\newblock {\em Journal of speech, language, and hearing research : JSLHR}, vol. 60, pp. 1--23, 08 2017.
+
+\bibitem{craig_and_Tran}
+Ashley Craig, Elaine Blumgart, and Yvonne Tran,
+\newblock ``The impact of stuttering on the quality of life in adults who stutter,''
+\newblock {\em Journal of Fluency Disorders}, vol. 34, no. 2, pp. 61--71, 2009.
+
+\bibitem{Koedoot_2011}
+Caroline Koedoot, Clazien Bouwmans, Marie-Christine Franken, and Elly Stolk,
+\newblock ``Quality of life in adults who stutter,''
+\newblock {\em Journal of Communication Disorders}, vol. 44, no. 4, pp. 429--443, 2011.
+
+\bibitem{Brisk_1997}
+Deborah~J. Brisk, E.~Charles Healey, and Karen~A. Hux,
+\newblock ``Clinicians’ training and confidence associated with treating school-age children who stutter,''
+\newblock {\em Language, Speech, and Hearing Services in Schools}, vol. 28, no. 2, pp. 164--176, 1997.
+
+\bibitem{Gabel_2013}
+Rodney~M. Gabel,
+\newblock ``School speech-language pathologists’ experiences with stuttering: an ohio survey,''
+\newblock {\em eHearsay}, vol. 3, no. 1, pp. 5--23, 2013.
+
+\bibitem{kelly_1997}
+Ellen~M. Kelly, Jane~S. Martin, Kendra~E. Baker, Norma~I. Rivera, Jane~E. Bishop, Cindy~B. Krizizke, Deborah~S. Stettler, and June~M. Stealy,
+\newblock ``Academic and clinical preparation and practices of school speech-language pathologists with people who stutter,''
+\newblock {\em Language, Speech, and Hearing Services in Schools}, vol. 28, no. 3, pp. 195--212, 1997.
+
+\bibitem{stLouis_1994}
+Kenneth St.~Louis and C~Durrenberger,
+\newblock ``What communication disorders do experienced clinicians prefer to manage?,''
+\newblock {\em ASHA}, vol. 35, pp. 23--31, 35, 01 1994.
+
+\bibitem{Coalson_2016}
+Geoffrey~A. Coalson, Courtney~T. Byrd, and Elizabeth Rives,
+\newblock ``Academic, clinical, and educational experiences of self-identified fluency specialists,''
+\newblock {\em Perspectives of the ASHA Special Interest Groups}, vol. 1, no. 4, pp. 16--43, 2016.
+
+\bibitem{sheikhStutterNet}
+Shakeel~Ahmad Sheikh, Md~Sahidullah, Fabrice Hirsch, and Slim Ouni,
+\newblock ``{StutterNet: Stuttering Detection Using Time Delay Neural Network},''
+\newblock in {\em {EUSIPCO 2021 - 29th European Signal Processing Conference}}, Dublin / Virtual, Ireland, 2021.
+
+\bibitem{Kourkounakis2021FluentNetED}
+Tedd Kourkounakis, Amirhossein Hajavi, and Ali Etemad,
+\newblock ``Fluentnet: End-to-end detection of stuttered speech disfluencies with deep learning,''
+\newblock {\em IEEE/ACM Transactions on Audio, Speech, and Language Processing}, vol. 29, pp. 2986--2999, 2021.
+
+\bibitem{lea_Sep28k}
+Colin Lea, Vikramjit Mitra, Aparna Joshi, Sachin Kajarekar, and Jeffrey Bigham,
+\newblock ``Sep-28k: A dataset for stuttering event detection from podcasts with people who stutter,''
+\newblock in {\em ICASSP}, 2021.
+
+\bibitem{librispeech}
+Vassil Panayotov, Guoguo Chen, Daniel Povey, and Sanjeev Khudanpur,
+\newblock ``Librispeech: An asr corpus based on public domain audio books,''
+\newblock in {\em 2015 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 2015, pp. 5206--5210.
+
+\bibitem{yang21c_superb}
+Shuwen Yang, Po-Han Chi, Yung-Sung Chuang, Cheng-I~Jeff Lai, Kushal Lakhotia, Yist~Y. Lin, Andy~T. Liu, Jiatong Shi, Xuankai Chang, Guan-Ting Lin, Tzu-Hsien Huang, Wei-Cheng Tseng, Ko~tik Lee, Da-Rong Liu, Zili Huang, Shuyan Dong, Shang-Wen Li, Shinji Watanabe, Abdelrahman Mohamed, and Hung yi~Lee,
+\newblock ``{SUPERB: Speech Processing Universal PERformance Benchmark},''
+\newblock in {\em Proc. Interspeech 2021}, 2021, pp. 1194--1198.
+
+\bibitem{baevski2021wav2vec-u}
+Alexei Baevski, Wei-Ning Hsu, Alexis Conneau, and Michael Auli,
+\newblock ``Unsupervised speech recognition,''
+\newblock {\em NeurIPS}, 2021.
+
+\bibitem{liu2022wav2vec-u2}
+Alexander~H. Liu, Wei-Ning Hsu, Michael Auli, and Alexei Baevski,
+\newblock ``Towards end-to-end unsupervised speech recognition,''
+\newblock in {\em 2022 IEEE Spoken Language Technology Workshop (SLT)}, 2023, pp. 221--228.
+
+\bibitem{Peng_SSL_sv_2023}
+Junyi Peng, Themos Stafylakis, Rongzhi Gu, Oldřich Plchot, Ladislav Mošner, Lukáš Burget, and Jan Černocký,
+\newblock ``Parameter-efficient transfer learning of pre-trained transformer models for speaker verification using adapters,''
+\newblock in {\em ICASSP 2023 - 2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 2023, pp. 1--5.
+
+\bibitem{Payal_iccasp_Siamese}
+Payal Mohapatra, Bashima Islam, Md~Tamzeed Islam, Ruochen Jiao, and Qi~Zhu,
+\newblock ``Efficient stuttering event detection using siamese networks,''
+\newblock in {\em ICASSP 2023 - 2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 2023, pp. 1--5.
+
+\bibitem{bayerl22b_interspeech}
+Sebastian~Peter Bayerl, Dominik Wagner, Elmar Noeth, and Korbinian Riedhammer,
+\newblock ``{Detecting Dysfluencies in Stuttering Therapy Using wav2vec 2.0},''
+\newblock in {\em Proc. Interspeech 2022}, 2022, pp. 2868--2872.
+
+\bibitem{bayerl23_interspeech}
+Sebastian~P. Bayerl, Dominik Wagner, Ilja Baumann, Florian Hönig, Tobias Bocklet, Elmar Nöth, and Korbinian Riedhammer,
+\newblock ``{A Stutter Seldom Comes Alone – Cross-Corpus Stuttering Detection as a Multi-label Problem},''
+\newblock in {\em Proc. INTERSPEECH 2023}, 2023, pp. 1538--1542.
+
+\bibitem{wav2vec2}
+Alexei Baevski, Henry Zhou, Abdelrahman Mohamed, and Michael Auli,
+\newblock ``wav2vec 2.0: a framework for self-supervised learning of speech representations,''
+\newblock in {\em Proceedings of the 34th International Conference on Neural Information Processing Systems}, Red Hook, NY, USA, 2020, NIPS '20, Curran Associates Inc.
+
+\bibitem{harvill22_interspeech}
+John Harvill, Mark Hasegawa-Johnson, and Chang~D. Yoo,
+\newblock ``{Frame-Level Stutter Detection},''
+\newblock in {\em Proc. Interspeech 2022}, 2022, pp. 2843--2847.
+
+\bibitem{Chen2021WavLMLS}
+Sanyuan Chen, Chengyi Wang, Zhengyang Chen, Yu~Wu, Shujie Liu, Zhuo Chen, Jinyu Li, Naoyuki Kanda, Takuya Yoshioka, Xiong Xiao, Jian Wu, Long Zhou, Shuo Ren, Yanmin Qian, Yao Qian, Micheal Zeng, and Furu Wei,
+\newblock ``Wavlm: Large-scale self-supervised pre-training for full stack speech processing,''
+\newblock {\em IEEE Journal of Selected Topics in Signal Processing}, vol. 16, pp. 1505--1518, 2021.
+
+\bibitem{Howell_uclass}
+Peter Howell, Stephen Davis, and Jon Bartrip,
+\newblock ``The university college london archive of stuttered speech (uclass),''
+\newblock {\em Journal of speech, language, and hearing research : JSLHR}, vol. 52, pp. 556--69, 05 2009.
+
+\bibitem{bayerl_KSoFKasselState_2022}
+Sebastian Bayerl, Alexander Wolff~von Gudenberg, Florian H{\"o}nig, Elmar Noeth, and Korbinian Riedhammer,
+\newblock ``Ksof: The kassel state of fluency dataset -- a therapy centered dataset of stuttering,''
+\newblock in {\em Proceedings of the Language Resources and Evaluation Conference}, Marseille, France, June 2022, pp. 1780--1787, European Language Resources Association.
+
+\bibitem{Farhad_Dysarthria}
+Farhad Javanmardi, Saska Tirronen, Manila Kodali, Sudarsana~Reddy Kadiri, and Paavo Alku,
+\newblock ``Wav2vec-based detection and severity level classification of dysarthria from speech,''
+\newblock in {\em ICASSP 2023 - 2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 2023, pp. 1--5.
+
+\bibitem{Lian2023UnconstrainedDM}
+Jiachen Lian, Carly Feng, Naasir Farooqi, Steve Li, Anshul Kashyap, Cheol~Jun Cho, Peter Wu, Robin Netzorg, Tingle Li, and Gopala~Krishna Anumanchipalli,
+\newblock ``Unconstrained dysfluency modeling for dysfluent speech transcription and detection,''
+\newblock {\em 2023 IEEE Automatic Speech Recognition and Understanding Workshop (ASRU)}, pp. 1--8, 2023.
+
+\bibitem{Lian2024TowardsHS}
+Jiachen Lian and Gopala Anumanchipalli,
+\newblock ``Towards hierarchical spoken language disfluency modeling,''
+\newblock in {\em Proceedings of the 18th Conference of the European Chapter of the Association for Computational Linguistics (Volume 1: Long Papers)}, St. Julian{'}s, Malta, Mar. 2024, pp. 539--551, Association for Computational Linguistics.
+
+\bibitem{shih_interface}
+Yi-Jen Shih and David Harwath,
+\newblock ``{Interface Design for Self-Supervised Speech Models},''
+\newblock in {\em Proc. INTERSPEECH 2024}, 2024.
+
+\bibitem{Macwhinney_2000}
+Brian Macwhinney,
+\newblock ``The childes project: Tools for analyzing talk: Transcription format and programs (3rd ed.).,''
+\newblock {\em Lawrence Erlbaum Associates Publishers}, vol. 1, 2000.
+
+\bibitem{Ratner_Brundage_2020}
+Nan~Bernstein Ratner and Shelley~B. Brundage,
+\newblock ``A clinician’s complete guide to clan and praat,''
+\newblock 2020.
+
+\bibitem{Ratner_2018}
+Nan {Bernstein Ratner} and Brian MacWhinney,
+\newblock ``Fluency bank: A new resource for fluency research and practice,''
+\newblock {\em Journal of Fluency Disorders}, vol. 56, pp. 69--80, 2018.
+
+\bibitem{pmlr-v202-radford23a_whisper}
+Alec Radford, Jong~Wook Kim, Tao Xu, Greg Brockman, Christine Mcleavey, and Ilya Sutskever,
+\newblock ``Robust speech recognition via large-scale weak supervision,''
+\newblock in {\em Proceedings of the 40th International Conference on Machine Learning}. 23--29 Jul 2023, vol. 202 of {\em Proceedings of Machine Learning Research}, pp. 28492--28518, PMLR.
+
+\bibitem{baevski22a_data2vec}
+Alexei Baevski, Wei-Ning Hsu, Qiantong Xu, Arun Babu, Jiatao Gu, and Michael Auli,
+\newblock ``data2vec: A general framework for self-supervised learning in speech, vision and language,''
+\newblock in {\em Proceedings of the 39th International Conference on Machine Learning}, Kamalika Chaudhuri, Stefanie Jegelka, Le~Song, Csaba Szepesvari, Gang Niu, and Sivan Sabato, Eds. 17--23 Jul 2022, vol. 162 of {\em Proceedings of Machine Learning Research}, pp. 1298--1312, PMLR.
+
+\end{thebibliography}
