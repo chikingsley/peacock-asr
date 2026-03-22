@@ -1,0 +1,12 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+dist/
+*.egg-info/
+.cache/
+checkpoints/
+experiments/*/
+!experiments/.gitkeep
+data/
