@@ -1,0 +1,48 @@
+\begin{table}[th]
+\scriptsize
+\vspace{-5pt}
+  \caption{Ablation experiments on trainable parameters. ``WS w/ Large DS'' indicates Weighted Sum with Large Downstream model.}
+  \label{tab:ablation}
+  \centering
+  \begin{tabular}{ l l c c }
+    \toprule
+    \multirow{ 2}{*}{Upstream}  & \multirow{ 2}{*}{Interface} & \multicolumn{2}{c}{ML-SUPERB~(WER/CER)}    \\
+    % \cmidrule{4-6} 
+    &  & Mono-1hr~($\downarrow$) & Multi-1hr~($\downarrow$) \\
+    \midrule
+    \multirowcell{ 2}{HuBERT\\Base} 
+    % \multirow{ 2}{*}{Upstream}
+    % &  Weighted Sum &           35.1 & 24.4  \\
+    &  Hierarchical Conv. &     \textbf{33.9} & \textbf{24.0} \\
+    &  WS w/ Large DS &            35.2 & 24.8  \\
+    \midrule
+
+    \multirowcell{ 2}{HuBERT\\Large} 
+    % &  Weighted Sum         &	32.3 & 22.3  \\
+    &  Hierarchical Conv.   &	\textbf{30.0} & \textbf{21.4}  \\
+    &  WS w/ Large DS          &	32.9 & 22.1  \\
+    \midrule
+
+
+    \multirowcell{ 2}{WavLM\\Base} 
+    % &  Weighted Sum &           34.2 & 24.3  \\
+    &  Hierarchical Conv. &     \textbf{32.4} & \textbf{23.6} \\
+    &  WS w/ Large DS &            34.4 & 24.3 \\
+    \midrule
+
+    \multirowcell{ 2}{WavLM\\Large} 
+    % &  Weighted Sum &           30.1 & 20.8 \\
+    &  Hierarchical Conv. &     \textbf{28.0} & \textbf{19.4} \\
+    &  WS w/ Large DS &            30.5 & 20.8  \\
+    \midrule
+
+    \multirow{ 2}{*}{XLSR-53} 
+    % &  Weighted Sum &           35.1 & 20.2 \\
+    &  Hierarchical Conv. &     \textbf{30.6} & \textbf{19.8} \\
+    &  WS w/ Large DS &            35.4 & 20.0 \\   
+
+    \bottomrule
+  \end{tabular}
+  \vspace{-5pt}
+\end{table}
+

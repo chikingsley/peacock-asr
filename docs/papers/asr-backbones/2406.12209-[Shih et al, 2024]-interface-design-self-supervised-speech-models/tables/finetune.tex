@@ -1,0 +1,26 @@
+\begin{table}[th]
+\scriptsize
+\vspace{-5pt}
+  \caption{Comparison of Weighted Sum and Hierarchical under end-to-end fine-tuning. The metric is WER/CER.}
+  \label{tab:finetune}
+  \centering
+  \begin{tabular}{ l c c }
+    \toprule
+     \multirow{ 2}{*}{Interface} & \multicolumn{2}{c}{ML-SUPERB Mono-1hr~($\downarrow$)}    \\
+    % \cmidrule{4-6} 
+      & Freeze Upstream & Fine-tuned \\
+    \midrule
+    
+    % \multirow{ 2}{*}{Upstream}
+    % &  Weighted Sum &           35.1 & 24.4  \\
+    Weighted Sum &     35.1 & 31.5 \\
+     
+     Hierarchical Conv. &  \textbf{33.9} & \textbf{31.1} \\
+      WS w/ Large DS &       35.2 & 31.6 \\
+
+    \bottomrule
+  \end{tabular}
+  \vspace{-5pt}
+\end{table}
+
+
