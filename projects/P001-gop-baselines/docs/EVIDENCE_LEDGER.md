@@ -79,8 +79,6 @@ Interpretation note:
 Exploratory scorer branch (2026-03-08):
 
 - `HMamba`, full-run, `original`, seed `501`: `PCC 0.6341`, `MSE 0.0813`
-- Evidence anchor:
-  `/home/simon/github/peacock-asr/projects/P001-gop-baselines/experiments/spikes/hmamba_original_full_seed501.md`
 - Interpretation:
   - the current phone-level HMamba adaptation is competitive with the
     `original` GOPT line on a single-seed exploratory run
