@@ -1,0 +1,216 @@
+\begin{thebibliography}{10}
+
+\bibitem{openai2023gpt}
+OpenAI,
+\newblock ``Gpt-4 technical report,''
+\newblock {\em arXiv}, 2023.
+
+\bibitem{anil2023palm}
+Rohan Anil, Andrew~M Dai, Orhan Firat, et~al.,
+\newblock ``Palm 2 technical report,''
+\newblock {\em arXiv:2305.10403}, 2023.
+
+\bibitem{huang2023audiogpt}
+Rongjie Huang, Mingze Li, Dongchao Yang, et~al.,
+\newblock ``Audiogpt: Understanding and generating speech, music, sound, and
+  talking head,''
+\newblock {\em arXiv:2304.12995}, 2023.
+
+\bibitem{chen2023x}
+Feilong Chen et~al.,
+\newblock ``X-llm: Bootstrapping advanced large language models by treating
+  multi-modalities as foreign languages,''
+\newblock {\em arXiv:2305.04160}, 2023.
+
+\bibitem{chen2023large}
+Tongzhou Chen, Cyril Allauzen, Yinghui Huang, et~al.,
+\newblock ``Large-scale language model rescoring on long-form data,''
+\newblock in {\em ICASSP}. IEEE, 2023, pp. 1--5.
+
+\bibitem{ma2023n}
+Rao Ma et~al.,
+\newblock ``N-best t5: Robust {ASR} error correction using multiple input
+  hypotheses and constrained decoding space,''
+\newblock {\em arXiv:2303.00456}, 2023.
+
+\bibitem{zhang2023speechgpt}
+Dong Zhang, Shimin Li, Xin Zhang, et~al.,
+\newblock ``Speechgpt: Empowering large language models with intrinsic
+  cross-modal conversational abilities,''
+\newblock {\em arXiv:2305.11000}, 2023.
+
+\bibitem{rubenstein2023audiopalm}
+Paul~K Rubenstein, Chulayuth Asawaroengchai, Duc~Dung Nguyen, et~al.,
+\newblock ``Audiopalm: A large language model that can speak and listen,''
+\newblock {\em arXiv:2306.12925}, 2023.
+
+\bibitem{gong2023listen}
+Yuan Gong, Hongyin Luo, Alexander~H Liu, et~al.,
+\newblock ``Listen, think, and understand,''
+\newblock {\em arXiv:2305.10790}, 2023.
+
+\bibitem{ling2023adapting}
+Shaoshi Ling, Yuxuan Hu, Shuangbei Qian, et~al.,
+\newblock ``Adapting large language model with speech for fully formatted
+  end-to-end speech recognition,''
+\newblock {\em arXiv:2307.08234}, 2023.
+
+\bibitem{wu2023decoder}
+Jian Wu, Yashesh Gaur, Zhuo Chen, et~al.,
+\newblock ``On decoder-only architecture for speech-to-text and large language
+  model integration,''
+\newblock {\em arXiv:2307.03917}, 2023.
+
+\bibitem{fathullah2023prompting}
+Yassir Fathullah, Chunyang Wu, Egor Lakomkin, et~al.,
+\newblock ``Prompting large language models with speech recognition
+  abilities,''
+\newblock {\em arXiv:2307.11795}, 2023.
+
+\bibitem{wang2023speech}
+Mingqiu Wang, Izhak Shafran, Hagen Soltau, et~al.,
+\newblock ``Speech-to-text adapter and speech-to-entity retriever augmented
+  llms for speech understanding,''
+\newblock {\em arXiv:2306.07944}, 2023.
+
+\bibitem{shoeybi2019megatron}
+Mohammad Shoeybi et~al.,
+\newblock ``Megatron-lm: Training multi-billion parameter language models using
+  model parallelism,''
+\newblock {\em arXiv preprint arXiv:1909.08053}, 2019.
+
+\bibitem{kuchaiev2019nemo}
+Oleksii Kuchaiev, Jason Li, Huyen Nguyen, et~al.,
+\newblock ``{NeMo}: a toolkit for building ai applications using neural
+  modules,''
+\newblock {\em arXiv:1909.09577}, 2019.
+
+\bibitem{sun2023can}
+Guangzhi Sun, Xianrui Zheng, Chao Zhang, and Philip~C Woodland,
+\newblock ``Can contextual biasing remain effective with whisper and gpt-2?,''
+\newblock {\em arXiv preprint arXiv:2306.01942}, 2023.
+
+\bibitem{wang2023neural}
+Chengyi Wang et~al.,
+\newblock ``Neural codec language models are zero-shot text to speech
+  synthesizers,''
+\newblock {\em arXiv preprint arXiv:2301.02111}, 2023.
+
+\bibitem{le2023voicebox}
+Matthew Le et~al.,
+\newblock ``Voicebox: Text-guided multilingual universal speech generation at
+  scale,''
+\newblock {\em arXiv preprint arXiv:2306.15687}, 2023.
+
+\bibitem{williams2018contextual}
+Ian Williams, Anjuli Kannan, Petar~S Aleksic, et~al.,
+\newblock ``Contextual speech recognition in end-to-end neural network systems
+  using beam search.,''
+\newblock in {\em Interspeech}, 2018.
+
+\bibitem{pundak2018deep}
+Golan Pundak, Tara~N Sainath, Rohit Prabhavalkar, Anjuli Kannan, and Ding Zhao,
+\newblock ``Deep context: end-to-end contextual speech recognition,''
+\newblock in {\em 2018 IEEE spoken language technology workshop (SLT)}, 2018.
+
+\bibitem{thomas2022integrating}
+Samuel Thomas et~al.,
+\newblock ``Integrating text inputs for training and adapting rnn transducer
+  asr models,''
+\newblock in {\em ICASSP}. IEEE, 2022.
+
+\bibitem{chen2022maestro}
+Zhehuai Chen, Yu~Zhang, Andrew Rosenberg, et~al.,
+\newblock ``Maestro: Matched speech text representations through modality
+  matching,''
+\newblock {\em arXiv:2204.03409}, 2022.
+
+\bibitem{zhang2022speechlm}
+Ziqiang Zhang, Sanyuan Chen, Long Zhou, et~al.,
+\newblock ``Speechlm: Enhanced speech pre-training with unpaired textual
+  data,''
+\newblock {\em arXiv:2209.15329}, 2022.
+
+\bibitem{zhang2023google}
+Yu~Zhang, Wei Han, James Qin, et~al.,
+\newblock ``Google usm: Scaling automatic speech recognition beyond 100
+  languages,''
+\newblock {\em arXiv:2303.01037}, 2023.
+
+\bibitem{barrault2023seamlessm4t}
+Lo{\"\i}c Barrault, Yu-An Chung, Mariano~Cora Meglioli, et~al.,
+\newblock ``Seamlessm4t-massively multilingual \& multimodal machine
+  translation,''
+\newblock {\em arXiv:2308.11596}, 2023.
+
+\bibitem{rekesh2023fast}
+Dima Rekesh, Samuel Kriman, Somshubra Majumdar, Vahid Noroozi, He~Juang,
+  Oleksii Hrinchuk, Ankur Kumar, and Boris Ginsburg,
+\newblock ``Fast conformer with linearly scalable attention for efficient
+  speech recognition,''
+\newblock {\em arXiv:2305.05084}, 2023.
+
+\bibitem{gulati2020conformer}
+Anmol Gulati et~al.,
+\newblock ``Conformer: Convolution-augmented transformer for speech
+  recognition,''
+\newblock {\em arXiv preprint arXiv:2005.08100}, 2020.
+
+\bibitem{hu2021lora}
+Edward~J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean
+  Wang, Lu~Wang, and Weizhu Chen,
+\newblock ``Lora: Low-rank adaptation of large language models,''
+\newblock {\em arXiv:2106.09685}, 2021.
+
+\bibitem{flandataset}
+Jason Wei et~al.,
+\newblock ``Finetuned language models are zero-shot learners,''
+\newblock in {\em ICLR}, 2021.
+
+\bibitem{dong2022survey}
+Qingxiu Dong, Lei Li, Damai Dai, et~al.,
+\newblock ``A survey for in-context learning,''
+\newblock {\em arXiv:2301.00234}, 2022.
+
+\bibitem{Kocetkov2022TheStack}
+Denis Kocetkov et~al.,
+\newblock ``The stack: 3 tb of permissively licensed source code,''
+\newblock {\em Preprint}, 2022.
+
+\bibitem{holtzman2019curious}
+Ari Holtzman, Jan Buys, Li~Du, Maxwell Forbes, and Yejin Choi,
+\newblock ``The curious case of neural text degeneration,''
+\newblock {\em arXiv preprint arXiv:1904.09751}, 2019.
+
+\bibitem{panayotov2015librispeech}
+Vassil Panayotov, Guoguo Chen, Daniel Povey, and Sanjeev Khudanpur,
+\newblock ``Librispeech: an asr corpus based on public domain audio books,''
+\newblock in {\em 2015 IEEE international conference on acoustics, speech and
+  signal processing (ICASSP)}. IEEE, 2015, pp. 5206--5210.
+
+\bibitem{iwslt:2023}
+Milind Agarwal et~al.,
+\newblock ``Findings of the {IWSLT} 2023 {Evaluation} {Campaign},''
+\newblock in {\em Proceedings of the 20th {International} {Conference} on
+  {Spoken} {Language} {Translation} ({IWSLT} 2023)}. 2023, Association for
+  Computational Linguistics.
+
+\bibitem{cattoni2021must}
+Roldano Cattoni, Mattia~Antonino Di~Gangi, Luisa Bentivogli, Matteo Negri, and
+  Marco Turchi,
+\newblock ``Must-c: A multilingual corpus for end-to-end speech translation,''
+\newblock {\em Computer Speech \& Language}, vol. 66, pp. 101155, 2021.
+
+\bibitem{Kim2020AcceleratingRT}
+Juntae Kim, Yoonhan Lee, and Eesung Kim,
+\newblock ``Accelerating rnn transducer inference via adaptive expansion
+  search,''
+\newblock {\em IEEE Signal Processing Letters}, vol. 27, pp. 2019--2023, 2020.
+
+\bibitem{alkhouli2018alignment}
+Tamer Alkhouli, Gabriel Bretschner, and Hermann Ney,
+\newblock ``On the alignment problem in multi-head attention-based neural
+  machine translation,''
+\newblock {\em arXiv:1809.03985}, 2018.
+
+\end{thebibliography}

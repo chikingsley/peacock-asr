@@ -1,6 +1,0 @@
-job_id	backend	mode	score_variant	score_alpha	repeat	seed	status	pcc	pcc_low	pcc_high	mse	n_phones	duration_sec	log_path	error
-b1_scalar_gopsf	xlsr-espeak	scalar	gop_sf	0.5000	1		ok	0.3195	0.3113	0.3277	0.6655	46314	13.55	runs/2026-03-03_045426_track05_phase2_logit_scalar/b1_scalar_gopsf_r1.log	
-b2_scalar_logit_margin	xlsr-espeak	scalar	logit_margin	0.5000	1		ok	0.1849	0.1761	0.1937	0.8177	46314	1353.34	runs/2026-03-03_045426_track05_phase2_logit_scalar/b2_scalar_logit_margin_r1.log	
-b3_scalar_logit_combined_a025	xlsr-espeak	scalar	logit_combined	0.2500	1		ok	0.3452	0.3372	0.3532	0.5981	46314	2752.14	runs/2026-03-03_045426_track05_phase2_logit_scalar/b3_scalar_logit_combined_a025_r1.log	
-b4_scalar_logit_combined_a050	xlsr-espeak	scalar	logit_combined	0.5000	1		ok	0.3222	0.3140	0.3304	0.6322	46314	2790.15	runs/2026-03-03_045426_track05_phase2_logit_scalar/b4_scalar_logit_combined_a050_r1.log	
-b5_scalar_logit_combined_a075	xlsr-espeak	scalar	logit_combined	0.7500	1		ok	0.2664	0.2579	0.2748	0.7131	46314	2758.53	runs/2026-03-03_045426_track05_phase2_logit_scalar/b5_scalar_logit_combined_a075_r1.log	

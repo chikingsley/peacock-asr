@@ -1,0 +1,143 @@
+\documentclass{Interspeech}
+
+% 2023-10-21 modified by Simon King (Simon.King@ed.ac.uk)  
+% 2024-01 modified by TPC Chairs of Interspeech 2024  
+% 2024-10 modified by Antoine Serrurier for Interspeech 2025
+% 2024-12 modified by TPC Chairs of Interspeech 2025
+
+% **************************************
+% *    DOUBLE-BLIND REVIEW SETTINGS    *
+% **************************************
+% Comment out \interspeechcameraready when submitting the 
+% paper for review.
+% If your paper is accepted, uncomment this to produce the
+%  'camera ready' version to submit for publication.
+
+\interspeechcameraready 
+\usepackage{todonotes}
+\usepackage{tcolorbox}
+\usepackage{caption}
+\usepackage{footmisc}
+\usepackage{fix-cm}
+
+% **************************************
+% *                                    *
+% *      STOP !   DO NOT DELETE !      *
+% *          READ THIS FIRST           *
+% *                                    *
+% * This template also includes        *
+% * important INSTRUCTIONS that you    *
+% * must follow when preparing your    *
+% * paper. Read it BEFORE replacing    *
+% * the content with your own work.    *
+% **************************************
+
+% title here must exactly match the title entered into the paper submission system
+\title{Granary: Speech Recognition and Translation Dataset in 25 European Languages}
+
+% the order of authors here must exactly match the order entered into the paper submission system
+% note that the COMPLETE list of authors MUST be entered into the paper submission system at the outset, including when submitting your manuscript for double-blind review
+\author[affiliation={1}]{Nithin Rao}{Koluguri$^{\dagger*}$}
+\author[affiliation={2}]{Monica}{Sekoyan$^{*}$}
+\author[affiliation={2}]{George}{Zelenfroynd$^{*}$}
+\author[affiliation={3}]{Sasha}{Meister$^{*}$}
+\author[affiliation={1}]{Shuoyang}{Ding$^{*}$}
+\author[affiliation={2}]{Sofia}{Kostandian}
+\author[affiliation={1}]{He}{Huang}
+\author[affiliation={2}]{Nikolay}{Karpov$^{\#}$}
+\author[affiliation={1}]{Jagadeesh}{Balam}
+\author[affiliation={1}]{Vitaly}{Lavrukhin}
+\author[affiliation={4}]{Yifan}{Peng}
+\author[affiliation={5}]{Sara}{Papi}
+\author[affiliation={5}]{Marco}{Gaido}
+\author[affiliation={5}]{Alessio}{Brutti}
+\author[affiliation={1}]{Boris}{Ginsburg}
+%The maximum number of authors in the author list is 20. If the number of contributing authors is more than this, they should be listed in a footnote or the acknowledgement section.
+
+% if you have too many addresses to fit within the available space, try removing the "\\" newlines
+
+\affiliation{}{NVIDIA}{USA}
+\affiliation{}{NVIDIA}{Armenia}
+\affiliation{}{NVIDIA}{Germany}
+\affiliation{}{Carnegie Mellon University}{USA}
+\affiliation{}{Fondazione Bruno Kessler (FBK)}{Italy}
+% \affiliation{$^1$NVIDIA, USA \quad $^2$NVIDIA, Armenia \quad $^3$NVIDIA, Germany \quad}{$^4$Carnegie Mellon University, USA}{\quad $^5$Fondazione Bruno Kessler (FBK), Italy}
+
+% \affiliation{NVIDIA, USA}{$^2$NVIDIA, Armenia} {$^3$NVIDIA, Germany}
+% \affiliation{$^4$Carnegie Mellon University, USA}{$^5$Fondazione Bruno Kessler (FBK), Italy}
+
+
+% \footnotetext{$^*$Equal contribution}
+
+\email{nkoluguri@nvidia.com$^{\dagger}$, nkarpov@nvidia.com$^{\#}$}
+% msekoyan@nvidia.com,gzelenfroind@nvidia.com,ameister@nvidia.com,shuoyangd@gmail.com,
+% skostandian@nvidia.com,heh@nvidia.com,nkarpov@nvidia.com,
+% jbalam@nvidia.com,vlavrukhin@nvidia.com,bginsburg@nvidia.com,pengyf21@gmail.com,shinjiw@ieee.org}
+
+\keywords{speech recognition, translation, European languages, pseudo-labeling}
+
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\monica}[1]{\textcolor{brown}{Monica: #1\newline}}
+\newcommand{\nithin}[1]{\textcolor{cyan}{Nithin: #1\newline}}
+\newcommand{\Shuoyang}[1]{\textcolor{purple}{Shuoyang: #1\newline}}
+\usepackage{comment}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{footmisc}
+\definecolor{myblue}{RGB}{115, 147, 195}
+\definecolor{mygreen}{RGB}{217, 234, 211}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{boxedminipage}
+\usepackage{amssymb}
+\usepackage{svg}
+\usepackage{inconsolata}
+
+\newif\ifcondition
+\conditionfalse
+
+\begin{document}
+
+\maketitle
+\footnotetext[1]{\textit{The starred(*) authors contributed equally to this work.}}
+\footnotetext[2]{\textit{Corresponding authors: Nithin Rao Koluguri$^{\dagger}$, Nikolay Karpov$^{\#}$}}
+
+% the abstract here must exactly match the abstract entered into the paper submission system
+\begin{abstract}
+Multi-task and multilingual approaches benefit large models, yet speech processing for low-resource languages remains underexplored due to data scarcity. To address this, we present Granary, a large-scale collection of speech datasets for recognition and translation across 25 European languages. This is the first open-source effort at this scale for both transcription and translation. We enhance data quality using a pseudo-labeling pipeline with segmentation, two-pass inference, hallucination filtering, and punctuation restoration. We further generate translation pairs from pseudo-labeled transcriptions using EuroLLM, followed by a data filtration pipeline. Designed for efficiency, our pipeline processes vast amount of data within hours.  We assess models trained on processed data by comparing their performance on previously curated datasets for both high- and low-resource languages. Our findings show that these models achieve similar performance using approx. 50\% less data. Dataset will be made available at \url{https://hf.co/datasets/nvidia/Granary}.
+
+
+\end{abstract}
+
+\section{Introduction}
+% \thefootn{$^\dagger$Equal Contribution}
+\input{Chapters/introduction}
+
+\section{Data}
+
+\input{Chapters/data}
+
+\section{Granary Pipeline}
+
+\input{Chapters/pipeline}
+
+\section{Model Training and Evaluation}
+
+\input{Chapters/model}
+
+
+
+\section{Conclusion}
+
+In conclusion, we present Granary, a comprehensive, open-source speech processing pipeline with transcriptions for speech recognition and translation across 25 European languages. Granary employs pseudo-labeling to enhance noisy public speech corpora, integrating open-source datasets and processes like audio segmentation, two-pass inference, language ID, robust data filtration, and LLM-based punctuation/capitalization restoration. Experiments on English and Croatian data show Granary's filtering improves model performance over existing datasets. Future work will focus on releasing multi-task, multilingual models trained on the complete Granary corpora.
+
+\newpage
+
+\bibliographystyle{IEEEtran}
+\bibliography{mybib}
+
+\end{document}

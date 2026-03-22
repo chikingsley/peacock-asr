@@ -1,0 +1,151 @@
+\begin{thebibliography}{30}
+\providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Ardila et~al.(2020)Ardila, Branson, Davis, Henretty, Kohler, Meyer, Morais, Saunders, Tyers, and Weber}]{commonvoice:2020}
+R.~Ardila, M.~Branson, K.~Davis, M.~Henretty, M.~Kohler, J.~Meyer, R.~Morais, L.~Saunders, F.~M. Tyers, and G.~Weber. 2020.
+\newblock Common voice: A massively-multilingual speech corpus.
+\newblock In \emph{Conference on Language Resources and Evaluation (LREC )}.
+
+\bibitem[{Bahdanau et~al.(2015)Bahdanau, Cho, and Bengio}]{bahdanau2015neural}
+Dzmitry Bahdanau, Kyung~Hyun Cho, and Yoshua Bengio. 2015.
+\newblock Neural machine translation by jointly learning to align and translate.
+\newblock In \emph{ICLR}.
+
+\bibitem[{Barrault et~al.(2023)Barrault, Chung, Meglioli, Dale, Dong, Duppenthaler, Duquenne, Ellis, Elsahar, Haaheim et~al.}]{barrault2023seamless}
+Lo{\"\i}c Barrault, Yu-An Chung, Mariano~Coria Meglioli, David Dale, Ning Dong, Mark Duppenthaler, Paul-Ambroise Duquenne, Brian Ellis, Hady Elsahar, Justin Haaheim, and 1 others. 2023.
+\newblock Seamless: Multilingual expressive and streaming speech translation.
+\newblock \emph{arXiv preprint arXiv:2312.05187}.
+
+\bibitem[{Chan et~al.(2016)Chan, Jaitly, Le, and Vinyals}]{chan2016listen}
+William Chan, Navdeep Jaitly, Quoc Le, and Oriol Vinyals. 2016.
+\newblock Listen, attend and spell: A neural network for large vocabulary conversational speech recognition.
+\newblock In \emph{2016 IEEE international conference on acoustics, speech and signal processing (ICASSP)}, pages 4960--4964. IEEE.
+
+\bibitem[{Conneau et~al.(2022)Conneau, Ma, Khanuja, Zhang, Axelrod, Dalmia, Riesa, Rivera, and Bapna}]{fleurs2022arxiv}
+Alexis Conneau, Min Ma, Simran Khanuja, Yu~Zhang, Vera Axelrod, Siddharth Dalmia, Jason Riesa, Clara Rivera, and Ankur Bapna. 2022.
+\newblock \href {https://arxiv.org/abs/2205.12446} {Fleurs: Few-shot learning evaluation of universal representations of speech}.
+\newblock \emph{arXiv preprint arXiv:2205.12446}.
+
+\bibitem[{Doetsch et~al.(2017)Doetsch, Golik, and Ney}]{doetsch2017comprehensivestudybatchconstruction}
+Patrick Doetsch, Pavel Golik, and Hermann Ney. 2017.
+\newblock \href {https://arxiv.org/abs/1705.02414} {A comprehensive study of batch construction strategies for recurrent neural networks in mxnet}.
+\newblock \emph{Preprint}, arXiv:1705.02414.
+
+\bibitem[{flash-attention()}]{flashattn}
+flash-attention.
+\newblock https://github.com/dao-ailab/flash-attention.
+
+\bibitem[{Gandhi et~al.(2023)Gandhi, von Platen, and Rush}]{gandhi2023distilwhisperrobustknowledgedistillation}
+Sanchit Gandhi, Patrick von Platen, and Alexander~M. Rush. 2023.
+\newblock \href {https://arxiv.org/abs/2311.00430} {Distil-whisper: Robust knowledge distillation via large-scale pseudo labelling}.
+\newblock \emph{Preprint}, arXiv:2311.00430.
+
+\bibitem[{Graves(2012)}]{graves2012sequencetransductionrecurrentneural}
+Alex Graves. 2012.
+\newblock Sequence transduction with recurrent neural networks.
+\newblock In \emph{Internation Conference on Machine Learning (ICML) Workshop on Representation Learning}.
+
+\bibitem[{Graves et~al.(2006)Graves, Fern{\'a}ndez, Gomez, and Schmidhuber}]{graves2006connectionist}
+Alex Graves, Santiago Fern{\'a}ndez, Faustino Gomez, and J{\"u}rgen Schmidhuber. 2006.
+\newblock Connectionist temporal classification: labelling unsegmented sequence data with recurrent neural networks.
+\newblock In \emph{Proceedings of the 23rd international conference on Machine learning}, pages 369--376.
+
+\bibitem[{Hazirbas et~al.(2021)Hazirbas, Bitton, Dolhansky, Pan, Gordo, and Ferrer}]{hazirbas2021towards}
+Caner Hazirbas, Joanna Bitton, Brian Dolhansky, Jacqueline Pan, Albert Gordo, and Cristian~Canton Ferrer. 2021.
+\newblock Towards measuring fairness in ai: the casual conversations dataset.
+\newblock \emph{IEEE Transactions on Biometrics, Behavior, and Identity Science}, 4(3):324--332.
+
+\bibitem[{k2()}]{k2fsa}
+k2.
+\newblock https://github.com/k2-fsa/k2.
+
+\bibitem[{Kasai et~al.(2021)Kasai, Pappas, Peng, Cross, and Smith}]{kasai2021deep}
+Jungo Kasai, Nikolaos Pappas, Hao Peng, James Cross, and Noah~A Smith. 2021.
+\newblock Deep encoder, shallow decoder: Reevaluating non-autoregressive machine translation.
+\newblock In \emph{9th International Conference on Learning Representations, ICLR 2021}.
+
+\bibitem[{Khomenko et~al.(2016)Khomenko, Shyshkov, Radyvonenko, and Bokhan}]{7583516}
+Viacheslav Khomenko, Oleg Shyshkov, Olga Radyvonenko, and Kostiantyn Bokhan. 2016.
+\newblock \href {https://doi.org/10.1109/DSMP.2016.7583516} {Accelerating recurrent neural network training using sequence bucketing and multi-gpu data parallelization}.
+\newblock In \emph{2016 IEEE First International Conference on Data Stream Mining \& Processing (DSMP)}, pages 100--103.
+
+\bibitem[{Mathur et~al.(2020)Mathur, Baldwin, and Cohn}]{mathur-etal-2020-tangled}
+Nitika Mathur, Timothy Baldwin, and Trevor Cohn. 2020.
+\newblock \href {https://doi.org/10.18653/v1/2020.acl-main.448} {Tangled up in {BLEU}: Reevaluating the evaluation of automatic machine translation evaluation metrics}.
+\newblock In \emph{Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics}, pages 4984--4997, Online. Association for Computational Linguistics.
+
+\bibitem[{McCandlish et~al.(2018)McCandlish, Kaplan, Amodei, and Team}]{mccandlish2018empiricalmodellargebatchtraining}
+Sam McCandlish, Jared Kaplan, Dario Amodei, and OpenAI~Dota Team. 2018.
+\newblock \href {https://arxiv.org/abs/1812.06162} {An empirical model of large-batch training}.
+\newblock \emph{Preprint}, arXiv:1812.06162.
+
+\bibitem[{Peng et~al.(2024)Peng, Tian, Chen, Arora, Yan, Sudo, Shakeel, Choi, Shi, Chang et~al.}]{peng2024owsm}
+Yifan Peng, Jinchuan Tian, William Chen, Siddhant Arora, Brian Yan, Yui Sudo, Muhammad Shakeel, Kwanghee Choi, Jiatong Shi, Xuankai Chang, and 1 others. 2024.
+\newblock Owsm v3. 1: Better and faster open whisper-style speech models based on e-branchformer.
+\newblock In \emph{Interspeech 2024}.
+
+\bibitem[{Peng et~al.(2023)Peng, Tian, Yan, Berrebbi, Chang, Li, Shi, Arora, Chen, Sharma et~al.}]{peng2023reproducing}
+Yifan Peng, Jinchuan Tian, Brian Yan, Dan Berrebbi, Xuankai Chang, Xinjian Li, Jiatong Shi, Siddhant Arora, William Chen, Roshan Sharma, and 1 others. 2023.
+\newblock Reproducing whisper-style training using an open-source toolkit and publicly available data.
+\newblock In \emph{2023 IEEE Automatic Speech Recognition and Understanding Workshop (ASRU)}, pages 1--8. IEEE.
+
+\bibitem[{Post(2018)}]{post2018call}
+Matt Post. 2018.
+\newblock A call for clarity in reporting bleu scores.
+\newblock \emph{arXiv preprint arXiv:1804.08771}.
+
+\bibitem[{Puvvada et~al.(2024)Puvvada, Żelasko, Huang, Hrinchuk, Koluguri, Dhawan, Majumdar, Rastorgueva, Chen, Lavrukhin, Balam, and Ginsburg}]{puvvada24_interspeech}
+Krishna~C. Puvvada, Piotr Żelasko, He~Huang, Oleksii Hrinchuk, Nithin~Rao Koluguri, Kunal Dhawan, Somshubra Majumdar, Elena Rastorgueva, Zhehuai Chen, Vitaly Lavrukhin, Jagadeesh Balam, and Boris Ginsburg. 2024.
+\newblock \href {https://doi.org/10.21437/Interspeech.2024-2294} {Less is more: Accurate speech recognition \& translation without web-scale data}.
+\newblock In \emph{Interspeech 2024}, pages 3964--3968.
+
+\bibitem[{Radford et~al.(2022)Radford, Kim, Xu, Brockman, McLeavey, and Sutskever}]{radford2022robustspeechrecognitionlargescale}
+Alec Radford, Jong~Wook Kim, Tao Xu, Greg Brockman, Christine McLeavey, and Ilya Sutskever. 2022.
+\newblock \href {https://arxiv.org/abs/2212.04356} {Robust speech recognition via large-scale weak supervision}.
+\newblock \emph{Preprint}, arXiv:2212.04356.
+
+\bibitem[{Rei et~al.(2020)Rei, Stewart, Farinha, and Lavie}]{rei-etal-2020-comet}
+Ricardo Rei, Craig Stewart, Ana~C Farinha, and Alon Lavie. 2020.
+\newblock \href {https://doi.org/10.18653/v1/2020.emnlp-main.213} {{COMET}: A neural framework for {MT} evaluation}.
+\newblock In \emph{Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)}, pages 2685--2702, Online. Association for Computational Linguistics.
+
+\bibitem[{Rekesh et~al.(2023)Rekesh, Koluguri, Kriman, Majumdar, Noroozi, Huang, Hrinchuk, Puvvada, Kumar, Balam et~al.}]{rekesh2023fast}
+Dima Rekesh, Nithin~Rao Koluguri, Samuel Kriman, Somshubra Majumdar, Vahid Noroozi, He~Huang, Oleksii Hrinchuk, Krishna Puvvada, Ankur Kumar, Jagadeesh Balam, and 1 others. 2023.
+\newblock Fast conformer with linearly scalable attention for efficient speech recognition.
+\newblock In \emph{Automatic Speech Recognition and Understanding Workshop (ASRU)}, pages 1--8. IEEE.
+
+\bibitem[{Shallue et~al.(2019)Shallue, Lee, Antognini, Sohl-Dickstein, Frostig, and Dahl}]{shallue2019measuring}
+Christopher~J Shallue, Jaehoon Lee, Joseph Antognini, Jascha Sohl-Dickstein, Roy Frostig, and George~E Dahl. 2019.
+\newblock Measuring the effects of data parallelism on neural network training.
+\newblock \emph{Journal of Machine Learning Research}, 20(112):1--49.
+
+\bibitem[{Vaswani et~al.(2017)Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez, Kaiser, and Polosukhin}]{vaswani2017attention}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan~N Gomez, {\L}ukasz Kaiser, and Illia Polosukhin. 2017.
+\newblock Attention is all you need.
+\newblock \emph{NeurIPS}.
+
+\bibitem[{Wang et~al.(2021)Wang, Wu, Gu, and Pino}]{wang21s_interspeech}
+Changhan Wang, Anne Wu, Jiatao Gu, and Juan Pino. 2021.
+\newblock \href {https://doi.org/10.21437/Interspeech.2021-2027} {Covost 2 and massively multilingual speech translation}.
+\newblock In \emph{Interspeech 2021}, pages 2247--2251.
+
+\bibitem[{webdataset()}]{webdataset}
+webdataset.
+\newblock https://github.com/webdataset/webdataset.
+
+\bibitem[{{\.Z}elasko et~al.(2025){\.Z}elasko, Chen, Wang, Galvez, Hrinchuk, Ding, Hu, Balam, Lavrukhin, and Ginsburg}]{zelasko2024emmett}
+Piotr {\.Z}elasko, Zhehuai Chen, Mengru Wang, Daniel Galvez, Oleksii Hrinchuk, Shuoyang Ding, Ke~Hu, Jagadeesh Balam, Vitaly Lavrukhin, and Boris Ginsburg. 2025.
+\newblock Emmett: Efficient multimodal machine translation training.
+\newblock \emph{arXiv preprint arXiv:2409.13523, accepted at IEEE ICASSP 2025}.
+
+\bibitem[{Zhang et~al.(2024)Zhang, Morwani, Vyas, Wu, Zou, Ghai, Foster, and Kakade}]{zhang2024doescriticalbatchsize}
+Hanlin Zhang, Depen Morwani, Nikhil Vyas, Jingfeng Wu, Difan Zou, Udaya Ghai, Dean Foster, and Sham Kakade. 2024.
+\newblock \href {https://arxiv.org/abs/2410.21676} {How does critical batch size scale in pre-training?}
+\newblock \emph{Preprint}, arXiv:2410.21676.
+
+\bibitem[{Żelasko et~al.(2021)Żelasko, Povey, Trmal, and Khudanpur}]{zelasko2021lhotse}
+Piotr Żelasko, Daniel Povey, Jan Trmal, and Sanjeev Khudanpur. 2021.
+\newblock Lhotse: a speech data representation library for the modern deep learning ecosystem.
+\newblock \emph{Proceedings of NeurIPS Workshop on Data-Centric AI}.
+
+\end{thebibliography}

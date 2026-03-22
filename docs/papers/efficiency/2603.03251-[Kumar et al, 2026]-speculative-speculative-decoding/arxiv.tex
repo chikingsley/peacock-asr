@@ -1,0 +1,104 @@
+
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{bm}
+\usepackage{natbib}
+\usepackage{amsthm,amssymb,amsmath,dsfont,mathtools,mathrsfs}
+\usepackage{authblk}
+\usepackage{caption}
+\usepackage[toc,page]{appendix}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tcolorbox}
+\usepackage{subcaption}
+\definecolor{lightblue}{rgb}{0.68, 0.85, 0.9}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{wrapfig}
+\usepackage{needspace} % in preamble
+\usepackage{xspace}
+
+\input{math_commands.tex}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{definition}[theorem]{Definition}
+
+\newcommand{\ind}[1]{\mathds{1}[#1]}
+\newcommand{\Ver}{\mathcal{V}}
+\newcommand{\ver}{\mathit{v}}
+\newcommand{\Spec}{\mathcal{S}}
+\newcommand{\spec}{\mathit{s}}
+\newcommand{\Sys}{\textsc{Saguaro}\xspace}
+\newcommand{\sys}{\textsc{Saguaro}}
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+\newcommand{\bigcdot}{\scalebox{2}{$\cdot$}}
+\newcommand{\red}[1]{#1}
+\newcommand{\AM}[1]{}
+\newcommand{\TK}[1]{}
+
+% Highlight new edits for review.
+\definecolor{diffblue}{rgb}{0.05,0.25,0.85}
+\newcommand{\diff}[1]{\textcolor{diffblue}{#1}}
+\newenvironment{diffblock}{\begingroup\color{diffblue}}{\endgroup}
+
+\title{Speculative Speculative Decoding}
+\author[ ]{\normalsize
+    Tanishq Kumar\textsuperscript{1,*}\quad Tri Dao\textsuperscript{2,3} \quad Avner May\textsuperscript{3}
+}
+
+\affil[1]{Department of Computer Science, Stanford University}
+\affil[2]{Department of Computer Science, Princeton University}
+\affil[3]{Together AI}
+
+\date{}
+
+
+\begin{document}
+
+\maketitle
+\enlargethispage{2\baselineskip}
+\begingroup\renewcommand\thefootnote{*}\footnotetext{Correspondence to \texttt{tanishq@stanford.edu}. Code at \url{https://github.com/tanishqkumar/ssd}.}\endgroup\setcounter{footnote}{0}%
+\vspace{-30pt}
+
+\begin{abstract}
+
+Autoregressive decoding is bottlenecked by its \textit{sequential} nature.
+Speculative decoding has become a standard way to accelerate inference by using a fast draft model to predict upcoming tokens from a slower target model, and then verifying them \textit{in parallel} with a single target model forward pass.
+However, speculative decoding itself relies on a \textit{sequential} dependence between speculation and verification.
+We introduce \textit{speculative speculative decoding} (SSD) to parallelize these operations.
+While a verification is ongoing, the draft model \textit{predicts} likely verification outcomes and prepares speculations pre-emptively for them.
+If the actual verification outcome is then in the predicted set, a speculation can be returned immediately, eliminating drafting overhead entirely.
+We identify three key challenges presented by speculative speculative decoding, and suggest principled methods to solve each.
+The result is \Sys, an optimized SSD algorithm. Our implementation is
+ up to 2x faster than optimized speculative decoding
+ baselines and up to 5x faster than
+  autoregressive decoding with open source inference engines.
+\end{abstract}
+
+\vspace{-0.1cm}
+
+\input{introduction}
+\input{background}
+\input{ssd}
+\input{method}
+\input{evaluations}
+
+
+\newpage 
+
+\section*{Acknowledgements}
+We gratefully acknowledge the support of the Schmidt Sciences AI2050 fellowship, the Google ML and Systems Junior Faculty Awards, and the Google Research Scholar program.
+We thank Together AI for supporting this project with compute resources. Tanishq did this work during an internship at Together AI, and thanks Tatsunori Hashimoto and Luke Bailey for helpful comments and discussion. 
+
+\bibliography{iclr2026_conference}
+\bibliographystyle{iclr2026_conference}
+
+\input{appendix}
+
+\end{document}

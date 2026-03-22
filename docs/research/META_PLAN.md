@@ -84,14 +84,18 @@ graph TD
 |GOPT (Kaldi)|0.612|Gong et al. 2022|
 |HiPAMA|0.616|Do et al. 2023|
 |Gradformer|0.646|Pei et al. 2023|
-|HIA|0.657|Han et al. 2026, best prior GOP method|
+|Cao et al. GOP-SF + GOPT|0.648|Cao et al. 2025, segmentation-free CTC forward-backward|
+|HIA|0.657|Han et al. 2026, does not cite HierCB/ConPCO|
 |**Ours (xlsr-53 + GOPT + GOP-SF)**|**0.677**|Track 05 Phase 1, 5 seeds|
-|Ours (wav2vec2-base + GOPT + GOP-SF)|0.640|Track 10 Phase 1B, 5 seeds|
-|HierCB + ConPCO|0.701|Yan et al. 2025, target (different paradigm)|
+|Ours (w2v-BERT + GOPT + GOP-SF)|0.6755|Track 10 P003, larger model|
+|3MH (Chao et al.)|0.693|Hierarchical Mamba+Branchformer, cited as prior SOTA in 2025 Parikh papers|
+|HierCB + ConPCO|0.701|Yan et al. 2025|
+|**MuFFIN**|**0.742**|Yan et al. 2025, joint APA+MDD, hierarchical Branchformer + ConPCO — **actual SOTA**|
 
-The 0.677 to 0.701 gap is the working frontier. HierCB uses 3164-dim SSL
-embeddings vs our 42-dim GOP features, so some of the gap is input richness,
-not architecture.
+The 0.677 to 0.742 gap is the working frontier. MuFFIN uses SSL embeddings
+(not GOP features) + joint APA+MDD training + ConPCO regularization.
+Our 0.677 already beats Cao et al.'s segmentation-free GOP approach (0.648)
+on the same 42-dim CTC path.
 
 ---
 

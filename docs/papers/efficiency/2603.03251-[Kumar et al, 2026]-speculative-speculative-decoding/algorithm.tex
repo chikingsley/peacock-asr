@@ -1,0 +1,73 @@
+\begin{algorithm}[!ht]
+
+\DontPrintSemicolon
+\SetAlgoLined
+\SetKwFunction{Main}{main}
+\SetKwFunction{Verifier}{verifier}
+\SetKwFunction{Speculator}{speculator}
+\SetKwFunction{Prefill}{prefill}
+\SetKwFunction{Verify}{verify}
+\SetKwFunction{Speculate}{speculate}
+\SetKwFunction{BuildCache}{build\_cache}
+\SetKwFunction{PredictVerificationOutcomes}{predict\_verify\_outcomes}
+\SetKwFunction{SpeculateOnOutcomes}{speculate\_for\_outcomes}
+\SetKwFunction{Fallback}{fallback\_speculate}
+\SetKwProg{Fn}{Function}{:}{}
+
+\Fn{\Main{\text{prompt, target, primary\_draft, backup\_draft}}}{
+    asynchronously launch \Speculator{prompt, primary\_draft, backup\_draft}\;
+    $generated\_tokens \gets$ \Verifier{prompt, target}\;
+    \Return $generated\_tokens$\;
+}
+
+\BlankLine
+
+\Fn{\Verifier{prompt, target}}{
+    $target$.\Prefill{prompt}\;
+    \textbf{WAIT TO RECEIVE} $spec\_tokens$ from \Speculator\;
+    $generated\_tokens \gets []$\;
+    \While{True}{
+        $verify\_outcome \gets target.\Verify{spec\_tokens}$\;
+        $generated\_tokens$.append($verify\_outcome.tokens$)\;
+        \textbf{SEND} $verify\_outcome$ to \Speculator\;
+        \If{end\_token $\in verify\_outcome$}{
+            \Return $generated\_tokens$\;
+        }
+        \textbf{WAIT TO RECEIVE} $spec\_tokens$ from \Speculator\;
+    }
+}
+
+\BlankLine
+
+\Fn{\Speculator{prompt, primary\_draft, backup\_draft}}{
+    $primary\_draft$.\Prefill{prompt}\;
+    $spec\_tokens \gets primary\_draft.\Speculate{prompt}$\;
+    \While{True}{
+        \textbf{SEND} $spec\_tokens$ to \Verifier for verification\;
+        % $cache \gets$ \BuildCache{spec\_tokens} // see Sections~4.2--4.3\;
+
+        \textcolor{blue}{$outcomes \gets$ \PredictVerificationOutcomes{spec\_tokens, primary\_draft} // Sec.~\ref{sec:cache_topology}}
+        
+        \textcolor{blue}{$cache \gets$ \SpeculateOnOutcomes{outcomes, primary\_draft} // Sec.~\ref{sec:cache_sampling}}
+        
+        
+        \textbf{WAIT TO RECEIVE} $verify\_outcome$ from \Verifier\;
+        \If{end\_token $\in verify\_outcome$}{
+            \Return
+        }
+        \eIf{$verify\_outcome \in cache$}{
+    $spec\_tokens \gets cache[verify\_outcome]$\;
+}{
+     \textcolor{blue}{
+        $spec\_tokens \gets \Fallback$
+        (\\ \quad \quad verify\_outcome, primary\_spec, backup\_spec\\
+        )  // Sec.~\ref{sec:cache_misses}
+    }\;
+}
+
+    }
+}
+
+\caption{The Speculative Speculative Decoding (SSD) Framework.}
+\label{alg:ssd}
+\end{algorithm}

@@ -1,0 +1,561 @@
+\documentclass[a4paper]{article}
+
+\usepackage{INTERSPEECH2021}
+\usepackage{comment} % Andy: for making comment blocks
+\usepackage{diagbox} % Andy: for backslashbox in tables
+\usepackage{slashbox} % Andy: for backslashbox in tables
+\usepackage{multirow} % Andy: for multirow in tables
+\usepackage{hyperref} % Andy: for references
+\usepackage{upgreek}
+\usepackage{stmaryrd}
+% MORE GENERALIZED TITLE?
+\title{SUPERB: Speech processing Universal PERformance Benchmark}
+%The maximum number of authors in the author list is twenty. If the number of contributing authors is more than twenty, they should be listed in a footnote or in acknowledgement section, as appropriate.
+\name{Shu-wen Yang$^1$, Po-Han Chi\thanks{$^*$Equal contribution; sorted alphabetically}$^{1 *}$, Yung-Sung Chuang$^{1 *}$, Cheng-I Jeff Lai$^{2 *}$, Kushal Lakhotia$^{3 *}$, \\Yist Y. Lin$^{1 *}$, Andy T. Liu$^{1 *}$, Jiatong Shi$^{4 *}$,
+Xuankai Chang$^6$, Guan-Ting Lin$^1$, \\Tzu-Hsien Huang$^1$, Wei-Cheng Tseng$^1$, Ko-tik Lee$^1$, Da-Rong Liu$^1$, Zili Huang$^4$, Shuyan Dong$^{5 \dagger}$, Shang-Wen Li\thanks{$^{\dagger}$Work done independently outside Amazon employment}$^{5 \dagger}$, Shinji Watanabe$^6$, Abdelrahman Mohamed$^3$, Hung-yi Lee$^1$}
+\address{
+  $^1$National Taiwan University, Taiwan\\
+  $^2$Massachusetts Institute of Technology, USA\\
+  $^3$Facebook AI Research, USA\\
+  $^4$Johns Hopkins University, USA\\
+  $^5$Amazon AI, USA\\
+  $^6$Carnegie Mellon University, USA
+}
+% Included one person's email from each organization.
+\email{leo19941227@gmail.com, kushall@fb.com, clai24@mit.edu, jshi34@jhu.edu, shangwel@amazon.com, shinjiw@ieee.org, hungyilee@ntu.edu.tw}
+
+\begin{document}
+%\ninept
+\maketitle
+
+\begin{abstract}
+Self-supervised learning (SSL) has proven vital for advancing research in natural language processing (NLP) and computer vision (CV).
+The paradigm pretrains \textit{a shared model} on large volumes of unlabeled data and achieves state-of-the-art (SOTA) \textit{for various tasks with minimal adaptation}.
+However, the speech processing community lacks a similar setup to systematically explore the paradigm.
+To bridge this gap, we introduce Speech processing Universal PERformance Benchmark (SUPERB).
+SUPERB is a leaderboard to benchmark the performance of a shared model across a wide range of speech processing tasks with minimal architecture changes and labeled data.
+% Narrow down to representation learning for what we actually did in this paper, demonstrating a feasible usage of the shared model to solve all tasks in SUPERB.
+Among multiple usages of the shared model, we especially focus on extracting the representation learned from SSL for its preferable re-usability.
+We present a simple framework to solve SUPERB tasks by learning task-specialized \textit{lightweight} prediction heads on top of the \textit{frozen shared} model.
+Our results demonstrate that the framework is promising as SSL representations show competitive generalizability and accessibility across SUPERB tasks.
+We release SUPERB as a challenge with a leaderboard\footnote{\label{leaderboard}https://superbbenchmark.org: SUPERB welcomes pretrained model submissions. The framework described in this paper will be used in the constrained track, in which the pretrained models are frozen, and the prediction heads for downstream tasks are the same for all pretrained models. We will open an unconstrained track for submissions with any approach, including finetuning pretrained models and other non-SSL approaches in the future.} and a benchmark toolkit\footnote{\label{toolkit}https://github.com/s3prl/s3prl: All the materials are open-sourced and reproducible in s3prl toolkit which supports to benchmark most existing and customized pretrained models.} to fuel the research in representation learning and general speech processing.
+\end{abstract}
+
+\noindent\textbf{Index Terms}: Speech, Self-Supervised Learning, Representation Learning, Model Generalization, Benchmark, Evaluation
+
+\section{Introduction}
+
+Starting from ELMo~\cite{elmo} and BERT~\cite{bert} in NLP, the effectiveness of SSL is evident in various domains~\cite{donotstoppretraining, visual_pretraining}.
+It is becoming a new principle to solve problems by pretraining a shared model with self-supervision tasks on a large amount of unlabeled data to encode general-purpose knowledge.
+The model can then be specialized in various downstream tasks through concatenating prediction layers and simple finetuning.
+This approach achieves SOTA performance in many applications.
+
+SSL is desirable for its outstanding performance as well as generalizability and re-usability across tasks to democratize deep learning to various application scenarios. 
+Developing deep neural networks is expensive nowadays in terms of data collection, modeling, computing power, and training time.
+Repeating the same process for each specific use case is time- and cost- prohibitive for both academic and industrial researchers.
+SSL can significantly speed up and lower the entry barrier for model development, as the pretrained model is powerful to encode generally applicable knowledge, and only requires low resources to extract task-specific knowledge for different use cases.
+Well-established benchmark, such as GLUE~\cite{glue} in NLP and VISSL~\cite{vissl} in CV, is essential to evaluate pretrained models' generalizability and re-usability across a wide range of tasks.
+
+SSL has been explored in speech, including pretraining with generative loss~\cite{apc1, mockingjay,tera,decoar2}, discriminative loss~\cite{cpc, wav2vec,vq_wav2vec,wav2vec2}, or multi-task~\cite{pase,pase+}.
+Researchers have investigated these SSL models' capabilities on tasks including phoneme classification~\cite{cpc,apc1}, speaker identification~\cite{apc1,mockingjay}, speaker verification~\cite{sv-wav2vec2}, emotion recognition~\cite{pase}, ASR~\cite{tera,wav2vec,decoar2,pase+}, speech translation~\cite{apc1}, spoken language understanding~\cite{lai2020semi}, voice conversion~\cite{lin2020fragmentvc} and TTS~\cite{ssl-for-tts}.
+While these works showed promising results of SSL on various speech processing tasks, unlike CV or NLP areas, they were investigated with different datasets and experimental setups.
+Absence of a shared benchmark makes it hard to compare and draw insights across the techniques.
+Furthermore, existing works explored a limited number of tasks or require heavyweight downstream training~\cite{tera,wav2vec,wav2vec2}, blurring the generalizability and re-usability of SSL models across tasks.
+Both factors limit the impact of SSL on speech processing in research and industry.
+
+We introduce Speech processing Universal PERformance Benchmark (SUPERB) to address the problem.
+SUPERB aims to 360-degree examine models' capability and collects various tasks with limited labeled data from speech communities to align with common research interests.
+% With SUPERB, one can readily compare the effectiveness of different model structures, pretraining objectives and corpora across tasks.
+There are existing benchmarks proposed to evaluate representations extracted from SSL pretrained models~\cite{zerospeech,non-semantic}.
+\cite{zerospeech} focuses on representations' quality without any downstream training, and~\cite{non-semantic} excludes the content recognition tasks like ASR.
+Compared to existing efforts, SUPERB targets at the direct usability of pretrained models on various popular tasks through any usage\footnote{\label{multi-approaches}Finetuning pretrained models or using them as representation extractors are two common usages.}.
+As finetuning pretrained models typically requires huge resources and hinders the re-usability, in this paper, we focus on investigating a simple framework solving all SUPERB tasks with a \textit{frozen}, \textit{shared} pretrained model, and \textit{lightweight} prediction heads finetuned for each task.
+Our results show that the framework yields competitive performance compared to traditional supervised pipelines by leveraging powerful SSL representations, and they outperform log mel filterbank (FBANK), a widely used feature in all speech domains, by a large margin.
+Both results demonstrate the possibility of developing powerful, generalizable, and reusable pretrained models to democratize the advance in speech processing.
+We invite researchers to participate and submit new results to drive the research frontier together\textsuperscript{\ref{leaderboard}}.
+
+% I think the following paragraph might be too detailed? As the policy of each track might change a few weeks later, I will prefer to leave the information on the website and hand-waving in the footnote.
+
+% Although we only explore representations from SSL, we invite researchers to participate to drive the research frontier together using any representation learning techniques in our challenge track with limited downstream finetuning resources, and any speech processing methods in the unlimited track.
+
+
+% We introduce Speech processing Universal PERformance Benchmark (SUPERB) to address the problem.
+% SUPERB collects ten benchmark tasks in speech processing that have common real-world applications.
+% We further propose a simple framework to solve the ten tasks with a general-purpose pretrained network and lightweight prediction heads specialized for each task.
+% The pretrained network has parameters shared across tasks and is used as a representation extractor; each head is finetuned with limited labeled data for the corresponding task.
+% With SUPERB, one can readily compare the effectiveness of different model structures, and pretraining corpora across tasks. There are existing benchmark corpora ~\cite{zerospeech,non-semantic} proposed to evaluate representation learned with SSL. As compared to the existing efforts that focus on analyzing fine-grained characteristics of the learned representation, SUPERB evaluates in a task-oriented fashion and examines the generalizability of networks across tasks.
+% Our experiment results show that the proposed framework yields competitive performance in most tasks, and the SSL learned representations outperforms classic features used in speech domains by a large margin.
+% Despite the promising results, our framework does not achieve SOTA in all of the SUPERB tasks, suggesting the space for future research.
+% Thus, we present SUPERB as a challenge with a leaderboard\footnote{webpage}.
+% We welcome researchers to participate in the challenge via our open-sourced evaluation toolkit, which supports benchmarking most of the existing SSL methods and any customized model, to drive the SSL research frontier.
+
+% Daniel: (March 13)
+% I would prefer something in the following order:
+% (I): About recent progress of SSL and SUPERB in Machine learning (here I refer SUPERB as the case we solve multiple tasks with a shared pretrained network / representation - we need some definition in the introduction as well)(mainly NLP I guess)
+% (II): Why SSL and SUPERB is important - 1. require limited labels from downstream tasks and achieve SOTA, 2. robust and generalizable (see *) across new distribution of data or new domains (e.g., languages, accents, locales, services), 3. sharable architecture (see **)
+% (III): what's the current status of SSL and SUPERB in speech (no speech SUPERB effort of course), What is lack in recent benchmarks or evaluation protocol for SSL papers, both in width (domain variability) and depth (probing -> real application) and scale (how many representation are compared together).
+% (IV.a): due to the gap in (III), we propose speech SUPERB. Our goal is 1) one model solves all, related to NLP BERT, 2) propose a framework to show 1) is doable.
+% (IV.b): more details about speech SUPERB (tasks, representations, our frameworks) and our results. Then you can say we show the Speech SUPERB idea is doable and promising, and to facilitate research in this direction, we will release our benchmark as leaderboard / challenge (announce challenge and website here, can be very high level and refer readers to our website for details such as plans, toolkit, rules)
+% (V): conclude our contribution (optional, depends on space)
+
+% *: most of the time, there is a significant overlapping, usually data/label distribution, in training and test set of our academic datasets. However, in practice/industry, distribution changes over time (e.g., building training data/labels with traffic from last month and evaluate/deploy model for live traffic today, and last month traffic are different from today due to new functions were launched last week)
+% **: minimal architecture changes tailored to tasks has following benefits: knowledge can be shared across tasks (e.g., languages), the same change in infrastructure (computation, compression in memory footprint, etc.) benefits all tasks, multiple tasks use the same (partial) architecture to save computation / cost
+
+
+% Daniel: (March 14)
+% Thank you for starting working on the intro. It is a good first step but I think we need some massages for the content. Currently the structure is not clear to me, which hinders the work to be evaluated and get visibility as it should. For example, you mentioned existing works of SSL in speech in paragraph 1, SSL in NLP in paragraph 2, the benefit of a general-purpose model for speech processing in paragraph 3, more SSL works in speech but no shared benchmarks as NLP in paragraph 4, and then our works in paragraph 5 and 6. The discussion switched back and forth between NLP, which is confusing. Also, SSL is not properly motivated at the very beginning (why should I care about SSL at all). It is also not clear what are the existing works (in NLP, general ML and speech) and what are the gaps our work aims to bridge.
+
+% I would recommend to restructure the content something like the following:
+
+% Paragraph 1 (from your paragraph 2 and the second half of paragraph 4 related to NLP) - 
+%(checked) SSL in NLP (including LM pretraining efforts like BERT and Electra
+%(checked) the consistent performance improvement across downstream language understanding tasks on standard benchmarks like GLUE or decaNLP).
+%(checked) Also mentioned that SSL yields consistent performance across tasks and use cases (like languages or domains) with less effort in data annotation, and SSL has the potential to democratize deep learning to more application scenarios.
+
+% Paragraph 2 (from your paragraph 1, the first half of paragraph 4 related to speech, and the paragraph 3 related to downside of no general-purpose models) - talking about SSL in speech. Start from the current status (something like - Affected by the progress in NLP area, SSL is gaining attention recently. ...). Then, talk about the missing parts - too many speech tasks, disjoint model architecture, pretraining strategy, post-processing techniques, no shared benchmarks. The missing part hinder the comparison across works and the interpretation of research results. Also, different architectures mean duplicate works in (pre)training / inference, waste of computation and data collection resources, or even overfitting to tasks [you can split this paragraph into 2, one for current status of SSL in speech and one for the missing part].  
+
+% Paragraph 3 (from your paragraph 5): propose SUPERB to address the problem. We should talk about what is the goal of SUPERB right after the first utterance (We propose Speech Processing SUPERB). I think the 2 goals can be 1) a general-purpose pretrained model that yields high-quality representation. The representation generalizes well across downstream tasks and requires limited modifications for tasks to achieve competitive performance, 2) benchmarks for speech tasks to facilitate research of SSL for speech.
+% Paragraph 4 (from your paragraph 6)
+
+% Leo: Really thanks Daniel for your precious time to help with my poor writing! I will look into this in detail.
+
+\section{Speech processing Universal PERformance Benchmark}
+
+We establish and release Speech processing Universal PERformance Benchmark (SUPERB), aiming to offer the community a standard and comprehensive testbed for evaluating the generalizability of pretrained models on various tasks covering all aspects of speech.
+General speech processing can be categorized into discriminative and generative tasks.
+The former discriminates from continuous speech into discrete decisions like \textit{a match} in query-by-example, \textit{words} in ASR, and \textit{classes} in speaker identification; the latter generates continuous speech from any input like TTS, voice conversion, and source separation.
+We focus on the former for the initial release of SUPERB\footnote{SUPERB is a long-term maintained and continuously developing project. More pretrained models will be included in the leaderboard, and we plan to release generative tasks as the second challenge, like voice conversion and source separation.}.
+Tasks are designed with the following principles: (1) conventional evaluation protocols from speech communities, (2) publicly available datasets for everyone to participate, (3) limited labeled data to effectively benchmark the generalizability of models.
+Ten tasks are presented here to investigate four aspects of speech: content, speaker, semantics, and paralinguistics.
+% \vspace{-2mm}
+
+\subsection{Content}
+% \vspace{-1mm}
+
+Four tasks are collected from ASR and Spoken Term Detection communities.
+The former aims to \textit{transcribe} speech into text content; the latter is to \textit{detect} the spoken content with minimal effort even without transcribing.
+
+\textbf{Phoneme Recognition, PR} transcribes an utterance into the smallest content units.
+% Although previously in \cite{cpc, mockingjay}, phoneme classification is conducted with forced aligned frame-wise labels,
+We include alignment modeling in the PR task to avoid the potential inaccurate forced alignment.
+% As TIMIT and Wall Street Journal are under LDC licenses,
+LibriSpeech~\cite{librispeech} train-clean-100/dev-clean/test-clean subsets are adopted in SUPERB for training/validation/testing.
+Phoneme transcriptions are obtained from the LibriSpeech official \textit{g2p-model-5} and the conversion script in Kaldi \textit{librispeech s5} recipe.
+The evaluation metric is phone error rate (PER).
+
+\textbf{Automatic Speech Recognition, ASR} transcribes utterances into words.
+While PR analyzes the improvement in modeling phonetics, ASR reflects the significance of the improvement in a real-world scenario.
+LibriSpeech train-clean-100/dev-clean/test-clean subsets are used for training/validation/testing.
+The evaluation metric is word error rate (WER).
+
+\textbf{Keyword Spotting, KS} detects preregistered keywords by classifying utterances into a predefined set of words.
+The task is usually performed on-device for the fast response time.
+Thus, accuracy, model size, and inference time are all crucial.
+We choose the widely used Speech Commands dataset v1.0~\cite{speech_commands} for the task.
+The dataset consists of ten classes of keywords, a class for silence, and an \textit{unknown} class to include the false positive.
+The evaluation metric is accuracy (ACC).
+
+\textbf{Query by Example Spoken Term Detection, QbE} detects a spoken term (query) in an audio database (documents) by binary discriminating a given pair of query and document into a match or not.
+The English subset in QUESST 2014~\cite{quesst2014} challenge is adopted since we focus on investigating English as the first step.
+The evaluation metric is maximum term weighted value (MTWV) which balances misses and false alarms.
+% \vspace{-2mm}
+
+\subsection{Speaker}
+% \vspace{-1mm}
+
+Three tasks are collected to analyze speaker modeling.
+
+\textbf{Speaker Identification, SID} classifies each utterance for its speaker identity as a multi-class classification, where speakers are in the same predefined set for both training and testing.
+The widely used VoxCeleb1~\cite{voxceleb1} is adopted, and the evaluation metric is accuracy (ACC).
+
+\textbf{Automatic Speaker Verification, ASV} verifies whether the speakers of a pair of utterances match as a binary classification, and speakers in the testing set may not appear in the training set.
+Thus, ASV is more challenging than SID.
+VoxCeleb1~\cite{voxceleb1} is used without VoxCeleb2 training data and noise augmentation.
+The evaluation metric is equal error rate (EER).
+
+\textbf{Speaker Diarization, SD} predicts \textit{who is speaking when} for each timestamp, and multiple speakers can speak simultaneously.
+The model has to encode rich speaker characteristics for each frame and should be able to represent mixtures of signals.
+% which is not presented in the pretraining data for existing SSL models.
+LibriMix~\cite{cosentino2020librimix} is adopted where LibriSpeech train-clean-100/dev-clean/test-clean are used to generate mixtures for training/validation/testing.
+We focus on the two-speaker scenario as the first step.
+% \footnote{Specifically, we employ 100-hour clean-train, clean-dev and clean-test to generate training, development, and test mixtures, respectively.}
+The time-coded speaker labels were generated using alignments from Kaldi LibriSpeech ASR model.
+The evaluation metric is diarization error rate (DER).
+% \vspace{-2mm}
+
+\subsection{Semantics}
+% \vspace{-1mm}
+
+Two tasks are collected from Spoken Language Understanding (SLU) community.
+While most works for these tasks are done in two stages: transcribing speech into text and predicting semantics on transcribed text, we focus on inferring high-level semantics directly from raw audio in an end-to-end fashion.
+
+\textbf{Intent Classification, IC} classifies utterances into predefined classes to determine the intent of speakers.
+We use the Fluent Speech Commands~\cite{lugosch2019speech} dataset, where each utterance is tagged with three intent labels: action, object, and location.
+The evaluation metric is accuracy (ACC).
+
+\textbf{Slot Filling, SF} predicts a sequence of semantic slot-types from an utterance, like a slot-type \textit{FromLocation} for a spoken word \textit{Taipei}, which is known as a slot-value.
+Both slot-types and slot-values are essential for an SLU system to function~\cite{lai2020semi}.
+The evaluation metrics thus include slot-type F1 score and slot-value CER~\cite{tomashenko2019recent}.
+% The former evaluates predicted slot-types' correctness without considering slot-values; the latter compute CER between slot-values of a pair of slots with the same slot-type to test whether the model is predicting the correct slot-type grounded on the correct content.
+Audio SNIPS~\cite{lai2020semi} is adopted, which synthesized multi-speaker utterances for SNIPS~\cite{coucke2018snips}.
+Following the standard split in SNIPS, US-accent speakers are further selected for training, and others are for validation/testing.
+% \vspace{-2mm}
+
+\subsection{Paralinguistics}
+% \vspace{-1mm}
+
+\textbf{Emotion Recognition, ER} predicts an emotion class for each utterance.
+The most widely used ER dataset IEMOCAP~\cite{iemocap} is adopted, and we follow the conventional evaluation protocol: we drop the unbalance emotion classes to leave the final four classes (neutral, happy, sad, angry) with a similar amount of data points and cross-validates on five folds of the standard splits.
+The evaluation metric is accuracy (ACC).
+
+\section{Framework: Universal Representation}
+% \vspace*{-1mm}
+
+Our framework aims to explore \textit{how simple and general the solution can be}. %such that it can effectively democratize advanced speech processing.
+Thus, we freeze the parameters of pretrained models across tasks and extract fixed representations to be fed into each task-specialized prediction head (small downstream model).
+Compared to previous setups in speech representation learning~\cite{tera,wav2vec,vq_wav2vec}, the framework puts an explicit constraint on downstream models to be as lightweight as possible for all tasks, as their parameter size and required training resources are also crucial for the framework to be simple and re-usable in various use cases.
+With the above principles, the pretrained model solving all SUPERB tasks in this framework would be a universal representation encoder.
+In the following, we first describe the SSL pretrained models leveraged and then introduce the downstream models and training policies.
+% \vspace{-3mm}
+
+% After the above paragraph, we completely narrow down to representation learning.
+
+\subsection{Self-supervised pretrained models}
+% \vspace{-1mm}
+
+SSL models explored in this paper are summarized in Table~\ref{table:upstreams} and categorized into three learning approaches: generative modeling, discriminative modeling, and multi-task learning.
+
+\textbf{Generative modeling} has long been a prevailing approach to learn speech representation~\cite{apc1,mockingjay,decoar2}.
+Instances of generative modeling investigated here include APC~\cite{apc1}, VQ-APC~\cite{vq_apc}, Mockingjay~\cite{mockingjay}, TERA~\cite{tera}, NPC~\cite{npc} and DeCoAR 2.0~\cite{decoar2}.
+APC adopts the language model-like pretraining scheme on a sequence of acoustic features (FBANK) with unidirectional RNN and generates future frames conditioning on past frames.
+VQ-APC further applies vector-quantization (VQ) layers onto APC's representation to make it compact and low bit-rate.
+Mockingjay adopts the BERT-like pretraining on Transformer encoders by masking the input acoustic features in time axis and re-generating the masked parts.
+TERA extends Mockingjay to further mask the frequency bins.
+NPC improves the inference speed upon APC by replacing RNN with CNN and changing the future generation to masked reconstruction as Mockingjay.
+DeCoAR 2.0 improves upon Mockingjay by inserting a VQ layer right before the final prediction like VQ-APC, and is trained by larger input mask, larger batch size, and more unlabeled data.
+
+\textbf{Discriminative modeling} for SSL studied here include CPC~\cite{cpc,modified_cpc}, wav2vec~\cite{wav2vec}, vq-wav2vec~\cite{vq_wav2vec}, wav2vec 2.0~\cite{wav2vec2} and HuBERT~\cite{hsu2021hubert}.
+CPC discriminates the correlated positive samples from negative samples with contrastive InfoNCE loss, which maximizes the mutual information between raw data and representations.
+Modified CPC~\cite{modified_cpc} and wav2vec~\cite{wav2vec} proposed several architecture changes to improve CPC.
+vq-wav2vec introduces a VQ module to wav2vec. The module discretizes speech into a sequence of tokens after InfoNCE pretraining.
+Tokens are used as pseudo-text to train a BERT as did in NLP for contextualized representations.
+wav2vec 2.0 merges the pipeline of vq-wav2vec into one end-to-end training scheme by applying time masking in the latent space and replacing BERT's token prediction with InfoNCE's negative sampling to handle the intractable normalization on continuous speech.
+Motivated by DeepCluster~\cite{caron18deepcluster}, HuBERT~\cite{hsu2021hubert} enables BERT's token prediction via off-line clustering on representations.
+The clustered labels at the masked locations are then predicted.
+
+\textbf{Multi-task learning} is applied in PASE+~\cite{pase+}, where lots of pretraining objectives are adopted: waveform generation, prosody features regression, contrastive InfoMax objectives, and more.
+Multiple contaminations are also applied to input speech like reverberation and additive noise.
+% \vspace{-1mm}
+
+\subsection{Downstream models and policies}
+% \vspace{-1mm}
+
+We design our framework to keep the downstream models and their finetuning simple, while ensuring the performance across pretrained models is comparable and the best model in each task is competitive.
+Since the last-layer representation is not always the best, the framework collects multiple hidden states from the pretrained model and weighted-sum them as the final representation.
+For a fair comparison, we also limit the space for downstream hyper-parameters tuning\footnote{We search for the best learning rate across 1e-1 to 1e-7 in log-scale for each combination of SSL representation and the downstream tasks. More details about the allowed hyper-parameters tuning will be available as we announce the challenge, but there will not be many hyper-parameters to keep tuning simple.}.
+Downstream models and algorithms are summarized in the following and will be released in detail as a part of the challenge policy.
+
+\textbf{PR}, \textbf{KS}, \textbf{SID}, \textbf{IC}, \textbf{ER} are simple tasks that are solvable with linear downstream models.
+Hence, we use a frame-wise linear transformation for PR with CTC loss; mean-pooling followed by a linear transformation with cross-entropy loss for utterance-level tasks (KS, SID, IC, and ER).
+These five tasks also serve as the direct indication of representations' quality following the conventional linear evaluation protocol.
+
+For \textbf{ASR}, a vanilla 2-layer 1024-unit BLSTM is adopted and optimized by CTC loss on characters. The trained model is decoded with LibriSpeech official 4-gram LM powered by KenLM~\cite{kenlm} and flashlight~\cite{wav2letter++} toolkit.
+% SpecAugment~\cite{specaug} is also applied to the representations to avoid overfitting.
+We mostly follow the system proposed by GTTS-EHU for QUESST at MediaEval 2014 \cite{gttsehu} for \textbf{QbE} but replace the conventional supervised phoneme posteriorgram (PPG) with SSL representations.
+% Representations are extracted for every utterance and normalized along each feature dimension to make the numerical values at the same scale.
+We run Dynamic Time Warping\cite{dtw} on all hidden states separately with standard distance functions and obtain a score for each query-document pair.
+% The scores belonging to each query are normalized separately.
+The best distance function / hidden state pair is reported.
+Regarding \textbf{SF}, slot-type labels are represented as special tokens to wrap the slot-values in transcriptions.
+SF is then re-formulated as an ASR problem.
+The finetuning scheme is the same as in our ASR task, except for the pre-processing to encode slot-types into transcriptions and post-processing to decode slot-types and slot-values from hypotheses.
+As for \textbf{ASV}, we adopt the well-known x-vector~\cite{snyder2018x} as the downstream model and change Softmax loss to AMSoftmax loss with the same hyper-parameters as \cite{voxceleb1}.
+The simple cosine-similarity backend is used to produce pairwise matching scores.
+We employ the end-to-end training scheme with permutation-invariant training (PIT) loss \cite{fujita2019end} to \textbf{SD}, instead of using clustering-based methods. We leverage a single-layer 512-unit LSTM for the downstream model.
+% \vspace{-1mm}
+
+% \textbf{Query by Example Spoken Term Detection, QbE} is to search for a spoken term (query) in an audio database (documents), without speech-to-text conversion. QbE has no dependency on ASR systems and relies more on the feature extraction and the detection algorithm.
+% We mostly follow the system proposed by GTTS-EHU for QUESST at MediaEval 2014 \cite{gttsehu}, but replace the conventional supervised phoneme posteriorgram with SSL representations. Representations are extracted for every utterance and normalized along each feature dimension.
+% We apply Dynamic Time Warping (DTW) to the representations with the package: \emph{dtw-python}
+% and obtain a score for each query-document pair. The scores belonging to each query are normalized separately.
+% Experiments are conducted on the non-native English subset of QUESST 2014 \cite{quesst2014} because all SSL representations were pretrained on English corpora.
+% Combinations of distance functions and step functions are treated as hyperparameters and tuned with validation set.
+% The evaluation metrics is maximum term weighted value (MTWV).
+
+
+
+% \begin{comment}
+% \subsection{***Table: Downstream}
+% \end{comment}
+% \begin{table*}[ht]
+% \centering
+% \begin{tabular}{|l||l|l|l|l|l|l|}
+% \hline
+% Task & Model & Parameter & Dataset & Example & Metric & Skills \\ \hline \hline
+%  &  &  &  &  &  &  \\
+%  &  &  &  &  &  &  \\
+%  &  &  &  &  &  &  \\
+%  &  &  &  &  &  &  \\ \hline
+% \end{tabular}
+% \vspace*{2mm}
+% \caption{\small\textbf{for leo.} TODO}
+% \label{table:downstreams}
+% \end{table*}
+
+% \section{Speech Understanding and Performance Benchmark}
+
+% We propose a set of \textbf{\textit{10}} downstream tasks to jointly benchmark the capability of SSL approaches and learned representations.
+% The tasks are collected by speech communities for various aspects to comprehensively examine the approaches.
+% We also build a framework to leverage SSL approaches and solve the tasks.
+% As a heavyweight downstream adaptation is cumbersome in model development, we freeze the SSL pretrained model to extract fixed representation for the downstream usage, and limit the parameters and network architectures utilized for task finetuning.
+% Having the downstream adaptation lightweight benefits the efficiency in data usage, computation, and development.
+% We categorize the ten tasks into two tracks, linear separability and advanced applications, and discuss the details of tasks and the application of proposed frameworks to each problem.
+
+% \subsection{Linear Separability}
+
+% Following the conventional evaluation protocol~\cite{cpc,apc1,tera}, we probe representations with linear models in \textit{\textbf{5}} tasks, Phoneme Recognition, Keyword Spotting, Intent Classification, Speaker Identification, and Emotion Recognition. These tasks serve as a direct indication of representations' capability without any dependency on specific downstream models. The default setting for these tasks is a mean-pooling of representations from pretrained networks followed by a linear layer as the downstream model. The model is optimized by Adam with batch size 32 and cross-entropy loss. We use the standard training/validation/testing splits in each dataset and accuracy (ACC) as the evaluation metric.
+
+% \textbf{Phoneme Recognition, PR} classifies each frame on the smallest content units. In \cite{apc1, mockingjay, tera}, phoneme classification is conducted with force-aligned frame-wise phoneme labels. We avoid the potential inaccurate alignment by offloading the alignment to the downstream model and CTC loss. The downstream model is the same frame-wise single linear layer as in \cite{apc1,mockingjay,tera}.
+% We use LibriSpeech~\cite{librispeech} train-clean-100, dev-clean, and test-clean subsets for training/validation/testing. Phoneme transcriptions are obtained from the LibriSpeech official grapheme-to-phoneme model \textit{g2p-model-5} and the conversion script from Kaldi \textit{librispeech s5} recipe. The reported metric is phone error rate (PER).
+
+% \textbf{Keyword Spotting, KS} is to detect specific keywords from utterances with minimal effort without transcribing the utterances. KS formulates the problem by classifying utterances into a predefined set of words. The task is usually performed on-device for the fast response time. Thus, accuracy, model size, and inference time are crucial. We utilize the widely used Speech Commands dataset v1.0~\cite{speech_commands} for evaluation.
+% The dataset consists of ten classes of keywords, a class for silence, and an \textit{unknown} class to include the false positive.
+
+% \textbf{Intent Classification, IC} aims to infer high-level semantics from speech and is a crucial component in common Spoken Language Understanding (SLU) systems.
+% We design our IC task on top of previous end-to-end literatures~\cite{lugosch2019speech}, where intent labels are predicted directly from speech.
+% We use the Fluent Speech Commands~\cite{lugosch2019speech} dataset for our experiments, where each utterance is tagged with three labels: action, object, and location.
+% In our downstream model, three separate linear layers projecting a single mean pooled latent vector are used for the respective three labels.
+
+% \textbf{Speaker Identification, SID} classifies each utterance for its speaker identity. SID is a conventional evaluation task for SSL representation~\cite{cpc,apc1,mockingjay,tera,pase}. Instead of using LibriSpeech or Wall Street Journal, we opt for a more challenging dataset from the community, VoxCeleb1~\cite{voxceleb1}. The dataset comprises utterances from 1251 speakers collected in the wild.
+
+% \textbf{Emotion Recognition, ER} predicts emotion in each utterance. We adopt ER as one of the evaluation tasks because it is interesting to study the paralinguistics learned by SSL beyond the content and speaker properties.
+% We utilize the most widely used ER dataset IEMOCAP~\cite{iemocap}, and follow the conventional evaluation protocol: we drop the unbalance emotion classes to leave the final four classes with a similar amount of data points and cross-validates on five folds of the standard splits.
+
+% \subsection{Advanced Applications}
+
+% We further examine the capability of SSL approaches and learned representations in \textit{\textbf{5}} real-world problems, Automatic Speech Recognition, Query by Example Spoken Term Detection, Slot Filling, Automatic Speaker Verification, and Speaker Diarization.
+% Although complex and task-specific model architectures are common to push the SOTA performance in these problems, when designing our models, we choose to follow the principle to keep downstream models as lightweight and general as possible while achieving competitive performance.
+% The principle is essential to focus our comparison on the representations learned by different SSL approaches, and to examine the generalizability, accessibility, and re-usability of each approach and the system built upon it. 
+% We describe the five problems and our models in detail below.
+% We also summarize our experiment datasets.
+% The standard training/validation/testing splits in each dataset are used if not explicitly mentioned.
+
+% \textbf{Automatic Speech Recognition, ASR} is the most studied application in SSL, where \cite{wav2vec, wav2vec2, decoar2, tera} all show promising results of utilizing pretrained models in different ways. Usually, complicated designs are required to achieve SOTA performance for a classic ASR system. However, we aim at exploring how easy ASR can be when leveraging powerful speech representations. We adopt a simple 2-layer 1024-unit bidirectional LSTM for the downstream model, which is also used in ~\cite{decoar2}. We train the downstream model by CTC loss on letters and decode with the official LibriSpeech 4-gram language model powered by KenLM and flashlight toolkit for faster inference. The LibriSpeech train-clean-100/dev-clean/test-clean subsets are used for training/validation/testing. Preliminary results show that the LSTM model is prone to overfit; hence we also apply SpecAugment. The reported metric is word error rate (WER).
+
+% \textbf{Query by Example Spoken Term Detection, QbE} is to search for a spoken term (query) in an audio database (documents), without speech-to-text conversion. QbE has no dependency on ASR systems and relies more on the feature extraction and the detection algorithm.
+% We mostly follow the system proposed by GTTS-EHU for QUESST at MediaEval 2014 \cite{gttsehu}, but replace the conventional supervised phoneme posteriorgram with SSL representations. Representations are extracted for every utterance and normalized along each feature dimension.
+% We apply Dynamic Time Warping (DTW) to the representations with the package: \emph{dtw-python}
+% and obtain a score for each query-document pair. The scores belonging to each query are normalized separately.
+% Experiments are conducted on the non-native English subset of QUESST 2014 \cite{quesst2014} because all SSL representations were pretrained on English corpora.
+% Combinations of distance functions and step functions are treated as hyperparameters and tuned with validation set.
+% The evaluation metrics is maximum term weighted value (MTWV).
+
+% \textbf{End-to-End Slot Filling, SF} is another essential task in SLU, where a sequence of semantic slot-types are predicted from raw audio with or without an intermediate natural language understanding (NLU) module~\cite{lai2020semi}.
+% Note that in contrast to IC, a SF model should predict a slot-type sequence basing on the \textit{predicted text} sequence~\cite{lai2020semi}.
+% To gauge the effectiveness of SSL in inferring semantics directly from raw audio, we adopt one of the baseline models in~\cite{lai2020semi}, where slot-type labels are represented as special tokens in transcriptions to re-formulate SF as an ASR problem.
+% The training scheme is the same as in our ASR task, except for the pre-processing and post-processing of the transcriptions to include the slot-type labels.
+% The metrics include slot-type F1 score and slot-value CER~\cite{tomashenko2019recent}.
+% The slot-type F1 score is computed to evaluate the predicted slot-types' correctness without considering the slot-values. For each ground-truth slot, a predicted slot with the same slot-type is chosen, and CER between their slot-values is further computed to ensure whether the model is predicting the correct slot-type grounded on the correct content.
+
+% \textbf{Automatic Speaker Verification, ASV} verifies whether the speakers of a pair of enrollment and testing utterances match.
+% The speakers in the testing set may not appear in the training.
+% As compared to SID, where the speakers of training and testing sets are identical, ASV is an open-set and more challenging problem.
+% We adopt the well-known x-vector~\cite{snyder2018x} as the downstream model by only replacing the statistical pooling with attentive pooling, and we train on VoxCeleb1 without noise augmentation to stick to our lightweight-downstream principle.
+% The metric is equal error rate (EER) with cosine backend.
+
+% \textbf{Speaker Diarization, SD} targets to address the \textit{who spoken when} problem.
+% Different from SID and ASV, SD is conducted under frame level. Representations have to be rich in speaker characteristics for each frame and compatible with mixtures of signals, which is not presented as pretraining data for existing SSL approaches.
+% For our lightweight-downstream principle, we employ the end-to-end speaker diarization with permutation-invariant training (PIT) loss \cite{fujita2019end} instead of the clustering-based methods, and use only a single-layer 512-unit LSTM for the downstream model.
+% We adopt LibriMix~\cite{cosentino2020librimix} for diarization. The time-coded speaker labels were generated using alignments from Kaldi LibriSpeech ASR model.
+% Diarization error rate (DER) is used as the evaluation metric.
+
+\begin{comment}
+\subsection{***Table: Upstreams}
+\end{comment}
+\begin{table*}[ht]
+\centering
+\setlength{\tabcolsep}{3pt}
+\caption{
+Details of investigated SSL representations. LibriSpeech and LibriLight are denoted as LS and LL, respectively. For the pretraining methods, we abbreviate "vector quantization" as VQ, "future" as F, "masked" as M, "generation" as G, "contrastive discrimination" as C, and "token prediction/classification" as P. Parameters for both pretraining and inference are counted.
+}
+\resizebox{0.98\textwidth}{!}{
+\begin{tabular}{|l||c|c|c|c|c|c|c|}
+\hline
+Method & Network & \#Params & Stride & Input & Corpus & Pretraining & Official Github \\ \hline \hline
+
+FBANK & - & 0 & 10ms & waveform & - & - & - \\ \hline
+
+PASE+~\cite{pase+} & SincNet, 7-Conv, 1-QRNN & 7.83M & 10ms & waveform & LS 50 hr & multi-task & santi-pdp / pase \\ \hline
+
+APC~\cite{apc1} & 3-GRU & 4.11M & 10ms & FBANK & LS 360 hr & F-G & iamyuanchung / APC \\
+
+VQ-APC~\cite{vq_apc} & 3-GRU & 4.63M & 10ms & FBANK & LS 360 hr & F-G + VQ & iamyuanchung / VQ-APC \\
+
+NPC~\cite{npc} & 4-Conv, 4-Masked Conv & 19.38M & 10ms & FBANK & LS 360 hr & M-G + VQ & Alexander-H-Liu / NPC \\
+
+Mockingjay~\cite{mockingjay} & 12-Trans & 85.12M & 10ms & FBANK & LS 360 hr & time M-G & s3prl / s3prl \\
+
+TERA~\cite{tera} & 3-Trans & 21.33M & 10ms & FBANK & LS 960 hr & time/freq M-G & s3prl / s3prl \\ 
+
+DeCoAR 2.0~\cite{decoar2} & 12-Trans & 89.84M & 10ms & FBANK & LS 960 hr & time M-G + VQ & awslabs / speech-representations \\ 
+\hline
+
+modified CPC~\cite{modified_cpc} & 5-Conv, 1-LSTM & 1.84M & 10ms & waveform & LL 60k hr & F-C & facebookresearch / CPC\_audio \\
+
+wav2vec~\cite{wav2vec} & 19-Conv & 32.54M & 10ms & waveform & LS 960 hr & F-C & pytorch / fairseq \\
+
+vq-wav2vec~\cite{vq_wav2vec} & 20-Conv & 34.15M & 10ms & waveform & LS 960 hr & F-C + VQ & pytorch / fairseq \\
+
+wav2vec 2.0 Base~\cite{wav2vec2} & 7-Conv 12-Trans & 95.04M & 20ms & waveform & LS 960 hr & M-C + VQ & pytorch / fairseq \\
+
+wav2vec 2.0 Large~\cite{wav2vec2} & 7-Conv 24-Trans & 317.38M & 20ms & waveform & LL 60k hr & M-C + VQ & pytorch / fairseq \\
+
+HuBERT Base~\cite{hsu2021hubert} & 7-Conv 12-Trans & 94.68M & 20ms & waveform & LS 960 hr & M-P + VQ & pytorch / fairseq \\
+
+HuBERT Large~\cite{hsu2021hubert} & 7-Conv 24-Trans & 316.61M & 20ms & waveform & LL 60k hr & M-P + VQ & pytorch / fairseq \\
+\hline
+\end{tabular}}
+% \vspace*{-0.5mm}
+\label{table:upstreams}
+\end{table*}
+
+% Final numbers check
+% PR, 1 pass
+% KS, final
+% IC, final
+% SID, 1 pass
+% ER, final
+% ASR, 1 pass
+% QbE, final
+% SF, final
+% ASV, 1 pass
+% SD, final
+
+\begin{comment}
+\subsection{***Table: Exp}
+\end{comment}
+\begin{table*}[ht]
+\centering
+\caption{Evaluating various SSL representations on various downstream tasks. The numbers are collected with public-available checkpoints or codes, and we welcome researchers to re-submit the results to our online leaderboard.
+% Phoneme recognition is denoted as \textbf{PR}, keyword spotting as \textbf{KS}, intent classification as \textbf{IC}, speaker identification as \textbf{SID}, emotion recognition as \textbf{ER}, automatic speech recognition as \textbf{ASR}, query-by-example as \textbf{QbE}, slot filling as \textbf{SF}, speaker verification as \textbf{ASV}, and speaker diarization as \textbf{SD}.
+}
+\resizebox{1.0\textwidth}{!}{
+\begin{tabular}{|l||r|r|r|r|r||rr|r|rr|r|r|}
+\hline
+\multirow{2}{*}{} & PR & KS & IC & SID & ER & \multicolumn{2}{c|}{ASR (WER)} & QbE & \multicolumn{2}{c|}{SF} & ASV & SD \\ \cline{2-13}
+
+& PER $\downarrow$ & Acc $\uparrow$ & Acc $\uparrow$ & Acc $\uparrow$ & Acc $\uparrow$ & w/o $\downarrow$ & w/ LM $\downarrow$ & MTWV $\uparrow$ & F1 $\uparrow$ & CER $\downarrow$ & EER $\downarrow$ & DER $\downarrow$ \\ \hline \hline
+
+FBANK & 82.01 & 8.63 & 9.10 & 8.5E-4 & 35.39 & 23.18 & 15.21 & 0.0058 & 69.64 & 52.94 & 9.56 & 10.05 \\ \hline
+
+PASE+~\cite{pase+} & 58.87 & 82.54 & 29.82 & 37.99 & 57.86 & 25.11 & 16.62 & 0.0072 & 62.14 & 60.17 & 11.61 & 8.68 \\ \hline
+
+APC~\cite{apc1} & 41.98 & 91.01 & 74.69 & 60.42 & 59.33 & 21.28 & 14.74 & 0.0310 & 70.46 & 50.89 & 8.56 & 10.53 \\
+
+VQ-APC~\cite{vq_apc} & 41.08 & 91.11 & 74.48 & 60.15 & 59.66 & 21.20 & 15.21 & 0.0251 & 68.53 & 52.91 & 8.72 & 10.45 \\
+
+NPC~\cite{npc} & 43.81 & 88.96 & 69.44 & 55.92 & 59.08 & 20.20 & 13.91 & 0.0246 & 72.79 & 48.44 & 9.4 & 9.34 \\
+
+Mockingjay~\cite{mockingjay} & 70.19 & 83.67 & 34.33 & 32.29 & 50.28 & 22.82 & 15.48 & 6.6E-04 & 61.59 & 58.89 & 11.66 & 10.54 \\
+
+TERA~\cite{tera} & 49.17 & 89.48 & 58.42 & 57.57 & 56.27 & 18.17 & 12.16 & 0.0013 & 67.50 & 54.17 & 15.89 & 9.96 \\
+
+DeCoAR 2.0~\cite{decoar2} & 14.93 & 94.48 & 90.80 & 74.42 & 62.47 & 13.02 & 9.07 & 0.0406 & 83.28 & 34.73 & 7.16 & 6.59 \\
+
+\hline
+
+modified CPC~\cite{modified_cpc} & 42.54 & 91.88 & 64.09 & 39.63 & 60.96 & 20.18 & 13.53 & 0.0326 & 71.19 & 49.91 & 12.86 & 10.38 \\
+
+wav2vec~\cite{wav2vec} & 31.58 & 95.59 & 84.92 & 56.56 & 59.79 & 15.86 & 11.00 & 0.0485 & 76.37 & 43.71 & 7.99 & 9.9 \\
+
+vq-wav2vec~\cite{vq_wav2vec} & 33.48 & 93.38 & 85.68 & 38.80 & 58.24 & 17.71 & 12.80 & 0.0410 & 77.68 & 41.54 & 10.38 & 9.93 \\
+
+wav2vec 2.0 Base~\cite{wav2vec2} & 5.74 & 96.23 & 92.35 & 75.18 & 63.43 & 6.43 & 4.79 & 0.0233 & 88.30 & 24.77 & 6.02 & 6.08 \\
+
+wav2vec 2.0 Large~\cite{wav2vec2} & 4.75 & \textbf{96.66} & 95.28 & 86.14 & 65.64 & 3.75 & 3.10 & 0.0489 & 87.11 & 27.31 & 5.65 &  \textbf{5.62} \\
+
+HuBERT Base~\cite{hsu2021hubert} & 5.41 & 96.30 & 98.34 & 81.42 & 64.92 & 6.42 & 4.79 & \textbf{0.0736} & 88.53 & 25.20 & \textbf{5.11} & 5.88 \\
+
+HuBERT Large~\cite{hsu2021hubert} & \textbf{3.53} & 95.29 & \textbf{98.76} & \textbf{90.33} & \textbf{67.62} & \textbf{3.62} & \textbf{2.94} & 0.0353 & \textbf{89.81} & \textbf{21.76} & 5.98 & 5.75 \\
+\hline
+\end{tabular}
+}
+% \vspace*{1mm}
+\label{table:exp}
+\vspace*{-4mm}
+\end{table*}
+
+\section{Experiment}
+
+To extract representations from pretrained models, we follow the official release as summarized in Table~\ref{table:upstreams} for model definitions, pretrained weights, and extraction pipelines if not mentioning specifically.
+Some noteworthy details are:
+(1) NPC repository is used to pretrain APC and VQ-APC as it is more flexible\footnote{It is preferable for its on-the-fly FBANK extraction to enable testing representations on more corpora. Its APC implementation is mostly the same as the official but with CMVN on FBANK. Its VQ-APC is an improved version as stated in the official repository.}.
+(2) For vq-wav2vec, we do not propagate through BERT since its BERT implementation limits the utterance length which is not long enough for some tasks.
+
+We present the results in Table~\ref{table:exp}.
+For the tasks using linear models, FBANK cannot work on any task, while SSL representations all perform well to some degree with different specializations.
+It is a surprise that wav2vec 2.0 and HuBERT conquers PR and IC with just linear models and outperforms others by a large margin.
+Their results on SID and ER are also highly competitive.
+FBANK achieves competitive performance when allowing non-linear downstream models in ASR, SF, ASV, and SD, and yields better performance than some SSL representations.
+We also observe that the ranking on PR aligns with ASR weakly, while a significant improvement on phonetics still transfers to ASR, like wav2vec, wav2vec 2.0, and HuBERT.
+Furthermore, wav2vec 2.0 and HuBERT demonstrate that it becomes much easier than before to train an ASR system by leveraging powerful SSL representations.
+HuBERT ranks the top one in QbE with MTWV 0.074.
+The prevailing feature for QbE is PPG which we implemented with TIMIT due to the current focus on English, and the result of TIMIT PPG is 0.052 in MTWV, suggesting that HuBERT turns out to be a very competitive representation for QbE.
+As for SF, we can also observe a significant improvement from wav2vec 2.0 and HuBERT over all other representations.
+The CER in SF is generally high compared to ASR as many slot-values are named entities.
+The results in ASV and SD show that many SSL representations are worse than FBANK when it comes to real-world speaker problems beyond SID, while HuBERT improves upon popular FBANK from 9.56 to 5.10 without additional VoxCeleb2 or augmentation.
+Although we find it non-trivial for SSL representations to generalize to all SUPERB tasks, wav2vec 2.0 and HuBERT achieve highly competitive performance with only lightweight prediction heads trainable, compared to traditional supervised techniques. The experiment results exhibit the efficacy of developing a more generalizable and re-usable pretrained model.
+% \vspace*{-2mm}
+
+\section{Conclusion}
+% \vspace*{-1mm}
+
+We present SUPERB, a challenge to generally benchmark the capability of SSL pretrained models on speech processing.
+We demonstrate a simple framework to solve all SUPERB tasks which leverages a frozen, shared pretrained model and achieves competitive performance with minimal architecture changes and downstream finetuning.
+We have open-sourced the evaluation toolkit\textsuperscript{\ref{toolkit}} and will release the detailed challenge policy on the leaderboard website\textsuperscript{\ref{leaderboard}}.
+We welcome the community to participate and drive the research frontier.
+ 
+
+%We present Speech Processing SUPERB (SUPERB), a ten-task challenge to generally test the capability of self-supervised pretrained models on speech processing.
+%We propose to utilize the shared pretrained model for all tasks with limited architecture changes, limited labeled data, and limited computing resource for downstream adaptation.
+%This way, SUPERB can directly reflect how far we are toward the holy grail of one single pretrained model solving all speech processing tasks.
+%Our results show that it is doable and promising to develop general-purpose pretrained models, and there are lots of research possibilities in this direction.
+%We open-sourced the evaluation toolkit s3prl and will release the detailed evaluation policy on the leaderboard website.
+
+% \section{Acknowledgements}
+
+% The ISCA Board would like to thank the organizing committees of the past INTERSPEECH conferences for their help and for kindly providing the template files. \\
+% Note to authors: Authors should not use logos in the acknowledgement section; rather authors should acknowledge corporations by naming them only.
+
+% Nice thanks Jeff
+% cna't get it to work lol 
+% instead of listing all the authors, just list the first author? e.g. J.Devlin et al instead of J. Devlin, M.-W. Chang, K. Lee, and K. Toutanova -- Shinji's group did this for their paper e.g. Orthos 
+% Oh this looks promising
+% and also is changing the long "Annual Meeting of the Association for Computational Linguistics" to ACL legal?
+% I think so?
+% 2018 IEEE International Conference on Acoustics, Speech andSignal Processing (ICASSP). to 2018 ICASSP lol 
+% Nice. I will do that after confirming with Prof. Lee
+
+\bibliographystyle{IEEEtran}
+\bibliography{mybib}
+
+% \begin{thebibliography}{9}
+% \bibitem[1]{Davis80-COP}
+%   S.\ B.\ Davis and P.\ Mermelstein,
+%   ``Comparison of parametric representation for monosyllabic word recognition in continuously spoken sentences,''
+%   \textit{IEEE Transactions on Acoustics, Speech and Signal Processing}, vol.~28, no.~4, pp.~357--366, 1980.
+% \bibitem[2]{Rabiner89-ATO}
+%   L.\ R.\ Rabiner,
+%   ``A tutorial on hidden Markov models and selected applications in speech recognition,''
+%   \textit{Proceedings of the IEEE}, vol.~77, no.~2, pp.~257-286, 1989.
+% \bibitem[3]{Hastie09-TEO}
+%   T.\ Hastie, R.\ Tibshirani, and J.\ Friedman,
+%   \textit{The Elements of Statistical Learning -- Data Mining, Inference, and Prediction}.
+%   New York: Springer, 2009.
+% \bibitem[4]{YourName17-XXX}
+%   F.\ Lastname1, F.\ Lastname2, and F.\ Lastname3,
+%   ``Title of your INTERSPEECH 2021 publication,''
+%   in \textit{Interspeech 2021 -- 20\textsuperscript{th} Annual Conference of the International Speech Communication Association, September 15-19, Graz, Austria, Proceedings, Proceedings}, 2020, pp.~100--104.
+% \end{thebibliography}
+
+\end{document}

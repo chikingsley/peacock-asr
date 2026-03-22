@@ -1,0 +1,181 @@
+\subsection{Theorem~\ref{thm:cache_sample} Proof: Optimizing \Sys sampling algorithm}
+
+\textbf{Theorem 15.}
+\label{thm:cache_sample_app}
+\textit{For fan-out $F$, and draft logits $z$, the cache hit rate $p_{\mathrm{hit}}$ of the \Sys sampling algorithm increases as $C \rightarrow 0$.}
+
+{
+\begin{proof}
+Fix fan-out $F$ and draft logits $z$. Let $S \coloneqq \mathrm{top}_F(z)$ denote the $F$ cached tokens (where $S$ depends only on $z$, not on $C$). Write $w_t \coloneqq \exp(z_t)>0$ and define
+\[
+A \coloneqq \sum_{t\in S} w_t,\qquad B \coloneqq \sum_{t\notin S} w_t,\qquad Z(C)\coloneqq CA + B.
+\]
+Then the \Sys sampling scheme induces the draft distribution
+\[
+p_C(t) \;=\;
+\begin{cases}
+\dfrac{Cw_t}{Z(C)} & t\in S,\\[6pt]
+\dfrac{w_t}{Z(C)} & t\notin S.
+\end{cases}
+\]
+For $t\in S$,
+\[
+\frac{d}{dC}p_C(t) \;=\; \frac{w_t B}{(CA+B)^2}\;\ge 0,
+\]
+and for $t\notin S$,
+\[
+\frac{d}{dC}p_C(t) \;=\; -\frac{w_t A}{(CA+B)^2}\;\le 0.
+\]
+Thus increasing $C$ increases $p_C(t)$ on cached tokens and decreases $p_C(t)$ off the cache.
+
+Let $q(t)\coloneqq p_{\mathrm{target}}(t)$ and define the (unnormalized) residual mass
+\[
+u_C(t) \coloneqq \max\!\big(q(t)-p_C(t),\,0\big).
+\]
+Since $u_C(t)$ is a nonincreasing function of $p_C(t)$, the above monotonicity gives that
+for $t\in S$, $u_C(t)$ is nonincreasing in $C$; for $t\notin S$, $u_C(t)$ is nondecreasing in $C$.
+Then define
+\[
+\mathrm{in}(C)\coloneqq \sum_{t\in S} u_C(t),\qquad \mathrm{out}(C)\coloneqq \sum_{t\notin S} u_C(t).
+\]
+Then $\mathrm{in}(C)$ is nonincreasing in $C$ and $\mathrm{out}(C)$ is nondecreasing in $C$.
+
+For any verification case in which the bonus token is sampled from the residual distribution (i.e., when $k<K$ in SD/SSD), the probability that the sampled bonus token lies in the cache $S$ is
+\[
+p_{\mathrm{hit}}(C)\;=\;\frac{\mathrm{in}(C)}{\mathrm{in}(C)+\mathrm{out}(C)},
+\]
+with the convention that if $\mathrm{in}(C)+\mathrm{out}(C)=0$ (zero residual mass), then $p_{\mathrm{hit}}(C)=1$.
+Then since the map $(a,b)\mapsto a/(a+b)$ is nondecreasing in $a$ and nonincreasing in $b$ for $a,b\ge 0$, and since $\mathrm{in}(C)$ decreases while $\mathrm{out}(C)$ increases with $C$, it follows that $p_{\mathrm{hit}}(C)$ is nonincreasing in $C$, concluding the proof. 
+\end{proof}
+}
+
+
+\subsubsection{Construction: \Sys Sampling Can Give Speedups}
+\label{app:saguaro_construction}
+
+\begin{theorem}
+There exist target and draft distributions $p_t$ and $p_d$ where applying \Sys sampling to the draft distribution $p_d$ using some $C \in (0,1)$ leads to strictly faster end-to-end speeds than sampling from $p_d$ directly.
+\end{theorem}
+
+\textit{Proof}. 
+We now construct target and draft distributions $p_t$ and $p_d$ over a vocabulary of 4 tokens that satisfy the above property:
+
+\paragraph{Construction 1.} We define $p_t$ and $p_d$ as follows:
+\[
+p_t \coloneqq (0.48,\,0.48,\,0.02,\,0.02),
+\]
+\[
+p_d \coloneqq(0.49,\, 0.49,\, 0.01,\, 0.01).
+\]
+
+We will now show that applying \Sys sampling to $p_d$ with $C=47/147$ leads to a draft distribution $p_d'$ with strictly faster end-to-end speeds than $p_d$.
+We prove this by showing that $p_d'$ has the same acceptance rate as $p_d$, but has higher cache hit rates.
+Applying Theorem~\ref{thm:speedup} shows that $p_d'$ gives faster end-to-end speedups than $p_d$.
+
+\paragraph{Part 1. Acceptance rate is unchanged.}
+It is easy to see that applying \Sys sampling to $p_d$ with $C = 47/147$ and $F=2$ produces 
+\[
+p_d' = (0.47,\, 0.47,\, 0.03,\, 0.03).
+\]
+We can then see that the acceptance rate for both $p_d$ and $p_d'$ is equal to 0.98.
+\begin{eqnarray*}
+a(p_t,\, p_d) &=& 1 - \|p_d - p_t\|_1 = 1 - 0.04/2 = 0.98 \\
+a(p_t,\, p_d') &=& 1 - \|p_d' - p_t\|_1 = 1 - 0.04/2 = 0.98    
+\end{eqnarray*}
+
+\paragraph{Part 2. Cache hit rate strictly increases.}
+We now show $p_d'$ has a strictly higher cache hit rate than $p_d$.
+We begin by computing the residual distributions $r$ and $r'$ for $p_d$ and $p_d'$, respectively:
+\begin{eqnarray*}
+r &=& (0,\, 0,\, 0.5,\, 0.5) \\
+r' &=& (0.5,\, 0.5,\, 0,\, 0)
+\end{eqnarray*}
+
+
+\textit{Cache hit rate for $p_d$}:
+To compute the cache hit rate for $p_d$, we need to consider the case where a sample from $p_d$ was rejected.
+If token 3 or 4 was sampled from $p_d$ it would always be accepted, so a rejected implies that either tokens 1 or 2 was sampled.
+Assume without loss of generality that it was token 1 that was sampled and then rejected.
+In this case, the speculation cache would contain tokens 2 and 3 (or equivalently, 2 and 4).
+The residual distribution for $p_d$ is $r = (0,\, 0,\, 0.5,\, 0.5)$, so with 50\% probability token 3 (which is in the speculation cache) would be sampled.
+So the cache hit rate is 50\%.\footnote{Note that this is the cache hit rate $p_{hit,p}$ conditioned that the prior speculation was sampled from the primary speculator.
+It is sufficient to only consider this cache hit rate, and not $p_{hit,b}$, since this quantity would be the same for both $p_d$ and $p_d'$.
+Thus, using Equation\ref{eqn:phit_unconditional}, we can see that showing that the conditional acceptance rate $p_{hit,p}$ is higher for $p_d'$ than $p_d$ is sufficient to show the unconditional acceptance rate $p_{hit}$ is also higher.
+}
+
+\textit{Cache hit rate for $p_d'$}:
+Just like we did above, to compute the cache hit rate for $p_d$, we need to consider the case where a sample from $p_d'$ was rejected.
+If token 1 or 2 was sampled from $p_d'$ it would always be accepted, so a rejected implies that either tokens 3 or 4 was sampled.
+Assume without loss of generality that it was token 3 that was sampled and then rejected.
+In this case, the speculation cache would contain tokens 1 and 2.
+The residual distribution for $p_d$ is $r = (0.5,\, 0.5,\, 0,\, 0)$, so with 100\% probability either token 1 or 2 would be sampled (which are both in the cache) would be sampled.
+So the cache hit rate is 100\%.
+
+This concludes the proof, since we have shown that \Sys sampling can transform $p_d$ into $p_d'$, which has the same acceptance rate as $p_d$, but has strictly higher cache hit rate.
+
+% \subsubsection{Construction: \Sys Sampling Can Give Speedups}
+% \label{app:saguaro_construction}
+
+% \paragraph{Construction 1.}
+% Fix the target distribution
+% \[
+% q = (0.49,\,0.49,\,0.01,\,0.01),
+% \]
+% over a vocabulary of $V=4$ tokens, and fix arbitrary $\varepsilon\in(0,0.01)$. Define two draft distributions
+% \[
+% p(\varepsilon)\coloneqq(0.5-\varepsilon,\,0.5-\varepsilon,\,\varepsilon,\,\varepsilon),\qquad
+% p'(\varepsilon)\coloneqq(0.48+\varepsilon,\,0.48+\varepsilon,\,0.02-\varepsilon,\,0.02-\varepsilon).
+% \]
+
+% \begin{theorem}
+%     Construction 1 demonstrates a draft and target distribution (q, p) where \Sys sampling necessarily yields end-to-end speedups by transforming $p \mapsto p'$ using some \Sys coefficient $C \in [0, 1]$. 
+% \end{theorem}
+
+% \textit{Proof}. We proceed in three parts. First, we show $p'$ leaves acceptance rate unchanged. Then, we show $p'$ induces a strictly higher cache hit rate by construction. These two are enough to show $(q, p')$ must result in end-to-speedups. We conclude by showing there exists (by construction) a \Sys co-efficient such that $C(p) = p'$. This suffices to conclude that \Sys sampling results in end-to-end speedups here. 
+
+% \paragraph{Part 1. Acceptance rate is unchanged.}
+% By construction, all coordinate-wise differences have magnitude $0.01-\varepsilon$:
+% \[
+% |0.49-(0.5-\varepsilon)| = 0.01-\varepsilon,\qquad |0.01-\varepsilon| = 0.01-\varepsilon,
+% \]
+% and similarly $|0.49-(0.48+\varepsilon)|=|0.01-(0.02-\varepsilon)|=0.01-\varepsilon$. Hence
+% \[
+% \lVert q-p(\varepsilon)\rVert_1 = 4(0.01-\varepsilon) = \lVert q-p'(\varepsilon)\rVert_1.
+% \]
+% Therefore, by Theorem~\ref{thm:l1}, the speculative acceptance rates are identical:
+% \[
+% \alpha\!\big(p(\varepsilon)\big)=\alpha\!\big(p'(\varepsilon)\big)
+% =1-\tfrac{1}{2}\cdot 4(0.01-\varepsilon)=0.98+2\varepsilon.
+% \]
+
+% \paragraph{Part 2. Cache hit rate strictly increases.}
+% Take fan-out $F=2$, so the cache is the top-2 draft tokens $S=\{1,2\}$ for both $p(\varepsilon)$ and $p'(\varepsilon)$.
+% Let $u_p(t)\coloneqq \max(q(t)-p(t),0)$ and $r_p(t)\propto u_p(t)$ be the residual distribution.
+% Since $p(\varepsilon)_1=p(\varepsilon)_2>q_1=q_2$ and $p(\varepsilon)_3=p(\varepsilon)_4<q_3=q_4$, we have $u_{p(\varepsilon)}(1)=u_{p(\varepsilon)}(2)=0$ and $u_{p(\varepsilon)}(3)=u_{p(\varepsilon)}(4)=0.01-\varepsilon$, so $r_{p(\varepsilon)}$ is supported on $\{3,4\}$ and
+% \[
+% p_{\mathrm{hit}}\!\big(p(\varepsilon)\big)=\sum_{t\in\{1,2\}} r_{p(\varepsilon)}(t)=0.
+% \]
+% Conversely, $p'(\varepsilon)_1=p'(\varepsilon)_2<q_1=q_2$ while $p'(\varepsilon)_3=p'(\varepsilon)_4>q_3=q_4$, so the residual concentrates on $\{1,2\}$ and
+% \[
+% p_{\mathrm{hit}}\!\big(p'(\varepsilon)\big)=\sum_{t\in\{1,2\}} r_{p'(\varepsilon)}(t)=1.
+% \]
+
+% \paragraph{Part 3. There exists an explicit $C^\star(\varepsilon)\in[0,1]$ with $\Sys$ sampling.}
+% Apply \Sys sampling with cached set $S=\{1,2\}$ and coefficient $C\in[0,1]$:
+% \[
+% p_C(t)\;\propto\;\begin{cases}
+% C\,p(\varepsilon)(t) & t\in\{1,2\}\\
+% p(\varepsilon)(t) & t\in\{3,4\}.
+% \end{cases}
+% \]
+% By symmetry, $p_C(1)=p_C(2)$ and $p_C(3)=p_C(4)$, and the odds ratio is
+% \[
+% \frac{p_C(1)}{p_C(3)} = C\cdot \frac{0.5-\varepsilon}{\varepsilon}.
+% \]
+% Choosing
+% \[
+% C^\star(\varepsilon)\;\coloneqq\;\frac{(0.48+\varepsilon)/(0.02-\varepsilon)}{(0.5-\varepsilon)/\varepsilon}
+% \;=\;\frac{\varepsilon(0.48+\varepsilon)}{(0.5-\varepsilon)(0.02-\varepsilon)}\;\in\;(0,1)
+% \]
+% makes $p_{C^\star(\varepsilon)}=p'(\varepsilon)$ exactly by construction. This suffices to conclude the proof. 
+

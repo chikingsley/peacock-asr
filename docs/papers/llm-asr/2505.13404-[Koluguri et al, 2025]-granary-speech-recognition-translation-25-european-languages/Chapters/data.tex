@@ -1,0 +1,35 @@
+\label{sec:data}
+In this section, we describe the datasets used for pseudo-labeling.
+\sloppy
+
+This work focuses on 25 languages (23 EU languages, Ukrainian, and Russian). The EU languages include: Bulgarian (bg), Czech (cs), Danish (da), German (de), Greek (el), English (en), Spanish (es), Estonian (et), Finnish (fi), French (fr), Croatian (hr), Hungarian (hu), Italian (it), Lithuanian (lt), Latvian (lv), Maltese (mt), Dutch (nl), Polish (pl), Portuguese (pt), Romanian (ro), Slovak (sk), Slovenian (sl), and Swedish (sv).
+
+We consider three major open-source Creative Commons speech corpora: YODAS \cite{li2024yodasyoutubeorienteddatasetaudio}, YouTube-Commons (YTC) \cite{pleias2025youtube}, and MOSEL \cite{mosel}. Each presents challenges in annotation quality, noise, and language distribution. Table \ref{tab:corpora_hrs} lists unfiltered hours and language coverage.
+
+YODAS\cite{li2024yodasyoutubeorienteddatasetaudio}, a large-scale multilingual dataset with over 500k hours in 100+ languages, derives annotations from YouTube subtitles, which are often unreliable. Even manually created captions lack guaranteed human verification. Language ID inaccuracies lead to significant data loss (e.g., only 20\% retention for Bulgarian, Ukrainian), necessitating robust filtering. Additionally, the dataset contains noise, requiring extensive preprocessing.
+
+YTC\cite{pleias2025youtube}, similar to YODAS, sources transcriptions from YouTube captions, inheriting reliability issues. It is heavily skewed toward English (70\% of data), limiting multilingual applications. Due to download constraints, only a subset is currently processed, with the remainder planned for future work.
+
+MOSEL\cite{mosel} comprises of VoxPopuli \cite{wang-etal-2021-voxpopuli} and LibriLight \cite{kahn2020libri}, pseudo-labeled using Whisper-large-v3 \cite{radford2023robust}. However, transcription errors, particularly truncated segments, compromise completeness and require correction mechanisms.
+
+\begin{table}[b]
+    \centering
+    \caption{Language coverage and total number of hours for each Granary corpora before and after filtration pipeline.}
+    \resizebox{\linewidth}{!}{%
+    \begin{tabular}{c|c|c|c|c}
+       \toprule
+       \textbf{Corpora} & \textbf{Languages} & \textbf{Unfiltered Hours} & \textbf{Filtered Hours} & \textbf{Retention Rate [\%]} \\
+       \toprule
+        \midrule YODAS & 23 & 363,549.3 & 192,172.16 & 52.86 \\
+        YTC & 24 & 255,333.72 & 122,474.77 &  47.9 \\
+        MOSEL & 23 & 440,712.51 & 328,590.64 & 74.56\\
+        \midrule
+        Total & 25 (Unique) & 1,059,595.53 & 643,237.57 & 60.7 \\
+         \bottomrule
+    \end{tabular}%
+    }
+    \label{tab:corpora_hrs}
+\end{table}
+
+
+

@@ -1,0 +1,156 @@
+Unless otherwise stated, we assume throughout that $T_p<1$, so that $\text{max}(T_p,1)=1$. This is because SSD has the primary speculator (draft with custom attention mask) overlapped with verification by construction, so that it finishes before verification is complete. The speculation lookahead is chosen to make this true in our implementation. We also assume that different sequences in a batch are unrelated, so that the probability of a cache hit is iid at $p_\text{hit}$. 
+
+\subsection{Theorem~\ref{thm:speedup} proof: Modeling the speedup from SSD}
+We now prove Theorem~\ref{thm:speedup}.
+We include an (extended) copy of of the theorem here for reference:
+% \begin{theorem}
+\paragraph{Theorem~\ref{thm:speedup} (extended).}
+\label{thm:speedup_app}
+\textit{Let the primary and backup speculators take time $T_p$ and $T_b$ relative to the verifier.
+Let the expected number of generated tokens from the primary speculator be $E_{\mathrm{hit}}$ and from the backup speculator be $E_{\mathrm{miss}}$.
+The expected speedup of Algorithm ~\ref{alg:ssd} relative to autoregressive decoding is then: }
+\begin{eqnarray*}
+speedup &=& \frac{p_{\mathrm{hit}} \cdot E_{\mathrm{hit}} + (1-p_{\mathrm{hit}}) \cdot E_{\mathrm{miss}}}{p_{\mathrm{hit}} \cdot \max(1, T_p) + (1-p_{\mathrm{hit}}) \cdot (1 + T_b)}. \\
+\end{eqnarray*}
+\textit{The global cache hit rate $p_{\mathrm{hit}}$ can be expressed in terms of the cache hit rates $p_{\mathrm{hit,p}}$ and $p_{\mathrm{hit,b}}$, corresponding to whether the last round's speculator was the primary one or the backup, respectively (assuming $|p_{\mathrm{hit,p}}-p_{\mathrm{hit,b}}|<1$):}
+\begin{eqnarray}
+\label{eqn:phit_unconditional}
+p_{\mathrm{hit}} &=& \frac{p_{\mathrm{hit,b}}}{1 + p_{\mathrm{hit,b}} - p_{\mathrm{hit,p}} }.
+\end{eqnarray}
+% \end{theorem}
+
+% \begin{proof}
+\textit{Proof.} We will prove this theorem in two parts:
+\begin{itemize}
+    \item \textbf{Part 1}: We will first prove this speedup equation, \textit{assuming we know the overall cache hit rate} $p_{\mathrm{hit}}$ (conditioned on choice of lookahead, cache topology, sampling algorithm, etc.).
+    \item \textbf{Part 2}: We will then prove the functional form of $p_{\mathrm{hit}}$, as a function of the cache hit rates $p_{\mathrm{hit,p}}$ and $p_{\mathrm{hit,b}}$ of the primary and backup speculators, respectively.
+\end{itemize}
+
+
+\subsubsection{Part 1}
+In each iteration of SSD, the expected number of generated tokens is $E_{\mathrm{hit}}$ if there is a cache hit, and $E_{\mathrm{miss}}$ if there is not.
+Similarly, the latency is $\max(1, T_p)$ if there is a cache hit, and $1+T_b$ if there is not---this is because backup speculation, which takes time $T_b$, begins only after verification (which we assume takes 1 unit of time) completes.
+
+Therefore, it is clear that the expected number of generated tokens and the expected latency (relative to autoregressive decoding) in one iteration of SSD are:
+\begin{eqnarray*}
+    E[\text{\# Generated tokens}] &=& p_{\mathrm{hit}} \cdot E_{\mathrm{hit}} + (1-p_{\mathrm{hit}}) \cdot E_{\mathrm{miss}} \\
+    E[\text{Latency}] &=& p_{\mathrm{hit}} \cdot \max(1, T_p) + (1-p_{\mathrm{hit}}) \cdot (1 + T_b)
+\end{eqnarray*}
+
+Thus, the expected speedup is:
+\begin{eqnarray*}
+speedup &=&  \frac{E[\text{\# Generated tokens}]}{E[\text{Latency}]} \\
+&=&\frac{p_{\mathrm{hit}} \cdot E_{\mathrm{hit}} + (1-p_{\mathrm{hit}}) \cdot E_{\mathrm{miss}}}{p_{\mathrm{hit}} \cdot \max(1, T_p) + (1-p_{\mathrm{hit}}) \cdot (1 + T_b)}. \\
+\end{eqnarray*}
+
+This concludes part 1 of the proof.
+
+\subsubsection{Part 2}
+We will now prove that the overall (unconditional) cache hit rate $p_{\mathrm{hit}}$ is equal to:
+\begin{eqnarray*}
+\label{thm:phit}
+p_{\mathrm{hit}} &=& \frac{p_{\mathrm{hit,b}}}{1 + p_{\mathrm{hit,b}} - p_{\mathrm{hit,p}} }.
+\end{eqnarray*}
+where $p_{\mathrm{hit,p}}$ and $p_{\mathrm{hit,b}}$ are the cache hit rates conditioned on the prior iteration being speculated by the primary and backup speculators, respectively.
+
+The challenge in deriving a closed-form solution for the overall cache hit rate $p_{\mathrm{hit}}$ is that $p_{\mathrm{hit}}$ at iteration $T$ of the SSD algorithm depends on whether there was a cache hit in the previous round (in which case the primary speculator was used) or not (in which case, the backup speculator was used). \\
+
+\noindent In order to deal with this recursive property of $p_{\mathrm{hit}}$, we first write $p_{\mathrm{hit}}$ as a recursive equation, which considers the iteration number $t$ of the algorithm. We consider both the base case ($t=0$), where for now we will assume we always use the non-neural spec, along with all rounds thereafter:
+\begin{eqnarray*}
+p_{\mathrm{hit}}(0) &=& p_{\mathrm{hit,p}}, \quad \text{because we use the primary speculator at } T=0, \\
+p_{\mathrm{hit}}(T) &=& p_{\mathrm{hit}}(T-1) \cdot p_{\mathrm{hit,p}} + \Big(1 - p_{\mathrm{hit}}(T-1) \Big) \cdot p_{\mathrm{hit,b}}
+\end{eqnarray*}
+% \noindent Assuming that this recursive process converges, in the limit as $T \rightarrow \infty$, it must hold that
+% $$p_{\mathrm{hit}}(T) = p_{\mathrm{hit}}(T-1) \coloneqq p_{\mathrm{hit}}.$$
+% \noindent Thus, $p_{\mathrm{hit}}$ must satisfy the following equation:
+% \begin{eqnarray*}
+% p_{\mathrm{hit}} &=& p_{\mathrm{hit}} \cdot p_{\mathrm{hit,p}} + \Big(1 - p_{\mathrm{hit}} \Big) \cdot p_{\mathrm{hit,b}}
+% \end{eqnarray*}
+% \noindent Solving for $p_{\mathrm{hit}}$, we get that:
+% \begin{eqnarray*}
+% p_{\mathrm{hit}} &=& \frac{p_{\mathrm{hit,b}}}{1 + p_{\mathrm{hit,b}} - p_{\mathrm{hit,p}}}, \\
+% \end{eqnarray*}
+% as desired.
+% This shows that \textit{if} the sequence converges, it \textit{must} converge to this unique fixed point.
+% Now, we must simply prove that the sequence does in fact converge.
+We rearrange and unroll this recurrence:
+\begin{eqnarray*}
+p_{\mathrm{hit}}(T) &=& p_{\mathrm{hit}}(T-1)\cdot \Big(p_{\mathrm{hit,p}} - p_{\mathrm{hit,b}}\Big) +  p_{\mathrm{hit,b}}\\
+&=& p_{\mathrm{hit}}(T-1)\cdot r + p_{\mathrm{hit,b}}, \quad \text{letting } r \coloneqq p_{\mathrm{hit,p}} - p_{\mathrm{hit,b}}\\
+&=& \Big(p_{\mathrm{hit}}(T-2)\cdot r + p_{\mathrm{hit,b}}\Big)\cdot r + p_{\mathrm{hit,b}} \\
+&=& p_{\mathrm{hit}}(T-2)\cdot r^2 + p_{\mathrm{hit,b}}\cdot r + p_{\mathrm{hit,b}} \\
+&=& \Big(p_{\mathrm{hit}}(T-3)\cdot r + p_{\mathrm{hit,b}}\Big)\cdot r^2 + p_{\mathrm{hit,b}}\cdot r + p_{\mathrm{hit,b}} \\
+&=& p_{\mathrm{hit}}(T-3)\cdot r^3 + p_{\mathrm{hit,b}}\cdot r^2 + p_{\mathrm{hit,b}}\cdot r + p_{\mathrm{hit,b}} \\
+&=& \ldots \\
+&=& p_{\mathrm{hit}}(0)\cdot r^T + p_{\mathrm{hit,b}} \sum_{t=0}^{T-1} r^t \\
+&=& p_{\mathrm{hit}}(0)\cdot r^T + p_{\mathrm{hit,b}} \frac{1-r^T}{1-r}
+\end{eqnarray*}
+Using the stated assumption that $|r| \coloneqq |p_{\mathrm{hit,p}} - p_{\mathrm{hit,b}}| < 1$, we can see that the first term above converges to 0, and the second term converges to $\frac{p_{\mathrm{hit,b}}}{1-r} = \frac{p_{\mathrm{hit,b}}}{1+p_{\mathrm{hit,b}} - p_{\mathrm{hit,p}}}$, as expected.
+
+\noindent This concludes the proof.
+
+$\hfill\square$
+% \end{proof}
+
+\subsubsection{Proving the Two Corollaries}
+
+We now prove the two corollaries of Theorem~\ref{thm:speedup}, copied below:
+
+\paragraph{Corollary~\ref{cor:stricly_faster}. \textit{(Strictly Faster Than SD)}}
+% \begin{corollary} (\textbf{Strictly Faster Than SD}).
+\textit{Suppose we run SD with a given speculator $\mathcal{M}$.
+Running SSD with primary and backup both set to $\mathcal{M}$ does no worse than SD (strictly better if $p_{\mathrm{hit}}$, $T_{\mathrm{SD}} > 0$).}
+% \end{corollary}
+
+% \begin{proof}
+\textit{Proof.} Let $E_{\mathrm{hit}} = E_{\mathrm{miss}} = E_{\mathrm{SD}}$, and $T_p = T_b = T_{\mathrm{SD}}$.
+Then
+\begin{eqnarray*}
+speedup &=& \frac{p_{\mathrm{hit}} \cdot E_{\mathrm{hit}} + (1-p_{\mathrm{hit}}) \cdot E_{\mathrm{miss}}}{p_{\mathrm{hit}} \cdot \max(1, T_p) + (1-p_{\mathrm{hit}}) \cdot (1 + T_b)} \\
+&=& \frac{p_{\mathrm{hit}} \cdot E_{\mathrm{SD}} + (1-p_{\mathrm{hit}}) \cdot E_{\mathrm{SD}}}{p_{\mathrm{hit}} \cdot \max(1, T_{\mathrm{SD}}) + (1-p_{\mathrm{hit}}) \cdot (1 + T_{\mathrm{SD}})} \\
+&=& \frac{E_{\mathrm{SD}}}{p_{\mathrm{hit}} \cdot \max(1, T_{\mathrm{SD}}) + (1-p_{\mathrm{hit}}) \cdot (1 + T_{\mathrm{SD}})}
+\end{eqnarray*}
+Recall that the speedup from SD is $E_{\mathrm{SD}}/(1+T_{\mathrm{SD}})$.
+This final term is strictly greater than the SD speedup if $p_{\mathrm{hit}} > 0$ and $T_{\mathrm{SD}} > 0$, because in this case $\max(1,T_{\mathrm{SD}}) < 1 + T_{\mathrm{SD}}$.
+If $p_{\mathrm{hit}} = 0$ or $T_{\mathrm{SD}} = 0$, then the SSD speed is equal to the SD speed.
+% \end{proof}
+
+$\hfill\square$
+% \begin{corollary} (\textbf{Speedup sandwich})
+% \label{cor:speedup}
+\paragraph{Corollary~\ref{cor:speedup}. \textit{(Speedup sandwich)}}
+\textit{Suppose we choose a primary speculator for which drafting completes before verification ($T_p < 1$), and a fast backup speculator ($T_b = 0$).
+Then if $T_{\mathrm{SD}}, E_{\mathrm{SD}}$ represent the latency and expected number of generated tokens from a draft model in SD, then the SSD speedup over SD can be bounded by:}
+\begin{eqnarray*}
+\Big(1 + T_{\mathrm{SD}}\Big) \cdot \frac{E_{\mathrm{hit}}}{E_{\mathrm{SD}}} \cdot p_{\mathrm{hit}}  \leq \frac{speedup_{\mathrm{SSD}}}{speedup_{\mathrm{SD}}} \leq \Big(1 + T_{\mathrm{SD}}\Big) \cdot \frac{E_{\mathrm{hit}}}{E_{\mathrm{SD}}}.
+\end{eqnarray*}
+% \end{corollary}
+
+% \begin{proof}
+\textit{Proof.} By assumption, $T_p < 1$ and $T_b = 0$. So the SSD speedup is:
+\begin{eqnarray*}
+speedup_{\mathrm{SSD}} &=& \frac{p_{\mathrm{hit}} \cdot E_{\mathrm{hit}} + (1-p_{\mathrm{hit}}) \cdot E_{\mathrm{miss}}}{p_{\mathrm{hit}} \cdot \max(1, T_p) + (1-p_{\mathrm{hit}}) \cdot (1 + T_b)} \\
+&=& p_{\mathrm{hit}} \cdot E_{\mathrm{hit}} + (1-p_{\mathrm{hit}}) \cdot E_{\mathrm{miss}} \\
+\end{eqnarray*}
+Recall the SD speedup equation is:
+\begin{eqnarray*}
+speedup_{\mathrm{SD}} &=& \frac{E_{\mathrm{SD}}}{1 + T_{\mathrm{SD}}}.
+\end{eqnarray*}
+So,
+\begin{eqnarray*}
+\frac{speedup_{\mathrm{SSD}}}{speedup_{\mathrm{SD}}} &=& \frac{p_{\mathrm{hit}} \cdot E_{\mathrm{hit}} + (1-p_{\mathrm{hit}}) \cdot E_{\mathrm{miss}}}{E_{\mathrm{SD}} / (1 + T_{\mathrm{SD}})}.
+\end{eqnarray*}
+
+Because $p_{\mathrm{hit}} \leq 1$, we get the upper bound (assuming $E_{\mathrm{hit}} \geq E_{\mathrm{miss}})$:
+\begin{eqnarray*}
+\frac{speedup_{\mathrm{SSD}}}{speedup_{\mathrm{SD}}} &=& \Big(1 + T_{\mathrm{SD}}\Big) \cdot \frac{E_{\mathrm{hit}}}{E_{\mathrm{SD}}}.
+\end{eqnarray*}
+
+Because $E_{\mathrm{miss}} \geq 1$ (bonus token is always generated), we get the lower-bound:
+\begin{eqnarray*}
+\frac{speedup_{\mathrm{SSD}}}{speedup_{\mathrm{SD}}} &=& \frac{p_{\mathrm{hit}} \cdot E_{\mathrm{hit}} + (1-p_{\mathrm{hit}}) \cdot E_{\mathrm{miss}}}{E_{\mathrm{SD}} / (1 + T_{\mathrm{SD}})} \\
+&\geq& \Big(1 + T_{\mathrm{SD}}\Big) \cdot \frac{E_{\mathrm{hit}}}{E_{\mathrm{SD}}} \cdot p_{\mathrm{hit}}.
+\end{eqnarray*}
+
+$\hfill\square$
+% \end{proof}

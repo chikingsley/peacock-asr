@@ -1,8 +1,0 @@
-job_id	backend	mode	repeat	seed	status	pcc	pcc_low	pcc_high	mse	n_phones	duration_sec	log_path	error
-a1_scalar	xlsr-espeak	scalar	1		ok	0.3195	0.3113	0.3277	0.6655	46314	24.95	runs/2026-03-03_001037_track05_phase1_baseline/a1_scalar_r1.log	
-a2_feats	xlsr-espeak	svr-feats	1		ok	0.5747	0.5686	0.5808	0.2052	46314	509.60	runs/2026-03-03_001037_track05_phase1_baseline/a2_feats_r1.log	
-a3_gopt	xlsr-espeak	gopt	1	501	ok	0.6958	0.6911	0.7005	0.0694	46314	62.99	runs/2026-03-03_001037_track05_phase1_baseline/a3_gopt_r1.log	
-a3_gopt	xlsr-espeak	gopt	2	502	ok	0.6655	0.6604	0.6706	0.0750	46314	60.07	runs/2026-03-03_001037_track05_phase1_baseline/a3_gopt_r2.log	
-a3_gopt	xlsr-espeak	gopt	3	503	ok	0.6782	0.6732	0.6831	0.0727	46314	62.16	runs/2026-03-03_001037_track05_phase1_baseline/a3_gopt_r3.log	
-a3_gopt	xlsr-espeak	gopt	4	504	ok	0.6820	0.6771	0.6868	0.0721	46314	61.74	runs/2026-03-03_001037_track05_phase1_baseline/a3_gopt_r4.log	
-a3_gopt	xlsr-espeak	gopt	5	505	ok	0.6653	0.6602	0.6704	0.0751	46314	62.90	runs/2026-03-03_001037_track05_phase1_baseline/a3_gopt_r5.log	

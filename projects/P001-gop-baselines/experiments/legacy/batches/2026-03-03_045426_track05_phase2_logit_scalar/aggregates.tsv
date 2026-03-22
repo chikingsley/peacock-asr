@@ -1,6 +1,0 @@
-job_id	backend	mode	score_variant	score_alpha	n_runs	n_success	pcc_mean	pcc_std	mse_mean	mse_std
-b1_scalar_gopsf	xlsr-espeak	scalar	gop_sf	0.5000	1	1	0.3195	0.0000	0.6655	0.0000
-b2_scalar_logit_margin	xlsr-espeak	scalar	logit_margin	0.5000	1	1	0.1849	0.0000	0.8177	0.0000
-b3_scalar_logit_combined_a025	xlsr-espeak	scalar	logit_combined	0.2500	1	1	0.3452	0.0000	0.5981	0.0000
-b4_scalar_logit_combined_a050	xlsr-espeak	scalar	logit_combined	0.5000	1	1	0.3222	0.0000	0.6322	0.0000
-b5_scalar_logit_combined_a075	xlsr-espeak	scalar	logit_combined	0.7500	1	1	0.2664	0.0000	0.7131	0.0000
