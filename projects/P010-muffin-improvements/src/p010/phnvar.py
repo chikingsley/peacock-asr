@@ -98,5 +98,5 @@ def perturb_diag_logits(
     scale = torch.exp(log_scale)  # [39]
 
     noise = torch.randn_like(logits) * sigma
-    noise = noise.clamp(-1.0, 1.0)  # BLV clamping — prevents outlier logit swings
+    noise = noise.clamp(0.0, 1.0)  # BLV: one-sided clamp — only increases logits for rare classes
     return logits + noise * scale.unsqueeze(0).unsqueeze(0)
