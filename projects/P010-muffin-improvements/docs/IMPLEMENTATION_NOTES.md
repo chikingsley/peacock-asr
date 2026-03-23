@@ -94,12 +94,15 @@ Diag:   FAR 0.4908  FRR 0.0082  DER 0.9110  PER 0.6323
 
 ### Known remaining gap (0.682 vs 0.742)
 
-The ~0.060 gap is attributed to:
+The ~0.060 gap has several contributing factors:
 
-1. **Test-set model selection bias**: The paper selects best checkpoint by test-set MSE every epoch (no validation split). Across 100 epochs, this inflates the reported number by ~0.02-0.03 vs true expected performance.
-2. **Pretraining architecture mismatch**: The paper's ref [41] uses Transformer blocks for pretraining; we use Branchformer (HierCB). The prediction heads transfer but the encoder block structure differs, which may affect initialization quality.
-3. **Diagnosis label approximation**: 984 non-CMU mispronunciations are excluded from L_diag (marked -1). These constitute ~2% of phones. DER=0.91 reflects this — the diagnosis predictor can't learn substitution patterns for sounds outside the CMU 39-phone set.
-4. **PhnVar σ unknown**: The paper doesn't specify the Gaussian noise std. We default to 1.0 which may not be optimal.
+1. **Test-set model selection**: The paper (and our code) selects the best checkpoint by test-set phone MSE every epoch. There is no separate validation split — SpeechOcean762 only provides train (2500) and test (2500). This means both the paper and our runs optimize checkpoint selection against the test set across 100 epochs. The paper's reported 0.742 and our 0.682 are both measured this way. The gap is real and not an artifact of different evaluation methodology.
+
+2. **Pretraining architecture**: The paper's ref [41] (HierTFR, Yan et al. ACL 2024) pretrains with standard Transformer encoder blocks. MuFFIN fine-tunes with Branchformer (BlockCNN) blocks. The paper says only "following [41]" without specifying how the architecture difference is handled. Our `HierCBPretrain` uses Branchformer blocks for pretraining (matching the fine-tuning architecture), which means the pretrained encoder representations may differ from what the paper uses. If the paper pretrains with Transformer blocks and then loads those weights into Branchformer blocks with `strict=False`, mismatched layer names would be silently dropped — meaning only shared layers (input projections, embeddings, position encodings) would actually transfer, while the encoder blocks themselves would be randomly initialized.
+
+3. **Diagnosis labels**: 984 of 1991 mispronunciations in the training set are excluded from L_diag (marked -1 = ignored by CrossEntropyLoss). Breakdown: 488 `<unk>` (non-categorical errors — sounds outside the CMU 39-phone set), 450 `<DEL>` (deletions — learner didn't produce the phone), 46 L1-specific phones (`IR`, `AR`, `TR`, `DZ`, `TS`, `DR` — Mandarin phonemes). These are correctly excluded because there is no valid CMU phone ID to use as the target. The paper uses the same 39-phone vocabulary and faces the same constraint. The remaining 1007 substitutions DO have valid CMU phone labels extracted from SpeechOcean762 annotations.
+
+4. **PhnVar σ**: The paper defines δ(σ) as "a Gaussian distribution with a zero mean and the standard deviation σ" (Eq. 25) and specifies α=1, β=1, but **does not specify σ anywhere** — not in the text, not in the experimental setup, not in any table. We default to σ=1.0. With the QF×DF scaling (both in [0, 1]), the effective perturbation std ranges from ~0 (common, rarely mispronounced phones) to σ (rare, frequently mispronounced phones). σ=1.0 means up to 1 std of noise on the raw logits, which is a substantial perturbation. This may need tuning.
 
 ### CLI commands
 
