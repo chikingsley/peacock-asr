@@ -61,6 +61,27 @@ def download(features_dir: str | None) -> None:
 
 
 @cli.command()
+@click.option("--audio-dir", type=click.Path(exists=True), required=True,
+              help="Path to SpeechOcean762 WAVE/ directory")
+@click.option("--features-dir", type=click.Path(), default=None, help="Override P010_FEATURES_DIR")
+@click.option("--device", type=str, default="cuda")
+def extract(audio_dir: str, features_dir: str | None, device: str) -> None:
+    """Extract all-layer SSL features for Phase 2 (HConv/CHConv)."""
+    from p010.extract import extract_split
+
+    settings = (
+        Settings(features_dir=Path(features_dir))
+        if features_dir
+        else Settings()  # type: ignore[missing-argument]
+    )
+    audio = Path(audio_dir)
+    for split in ("train", "test"):
+        click.echo(f"\n── Extracting {split} ────────────────────────────────")
+        extract_split(split, settings.features_dir, audio, device=device)
+    click.echo("Done.")
+
+
+@cli.command()
 @click.option("--checkpoint-dir", type=click.Path(), default="checkpoints/pretrained")
 @click.option("--features-dir", type=click.Path(), default=None, help="Override P010_FEATURES_DIR")
 @click.option("--n-epochs", type=int, default=None, help="Override pretrain_epochs")
