@@ -246,6 +246,7 @@ def _evaluate(
     all_w, all_word_label = [], []
     all_mdd_logit, all_mdd_label = [], []
     all_diag_logit, all_diag_label = [], []
+    all_phn_id = []
 
     for batch in loader:
         gop, ssl, energy, dur, phn_score, phn_id, utt_label, word_label, word_id, mdd_label, diag_label = (
@@ -262,6 +263,7 @@ def _evaluate(
             all_mdd_label.append(mdd_label.cpu())
             all_diag_logit.append(diag_logit_out.cpu())
             all_diag_label.append(diag_label.cpu())
+            all_phn_id.append(phn_id.cpu())
         else:
             u1, u2, u3, u4, u5, p, w1, w2, w3, *_ = outputs
 
@@ -302,6 +304,7 @@ def _evaluate(
             threshold=mdd_threshold,
             diag_logit=torch.cat(all_diag_logit) if all_diag_logit else None,
             diag_label=torch.cat(all_diag_label) if all_diag_label else None,
+            canon_phn_id=torch.cat(all_phn_id) if all_phn_id else None,
         )
         metrics.update({f"mdd_{k}": v for k, v in mdd_result.items()})
 

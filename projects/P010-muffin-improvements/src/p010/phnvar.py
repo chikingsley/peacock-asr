@@ -5,8 +5,10 @@ scaled by two phoneme-dependent factors:
   - QF_k (Quantity Factor): larger for rare phonemes (log inverse frequency)
   - DF_k (Difficulty Factor): larger for frequently mispronounced phonemes
 
-With alpha=beta=1 (paper default), the perturbation simplifies to:
-  g_tilde_k = g_k + N(0, sigma) * sqrt(QF_k * DF_k)
+PhnVar is derived from BLV (Wang et al. CVPR 2023, "Balancing Logit Variation"),
+cited as [23] in MuFFIN. BLV uses: clamp(N(0, sigma), -1, 1) * class_scale.
+We follow BLV's clamping convention. With alpha=beta=1 (paper default):
+  g_tilde_k = g_k + clamp(N(0, sigma), -1, 1) * sqrt(QF_k * DF_k)
 """
 
 from __future__ import annotations
@@ -72,24 +74,29 @@ def perturb_diag_logits(
 ) -> torch.Tensor:
     """Apply PhnVar perturbation to diagnosis logits during training (Eq. 25).
 
+    Noise is clamped to [-1, 1] following BLV (Wang et al. CVPR 2023, MuFFIN ref [23]),
+    which prevents outlier Gaussian samples from destabilizing softmax predictions.
+
     Args:
         logits: [B, T, 39] raw diagnosis logits.
         qf:     [39] quantity factor per phoneme class.
         df:     [39] difficulty factor per phoneme class.
-        sigma:  Gaussian noise standard deviation.
+        sigma:  Gaussian noise standard deviation (before clamping). BLV default: 4.0.
         alpha:  QF weight (default 1.0).
         beta:   DF weight (default 1.0).
 
     Returns:
         Perturbed logits, same shape as input.
     """
-    # Eq. 25: perturbation = N(0, sigma) * exp((alpha*log(QF) + beta*log(DF)) / (alpha+beta))
-    # With alpha=beta=1: = N(0, sigma) * sqrt(QF * DF)
+    # Eq. 25: perturbation = delta(sigma) * exp((alpha*log(QF) + beta*log(DF)) / (alpha+beta))
+    # With alpha=beta=1: = delta(sigma) * sqrt(QF * DF)
+    # BLV convention: delta(sigma) = clamp(N(0, sigma), -1, 1)
     qf = qf.to(logits.device)
     df = df.to(logits.device)
 
     log_scale = (alpha * torch.log(qf.clamp(min=1e-8)) + beta * torch.log(df.clamp(min=1e-8))) / (alpha + beta)
     scale = torch.exp(log_scale)  # [39]
 
-    noise = torch.randn_like(logits) * sigma  # [B, T, 39]
+    noise = torch.randn_like(logits) * sigma
+    noise = noise.clamp(-1.0, 1.0)  # BLV clamping — prevents outlier logit swings
     return logits + noise * scale.unsqueeze(0).unsqueeze(0)

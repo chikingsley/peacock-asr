@@ -1,0 +1,792 @@
+\begin{thebibliography}{100}\itemsep=-1pt
+
+\bibitem{afifi2019else}
+Mahmoud Afifi and Michael~S Brown.
+\newblock What else can fool deep learning? addressing color constancy errors
+  on deep neural network performance.
+\newblock In {\em Proceedings of the IEEE/CVF International Conference on
+  Computer Vision}, pages 243--252, 2019.
+
+\bibitem{amini2022self}
+Massih-Reza Amini, Vasilii Feofanov, Loic Pauletto, Emilie Devijver, and Yury
+  Maximov.
+\newblock Self-training: A survey.
+\newblock {\em arXiv preprint arXiv:2202.12040}, 2022.
+
+\bibitem{araslanov2021self}
+Nikita Araslanov and Stefan Roth.
+\newblock Self-supervised augmentation consistency for adapting semantic
+  segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2021.
+
+\bibitem{bachman2014learning}
+Philip Bachman, Ouais Alsharif, and Doina Precup.
+\newblock Learning with pseudo-ensembles.
+\newblock {\em Advances in neural information processing systems}, 27, 2014.
+
+\bibitem{bengio2011deep}
+Yoshua Bengio, Fr{\'e}d{\'e}ric Bastien, Arnaud Bergeron, Nicolas
+  Boulanger-Lewandowski, Thomas Breuel, Youssouf Chherawala, Moustapha Cisse,
+  Myriam C{\^o}t{\'e}, Dumitru Erhan, Jeremy Eustache, et~al.
+\newblock Deep learners benefit more from out-of-distribution examples.
+\newblock In {\em Proceedings of the Fourteenth International Conference on
+  Artificial Intelligence and Statistics}, pages 164--172. JMLR Workshop and
+  Conference Proceedings, 2011.
+
+\bibitem{berman2018lovasz}
+Maxim Berman, Amal~Rannen Triki, and Matthew~B Blaschko.
+\newblock The lov{\'a}sz-softmax loss: A tractable surrogate for the
+  optimization of the intersection-over-union measure in neural networks.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 4413--4421,
+  2018.
+
+\bibitem{buda2018systematic}
+Mateusz Buda, Atsuto Maki, and Maciej~A Mazurowski.
+\newblock A systematic study of the class imbalance problem in convolutional
+  neural networks.
+\newblock {\em Neural networks}, 106:249--259, 2018.
+
+\bibitem{chang2019all}
+Wei-Lun Chang, Hui-Po Wang, Wen-Hsiao Peng, and Wei-Chen Chiu.
+\newblock All about structure: Adapting structural information across domains
+  for boosting semantic segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2019.
+
+\bibitem{chawla2002smote}
+Nitesh~V Chawla, Kevin~W Bowyer, Lawrence~O Hall, and W~Philip Kegelmeyer.
+\newblock Smote: synthetic minority over-sampling technique.
+\newblock {\em Journal of artificial intelligence research}, 16:321--357, 2002.
+
+\bibitem{chen2019progressive}
+Chaoqi Chen, Weiping Xie, Wenbing Huang, Yu Rong, Xinghao Ding, Yue Huang,
+  Tingyang Xu, and Junzhou Huang.
+\newblock Progressive feature alignment for unsupervised domain adaptation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2019.
+
+\bibitem{chen2021semisupervised}
+Huaian Chen, Yi Jin, Guoqiang Jin, Changan Zhu, and Enhong Chen.
+\newblock Semi-supervised semantic segmentation by improving prediction
+  confidence.
+\newblock {\em IEEE Transactions on Neural Networks and Learning Systems},
+  13(1), 2021.
+
+\bibitem{chen2022deliberated}
+Lin Chen, Zhixiang Wei, Xin Jin, Huaian Chen, Miao Zheng, Kai Chen, and Yi Jin.
+\newblock Deliberated domain bridging for domain adaptive semantic
+  segmentation.
+\newblock {\em arXiv preprint arXiv:2209.07695}, 2022.
+
+\bibitem{deeplab}
+Liang-Chieh Chen, George Papandreou, Iasonas Kokkinos, Kevin Murphy, and Alan~L
+  Yuille.
+\newblock Deeplab: Semantic image segmentation with deep convolutional nets,
+  atrous convolution, and fully connected crfs.
+\newblock {\em IEEE Trans. Pattern Anal. Mach. Intell.}, 40(4):834--848, 2017.
+
+\bibitem{chen2021semi}
+Xiaokang Chen, Yuhui Yuan, Gang Zeng, and Jingdong Wang.
+\newblock Semi-supervised semantic segmentation with cross pseudo supervision.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 2613--2622,
+  2021.
+
+\bibitem{chen2022vision}
+Zhe Chen, Yuchen Duan, Wenhai Wang, Junjun He, Tong Lu, Jifeng Dai, and Yu
+  Qiao.
+\newblock Vision transformer adapter for dense predictions.
+\newblock {\em arXiv preprint arXiv:2205.08534}, 2022.
+
+\bibitem{chou2020remix}
+Hsin-Ping Chou, Shih-Chieh Chang, Jia-Yu Pan, Wei Wei, and Da-Cheng Juan.
+\newblock Remix: rebalanced mixup.
+\newblock In {\em Eur. Conf. Comput. Vis.}, pages 95--110. Springer, 2020.
+
+\bibitem{chu2020feature}
+Peng Chu, Xiao Bian, Shaopeng Liu, and Haibin Ling.
+\newblock Feature space augmentation for long-tailed data.
+\newblock In {\em Eur. Conf. Comput. Vis.}, pages 694--710. Springer, 2020.
+
+\bibitem{chung2022maximizing}
+Inseop Chung, Daesik Kim, and Nojun Kwak.
+\newblock Maximizing cosine similarity between spatial features for
+  unsupervised domain adaptation in semantic segmentation.
+\newblock In {\em IEEE Winter Conf. Appl. Comput. Vis.}, 2022.
+
+\bibitem{mmseg2020}
+MMSegmentation Contributors.
+\newblock {MMSegmentation}: Openmmlab semantic segmentation toolbox and
+  benchmark.
+\newblock \url{https://github.com/open-mmlab/mmsegmentation}, 2020.
+
+\bibitem{cityscapes}
+Marius Cordts, Mohamed Omran, Sebastian Ramos, Timo Rehfeld, Markus Enzweiler,
+  Rodrigo Benenson, Uwe Franke, Stefan Roth, and Bernt Schiele.
+\newblock The cityscapes dataset for semantic urban scene understanding.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2016.
+
+\bibitem{cui2019class}
+Yin Cui, Menglin Jia, Tsung-Yi Lin, Yang Song, and Serge Belongie.
+\newblock Class-balanced loss based on effective number of samples.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 9268--9277,
+  2019.
+
+\bibitem{ding2016convolutional}
+Jun Ding, Bo Chen, Hongwei Liu, and Mengyuan Huang.
+\newblock Convolutional neural network with data augmentation for sar target
+  recognition.
+\newblock {\em IEEE Geoscience and remote sensing letters}, 13(3):364--368,
+  2016.
+
+\bibitem{dosovitskiy2020image}
+Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn,
+  Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg
+  Heigold, Sylvain Gelly, et~al.
+\newblock An image is worth 16x16 words: Transformers for image recognition at
+  scale.
+\newblock {\em ICLR}, 2021.
+
+\bibitem{dozat2016incorporating}
+Timothy Dozat.
+\newblock Incorporating nesterov momentum into adam.
+\newblock In {\em Int. Conf. Learn. Represent. Worksh.}, 2016.
+
+\bibitem{du2022learning}
+Ye Du, Yujun Shen, Haochen Wang, Jingjing Fei, Wei Li, Liwei Wu, Rui Zhao,
+  Zehua Fu, and Qingjie Liu.
+\newblock Learning from future: A novel self-training framework for semantic
+  segmentation.
+\newblock {\em Adv. Neural Inform. Process. Syst.}, 2022.
+
+\bibitem{voc}
+Mark Everingham, Luc Van~Gool, Christopher~KI Williams, John Winn, and Andrew
+  Zisserman.
+\newblock The pascal visual object classes (voc) challenge.
+\newblock {\em International Journal of Computer Vision}, 88(2):303--338, 2010.
+
+\bibitem{fan2022ucc}
+Jiashuo Fan, Bin Gao, Huan Jin, and Lihui Jiang.
+\newblock Ucc: Uncertainty guided cross-head co-training for semi-supervised
+  semantic segmentation.
+\newblock In {\em Proceedings of the IEEE/CVF Conference on Computer Vision and
+  Pattern Recognition}, pages 9947--9956, 2022.
+
+\bibitem{french2019semi}
+Geoff French, Samuli Laine, Timo Aila, Michal Mackiewicz, and Graham Finlayson.
+\newblock Semi-supervised semantic segmentation needs strong, varied
+  perturbations.
+\newblock In {\em Brit. Mach. Vis. Conf.}, 2020.
+
+\bibitem{fu2019dual}
+Jun Fu, Jing Liu, Haijie Tian, Yong Li, Yongjun Bao, Zhiwei Fang, and Hanqing
+  Lu.
+\newblock Dual attention network for scene segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 3146--3154,
+  2019.
+
+\bibitem{galar2013eusboost}
+Mikel Galar, Alberto Fern{\'a}ndez, Edurne Barrenechea, and Francisco Herrera.
+\newblock Eusboost: Enhancing ensembles for highly imbalanced data-sets by
+  evolutionary undersampling.
+\newblock {\em Pattern Recog.}, 46(12):3460--3471, 2013.
+
+\bibitem{gong2019dlow}
+Rui Gong, Wen Li, Yuhua Chen, and Luc~Van Gool.
+\newblock Dlow: Domain flow for adaptation and generalization.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2019.
+
+\bibitem{gan}
+Ian Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley,
+  Sherjil Ozair, Aaron Courville, and Yoshua Bengio.
+\newblock Generative adversarial nets.
+\newblock In {\em Adv. Neural Inform. Process. Syst.}, 2014.
+
+\bibitem{em}
+Yves Grandvalet, Yoshua Bengio, et~al.
+\newblock Semi-supervised learning by entropy minimization.
+\newblock {\em CAP}, 367:281--296, 2005.
+
+\bibitem{guo2021label}
+Shaohua Guo, Qianyu Zhou, Ye Zhou, Qiqi Gu, Junshu Tang, Zhengyang Feng, and
+  Lizhuang Ma.
+\newblock Label-free regional consistency for image-to-image translation.
+\newblock In {\em Int. Conf. Multimedia and Expo}, 2021.
+
+\bibitem{guo2021metacorrection}
+Xiaoqing Guo, Chen Yang, Baopu Li, and Yixuan Yuan.
+\newblock Metacorrection: Domain-aware meta loss correction for unsupervised
+  domain adaptation in semantic segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2021.
+
+\bibitem{gupta2019lvis}
+Agrim Gupta, Piotr Dollar, and Ross Girshick.
+\newblock Lvis: A dataset for large vocabulary instance segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 5356--5364,
+  2019.
+
+\bibitem{haixiang2017learning}
+Guo Haixiang, Li Yijing, Jennifer Shang, Gu Mingyun, Huang Yuanyue, and Gong
+  Bing.
+\newblock Learning from class-imbalanced data: Review of methods and
+  applications.
+\newblock {\em Expert systems with applications}, 73:220--239, 2017.
+
+\bibitem{hao2020annealing}
+Jingyu Hao, Chengjia Wang, Heye Zhang, and Guang Yang.
+\newblock Annealing genetic gan for minority oversampling.
+\newblock {\em arXiv preprint arXiv:2008.01967}, 2020.
+
+\bibitem{he2016deep}
+Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun.
+\newblock Deep residual learning for image recognition.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2016.
+
+\bibitem{he2021re}
+Ruifei He, Jihan Yang, and Xiaojuan Qi.
+\newblock Re-distributing biased pseudo labels for semi-supervised semantic
+  segmentation: A baseline investigation.
+\newblock In {\em Int. Conf. Comput. Vis.}, pages 6930--6940, 2021.
+
+\bibitem{hoffman2018cycada}
+Judy Hoffman, Eric Tzeng, Taesung Park, Jun-Yan Zhu, Phillip Isola, Kate
+  Saenko, Alexei Efros, and Trevor Darrell.
+\newblock Cycada: Cycle-consistent adversarial domain adaptation.
+\newblock In {\em Int. Conf. Mach. Learn.}, 2018.
+
+\bibitem{holmstrom1992using}
+Lasse Holmstrom, Petri Koistinen, et~al.
+\newblock Using additive noise in back-propagation training.
+\newblock {\em IEEE transactions on neural networks}, 3(1):24--38, 1992.
+
+\bibitem{hoyer2022daformer}
+Lukas Hoyer, Dengxin Dai, and Luc Van~Gool.
+\newblock Daformer: Improving network architectures and training strategies for
+  domain-adaptive semantic segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2022.
+
+\bibitem{hoyer2022hrda}
+Lukas Hoyer, Dengxin Dai, and Luc Van~Gool.
+\newblock Hrda: Context-aware high-resolution domain-adaptive semantic
+  segmentation.
+\newblock {\em Eur. Conf. Comput. Vis.}, 2022.
+
+\bibitem{ael}
+Hanzhe Hu, Fangyun Wei, Han Hu, Qiwei Ye, Jinshi Cui, and Liwei Wang.
+\newblock Semi-supervised semantic segmentation via adaptive equalization
+  learning.
+\newblock In {\em Adv. Neural Inform. Process. Syst.}, 2021.
+
+\bibitem{hu2021semi}
+Hanzhe Hu, Fangyun Wei, Han Hu, Qiwei Ye, Jinshi Cui, and Liwei Wang.
+\newblock Semi-supervised semantic segmentation via adaptive equalization
+  learning.
+\newblock {\em Advances in Neural Information Processing Systems},
+  34:22106--22118, 2021.
+
+\bibitem{huang2019ccnet}
+Zilong Huang, Xinggang Wang, Lichao Huang, Chang Huang, Yunchao Wei, and Wenyu
+  Liu.
+\newblock Ccnet: Criss-cross attention for semantic segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 603--612,
+  2019.
+
+\bibitem{kang2020pixel}
+Guoliang Kang, Yunchao Wei, Yi Yang, Yueting Zhuang, and Alexander Hauptmann.
+\newblock Pixel-level cycle association: A new perspective for domain adaptive
+  semantic segmentation.
+\newblock In {\em Adv. Neural Inform. Process. Syst.}, 2020.
+
+\bibitem{kim2020m2m}
+Jaehyung Kim, Jongheon Jeong, and Jinwoo Shin.
+\newblock M2m: Imbalanced classification via major-to-minor translation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 13896--13905,
+  2020.
+
+\bibitem{kim2020learning}
+Myeongjin Kim and Hyeran Byun.
+\newblock Learning texture invariant representation for domain adaptation of
+  semantic segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2020.
+
+\bibitem{lee2019sliced}
+Chen-Yu Lee, Tanmay Batra, Mohammad~Haris Baig, and Daniel Ulbricht.
+\newblock Sliced wasserstein discrepancy for unsupervised domain adaptation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2019.
+
+\bibitem{li2018pyramid}
+Hanchao Li, Pengfei Xiong, Jie An, and Lingxue Wang.
+\newblock Pyramid attention network for semantic segmentation.
+\newblock {\em arXiv preprint arXiv:1805.10180}, 2018.
+
+\bibitem{li2022long}
+Mengke Li, Yiu-ming Cheung, and Yang Lu.
+\newblock Long-tailed visual recognition via gaussian clouded logit adjustment.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 6929--6938,
+  2022.
+
+\bibitem{li2021autobalance}
+Mingchen Li, Xuechen Zhang, Christos Thrampoulidis, Jiasi Chen, and Samet
+  Oymak.
+\newblock Autobalance: Optimized loss functions for imbalanced data.
+\newblock {\em Adv. Neural Inform. Process. Syst.}, 34:3163--3177, 2021.
+
+\bibitem{li2022class}
+Ruihuang Li, Shuai Li, Chenhang He, Yabin Zhang, Xu Jia, and Lei Zhang.
+\newblock Class-balanced pixel-level self-labeling for domain adaptive semantic
+  segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 11593--11603,
+  2022.
+
+\bibitem{li2021semantic}
+Shuang Li, Binhui Xie, Bin Zang, Chi~Harold Liu, Xinjing Cheng, Ruigang Yang,
+  and Guoren Wang.
+\newblock Semantic distribution-aware contrastive adaptation for semantic
+  segmentation.
+\newblock {\em arXiv preprint arXiv:2105.05013}, 2021.
+
+\bibitem{li2019bidirectional}
+Yunsheng Li, Lu Yuan, and Nuno Vasconcelos.
+\newblock Bidirectional learning for domain adaptation of semantic
+  segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2019.
+
+\bibitem{lian2019constructing}
+Qing Lian, Fengmao Lv, Lixin Duan, and Boqing Gong.
+\newblock Constructing self-motivated pyramid curriculums for cross-domain
+  semantic segmentation: A non-adversarial approach.
+\newblock In {\em Int. Conf. Comput. Vis.}, 2019.
+
+\bibitem{lin2018multi}
+Di Lin, Yuanfeng Ji, Dani Lischinski, Daniel Cohen-Or, and Hui Huang.
+\newblock Multi-scale context intertwining for semantic segmentation.
+\newblock In {\em Eur. Conf. Comput. Vis.}, pages 603--619, 2018.
+
+\bibitem{liu2022breadcrumbs}
+Bo Liu, Haoxiang Li, Hao Kang, Gang Hua, and Nuno Vasconcelos.
+\newblock Breadcrumbs: Adversarial class-balanced sampling for long-tailed
+  recognition.
+\newblock In {\em Eur. Conf. Comput. Vis.}, pages 637--653. Springer, 2022.
+
+\bibitem{liu2021swin}
+Ze Liu, Yutong Lin, Yue Cao, Han Hu, Yixuan Wei, Zheng Zhang, Stephen Lin, and
+  Baining Guo.
+\newblock Swin transformer: Hierarchical vision transformer using shifted
+  windows.
+\newblock In {\em Int. Conf. Comput. Vis.}, pages 10012--10022, 2021.
+
+\bibitem{fcn}
+Jonathan Long, Evan Shelhamer, and Trevor Darrell.
+\newblock Fully convolutional networks for semantic segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2015.
+
+\bibitem{long2015learning}
+Mingsheng Long, Yue Cao, Jianmin Wang, and Michael Jordan.
+\newblock Learning transferable features with deep adaptation networks.
+\newblock In {\em Int. Conf. Mach. Learn.}, 2015.
+
+\bibitem{lopes2019improving}
+Raphael~Gontijo Lopes, Dong Yin, Ben Poole, Justin Gilmer, and Ekin~D Cubuk.
+\newblock Improving robustness without sacrificing accuracy with patch gaussian
+  augmentation.
+\newblock {\em arXiv preprint arXiv:1906.02611}, 2019.
+
+\bibitem{luo2019taking}
+Yawei Luo, Liang Zheng, Tao Guan, Junqing Yu, and Yi Yang.
+\newblock Taking a closer look at domain shift: Category-level adversaries for
+  semantics consistent domain adaptation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 2507--2516,
+  2019.
+
+\bibitem{lv2020cross}
+Fengmao Lv, Tao Liang, Xiang Chen, and Guosheng Lin.
+\newblock Cross-domain semantic segmentation via domain-invariant interactive
+  relation transfer.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2020.
+
+\bibitem{mei2020instance}
+Ke Mei, Chuang Zhu, Jiaqi Zou, and Shanghang Zhang.
+\newblock Instance adaptive self-training for unsupervised domain adaptation.
+\newblock In {\em Eur. Conf. Comput. Vis.}, 2020.
+
+\bibitem{melas2021pixmatch}
+Luke Melas-Kyriazi and Arjun~K Manrai.
+\newblock Pixmatch: Unsupervised domain adaptation via pixelwise consistency
+  training.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2021.
+
+\bibitem{menon2021long}
+Aditya~Krishna Menon, Sadeep Jayasumana, Ankit~Singh Rawat, Himanshu Jain,
+  Andreas Veit, and Sanjiv Kumar.
+\newblock Long-tail learning via logit adjustment.
+\newblock {\em Int. Conf. Learn. Represent.}, 2021.
+
+\bibitem{nowozin2016f}
+Sebastian Nowozin, Botond Cseke, and Ryota Tomioka.
+\newblock f-gan: Training generative neural samplers using variational
+  divergence minimization.
+\newblock In {\em Adv. Neural Inform. Process. Syst.}, 2016.
+
+\bibitem{classmix}
+Viktor Olsson, Wilhelm Tranheden, Juliano Pinto, and Lennart Svensson.
+\newblock Classmix: Segmentation-based data augmentation for semi-supervised
+  learning.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2021.
+
+\bibitem{cct}
+Yassine Ouali, C{\'e}line Hudelot, and Myriam Tami.
+\newblock Semi-supervised semantic segmentation with cross-consistency
+  training.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2020.
+
+\bibitem{pan2020unsupervised}
+Fei Pan, Inkyu Shin, Francois Rameau, Seokju Lee, and In~So Kweon.
+\newblock Unsupervised intra-domain adaptation for semantic segmentation
+  through self-supervision.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2020.
+
+\bibitem{park2021influence}
+Seulki Park, Jongin Lim, Younghan Jeon, and Jin~Young Choi.
+\newblock Influence-balanced loss for imbalanced visual classification.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 735--744,
+  2021.
+
+\bibitem{peng2020large}
+Junran Peng, Xingyuan Bu, Ming Sun, Zhaoxiang Zhang, Tieniu Tan, and Junjie
+  Yan.
+\newblock Large-scale object detection in the wild from imbalanced
+  multi-labels.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 9709--9718,
+  2020.
+
+\bibitem{ren2018learning}
+Mengye Ren, Wenyuan Zeng, Bin Yang, and Raquel Urtasun.
+\newblock Learning to reweight examples for robust deep learning.
+\newblock In {\em Int. Conf. Mach. Learn.}, pages 4334--4343. PMLR, 2018.
+
+\bibitem{richter2016playing_GTA}
+Stephan~R Richter, Vibhav Vineet, Stefan Roth, and Vladlen Koltun.
+\newblock Playing for data: Ground truth from computer games.
+\newblock In {\em Eur. Conf. Comput. Vis.}, 2016.
+
+\bibitem{unet}
+Olaf Ronneberger, Philipp Fischer, and Thomas Brox.
+\newblock U-net: Convolutional networks for biomedical image segmentation.
+\newblock In {\em International Conference on Medical Image Computing and
+  Computer Assisted Intervention}, pages 234--241. Springer, 2015.
+
+\bibitem{ros2016synthia}
+German Ros, Laura Sellart, Joanna Materzynska, David Vazquez, and Antonio~M
+  Lopez.
+\newblock The synthia dataset: A large collection of synthetic images for
+  semantic segmentation of urban scenes.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2016.
+
+\bibitem{ruan2019category}
+Congcong Ruan, Wei Wang, Haifeng Hu, and Dihu Chen.
+\newblock Category-level adversaries for semantic domain adaptation.
+\newblock {\em IEEE Access}, 7:83198--83208, 2019.
+
+\bibitem{sankaranarayanan2018learning}
+Swami Sankaranarayanan, Yogesh Balaji, Arpit Jain, Ser~Nam Lim, and Rama
+  Chellappa.
+\newblock Learning from synthetic data: Addressing domain shift for semantic
+  segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2018.
+
+\bibitem{shen2016relay}
+Li Shen, Zhouchen Lin, and Qingming Huang.
+\newblock Relay backpropagation for effective learning of deep convolutional
+  neural networks.
+\newblock {\em Eur. Conf. Comput. Vis.}, 2016.
+
+\bibitem{sinha2020class}
+Saptarshi Sinha, Hiroki Ohashi, and Katsuyuki Nakamura.
+\newblock Class-wise difficulty-balanced loss for solving class-imbalance.
+\newblock In {\em Proceedings of the Asian conference on computer vision},
+  2020.
+
+\bibitem{fixmatch}
+Kihyuk Sohn, David Berthelot, Nicholas Carlini, Zizhao Zhang, Han Zhang,
+  Colin~A Raffel, Ekin~Dogus Cubuk, Alexey Kurakin, and Chun-Liang Li.
+\newblock Fixmatch: Simplifying semi-supervised learning with consistency and
+  confidence.
+\newblock In {\em Adv. Neural Inform. Process. Syst.}, 2020.
+
+\bibitem{srivastava2014dropout}
+Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan
+  Salakhutdinov.
+\newblock Dropout: a simple way to prevent neural networks from overfitting.
+\newblock {\em The journal of machine learning research}, 15(1):1929--1958,
+  2014.
+
+\bibitem{sun2019deep}
+Ke Sun, Bin Xiao, Dong Liu, and Jingdong Wang.
+\newblock Deep high-resolution representation learning for human pose
+  estimation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 5693--5703,
+  2019.
+
+\bibitem{tan2020equalization}
+Jingru Tan, Changbao Wang, Buyu Li, Quanquan Li, Wanli Ouyang, Changqing Yin,
+  and Junjie Yan.
+\newblock Equalization loss for long-tailed object recognition.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 11662--11671,
+  2020.
+
+\bibitem{tarvainen2017mean}
+Antti Tarvainen and Harri Valpola.
+\newblock Mean teachers are better role models: Weight-averaged consistency
+  targets improve semi-supervised deep learning results.
+\newblock {\em Adv. Neural Inform. Process. Syst.}, 30, 2017.
+
+\bibitem{tian2022striking}
+Junjiao Tian, Niluthpol~Chowdhury Mithun, Zachary Seymour, Han-Pang Chiu, and
+  Zsolt Kira.
+\newblock Striking the right balance: Recall loss for semantic segmentation.
+\newblock In {\em 2022 International Conference on Robotics and Automation
+  (ICRA)}, pages 5063--5069. IEEE, 2022.
+
+\bibitem{tranheden2021dacs}
+Wilhelm Tranheden, Viktor Olsson, Juliano Pinto, and Lennart Svensson.
+\newblock Dacs: Domain adaptation via cross-domain mixed sampling.
+\newblock In {\em IEEE Winter Conf. Appl. Comput. Vis.}, 2021.
+
+\bibitem{tsai2018learning}
+Yi-Hsuan Tsai, Wei-Chih Hung, Samuel Schulter, Kihyuk Sohn, Ming-Hsuan Yang,
+  and Manmohan Chandraker.
+\newblock Learning to adapt structured output space for semantic segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2018.
+
+\bibitem{tsai2019domain}
+Yi-Hsuan Tsai, Kihyuk Sohn, Samuel Schulter, and Manmohan Chandraker.
+\newblock Domain adaptation for structured output via discriminative patch
+  representations.
+\newblock In {\em Int. Conf. Comput. Vis.}, 2019.
+
+\bibitem{van2008visualizing}
+Laurens Van~der Maaten and Geoffrey Hinton.
+\newblock Visualizing data using t-sne.
+\newblock {\em Journal of machine learning research}, 9(11), 2008.
+
+\bibitem{vu2019advent}
+Tuan-Hung Vu, Himalaya Jain, Maxime Bucher, Matthieu Cord, and Patrick
+  P{\'e}rez.
+\newblock Advent: Adversarial entropy minimization for domain adaptation in
+  semantic segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2019.
+
+\bibitem{wang2020classes}
+Haoran Wang, Tong Shen, Wei Zhang, Ling-Yu Duan, and Tao Mei.
+\newblock Classes matter: A fine-grained adversarial approach to cross-domain
+  semantic segmentation.
+\newblock In {\em Eur. Conf. Comput. Vis.}, 2020.
+
+\bibitem{wang2020deep}
+Jingdong Wang, Ke Sun, Tianheng Cheng, Borui Jiang, Chaorui Deng, Yang Zhao,
+  Dong Liu, Yadong Mu, Mingkui Tan, Xinggang Wang, et~al.
+\newblock Deep high-resolution representation learning for visual recognition.
+\newblock {\em IEEE Trans. Pattern Anal. Mach. Intell.}, 43(10):3349--3364,
+  2020.
+
+\bibitem{wang2022semi}
+Yuchao Wang, Haochen Wang, Yujun Shen, Jingjing Fei, Wei Li, Guoqiang Jin,
+  Liwei Wu, Rui Zhao, and Xinyi Le.
+\newblock Semi-supervised semantic segmentation using unreliable pseudo-labels.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2022.
+
+\bibitem{wang2020differential}
+Zhonghao Wang, Mo Yu, Yunchao Wei, Rogerio Feris, Jinjun Xiong, Wen-mei Hwu,
+  Thomas~S Huang, and Honghui Shi.
+\newblock Differential treatment for stuff and things: A simple unsupervised
+  domain adaptation method for semantic segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2020.
+
+\bibitem{wu2020forest}
+Jialian Wu, Liangchen Song, Tiancai Wang, Qian Zhang, and Junsong Yuan.
+\newblock Forest r-cnn: Large-vocabulary long-tailed object detection and
+  instance segmentation.
+\newblock In {\em ACM Int. Conf. Multimedia}, pages 1570--1578, 2020.
+
+\bibitem{xiao2018unified}
+Tete Xiao, Yingcheng Liu, Bolei Zhou, Yuning Jiang, and Jian Sun.
+\newblock Unified perceptual parsing for scene understanding.
+\newblock In {\em Eur. Conf. Comput. Vis.}, pages 418--434, 2018.
+
+\bibitem{xie2020adversarial}
+Cihang Xie, Mingxing Tan, Boqing Gong, Jiang Wang, Alan~L Yuille, and Quoc~V
+  Le.
+\newblock Adversarial examples improve image recognition.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 819--828,
+  2020.
+
+\bibitem{xie2021segformer}
+Enze Xie, Wenhai Wang, Zhiding Yu, Anima Anandkumar, Jose~M Alvarez, and Ping
+  Luo.
+\newblock Segformer: Simple and efficient design for semantic segmentation with
+  transformers.
+\newblock In {\em Adv. Neural Inform. Process. Syst.}, 2021.
+
+\bibitem{xie2020self}
+Qizhe Xie, Minh-Thang Luong, Eduard Hovy, and Quoc~V Le.
+\newblock Self-training with noisy student improves imagenet classification.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2020.
+
+\bibitem{dash}
+Yi Xu, Lei Shang, Jinxing Ye, Qi Qian, Yu-Feng Li, Baigui Sun, Hao Li, and Rong
+  Jin.
+\newblock Dash: Semi-supervised learning with dynamic thresholding.
+\newblock In {\em Int. Conf. Mach. Learn.}, 2021.
+
+\bibitem{yang2020adversarial}
+Jihan Yang, Ruijia Xu, Ruiyu Li, Xiaojuan Qi, Xiaoyong Shen, Guanbin Li, and
+  Liang Lin.
+\newblock An adversarial perturbation oriented domain adaptation approach for
+  semantic segmentation.
+\newblock In {\em Proceedings of the AAAI Conference on Artificial
+  Intelligence}, volume~34, pages 12613--12620, 2020.
+
+\bibitem{yang2022survey}
+Lu Yang, He Jiang, Qing Song, and Jun Guo.
+\newblock A survey on long-tailed visual recognition.
+\newblock {\em Int. J. Comput. Vis.}, pages 1--36, 2022.
+
+\bibitem{st++}
+Lihe Yang, Wei Zhuo, Lei Qi, Yinghuan Shi, and Yang Gao.
+\newblock St++: Make self-training work better for semi-supervised semantic
+  segmentation.
+\newblock {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2022.
+
+\bibitem{yang2020fda}
+Yanchao Yang and Stefano Soatto.
+\newblock Fda: Fourier domain adaptation for semantic segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2020.
+
+\bibitem{yin2015noisy}
+Shi Yin, Chao Liu, Zhiyong Zhang, Yiye Lin, Dong Wang, Javier Tejedor,
+  Thomas~Fang Zheng, and Yinguo Li.
+\newblock Noisy training for deep neural networks in speech recognition.
+\newblock {\em ICASSP}, 2015(1):1--14, 2015.
+
+\bibitem{yu2020context}
+Changqian Yu, Jingbo Wang, Changxin Gao, Gang Yu, Chunhua Shen, and Nong Sang.
+\newblock Context prior for scene segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 12416--12425,
+  2020.
+
+\bibitem{yuan2020object}
+Yuhui Yuan, Xilin Chen, and Jingdong Wang.
+\newblock Object-contextual representations for semantic segmentation.
+\newblock In {\em Eur. Conf. Comput. Vis.}, pages 173--190. Springer, 2020.
+
+\bibitem{yuan2021ocnet}
+Yuhui Yuan, Lang Huang, Jianyuan Guo, Chao Zhang, Xilin Chen, and Jingdong
+  Wang.
+\newblock Ocnet: Object context for semantic segmentation.
+\newblock {\em Int. J. Comput. Vis.}, 129(8):2375--2398, 2021.
+
+\bibitem{cutmix}
+Sangdoo Yun, Dongyoon Han, Seong~Joon Oh, Sanghyuk Chun, Junsuk Choe, and
+  Youngjoon Yoo.
+\newblock Cutmix: Regularization strategy to train strong classifiers with
+  localizable features.
+\newblock In {\em Int. Conf. Comput. Vis.}, 2019.
+
+\bibitem{zang2021fasa}
+Yuhang Zang, Chen Huang, and Chen~Change Loy.
+\newblock Fasa: Feature augmentation and sampling adaptation for long-tailed
+  instance segmentation.
+\newblock In {\em Int. Conf. Comput. Vis.}, pages 3457--3466, 2021.
+
+\bibitem{zhang2018context}
+Hang Zhang, Kristin Dana, Jianping Shi, Zhongyue Zhang, Xiaogang Wang, Ambrish
+  Tyagi, and Amit Agrawal.
+\newblock Context encoding for semantic segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 7151--7160,
+  2018.
+
+\bibitem{zhang2020survey}
+Man Zhang, Yong Zhou, Jiaqi Zhao, Yiyun Man, Bing Liu, and Rui Yao.
+\newblock A survey of semi-and weakly supervised semantic segmentation of
+  images.
+\newblock {\em Artificial Intelligence Review}, 53(6):4259--4288, 2020.
+
+\bibitem{zhang2021prototypical}
+Pan Zhang, Bo Zhang, Ting Zhang, Dong Chen, Yong Wang, and Fang Wen.
+\newblock Prototypical pseudo label denoising and target structure learning for
+  domain adaptive semantic segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 12414--12424,
+  2021.
+
+\bibitem{zhang2019category}
+Qiming Zhang, Jing Zhang, Wei Liu, and Dacheng Tao.
+\newblock Category anchor-guided unsupervised domain adaptation for semantic
+  segmentation.
+\newblock In {\em Adv. Neural Inform. Process. Syst.}, 2019.
+
+\bibitem{zhang2021k}
+Wenwei Zhang, Jiangmiao Pang, Kai Chen, and Chen~Change Loy.
+\newblock K-net: Towards unified image segmentation.
+\newblock {\em Adv. Neural Inform. Process. Syst.}, 34:10326--10338, 2021.
+
+\bibitem{pspnet}
+Hengshuang Zhao, Jianping Shi, Xiaojuan Qi, Xiaogang Wang, and Jiaya Jia.
+\newblock Pyramid scene parsing network.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, 2017.
+
+\bibitem{zheng2021rethinking}
+Sixiao Zheng, Jiachen Lu, Hengshuang Zhao, Xiatian Zhu, Zekun Luo, Yabiao Wang,
+  Yanwei Fu, Jianfeng Feng, Tao Xiang, Philip~HS Torr, et~al.
+\newblock Rethinking semantic segmentation from a sequence-to-sequence
+  perspective with transformers.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 6881--6890,
+  2021.
+
+\bibitem{zhong2021pixel}
+Yuanyi Zhong, Bodi Yuan, Hong Wu, Zhiqiang Yuan, Jian Peng, and Yu-Xiong Wang.
+\newblock Pixel contrastive-consistent semi-supervised semantic segmentation.
+\newblock In {\em Int. Conf. Comput. Vis.}, pages 7273--7282, 2021.
+
+\bibitem{zhong2020squeeze}
+Zilong Zhong, Zhong~Qiu Lin, Rene Bidart, Xiaodan Hu, Ibrahim~Ben Daya, Zhifeng
+  Li, Wei-Shi Zheng, Jonathan Li, and Alexander Wong.
+\newblock Squeeze-and-attention networks for semantic segmentation.
+\newblock In {\em IEEE Conf. Comput. Vis. Pattern Recog.}, pages 13065--13074,
+  2020.
+
+\bibitem{zhou2022uncertainty}
+Qianyu Zhou, Zhengyang Feng, Qiqi Gu, Guangliang Cheng, Xuequan Lu, Jianping
+  Shi, and Lizhuang Ma.
+\newblock Uncertainty-aware consistency regularization for cross-domain
+  semantic segmentation.
+\newblock {\em Computer Vision and Image Understanding}, page 103448, 2022.
+
+\bibitem{zhou2021domain}
+Qianyu Zhou, Chuyun Zhuang, Xuequan Lu, and Lizhuang Ma.
+\newblock Domain adaptive semantic segmentation with regional contrastive
+  consistency regularization.
+\newblock {\em arXiv preprint arXiv:2110.05170}, 2021.
+
+\bibitem{zou2018unsupervised}
+Yang Zou, Zhiding Yu, BVK Kumar, and Jinsong Wang.
+\newblock Unsupervised domain adaptation for semantic segmentation via
+  class-balanced self-training.
+\newblock In {\em Proceedings of the European conference on computer vision
+  (ECCV)}, pages 289--305, 2018.
+
+\bibitem{zou2020pseudoseg}
+Yuliang Zou, Zizhao Zhang, Han Zhang, Chun-Liang Li, Xiao Bian, Jia-Bin Huang,
+  and Tomas Pfister.
+\newblock Pseudoseg: Designing pseudo labels for semantic segmentation.
+\newblock {\em Int. Conf. Learn. Represent.}, 2020.
+
+\bibitem{zuo2021self}
+Simiao Zuo, Yue Yu, Chen Liang, Haoming Jiang, Siawpeng Er, Chao Zhang, Tuo
+  Zhao, and Hongyuan Zha.
+\newblock Self-training with differentiable teacher.
+\newblock {\em arXiv preprint arXiv:2109.07049}, 2021.
+
+\bibitem{zur2009noise}
+Richard~M Zur, Yulei Jiang, Lorenzo~L Pesce, and Karen Drukker.
+\newblock Noise injection for training artificial neural networks: A comparison
+  with weight decay and early stopping.
+\newblock {\em Medical physics}, 36(10):4810--4818, 2009.
+
+\end{thebibliography}

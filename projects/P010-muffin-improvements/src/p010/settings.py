@@ -61,7 +61,7 @@ class Settings(BaseSettings):
 
     # ── PhnVar (MuFFIN §IV cont) ────────────────────────────────────────────
     use_phnvar: bool = Field(default=False, description="Enable phoneme-specific logit perturbation")
-    phnvar_sigma: float = Field(default=1.0, description="Gaussian noise std for PhnVar (not specified in paper)")
+    phnvar_sigma: float = Field(default=4.0, description="PhnVar noise std (clamped [-1,1]; BLV default)")
     phnvar_alpha: float = Field(default=1.0, description="QF weight in PhnVar (paper: 1.0)")
     phnvar_beta: float = Field(default=1.0, description="DF weight in PhnVar (paper: 1.0)")
 

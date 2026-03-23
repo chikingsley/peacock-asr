@@ -129,18 +129,24 @@ def eval_mdd(
     threshold: float = 0.5,
     diag_logit: torch.Tensor | None = None,
     diag_label: torch.Tensor | None = None,
+    canon_phn_id: torch.Tensor | None = None,
 ) -> dict[str, float]:
     """MDD detection + diagnosis metrics (MuFFIN §V.C, Table V).
 
     Detection: F1, precision, recall on binary mispronunciation labels.
     Diagnosis: FAR, FRR, DER, PER on phoneme predictions (if diag provided).
 
+    Per MuFFIN §IV: "the canonical phonemes are masked during the softmax computation
+    of the predictor" — for detected mispronunciations, the canonical phone class is
+    set to -inf before argmax so the model can't just echo the prompt.
+
     Args:
-        logit:      [N_utt, 50, 1] raw detection logits (before sigmoid).
-        label:      [N_utt, 50]    1 = mispronounced, 0 = correct, -1 = padding.
-        threshold:  Sigmoid threshold for positive classification.
-        diag_logit: [N_utt, 50, 39] diagnosis logits (optional).
-        diag_label: [N_utt, 50] ground-truth phoneme IDs for diagnosis (optional).
+        logit:        [N_utt, 50, 1] raw detection logits (before sigmoid).
+        label:        [N_utt, 50]    1 = mispronounced, 0 = correct, -1 = padding.
+        threshold:    Sigmoid threshold for positive classification.
+        diag_logit:   [N_utt, 50, 39] diagnosis logits (optional).
+        diag_label:   [N_utt, 50] ground-truth phoneme IDs for diagnosis (optional).
+        canon_phn_id: [N_utt, 50] canonical phone IDs for softmax masking (optional).
 
     Returns:
         dict with keys: f1, precision, recall, and optionally far, frr, der, per
@@ -158,8 +164,16 @@ def eval_mdd(
 
     # Diagnosis metrics (MuFFIN Table V: FAR, FRR, DER, PER)
     if diag_logit is not None and diag_label is not None:
-        diag_pred = diag_logit.argmax(dim=-1)  # [N_utt, 50]
-        canon_id = diag_label  # canonical phone = ground truth for correct phones
+        # Mask canonical phone before argmax (MuFFIN §IV: "canonical phonemes are
+        # masked during the softmax computation of the predictor")
+        if canon_phn_id is not None:
+            masked_logit = diag_logit.clone()
+            # canon_phn_id is 0-based (0-38). Set canonical class to -inf.
+            canon_idx = canon_phn_id.long().clamp(min=0)  # [N_utt, 50]
+            masked_logit.scatter_(2, canon_idx.unsqueeze(-1), float("-inf"))
+            diag_pred = masked_logit.argmax(dim=-1)
+        else:
+            diag_pred = diag_logit.argmax(dim=-1)  # [N_utt, 50]
 
         # For detected mispronunciations, check if diagnosis matches
         detected = pred_detect == 1
@@ -176,7 +190,9 @@ def eval_mdd(
 
         # PER: phoneme error rate among detected mispronunciations
         diag_flat = diag_pred.numpy().reshape(-1)[mask.numpy().reshape(-1)]
-        canon_flat = canon_id.numpy().reshape(-1)[mask.numpy().reshape(-1)]
+        # Use canon_phn_id for PER if available, else fall back to diag_label
+        _canon = canon_phn_id if canon_phn_id is not None else diag_label
+        canon_flat = _canon.long().numpy().reshape(-1)[mask.numpy().reshape(-1)]
         if detected.sum() > 0:
             per = float((diag_flat[detected] != canon_flat[detected]).sum() / max(detected.sum(), 1))
         else:

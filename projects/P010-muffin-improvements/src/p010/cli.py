@@ -187,7 +187,9 @@ def eval_cmd(checkpoint: str, use_mdd: bool, features_dir: str | None) -> None:
     device = torch.device(settings.device if torch.cuda.is_available() else "cpu")
     model = model.to(device)
 
-    # MDD threshold grid search on training set (MuFFIN §V.B)
+    # MDD threshold grid search (MuFFIN §V.B).
+    # Paper uses 500 held-out utterances from training; we search on the full training
+    # set as a post-hoc approximation (our model was already trained on all 2500).
     mdd_threshold = 0.5
     if use_mdd:
         click.echo("Running MDD threshold grid search on training set...")

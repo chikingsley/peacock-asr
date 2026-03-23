@@ -1,0 +1,81 @@
+\section{Related Work}\label{sec:related-work}
+
+
+\noindent\textbf{Semantic segmentation.}
+%
+% Prior arts usually improve the performance of this task via either designing more effective model architectures or constructing better representations.
+%
+Network architecture for semantic segmentation has evolved for years, from CNNs~\cite{fcn, pspnet, deeplab} to Transformers~\cite{zhang2021k, zheng2021rethinking, xie2021segformer, chen2022vision, dosovitskiy2020image}.
+%
+% At the beginning of deep learning era, CNN-based architectures~\cite{fcn,pspnet,deeplab} like FCN~\cite{fcn} have become a mainstream framework.
+%
+% More recent Transformer-based~\cite{zhang2021k, zheng2021rethinking, xie2021segformer, chen2022vision, dosovitskiy2020image} architecture have proved higher performance for semantic segmentation due to its effectiveness.
+%
+Another line of research works focuses on enhancing the extracted representations like integrating attention mechanisms~\cite{fu2019dual, huang2019ccnet, li2018pyramid, zhong2020squeeze} or context representations~\cite{yuan2020object, wang2020deep, zhang2018context, lin2018multi, yu2020context, yuan2021ocnet} into segmentation models.
+%
+\method is complementary to these various frameworks and improves several state-of-the-art methods consistently.
+
+
+\noindent\textbf{Semi-supervised semantic segmentation.}
+%
+To alleviate the heavy need for large-scale annotated data, semi-supervised semantic segmentation has become a research hotspot.
+%
+There are two typical frameworks for this task: consistency regularization~\cite{em, chen2021semisupervised, french2019semi} and self-training~\cite{fixmatch, dash, cct, bachman2014learning}.
+%
+Consistency regularization applies various perturbations~\cite{french2019semi} on training data and forces consistent predictions between the perturbed and the unperturbed input~\cite{em}.
+%
+Self-training~\cite{zuo2021self, st++, wang2022semi, xie2020self, cct, cutmix, ael} uses the predictions from the pre-trained model as the ``ground-truth'' of the unlabeled data and then trains a semantic segmentation model in a fully-supervised manner.
+%
+These two frameworks have no specialized operations for long-tail data.
+%
+To this end, we provide a concise and generic approach that can be integrated into any framework.
+
+
+\noindent\textbf{Unsupervised domain adaptive semantic segmentation.}
+%
+UDA semantic segmentation aims at learning segmentation model that transfer knowledge from labeled source domain to unlabeled target domain.
+%
+Early methods for UDA segmentation focus on enabling the model to extract domain-invariant features.
+%
+They align the cross-domain feature distribution at image level~\cite{hoffman2018cycada, sankaranarayanan2018learning, gong2019dlow}, feature level~\cite{chang2019all, chen2019progressive, li2021semantic, tsai2018learning} and output level~\cite{melas2021pixmatch, vu2019advent, tsai2018learning} via image style transfer~\cite{yang2020fda, guo2021label, hoffman2018cycada, li2019bidirectional, kim2020learning}, image feature domain discriminator~\cite{tsai2019domain, gan, nowozin2016f, pan2020unsupervised, wang2020differential} or well-designed metrics~\cite{guo2021metacorrection, long2015learning, lee2019sliced}.
+%
+Follow-up study~\cite{zhang2021prototypical, chen2022deliberated} suggests that the self-training-based pipeline leads to more consistent improvement.
+%
+Recently, DAFormer~\cite{hoyer2022daformer} and HRDA~\cite{hoyer2022hrda} provide a self-training-based Transformer architecture together with many efficient training strategies, which can achieve consistent improvement over other competitors.
+%
+\method can be simply integrated into existing pipelines, and consistently improve their performance.
+
+
+
+
+
+\noindent\textbf{Long-tail learning.} Since the long-tail phenomenon is common~\cite{yang2022survey} in deep learning, the performance of the model tends to be dominated by the head category, while the learning of the tail category is severely underdeveloped.
+%
+One intuitive solution to alleviate unbalanced data distribution is data processing, which typically consists of three ways: over-sampling~\cite{haixiang2017learning, wu2020forest, peng2020large, gupta2019lvis}, under-sampling~\cite{haixiang2017learning, buda2018systematic, sinha2020class, tan2020equalization} and data augmentation~\cite{zang2021fasa, chu2020feature, liu2022breadcrumbs, chou2020remix}. Various methods have been proposed to alleviate the long-tail phenomenon in semantic segmentation, which can be mainly divided into three settings: fully supervised~\cite{tian2022striking,berman2018lovasz}, semi-supervised~\cite{he2021re, hu2021semi,fan2022ucc}, and UDA~\cite{ruan2019category,zou2018unsupervised,yang2020adversarial,li2022class}. It is noteworthy that existing methods are usually limited to a specific setting and lack generalizability.
+
+
+%
+\noindent\textbf{Noise-based augmentation.}
+%
+To improve model robustness and avoid over-fitting, augmenting data with noise~\cite{holmstrom1992using, bengio2011deep, ding2016convolutional} at image level or feature level is widely applied to model training.
+%
+Techniques~\cite{lopes2019improving,zur2009noise} like Dropout~\cite{srivastava2014dropout}, color jittering~\cite{afifi2019else}, gaussian noise, are the most common methods and proved to be simple yet efficient, but they might also introducing task-agnostic bias~\cite{yin2015noisy}.
+%
+Besides, methods like \textit{M2m}~\cite{kim2020m2m} and \textit{AdvProp}~\cite{xie2020adversarial} utilize adversarial examples to augment the training data and significantly improve model robustness.
+%
+Prior arts focus on improving the robustness yet ignoring the prevalence of long-tail data,
+%
+whereas our \method can alleviate the feature squeeze caused by long-tail data effectively.
+%
+Logit adjustment~\cite{menon2021long} has become a popular strategy to alleviate the long-tail issue and hence owns numerous variants.
+%
+GCL~\cite{li2022long} proposed a two-stage logit adjustment method that involves perturbating features with Gaussian noise and re-sampling classifier learning which has demonstrated promising results in long-tailed classification tasks.
+%
+As another variant of logit adjustment, we apply it to the long-tailed segmentation task. Through single-stage training only, \method enhances baseline performance in fully supervised, semi-supervised, and domain adaptative settings. Notably, \method has a robustness that allows it to manage non-Gaussian adjustment terms and variations in the adjustment term.
+% GCL~\cite{li2022long}, similar to our \method, adjusts the logit to alleviate softmax saturation and retrains the classifier using the strategy of effective sample number sampling.
+% %
+% Both \method and GCL~\cite{li2022long} share the same goal of alleviating the imbalance in feature space distribution.
+% %
+% Nonetheless, the implementation of \method is simpler and mainly focused on segmentation tasks.
+% %
+% Furthermore, \method's investigations extend to estimating the distribution of unlabeled data, notably in the semi-supervised and unsupervised domain adaptive settings, where the category distribution of training data is unknown.
