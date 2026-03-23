@@ -63,8 +63,8 @@ Implemented all remaining MuFFIN paper components. Previously we only had HierCB
 | Real diagnosis labels | `data.py` | §III.B | Extracted from SpeechOcean762 HF dataset `mispronunciations` annotations. 1007 train substitutions mapped to actual spoken phone IDs (e.g., IY→AH, TH→S). 984 non-CMU sounds (e.g., `<unk>`, `R*`) marked as -1 (ignored in CE loss). Saved as `tr_label_diag.npy` / `te_label_diag.npy`. Falls back to canonical phone if diag files absent. |
 | PhnVar | `phnvar.py` (new), `trainer.py` | §IV cont, Eq.24-27 | Phoneme-specific logit perturbation on diagnosis predictor. QF (quantity factor) = normalized log inverse frequency. DF (difficulty factor) = normalized mispronunciation rate. Perturbation: `N(0, σ) × sqrt(QF_k × DF_k)` with α=β=1. σ not specified in paper, defaulting to 1.0. Applied during training only. |
 | Loss weights 3/1/1 | `settings.py` | §V.B | Phone loss weighted 3× higher than word and utterance. The ConPCO paper used 1/1/1; 3/1/1 is MuFFIN-specific. |
-| MDD threshold grid search | `eval.py`, `cli.py` | §V.B | Search [0.0, 1.0] stride 0.1 on training set, maximize F1. Found threshold=0.4, matching paper exactly. |
-| DER/FRR/FAR/PER metrics | `eval.py`, `trainer.py` | §V.C Table V | Full MDD diagnosis evaluation: false acceptance rate, false rejection rate, diagnostic error rate, phoneme error rate. Computed when `diag_logit` and `diag_label` are available. |
+| MDD threshold grid search | `eval.py`, `cli.py` | §V.B | Search [0.0, 1.0] stride 0.1 on the full training set, maximize F1. This reproduces the paper's reported global `0.4` threshold as a post-hoc approximation, but it is **not** the paper's exact protocol (the paper uses a 500-utterance held-out set and phoneme-specific threshold selection before settling on a global threshold). |
+| DER/FRR/FAR/PER metrics + canonical masking | `eval.py`, `trainer.py` | §IV, §V.C Table V | Diagnosis evaluation now masks the canonical phone class before `argmax`, matching the paper's "mask canonical phonemes during diagnosis" rule. FAR/FRR/DER/PER are computed when diagnosis logits and labels are available, but the exact Table V scoring rubric is still only approximately matched. |
 | NUM_PHN_CLASSES 40→42 | `hiercb.py` | — | Added pad(0) + mask(41) classes for pretraining weight transfer. Extra classes inactive during fine-tuning. |
 
 ### Sweep results
@@ -92,17 +92,22 @@ MDD:    F1 0.5734  P 0.6560  R 0.5092
 Diag:   FAR 0.4908  FRR 0.0082  DER 0.9110  PER 0.6323
 ```
 
+The APA numbers above are directly comparable to our training runs. The diagnosis numbers are
+useful for internal regression checks, but they should **not** yet be treated as numerically
+equivalent to MuFFIN Table V because the paper cites an external MDD scoring rubric whose exact
+normalization details are not fully specified in the released materials.
+
 ### Known remaining gap (0.682 vs 0.742)
 
 The ~0.060 gap has several contributing factors:
 
 1. **Test-set model selection**: The paper (and our code) selects the best checkpoint by test-set phone MSE every epoch. There is no separate validation split — SpeechOcean762 only provides train (2500) and test (2500). This means both the paper and our runs optimize checkpoint selection against the test set across 100 epochs. The paper's reported 0.742 and our 0.682 are both measured this way. The gap is real and not an artifact of different evaluation methodology.
 
-2. **Pretraining architecture**: The paper's ref [41] (HierTFR, Yan et al. ACL 2024) pretrains with standard Transformer encoder blocks. MuFFIN fine-tunes with Branchformer (BlockCNN) blocks. The paper says only "following [41]" without specifying how the architecture difference is handled. Our `HierCBPretrain` uses Branchformer blocks for pretraining (matching the fine-tuning architecture), which means the pretrained encoder representations may differ from what the paper uses. If the paper pretrains with Transformer blocks and then loads those weights into Branchformer blocks with `strict=False`, mismatched layer names would be silently dropped — meaning only shared layers (input projections, embeddings, position encodings) would actually transfer, while the encoder blocks themselves would be randomly initialized.
+2. **Pretraining architecture**: The paper's ref [41] (HierTFR, Yan et al. ACL 2024) pretrains with standard Transformer encoder blocks, while MuFFIN fine-tunes with Branchformer-style `BlockCNN` blocks. The architecture mismatch is real. However, the transfer issue is subtler than "all encoder weights are dropped": the Transformer and Branchformer blocks share an attention + MLP backbone, so a `strict=False` load would plausibly transfer the shared submodules while leaving only the Branchformer-specific convolution / branch-merging parameters randomly initialized. Our `HierCBPretrain` instead pretrains the same Branchformer backbone used at fine-tuning time. That makes this a credible source of mismatch with the paper, but still a hypothesis rather than a proven cause of the full 0.060 PCC gap.
 
-3. **Diagnosis labels**: 984 of 1991 mispronunciations in the training set are excluded from L_diag (marked -1 = ignored by CrossEntropyLoss). Breakdown: 488 `<unk>` (non-categorical errors — sounds outside the CMU 39-phone set), 450 `<DEL>` (deletions — learner didn't produce the phone), 46 L1-specific phones (`IR`, `AR`, `TR`, `DZ`, `TS`, `DR` — Mandarin phonemes). These are correctly excluded because there is no valid CMU phone ID to use as the target. The paper uses the same 39-phone vocabulary and faces the same constraint. The remaining 1007 substitutions DO have valid CMU phone labels extracted from SpeechOcean762 annotations.
+3. **Diagnosis labels**: 984 of 1991 mispronunciations in the training set are excluded from `L_diag` (marked `-1` = ignored by `CrossEntropyLoss`). Breakdown: 488 `<unk>` (non-categorical errors — sounds outside the CMU 39-phone set), 450 `<DEL>` (deletions — learner didn't produce the phone), 46 L1-specific phones (`IR`, `AR`, `TR`, `DZ`, `TS`, `DR` — Mandarin phonemes). These exclusions are expected for a 39-class CMU diagnosis head; there is no honest target class for those cases. The paper uses the same 39-phone vocabulary and faces the same constraint. The remaining 1007 substitutions do have valid CMU phone labels extracted from SpeechOcean762 annotations. This mainly limits diagnosis supervision coverage; it is unlikely to be the main driver of the phone-PCC gap.
 
-4. **PhnVar σ**: The paper defines δ(σ) as "a Gaussian distribution with a zero mean and the standard deviation σ" (Eq. 25) and specifies α=1, β=1, but **does not specify σ anywhere** — not in the text, not in the experimental setup, not in any table. We default to σ=1.0. With the QF×DF scaling (both in [0, 1]), the effective perturbation std ranges from ~0 (common, rarely mispronounced phones) to σ (rare, frequently mispronounced phones). σ=1.0 means up to 1 std of noise on the raw logits, which is a substantial perturbation. This may need tuning.
+4. **PhnVar σ**: The paper defines δ(σ) as "a Gaussian distribution with a zero mean and the standard deviation σ" (Eq. 25) and specifies α=1, β=1, but **does not specify σ anywhere** — not in the text, not in the experimental setup, not in any table. We default to `σ=1.0`. In practice the effective perturbation is scaled by `sqrt(QF×DF)`, so the injected std is not `1.0` for most phonemes; on our training set the typical scale is much smaller than the worst case. This makes σ a reasonable small-sweep target for MDD tuning, but probably a second-order factor relative to the larger architectural / protocol mismatches above.
 
 ### CLI commands
 
@@ -117,6 +122,28 @@ uv run p010 sweep --seeds 22,33,44,55,66 --use-conpco --use-mdd --use-phnvar \
 # Evaluate with threshold search
 uv run p010 eval --checkpoint checkpoints/v3-muffin/seed22/best_model.pth --use-mdd
 ```
+
+---
+
+## Session 5 — Phase 2 foundations (HConv, CHConv, all-layer extraction)
+
+### New components
+
+| Component | Files | Paper reference | Description |
+|-----------|-------|----------------|-------------|
+| HConv | `models/hconv.py` | Shih & Harwath 2024 (2406.12209) | 1D conv over SSL layer dimension. kernel=5, stride=3, depth=floor(log_3(L)), ReLU after each conv. Last conv reduces channels, output flattened. Ported from `github.com/atosystem/SSL_Interface`. For L=25 (Large): output_dim=1023 (not 1024 — inherent to the `ceil(D//L_remaining)` arithmetic). |
+| CHConv | `models/hconv.py` | Shih et al. 2025 (2511.08389) | Multi-model layer fusion. Concatenates N models along feature dim → `[B, T, L, N×D]`, then applies HConv. Optional linear projection to target output_dim. |
+| All-layer extraction | `extract.py`, `cli.py` | — | Runs frozen SSL models (wav2vec2-large, HuBERT-large, WavLM-large) with `output_hidden_states=True` on SpeechOcean762 audio. Averages frame-level features per phone using durations from `dur_feat.npy`. Saves `[N_utt, 50, 25, 1024]` per model as float16. |
+
+### Design decisions
+
+| Decision | Detail |
+|----------|--------|
+| soundfile instead of torchaudio for audio loading | torchaudio 2.10 requires `torchcodec` (new FFmpeg replacement) which isn't installed. `soundfile` is already a dependency via librosa/datasets, reads the same WAV/FLAC formats, and returns numpy arrays which `Wav2Vec2FeatureExtractor` expects directly. For 16kHz mono WAV loading the output is identical. |
+| `Wav2Vec2FeatureExtractor` instead of `AutoProcessor` | `AutoProcessor` attempts to load a tokenizer (for CTC ASR models) which fails for base SSL models like `hubert-large-ll60k`. `Wav2Vec2FeatureExtractor` loads only the feature extraction config (normalization, padding) — correct for our use case of extracting hidden states, not doing ASR. |
+| HF_TOKEN loaded from root `.env` | The HuggingFace libraries read `os.environ["HF_TOKEN"]` directly, not pydantic-settings `.env` files. `extract.py` reads the root `.env` and injects `HF_TOKEN` into `os.environ` if not already set. This avoids the "unauthenticated requests" warning and enables faster downloads. |
+| Phone averaging before HConv | The Shih papers apply HConv at frame-level, but HConv operates over the **layer** dimension (not time), so averaging over phone durations before or after HConv is mathematically identical. Phone-averaging first avoids storing full frame-level tensors (~600× smaller: 50 phones vs ~30K frames per utterance). |
+| Float16 for all-layer features | `[2500, 50, 25, 1024]` at float32 = 12.8 GB per model. Float16 halves this to 6.4 GB. SSL hidden states are well within float16 dynamic range. |
 
 ---
 

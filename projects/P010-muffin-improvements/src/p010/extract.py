@@ -14,6 +14,7 @@ and computing the mean of the resulting segments."
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import numpy as np
@@ -21,6 +22,15 @@ import soundfile as sf
 import torch
 from tqdm import tqdm
 from transformers import AutoModel, Wav2Vec2FeatureExtractor
+
+# Ensure HF_TOKEN is available from the root .env if not already in env.
+# The HF libraries read os.environ directly, not pydantic-settings .env files.
+_ROOT_ENV = Path(__file__).resolve().parents[3] / ".env"
+if "HF_TOKEN" not in os.environ and _ROOT_ENV.exists():
+    for line in _ROOT_ENV.read_text().splitlines():
+        if line.startswith("HF_TOKEN="):
+            os.environ["HF_TOKEN"] = line.split("=", 1)[1].strip()
+            break
 
 # SSL models used in MuFFIN (3 × Large, 1024-dim, 25 layers including CNN output)
 SSL_MODELS = {
