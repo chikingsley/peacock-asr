@@ -1,0 +1,359 @@
+\FloatBarrier
+\newpage
+\begin{table}[!th]
+\label{tab:models}
+\centering
+\small
+\begin{tabular}{lccccc}
+\toprule
+& \multicolumn{5}{c}{\bf Task Language Coverage} \\
+\cmidrule(lr){2-6}
+&  \st{} & \sst{} & \asr{} & \mt{} & \ttst$\!^\dagger$ \\
+\midrule
+Support 
+& \makecell[c]{101-96} 
+& \makecell[c]{101-36}
+& \nasrlangs{}
+& \makecell[c]{96-96} 
+& \makecell[c]{96-36} \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{Coverage of the \mfourt models.} A list of supported tasks and their coverage expressed as $n_s{-}n_t$ 
+where $n_s$ and $n_t$ are the number of languages supported as source or target respectively. $^\dagger$: the task of \ttst is evaluated zero-shot.}\label{tbl:offline:coverage}
+\end{table}
+\section{\mfourttwo}\label{sec:offline}
+The first step towards a unified \seamless model, capable of expressive cross-lingual translation in real-time, starts with improving \mfourt to give rise to \mfourttwo—a foundational model with state-of-the-art semantic accuracy, wide language coverage, and multitasking capabilities (from and into text or speech). In terms of coverage, \mfourttwo supports the same tasks as \mfourt with the same set of languages 
+detailed in \Cref{tab:all_languages} and summarized in \Cref{tbl:offline:coverage}.
+
+When designing the newer version of \mfourt, adaptability to simultaneous translation was central. 
+Due to the length mismatch between discrete acoustic units and text semantic tokens, the \tu model of \mfourt responsible for generating units tends to hallucinate or truncate the output. This is particularly problematic if the model is only fed partial input and is tasked with generating partial outputs for real-time applications.
+For this reason, we pivoted in \mfourttwo to non-autoregressive text-to-unit decoding in order to decouple generation from output length prediction. With this non-autoregressive \tu decoder, \mfourttwo's \sst inference speed has improved by 3x (see \Cref{app:offline:t2u:latency}) laying the ground for effective real-time translation with \streaming.
+
+We followed the same recipe from \mfourt and relied on pre-training multiple blocks before finetuning them jointly as a unified model. 
+Our unified model, previously a multitask-\unity architecture, was upgraded to multitask-\unitytwo, boasting a stronger non-autoregressive \tu model. Compared to its predecessor, \unitytwo delivers stronger T2U performance thanks to its hierarchical upsampling from subwords to characters and then to units. This upsampling makes pre-training multilingual T2U models much more data-efficient. \mfourttwo also used 4.5M hours of unlabeled audio data to learn its self-supervised input speech presentation with \wvbert (4.5x the amount used in v1). \seamlessalign was further extended to cover more low-resource languages, enabling increased representation of these languages, ultimately improving the downstream semantic accuracy.
+
+The key ingredients of the \mfourttwo recipe are:
+\begin{enumerate}[label=(\alph*)]
+
+\item Unlabeled, human-labeled, pseudo-labeled, or automatically aligned data used in the different pre-training and finetuning stages (\Cref{sec:offline:data}). \Cref{fig:offline:datasummary} gives a bird's eye view of the different sources of data and how they were used.
+
+\item \mt model pre-trained on NLLB data~\citep{nllb2022} in nearly 100 languages~\citep{SeamlessM4TArXiv}.
+\item Conformer speech encoder pre-trained with the \wvbert algorithm.
+We scaled up the amount of unlabeled data from 1 million to 4.5 million hours of audio (\Cref{sec:offline:speech-encoder}).
+\item \xt model trained on different sources of \st data (human-labeled, pseudo-labeled, and automatically aligned). This model is trained with knowledge distillation to jointly support \mt, \asr, and \st by combining the models from (a) and (b) (\Cref{{sec:offline:x2t}}).
+\item \unitytwo based on a novel non-autoregressive \tu decoder architecture with hierarchical modeling of subword, character, and discrete units. \unitytwo relies on unsupervised multilingual character-to-unit alignment learning and introduces a novel span-based glancing for the \tu decoder  (\Cref{sec:offline:unity2}).
+\item Multitask-\unitytwo model finetuned on speech-to-unit data (pseudo-labeled with a teacher \tu or automatically aligned) to build on the model from (c) with a student \tu model (\Cref{sec:offline:s2st}).
+\end{enumerate}
+We evaluated \mfourtlgtwo (a \sizelg-size model) across all its supported tasks [\asr, \mt, \st, \sst, \ttst (zero-shot)] and discuss its results in \Cref{sec:offline:results}.
+
+
+\begin{figure}[!tb]
+    \centering
+    \includegraphics[width=\linewidth]{figures/offline/pretraining_diagram.pdf}
+    \caption{\textbf{Data for speech translation.} An overview of the pre-training and finetuning data used in \mfourttwo.}
+    \label{fig:offline:datasummary}
+\end{figure}
+
+\input{offline/data}
+
+\subsection{Pre-Training}\label{sec:offline:pre}
+
+\subsubsection{Self-supervised speech representation}\label{sec:offline:speech-encoder}
+Scaling data size for self-supervised
+pre-training has been empirically proven to be a relatively cheap, yet effective way to improve speech representation quality~\citep{google_usm}. Following such direction, we continued to add more 
+unlabeled speech data, 
+increasing the amount of our pre-training data from~1M hours~\citep{SeamlessM4TArXiv} to approximately~4.5M hours.
+
+Besides leveraging more pre-training data, we removed the random-projection quantizer~(RPQ)~\citep{best_rq} and its associated loss previously incorporated in \mfourt v1~\citep{SeamlessM4TArXiv}.\footnote{
+As we scaled data from~1M to~4.5M hours, we encountered some optimization instability when RPQ was used.  We decided to simply discard RPQ instead of relying on more extensive hyperparameter tuning.}  
+Akin to v1, the v2 \wvbert comprises~24 Conformer layers~\citep{gulati2020conformer} with approximately~600M parameters and the same pre-training hyperparameters.
+
+\begin{table}[!t]
+\small
+    \centering
+    \begin{tabular}{@{}lrrlc@{}}
+        \toprule
+        {\bf Model} & {\bf Languages} & {\bf Hours} & {\bf Model type} & {\bf Open model} \\
+        \midrule
+        USM & over $300^\dagger$ & 12M & BEST-RQ~\citep{best_rq} &  \\
+        MMS & 1406 & 0.5M & wav2vec 2.0~\citep{baevski2020wav2vec} & $\checkmark$ \\
+        \mfourtlg & over $\wvbertlangs^\dagger$ & 1M & \wvbert & $\checkmark$ \\
+        \midrule
+        \mfourttwo & over $\wvbertlangs^\dagger$ & 4.5M & \wvbert & $\checkmark$ \\
+        \bottomrule
+    \end{tabular}
+    \caption{A comparison of multilingual speech pre-training in state-of-the-art \asr and \st models. $^\dagger$Estimated from the part of data that has language information.} 
+    \label{tbl:modeling:sslsota}
+\end{table}
+
+\subsubsection{\xt: Into-text tasks}\label{sec:offline:x2t}
+In \mfourt, we leveraged foundational models either pre-trained on unlabeled data (\wvbert for speech encoder pre-training) or trained on supervised high-resource tasks (NLLB model for \mt) to improve the quality of transfer tasks (speech-to-text and speech-to-speech). 
+To fuse these pre-trained components and enable meaning transfer through multiple multimodal tasks, we trained an end-to-end model with: 
+(a) a speech encoder (\wvbert) postfixed with a length adapter, 
+(b) text encoder (NLLB encoder), and 
+(c) a text decoder (NLLB decoder). 
+We used the same length adaptor from ~\citet{SeamlessM4TArXiv}.
+The text encoder was frozen, and the model was finetuned to jointly optimize the following objective functions with respect to the speech encoder parameters $\paramsenc$ and the shared text decoder parameters $\paramtdec$:
+\begin{align}
+    \mathcal L_{\text{\st}}(\paramsenc, \paramtdec) 
+    &= -\log p(\tgttext | \srctext; \paramsenc, \paramtdec)
+    =- \sum_{t=1}^{|y|} \log p(\tgttextstep | \tgttextprefix, \srcspeech; \paramsenc, \paramtdec),\\
+    \mathcal L_{\text{\mt}}(\paramtdec) 
+    &= -\log p(\tgttext | \srctext; \paramsenc, \paramtdec)
+    = - \sum_{t=1}^{|y|} \log p(\tgttextstep | \tgttextprefix, \srctext; \paramtdec),
+\end{align}
+where $\srctext$ and $\srcspeech$ are the source text and speech in the source language $\srclang$, and $\tgttext$ is the target text in the target language $\tgtlang$.
+We additionally optimized an auxiliary objective function in the form of token-level knowledge distillation $\mathcal{L}_{\text{KD}}$ to further transfer knowledge from the strong MT model to the student speech translation task (\st). This loss function is defined as follows:
+
+\begin{align}
+    \mathcal{L}_{\text{KD}}(\paramsenc, \paramtdec) & = \sum_{t=1}^{|y|} D_\text{KL}
+    \left[
+    p(. |\tgttextprefix, \srctext; \paramtdec)\, \| \,
+    p(. |\tgttextprefix, \srcspeech; \paramsenc, \paramtdec)
+\right].
+\end{align}
+Our triplets $(\srcspeech, \srctext, \tgttext)$ come mainly from pseudo-labeled \asr data (\Cref{sec:offline:pseudo}). Since we jointly trained on \asr data, handled as translation with $\srclang=\tgtlang$, we replaced the translation task for the \asr samples with auto-encoding (AE). As such, three additional losses are considered:
+
+\begin{align}
+    \mathcal L_{\text{\asr}}(\paramsenc, \paramtdec) &= -\log p(\srctext | \srcspeech; \paramsenc, \paramtdec),
+    \\
+    \mathcal L_{\text{AE}}(\paramtdec) &= -\log p(\srctext | \srctext; \paramtdec),\\
+    \mathcal{L}_{\text{KD-ASR}}(\paramsenc, \paramtdec) & = \sum_{t=1}^{|y|} D_\text{KL}
+    \left[
+    p(. |\srctextprefix, \srctext; \paramtdec)\, \| \,
+    p(. |\srctextprefix, \srcspeech; \paramsenc, \paramtdec)
+\right].
+\end{align}
+The final loss is a weighted sum of all six losses:
+
+\begin{align}
+    \mathcal L \propto  (\mathcal{L}_{\text{\st}} + \mathcal{L}_{\text{\mt}}+ \mathcal{L}_{\text{KD}}) 
+    + \alpha (\mathcal{L}_{\text{\asr}} + \mathcal{L}_{\text{AE}}+ \mathcal{L}_{\text{KD-ASR}}),
+    \label{eq:offline:x2t}
+\end{align}
+where $\alpha$ is a scalar hyperparameter dependent on the proportion of \asr data in our mix of training data. 
+
+We trained our \xt model in two stages. $\text{Stage}_1$ targeted training on supervised English \asr and into English \st data. We find that this step is necessary not only for improving the quality of \xeng translations but also \engx translations. In fact, we hypothesized that allowing the model to focus on one target language while finetuning multilingual speech representations shields it from the interference that can propagate back from the target side. In $\text{Stage}_2$, we added supervised \engx~\st and non-English \asr data to the mix. 
+
+In \mfourttwo, we set $\alpha$ (\Cref{eq:offline:x2t}) to 0.04 in the first finetuning stage and 0.13 in the second stage. 
+Our training batches present 
+a mix of tasks (\asr or \st and the associated auxiliary losses),
+and languages (source only in the first stage and source-target in the second stage) with temperature sampling ($T=2$). 
+All speech encoder and text decoder parameters are finetuned for a total of 200K updates—100K in each stage. 
+
+\begin{figure}[!htb]
+    \centering
+    \includegraphics[width=\linewidth]{figures/offline/unity2_nar_t2u.pdf}
+    \caption{\textbf{Illustration of the \mfourttwo model.} Panel (1) shows the three main blocks of \unitytwo with its non-autoregressive (NAR) \tu. Panel (2) shows multitask-\unitytwo with its additional text encoder. Panel (3) breaks down the components of \mfourttwo (a multitask-\unitytwo model) with a side panel illustration of the teacher \tu model used for pseudo-labeling.}
+    \label{fig:offline:unity2}
+\end{figure}
+
+\input{offline/arxiv_unity2_summarized}
+
+\subsection{\sst Training Setup.}\label{sec:offline:s2st}
+
+Following \sst and \tu modeling in \mfourt, we trained two NAR \tu models for different purposes:
+a teacher \tu model used for unit pseudo-labeling (\Cref{sec:offline:pseudo})
+and a student \tu model used for initializing the \tu sub-component in \unitytwo and finetuning on \sst data.
+Both \tu models are based on the NAR decoder architecture (\Cref{sec:offline:unity2}).
+
+\paragraph{Teacher \tu pre-training.}
+Since discrete unit sequences are much longer than subword sequences, we occasionally observed hallucination during unit pseudo-labeling with an auto-regressive model.
+NAR models, on the other hand, rarely hallucinate because duration modeling is decoupled from sequence generation.
+
+The \mfourttwo teacher NAR \tu model takes characters as inputs and forgoes the subword-to-character upsampling; it takes ground-truth text for input as opposed to a text decoder output (\Cref{sec:offline:unity2:hie_up}).
+The teacher \tu consists of 12 encoder and 12 decoder layers.
+
+\paragraph{Student \tu pre-training.}
+The student NAR {\tu} takes subwords as inputs and consists of six encoder and six decoder layers.
+The decoder architecture is exactly the same as the unit decoder in {\unitytwo}.
+
+
+\paragraph{Finetuning multitask-\unitytwo.}
+In the third finetuning stage of \mfourttwo, the multitask-\unitytwo model is initialized with the pre-trained \xt and the student NAR \tu models described above. The \xt model is frozen, and only weights corresponding to the \tu model are updated during this finetuning stage. The model is finetuned on a combination of pseudo-labeled and aligned \xeng and \engx \ \sst data totaling 
+145K hours (see \Cref{tbl:offline:s2stdata}). 
+
+The new NAR \tu architecture with the pre-trained alignment module between text and units led to superior performance and faster convergence. Given that all components are pre-trained on related tasks (\st, \asr, and \tu), the model converges after less than an epoch. 
+
+\paragraph{Multilingual HiFi-GAN unit vocoder.}\label{sec:offline:vocoder}
+
+Unlike \mfourt, which uses the multitask-\unity architecture, \mfourttwo predicts duplicated (non-reduced) units.
+As such, we re-trained the unit-based HiFi-GAN vocoder from \mfourt~\citep{SeamlessM4TArXiv,gong2023multilingual} on \asr data to convert the duplicated units to waveform without performing duration prediction.
+
+\subsection{Results and Discussion}\label{sec:offline:results}
+In this section, we trained \mfourtlgtwo, a \sizelg model in the multitask-\unitytwo architecture with the same coverage (i.e., tasks and languages) as \mfourt~\citep{SeamlessM4TArXiv}. A card for this model is available in \Cref{card:mfourttwo}.
+
+We evaluated \mfourtlgtwo on all four supervised tasks (\mt, \asr, \st, and \sst), as well as the zero-shot task of text-to-speech translation (\ttst, also referred to as cross-lingual text-to-speech synthesis~\citep{valle-x}).
+
+To generate text hypotheses, we decoded with beam-search (width${=}5$).
+We scored \mt with \chrfT{} 
+and \st with SacreBLEU [default 13a tokenizer and character-level tokenizer for Mandarin Chinese (cmn), Japanese (jpn), Thai (tha), Lao (lao), and Burmese (mya)].
+For \asr, following \citet{whisper}, we scored normalized transcriptions and references with \wer (word error rate). See metric details in \Cref{tab:metrics}.
+
+During \sst and \ttst inference, we performed two-pass beam-search decoding—the best hypothesis out of the first-pass decoding is embedded with the text decoder and is sent to \tu to search for the best unit sequence hypothesis. We used a beam-width of 5 for both searches.
+We evaluated \sst and \ttst accuracy with \asrbleu~\citep{lee-etal-2022-direct} with \whisperlargeold as the underlying \asr model.\footnote{This is different from \citet{SeamlessM4TArXiv}, where \whisperlarge was used for \engx directions and \whispermedium was used for \xeng directions. We re-evaluated \mfourt models here with \whisperlargeold for a direct comparison.}
+We set the decoding temperature of Whisper at zero and used greedy decoding to ensure a deterministic behavior of the ASR model.
+The transcribed hypotheses, as well as the references, are normalized following \citep{whisper} before computing \bleu scores (with the tokenization described for \st). In the following, we report averages for the per-language scores across all the evaluated tasks (see \Cref{sec:offline:allresults}).
+\input{offline/tables/s2t_s2st_results}
+
+\paragraph{Comparison to \mfourt and cascaded models.}
+On the set of languages supported by both \mfourt/\mfourttwo and the baselines included as a reference, we compare in \Cref{tbl:offline:cascaded} the performance of our unified and direct model to that of the first version of \mfourt, as well as cascaded models.
+\footnotetext{We evaluated \whisperlargenew on \st~\fleurs~\xeng using \url{https://github.com/openai/whisper/}. For \whisperlarge, we used the results from ~\citet{whisper}.}
+For \st, the cascaded models comprise Whisper \asr models and NLLB \mt models.
+For \sst, two options were considered for cascading: (1) 3-stage with \asr, \mt, and \tts and (2) 2-stage with \st and \tts.
+We used \yourtts for English-TTS~\citep{casanova2022yourtts} and MMS's TTS models for non-English\footnote{Only 26 of our \ntslangs supported languages are serviced by MMS's \tts models} \tts~\citep{mms}.
+
+
+
+In \fleurs, \mfourttwo achieves state-of-the-art performance in \st, improving in \xeng by 10\% over \mfourtlg, and by more than 17\% over the strongest cascaded model (\whisperlarge + \nllbmedium). When compared against direct models (\eg Whisper and AudioPaLM), \mfourttwo significantly outperformed both in \xeng directions by more than 35\%.\footnote{We evaluated the recently released \whisperlargenew on \fleurs's \st and found it to be worse than \whisperlarge.}
+
+In speech-to-speech translation, \mfourttwo improves over \mfourtlg in \fleurs by more than 15\% in \xeng and 25\% in \engx. Compared to the strongest cascaded models, this is an improvement of 25\% and 15\% in \xeng and \engx, respectively. Results on \cvss show a similar trend and a consistently strong performance with generalizability to other domains.
+
+
+\input{offline/tables/multitask_results}
+\paragraph{Mulitasking results.}
+We compare in \Cref{tbl:offline:auxiliary} the performance of \mfourttwo to that of state-of-the-art models in \mt and \asr tasks. 
+Evaluated for \fleurs~\asr, on the overlapping 77 languages between \whisperlarge and \mfourt, 
+\mfourtlgtwo improved over \mfourtlg by a relative -21\% \wer 
+and over \whisperlarge by a relative -56\% \wer.
+For comparison against MMS, we also report the average on \fleurs-54, where \mfourtlgtwo improves over \mfourtlg by a relative -19\% \wer, closing the gap with MMS's best model (MMS-L61-noLM-LSAH) to -0.4 \wer.
+We also compared \mfourtlgtwo's \asr performance to the recently released \whisperlargenew. Evaluated on 60 languages from \fleurs (as reported in the release\footnote{\url{https://github.com/openai/whisper/discussions/1762}}), \mfourtlgtwo improved over \whisperlargenew by -4.4\% \wer. 
+
+Evaluated for \mt, \mfourtlgtwo's performance on \flores drops by -1.6 \chrfT~in both \xeng and \engx when compared to \mfourtlg. 
+Its \mt accuracy is still, however, on par with the equally-sized \nllbsmall for \xeng and \nllbmedium for \engx. 
+
+Evaluated on \covost~\citep{wang2021covost}, a multilingual \st benchmark dataset, \mfourtlgtwo improved over \mfourtlg by +2.5 \bleu in \xeng directions and by +1.1 in \engx directions. In \xeng directions \mfourt still lags behind \audiopalmast (-1.2 \bleu).
+
+\begin{table}[!t]
+    \centering
+    \small
+    \begin{tabular}{@{}lcc@{}}
+        \toprule
+         & \multicolumn{2}{c}{\bf \makecell{\fleurs~\ttst ($\uparrow$\asrbleu)}}  \\
+        \cmidrule(lr){2-3}
+        {\bf Model} 
+        &\makecell[c]{\xeng\\ {\it (n=88)}} 
+        &\makecell[c]{\engx\\ {\it (n=26)}} \\
+        \midrule
+        \nllbsmall & \iscascaded 35.0 &  \iscascaded 22.7\\
+        \nllbmedium & \iscascaded \bf 36.4 & \iscascaded 23.7 \\
+        \midrule
+        \midrule
+        \mfourtmd & 26.3 & 18.4 \\
+        \mfourtlg & 34.1 & 21.8 \\
+        \midrule
+        \mfourtlgtwo & 35.9 & \bf 27.6 \\
+        \bottomrule
+    \end{tabular}
+    \caption{\textbf{Zero-shot \fleurs~\ttst}. We report the average \asrbleu of \mfourtlg on \fleurs~\ttst.
+    }
+    \label{tbl:offline:t2st}
+\end{table}
+\paragraph{Zero-shot text-to-speech translation.}
+We next evaluated \mfourtlgtwo on the task of \ttst in a zero-shot way. 
+Given that \fleurs collected three recordings by three different native
+speakers for each sample, we randomly select one for the task of \ttst (the input being text).  
+We report in \Cref{tbl:offline:t2st} a comparison between \mfourt models and cascaded models with NLLB and either \yourtts (English \tts) or MMS (non-English \tts) for synthesizing translated text.
+We averaged \asrbleu scores over 88 \xeng directions (the overlap between \fleurs and the languages supported by \mfourttwo). We also averaged \asrbleu over 26 \engx directions (the overlap between our \ntslangs and the languages supported by MMS's \tts models).
+\mfourtlgtwo improved by a large margin over \mfourtlg (+1.8 and +5.8 \asrbleu points in \xeng and \engx respectively).
+Compared to cascaded models, \mfourtlgtwo's zero-shot capability is on par with \nllbmedium + \yourtts in \xeng, and outperforms \nllbmedium + MMS by more than +3.9 \asrbleu points in \engx.
+
+\begin{table}[!t]
+    \centering
+    \small
+    \begin{tabular}{lccc}
+        \toprule
+        \multirow{2}{*}{\bf Resource-level}& \bf\st~\xeng & \bf\sst~\xeng & \bf\asr \\
+        & $\uparrow\Delta$ \bleu 
+        & $\uparrow\Delta$\asrbleu 
+        & $\downarrow\Delta$\wer \\
+        \midrule
+        Low {\it (n=42)}& +2.8 & +4.3 & -7.5\\
+        Medium {\it (n=26)} & +3.0 & +4.5 & -4.7 \\
+        High {\it (n=16)} & +1.7 & +2.9 & -2.9\\
+        \bottomrule
+    \end{tabular}
+     \caption{\textbf{Improvement from \mfourt to \mfourttwo.} Delta of performance in \fleurs's \st~\xeng, \sst~\xeng and \asr between \mfourtlg and \mfourtlgtwo.}\label{tbl:offline:delta:s2t}
+\end{table}
+
+\paragraph{Results by resource-level.}
+We show in \Cref{tbl:offline:delta:s2t} the improvements in \fleurs~\st~\xeng, \sst~\xeng and \asr achieved in \mfourtlgtwo when buttressed with additional supervised data (mostly automatically aligned) and unlabeled data used to train our \wvbert speech encoder. 
+Our efforts to increase supervised and self-supervised data targeted low- and medium-resource languages. 
+Overall, \mfourtlgtwo improved on low-resource languages by an average of 2.8 \bleu points, 4.3 \asrbleu points and -7.5 \wer in the three tasks respectively. As for medium-resource languages, it improved by an average of 3.0 \bleu points, 4.5 \asrbleu points and -4.7 \wer respectively.
+
+\paragraph{Ablation on the input representations for \tu.}
+We investigated better input and output representations for both AR and NAR \tu models. To do so, we compared subword and character as input with reduced and non-reduced units as output in \Cref{tbl:modeling:tu_input_output_type}.
+We found that the previous setting with subword input and reduced unit was the best for the AR {\tu} model, while character input and non-reduced unit were the best for the NAR {\tu} model.
+The best NAR {\tu} model outperformed the best AR {\tu} model by 35\%
+in ASR-WER.
+
+\begin{table}[!tbh]
+    \small
+    \centering
+    \begin{subtable}{.5\linewidth}
+    \begin{tabular}{@{}lllc@{}}
+        \toprule
+        {\bf Model} 
+        & \makecell{\bf Text input\\\bf tokenization} 
+        & \makecell{\bf Output units\\\bf deduplication} 
+        & \makecell{$\downarrow$\bf ASR-WER\\\it (n=32)}  \\
+        \midrule
+        \multirow{4}{*}{AR \tu} 
+        & Subword & Reduced & {\bf 20.79} \\
+        & Subword & Non-reduced & 24.78 \\
+        & Character & Reduced & 35.49 \\
+        & Character & Non-reduced & 78.35 \\
+        \midrule
+        \multirow{4}{*}{NAR \tu} 
+        & Subword & Reduced & 16.66 \\
+        & Subword & Non-reduced & 16.54 \\
+        & Character & Reduced & 13.91 \\
+        & Character & Non-reduced & {\bf 13.41} \\
+        \bottomrule
+    \end{tabular}
+    \caption{A comparison of input and output representations in teacher \tu modeling.}\label{tbl:modeling:tu_input_output_type}
+    \end{subtable}\hfill
+    \begin{subtable}{.4\linewidth}
+    \begin{tabular}{@{}lc@{}}
+        \toprule
+        {\bf Model} & \makecell{$\downarrow$\bf ASR-WER\\\it (n=32)}  \\
+        \midrule
+        NAR \tu & {\bf 13.41} \\  %
+        \ w/o GLAT & 14.97 \\  %
+        \ w/o Span-based masking & 15.17 \\  %
+        \ w/o Efficient GLAT & 13.54 \\  %
+        \ w/o InterCTC & 13.92 \\  %
+        \bottomrule
+    \end{tabular}
+    \caption{Ablation studies in character-level teacher NAR \tu modeling.} \label{tbl:modeling:char_tu_ablation}
+    \end{subtable}
+    \caption{\textbf{Ablation studies in \tu modeling.} In each set of experiments, we calculated ASR-WER in 32 of 36 languages since ASR performs poorly (\ie \wer > 50\%) for Bengali (ben), Maltese (mlt), Telugu(tel) and Northern Uzbek (uzn). 
+    } 
+    \label{tbl:modeling:ablation}
+\end{table}
+
+\paragraph{Ablation on the modeling of NAR \tu.}
+We next conducted an ablation study of the proposed NAR \tu modeling in \Cref{tbl:modeling:char_tu_ablation}.
+We confirmed that GLAT significantly improved intelligibility and both span-based masking and character-level InterCTC also contributed to further improvement.
+Efficient GLAT did not degrade ASR-WER despite a single forward pass.
+
+
+\paragraph{\unitytwo's  multilingual char-to-unit aligner.}
+The \unitytwo-based aligner component, used as a duration teacher in the T2U training, presents itself as a universal tool to align arbitrary text-audio pairs for any downstream task. 
+The presence of extremely large, unlabeled audio corpora makes this tool very attractive for pseudo-labeling. 
+We release a multilingual aligner component that supports all \nvocoderlangs target languages of \mfourttwo, together with a front end for alignment extraction. 
+The front end uses a character-based Sentence-piece model to tokenize a raw text sequence and a 10K acoustic unit extractor, which outputs a discrete unit sequence from \mfourttwo's unit space. 
+We found that our aligner also works pretty well when using a normalized text. A model card describing the aligner component can be found in \Cref{app:aligner_model_card}.
+\Cref{fig:alignment_example} shows an example of a Russian audio sample aligned with its transcription, where the waveform exhibits variable speech rate. 
+In this work, we utilized this alignment extraction tool as the core component behind the automatic pause alignment evaluation (see \Cref{sec:local-prosody-tools} for more details). 
+
+\begin{figure}[!tbh]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/offline/ilia_aligner_example.pdf}
+    \caption{\textbf{Visualization of an alignment with \unitytwo's aligner.} Example of a Russian audio aligned with its transcription 
+    {\selectlanguage{russian} ``проверка нашего элайнера, можно говорить быстро, а можно медленно.''} The purple vertical lines show the predicted character boundaries.
+    }\label{fig:alignment_example}
+\end{figure}
+
+\FloatBarrier
+\newpage

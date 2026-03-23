@@ -1,0 +1,235 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
+\contentsline {section}{\numberline {2}Beyond Words: Expressive and Streaming Speech-to-Speech Translation}{5}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Towards Naturalistic Speech-to-Speech Translation}{5}{subsection.2.1}%
+\contentsline {subsubsection}{\numberline {2.1.1}Meeting translation needs}{5}{subsubsection.2.1.1}%
+\contentsline {subsubsection}{\numberline {2.1.2}Real-time translation in synchronous contexts}{6}{subsubsection.2.1.2}%
+\contentsline {subsubsection}{\numberline {2.1.3}Expressive translation and the preservation of vocal style \& prosody}{6}{subsubsection.2.1.3}%
+\contentsline {subsection}{\numberline {2.2}Expressive and Streaming S2ST Today}{7}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Expressive systems}{7}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}Streaming systems}{7}{subsubsection.2.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.3}The overarching goals of this effort}{8}{subsubsection.2.2.3}%
+\contentsline {subsection}{\numberline {2.3}Overview of Model Capabilities \& Languages}{9}{subsection.2.3}%
+\contentsline {paragraph}{Code.}{9}{subsection.2.3}%
+\contentsline {paragraph}{Language.}{9}{subsection.2.3}%
+\contentsline {paragraph}{Script.}{9}{subsection.2.3}%
+\contentsline {paragraph}{Resource level.}{9}{subsection.2.3}%
+\contentsline {paragraph}{Source.}{9}{subsection.2.3}%
+\contentsline {paragraph}{Target.}{9}{subsection.2.3}%
+\contentsline {section}{\numberline {3}\textsc {SeamlessM4T v2}\xspace }{12}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Data for Speech Translation}{13}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}\textsc {SeamlessAlign}\xspace }{13}{subsubsection.3.1.1}%
+\contentsline {paragraph}{Extended SONAR encoders.}{13}{subsubsection.3.1.1}%
+\contentsline {paragraph}{Automatic alignment procedure.}{14}{table.caption.6}%
+\contentsline {subsubsection}{\numberline {3.1.2}Pseudo-labeling}{15}{subsubsection.3.1.2}%
+\contentsline {paragraph}{Pseudo-labeling for {S2TT}\xspace .}{15}{subsubsection.3.1.2}%
+\contentsline {paragraph}{Pseudo-labeling for {S2ST}\xspace .}{15}{subsubsection.3.1.2}%
+\contentsline {subsubsection}{\numberline {3.1.3}Filtering}{15}{subsubsection.3.1.3}%
+\contentsline {paragraph}{Toxicity filtering.}{15}{subsubsection.3.1.3}%
+\contentsline {paragraph}{Length filtering.}{15}{subsubsection.3.1.3}%
+\contentsline {paragraph}{Special characters filtering.}{15}{subsubsection.3.1.3}%
+\contentsline {paragraph}{Repetition filtering.}{15}{subsubsection.3.1.3}%
+\contentsline {paragraph}{Deduplication.}{15}{subsubsection.3.1.3}%
+\contentsline {paragraph}{LID filtering.}{15}{subsubsection.3.1.3}%
+\contentsline {subsection}{\numberline {3.2}Pre-Training}{16}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Self-supervised speech representation}{16}{subsubsection.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2}{X2T}\xspace : Into-text tasks}{16}{subsubsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.3}Predicting Units with \textsc {UnitY2}\xspace }{17}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.1}Hierarchical subword-to-unit upsampling}{18}{subsubsection.3.3.1}%
+\contentsline {subsubsection}{\numberline {3.3.2}Unsupervised multilingual character-to-unit alignment learning}{19}{subsubsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.3}Efficient span-based glancing training for NAR unit generation}{19}{subsubsection.3.3.3}%
+\contentsline {subsubsection}{\numberline {3.3.4}Training \textsc {UnitY2}\xspace 's NAR {T2U}\xspace and aligner}{20}{subsubsection.3.3.4}%
+\contentsline {subsection}{\numberline {3.4}{S2ST}\xspace Training Setup.}{20}{subsection.3.4}%
+\contentsline {paragraph}{Teacher {T2U}\xspace pre-training.}{20}{subsection.3.4}%
+\contentsline {paragraph}{Student {T2U}\xspace pre-training.}{20}{subsection.3.4}%
+\contentsline {paragraph}{Finetuning multitask-\textsc {UnitY2}\xspace .}{20}{subsection.3.4}%
+\contentsline {paragraph}{Multilingual HiFi-GAN unit vocoder.}{20}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Results and Discussion}{21}{subsection.3.5}%
+\contentsline {paragraph}{Comparison to \textsc {SeamlessM4T}\xspace and cascaded models.}{21}{table.caption.10}%
+\contentsline {paragraph}{Mulitasking results.}{22}{table.caption.11}%
+\contentsline {paragraph}{Zero-shot text-to-speech translation.}{23}{table.caption.12}%
+\contentsline {paragraph}{Results by resource-level.}{23}{table.caption.13}%
+\contentsline {paragraph}{Ablation on the input representations for {T2U}\xspace .}{23}{table.caption.13}%
+\contentsline {paragraph}{Ablation on the modeling of NAR {T2U}\xspace .}{24}{table.caption.14}%
+\contentsline {paragraph}{\textsc {UnitY2}\xspace 's multilingual char-to-unit aligner.}{24}{table.caption.14}%
+\babel@toc {russian}{}\relax 
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {4}\textsc {SeamlessExpressive}\xspace }{25}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Expressive Speech-to-Speech Translation Data}{25}{subsection.4.1}%
+\contentsline {subsubsection}{\numberline {4.1.1}mExpresso}{25}{subsubsection.4.1.1}%
+\contentsline {subsubsection}{\numberline {4.1.2}mDRAL}{25}{subsubsection.4.1.2}%
+\contentsline {subsubsection}{\numberline {4.1.3}Automatically extracting expressive audio alignments}{26}{subsubsection.4.1.3}%
+\contentsline {paragraph}{\textsc {SeamlessAlignExpressive}\xspace }{27}{table.caption.17}%
+\contentsline {subsubsection}{\numberline {4.1.4}Extracting parallel segments from videos}{27}{subsubsection.4.1.4}%
+\contentsline {subsubsection}{\numberline {4.1.5}SONAR expressive}{28}{subsubsection.4.1.5}%
+\contentsline {subsubsection}{\numberline {4.1.6}Controllable TTS (cTTS) data augmentation}{28}{subsubsection.4.1.6}%
+\contentsline {subsubsection}{\numberline {4.1.7}Comparing across data sources}{29}{subsubsection.4.1.7}%
+\contentsline {subsubsection}{\numberline {4.1.8}Training data pre-processing}{30}{subsubsection.4.1.8}%
+\contentsline {paragraph}{Vocal style conversion with \textsc {Unit Voicebox}\xspace .}{30}{table.caption.23}%
+\contentsline {subsection}{\numberline {4.2}Expressive Modeling}{31}{subsection.4.2}%
+\contentsline {subsubsection}{\numberline {4.2.1}\textsc {PRETSSEL}\xspace : Expressive unit-to-speech generator}{32}{subsubsection.4.2.1}%
+\contentsline {paragraph}{Expressivity encoder\xspace .}{32}{figure.caption.25}%
+\contentsline {paragraph}{Textless acoustic model.}{33}{figure.caption.25}%
+\contentsline {paragraph}{Unsupervised pretraining.}{34}{equation.4.20}%
+\contentsline {paragraph}{Relationship to prior works.}{34}{equation.4.24}%
+\contentsline {subsubsection}{\numberline {4.2.2}\textsc {Prosody UnitY2}\xspace : Expressive speech-to-unit translation model}{35}{subsubsection.4.2.2}%
+\contentsline {paragraph}{Prosody-aware NAR T2U architecture.}{35}{figure.caption.26}%
+\contentsline {paragraph}{Fine-tuning pretrained components.}{36}{figure.caption.26}%
+\contentsline {subsubsection}{\numberline {4.2.3}Expressive S2ST with \textsc {SeamlessExpressive}\xspace }{36}{subsubsection.4.2.3}%
+\contentsline {subsection}{\numberline {4.3}Experimental Setup}{36}{subsection.4.3}%
+\contentsline {paragraph}{\textsc {PRETSSEL}\xspace .}{36}{table.caption.27}%
+\contentsline {paragraph}{\textsc {Prosody UnitY2}\xspace .}{37}{table.caption.28}%
+\contentsline {paragraph}{Automatic metrics.}{37}{table.caption.28}%
+\contentsline {subsection}{\numberline {4.4}Results and Discussion}{38}{subsection.4.4}%
+\contentsline {paragraph}{Models.}{38}{subsection.4.4}%
+\contentsline {paragraph}{Evaluation data.}{38}{table.caption.29}%
+\contentsline {paragraph}{Metric comparison.}{38}{table.caption.33}%
+\contentsline {paragraph}{Expressive speech-to-unit translation.}{40}{table.caption.33}%
+\contentsline {paragraph}{Expressive speech generator.}{40}{table.caption.33}%
+\contentsline {paragraph}{Combining into \textsc {SeamlessExpressive}\xspace .}{40}{figure.caption.34}%
+\contentsline {paragraph}{Alternative expressive speech generator}{41}{figure.caption.34}%
+\contentsline {paragraph}{Expressive {S2TT}\xspace +{TTS}\xspace cascade}{41}{figure.caption.34}%
+\contentsline {subsection}{\numberline {4.5}Ablation Study}{41}{subsection.4.5}%
+\contentsline {subsubsection}{\numberline {4.5.1}Data ablation}{41}{subsubsection.4.5.1}%
+\contentsline {subsubsection}{\numberline {4.5.2}Semantic and prosodic data filtering}{41}{subsubsection.4.5.2}%
+\contentsline {paragraph}{Semantic analysis.}{42}{subsubsection.4.5.2}%
+\contentsline {paragraph}{Prosody analysis: the case of speech rate.}{42}{subsubsection.4.5.2}%
+\contentsline {paragraph}{Ablation results with semantic and prosodic filtering.}{42}{equation.4.25}%
+\contentsline {subsubsection}{\numberline {4.5.3}Training ablation}{43}{subsubsection.4.5.3}%
+\contentsline {paragraph}{Joint training.}{43}{table.caption.37}%
+\contentsline {paragraph}{Multilingual training.}{43}{table.caption.37}%
+\contentsline {section}{\numberline {5}\textsc {SeamlessStreaming}\xspace }{45}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Efficient Monotonic Multihead Attention (EMMA)}{45}{subsection.5.1}%
+\contentsline {subsubsection}{\numberline {5.1.1}Numerical stable estimation}{46}{subsubsection.5.1.1}%
+\contentsline {subsubsection}{\numberline {5.1.2}Policy regularization}{46}{subsubsection.5.1.2}%
+\contentsline {subsection}{\numberline {5.2}Experimental Setup}{47}{subsection.5.2}%
+\contentsline {subsubsection}{\numberline {5.2.1}Fine-tuning from \textsc {SeamlessM4T v2}\xspace }{47}{subsubsection.5.2.1}%
+\contentsline {subsubsection}{\numberline {5.2.2}Streaming inference}{48}{subsubsection.5.2.2}%
+\contentsline {subsubsection}{\numberline {5.2.3}Latency metrics}{48}{subsubsection.5.2.3}%
+\contentsline {subsection}{\numberline {5.3}Results and Discussion}{49}{subsection.5.3}%
+\contentsline {subsubsection}{\numberline {5.3.1}Quality-latency trade-Off}{49}{subsubsection.5.3.1}%
+\contentsline {subsubsection}{\numberline {5.3.2}Data resources}{50}{subsubsection.5.3.2}%
+\contentsline {paragraph}{Language family.}{51}{table.caption.45}%
+\contentsline {section}{\numberline {6}\textsc {Seamless}\xspace }{52}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Architecture}{53}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Results and Discussion}{53}{subsection.6.2}%
+\contentsline {subsubsection}{\numberline {6.2.1}\textsc {PRETSSEL}\xspace extension}{53}{subsubsection.6.2.1}%
+\contentsline {subsubsection}{\numberline {6.2.2}Quality-latency}{54}{subsubsection.6.2.2}%
+\contentsline {subsubsection}{\numberline {6.2.3}Expressivity preservation}{54}{subsubsection.6.2.3}%
+\contentsline {section}{\numberline {7}Automatic and Human Evaluation}{56}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Automatic Expressivity Metrics}{56}{subsection.7.1}%
+\contentsline {paragraph}{\textsc {AutoPCP}\xspace .}{56}{subsection.7.1}%
+\contentsline {paragraph}{Rhythm evaluation toolkit.}{57}{table.caption.54}%
+\contentsline {subsection}{\numberline {7.2}Robustness Automatic Evaluation}{58}{subsection.7.2}%
+\contentsline {paragraph}{Robustness against background noise.}{58}{figure.caption.56}%
+\contentsline {paragraph}{Robustness against vocal style variations.}{58}{table.caption.57}%
+\contentsline {paragraph}{Key findings}{59}{table.caption.57}%
+\contentsline {subsection}{\numberline {7.3}Human Evaluation}{59}{subsection.7.3}%
+\contentsline {subsubsection}{\numberline {7.3.1}Human evaluation protocols}{59}{subsubsection.7.3.1}%
+\contentsline {paragraph}{MOS.}{59}{table.caption.58}%
+\contentsline {paragraph}{PCP.}{60}{Item.15}%
+\contentsline {paragraph}{PCP annotation process.}{60}{Item.15}%
+\contentsline {subsubsection}{\numberline {7.3.2}Human evaluation test sets}{60}{subsubsection.7.3.2}%
+\contentsline {paragraph}{Expressivity benchmark test-sets.}{60}{subsubsection.7.3.2}%
+\contentsline {paragraph}{mExpresso human evaluation test set.}{60}{subsubsection.7.3.2}%
+\contentsline {paragraph}{mDRAL human evaluation test set.}{60}{subsubsection.7.3.2}%
+\contentsline {paragraph}{\textsc {Fleurs}\xspace human evaluation test set.}{60}{subsubsection.7.3.2}%
+\contentsline {subsubsection}{\numberline {7.3.3}Analysis and results}{61}{subsubsection.7.3.3}%
+\contentsline {paragraph}{A note on baseline model (\textsc {SeamlessM4T v2}\xspace ) used in Expressivity Human Evaluation.}{61}{subsubsection.7.3.3}%
+\contentsline {paragraph}{Key findings}{61}{subsubsection.7.3.3}%
+\contentsline {subsubsection}{\numberline {7.3.4}Understanding MOS-quality measures for expressive models}{62}{subsubsection.7.3.4}%
+\contentsline {paragraph}{Measuring noise-like characteristics in speech.}{64}{subsubsection.7.3.4}%
+\contentsline {paragraph}{A comparison of the acoustic correlates of expressivity and noise.}{64}{subsubsection.7.3.4}%
+\contentsline {subsubsection}{\numberline {7.3.5}Correlation between automatic metrics and human evaluation}{65}{subsubsection.7.3.5}%
+\contentsline {section}{\numberline {8}Responsible AI}{66}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Red Teaming}{67}{subsection.8.1}%
+\contentsline {subsubsection}{\numberline {8.1.1}Methods and implementation}{67}{subsubsection.8.1.1}%
+\contentsline {paragraph}{Implementation.}{68}{Item.25}%
+\contentsline {subsubsection}{\numberline {8.1.2}Findings for \textsc {SeamlessM4T v2}\xspace }{69}{subsubsection.8.1.2}%
+\contentsline {subsubsection}{\numberline {8.1.3}Findings for \textsc {SeamlessExpressive}\xspace }{69}{subsubsection.8.1.3}%
+\contentsline {paragraph}{Added Toxicity Mitigation.}{69}{table.caption.71}%
+\contentsline {paragraph}{Summary.}{70}{table.caption.71}%
+\contentsline {subsection}{\numberline {8.2}Toxicity}{70}{subsection.8.2}%
+\contentsline {subsubsection}{\numberline {8.2.1}Speech toxicity detection tools}{71}{subsubsection.8.2.1}%
+\contentsline {paragraph}{Dataset.}{71}{subsubsection.8.2.1}%
+\contentsline {paragraph}{Methodology.}{71}{table.caption.72}%
+\contentsline {paragraph}{Implementation.}{71}{figure.caption.73}%
+\contentsline {paragraph}{Results.}{72}{figure.caption.73}%
+\contentsline {paragraph}{Key Findings.}{72}{table.caption.75}%
+\contentsline {subsubsection}{\numberline {8.2.2}Added toxicity mitigation}{73}{subsubsection.8.2.2}%
+\contentsline {subsubsection}{\numberline {8.2.3}Added toxicity in \textsc {SeamlessM4T v2}\xspace }{73}{subsubsection.8.2.3}%
+\contentsline {subsubsection}{\numberline {8.2.4}Key Findings Summary}{76}{subsubsection.8.2.4}%
+\contentsline {subsection}{\numberline {8.3}Gender Bias}{77}{subsection.8.3}%
+\contentsline {paragraph}{Datasets and evaluation.}{78}{subsection.8.3}%
+\contentsline {paragraph}{Models.}{78}{subsection.8.3}%
+\contentsline {paragraph}{Results.}{78}{subsection.8.3}%
+\contentsline {paragraph}{Key Findings.}{78}{table.caption.82}%
+\contentsline {subsection}{\numberline {8.4}Localized Watermarking}{79}{subsection.8.4}%
+\contentsline {subsubsection}{\numberline {8.4.1}Methodology}{80}{subsubsection.8.4.1}%
+\contentsline {paragraph}{Training pipeline.}{80}{subsubsection.8.4.1}%
+\contentsline {paragraph}{Losses.}{80}{Item.28}%
+\contentsline {paragraph}{Architectures.}{81}{figure.caption.85}%
+\contentsline {paragraph}{Experimental details.}{81}{figure.caption.85}%
+\contentsline {subsubsection}{\numberline {8.4.2}Experiments \& Results}{81}{subsubsection.8.4.2}%
+\contentsline {paragraph}{Metrics.}{81}{subsubsection.8.4.2}%
+\contentsline {paragraph}{Quality and detection results.}{82}{subsubsection.8.4.2}%
+\contentsline {paragraph}{Localization results.}{82}{table.caption.87}%
+\contentsline {section}{\numberline {9}Social Impact \& Conclusion}{83}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Naturalistic Translations \& Experiential Futures}{83}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Ethical Considerations \& Future Work}{84}{subsection.9.2}%
+\contentsline {section}{Appendices}{101}{subsection.9.2}%
+\setcounter {tocdepth}{0}
+\contentsline {section}{\numberline {A}Model Card - \textsc {Sonar}\xspace Speech Encoders}{101}{appendix.A}%
+\contentsline {section}{\numberline {B}Model Card - \textsc {SeamlessM4T v2}\xspace }{102}{appendix.B}%
+\contentsline {section}{\numberline {C}Model Card - \textsc {SeamlessExpressive}\xspace }{104}{appendix.C}%
+\contentsline {section}{\numberline {D}Model Card - \textsc {SeamlessStreaming}\xspace }{105}{appendix.D}%
+\contentsline {section}{\numberline {E}Model Card - \textsc {Seamless}\xspace }{106}{appendix.E}%
+\contentsline {section}{\numberline {F}Model Card - UnitY2 Aligner}{107}{appendix.F}%
+\contentsline {section}{\numberline {G}Model Card - \textsc {AutoPCP}\xspace }{108}{appendix.G}%
+\contentsline {section}{\numberline {H}Metric Card }{109}{appendix.H}%
+\contentsline {section}{\numberline {I}\textsc {SeamlessM4T v2}\xspace }{110}{appendix.I}%
+\contentsline {subsection}{\numberline {I.1}T2U Latency improvement in \textsc {SeamlessM4T v2}\xspace }{110}{subsection.I.1}%
+\contentsline {subsection}{\numberline {I.2}Data Statistics}{111}{subsection.I.2}%
+\contentsline {subsection}{\numberline {I.3}Detailed results}{115}{subsection.I.3}%
+\contentsline {section}{\numberline {J}\textsc {SeamlessExpressive}\xspace }{123}{appendix.J}%
+\contentsline {subsection}{\numberline {J.1}Data}{123}{subsection.J.1}%
+\contentsline {paragraph}{Evaluation data.}{123}{table.caption.103}%
+\contentsline {paragraph}{\textsc {Unit Voicebox}\xspace .}{123}{table.caption.103}%
+\contentsline {subsection}{\numberline {J.2}Experimental Setup}{124}{subsection.J.2}%
+\contentsline {subsection}{\numberline {J.3}Semantic and prosodic data ablation}{124}{subsection.J.3}%
+\contentsline {section}{\numberline {K}Seamless Streaming}{129}{appendix.K}%
+\contentsline {subsection}{\numberline {K.1}Efficient Monotonic Multihead Attention}{129}{subsection.K.1}%
+\contentsline {subsubsection}{\numberline {K.1.1}Definition of operators}{129}{subsubsection.K.1.1}%
+\contentsline {subsubsection}{\numberline {K.1.2}Detailed derivation}{129}{subsubsection.K.1.2}%
+\contentsline {subsection}{\numberline {K.2}Model Performance}{131}{subsection.K.2}%
+\contentsline {section}{\numberline {L}\textsc {Seamless}\xspace }{132}{appendix.L}%
+\contentsline {subsection}{\numberline {L.1}\textsc {PRETSSEL}\xspace extension data}{132}{subsection.L.1}%
+\contentsline {section}{\numberline {M}Automatic and Human Evaluation}{133}{appendix.M}%
+\contentsline {subsection}{\numberline {M.1}Human Evaluation}{133}{subsection.M.1}%
+\contentsline {subsection}{\numberline {M.2}Prosodic Consistency Protocol (PCP)}{137}{subsection.M.2}%
+\contentsline {subsubsection}{\numberline {M.2.1}Overview}{137}{subsubsection.M.2.1}%
+\contentsline {subsubsection}{\numberline {M.2.2}Semantics}{137}{subsubsection.M.2.2}%
+\contentsline {subsubsection}{\numberline {M.2.3}Emotion}{137}{subsubsection.M.2.3}%
+\contentsline {subsubsection}{\numberline {M.2.4}Rhythm}{138}{subsubsection.M.2.4}%
+\contentsline {subsubsection}{\numberline {M.2.5}Overall Expressive Intent}{138}{subsubsection.M.2.5}%
+\contentsline {subsubsection}{\numberline {M.2.6}Task Description}{139}{subsubsection.M.2.6}%
+\contentsline {subsection}{\numberline {M.3}Speaker MOS (SMOS)}{140}{subsection.M.3}%
+\contentsline {subsubsection}{\numberline {M.3.1}Task Instructions}{140}{subsubsection.M.3.1}%
+\contentsline {subsubsection}{\numberline {M.3.2}Listening Guidelines}{140}{subsubsection.M.3.2}%
+\contentsline {subsubsection}{\numberline {M.3.3}Ratings}{141}{subsubsection.M.3.3}%
+\contentsline {section}{\numberline {N}Expressive Data Collection}{142}{appendix.N}%
+\contentsline {subsection}{\numberline {N.1}mExpresso}{142}{subsection.N.1}%
+\contentsline {subsubsection}{\numberline {N.1.1}Resourcing}{142}{subsubsection.N.1.1}%
+\contentsline {paragraph}{\textbf {Scope}}{142}{subsubsection.N.1.1}%
+\contentsline {paragraph}{\textbf {Style and Performance}}{142}{subsubsection.N.1.1}%
+\contentsline {paragraph}{\textbf {Quality Assurance}}{142}{subsubsection.N.1.1}%
+\contentsline {subsection}{\numberline {N.2}mDRAL}{143}{subsection.N.2}%
+\contentsline {subsubsection}{\numberline {N.2.1}Resourcing}{143}{subsubsection.N.2.1}%
+\contentsline {paragraph}{\textbf {Moderators / Producers}}{143}{subsubsection.N.2.1}%
+\contentsline {paragraph}{\textbf {Participants}}{143}{subsubsection.N.2.1}%
+\contentsline {subsubsection}{\numberline {N.2.2}Conversation}{143}{subsubsection.N.2.2}%
+\contentsline {paragraph}{\textbf {Time Effort}}{143}{subsubsection.N.2.2}%
+\contentsline {paragraph}{\textbf {Set-up}}{144}{subsubsection.N.2.2}%
+\contentsline {paragraph}{\textbf {Prompts and Topics}}{144}{subsubsection.N.2.2}%
+\contentsline {subsubsection}{\numberline {N.2.3}Re-enactment}{144}{subsubsection.N.2.3}%
+\contentsline {subsubsection}{\numberline {N.2.4}Quality Control}{144}{subsubsection.N.2.4}%

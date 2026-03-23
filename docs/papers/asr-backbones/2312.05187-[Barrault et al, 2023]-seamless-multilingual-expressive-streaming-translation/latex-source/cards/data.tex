@@ -1,0 +1,63 @@
+\newpage
+\begin{adjustwidth}{-5pt}{-2pt}
+\begin{singlespace}
+\tcbset{colback=white!10!white}
+\begin{tcolorbox}[title=\textbf{\section{Model Card - \sonar Speech Encoders}\label{card:sonar}},
+    breakable, sharp corners, boxrule=0.5pt] 
+\begin{mcsection}{Model Details\footnote{For this card, we use the template from \citet{10.1145/3287560.3287596}.}} 
+\item Person or organization developing model: \textit{Developed by FAIR, Meta}
+\item Model date: \textit{Novemeber 30, 2023}
+\item Model version: 1.0
+\item Model type: \textit{xx}
+\begin{itemize}
+    \item Information about training algorithms, parameters, fairness constraints or other applied approaches, and features.\\
+    \textit{The exact training algorithm is described in the paper. }
+    \item Paper or other resource for more information: \\
+ \citet{Duquenne:2023:sonar_arxiv}
+\item License: \textit{MIT
+\footnote{\url{https://creativecommons.org/licenses/by-nc/4.0/legalcode}}}
+\item Where to send questions or comments about the model: \\
+\url{https://github.com/facebookresearch/seamless_communication/issues}
+\end{itemize} 
+\end{mcsection}
+
+
+\begin{mcsection}{Intended Use}
+    \item Primary intended uses: \textit{\sonar is a multilingual and -modal embedding space. It currently supports text encoders for 200 languages and speech encoders for \NbLangsMined languages. \sonar is intended for research and development in parallel data alignment, especially for low-resource languages.}
+\item Primary intended users: \textit{Primary users are researchers and developers in the machine translation community. }
+\item Out-of-scope use cases:
+\textit{\sonar is trained on general domain text data and is not intended to be used with domain-specific texts, such as medical domain or legal domain. The model is not intended to be used for document translation.} 
+\end{mcsection}
+
+\begin{mcsection}{Metrics}
+    \item Model performance measures: \textit{\sonar model was evaluated using BLEU.}
+\end{mcsection}
+
+
+\begin{mcsection}{Evaluation Data}
+    \item Datasets: \textit{\fleurs dataset is described in \citet{fleurs2022arxiv}}
+\item Motivation: \textit{We used \fleurs as it provides full evaluation coverage of the languages in \sonar}
+\item Preprocessing: none
+\end{mcsection}
+
+\begin{mcsection}{Training Data}
+\item \textit{We used parallel multilingual data from a variety of sources to train the model. 
+We provide a detailed report on the data selection and construction process in \Cref{sec:offline:mineddata} in the paper.
+}
+\end{mcsection}
+
+
+
+\begin{mcsection}{Ethical Considerations}
+ \item \textit{Partially shared with \mfourt model cards released together with this card.} 
+\end{mcsection}
+
+
+\begin{mcsection}{Caveats and Recommendations}
+  \item \textit{Our model has been tested on the Wikimedia domain with limited investigation on other domains. In addition, the supported languages may have variations that our model is not capturing. Users should make appropriate assessments.}
+\end{mcsection}
+
+\end{tcolorbox}
+\end{singlespace}
+\end{adjustwidth}
+

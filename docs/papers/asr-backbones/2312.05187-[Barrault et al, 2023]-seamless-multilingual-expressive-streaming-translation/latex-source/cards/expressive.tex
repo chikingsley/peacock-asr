@@ -1,0 +1,71 @@
+\newpage
+\begin{adjustwidth}{-5pt}{-2pt}
+\begin{singlespace}
+\tcbset{colback=white!10!white}
+\begin{tcolorbox}[title=\textbf{\section{Model Card - \seamlessexpressive}\label{card:seamlessexpress}},
+    breakable, sharp corners, boxrule=0.5pt] 
+\begin{mcsection}{Model Details\footnote{For this card, we use the template from \cite{10.1145/3287560.3287596}.}} 
+\item Person or organization developing model:\textit{Developed by FAIR, Meta}
+\item Model date: \textit{November 30, 2023}
+\item Model version: \seamlessexpressive
+\item Model type:
+\textit{\prosodyunitytwo model with \ptv acoustic model and two HiFi-GAN mel-vocoder (16kHz and 24kHz) }.
+\begin{itemize}
+    \item \it The exact training algorithm and data described in \Cref{sec:expressivity}. 
+\item License: \textit{custom research license}
+\item Where to send questions or comments about the model: \\
+\url{https://github.com/facebookresearch/seamless_communication/issues}
+\end{itemize} 
+\end{mcsection}
+
+
+\begin{mcsection}{Intended Use}
+    \item Primary intended uses: \textit{\seamlessexpressiveMtoM is a multilingual translation model primarily intended for expressive speech-to-speech translation. \seamlessexpressiveMtoM supports translations from 5 source languages into English and from English to $5$ target languages.
+    It allows for speech-to-speech translation with the following capabilities:
+    \begin{itemize}
+        \item Content translation,
+        \item Prosody preservation: rhythm, speech rate and pause,
+        \item Vocal style preservation.
+    \end{itemize}
+Information on how to use the model can be found in seamless\_communication repository.}
+\item Primary intended users: \textit{Primary users are researchers and speech research community. }
+\item Out-of-scope use cases: \textit{
+\seamlessexpressive is a suite of research models and is not released for production deployment. They were trained on general domain data and thus not intended to be used with domain specific inputs, such as medical domain or legal domain. \seamlessexpressive translations can not be used as certified translations.
+} 
+\end{mcsection}
+
+\begin{mcsection}{Metrics}
+    \item Model performance measures: \textit{Model was evaluated in content preservation with \asrbleu, vocal style preservation and prosody preservation with \comparator score, speech rate correlation and pause alignment score. Besides these automatic metrics, we included human evaluation with PCP and MOS protocols.
+    }
+\end{mcsection}
+
+
+\begin{mcsection}{Evaluation Data}
+    \item Datasets: \textit{
+    mExpresso, mDRAL and FLEURS as described in the paper.
+    }
+
+\end{mcsection}
+
+\begin{mcsection}{Training Data}
+\item \textit{We used parallel multilingual speech from a variety of sources to train models. 
+}
+\end{mcsection}
+
+
+
+\begin{mcsection}{Ethical Considerations}
+ \item \textit{In this work, we took a comprehensive approach to prioritize human users and minimize risks that could be transferred to them. While we have documented various evaluation and responsible AI techniques deployed in our work, here are some additional points to highlight. 
+ While quality translation could improve world readiness and information access for many in these communities, such access could also make groups with lower levels of digital literacy more vulnerable to misinformation or online scams. The latter scenarios could arise if bad actors misappropriate our work for nefarious activities, which we conceive as an example of unintended use. 
+ Finally, although we did our best to optimize for translation quality, toxic, biased, or false outputs produced by the model could remain. These could have an adverse impact on those who rely on these translations to make important decisions (particularly when related to health and safety).} 
+\end{mcsection}
+
+
+\begin{mcsection}{Caveats and Recommendations}
+  \item Limitations: \textit{Researchers should consider implementing additional integrity mitigations for ``added toxicity'' when using the model in a research application.}
+\end{mcsection}
+
+
+\end{tcolorbox}
+\end{singlespace}
+\end{adjustwidth}

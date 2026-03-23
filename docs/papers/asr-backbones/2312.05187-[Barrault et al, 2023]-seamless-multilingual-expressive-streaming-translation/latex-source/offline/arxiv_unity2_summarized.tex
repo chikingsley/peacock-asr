@@ -1,0 +1,130 @@
+\subsection{Predicting Units with \unitytwo}\label{sec:offline:unity2}
+Similar to \mfourt, the task of speech-to-speech translation in \mfourttwo is broken down into speech-to-text translation (\st) and then text-to-unit conversion (\tu).
+While \unity relaxes the training difficulty of direct \sst, the \tu model often hallucinates or truncates the output.
+This issue can be attributed to the length mismatch between the speech sequence in units and the text sequence in subwords, the former being on average 25 times longer.
+To reduce errors in the unit generation, we propose a new direct two-pass {\sst} architecture, {\unitytwo}, which enhances the unit generation of {\unity} by a non-autoregressive (NAR) decoder that does not rely on any external aligner.
+
+The overall architecture of \unitytwo is depicted in \Cref{fig:offline:unity2}.
+\unitytwo replaces the second-pass autoregressive unit decoder in \unity with a NAR unit decoder.
+We adopted the decoder architecture of FastSpeech2~\citep{ren2021fastspeech} and extended it to discrete unit generation.
+The original FastSpeech2 decoder, designed for generating Mel-filterbank features in \tts, relies on a variance adaptor to add different variance information such as duration, pitch, and energy as conditional inputs before decoding.
+Given that \unitytwo is designed to model discrete units, we only added duration information with a duration predictor; 
+other information like pitch or prosody are not well-preserved by discrete units~\citep{polyak21_interspeech}.
+The NAR unit decoder needs to expand the text input sequence to match the length of the unit output sequence, as such, a text-to-unit 
+alignment is necessary.
+Unlike \unity, \unitytwo predicts a duplicated (or non-reduced) unit sequence that preserves repetitive units.
+Although the non-reduced unit sequence is longer, fast inference with NAR unit generation can compensate for the computational overhead.
+
+\unitytwo starts with hierarchically upsampling of the \tu encoder output from subword-length, to character-length then to unit-length (\Cref{sec:offline:unity2:hie_up}).
+The \textit{unit duration predictor}, key to the hierarchical upsampling, is supervised during training by a multilingual \textit{aligner} based on RAD-TTS~\citep{shih2021rad} (\Cref{sec:offline:unity2:unsup_aligner}).
+To address the multimodality problem in the NAR generation of large-vocabulary non-reduced discrete units, we propose an efficient single-pass span-based glancing training (\Cref{sec:offline:glat}).
+
+
+
+
+\subsubsection{Hierarchical subword-to-unit upsampling}\label{sec:offline:unity2:hie_up}
+The \tu encoder in \unitytwo receives coarse subword-length representations from the \xt text decoder.\footnote{Subword vocabulary size of 256K in \mfourt}
+As a first-pass decoder in \unitytwo, its features are not suitable for describing acoustic details necessary for subsequent unit prediction.
+To leverage fine-grained textual information without hindering translation quality or the efficiency of the \xt decoder, 
+we propose \textit{hierarchical subword-to-unit upsampling}, where we upsample the subword-length \tu encoder representations to character-length then to unit-length.
+
+Specifically, a subword-to-character upsampler \texttt{Sub2Char} repeats each subword-length representation $\tuoutputstep$ according to the number of characters in the subword $\tgttextstep$ and adds character-level embeddings.
+With $\tgttextchar$, the character-length sequence corresponding to $\tgttext$, 
+we compute the character-length representations $\chartuoutput$ as follows:
+\begin{align}\label{eq:char_align}
+\duroutcharstep & = \subtwocharalignfunc(\tgttextstep, \tgttextchar), \\
+j & = \sum_{l<i} \duroutcharstepl + m \ (m = 1 \cdots, \duroutcharstep), \\
+\begin{split}
+\chartuoutputstepj & = \texttt{Sub2Char}(\tuoutputstep, \tgttextcharstepj, j) \\
+& = \tuoutputstep + \charemb(\tgttextcharstepj) + \frac{1}{\sqrt{d_{\text{model}}}} \cdot \charposemb(j),
+\end{split}
+\end{align}
+where $\subtwocharalignfunc$ is a function returning the number of characters ($\duroutcharstep$) in the $i$-th subword,
+$\charemb$ is a character embedding lookup table, 
+$\charposemb$ is a character-level positional embedding layer,
+and $d_{\text{model}}$ is the model dimension.
+
+Then, a character-to-unit upsampler \texttt{Char2Unit} further upsamples $\chartuoutput$ to unit-length representations $\unittuoutput$ as:
+\begin{align}
+\duroutunitstep & = \chartwounitalignfunc(\tgttextcharstepj, \tgtunitnr, \hardalignment; \paradur), \label{eqn:offline:char2unit:dur} \\
+k &= \sum_{l<j} \duroutunitstepl + m \ (m = 1, \cdots, \duroutunitstep), \\
+\unittuoutputstepk & = \texttt{Char2Unit}(\chartuoutputstepj, k)  = \chartuoutputstepj + \alpha \cdot \unitposemb(k),
+\end{align}
+where $\chartwounitalignfunc$ is a duration predictor (parameterized by $\paradur$) that returns the number of duplicated units ($\duroutunitstep$) aligned with the $j$-th character,
+$\hardalignment$ is a hard character-to-unit alignment matrix, 
+$\alpha$ is a learnable scale parameter, 
+and $\unitposemb$ is a unit-level positional embedding layer.
+$\unittuoutput$ is used as input to the NAR unit decoder.
+The duration predictor $\chartwounitalignfunc$ in \cref{eqn:offline:char2unit:dur} is trained to optimize $\lossdurpred(\paradur)$, a mean square error (MSE) loss taking the duration predicted by the aligner as training target in the logarithmic domain.
+
+\subsubsection{Unsupervised multilingual character-to-unit alignment learning}\label{sec:offline:unity2:unsup_aligner}
+For upsampling, the NAR unit decoder requires alignment ($\hardalignment$) between characters and units to train the unit duration predictor $\chartwounitalignfunc$.
+The original FastSpeech2 used a forced alignment tool (\eg Montreal Forced Aligner~\citep{mcauliffe2017montreal}) to supervise the duration predictor.
+For our massively multilingual efforts, forced aligners are unavailable for many low-resource languages.
+To circumvent the need for external aligners, we propose an \textit{unsupervised multilingual character-to-unit aligner}.
+We adapted the aligner architecture in RAD-TTS~\citep{shih2021rad} to our use case.
+Namely, the \mfourttwo multilingual char-to-unit aligner is 
+(1) modified to take discrete units and characters as inputs,
+(2) trained in a multilingual fashion on \ntslangs languages, and
+(3) trained with curriculum learning for the alignment prior.
+
+For a character-length sequence $\tgttextchar$ and the associated unit sequence $\tgtunitnr$, let $s^\text{char}$ and $s^\text{unit}$ be the outputs of the aligner's two encoders (one for characters and one for units).
+A soft alignment 
+$\softalignment$ is calculated as follows:
+\begin{align}
+    \textrm{D}_{i,j} & = ||s^{\text{char}}_{i} - s^{\text{unit}}_{j}||_{2}, \\
+    \softalignment_{i,j} & = \frac{e^{-\textrm{D}_{i,j}}}{\sum_{k}{e^{-D_{k,j}}}} + \textrm{P}_{\text{prior}}(i|j),
+\end{align}
+where $\textrm{P}_{\text{prior}}$ is the Beta-binomial alignment prior to encourage near-diagonal paths~\citep{shih2021rad}.
+We disabled this alignment prior after 8k training steps to let the aligner learn a more accurate alignment later in the training.
+To extract a hard alignment $\hardalignment$ from $\softalignment$, the monotonic alignment search (MAS) algorithm~\citep{kim2020glow} is applied. 
+
+To optimize the aligner parameters $\paraaligner$, we maximized the log-likelihood of all possible monotonic alignment paths $\mathcal S(\tgttextchar)$, based on the forward algorithm.
+The forward sum loss $\lossalignerfwd$ is formulated as:
+\begin{align}\label{eq:fwd_sum_loss}
+    \begin{split}
+    \lossalignerfwd(\paraaligner) 
+    & = - \log \textrm{P}\left(\mathcal S(\tgttextchar)|\tgtunitnr; \paraaligner\right), \\
+    & = - \log \sum_{a \in \mathcal S(\tgttextchar)} \prod_{j=1}^{\unitlen} \textrm{P}(a_{j}|\tgtunitnr_{j}; \paraaligner),
+    \end{split}
+\end{align}
+where the marginalization is efficiently implemented using a CTC loss.
+To enforce that $\softalignment$ matches $\hardalignment$, a binarization loss $\lossalignerbin = \hardalignment \odot \log \softalignment$ with $\odot$ the Hadamard product.
+This term is simply the KL divergence between the two alignments.
+$\lossalignerbin$ is added after $K_{\text{bin}}$ training steps.
+
+\subsubsection{Efficient span-based glancing training for NAR unit generation}\label{sec:offline:glat}
+Non-autoregressive sequence generation suffers from the \textit{multimodality} problem.\footnote{Each token’s distribution depends only on the source sentence; this conditional independence assumption prevents a model from properly capturing the highly multimodal distribution of target translations~\citep{gu2017non}.}
+Previous works have addressed this problem by using iterative decoding~\citep{lee-etal-2018-deterministic},
+powerful generative models like normalizing flows~\citep{ma-etal-2019-flowseq}, 
+or diffusion-based models~\citep{gong2022diffuseq,reid2022diffuser}.
+In this work, we used a single-step NAR decoder to maintain inference efficiency.
+Particularly, \unitytwo's NAR \tu decoder is a \textit{Glancing Transformer} (GLAT)~\citep{qian-etal-2021-glancing} that relaxes NAR token prediction by glancing at the ground-truth tokens.
+When the naive GLAT based on random masking is used for unit prediction, the task becomes trivial since adjacent units are locally correlated.
+To adapt GLAT to unit prediction, we propose an efficient \textit{span-based GLAT} that operates on the character length before glancing at the units.
+
+Given a unit prediction accuracy $\alpha$, we sampled character positions to mask with a probability $1-\alpha$.
+With $\mathcal I^{\text{char}}$ the set of the sampled positions to be masked in $\tgttextchar$,
+we obtained the corresponding unit positions $\mathcal I^{\text{unit}}$ following the aligner's $\hardalignment$.
+We then replaced the decoder input in the $\mathcal I^{\text{unit}}$ positions with ground-truth unit embeddings.
+We demonstrate that the proposed span-based masking is more effective than random masking at the unit level.
+Furthermore, we propose an efficient training based on a single forward pass where $\alpha$ is estimated from the previous $K_{\text{glat}}$ steps, instead of introducing a duplicate forward pass at each training step.
+
+\subsubsection{Training \unitytwo's NAR \tu and aligner}
+\label{sec:offline:unity2_training}
+
+The second-pass NAR unit decoder and aligner are jointly trained with the following objective:
+\begin{align}\label{eq:tu_total_loss}
+\begin{split}
+\lossnartutotal(\paratu, \paradur, \paraaligner)
+&= 
+\lossnartuce(\paratu) + 
+\lossdurpred(\paradur) +
+\losscharinterctc(\paratu) 
+\\ &\phantom{=}+
+\lossalignerfwd(\paraaligner) + 
+\lossalignerbin(\paraaligner), 
+\end{split}
+\end{align}
+where $\losscharinterctc$ is a character-level CTC loss at an intermediate unit decoder layer, added to accelerate training convergence~\citep{lee2021intermediate}.
+

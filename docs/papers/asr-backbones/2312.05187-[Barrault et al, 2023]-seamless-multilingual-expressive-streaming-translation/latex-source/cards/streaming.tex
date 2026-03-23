@@ -1,0 +1,77 @@
+\newpage
+\begin{adjustwidth}{-5pt}{-2pt}
+\begin{singlespace}
+\tcbset{colback=white!10!white}
+\begin{tcolorbox}[title=\textbf{\section{Model Card - \seamlessstreaming}},
+    breakable, sharp corners, boxrule=0.5pt] 
+\begin{mcsection}{Model Details \footnote{For this card, we use the template from \cite{10.1145/3287560.3287596}. }} 
+\item Person or organization developing model: \textit{Developed by FAIR, Meta}
+\item Model date: \textit{November 30, 2023}
+\item Model version: \seamlessstreaming
+\item Model type:
+\begin{itemize}
+    \item \it The exact training algorithm and data described in \Cref{sec:streaming} 
+    \item \it Simultaneous Transaltion Algorithm: Efficient Monotonic Multihead Attention \cite{ma_efficient_2023} 
+\item License: \textit{CC-BY-NC 4.0
+\footnote{\url{https://creativecommons.org/licenses/by-nc/4.0/legalcode}}}
+\item Where to send questions or comments about the model: \\
+\url{https://github.com/facebookresearch/seamless_communication/issues}
+\end{itemize} 
+\end{mcsection}
+
+
+\begin{mcsection}{Intended Use}
+    \item Primary intended uses: \textit{\seamlessstreaming model is a multilingual streaming translation model. It allows for:
+    \begin{itemize}
+        \item  Streaming Automatic Speech Recoginitaion on 96 languages at the same time.
+        \item Simultaneous translation from 101 source languages in speech at the same time.
+         \item Simultaneous translation into a selection of 96 target languages in test.
+        \item Simultaneous translation into a selection of 36 target languages in speech.
+    \end{itemize}
+ Information on how to use the model can be found in seamless\_communication repository}
+\item Primary intended users: \textit{Primary users are researchers and machine translation (speech and text) research community. }
+\item Out-of-scope use cases: \textit{\seamlessstreaming model is a research model and is not released for production deployment. 
+} 
+\end{mcsection}
+
+\begin{mcsection}{Metrics}
+    \item Quality:  \begin{itemize}
+        \item \textit{Text output: BLEU}
+        \item \textit{Speech output: ASR-BLEU}
+    \end{itemize}
+    \item Latency:
+    \begin{itemize}
+        \item \textit{Text output: Average Lagging, Length-Adaptive Average Lagging.}
+        \item \textit{Speech output: Ending Offset.}
+    \end{itemize}
+\end{mcsection}
+
+
+\begin{mcsection}{Evaluation Data}
+    \item Datasets: \textit{\fleurs}
+\item Motivation: \textit{We used \fleurs as it provides
+an n-way parallel speech and text dataset in 101 languages, on which we can evaluate \seamlessstreaming models on multiple tasks.}
+
+\end{mcsection}
+
+\begin{mcsection}{Training Data}
+\item \textit{Same data as \mfourttwo, except parallel aligned data}
+\end{mcsection}
+
+
+
+\begin{mcsection}{Ethical Considerations}
+ \item \textit{In this work, we took a comprehensive approach to prioritize human users and minimize risks that could be transferred to them. While we have documented various evaluation and responsible AI techniques deployed in our work, here are some additional points to highlight. For one, many languages chosen for this study are low-resource languages.
+ While quality translation could improve world readiness and information access for many in these communities, such access could also make groups with lower levels of digital literacy more vulnerable to misinformation or online scams. The latter scenarios could arise if bad actors misappropriate our work for nefarious activities, which we conceive as an example of unintended use.
+ Finally, although we did our best to optimize for translation quality, toxic, biased, or false outputs produced by the model could remain. These could have an adverse impact on those who rely on these translations to make important decisions (particularly when related to health and safety).} 
+\end{mcsection}
+
+
+\begin{mcsection}{Caveats and Recommendations}
+  \item Limitations: \textit{Researchers should consider implementing additional integrity mitigations for ``added toxicity'' when using the model in a research application.}
+\end{mcsection}
+
+
+\end{tcolorbox}
+\end{singlespace}
+\end{adjustwidth}

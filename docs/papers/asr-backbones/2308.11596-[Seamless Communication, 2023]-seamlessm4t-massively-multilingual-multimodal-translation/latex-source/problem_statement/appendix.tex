@@ -1,0 +1,105 @@
+\FloatBarrier
+\section{The Sociotechnical Dimensions of Multimodal Translation}
+\label{sec:appendix:problem}
+
+\subsection{Why Prioritize Speech in Machine Translation?}
+As is the case with most technologies within natural language processing (NLP) and other language-based research enterprises, MT reached greater maturity in the modality that affords easier record-keeping, data storage, and dispersion: text. By extension, the abundance of digital text makes it a prime candidate for NLP research. In contrast, the relative paucity of speech data relegates research in this area to secondary importance. More specifically, speech is not just spoken text—the two modalities can differ in grammar, registers, and morphology \citep{plag1999morphological}. In most situations, speech may also appear to be a richer modality, possessing prosodic and expressive parameters unmatchable by text \citep{kraut1992task}. Distinctive in their level of interactivity and sociality, speech directs focus at the speaker or audience, while text spotlights the content of a message \citep{kraut1992task}.
+
+
+\paragraph{Speech \& social bonding} Research suggests that compared to text-based exchange, communication through speech creates stronger social bonds between interlocutors. For example, in one study, researchers found that interactions including speech (phone, video call, and voice chat) spurred deeper connections between conversation partners compared to those who communicated via text-based media \citep[595]{kumar2021s}. Juxtaposed against speech, which comes with paralinguistic cues such as volume, intonation, and pace, text-based communication is perceived as more impersonal. Interestingly, seeing another person did not make individuals feel more connected than if they had just spoken with their partners. In another study, hearing an outgroup member explain their views out loud made study participants consider them more thoughtful and emotionally warm than reading an explanation of their views \citep{schroeder2017humanizing}. Across a variety of settings, research demonstrates that speech appears to be unique in its ability to convey one's human traits and, consequentially, strengthen the connection between those sharing an exchange.
+
+\paragraph{Inclusion \& accessibility} Speech is not only key to communication from a relational standpoint but is also often the most practical and accessible option. For one, UNESCO estimates that 773 million adults (12.5 percent of all adults) worldwide have not received the education necessary to read or write, thus precluding them from using text to communicate or acquire information \citep{Markelova_2021}. Another group more reliant on speech than text in their everyday lives is those who are blind or with visual impairments. Globally, approximately 43 million people belong to this former category, and 295 million others have moderate to severe visual impairment \citep{bourne2021trends}. Even though voice assistants, text-to-speech systems, and voice-activated technologies today play an important role in supporting these individuals to accomplish everyday tasks, their access to multilingual speech-based translation or communicative tools remains limited. In a world where the volume of auditory content (i.e., podcasts, audiobooks, short-form videos, etc.) is on the rise, the prohibitive nature of this sociotechnical gap may deprive them of experiences or exchanges that could be meaningful and enriching.
+
+\paragraph{Script variance} Beyond these factors, text-based communication or translation is further complicated by script variance. For instance, some languages are written in different scripts on either side of a geopolitical border. %
+Urdu, for example, could be written either in the Arabic or Devanagari script depending on where one lives (i.e., Pakistan or India). In such a context, \mt outputs into Urdu may be illegible to those shown in a script they are unfamiliar with. \sst, which produces speech outputs, circumvents this multiscript conundrum. In a few other cases, political instabilities around a language's writing system may also motivate the need for speech-based translation. For example, in the last 1,000 years, Uzbek has changed its writing system five times. Despite the fact that—as of February 2021—Uzbekistan announced Uzbek's official transition from the Cyrillic script to a Latin-based alphabet, the former continues to be widely deployed in the country \citep{jung2023coexistence}. For languages where writing systems are actively negotiated, speech-based technologies and translation systems may provide stabilized access to information as transitions unfold.
+
+
+
+
+\begin{table}[t]
+    \small
+    \centering
+    \begin{tabular}{lcH@{}}
+        \toprule
+        \multicolumn{3}{l}{\textit{Cascaded models for \st}} \\
+        \midrule
+        \whispermedium + \nllbtinydistil & 2-stage cascaded & 1.4B  \\
+        \whisperlarge + \nllbsmall & 2-stage cascaded & 2.8B \\
+        \midrule
+        \multicolumn{3}{l}{\textit{Cascaded models for \sst}}\\
+        \midrule
+        \whisperlarge + \nllbsmall + \yourtts & 3-stage cascaded & 2.8B  \\
+        \whisperlarge (\st) + \yourtts & 2-stage cascaded & 1.5B \\
+        \midrule
+        \mfourt (this work) & unified & 2B \\
+        \bottomrule
+    \end{tabular}
+    \caption{Options for 2-stage and 3-stage cascaded systems for \st and \sst. These 
+ cascades pair Whisper \asr models~\citep{whisper} with NLLB's \mt models~\citep{nllb2022}. 
+    }    \label{tbl:cascadingmodelsfors2tt}
+\end{table}
+
+\subsection{Speech Translation Today}
+\paragraph{Cascaded systems}
+Before the emergence of unified speech translation models in recent years, much attention in speech-based research has been directed at cascaded approaches by chaining subsystems that perform disparate tasks such as \asr, \mt, and TTS~\citep{Lavie1997JanusIIIST,Wahlster2000VerbmobilFO,nakamura2006}. For example, in a 3-stage \sst cascaded scenario, speech input is first transcribed into text through an \asr system, followed by \mt, and finally synthesized into speech using TTS (see \Cref{tbl:cascadingmodelsfors2tt}). The main benefit of cascaded systems is that they can take advantage of advancements made in areas associated with each subsystem, such as recently released large-scale multilingual \mt models~\citep{nllb2022, siddhant2022towards, m2m100} and weakly-supervised ASR models~\citep{whisper, google_usm, mms}.
+
+That said, cascaded systems have their limitations. For one, the output of a 2-stage cascaded \st{} system involving \asr and \mt does not match the quality achievable by a single large-scale \mt model.
+This drop in performance underscores the challenge of transferring and translating meaning across modalities and can be attributed to many factors, including:
+(1) poor transcriptions by \asr models for non-English languages, particularly for low-resourced ones,
+(2) an increased likelihood of error propagation from the \asr model to the \mt model and other subsequent models in the cascade (the accumulation of errors exacerbates performance), and
+(3) domain mismatches between these separately trained subsystems (for example, if an ASR model trained on Wikipedia is used in conjunction with a \mt model optimized for conversational data, this formation may lead to a distribution mismatch at the \mt stage). Beyond these reasons, the overemphasis on text in cascaded systems omits paralinguistic features and may not adequately handle elements such as proper names and nouns \citep{Rubenstein2023AudioPaLMAL}. %
+
+
+
+\paragraph{Direct \st models}
+Early research into end-to-end speech translation started with producing text as output~\citep{7472621,Berard2016ListenAT,berard2018end}.
+Since the emergence of multilingual end-to-end \st models in 2019 \citep{Gangi2019OnetoManyME,inaguma2019multilingual}, \st has become an increasingly popular research area, and many existing models today are powered by the emergence of open multilingual speech corpora like \mbox{MuST-C}~\citep{di2019must}, EuroParl-ST~\citep{iranzo2020europarl}, \covost~\citep{wang2021covost} and VoxPopuli~\citep{wang-etal-2021-voxpopuli}.  End-to-end models today have made significant progress and achieved parity with cascaded models on academic benchmarks in several contexts (e.g., constrained data, in-domain settings, specific language pairs, etc.)~\citep{ansari-etal-2020-findings,potapczyk-przybysz-2020-srpols}
+
+While recent state-of-the-art pre-trained models have seen rapid improvements in language coverage, going from 128 in~\cite{babu2021xls} to more than 1,400 in~\cite{mms}, they only translate into English and not the other way around. Another prominent model, Google's Universal Speech Model~\citep{google_usm}, is pre-trained in more than 300 languages and can perform \asr on more than 100 languages. Technically, USM can also be adapted to perform \asr and \st tasks in any of the 300+ covered languages
+once given supervised data (but the model was fine-tuned and evaluated on \covost, which only covers translations from 21 languages into English).
+
+OpenAI's Whisper~\citep{whisper} is another large-scale model that serves translations into English, not vice versa. As a multitasking model, Whisper demonstrates that scaling weakly supervised pre-training is sufficient for achieving SOTA \asr and \st results sans self-supervision and self-training techniques. Trained on 680,000 hours of data, Whisper has achieved SOTA translation quality in 82 \fleurs languages into English.
+
+Combining a text-based \citep{anil2023palm} and speech-based language model \citep{10158503}, the most recently released AudioPaLM~\citep{Rubenstein2023AudioPaLMAL} is a large language model designed for joint text and speech processing and generation. Akin to USM, AudioPaLM only evaluates text translation outputs from 101 \fleurs languages into English. Upon the publication of this paper, AudioPaLM is the current SOTA model, outperforming Whisper~\citep{whisper} in both \asr and \st tasks. 
+
+\input{modeling/metrics_table}
+
+\paragraph{Direct \sst models}
+Beyond text outputs, recent speech translation research has focused on building models that directly produce target speech representations (i.e., spectrograms, discrete units, etc.). In this area, Translatotron~\citep{jia:interspeech:2019} emerged as the first direct \sst model. When it comes to quality, however, the model lagged behind 2-stage cascaded systems by a large margin.
+Translatotron-2~\citep{pmlr-v162-jia22b} significantly improved its predecessor's performance and bridged the gap with cascaded systems by incorporating a two-pass decoding approach. Although Translatotron relied on \st as an auxiliary task during training, the target spectrograms were directly generated at inference time. Translatotron-2, on the other hand, relies on the intermediate decoding outputs of phonemes.
+
+Concurrently with Translatotron, \cite{tjandra2019speech} proposed \sst models based on discrete speech representations that do not require text transcriptions in training.
+These discrete representations or \textit{units} are learned through unsupervised term discovery and a sequence-to-sequence model trained to translate units from one language to another.
+Relatedly, \cite{lee-etal-2022-direct} uses HuBERT \citep{hsu2021hubert}, a pre-trained speech representation model, to encode speech and learn target-side discrete units. \sst is, thus, decomposed into speech-to-unit (S2U) and subsequently unit-to-speech with a speech re-synthesizer~\citep{polyak21_interspeech}.
+
+\paragraph{On coverage and evaluation of \sst systems}\label{sec:statement:evaluation}
+To date, the aforementioned AudioPaLM \citep{Rubenstein2023AudioPaLMAL}, which supports both text and speech as input and output, is the current SOTA for \st and \sst. 
+Although the model design suggests that it can support multilingual translation on both source and target sides, its performance is only reported for translating into English. 
+Similarly, although Whisper can transcribe non-English languages, it only supports \st into English. 
+To consolidate the current landscape of language coverage and related tasks in speech translation systems, we provide in \Cref{tbl:coverage} a list of SOTA models in text and speech translation. This language coverage
+is estimated based on supervised labeled data or evaluated zero-shot languages and directions. We also provide the list of \asr, \mt, \st and \sst evaluation metrics used by this work in \Cref{tbl:eval:metrics}. For \sst, our evaluation focuses on the semantic content of the translation.
+Throughout this paper, we primarily evaluated our models on the following datasets:
+\begin{itemize}
+    \item \flores-200~\citep{nllb2022}: a many-to-many multilingual translation benchmark dataset for 200 languages (we evaluated on devtest).
+    \item \fleurs~\citep{fleurs2022arxiv}: an n-way parallel speech and text dataset in 102 languages built on the text translation \flores-101 benchmark~\citep{flores101:2021}. \fleurs is well suited for several downstream tasks involving speech and text.
+    We evaluated on the test set, except in ablation experiments where we evaluated on the dev set.
+    \item \covost~\citep{wang2021covost}: a large-scale multilingual \st corpus covering translations from 21 languages into English and from English into 15 languages. We evaluated on the test set.
+    \item \cvss~\citep{cvss}: a multilingual-to-English speech-to-speech translation (\sst) corpus, covering sentence-level parallel \sst pairs from 21 languages into English. We evaluated text-based semantic accuracy on \cvss-C for the tasks of \sst and \ttst. We note that some samples from the evaluation data were missing (in 8 out of 21 languages: Catalan, German, Estonian, French, Italian, Mongolian, Persian, and Portuguese). 
+\end{itemize}
+
+\paragraph{The overarching goals of this effort}
+In light of the gaps delineated above, our work seeks to advance speech translation in the following ways:
+\begin{enumerate}
+    \item Creating a unified large model that can handle the full suite of tasks involved in text and speech translation: \sst, \st, \ttst, \mt, and \asr. This lays the important groundwork for the next generation of on-device and on-demand multimodal translation, which can be derived from this model.
+    \item Expanding language coverage both in terms of the number of supported languages and translation directions (i.e., going beyond translations into English by including translation from English). That roughly two dozen languages account for more than half of the world's speaking population means that a relatively small group of languages (out of more than 7,000) produce a disproportionately large linguistic footprint. Whether in the text or speech modality, these languages are deemed high-resource, giving them prioritization in today's AI development. That said, when language technologies are developed primarily with this group in mind, the needs of half the world's population are left behind. Our effort seeks to bridge the translation gap between those who speak high and low-resource languages.
+    \item Maintaining systematic evaluations of our systems throughout our workflow to ensure safe and robust performance. This allows us to understand how to direct our efforts to make both the current and future iterations of our contribution more equitable and fair across user demographics. %
+\end{enumerate}
+
+
+
+
+\subsection{Languages}
+
+\input{problem_statement/languages}
+
+\FloatBarrier

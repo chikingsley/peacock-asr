@@ -1,0 +1,176 @@
+\section{Beyond Words: Expressive and Streaming Speech-to-Speech Translation}\label{sec:problem}
+
+In this section, we discuss the sociotechnical need for and the current technical landscape behind developing systems that facilitate expressive and streaming speech-to-speech translation. Then, we outline our contributions by summarizing the capabilities and language coverage for each of our models.
+
+\subsection{Towards Naturalistic Speech-to-Speech Translation}
+
+For long, investments in natural language processing (NLP) and machine translation research have coalesced around the text modality \citep{nllb2022,SeamlessM4TArXiv}. While this has given rise to systems that help us translate books, webpages, and text messages, speech translation has lagged behind in terms of language coverage and performance. As a denser modality, the very paralinguistic features (e.g., prosody, tone, timing controls, etc.) that make speech challenging from a computational perspective are also why S2ST systems are filled with promises \citep{kraut1992task,nakamura2009overcoming}. The consummate system, which resembles the fictional Universal Speech Translator in \textit{Star Trek}, would seamlessly offer expressive and real-time translation without excessive tinkering. Fading into the background, such a tool would provide utility without the drawbacks of existing paradigms—from waiting for translations to begin only after the completion of a sentence (i.e., offline systems that perform consecutive translations)
+to monotonic outputs lacking in character.
+
+To better understand user needs when it comes to speech translation, we ground our research on the lived experiences of individuals who are dependent on translation technologies in their everyday lives. While many people use translation technologies while traveling or for other recreational purposes, this group of individuals relies on them for essential information gathering and communication. Accordingly, we interviewed 34 participants from diverse immigrant backgrounds to understand present limitations in real-world deployments of S2ST systems. The goal of this study was to understand how our interviewees, who are either Mandarin or Spanish speakers with limited English proficiency, navigate everyday communication in the United States. The narratives drawn from these interviews not only spotlight the integral role of machine translation in achieving everyday goals, but they give us an empirical window into how S2ST systems designed with naturalistic communication (i.e., with expressivity and streaming) in mind could help this population gain confidence in self-expression and spur further integration into mainstream society.
+
+\subsubsection{Meeting translation needs}
+
+As well documented by previous research, low proficiency in the languages of the receiving societies is a major source of anxiety and stress for many immigrants \citep{ding2009stress,lueck2011acculturative,delander2005integration}. Aside from acquiring language proficiency through learning, many tap into other strategies to bridge communication gaps \citep{hutchins2009multiple,orellana2003accessing}. In our interviews, we find that while most participants rely on both their personal networks and translation applications in their everyday lives, most day-to-day translation work is conducted by the latter (especially for those with higher degrees of technological literacy). Moreover, even though many commercially available translation platforms support both text and speech translation, the bulk of the translation tasks our participants perform via apps remain text-centric (i.e., translating emails, work-related documents, etc.).
+
+This observation does not suggest that text-based translation needs supplant speech-based ones. The disparity could largely be attributed to the performance delta between text and speech-based translation tools and the lack of familiarity with speech translation functions in widely adopted translation platforms \citep{SeamlessM4TArXiv}. Compared to speech translation systems, text-based tools have enjoyed deeper maturity and commercial viability. User familiarity, alongside greater confidence levels in the generated outputs, drives more users to deploy text-based systems even in contexts where speech is used. It is, for example, more common for participants \textit{(n=26/34)} to translate subtitles rather than audio speech when watching the news or television shows (even though the translation apps they use support both text and speech translation). One participant added that ``speech translation just feels foreign'' and that they would probably engage with it more if they saw more people using it. This is a sentiment that reverberated across the sample population.
+
+
+\subsubsection{Real-time translation in synchronous contexts}
+
+ Despite heavy reliance on text-based translation, many participants yearn for reliable speech translation systems to help them in real time. In fact, 20 of the 34 interviewees have previously used commercially available translation platforms supporting speech. That said, using translation apps to perform consecutive speech translations was universally regarded as a workaround in time-sensitive situations, an imperfect solution to a problem. A Mandarin speaker, for example, describes a recent incident when checking out at a local grocer: ``{I had to give the cashier the phone, ask her to direct her question to it, and then wait for the app to translate. You can tell people around me were a little annoyed.}''
+ 
+ For all interviewees, real-time translation would be particularly handy in social situations that require synchronous communication, whether it is face-to-face or digitally mediated. For instance, even though one could rely on text translation to render a menu legible, conversing with or responding to questions from a server poses an issue. Barriers like this not only adversely affect self-esteem but also prevent many participants from partaking in new social or cultural experiences. One participant notes that even if a speech translation system does not enable bidirectional communication, having the capability to interpret a question as it is being asked would be helpful, later adding: ``{at least I could gesture back or use simple English to tell someone what I want.}''
+
+For some, the lack of reliable S2ST compels them to rely on family, friends, or coworkers to help meet cross-lingual conversational needs in both informal and professional settings \citep{orellana2003accessing}. However, having network resources to tap into this social workaround is not a given, and even those who have access to cultural brokers \citep{sanchez2006construction} express that this form of linguistic dependency stifles integration into their receiving society. In light of these constraints, one participant fantasizes that having a tool that ``{translates like a human, especially in circumstances where human interpreters are unavailable, could be a game-changer.}''
+
+\subsubsection{Expressive translation and the preservation of vocal style \& prosody}
+
+When probed on what the next generation of speech-translation technologies should look like, many participants stress that beyond simultaneous translation, future systems should enable them to communicate \textit{naturally}. For them, \textit{natural} communication could be interpreted in many ways—from using slang or idioms to not slowing down when directing input at a translating app. That said, the most commonly shared conceptualization \textit{(n=29/34)} of naturalness is for S2ST systems to support prosodic preservation and the preservation of the style of one's voice. 
+
+If text directs more attention to the content of a message, then speech more deeply emphasizes the person behind an utterance \citep{kraut1992task}. The desire for translation outputs to reflect speaker characteristics, as framed by an interviewee, suggests that S2ST systems can do way more than convey semantic information \citep{huang2023holistic}. Without encoding the expressive nature of speech, many participants express that a major fear of engaging with S2ST in their day-to-day lives is the risk of misaligned intent. Consider this comment by a Mandarin speaker: ``{Imagine if I wanted to say something sarcastically. If the system does not translate that properly, it could lead to miscommunication and misunderstandings.}''
+
+Extending this sentiment, other participants noted that faithfully reproducing vocal style and prosody in their speech breathes character into their self-expression, giving listeners a more comprehensive sense of their intent \citep{du2021expressive}. According to a Spanish-speaking participant, systems that go beyond \textit{just words} can deeply transform the quality of cross-lingual communication: ``{Our tone is a part of our personality, and it changes based on context and the language we are speaking. It’s also a matter of candor when we speak Spanish. We get very passionate.}''
+
+Reverberating across the interviews is the view that translation systems that deliver language coverage, expressivity, and streaming could serve as a unique tool that helps them better integrate into everyday society. Equipping those with language barriers with the ability to communicate in real-time without erasing their individuality could make prosaic activities like ordering food, communicating with a shopkeeper, or scheduling a medical appointment—all of which abilities non-immigrants take for granted—more ordinary.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Expressive and Streaming S2ST Today}
+
+Having explored the social need behind expressive and streaming S2ST systems, we now review existing efforts directed at these research areas. 
+
+\subsubsection{Expressive systems}
+
+
+Expressive speech systems have long been of technical interest to researchers in a multidisciplinary context. Combining linguistics insights and computational methods, developing systems that can accurately produce humanlike utterances both at the semantic and paralinguistics levels becomes ever more pressing as the volume of auditory content (i.e., podcasts, audiobooks, short-form videos, etc.) and voice-assisted technologies (e.g., smart home systems, autonomous driving voice controls, etc.) are on the rise. As a technical foundation, expressive speech systems could meaningfully augment the performance of a wide variety of technologies, ranging from robotics to digital assistants.
+
+In the translation context, expressive speech preservation with conventional cascaded S2ST systems can be realized in several ways.
+To preserve pre-defined word or token-level paralinguistic characteristics such as emphasis, automatic speech recognition systems (ASR) need to transcribe speech not only into text but also into pre-defined prosody labels. Subsequently, a machine translation model then translates or maps these prosody labels from the source to the target text. Finally, a text-to-speech synthesis (TTS) model synthesizes the speech output with the corresponding labels~\citep{aguero2006prosody,do2017toward}. For this pipeline to work, parallel data with aligned prosody labels is necessary.
+
+To achieve sentence-level preservation of the style of one's voice, TTS systems supporting cross-lingual transfer through a set of embeddings that disentangle speech nuances such as semantics (i.e., characters or phonemes), stress or tone, vocal styles, and language are typically required~\citep{liu2019cross,casanova2022yourtts}.
+Recent advances in TTS have enabled voice style transfer through prompting via speech language model \citep{valle}, flow matching \citep{le2023voicebox}, and diffusion model \citep{Shen2023NaturalSpeech2L}.
+Notably, TTS models can now be trained on non-parallel multilingual datasets and achieve cross-lingual transfer when stacked with translation models that predict semantic units~\citep{audiolm,audiopalm,polyvoice,s2st-style}.
+Relatedly, voice-aligned speech could be generated with controllable TTS models, and such data enables the training of direct \sst systems that support translations from source speech into target speech with a consistent vocal style \citep{pmlr-v162-jia22b}.
+
+
+
+Despite the recent advancements in \tts and direct \sst \citep{valle-x,audiopalm}, a comprehensive \sst system capturing semantic translation, rhythm, pauses,
+and sentence-level preservation of the style of one's voice have yet to be realized. Our work explicitly tackles preserving all such features in \sst under a unified framework.
+To build our model, we first focused on addressing \sst data paucity with aligned prosodic patterns and systematic evaluation methods. 
+Signal-based objective metrics, such as mel-cepstral distortion (MCD), exist for \tts systems, but parallel \sst data with aligned prosody and voice style are hard to come by~\citep{neubig2014collection,cvss,ward2023dral}. To rectify this, we devised data and textless vocal style conversion strategies to build parallel \sst data with aligned expressivity and reference-free cross-lingual automatic evaluation methods that focus on the prosodic aspects of speech.
+
+\subsubsection{Streaming systems}
+\label{sec:related_work.streaming}
+In contrast to offline systems, which only start translating after the completion of a sentence, streaming systems translate as source utterances are being produced \citep{cho2016can}. The biggest technical challenge of effective streaming is striking a balance between low latency and translation quality. More specifically, a system with very low latency may miss important information, rendering a translation subpar, while a system with high latency creates excessive delays, compromising the flow of a conversation. Typically empowered by simultaneous translation policies, advanced streaming S2ST systems should dynamically decide whether to translate the next token or pause translating to absorb additional contextual information.
+ 
+Research into simultaneous translation policies may be categorized into two principal categories: rule-based policies \citep{cho2016can, dalvi_incremental_2018, ma_stacl_2019} and learnable policies.
+The main difference between the two policies lies in how a system waits for more input before translating. Rule-based policies rely on heuristics, such as waiting for $k$ tokens to be read before translating, while learnable policies use algorithms such reinforcement  learning  \citep{gu_learning_2017} or monotonic attention to make this decision.
+Among the latter, monotonic-attention based models have been deemed to produce state-of-the-art performance in navigating the latency-quality trade-off \citep{raffel_online_2017, chiu_monotonic_2018, arivazhagan_monotonic_2019, ma_monotonic_2019}.
+Recently, there has been a growing interest in adapting simultaneous policies to model speech inputs
+\citep{ren_simulspeech_2020,ma_simulmt_2020,ma_streaming_2020,wang_low_2020}.
+To direct further attention to this underexplored area of research, recent shared tasks, such as one focused on simultaneous translation organized by the International Workshop on Spoken Language Technologies, have been established \citep{agrawal-etal-2023-findings, anastasopoulos-etal-2022-findings,anastasopoulos-etal-2021-findings,ansari-etal-2020-findings}. These shared tasks serve as crucial avenues spurring researchers toward developing state-of-the-art models under standardized conditions.
+
+Despite ongoing efforts dedicated to research on simultaneous translation, certain gaps require further exploration. For one, most research on streaming has focused on speech-to-text rather than speech-to-speech applications. The difference in output modality presents a technical challenge due to data and modeling constraints. Relatedly, most existing streaming models are designed in an ad hoc manner that makes them particularly sensitive to the dynamics of the offline models they are initialized on. For example, if improvements are made to a foundational offline model, it is typically quite challenging to adapt a newer streaming model to take advantage of these technical gains.%
+
+Contemporary streaming models predominantly focus on bilingual translations. However, many low-latency application scenarios consist of multiple speakers from diverse language backgrounds, calling for models that can process multilingual inputs and outputs simultaneously in an efficient manner. The development of multilingual streaming models, also an underexplored area of research, has an added advantage—cross-lingual transfer, which allows related languages to learn from one another \citep{nllb2022,nguyen2017transfer}.
+
+Moreover, in the domain of streaming S2ST, the research has predominantly focused on a cascaded approach involving a sequential series of processing steps. 
+However, this approach is suboptimal for real-time streaming applications, a limitation that could be alleviated by direct S2ST models (especially when the scale of training increases).
+Moreover, the cascaded model has issues such as compounding errors, additional disk storage, and computation time \citep{bentivogli2021cascade,SeamlessM4TArXiv}.
+To address these issues, we combine \mfourttwo, our multilingual and multimodal foundational model, and Efficient Monotonic Multihead Attention (EMMA), our simultaneous policy, to build a streaming translation model that performs direct translations from speech into
+both speech and text for many-to-many directions in real time.
+
+
+\subsubsection{The overarching goals of this effort}
+In light of the gaps delineated above, our work seeks to advance speech translation in the following ways:
+\begin{enumerate}
+    \item Developing key data sets and foundational models necessary to create a unified system that enables end-to-end, multilingual, and real-time speech translation that captures a broader range of vocal style and expressive preservation. 
+    \item Expanding language coverage both in terms of the number of supported languages and translation directions when it comes to \streaming and \expressive translation systems (i.e., going beyond translations into English by including translation from English).
+    \item Maintaining systematic evaluations of our systems throughout our workflow to ensure high-quality and safe performance.
+    This allows us to understand how to direct our efforts to make both current and future iterations of our work more equitable and fair for different user populations. %
+\end{enumerate}
+
+
+\subsection{Overview of Model Capabilities \& Languages}
+Today, broadly accessible speech translation models cover anywhere between 21 to 113 source languages depending on the wide range of tasks involved~\citep{google_usm,Rubenstein2023AudioPaLMAL}. 
+To build a unified, multimodal, and multitask model that can handle both speech and text, 
+\mfourttwo covers \nsslangs languages as speech input 
+and \nasrlangs languages as text input.
+It can output \nasrlangs languages as text 
+and \nvocoderlangs languages as speech.
+\seamlessexpressive, capable of preserving rhythm, pauses, and sentence-level style of one's voice, is equipped to handle six languages—English, French, German, Italian, Mandarin, and Spanish. 
+As for \seamlessstreaming, our low-latency model can handle the same language coverage as \mfourttwo on ASR, S2TT, and S2ST tasks.
+We summarize information on our models' supported capabilities and languages in \Cref{tab:all_languages}. Further details on the table header are provided below.
+
+\paragraph{Code.}
+We represent each language with a three-letter ISO 639-3 code. 
+
+\paragraph{Language.}
+There may be multiple ways to refer to the same language; due to formatting limitations, only one version is included below. The language names have been cross-referenced with major linguistic information platforms such as Ethnologue~\citep{ethnologue2009} and Glottolog ~\citep{glottolog2022}.
+
+
+\paragraph{Script.}
+We provide script information in ISO 15924 codes for writing systems. 
+
+\paragraph{Resource level.} We categorize the speech resource level as high, medium, or low depending on the volume of available primary data for \st into English (with $x$ the amount of primary data in hours, \textit{high} if $x>1000$, \textit{medium} if $x\in[500, 1000]$ and \textit{low} if $x\in[0, 500]$).
+
+\textit{Primary data.} Primary data is defined as open-source \st and pseudo-labeled ASR data. Absent such data, we report the language as zero-shot (when evaluating \st into English).
+
+\paragraph{Source.}
+We indicate whether a source language is in the speech (Sp) or text (Tx) modality, or both.
+
+\paragraph{Target.}
+We indicate whether a target language is in the speech (Sp) or text (Tx) modality, or both.
+
+
+\newgeometry{left=1cm, right=1cm, bottom=0.5cm, top=0.5cm}
+\input{problem_statement/lang_table}
+\restoregeometry
+
+\FloatBarrier

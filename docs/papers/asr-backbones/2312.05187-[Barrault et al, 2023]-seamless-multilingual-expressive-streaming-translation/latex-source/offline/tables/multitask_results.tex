@@ -1,0 +1,82 @@
+\begin{table}[!t]
+\small
+    \centering
+    \hfill\begin{minipage}[b]{0.45\textwidth}
+    \begin{tabular}{@{}lHHcc@{}}
+        \toprule
+         &  &  & \multicolumn{2}{c}{\makecell{\bf \covost\\\bf ($\uparrow$\bleu)}}\\
+        \cmidrule{4-5}
+        {\bf Model}  
+        & {\bf type} 
+        & \multirow{2}{*}{\makecell[c]{\bf size}} 
+        & \makecell[c]{\xeng \\{\it (n=21)}} 
+        & \makecell[c]{\engx\\ {\it (n=15)}} \\
+        \midrule
+        \makecell[l]{\whisperlarge} & direct & 1.5B & 29.1 & x \\
+        \makecell[l]{\audiopalmast}  & direct & 8.0B & \bf 37.8 & x \\
+        \midrule
+        \midrule
+        \mfourtmd & direct & \sizemd & 29.8 &  26.6 \\
+        \mfourtlg & direct & \sizelg & 34.1 &  30.6  \\  
+        \midrule
+        \mfourtlgtwo & direct & \sizemfourttwo & 36.6 & \bf 31.7 \\
+        \bottomrule
+    \end{tabular}
+    \end{minipage}\hfill
+    \begin{minipage}[b]{0.45\textwidth}
+     \begin{tabular}{@{}lHHcccc@{}}
+        \toprule
+         &  &  & \multicolumn{2}{c}{\makecell{\bf \flores\\\bf ($\uparrow$\chrf)}}\\
+        \cmidrule(r){4-5}
+        & Model type & \multirow{2}{*}{\makecell[c]{\bf size}}
+        & \makecell[c]{\xeng\\{\it (n=\ntextlangs)}} & \makecell[c]{\engx\\{\it (n=\ntextlangs)}} \\
+        \midrule
+        \nllbsmall & direct & 1.3B &  59.3 & 48.2 \\
+        \nllbmedium & direct & 3.3B &  60.6 & 49.6 \\
+        \midrule
+        \midrule
+        \mfourtmd & direct & \sizemd  & 55.4  & 48.4 \\
+        \mfourtlg & direct & \sizelg  &  \bf 60.8 & \bf 50.9 \\
+          \midrule
+        \mfourtlgtwo & direct & \sizemfourttwo  & 59.2  & 49.3 \\
+        \bottomrule
+    \end{tabular}%
+    \end{minipage}\hfill\\[10pt]
+    \begin{minipage}[b]{.8\textwidth}
+    \begin{tabular}{@{}lHHcccc@{}}
+        \toprule
+         &  &  & \multicolumn{4}{c}{\makecell{\bf \asr ($\downarrow$WER)}}\\
+        \cmidrule(r){4-7}
+        & Model type & \multirow{2}{*}{\makecell[c]{\bf size}} 
+        & \makecell[c]{\fleurs-77 \\ {\it (n=77)}} 
+        & \makecell[c]{ \fleurs-60\\ {\it (n=60)}}
+        & \makecell[c]{ \fleurs-54\\ {\it (n=54)}}
+        & \makecell[c]{ \fleurs-41\\ {\it (n=41)} }\\ 
+        \midrule
+        \makecell[l]{\whisperlarge} & direct & 1.5B 
+        & 41.7 & 24.0 & 43.7 & 25.0 \\
+        \makecell[l]{\whisperlargenew} & direct & 1.5B 
+        & 34.9 & 17.2 & 35.6 & 17.0\\
+        \midrule
+        \makecell[l]{MMS-L1107-CCLM-LSAH} & direct & 1.0B$^*$ 
+        & -- & -- &  \bf 18.7 & 16.5  \\
+        \midrule
+        \midrule
+        \mfourtmd & direct & \sizemd 
+        & 21.9 & 16.4 & 22.0 &  16.4 \\
+        \mfourtlg & direct & \sizelg 
+        & 22.6 & 16.6 & 23.2 & 16.9 \\
+        \midrule
+        \mfourtlgtwo & direct & \sizemfourttwo 
+        & \bf 18.5  & \bf 12.8 & 19.1 & \bf 13.1 \\
+        \bottomrule
+    \end{tabular}%
+    \end{minipage}\hfill
+    \caption{\textbf{Multitasking \xt results.} Performance of \mfourtlg on \xt tasks (\st, \asr and \mt) compared to SOTA direct translation models. 
+    For MT, we average \chrf~scores over the supported written languages in \mfourt ({\it n=96}). 
+    For \fleurs~\asr, we report the average normalized \wer over languages supported by both \mfourt and Whisper Large (WL) (\fleurs-77).
+    For MMS, we report the results of the MMS-L1107-CCLM-LSAH model (CTC-based with an n-gram language model for each language) on \fleurs-54.
+    For a direct comparison with \whisperlargenew, we average over whisper's reported \wer scores on \fleurs-60. To compare all \asr models on a common benchmark, we included averages over \fleurs-41.
+    }
+    \label{tbl:offline:auxiliary}
+\end{table}

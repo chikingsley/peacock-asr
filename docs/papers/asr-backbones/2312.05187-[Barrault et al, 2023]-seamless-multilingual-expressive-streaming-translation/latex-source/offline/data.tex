@@ -1,0 +1,141 @@
+\subsection{Data for Speech Translation}\label{sec:offline:data}
+In speech translation, as is the case for any other sequence modeling task,
+achieving state-of-the-art performances hinges on the availability of high-quality paired data used for learning. In comparison to text-to-text translation (\mt), the amount of human-labeled speech data is scarce. To address this shortage of labeled data, we leaned on three techniques from the first version of \mfourt~\citep{SeamlessM4TArXiv}: 
+(1) the pre-training of different submodels on richer tasks (e.g., \mt with \nllbv or unlabeled audio with \wvbert ),
+(2) automatically aligning pairs,
+and (3) pseudo-labeling \asr data.
+\Cref{fig:offline:datasummary} depicts the main building blocks of \mfourttwo and the different sources of data used in each pre-training or finetuning stage.
+
+\subsubsection{\seamlessalign}\label{sec:offline:mineddata}
+We improved the \sonar speech encoders and increased their language coverage to 76 languages. This resulted in an improvement not only in the quantity of data in \seamlessalign, but also its quality and representation of low-resource languages. 
+
+\paragraph{Extended SONAR encoders.}
+The backbone of speech-to-text and speech-to-speech automatic alignment is a fixed-size multilingual and multimodal sentence representation with the property that similar sentences are close in that embedding space, independently of the language and modality. We used the \sonar text encoder developed by \citet{Duquenne:2023:sonar_arxiv}, which was already successfully deployed in \citet{SeamlessM4TArXiv}.
+We trained a new set of SONAR speech encoders using the same teacher-student approach to increase the language coverage from \NbLangsMined to \NbLangsMinedVtwo, again using ASR data only. 
+We also revisited the training data mix to remove low-quality datasets after inspection.
+Evaluating the various iterations of the speech encoder directly in an end-to-end automatic alignment pipeline would require to perform this alignment and then train \st or \sst translation system on the aligned data, potentially comparing different thresholds of the \sonar score. This is a very compute-intensive recipe.
+Instead, following \citet{SeamlessM4TArXiv}, we evaluated our speech encoders using the \sonar text decoder and report BLEU scores for \st into English as a proxy for the speech encoders' performance when used for automatically aligning pairs.
+
+
+Detailed statistics for each language are shown in \Cref{offline:data:stats1,offline:data:stats2} under the appendix. A summary and comparison to \whisperlarge\footnote{The new version v3 of Whisper seems to perform less well on \st} 
+is given in \Cref{offline:data:speechenc_summary}. While our speech encoders perform less effectively than Whisper for 23 languages (mostly high-resource languages like German, French, or Russian), they perform substantially better on low-resource languages (like Icelandic, Swahili, Uzbek, and many Indian languages).
+Overall, the speech encoders exhibit very competitive \st performance.
+This is even more remarkable given that we used bottle-neck fixed-size representation rather than an attention mechanism, and performed fully zero-short \st (i.e., the speech encoder was not trained using translated data and the text decoder has never seen speech input).
+
+The speech encoders for all \NbLangsMinedVtwo languages are made publicly available
+in the SONAR repository.\footnote{https://github.com/facebookresearch/SONAR} See \Cref{card:sonar} for a model card. 
+
+
+\begin{table*}
+    \centering
+    \small
+    \begin{tabular}{r*{8}{r}r}
+        \toprule
+         \bf Model & \bf deu & \bf fra & \bf rus & \bf arb & \bf isl & \bf swh & \bf uzn & \bf Indian & \bf Avg \\
+         \midrule
+         \whisperlarge & 34.6 & 32.3 & 27.8 & 25.5 &  9.1 &  7.2 &  6.0 & 13.4 & 19.1 \\
+         \sonar        & 32.7 & 31.2 & 26.5 & 28.7 & 17.3 & 22.6 & 17.5 & 17.1 & 22.0 \\
+         \bottomrule
+    \end{tabular}
+    \caption{sacreBLEU scores on \fleurs test set for \st.
+    The column \textit{Indian} gives the average performance over 13 Indian languages (asm, ben, guj, hin, kan, mal, mar, npi, pan, snd, tel, tam and urd).
+    The average performance is calculated over 73 languages which are supported by both models.
+    }
+    \label{offline:data:speechenc_summary}
+\end{table*}
+
+
+\paragraph{Automatic alignment procedure.}
+The speech encoders were subsequently used to perform speech-to-text and speech-to-speech automatic alignment, following the same process as introduced in \citet{SeamlessM4TArXiv}. Starting with \DataRawAudioText hours of diverse raw audio
+originating from a publicly available repository of web data, we applied a series of preprocessing steps and segmented raw audio files into sentence-level utterances through an off-the-shelf Voice Activity Detection model \citep{SileroVAD}. The same language identification model was subsequently used to triage segments into language buckets, and overlapping segments were formed, following the over-segmentation approach of \citet{Duquenne:2021:neurips}.
+
+All segments were then embedded with SONAR encoders, and indexed with the FAISS library \citep{johnson2019billion}. Alignments were formed by retrieving the nearest neighbors of all elements in the forward (source in target) and backward (target in source) directions, and keeping pairs with a margin score \citep{Artetxe:2019:mine_acl} higher than a threshold:
+
+\begin{equation}
+    \text{score}(x, y) = \text{margin}\left( \cos(x,y), 
+    \sum_{z \in \textrm{NN}_k(x)} \frac{\cos(x, z)}{2k} + \sum_{v \in \textrm{NN}_k(y)} \frac{\cos(y, v)}{2k} \right),
+\end{equation}
+where $x$ and $y$ are the source and target sentences, and $NN_k(x)$ denotes the $k$ nearest neighbors of $x$ in the other language. We set $k$ to 16, and the use ratio $\text{margin}(a,b)=a/b$.
+All code for automatically aligning data is made publicly available within the \stopes library \citep{andrews-etal-2022-stopes}.\footnote{\url{https://github.com/facebookresearch/stopes}} 
+
+The amount of automatically aligned speech is given in \Cref{offline:data:stats1,offline:data:stats2} in the appendix (please see the last three columns).
+All statistics are given with respect to a margin score threshold of 1.15. This value was obtained by limited human inspection of the aligned data and was already used in \citet{SeamlessM4TArXiv}.
+Overall, this new version of \seamlessalign has doubled its language coverage (from \NbLangsMined to \NbLangsMinedVtwo languages) and incorporated \addtlminedhoursVtwo hours of additional data:
+\begin{itemize}
+    \item English speech to non-English text (\StoT~\engx)—approximately 45,300 hours
+    \item Non-English speech to English text (\StoT~\xeng)—approximately 60,200 hours
+    \item Non-English speech to English speech (\StoS)—approximately 9,300 hours
+\end{itemize}
+Adding such large amounts of automatically aligned data can be a substantial computational challenge. Therefore, \seamlessalign can be ranked and filtered with \sonar alignment scores.
+
+
+\subsubsection{Pseudo-labeling}\label{sec:offline:pseudo}
+
+\paragraph{Pseudo-labeling for \st.}
+Following \citet{SeamlessM4TArXiv}, we circumvented the shortage of labeled \st data by pseudo-labeling available \asr data with a multilingual \mt model~\citep{jia2019leveraging, Pino2020SelfTrainingFE}. In this case, we used \nllbmedium~\citep{nllb2022} with the recommended decoding options. 
+When using human-labeled data, we removed special tokens such as \texttt{<silence>} and \texttt{<no-speech>} from the verbatim transcriptions. 
+
+\paragraph{Pseudo-labeling for \sst.}
+Following \citet{SeamlessM4TArXiv}, we pseudo-labeled \st data using a text-to-unit (\tu) model.
+This \tu model was trained on all \nvocoderlangs target speech languages (\Cref{sec:offline:pre}) and can convert text into discrete units~\citep{tjandra2019speech,lee-etal-2022-direct,lee-etal-2022-textless,zhang-etal-2022-speechut,chen-etal-2023-speech}.  
+We also used the same 10K-units vocabulary from \citet{SeamlessM4TArXiv}. 
+To extract these units, features from the 35$^\text{th}$ layer of \xlsr-1B~\citep{babu2021xls}
+are mapped to discrete categories with the $k$-means algorithm ($k{=}10,000$).
+The k-means centroids resemble a codebook that maps a sequence of \xlsr speech representations into a sequence of centroid indices or acoustic units.
+Unlike \mfourt where we used reduced units, in \mfourttwo we used non-reduced (or duplicated) units (see \Cref{sec:offline:unity2}).
+
+\subsubsection{Filtering}\label{sec:offline:filtering}
+We ran the combination of human-labeled, pseudo-labeled, and automatically aligned data through a series of filters, described in detail below:
+
+\paragraph{Toxicity filtering.}
+We removed pairs with \emph{toxicity imbalance}, i.e., when the difference in the number of toxic items detected in the source and target is above a certain threshold. For \st data, transcriptions were used as a proxy for speech input when counting toxic items. We set the imbalance threshold at 1. 
+
+\paragraph{Length filtering.}
+We removed pairs in which the utterance is shorter than 0.1 seconds or longer than 50 seconds. We also removed pairs where the text is longer than 250 sub-words (based on the \mfourt tokenizer).
+
+\paragraph{Special characters filtering.}
+We removed pairs in which the text contains 
+more than 20\% of emojis, 
+more than 50\% of punctuation, 
+more than 50\% of digits, 
+or more than 50\% of spaces.
+
+\paragraph{Repetition filtering.}
+We removed sentences with a contiguous repetition of a single character more than ten times. %
+We additionally computed n-grams ($1\leq n\leq 4$) in each text sample and filtered out the ones with less than 30\% unique n-grams. 
+
+\paragraph{Deduplication.} \citet{lee_dedup} established that training data deduplication is critical for large language model training. In order to determine if two texts are duplicates, we applied a normalization process that removes punctuation and non-printing characters, and then replaces all digits.
+The filtering can remove duplicates where two data points have identical target text.
+This deduplication method is useful for automatically aligned data, where the same source utterances are aligned with multiple target sentences.
+We kept up to five pairs with duplicate targets and removed the rest.
+
+\paragraph{LID filtering.} We discarded pairs where the target sentences do not appear to be written in the expected languages. This can be performed automatically using a language identification model with thresholds chosen appropriately based on the reliability of LID scores for each given language.
+To do so, we used the LID model from \citet{nllb2022}.
+LID filtering was performed exclusively for Dutch, English, French, German, Italian, Polish, Portuguese, Russian, and Spanish with a confidence threshold set to 0.9.
+
+
+After applying all the filters, the data used to train the \mfourttwo models amounts to a total of 351K hours in \st and 145K hours in \sst, as described in \Cref{tbl:offline:stdata}
+\begin{table}[!tbh]
+    \centering
+    \small
+    \begin{tabular}{@{}crrrrrrrrrrr@{}}
+        \toprule
+        & \multirow{2}{*}{\bf \asr} & \multicolumn{6}{c}{\bf \st}  
+        & \multicolumn{4}{c}{\bf \sst}
+        \\
+        \cmidrule(lr){3-8} \cmidrule(lr){9-12}
+        & & \multicolumn{3}{c}{\bf\xeng}  & \multicolumn{3}{c}{\bf\engx} 
+        & \multicolumn{2}{c}{\bf\xeng}  & \multicolumn{2}{c}{\bf\engx} 
+        \\
+        \cmidrule(lr){2-2} \cmidrule(lr){3-5} \cmidrule(lr){6-8} \cmidrule(lr){9-10} \cmidrule(lr){11-12}
+         & H & H & P & A & H & P & A & P & A & P & A \\
+        \midrule
+        & 47,296 %
+        & 14,434 & 52,977 & 23,744 & 8,476 & 184,123 & 20,377 %
+        & 71,474 & 5,924 & 65,812 & 2,352 %
+        \\
+        \bottomrule
+    \end{tabular}
+    \caption{Total amounts of human-labeled (H), pseudo-labeled (P), and automatically aligned (A) audio data used to train the \mfourttwo model, measured in hours. For amounts per language, see \Cref{tbl:offline:s2tdata,tbl:offline:s2stdata}.}
+    \label{tbl:offline:stdata}
+\end{table}

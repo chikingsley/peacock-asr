@@ -1,0 +1,78 @@
+\newpage
+\begin{adjustwidth}{-5pt}{-2pt}
+\begin{singlespace}
+\tcbset{colback=white!10!white}
+\begin{tcolorbox}[title=\textbf{
+    \section{Model Card - \comparator}
+    \label{app:comparator_model_card}
+},
+breakable, sharp corners, boxrule=0.5pt]
+
+\begin{mcsection}{Model Details \footnote{For this card, we use the template from \cite{10.1145/3287560.3287596}. }} 
+\item Person or organization developing model: \textit{Developed by FAIR at Meta}
+\item Model date: \textit{November 30, 2023}
+\item Model version: \comparator-multilingual-v2 \textit{(the v1 version was used internally for expressive automatic alignment)}
+\item Model type:
+\textit{A dense 3-layer neural network:
+    \begin{itemize}[noitemsep,nolistsep]
+        \item Inputs: two speech embeddings extracted from the 9th layer of the XLSR speech encoder and averaged over frames
+        \item Output: unconstrained regression trained to predict mPCP score of ``Overall expresive intent''
+    \end{itemize}
+}
+\item \textit{The exact training algorithm and data described in \autoref{sec:comparator} }
+\item License: \textit{CC-BY-NC 4.0
+\footnote{\url{https://creativecommons.org/licenses/by-nc/4.0/legalcode}}}
+\item Where to send questions or comments about the model: \url{https://github.com/facebookresearch/stopes/issues}
+\end{mcsection}
+
+
+\begin{mcsection}{Intended Use}
+    \item Primary intended uses: \textit{Automated comparison of prosodic properties of two spoken utterances with the same semantic content, but potentially in different languages, including:
+    \begin{itemize}[noitemsep, nolistsep]
+        \item Automated evaluation of expressivity-preserving translation models
+        \item Automated filtering of parallel speech corpora to improve their expressivity preservation properties
+    \end{itemize}
+Information on how to use the model can be found in the Stopes repository:\\ \url{https://github.com/facebookresearch/stopes/tree/main/stopes/eval/auto_pcp}.}
+\item Primary intended users: \textit{Primary users are researchers and speech translation research community. }
+\item Out-of-scope use cases: \textit{Comparison of utterances with different semantic content, 
+comparison of audios with primarily non-speech content, comparing expressivity preservation properties of very different parallel audio corpora.
+} 
+\end{mcsection}
+
+\begin{mcsection}{Metrics}
+  \item Model performance measures: \textit{
+    \begin{itemize}[noitemsep, nolistsep]
+        \item Root mean squared error (RMSE) with respect to the targets (mPCP labels)
+        \item Item-level Spearman correlation with the targets
+        \item System-level Spearman correlation, i.e. correlation of system-level average model predictions with average targets.
+    \end{itemize}
+    }
+\end{mcsection}
+
+\begin{mcsection}{Training Data}
+\item \textit{Audio pairs (English paired with Spanish, French, German, Italian and Mandarin), collected from various sources and annotated by humans with mPCP protocol (more details in \autoref{sec:comparator})}
+\item \textit{Unlabelled audio pairs from multilingual videos, used for contrastive learning}
+\end{mcsection}
+
+\begin{mcsection}{Evaluation Data}
+\item \textit{A labelled dataset, similar to the annotated part of the training data in its sources and distribution}
+\end{mcsection}
+
+
+\begin{mcsection}{Ethical Considerations}
+\item \textit{We did not specifically study possible biases of the model.
+} 
+\end{mcsection}
+
+
+\begin{mcsection}{Caveats and Recommendations}
+  \item \textit{The model has been trained to predict PCP scores in the range between 1 and 4; however, its predicted values may occasionally fall outside of this range. For a pair of nearly-identical audios, they are often above 5.}
+  \item \textit{The model is intended to evaluate to prosody only; however, it may be sensitive to other properties of input audios. In particular, its scores may be negatively affected by background noise and positively affected by similarity of vocal styles.}
+  \item \textit{\comparator uses speech embeddings of XLSR \citep{conneau2020unsupervised} as inputs and may inherit all biases and limitations of this model.}
+  \item \textit{The model may generalize to some degree to all 53 XLSR languages. However, its performance has been evaluated only for the 6 languages mentioned above.}
+\end{mcsection}
+
+
+\end{tcolorbox}
+\end{singlespace}
+\end{adjustwidth}

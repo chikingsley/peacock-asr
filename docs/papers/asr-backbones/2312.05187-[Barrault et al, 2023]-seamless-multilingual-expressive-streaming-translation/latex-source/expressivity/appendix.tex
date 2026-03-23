@@ -1,0 +1,368 @@
+\section{\expressive}
+\label{app:expressive}
+
+\subsection{Data}
+\begin{table}[htbp!]
+\scriptsize
+\centering
+\begin{tabular}{lllrrrrrr}
+\toprule
+ & & & \multicolumn{2}{c}{\textbf{mExpresso}} & \multicolumn{2}{c}{\textbf{mDRAL}} & \multicolumn{2}{c}{\textbf{FLEURS}}  \\ \cmidrule(r){4-5}\cmidrule(lr){6-7}\cmidrule(l){8-9} 
+ & & & Dev & Test & Dev & Test & Dev & Test \\ \midrule
+\multirow{20}{*}{\engx} & \multirow{4}{*}{\texttt{eng} $\rightarrow$ \texttt{cmn}} & Sample \# & 2369 & 5003 & 559 & 394 & 394 & 646\\
+ & & Hours & 2.12 & 4.80 & 0.36 & 0.23 & 1.05 & 1.77\\
+ & & Total \# Speakers & 1 & 2 & 13 & 13 & -- & --\\
+ & & Total \# Male Speakers & 1 & 1 & 3 & 3 & -- & --\\
+\cmidrule(l){2-9} 
+ & \multirow{4}{*}{\texttt{eng} $\rightarrow$ \texttt{deu}} & Sample \# & 4420 & 5733 & 486 & 539 & 387 & 641\\
+ & & Hours & 3.90 & 5.62 & 0.72 & 0.80 & 1.02 & 1.75\\
+ & & Total \# Speakers & 2 & 2 & 9 & 9 & -- & --\\
+ & & Total \# Male Speakers & 1 & 1 & 4 & 4 & -- & --\\
+\cmidrule(l){2-9} 
+ & \multirow{4}{*}{\texttt{eng} $\rightarrow$ \texttt{fra}} & Sample \# & 4770 & 5742 & 679 & 324 & 363 & 612\\
+ & & Hours & 4.20 & 5.64 & 0.48 & 0.21 & 0.95 & 1.67\\
+ & & Total \# Speakers & 2 & 2 & 7 & 8 & -- & --\\
+ & & Total \# Male Speakers & 1 & 1 & 3 & 3 & -- & --\\
+\cmidrule(l){2-9} 
+ & \multirow{4}{*}{\texttt{eng} $\rightarrow$ \texttt{ita}} & Sample \# & 4413 & 5756 & 404 & 606 & 386 & 640\\
+ & & Hours & 3.93 & 5.65 & 0.63 & 0.94 & 1.02 & 1.75\\
+ & & Total \# Speakers & 2 & 2 & 14 & 15 & -- & --\\
+ & & Total \# Male Speakers & 1 & 1 & 4 & 5 & -- & --\\
+\cmidrule(l){2-9} 
+ & \multirow{4}{*}{\texttt{eng} $\rightarrow$ \texttt{spa}} & Sample \# & 4758 & 5703 & 587 & 430 & 394 & 643\\
+ & & Hours & 4.17 & 5.56 & 0.42 & 0.29 & 1.05 & 1.76\\
+ & & Total \# Speakers & 2 & 2 & 10 & 10 & -- & --\\
+ & & Total \# Male Speakers & 1 & 1 & 4 & 4 & -- & --\\
+\midrule
+\midrule
+\multirow{20}{*}{\xeng} & \multirow{4}{*}{\texttt{cmn} $\rightarrow$ \texttt{eng}} & Sample \# & 2369 & 5003 & 559 & 394 & 409 & 945\\
+ & & Hours & 3.51 & 6.40 & 0.35 & 0.22 & 1.27 & 3.07\\
+ & & Total \# Speakers & 1 & 2 & 13 & 13 & -- & --\\
+ & & Total \# Male Speakers & 0 & 1 & 3 & 3 & -- & --\\
+\cmidrule(l){2-9} 
+ & \multirow{4}{*}{\texttt{deu} $\rightarrow$ \texttt{eng}} & Sample \# & 4420 & 5733 & 486 & 539 & 363 & 862\\
+ & & Hours & 4.85 & 7.21 & 0.83 & 0.92 & 1.26 & 3.15\\
+ & & Total \# Speakers & 2 & 2 & 9 & 9 & -- & --\\
+ & & Total \# Male Speakers & 1 & 1 & 4 & 4 & -- & --\\
+\cmidrule(l){2-9} 
+ & \multirow{4}{*}{\texttt{fra} $\rightarrow$ \texttt{eng}} & Sample \# & 4770 & 5742 & 679 & 324 & 289 & 676\\
+ & & Hours & 5.31 & 6.82 & 0.50 & 0.24 & 0.80 & 1.95\\
+ & & Total \# Speakers & 2 & 2 & 7 & 8 & -- & --\\
+ & & Total \# Male Speakers & 1 & 1 & 3 & 3 & -- & --\\
+\cmidrule(l){2-9} 
+ & \multirow{4}{*}{\texttt{ita} $\rightarrow$ \texttt{eng}} & Sample \# & 4413 & 5756 & 404 & 606 & 391 & 865\\
+ & & Hours & 5.86 & 6.64 & 0.68 & 0.99 & 1.55 & 3.52\\
+ & & Total \# Speakers & 2 & 2 & 14 & 15 & -- & --\\
+ & & Total \# Male Speakers & 1 & 1 & 4 & 5 & -- & --\\
+\cmidrule(l){2-9} 
+ & \multirow{4}{*}{\texttt{spa} $\rightarrow$ \texttt{eng}} & Sample \# & 4758 & 5703 & 587 & 430 & 408 & 908\\
+ & & Hours & 5.20 & 6.95 & 0.46 & 0.32 & 1.35 & 3.09\\
+ & & Total \# Speakers & 2 & 2 & 10 & 10 & -- & --\\
+ & & Total \# Male Speakers & 1 & 1 & 4 & 4 & -- & --\\
+\hline
+\end{tabular}
+\caption{Descriptive statistics of dev and test splits for mExpresso, mDRAL and FLEURS domains on the language pair level. Note that we do not have speaker information for FLEURs so these rows are left empty.} %
+    \label{tab:expressive_dev_test_data_lang_pair_level}
+\end{table}
+
+\paragraph{Evaluation data.} We report the detailed statistics of the evaluation data used in expressive speech-to-speech translation in \Cref{tab:expressive_dev_test_data_lang_pair_level}, and it provides a breakdown of data sizes into each language direction.
+
+\paragraph{\unitvb.} We provide empirical details of pre-training and finetuning \unitvb. The model was built on $2$ convolution layers and $24$ Transformer layers with a hidden dimension of $1024$ and a feedforward dimension of $4096$. It has a total of $329$M parameters. During pretraining, \unitvb was trained to predict the masked spectrogram given speech and the corresponding XLS-R units. The pretraining data is listed in \autoref{tab:ptv_pretrain_data}, and we dealt with data imbalance across languages by upsampling data in each language to the same amount as English speech.
+
+For the purpose of data augmentation, we further finetuned \unitvb on multilingual emotion data so that it could generate more expressive speech for \prosodyunitytwo training. 
+
+
+
+\subsection{Experimental Setup}
+
+We provide the full results of mExpresso in \autoref{tab:express_mexpresso}, mDRAL in \autoref{tab:express_mdral}, and FLEURS in \autoref{tab:express_fleurs}.
+
+
+
+\begin{table}[htbp!]
+    \tiny
+    \centering
+    \begin{tabular}{c|ccc|ccc}
+    \hline
+      {cmn-eng} & \multicolumn{3}{c|}{Dev} & \multicolumn{3}{c}{Test} \\ \hline
+      Model & ASR-BLEU & \comparator & Rate & ASR-BLEU & \comparator & Rate \\ \hline
+1 & 19.11 & 2.65 & 0.52 & 23.92 & 2.79 & 0.29 \\
+2 & 22.85 & 1.69 & 0.13 & 25.10 & 1.99 & 0.13 \\
+3 & 22.24 & 2.38 & 0.59 & 24.88 & 2.59 & 0.26 \\
+4 & 23.25 & 2.96 & 0.78 & 27.14 & 3.11 & 0.54 \\
+5 & 23.58 & 3.08 & 0.82 & 26.86 & 3.15 & 0.56 \\ \hline
+      {deu-eng} & \multicolumn{3}{c|}{Dev} & \multicolumn{3}{c}{Test} \\ \hline
+      Model & ASR-BLEU & \comparator & Rate &  ASR-BLEU & \comparator & Rate \\ \hline
+1 & 34.64 & 2.95 & 0.36 & 29.60 & 2.74 & 0.39 \\
+2 & 38.41 & 2.41 & 0.10 & 33.09 & 2.20 & 0.07 \\
+3 & 38.25 & 2.98 & 0.29 & 32.44 & 2.79 & 0.35 \\
+4 & 43.96 & 3.16 & 0.70 & 37.33 & 3.16 & 0.70 \\
+5 & 43.94 & 3.21 & 0.71 & 36.54 & 3.18 & 0.71 \\ \hline
+      {fra-eng} & \multicolumn{3}{c|}{Dev} & \multicolumn{3}{c}{Test} \\ \hline
+      Model & ASR-BLEU & \comparator & Rate &  ASR-BLEU & \comparator & Rate \\ \hline
+1 & 31.62 & 3.05 & 0.35 & 32.09 & 2.83 & 0.32 \\
+2 & 34.89 & 2.36 & 0.11 & 34.35 & 2.10 & 0.16 \\
+3 & 34.93 & 3.13 & 0.33 & 34.33 & 2.70 & 0.26 \\
+4 & 41.04 & 3.35 & 0.70 & 38.91 & 3.06 & 0.54  \\
+5 & 40.98 & 3.46 & 0.69 & 38.91 & 3.10 & 0.47 \\
+\hline
+      {ita-eng} & \multicolumn{3}{c|}{Dev} & \multicolumn{3}{c}{Test} \\ \hline
+      Model & ASR-BLEU & \comparator & Rate &  ASR-BLEU & \comparator & Rate \\ \hline
+1 & 29.12 & 2.95 & 0.40 & 32.32 & 2.94 & 0.37 \\
+2 & 33.02 & 2.21 & 0.12 & 35.68 & 2.25 & 0.01\\
+3 & 32.77 & 2.86 & 0.33 & 35.35 & 2.94 & 0.25 \\
+4 & 39.39 & 3.16 & 0.69 & 41.69 & 3.21 & 0.74 \\
+5 & 38.75 & 3.25 & 0.70 & 41.72 & 3.27 & 0.75 \\
+\hline
+      {spa-eng} & \multicolumn{3}{c|}{Dev} & \multicolumn{3}{c}{Test} \\ \hline
+      Model & ASR-BLEU & \comparator & Rate &  ASR-BLEU & \comparator & Rate \\ \hline
+1 & 38.34 & 3.08 & 0.43 & 41.83 & 2.84 & 0.36 \\
+2 & 43.20 & 2.45 & 0.04 & 44.14 & 2.24 & 0.04 \\
+3 & 42.91 & 3.21 & 0.36 & 44.36 & 2.80 & 0.25 \\
+4 & 48.67 & 3.47 & 0.70 & 51.29 & 3.17 & 0.67 \\
+5 & 48.46 & 3.52 & 0.72 & 50.98 & 3.19 & 0.68 \\
+\hline
+      {eng-cmn} & \multicolumn{3}{c|}{Dev} & \multicolumn{3}{c}{Test} \\ \hline
+      Model & ASR-BLEU & \comparator & Rate &  ASR-BLEU & \comparator & Rate \\ \hline
+1 & 26.36 & 2.96 & 0.23 & 24.02 & 2.92 & 0.30 \\
+2 & 26.85 & 2.69 & -0.03 & 24.31 & 2.56 & -0.02 \\
+3 & 27.16 & 3.31 & 0.14 & 23.86 & 3.10 & 0.19 \\
+4 & 26.80 & 3.16 & 0.55 & 25.43 & 3.02 & 0.52 \\
+5 & 26.82 & 3.18 & 0.54 & 25.09 & 2.99 & 0.52 \\
+\hline
+      {eng-deu} & \multicolumn{3}{c|}{Dev} & \multicolumn{3}{c}{Test} \\ \hline
+      Model & ASR-BLEU & \comparator & Rate &  ASR-BLEU & \comparator & Rate \\ \hline
+1 & 28.94 & 2.91 & 0.44 & 21.01 & 2.82 & 0.43 \\
+2 & 32.45 & 2.66 & 0.19 & 23.13 & 2.40 & 0.14 \\
+3 & 32.11 & 3.15 & 0.27 & 23.00 & 2.92 & 0.35 \\
+4 & 37.07 & 3.29 & 0.71 & 27.43 & 3.20 & 0.72 \\
+5 & 36.82 & 3.31 & 0.72 & 27.46 & 3.13 & 0.72 \\
+\hline
+      {eng-fra} & \multicolumn{3}{c|}{Dev} & \multicolumn{3}{c}{Test} \\ \hline
+      Model & ASR-BLEU & \comparator & Rate &  ASR-BLEU & \comparator & Rate \\ \hline
+1 & 33.80 & 2.98 & 0.43 & 32.59 & 2.87 & 0.39 \\
+2 & 34.69 & 2.72 & 0.11 & 33.82 & 2.48 & 0.09 \\
+3 & 34.26 & 3.16 & 0.24 & 33.11 & 2.89 & 0.27 \\
+4 & 37.96 & 3.28 & 0.69 & 38.36 & 3.20 & 0.66 \\
+5 & 37.83 & 3.28 & 0.68 & 38.35 & 3.12 & 0.66 \\
+\hline
+      {eng-ita} & \multicolumn{3}{c|}{Dev} & \multicolumn{3}{c}{Test} \\ \hline
+      Model & ASR-BLEU & \comparator & Rate &  ASR-BLEU & \comparator & Rate \\ \hline
+1 & 31.55 & 2.98 & 0.37 & 28.89 & 2.84 & 0.37 \\
+2 & 33.79 & 2.72 & 0.16 & 31.91 & 2.39 & 0.14 \\
+3 & 33.92 & 3.18 & 0.30 & 31.67 & 2.92 & 0.35 \\
+4 & 39.97 & 3.30 & 0.74 & 37.80 & 3.19 & 0.69 \\
+5 & 39.88 & 3.31 & 0.73 & 37.51 & 3.12 & 0.68 \\
+\hline
+      {eng-spa} & \multicolumn{3}{c|}{Dev} & \multicolumn{3}{c}{Test} \\ \hline
+      Model & ASR-BLEU & \comparator & Rate & ASR-BLEU & \comparator & Rate \\ \hline
+1 & 35.81 & 3.03 & 0.43 & 36.92 & 2.91 & 0.43 \\
+2 & 36.96 & 2.61 & 0.09 & 38.57 & 2.35 & 0.09 \\
+3 & 37.60 & 3.10 & 0.27 & 38.69 & 2.84 & 0.30 \\
+4 & 42.33 & 3.37 & 0.70 & 42.88 & 3.25 & 0.67 \\
+5 & 42.31 & 3.38 & 0.70 & 42.63 & 3.18 & 0.67 \\
+\hline
+    \end{tabular}
+    \caption{Empirical results on mExpresso dev and test sets.}
+    \label{tab:express_mexpresso}
+\end{table}
+
+\begin{table}[htbp!]
+    \tiny
+    \centering
+    \begin{tabular}{c|ccccc|ccccc}
+    \hline
+      {cmn-eng} & \multicolumn{5}{c|}{Dev} & \multicolumn{5}{c}{Test} \\ \hline
+      Model & ASR-BLEU & VSim & \comparator & Rate & Pause &  ASR-BLEU & VSim & \comparator & Rate & Pause \\ \hline
+1 & 27.50 & 0.30 & 2.81 & 0.26 & 0.16 & 24.60 & 0.29 & 2.76 & 0.09 & 0.16 \\
+2 & 30.99 & 0.08 & 2.54 & 0.13 & 0.10 & 26.63 & 0.06 & 2.44 & 0.06 & 0.06 \\
+3 & 30.88 & 0.26 & 3.05 & 0.14 & 0.09 & 26.15 & 0.26 & 2.97 & 0.09 & 0.06 \\
+4 & 28.81 & 0.33 & 3.20 & 0.57 & 0.31 & 28.06 & 0.31 & 3.12 & 0.47 & 0.24 \\
+5 & 28.79 & 0.27 & 3.27 & 0.56 & 0.33 & 28.09 & 0.27 & 3.23 & 0.49 & 0.24 \\
+\hline
+      {deu-eng} & \multicolumn{5}{c|}{Dev} & \multicolumn{5}{c}{Test} \\ \hline
+1 & 42.19 & 0.34 & 2.73 & 0.16 & 0.31 & 41.22 & 0.39 & 2.71 & 0.36 & 0.37 \\
+2 & 42.71 & 0.06 & 2.04 & 0.13 & 0.13 & 41.95 & 0.09 & 2.01 & 0.20 & 0.16 \\
+3 & 42.35 & 0.29 & 2.66 & 0.08 & 0.17 & 41.62 & 0.35 & 2.62 & 0.25 & 0.22 \\
+4 & 42.94 & 0.39 & 3.12 & 0.67 & 0.43 & 42.68 & 0.44 & 3.03 & 0.76 & 0.51 \\
+5 & 43.00 & 0.29 & 3.10 & 0.66 & 0.44 & 42.48 & 0.35 & 3.04 & 0.75 & 0.52 \\
+\hline
+      {fra-eng} & \multicolumn{5}{c|}{Dev} & \multicolumn{5}{c}{Test} \\ \hline
+      Model & ASR-BLEU & VSim & \comparator & Rate & Pause &  ASR-BLEU & VSim & \comparator & Rate & Pause \\ \hline
+1 & 36.64 & 0.35 & 2.83 & 0.25 & 0.33 & 40.03 & 0.32 & 2.80 & 0.26 & 0.29 \\
+2 & 38.38 & 0.03 & 2.48 & 0.08 & 0.23 & 41.40 & 0.03 & 2.37 & 0.14 & 0.17 \\
+3 & 38.59 & 0.28 & 3.11 & 0.08 & 0.26 & 41.38 & 0.22 & 2.90 & 0.13 & 0.18 \\
+4 & 38.79 & 0.36 & 3.25 & 0.57 & 0.45 & 41.77 & 0.32 & 3.20 & 0.62 & 0.46 \\
+5 & 38.75 & 0.29 & 3.33 & 0.59 & 0.45 & 41.81 & 0.24 & 3.28 & 0.64 & 0.46 \\
+\hline
+      {ita-eng} & \multicolumn{5}{c|}{Dev} & \multicolumn{5}{c}{Test} \\ \hline
+      Model & ASR-BLEU & VSim & \comparator & Rate & Pause &  ASR-BLEU & VSim & \comparator & Rate & Pause \\ \hline
+1 & 36.62 & 0.34 & 2.79 & 0.19 & 0.31 & 35.57 & 0.33 & 2.83 & 0.25 & 0.32 \\
+2 & 36.81 & 0.04 & 2.11 & 0.04 & 0.12 & 35.82 & 0.04 & 2.13 & 0.14 & 0.15 \\
+3 & 36.52 & 0.28 & 2.65 & 0.06 & 0.18 & 35.80 & 0.26 & 2.77 & 0.12 & 0.19 \\
+4 & 37.47 & 0.38 & 3.05 & 0.52 & 0.42 & 35.03 & 0.36 & 3.05 & 0.67 & 0.42 \\
+5 & 37.58 & 0.29 & 3.12 & 0.53 & 0.43 & 35.14 & 0.27 & 3.10 & 0.66 & 0.43 \\
+\hline
+      {spa-eng} & \multicolumn{5}{c|}{Dev} & \multicolumn{5}{c}{Test} \\ \hline
+      Model & ASR-BLEU & VSim & \comparator & Rate & Pause &  ASR-BLEU & VSim & \comparator & Rate & Pause \\ \hline
+1 & 47.40 & 0.32 & 2.86 & 0.17 & 0.15 & 42.03 & 0.32 & 2.82 & 0.24 & 0.16 \\
+2 & 52.12 & 0.05 & 2.52 & 0.11 & 0.15 & 48.29 & 0.05 & 2.61 & 0.12 & 0.16 \\
+3 & 52.03 & 0.24 & 3.04 & 0.15 & 0.16 & 47.99 & 0.25 & 3.08 & 0.14 & 0.17 \\
+4 & 53.16 & 0.34 & 3.25 & 0.59 & 0.34 & 53.11 & 0.34 & 3.24 & 0.62 & 0.29 \\
+5 & 53.37 & 0.26 & 3.29 & 0.59 & 0.35 & 53.36 & 0.27 & 3.28 & 0.64 & 0.29 \\
+\hline
+      {eng-cmn} & \multicolumn{5}{c|}{Dev} & \multicolumn{5}{c}{Test} \\ \hline
+      Model & ASR-BLEU & VSim & \comparator & Rate & Pause &  ASR-BLEU & VSim & \comparator & Rate & Pause \\ \hline
+1 & 17.51 & 0.37 & 2.78 & 0.15 & 0.14 & 19.90 & 0.36 & 2.74 & 0.14 & 0.11 \\
+2 & 21.22 & 0.07 & 2.56 & -0.07 & 0.15 & 23.69 & 0.06 & 2.50 & -0.00 & 0.06 \\
+3 & 19.42 & 0.35 & 2.99 & -0.06 & 0.07 & 20.86 & 0.33 & 2.90 & 0.01 & 0.04 \\
+4 & 28.36 & 0.36 & 2.98 & 0.44 & 0.24 & 28.44 & 0.33 & 2.92 & 0.49 & 0.21 \\
+5 & 27.96 & 0.34 & 3.00 & 0.44 & 0.26 & 27.62 & 0.31 & 2.93 & 0.48 & 0.22 \\
+\hline
+      {eng-deu} & \multicolumn{5}{c|}{Dev} & \multicolumn{5}{c}{Test} \\ \hline
+      Model & ASR-BLEU & VSim & \comparator & Rate & Pause &  ASR-BLEU & VSim & \comparator & Rate & Pause \\ \hline
+1 & 21.99 & 0.43 & 2.60 & 0.16 & 0.26 & 25.82 & 0.46 & 2.55 & 0.29 & 0.30 \\
+2 & 23.45 & 0.02 & 2.16 & 0.15 & 0.10 & 27.53 & 0.07 & 2.19 & 0.07 & 0.19 \\
+3 & 23.41 & 0.37 & 2.70 & 0.10 & 0.10 & 27.58 & 0.42 & 2.74 & 0.14 & 0.18 \\
+4 & 33.06 & 0.49 & 2.97 & 0.56 & 0.41 & 32.44 & 0.53 & 2.91 & 0.69 & 0.45 \\
+5 & 33.05 & 0.37 & 2.93 & 0.57 & 0.41 & 32.08 & 0.42 & 2.92 & 0.70 & 0.46 \\
+\hline
+      {eng-fra} & \multicolumn{5}{c|}{Dev} & \multicolumn{5}{c}{Test} \\ \hline
+      Model & ASR-BLEU & VSim & \comparator & Rate & Pause &  ASR-BLEU & VSim & \comparator & Rate & Pause \\ \hline
+1 & 27.39 & 0.38 & 2.70 & 0.19 & 0.21 & 28.02 & 0.36 & 2.60 & 0.14 & 0.21 \\
+2 & 29.62 & 0.00 & 2.38 & 0.03 & 0.17 & 29.38 & 0.07 & 2.38 & 0.02 & 0.17 \\
+3 & 29.03 & 0.30 & 2.89 & 0.06 & 0.18 & 29.21 & 0.28 & 2.78 & -0.03 & 0.19 \\
+4 & 35.40 & 0.40 & 3.10 & 0.56 & 0.37 & 39.42 & 0.36 & 2.98 & 0.51 & 0.44 \\
+5 & 35.65 & 0.32 & 3.08 & 0.57 & 0.38 & 39.89 & 0.31 & 2.99 & 0.52 & 0.44 \\
+\hline
+      {eng-ita} & \multicolumn{5}{c|}{Dev} & \multicolumn{5}{c}{Test} \\ \hline
+      Model & ASR-BLEU & VSim & \comparator & Rate & Pause &  ASR-BLEU & VSim & \comparator & Rate & Pause \\ \hline
+1 & 25.66 & 0.42 & 2.51 & 0.17 & 0.28 & 25.22 & 0.41 & 2.59 & 0.19 & 0.32 \\
+2 & 26.32 & 0.05 & 2.14 & 0.11 & 0.09 & 25.90 & 0.06 & 2.22 & 0.11 & 0.14 \\
+3 & 25.78 & 0.33 & 2.47 & 0.10 & 0.10 & 26.00 & 0.32 & 2.59 & 0.12 & 0.14 \\
+4 & 32.96 & 0.45 & 2.75 & 0.59 & 0.40 & 30.16 & 0.42 & 2.81 & 0.60 & 0.40 \\
+5 & 32.74 & 0.33 & 2.70 & 0.59 & 0.41 & 30.23 & 0.31 & 2.78 & 0.60 & 0.41 \\
+\hline
+      {eng-spa} & \multicolumn{5}{c|}{Dev} & \multicolumn{5}{c}{Test} \\ \hline
+      Model & ASR-BLEU & VSim & \comparator & Rate & Pause &  ASR-BLEU & VSim & \comparator & Rate & Pause \\ \hline
+1 & 31.09 & 0.40 & 2.68 & 0.22 & 0.16 & 19.20 & 0.36 & 2.57 & 0.30 & 0.10 \\
+2 & 36.19 & 0.04 & 2.46 & 0.02 & 0.13 & 20.12 & 0.06 & 2.49 & 0.12 & 0.14 \\
+3 & 35.86 & 0.31 & 2.90 & 0.06 & 0.13 & 20.09 & 0.29 & 2.82 & 0.23 & 0.14 \\
+4 & 43.91 & 0.40 & 3.02 & 0.57 & 0.25 & 40.17 & 0.36 & 2.97 & 0.62 & 0.24 \\
+5 & 43.85 & 0.31 & 3.06 & 0.57 & 0.26 & 39.30 & 0.29 & 2.99 & 0.64 & 0.25 \\
+\hline
+    \end{tabular}
+    \caption{Empirical results on mDRAL dev and test sets.}
+    \label{tab:express_mdral}
+\end{table}
+
+
+
+
+\begin{table}[htbp!]
+    \tiny
+    \centering
+    \begin{tabular}{c|c|c}
+    \hline
+      {cmn-eng} & \multicolumn{1}{c|}{Dev} & \multicolumn{1}{c}{Test} \\ \hline
+      Model & ASR-BLEU & ASR-BLEU \\ \hline
+1 & 24.61 & 23.83  \\
+2 & 24.92 & 24.03 \\
+3 & 24.78 & 23.77 \\
+4 & 18.67 & 19.46 \\
+5 & 18.42 & 19.47 \\
+\hline
+      {deu-eng} & \multicolumn{1}{c|}{Dev} & \multicolumn{1}{c}{Test} \\ \hline
+      Model & ASR-BLEU &  ASR-BLEU \\ \hline
+1 & 39.96 & 39.97 \\
+2 & 40.69 & 41.08 \\
+3 & 40.32 & 41.08 \\
+4 & 41.58 & 40.64 \\
+5 & 41.71 & 40.55 \\ 
+\hline
+      {fra-eng} & \multicolumn{1}{c|}{Dev} & \multicolumn{1}{c}{Test} \\ \hline
+      Model & ASR-BLEU & ASR-BLEU \\ \hline
+1 & 36.84 & 36.12 \\
+2 & 38.57 & 37.13 \\
+3 & 38.11 & 36.59 \\
+4 & 38.37 & 37.30 \\
+5 & 38.23 & 36.89 \\
+\hline
+      {ita-eng} & \multicolumn{1}{c|}{Dev} & \multicolumn{1}{c}{Test} \\ \hline
+      Model & ASR-BLEU &  ASR-BLEU \\ \hline
+1 & 30.79 & 29.07 \\
+2 & 31.36 & 29.61 \\
+3 & 31.09 & 29.44 \\
+4 & 30.22 & 28.37 \\
+5 & 30.13 & 28.36 \\
+\hline
+      {spa-eng} & \multicolumn{1}{c|}{Dev} & \multicolumn{1}{c}{Test} \\ \hline
+      Model & ASR-BLEU &  ASR-BLEU \\ \hline
+1 & 27.94 & 27.69 \\
+2 & 27.77 & 28.11 \\
+3 & 27.77 & 28.16  \\
+4 & 26.97 & 27.15 \\
+5 & 26.89 & 27.09 \\
+\hline
+      {eng-cmn} & \multicolumn{1}{c|}{Dev} & \multicolumn{1}{c}{Test} \\ \hline
+      Model & ASR-BLEU &  ASR-BLEU \\ \hline
+1 & 13.12 & 12.50 \\
+2 & 32.64 & 32.49 \\
+3 & 27.17 & 26.52 \\
+4 & 32.82 & 32.89 \\
+5 & 26.87 & 26.80 \\
+\hline
+      {eng-deu} & \multicolumn{1}{c|}{Dev} & \multicolumn{1}{c}{Test} \\ \hline
+      Model & ASR-BLEU &  ASR-BLEU \\ \hline
+1 & 23.02 & 23.03 \\
+2 & 32.71 & 32.05 \\
+3 & 32.84 & 31.70 \\
+4 & 32.87 & 30.38 \\
+5 & 32.50 & 30.07 \\
+\hline
+      {eng-fra} & \multicolumn{1}{c|}{Dev} & \multicolumn{1}{c}{Test} \\ \hline
+      Model & ASR-BLEU & ASR-BLEU \\ \hline
+1 & 20.62 & 19.69 \\
+2 & 44.51 & 44.88 \\
+3 & 41.34 & 42.20 \\
+4 & 45.12 & 45.13 \\
+5 & 43.37 & 43.50 \\
+\hline
+      {eng-ita} & \multicolumn{1}{c|}{Dev} & \multicolumn{1}{c}{Test} \\ \hline
+      Model & ASR-BLEU &  ASR-BLEU \\ \hline
+1 & 15.87 & 15.69 \\
+2 & 26.14 & 25.49 \\
+3 & 24.04 & 23.51 \\
+4 & 27.01 & 24.72 \\
+5 & 24.87 & 22.86 \\
+\hline
+      {eng-spa} & \multicolumn{1}{c|}{Dev} & \multicolumn{1}{c}{Test} \\ \hline
+      Model & ASR-BLEU &  ASR-BLEU \\ \hline
+1 & 12.95 & 12.02 \\
+2 & 25.74 & 24.01 \\
+3 & 24.62 & 22.48 \\
+4 & 25.82 & 24.76 \\
+5 & 24.74 & 23.35 \\ 
+\hline
+    \end{tabular}
+    \caption{Empirical results on FLEURS dev and test sets.}
+    \label{tab:express_fleurs}
+\end{table}
+
+\subsection{Semantic and prosodic data ablation}
+\label{app:sem_pro_ablation}
+
+
+\begin{figure}[hbtp!]
+    \centering
+    \includegraphics[width=\linewidth]{figures/expressivity/engx_semantic_and_prosodic_data_ablation.pdf}
+    \caption{Results on mExpresso, mDRAL and FLEURS test sets for \engx language pairs.}
+\label{fig:sem_pro_ablation_full_eng_xx}
+\end{figure}
+
+\begin{figure}[hbtp!]
+    \centering
+    \includegraphics[width=\linewidth]{figures/expressivity/xeng_semantic_and_prosodic_data_ablation.pdf}
+    \caption{Results on mExpresso, mDRAL and FLEURS test sets for \xeng language pairs.}
+\label{fig:sem_pro_ablation_full_xx_eng}
+\end{figure}
