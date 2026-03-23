@@ -188,19 +188,26 @@ def eval_mdd(
         n_correct = int(true_correct.sum())
         frr = float(detected[true_correct].sum() / max(n_correct, 1))
 
-        # PER: phoneme error rate among detected mispronunciations
+        # PER: phoneme error rate among detected mispronunciations.
+        # Compare diagnosis prediction against the ground-truth *actual* phone
+        # (diag_label), NOT the canonical phone. The canonical phone is masked
+        # before argmax, so comparing against it would be internally inconsistent.
+        # Also exclude positions where diag_label == -1 (non-CMU sounds that
+        # training ignores via ignore_index=-1).
         diag_flat = diag_pred.numpy().reshape(-1)[mask.numpy().reshape(-1)]
-        # Use canon_phn_id for PER if available, else fall back to diag_label
-        _canon = canon_phn_id if canon_phn_id is not None else diag_label
-        canon_flat = _canon.long().numpy().reshape(-1)[mask.numpy().reshape(-1)]
-        if detected.sum() > 0:
-            per = float((diag_flat[detected] != canon_flat[detected]).sum() / max(detected.sum(), 1))
+        diag_label_flat = diag_label.long().numpy().reshape(-1)[mask.numpy().reshape(-1)]
+        valid_diag = diag_label_flat >= 0  # exclude non-CMU labels
+
+        # PER over detected phones with valid diagnosis labels
+        detected_valid = detected & valid_diag
+        if detected_valid.sum() > 0:
+            per = float((diag_flat[detected_valid] != diag_label_flat[detected_valid]).sum()
+                        / max(detected_valid.sum(), 1))
         else:
             per = 0.0
 
-        # DER: diagnostic error rate (misidentified among detected true mispronunciations)
-        true_and_detected = detected & true_mispr
-        diag_label_flat = diag_label.numpy().reshape(-1)[mask.numpy().reshape(-1)]
+        # DER: diagnostic error rate among correctly-detected true mispronunciations
+        true_and_detected = detected & true_mispr & valid_diag
         if true_and_detected.sum() > 0:
             der = float((diag_flat[true_and_detected] != diag_label_flat[true_and_detected]).sum()
                         / max(true_and_detected.sum(), 1))
