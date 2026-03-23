@@ -17,10 +17,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import numpy as np
+import soundfile as sf
 import torch
-import torchaudio
 from tqdm import tqdm
-from transformers import AutoModel, AutoProcessor
+from transformers import AutoModel, Wav2Vec2FeatureExtractor
 
 # SSL models used in MuFFIN (3 × Large, 1024-dim, 25 layers including CNN output)
 SSL_MODELS = {
@@ -33,14 +33,16 @@ SSL_MODELS = {
 FRAME_RATE_HZ = 50
 
 
-def _load_audio(wav_path: Path, target_sr: int = 16000) -> torch.Tensor:
-    """Load audio and resample to 16kHz mono."""
-    wav, sr = torchaudio.load(wav_path)
+def _load_audio(wav_path: Path, target_sr: int = 16000) -> np.ndarray:
+    """Load audio as 16kHz mono numpy array."""
+    data, sr = sf.read(wav_path, dtype="float32")
+    if data.ndim > 1:
+        data = data.mean(axis=1)
     if sr != target_sr:
-        wav = torchaudio.functional.resample(wav, sr, target_sr)
-    if wav.shape[0] > 1:
-        wav = wav.mean(dim=0, keepdim=True)
-    return wav.squeeze(0)  # [T_samples]
+        # Simple resample via librosa (already a dependency)
+        import librosa
+        data = librosa.resample(data, orig_sr=sr, target_sr=target_sr)
+    return data
 
 
 def _phone_average(
@@ -106,7 +108,7 @@ def extract_all_layers(
     """
     model_name = SSL_MODELS[model_key]
     print(f"Loading {model_name}...")
-    processor = AutoProcessor.from_pretrained(model_name)
+    processor = Wav2Vec2FeatureExtractor.from_pretrained(model_name)
     model = AutoModel.from_pretrained(model_name).to(device)
     model.eval()
 
@@ -124,7 +126,7 @@ def extract_all_layers(
             audio = _load_audio(wav_path)
 
             # Run model with all hidden states
-            inputs = processor(audio.numpy(), sampling_rate=16000, return_tensors="pt")
+            inputs = processor(audio, sampling_rate=16000, return_tensors="pt")
             inputs = {k: v.to(device) for k, v in inputs.items()}
             outputs = model(**inputs, output_hidden_states=True)
 
