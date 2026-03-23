@@ -5,38 +5,41 @@ description = "MuFFIN replication + CHConv feature extraction improvements for p
 requires-python = ">=3.12"
 dependencies = [
     # core ML
-    "torch>=2.5",
-    "torchaudio>=2.5",
-    "transformers>=4.47",
-    "datasets>=3.0",
-    "accelerate>=1.0",
+    "torch>=2.10",
+    "torchaudio>=2.10",
+    "transformers>=5.3",
+    "datasets>=4.8",
+    "accelerate>=1.13",
     # data / science
-    "numpy>=2.0",
-    "scipy>=1.14",
-    "scikit-learn>=1.5",
-    "pandas>=2.2",
-    # experiment tracking — TODO: confirm traceo package name (not on PyPI yet)
-    # for now using wandb directly; swap once traceo package is confirmed
-    "wandb>=0.19",
+    "numpy>=2.4",
+    "scipy>=1.17",
+    "scikit-learn>=1.8",
+    "pandas>=3.0",
+    # experiment tracking
+    "wandb>=0.25",
     # config
-    "pydantic-settings>=2.6",
-    "pydantic>=2.9",
+    "pydantic-settings>=2.13",
+    "pydantic>=2.12",
     # utils
-    "rich>=13.9",
-    "click>=8.1",
+    "rich>=14.3",
+    "click>=8.3",
     "tqdm>=4.67",
+    "huggingface-hub>=1.7",
     # audio
-    "soundfile>=0.12",
-    "librosa>=0.10",
+    "soundfile>=0.13",
+    "librosa>=0.11",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "ruff>=0.8",
-    "ty>=0.0.1a",
-    "pytest>=8.3",
-    "pytest-cov>=6.0",
+    "ruff>=0.15",
+    "ty>=0.0.24",
+    "pytest>=9.0",
+    "pytest-cov>=7.1",
 ]
+
+[project.scripts]
+p010 = "p010.cli:cli"
 
 [build-system]
 requires = ["hatchling"]
@@ -53,23 +56,31 @@ src = ["src"]
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "ANN"]
 ignore = [
-    "ANN101",   # missing type annotation for self
-    "ANN102",   # missing type annotation for cls
     "ANN401",   # dynamically typed expressions (Any)
     "B008",     # do not perform function call in argument defaults
+    "N806",     # ML convention: B/T/C/N as batch/time/channel/classes in function bodies
+    "N812",     # ML convention: `import torch.nn.functional as F`
 ]
-# file length is a heuristic, not a hard rule — warn but don't fail
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["ANN", "S101"]
+"tests/**" = ["ANN", "S101", "N803", "N806"]  # N803/N806: B/T/C ok as local names in tests
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
 
-[tool.ty]
+[tool.ty.environment]
 python-version = "3.12"
-strict = true
+
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --tb=short"
+filterwarnings = [
+    # PyTorch 2.10 internal bug in pin_memory.py — fixed upstream but not yet released.
+    # Fires once per tensor per batch (~9000 times per smoke test). Suppressed to avoid
+    # burying real warnings. Track: https://github.com/pytorch/pytorch/pull/174584
+    "ignore:The argument 'device' of Tensor.pin_memory:DeprecationWarning",
+    "ignore:The argument 'device' of Tensor.is_pinned:DeprecationWarning",
+    # wandb internal sentry warning — not actionable from our code
+    "ignore:Read the `app_url` setting:DeprecationWarning",
+]
