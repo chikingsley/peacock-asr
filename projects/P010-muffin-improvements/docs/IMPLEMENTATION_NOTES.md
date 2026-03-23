@@ -75,27 +75,29 @@ Implemented all remaining MuFFIN paper components. Previously we only had HierCB
 | v1 ConPCO (1/1/1, no pretrain) | 0.6621 ± 0.0065 | ~0.701 | -0.039 |
 | v2 baseline (3/1/1, bug fixes) | 0.6574 ± 0.0100 | ~0.680 | -0.023 |
 | v2 ConPCO (3/1/1, bug fixes) | 0.6624 ± 0.0065 | ~0.701 | -0.039 |
-| **v3 MuFFIN (full)** | **0.6824 ± 0.0031** | **~0.742** | **-0.060** |
+| v3 MuFFIN (full) | 0.6824 ± 0.0031 | ~0.742 | -0.060 |
+| **v4 MuFFIN (PhnVar clamping fix)** | **0.6810 ± 0.0032** | **~0.742** | **-0.062** |
 
-v3 MuFFIN = pretrain + 3/1/1 weights + ConPCO + MDD (detection + diagnosis) + PhnVar. Seeds 22,33,44,55,66.
+v4 MuFFIN = pretrain + 3/1/1 weights + ConPCO + MDD (detection + diagnosis) + PhnVar (BLV one-sided clamping, σ=4.0) + canonical phone masking in diagnosis. Seeds 22,33,44,55,66. PhnVar clamping fix had negligible PCC impact (~0.001).
 
-### Eval output (seed 22, threshold=0.4)
+### Eval output (v4 seed 22, threshold=0.4)
 
 ```yaml
-Phone:  MSE 0.0741  PCC 0.6802
-Utt accuracy     : PCC 0.7595    Utt completeness : PCC 0.4376
-Utt fluency      : PCC 0.8207    Utt prosodic     : PCC 0.8142
-Utt total        : PCC 0.7875
-Word accuracy    : PCC 0.6341    Word stress      : PCC 0.3785
-Word total       : PCC 0.6473
-MDD:    F1 0.5734  P 0.6560  R 0.5092
-Diag:   FAR 0.4908  FRR 0.0082  DER 0.9110  PER 0.6323
+Phone:  MSE 0.0740  PCC 0.6786
+Utt accuracy     : PCC 0.7620    Utt completeness : PCC 0.4756
+Utt fluency      : PCC 0.8207    Utt prosodic     : PCC 0.8137
+Utt total        : PCC 0.7894
+Word accuracy    : PCC 0.6357    Word stress      : PCC 0.3883
+Word total       : PCC 0.6496
+MDD:    F1 0.5748  P 0.6406  R 0.5212
+Diag:   FAR 0.4788  FRR 0.0090  DER 0.6093  PER 0.8425
 ```
 
-The APA numbers above are directly comparable to our training runs. The diagnosis numbers are
-useful for internal regression checks, but they should **not** yet be treated as numerically
-equivalent to MuFFIN Table V because the paper cites an external MDD scoring rubric whose exact
-normalization details are not fully specified in the released materials.
+Diagnosis metrics compare against `diag_label` (actual spoken phone), not canonical phone.
+Positions with `diag_label == -1` (non-CMU sounds) are excluded. Our PER is a diagnosis
+mismatch rate over detected phones with valid labels — not the Li 2017 sequence-level PER
+`(S+D+I)/N`. These numbers are useful for internal regression but not directly comparable
+to MuFFIN Table V.
 
 ### Known remaining gap (0.682 vs 0.742)
 
