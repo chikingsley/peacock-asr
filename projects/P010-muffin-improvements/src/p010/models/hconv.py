@@ -36,6 +36,7 @@ class HConv(nn.Module):
         feat_dim:    Hidden dimension per layer (e.g., 1024 for Large models).
         kernel_size: Conv1d kernel size over layer axis. Default 5.
         stride:      Conv1d stride over layer axis. Default 3.
+        output_dim:  Optional target output dimension after flattening.
         normalize:   Apply LayerNorm to input hidden states. Default False.
     """
 
@@ -45,6 +46,7 @@ class HConv(nn.Module):
         feat_dim: int = 1024,
         kernel_size: int = 5,
         stride: int = 3,
+        output_dim: int | None = None,
         normalize: bool = False,
     ) -> None:
         super().__init__()
@@ -73,6 +75,10 @@ class HConv(nn.Module):
             feat_dim = out_channels
 
         self._final_L = L
+        self.proj = None
+        if output_dim is not None and output_dim != self._output_dim:
+            self.proj = nn.Linear(self._output_dim, output_dim)
+            self._output_dim = output_dim
 
     @property
     def output_dim(self) -> int:
@@ -102,6 +108,8 @@ class HConv(nn.Module):
 
         # Flatten remaining layer and channel dims
         x = x.reshape(B, T, -1)  # [B, T, D'*L'] = [B, T, output_dim]
+        if self.proj is not None:
+            x = self.proj(x)
         return x
 
 
@@ -147,16 +155,9 @@ class CHConv(nn.Module):
             kernel_size=kernel_size,
             stride=stride,
             normalize=normalize,
+            output_dim=output_dim,
         )
-
-        # Optional projection back to target dimension
-        hconv_out = self.hconv.output_dim
-        if output_dim is not None and output_dim != hconv_out:
-            self.proj = nn.Linear(hconv_out, output_dim)
-            self._output_dim = output_dim
-        else:
-            self.proj = None
-            self._output_dim = hconv_out
+        self._output_dim = self.hconv.output_dim
 
     @property
     def output_dim(self) -> int:
@@ -177,9 +178,4 @@ class CHConv(nn.Module):
 
         # Apply HConv
         x = self.hconv(x)  # [B, T, hconv_output_dim]
-
-        # Optional projection
-        if self.proj is not None:
-            x = self.proj(x)
-
         return x

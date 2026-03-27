@@ -6,98 +6,201 @@ authors:
   - "Keelan Evanini"
   - "David Suendermann-Oeft"
   - "Klaus Zechner"
-citation_author: "Loukina et al"
+citation_author: "Loukina et al."
 year: 2015
 doi: "10.21437/Interspeech.2015-591"
 pages: "2809-2813"
 source_pdf: "paper.pdf"
-extraction_method: "Manual rewrite from the local paper.pdf; the existing local paper.md extraction was used only as a noisy cross-check."
-extracted_at: "2026-03-07T20:03:41-08:00"
+extraction_method: "manual-curated from local paper PDF"
+extracted_at: "2026-03-23"
 llm_friendly: true
 ---
 
-# Title
-
-Expert and Crowdsourced Annotation of Pronunciation Errors for Automatic Scoring Systems
+# Expert and Crowdsourced Annotation of Pronunciation Errors for Automatic Scoring Systems
 
 ## Metadata
 
-- Authors: Anastassia Loukina, Melissa Lopez, Keelan Evanini, David Suendermann-Oeft, Klaus Zechner
 - Venue: Interspeech 2015
-- Pages: 2809-2813
+- Authors: Anastassia Loukina, Melissa Lopez, Keelan Evanini, David Suendermann-Oeft, Klaus Zechner
 - DOI: 10.21437/Interspeech.2015-591
-- Task: collecting labels for pronunciation-error detection in non-native spontaneous English speech
+- Pages: 2809-2813
+- Source PDF: `paper.pdf`
 
-## TL;DR
+## Abstract (Paraphrase)
 
-The paper compares expert pronunciation-error annotation with two crowd tasks: direct word-level error marking and plain orthographic transcription. All three approaches show disagreement, but the transcription task is more consistent and scales better.
+The paper compares two annotation strategies for collecting labels used in pronunciation-focused automatic scoring on non-native spontaneous English speech:
 
-The most important finding is practical: simple crowd transcription correlates with proficiency better than expert error annotation, and it is better aligned with intelligibility-focused assessment than detailed phonetic correction.
+1. expert annotation of pronunciation errors, and
+2. crowdsourced annotation.
 
-## Abstract
+They evaluate crowdsourcing with two tasks: (a) direct pronunciation error detection and (b) orthographic transcription of short fragments. Their core finding is that simple transcription-style crowdsourcing aligns better with proficiency targets and reliability than direct error marking, especially for assessment goals tied to intelligibility/communication.
 
-The paper argues that collecting training labels for pronunciation assessment is not just an annotation-cost problem, but also a construct problem. Expert phonetic annotation is expensive and subjective, and it may over-label deviations that do not matter for intelligibility. The authors test whether crowdsourced judgments, especially transcription-style judgments, provide a more reliable and more assessment-relevant signal for automatic scoring systems.
+## Research Questions
 
-## Research Question
+The study compares annotation regimes on three axes:
 
-Which labeling strategy is most useful for training or evaluating pronunciation-related scoring in spontaneous non-native English speech:
+- Inter-annotator agreement.
+- Predictive validity relative to expert pronunciation proficiency scores.
+- Robustness to annotation conditions (audio quality and annotator diligence).
 
-- expert annotation of serious pronunciation errors
-- crowd word-level error marking
-- crowd orthographic transcription as an indirect measure of intelligibility
+## 1. Introduction
 
-## Method
+Automatic spoken scoring needs large labeled data. Traditional pronunciation error corpus building is expensive and subjective:
 
-- The authors start from orthographic transcripts, then use forced alignment to obtain word and phone boundaries.
-- Crowd workers on Amazon Mechanical Turk annotate short fragments in two separate tasks:
-- error detection, where workers mark words they judge noticeably mispronounced
-- transcription, where workers simply type what they heard in standard English spelling
-- Each crowd fragment receives 5 judgments per task.
-- Expert annotators label a subset of responses by marking serious pronunciation errors that should be corrected.
-- The comparison focuses on three criteria:
-- inter-annotator agreement
-- validity relative to expert proficiency scores
-- robustness to external factors such as playback behavior and perceived audio quality
+- experts provide phonetic detail, but tasks are slow and sometimes inconsistent;
+- pronunciation is construct-complex because "error" itself depends on target accent, segmental focus, and listener goals.
 
-## Data
+The authors stress construct implications:
 
-- Speech: 143 responses from 140 non-native English speakers with 7 different native-language backgrounds
-- Task type: unscripted English proficiency-test responses, up to 1 minute each
-- Scoring: expert proficiency scores on a 1-4 scale focused on pronunciation, fluency, intelligibility, and listener effort
-- Fragmentation: 1,767 short fragments initially, reduced to 1,752 after filtering
-- Final crowd-analysis set: 14,374 words across 143 responses
-- Crowd annotation volume: 17,670 judgments total across transcription and error-detection tasks
-- Crowd annotators: 57 U.S.-based annotators, almost all self-reporting North American English as L1
-- Expert annotation subset: 75 responses, with 12 double-annotated for agreement analysis
+- human raters and assessments often evaluate communicative success (intelligibility/comprehensibility) rather than strict native-likeness.
+- Some non-native pronunciation deviations affect perception less than prosody or larger-level features.
 
-## Results
+This motivates testing whether crowdsourcing can approximate useful training signal with lower cost and acceptable psychometric properties.
 
-- Localization agreement is modest in every setting:
-- crowd error detection: Fleiss' kappa `0.297`
-- expert error detection: Cohen's kappa `0.492`
-- crowd transcription-derived error labels: Fleiss' kappa `0.429`
-- Agreement on the number of errors per response is stronger than exact localization:
-- crowd error detection: `r = 0.71`
-- expert annotation: `r = 0.53`
-- crowd transcription: `r = 0.82`
-- Correlation with expert proficiency scores favors crowd labels over expert error marking:
-- crowd pronunciation-error probability: Spearman `rho = -0.70` on all 143 responses, `-0.72` on the 75-response overlap
-- expert error annotation: `rho = -0.48`
-- crowd transcription-error probability: `rho = -0.56` on all 143 responses, `-0.58` on the 75-response overlap
-- On the overlapping 75 responses, crowd error labels and expert labels match only moderately:
-- kappa `0.33` versus one expert
-- kappa `0.27` versus the other
-- The crowd transcription signal is less sensitive to annotator diligence effects than direct error marking.
+## 2. Data and Methodology
 
-## Limitations / Notes
+### 2.1 Corpus of non-native speech
 
-- The expert-versus-crowd comparison is not fully matched because expert annotation is available only for a subset of the corpus.
-- The paper studies spontaneous speech, which is more realistic than read speech but also harder to annotate consistently.
-- The transcription task is not the same construct as phone-level pronunciation accuracy; it is closer to intelligibility.
-- The conclusion is not that experts are unnecessary in all settings, but that fine-grained pronunciation-error labels are unusually subjective and expensive for this application.
+Corpus details:
 
-## Relevance To Peacock
+- 143 responses from 140 non-native English test takers.
+- 7 native-language groups.
+- Responses are up to ~1 minute and unscripted (spontaneous).
+- 143 responses include scores from expert human judges in a 4-point proficiency rubric (overall pronunciation, fluency, intelligibility, listener effort).
+- Average response segmentation yields 1,767 fragments initially; 1,752 fragments retained after quality filtering.
+- Total post-filter word count: 14,374 words.
 
-This paper is directly useful for dataset design. It supports collecting multiple cheap crowd judgments around intelligibility, especially transcription-like judgments, instead of assuming that expert phone-level correction is the only valid supervision.
+### 2.2 Annotation design
 
-For Peacock, the main takeaway is that if the target is learner-facing assessment or feedback tied to comprehensibility, transcription-derived labels may be more scalable and more faithful to the real construct than dense manual pronunciation-error markup.
+#### 2.2.1 Crowdsourced annotation
+
+Set up on Amazon Mechanical Turk:
+
+- each fragment presented in randomized order.
+- each fragment annotated by multiple workers (5 judgments in final retained set).
+- two tasks:
+  - Error Detection (ED): mark words that are "noticeably mispronounced" using the reference text as support.
+  - Transcription (TR): transcribe what they hear using standard English spelling.
+- To control for possible task contamination, transcription tasks were posted before error detection tasks.
+- MTurk workers filtered:
+  - U.S.-based location
+  - qualification test (sample transcription + error detection + demographics)
+- Workers with outlying responses were excluded after quality analyses.
+
+The ED and TR tasks were designed to test two different target constructs:
+
+- ED approximates direct segmental accuracy.
+- TR approximates intelligibility/understandability of what listeners actually perceive.
+
+#### 2.2.2 Expert annotation
+
+- Subset: 75 responses (12 double-annotated for agreement checks).
+- Experts followed "serious errors only" guidelines adapted from prior work.
+- Experts had full response access with waveform/spectrogram and could replay segments.
+- Unlike crowdsourcers, expert labels were not tied to strict segment constraints from ASR transcript corrections.
+
+## 3. Results
+
+### 3.1 Inter-annotator agreement
+
+All agreement uses localization kappa (Cohen for expert pairs, Fleiss for crowd with 5 annotators) and correlation r on number of errors per response.
+
+Table 1 summary:
+
+| Task | Annotation Set | Nw | Nr | kappa | r |
+|---|---|---:|---:|---:|---:|
+| ED | Crowd | 14,374 | 143 | 0.297 | 0.71 |
+| ED | Expert | 1,443 | 12 | 0.492 | 0.53 |
+| TR | Crowd | 14,374 | 143 | 0.429 | 0.82 |
+
+Interpretation:
+
+- Crowdsourcing improves count-level agreement relative to localization, but localization agreement remains modest.
+- Transcription localization agreement is higher than ED crowd localization.
+- Expert localization agreement is highest among the three cells.
+
+### 3.2 Validity against proficiency scores
+
+They computed per-annotator word-level error probabilities:
+
+- Ppron: fraction of annotators marking a word as pronunciation error (ED).
+- Ptr: fraction of annotators failing to transcribe a word (TR).
+- Averaged per response to Pbarpron and Pbartr.
+
+Correlations with expert proficiency:
+
+- Pbarpron (Crowd): rho = -0.70 (all 143 responses), -0.72 (overlap subset of 75 responses).
+- Pbarpron (Expert): rho = -0.48.
+- Pbartr (Crowd): rho = -0.56 (all 143), -0.58 (overlap 75).
+
+Negative values are expected since more errors mean lower proficiency scores.
+
+### 3.3 Expert-crowd annotation overlap
+
+On overlapping words with 75 shared responses (5,155 words):
+
+- Agreement between crowd ED and first expert: kappa = 0.33
+- Agreement between crowd ED and second expert: kappa = 0.28 (or 0.27 depending on count split reported)
+- TR-to-expert localization agreement was not highlighted as strong in the text extract and is interpreted as not superior to expert ED overlap for exact localization.
+
+Conclusion from this section:
+
+- ED crowd is not a close proxy for expert ED labels at word level.
+- Crowd-derived global indicators are more stable and more useful for downstream scoring than exact error localization.
+
+### 3.4 External factor analysis
+
+#### 3.4.1 Audio quality effects
+
+After excluding fragments with clearly poor audio:
+
+- For ED task, annotators were more lenient and less consistent under lower audio quality.
+- For TR task, lower quality similarly related to more transcription errors, but:
+  - ED quality judgments were less consistent.
+  - TR quality judgments were more strongly tied to actual pronunciation difficulty.
+
+Quantitative notes:
+
+- ED quality judgments likely conflated audio and accent quality effects because annotators heard only transcript-coupled playback.
+- TR quality judgments were more "interpretable" for intelligibility.
+
+#### 3.4.2 Number of playbacks
+
+Each crowd worker had to play at least once; extra playbacks were tracked:
+
+- average playbacks varied between 1 and 8 across workers.
+- ED task: more playbacks correlated with more marked pronunciation errors (partial r = 0.39, p = 0.01).
+- TR task: no such correlation between extra playbacks and transcription error rate.
+
+Interpretation:
+
+- ED appears more sensitive to worker diligence/effort.
+- TR task is more robust to diligence variance.
+
+### 3.5 Discussion (within results section)
+
+The authors interpret the patterns as:
+
+- Direct error marking is highly subjective even between experts.
+- Crowdsourcing can be more useful if the target is communicative/assessment-aligned pronunciation constructs.
+- Transcription is less burdensome, has better relative agreement among workers, and is better aligned with holistic proficiency constructs where intelligibility matters.
+
+## 4. Conclusion
+
+Primary conclusions:
+
+- Crowdsourced transcription and crowdsourced error detection are both noisier than ideal expert annotations at exact word-level localization.
+- For predicting proficiency and supporting scoring targets, crowdsourced transcription provides better signal than crowdsourced error detection and, surprisingly, outperforms expert error-marking signal in this study's setup.
+- If pronunciation assessment is meant to support real communication outcomes, simpler crowd tasks (like transcription) can be preferable.
+- Expert annotations are not unnecessary in all settings, but they should be used with explicit construct-aware guidelines and realistic expectations about subjectivity.
+
+## Practical Interpretation for Dataset Design
+
+- If you need large-scale labels for pronunciation scoring, a transcription-first strategy can be cost-effective and construct-aligned with "understandable speech" outcomes.
+- Exact phone-level correction labels may be too brittle for noisy, spontaneous corpora without very high-quality annotation processes and larger redundancy.
+- This paper supports hybrid annotation strategies: inexpensive broad crowd annotations for scaling, plus smaller expert slices for construct calibration.
+
+## Notes and extraction caveats
+
+- The PDF text extraction was complete enough for section content and major statistics but some figure-level/table labels in external sections are noisy.
+- Reported results are robustly supported in text by key values above; where ambiguous, I kept only values explicit in the extracted body.

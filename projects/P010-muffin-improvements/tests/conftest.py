@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 
@@ -25,7 +26,7 @@ def features_dir() -> Path:
     """
     try:
         from p010.settings import Settings
-        d = Settings().features_dir  # type: ignore[call-arg]  # reads P010_FEATURES_DIR from .env
+        d = Settings().features_dir  # reads P010_FEATURES_DIR from .env
     except Exception:
         pytest.fail(
             "P010_FEATURES_DIR is not configured.\n"
@@ -41,3 +42,64 @@ def features_dir() -> Path:
 
     assert _sentinel(d).exists(), f"Download completed but sentinel not found: {_sentinel(d)}"
     return d
+
+
+@pytest.fixture(scope="session")
+def synthetic_features_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Return a tiny synthetic features dir with all-layer .npy files."""
+    root = tmp_path_factory.mktemp("p010-synth")
+    data_dir = root / "seq_data_librispeech_v4"
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    n_examples = 4
+    max_phones = 50
+    rng = np.random.default_rng(42)
+
+    def make_split(prefix: str) -> None:
+        gop = np.zeros((n_examples, max_phones, 84), dtype=np.float32)
+        energy = np.zeros((n_examples, max_phones, 7), dtype=np.float32)
+        dur = np.zeros((n_examples, max_phones, 1), dtype=np.float32)
+        ssl_hubert = rng.normal(size=(n_examples, max_phones, 1024)).astype(np.float32)
+        ssl_w2v = rng.normal(size=(n_examples, max_phones, 1024)).astype(np.float32)
+        ssl_wavlm = rng.normal(size=(n_examples, max_phones, 1024)).astype(np.float32)
+        phn_label = np.full((n_examples, max_phones, 2), fill_value=-1.0, dtype=np.float32)
+        utt_label = rng.uniform(0.0, 10.0, size=(n_examples, 5)).astype(np.float32)
+        word_label = np.full((n_examples, max_phones, 4), fill_value=-1.0, dtype=np.float32)
+        word_id = np.full((n_examples, max_phones), fill_value=-1.0, dtype=np.float32)
+        diag_label = np.full((n_examples, max_phones), fill_value=-1, dtype=np.int64)
+
+        for example_idx in range(n_examples):
+            frame_budget = 8 + example_idx
+            phone_counts = np.array([2, 3, frame_budget - 5], dtype=np.int64)
+            for phone_idx, count in enumerate(phone_counts):
+                gop[example_idx, phone_idx] = rng.normal(size=(84,)).astype(np.float32)
+                energy[example_idx, phone_idx] = rng.normal(size=(7,)).astype(np.float32)
+                dur[example_idx, phone_idx, 0] = float(count) / 50.0
+                phn_label[example_idx, phone_idx, 0] = float((phone_idx + example_idx) % 39)
+                phn_label[example_idx, phone_idx, 1] = 0.8 - 0.2 * phone_idx
+                word_label[example_idx, phone_idx, 0:3] = np.array([5.0, 4.0, 4.5], dtype=np.float32)
+                word_label[example_idx, phone_idx, 3] = float(phone_idx // 2)
+                word_id[example_idx, phone_idx] = float(200 + 10 * example_idx + phone_idx)
+                diag_label[example_idx, phone_idx] = int(phn_label[example_idx, phone_idx, 0])
+
+        np.save(data_dir / f"{prefix}_feat.npy", gop)
+        np.save(data_dir / f"{prefix}_energy_feat.npy", energy)
+        np.save(data_dir / f"{prefix}_dur_feat.npy", dur)
+        np.save(data_dir / f"{prefix}_hubert_feat_v2.npy", ssl_hubert)
+        np.save(data_dir / f"{prefix}_w2v_300m_feat_v2.npy", ssl_w2v)
+        np.save(data_dir / f"{prefix}_wavlm_feat_v2.npy", ssl_wavlm)
+        np.save(data_dir / f"{prefix}_label_phn.npy", phn_label)
+        np.save(data_dir / f"{prefix}_label_utt.npy", utt_label)
+        np.save(data_dir / f"{prefix}_label_word.npy", word_label)
+        np.save(data_dir / f"{prefix}_word_id.npy", word_id)
+        np.save(data_dir / f"{prefix}_label_diag.npy", diag_label)
+
+    make_split("tr")
+    make_split("te")
+
+    for prefix in ("tr", "te"):
+        for model_key in ("w2v_300m", "hubert", "wavlm"):
+            all_layers = rng.normal(size=(n_examples, max_phones, 25, 1024)).astype(np.float16)
+            np.save(data_dir / f"{prefix}_{model_key}_all_layers.npy", all_layers)
+
+    return root
