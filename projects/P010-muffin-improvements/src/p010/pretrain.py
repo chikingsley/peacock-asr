@@ -251,13 +251,15 @@ def pretrain_one_config(
     warm_up_steps = 100
     global_step = 0
     best_acc = 0.0
+    grad_accum_steps = settings.grad_accum_steps
 
     epoch_bar = trange(settings.pretrain_epochs, desc="pretrain", unit="ep")
     for epoch in epoch_bar:
         model.train()
         batch_bar = tqdm(train_loader, desc=f"ep{epoch:03d}", leave=False, unit="batch")
+        optimizer.zero_grad(set_to_none=True)
 
-        for batch in batch_bar:
+        for batch_index, batch in enumerate(batch_bar):
             gop, ssl, energy, dur, phn_score, phn_id, utt_label, word_label, word_id, mdd_label, diag_label = (
                 t.to(device, non_blocking=True) for t in batch
             )
@@ -277,12 +279,17 @@ def pretrain_one_config(
                 + settings.loss_w_utt * results["utt_loss"]
             )
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            global_step += 1
+            loss_value = loss.item()
+            (loss / grad_accum_steps).backward()
 
-            batch_bar.set_postfix(loss=f"{loss.item():.4f}")
+            is_last_microbatch = batch_index + 1 == len(train_loader)
+            should_step = is_last_microbatch or (batch_index + 1) % grad_accum_steps == 0
+            if should_step:
+                optimizer.step()
+                optimizer.zero_grad(set_to_none=True)
+                global_step += 1
+
+            batch_bar.set_postfix(loss=f"{loss_value:.4f}")
 
         # Step scheduler after warmup
         if global_step > warm_up_steps:

@@ -74,7 +74,33 @@ def test_chconv_without_projection() -> None:
     feats = [torch.randn(2, 50, 25, 1024) for _ in range(3)]
     out = chconv(feats)
     assert out.shape == (2, 50, chconv.output_dim), f"Got {out.shape}"
-    assert chconv.proj is None  # no projection layer
+    assert chconv.hconv.proj is None  # no projection layer
+
+
+def test_hconv_output_projection_to_target_dim() -> None:
+    """HConv can project to an explicit output dim for interface compatibility."""
+    from p010.models.hconv import HConv
+
+    hconv = HConv(num_layers=25, feat_dim=1024, output_dim=2048)
+    x = torch.randn(2, 50, 25, 1024)
+    out = hconv(x)
+    assert out.shape == (2, 50, 2048), f"Got {out.shape}"
+
+
+def test_phone_hconv_interface_total_projection() -> None:
+    """PhoneHConvInterface can be configured to hit a total SSL output size."""
+    from p010.models.ssl_interface import PhoneHConvInterface
+
+    interface = PhoneHConvInterface(ssl_output_dim=3072)
+    assert interface.output_dim == 3072
+
+
+def test_phone_hconv_interface_single_model_projection() -> None:
+    """A one-model HConv interface can preserve the upstream width via projection."""
+    from p010.models.ssl_interface import PhoneHConvInterface
+
+    interface = PhoneHConvInterface(ssl_output_dim=1024, ssl_model_keys=("hubert",))
+    assert interface.output_dim == 1024
 
 
 def test_chconv_gradients_flow() -> None:

@@ -10,6 +10,8 @@ We're replicating MuFFIN (Yan et al. 2025, PCC **0.742** on SpeechOcean762) — 
 
 **What CHConv adds**: Replace last-layer SSL concat (3×1024) with learned aggregation across ALL 24 layers of each model using hierarchical 1D convolution. This is the novel contribution.
 
+**Current implementation status**: the repo now supports explicit SSL model subsets (`ssl_models`), derived SSL widths, optional `ssl_output_dim` overrides for branch-preserving ablations, and gradient accumulation (`grad_accum_steps`) so low-VRAM runs can hold effective batch size near the paper setting instead of silently changing optimization.
+
 ---
 
 ## Module Structure
@@ -96,11 +98,12 @@ tests/
 ### Step 7: Settings (`settings.py`)
 
 - Model: embed_dim=24, p_depth=3, w_depth=2, u_depth=1, num_heads=1, ssl_drop=0.2
-- Training: lr=1e-3, batch_size=25, n_epochs=100
+- Training: lr=1e-3, batch_size=25, grad_accum_steps=1, n_epochs=100
 - Loss weights: all 1.0
 - ConPCO: pco_ld=0.5, pco_lt=0.1, pco_mg=1.0, clap_t2a=0.5
 - MDD: use_mdd=True, loss_w_mdd=1.0
 - W&B: project="p010-muffin", entity from env
+- SSL controls: `ssl_models` defaults to all 3 streams; `ssl_output_dim=None` resolves to the selected raw SSL width
 
 ### Step 8: CLI (`cli.py`)
 
@@ -108,6 +111,9 @@ tests/
 - `uv run p010 train --seed 22 --use-conpco --use-mdd` — single run
 - `uv run p010 sweep --seeds 22,33,44,55,66` — multi-seed
 - `uv run p010 eval --checkpoint path/to/model.pth`
+- `--ssl-models hubert` — honest one-stream control
+- `--ssl-models hubert --ssl-output-dim 3072` — shape-preserving one-stream ablation
+- `--batch-size 5 --grad-accum-steps 5` — low-VRAM run with effective batch 25
 
 ### Step 9: Verification runs
 
@@ -143,6 +149,7 @@ Seeds: 22, 33, 44, 55, 66 (matching their seed list).
 
 - `HierCB_CHConv`: replace `nn.Linear(input_dim + 3072, embed_dim)` with CHConv interface
 - CHConv replaces last-layer concat with learned all-layer aggregation
+- Downstream `ssl_dim` is now derived from the selected SSL subset unless an explicit `ssl_output_dim` override is requested
 - Everything downstream unchanged
 
 ---

@@ -9,7 +9,6 @@ Run with:
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 import pytest
@@ -29,16 +28,22 @@ def test_train_one_epoch(features_dir: Path, tmp_path: Path) -> None:
     from p010.settings import Settings
     from p010.trainer import train_one_config
 
-    settings = Settings(  # type: ignore[call-arg]  # features_dir filled by fixture
+    settings = Settings(  # features_dir filled by fixture
         features_dir=features_dir,
         seed=42,
         n_epochs=1,
-        batch_size=16,
+        batch_size=8,
+        grad_accum_steps=2,
         device="cuda" if torch.cuda.is_available() else "cpu",
     )
 
-    train_loader, test_loader = make_loaders(settings.features_dir, settings.batch_size, num_workers=0)
-    model = HierCB(embed_dim=settings.embed_dim, use_mdd=settings.use_mdd)
+    train_loader, test_loader = make_loaders(
+        settings.features_dir,
+        settings.batch_size,
+        num_workers=0,
+        ssl_model_keys=settings.ssl_models,
+    )
+    model = HierCB(embed_dim=settings.embed_dim, ssl_dim=settings.selected_ssl_dim, use_mdd=settings.use_mdd)
 
     pcc = train_one_config(
         settings, model, train_loader, test_loader,
@@ -48,4 +53,4 @@ def test_train_one_epoch(features_dir: Path, tmp_path: Path) -> None:
 
     assert isinstance(pcc, float), f"Expected float PCC, got {type(pcc)}"
     assert -1.0 <= pcc <= 1.0, f"PCC out of range: {pcc}"
-    assert not (pcc != pcc), "PCC is NaN"  # noqa: PLR0124
+    assert pcc == pcc, "PCC is NaN"

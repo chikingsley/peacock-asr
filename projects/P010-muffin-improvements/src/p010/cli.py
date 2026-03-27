@@ -9,11 +9,13 @@ import click
 import torch
 
 from p010.data import download_features, make_loaders
-from p010.models import HierCB, HierCBFrameInterfaceModel
+from p010.models import AllLayerInterfaceModel, HierCB
 from p010.settings import Settings, SSLInterfaceMode
+from p010.ssl_features import SSL_MODEL_KEYS
 from p010.trainer import _evaluate, _forward_model, _move_batch_to_device, train_one_config
 
 _SSL_INTERFACE_CHOICES = click.Choice([mode.value for mode in SSLInterfaceMode], case_sensitive=False)
+_SSL_MODEL_HELP = f"Comma-separated subset of SSL models in {{{', '.join(SSL_MODEL_KEYS)}}}"
 
 
 def _parse_ssl_interface(value: str) -> SSLInterfaceMode:
@@ -43,15 +45,14 @@ def _build_model(settings: Settings) -> torch.nn.Module:
             w_depth=settings.w_depth,
             u_depth=settings.u_depth,
             ssl_drop=settings.ssl_drop,
+            ssl_dim=settings.selected_ssl_dim,
             use_mdd=settings.use_mdd,
         )
 
-    # ssl_output_dim=3072 matches the Phase 1 pretrained checkpoint's input projection
-    # shape (92 GOP + 3072 SSL = 3164). HConv/CHConv project to exactly this dimension
-    # so pretrained weights transfer without shape mismatch.
-    return HierCBFrameInterfaceModel(
+    return AllLayerInterfaceModel(
         ssl_interface=settings.ssl_interface,
-        ssl_output_dim=3072,
+        ssl_output_dim=settings.resolved_ssl_output_dim,
+        ssl_model_keys=settings.ssl_models,
         embed_dim=settings.embed_dim,
         num_heads=settings.num_heads,
         p_depth=settings.p_depth,
@@ -60,6 +61,44 @@ def _build_model(settings: Settings) -> torch.nn.Module:
         ssl_drop=settings.ssl_drop,
         use_mdd=settings.use_mdd,
     )
+
+
+def _make_settings(
+    *,
+    features_dir: str | None = None,
+    seed: int | None = None,
+    use_conpco: bool | None = None,
+    use_mdd: bool | None = None,
+    use_phnvar: bool | None = None,
+    ssl_interface: SSLInterfaceMode | None = None,
+    ssl_models: str | None = None,
+    ssl_output_dim: int | None = None,
+    batch_size: int | None = None,
+    grad_accum_steps: int | None = None,
+) -> Settings:
+    """Build Settings while only overriding fields explicitly requested by the CLI."""
+    kwargs: dict[str, object] = {}
+    if features_dir is not None:
+        kwargs["features_dir"] = Path(features_dir)
+    if seed is not None:
+        kwargs["seed"] = seed
+    if use_conpco is not None:
+        kwargs["use_conpco"] = use_conpco
+    if use_mdd is not None:
+        kwargs["use_mdd"] = use_mdd
+    if use_phnvar is not None:
+        kwargs["use_phnvar"] = use_phnvar
+    if ssl_interface is not None:
+        kwargs["ssl_interface"] = ssl_interface
+    if ssl_models is not None:
+        kwargs["ssl_models"] = ssl_models
+    if ssl_output_dim is not None:
+        kwargs["ssl_output_dim"] = ssl_output_dim
+    if batch_size is not None:
+        kwargs["batch_size"] = batch_size
+    if grad_accum_steps is not None:
+        kwargs["grad_accum_steps"] = grad_accum_steps
+    return Settings(**kwargs)
 
 
 @click.group()
@@ -76,43 +115,38 @@ def download(features_dir: str | None) -> None:
 
 
 @cli.command()
-@click.option("--audio-dir", type=click.Path(exists=True), required=True, help="Path to SpeechOcean762 WAVE/ directory")
-@click.option("--features-dir", type=click.Path(), default=None, help="Override P010_FEATURES_DIR")
-@click.option("--device", type=str, default="cuda")
-def extract(audio_dir: str, features_dir: str | None, device: str) -> None:
-    """Extract frame-level SSL feature shards for HConv/CHConv."""
-    from p010.extract import extract_split
-
-    settings = (
-        Settings(features_dir=Path(features_dir))
-        if features_dir
-        else Settings()
-    )
-    audio = Path(audio_dir)
-    for split in ("train", "test"):
-        click.echo(f"\n── Extracting {split} ────────────────────────────────")
-        extract_split(split, settings.features_dir, audio, device=device)
-    click.echo("Done.")
-
-
-@cli.command()
 @click.option("--checkpoint-dir", type=click.Path(), default="checkpoints/pretrained")
 @click.option("--features-dir", type=click.Path(), default=None, help="Override P010_FEATURES_DIR")
+@click.option("--ssl-models", type=str, default=None, help=_SSL_MODEL_HELP)
+@click.option("--batch-size", type=int, default=None, help="Override batch_size")
+@click.option("--grad-accum-steps", type=int, default=None, help="Override grad_accum_steps")
 @click.option("--n-epochs", type=int, default=None, help="Override pretrain_epochs")
-def pretrain(checkpoint_dir: str, features_dir: str | None, n_epochs: int | None) -> None:
+def pretrain(
+    checkpoint_dir: str,
+    features_dir: str | None,
+    ssl_models: str | None,
+    batch_size: int | None,
+    grad_accum_steps: int | None,
+    n_epochs: int | None,
+) -> None:
     """Run self-supervised pretraining (MuFFIN §V.B, ref [41] HierTFR)."""
     from p010.pretrain import HierCBPretrain, pretrain_one_config
 
-    settings = (
-        Settings(features_dir=Path(features_dir))
-        if features_dir
-        else Settings()
+    settings = _make_settings(
+        features_dir=features_dir,
+        ssl_models=ssl_models,
+        batch_size=batch_size,
+        grad_accum_steps=grad_accum_steps,
     )
     if n_epochs is not None:
         settings = settings.model_copy(update={"pretrain_epochs": n_epochs})
 
     _set_seed(settings.seed)
-    train_loader, _ = make_loaders(settings.features_dir, settings.batch_size)
+    train_loader, _ = make_loaders(
+        settings.features_dir,
+        settings.batch_size,
+        ssl_model_keys=settings.ssl_models,
+    )
 
     model = HierCBPretrain(
         embed_dim=settings.embed_dim,
@@ -121,6 +155,7 @@ def pretrain(checkpoint_dir: str, features_dir: str | None, n_epochs: int | None
         w_depth=settings.w_depth,
         u_depth=settings.u_depth,
         ssl_drop=settings.ssl_drop,
+        ssl_dim=settings.selected_ssl_dim,
     )
 
     best_path = pretrain_one_config(settings, model, train_loader, Path(checkpoint_dir))
@@ -133,6 +168,10 @@ def pretrain(checkpoint_dir: str, features_dir: str | None, n_epochs: int | None
 @click.option("--use-mdd", is_flag=True, default=False)
 @click.option("--use-phnvar", is_flag=True, default=False)
 @click.option("--ssl-interface", type=_SSL_INTERFACE_CHOICES, default=SSLInterfaceMode.NONE.value, show_default=True)
+@click.option("--ssl-models", type=str, default=None, help=_SSL_MODEL_HELP)
+@click.option("--ssl-output-dim", type=int, default=None, help="Override projected SSL width after HConv/CHConv")
+@click.option("--batch-size", type=int, default=None, help="Override batch_size")
+@click.option("--grad-accum-steps", type=int, default=None, help="Override grad_accum_steps")
 @click.option("--checkpoint-dir", type=click.Path(), default=None)
 @click.option("--features-dir", type=click.Path(), default=None, help="Override P010_FEATURES_DIR")
 @click.option("--n-epochs", type=int, default=None, help="Override n_epochs (e.g. 1 for smoke test)")
@@ -143,6 +182,10 @@ def train(
     use_mdd: bool,
     use_phnvar: bool,
     ssl_interface: str,
+    ssl_models: str | None,
+    ssl_output_dim: int | None,
+    batch_size: int | None,
+    grad_accum_steps: int | None,
     checkpoint_dir: str | None,
     features_dir: str | None,
     n_epochs: int | None,
@@ -150,23 +193,18 @@ def train(
 ) -> None:
     """Train HierCB for a single seed."""
     interface_mode = _parse_ssl_interface(ssl_interface)
-    if features_dir:
-        settings = Settings(
-            seed=seed,
-            use_conpco=use_conpco,
-            use_mdd=use_mdd,
-            use_phnvar=use_phnvar,
-            ssl_interface=interface_mode,
-            features_dir=Path(features_dir),
-        )
-    else:
-        settings = Settings(
-            seed=seed,
-            use_conpco=use_conpco,
-            use_mdd=use_mdd,
-            use_phnvar=use_phnvar,
-            ssl_interface=interface_mode,
-        )
+    settings = _make_settings(
+        seed=seed,
+        use_conpco=use_conpco,
+        use_mdd=use_mdd,
+        use_phnvar=use_phnvar,
+        ssl_interface=interface_mode,
+        ssl_models=ssl_models,
+        ssl_output_dim=ssl_output_dim,
+        batch_size=batch_size,
+        grad_accum_steps=grad_accum_steps,
+        features_dir=features_dir,
+    )
     if n_epochs is not None:
         settings = settings.model_copy(update={"n_epochs": n_epochs})
 
@@ -175,6 +213,7 @@ def train(
         settings.features_dir,
         settings.batch_size,
         ssl_interface=settings.ssl_interface,
+        ssl_model_keys=settings.ssl_models,
     )
     model = _build_model(settings)
 
@@ -190,6 +229,10 @@ def train(
 @click.option("--use-mdd", is_flag=True, default=False)
 @click.option("--use-phnvar", is_flag=True, default=False)
 @click.option("--ssl-interface", type=_SSL_INTERFACE_CHOICES, default=SSLInterfaceMode.NONE.value, show_default=True)
+@click.option("--ssl-models", type=str, default=None, help=_SSL_MODEL_HELP)
+@click.option("--ssl-output-dim", type=int, default=None, help="Override projected SSL width after HConv/CHConv")
+@click.option("--batch-size", type=int, default=None, help="Override batch_size")
+@click.option("--grad-accum-steps", type=int, default=None, help="Override grad_accum_steps")
 @click.option("--checkpoint-dir", type=click.Path(), default="checkpoints")
 @click.option("--features-dir", type=click.Path(), default=None, help="Override P010_FEATURES_DIR")
 @click.option("--pretrained", type=click.Path(exists=True), default=None, help="Pretrained checkpoint path")
@@ -199,6 +242,10 @@ def sweep(
     use_mdd: bool,
     use_phnvar: bool,
     ssl_interface: str,
+    ssl_models: str | None,
+    ssl_output_dim: int | None,
+    batch_size: int | None,
+    grad_accum_steps: int | None,
     checkpoint_dir: str,
     features_dir: str | None,
     pretrained: str | None,
@@ -211,28 +258,24 @@ def sweep(
 
     for seed in seed_list:
         click.echo(f"\n── Seed {seed} {'─' * 40}")
-        if features_dir:
-            settings = Settings(
-                seed=seed,
-                use_conpco=use_conpco,
-                use_mdd=use_mdd,
-                use_phnvar=use_phnvar,
-                ssl_interface=interface_mode,
-                features_dir=Path(features_dir),
-            )
-        else:
-            settings = Settings(
-                seed=seed,
-                use_conpco=use_conpco,
-                use_mdd=use_mdd,
-                use_phnvar=use_phnvar,
-                ssl_interface=interface_mode,
-            )
+        settings = _make_settings(
+            seed=seed,
+            use_conpco=use_conpco,
+            use_mdd=use_mdd,
+            use_phnvar=use_phnvar,
+            ssl_interface=interface_mode,
+            ssl_models=ssl_models,
+            ssl_output_dim=ssl_output_dim,
+            batch_size=batch_size,
+            grad_accum_steps=grad_accum_steps,
+            features_dir=features_dir,
+        )
         _set_seed(seed)
         train_loader, test_loader = make_loaders(
             settings.features_dir,
             settings.batch_size,
             ssl_interface=settings.ssl_interface,
+            ssl_model_keys=settings.ssl_models,
         )
         model = _build_model(settings)
         ckpt_dir = Path(checkpoint_dir) / f"seed{seed}"
@@ -251,21 +294,36 @@ def sweep(
 @click.option("--checkpoint", required=True, type=click.Path(exists=True))
 @click.option("--use-mdd", is_flag=True, default=False)
 @click.option("--ssl-interface", type=_SSL_INTERFACE_CHOICES, default=SSLInterfaceMode.NONE.value, show_default=True)
+@click.option("--ssl-models", type=str, default=None, help=_SSL_MODEL_HELP)
+@click.option("--ssl-output-dim", type=int, default=None, help="Override projected SSL width after HConv/CHConv")
+@click.option("--batch-size", type=int, default=None, help="Override batch_size")
 @click.option("--features-dir", type=click.Path(), default=None, help="Override P010_FEATURES_DIR")
-def eval_cmd(checkpoint: str, use_mdd: bool, ssl_interface: str, features_dir: str | None) -> None:
+def eval_cmd(
+    checkpoint: str,
+    use_mdd: bool,
+    ssl_interface: str,
+    ssl_models: str | None,
+    ssl_output_dim: int | None,
+    batch_size: int | None,
+    features_dir: str | None,
+) -> None:
     """Evaluate a checkpoint on the test set, with optional MDD threshold search."""
     from p010.eval import grid_search_mdd_threshold
 
     interface_mode = _parse_ssl_interface(ssl_interface)
-    settings = (
-        Settings(use_mdd=use_mdd, ssl_interface=interface_mode, features_dir=Path(features_dir))
-        if features_dir
-        else Settings(use_mdd=use_mdd, ssl_interface=interface_mode)
+    settings = _make_settings(
+        use_mdd=use_mdd,
+        ssl_interface=interface_mode,
+        ssl_models=ssl_models,
+        ssl_output_dim=ssl_output_dim,
+        batch_size=batch_size,
+        features_dir=features_dir,
     )
     train_loader, test_loader = make_loaders(
         settings.features_dir,
         settings.batch_size,
         ssl_interface=settings.ssl_interface,
+        ssl_model_keys=settings.ssl_models,
     )
 
     model = _build_model(settings)

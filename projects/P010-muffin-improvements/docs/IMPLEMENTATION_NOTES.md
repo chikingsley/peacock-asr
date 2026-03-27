@@ -69,14 +69,14 @@ Implemented all remaining MuFFIN paper components. Previously we only had HierCB
 
 ### Sweep results
 
-| Config | PCC (mean ± std) | Paper target | Gap |
-|--------|-----------------|--------------|-----|
-| v1 baseline (1/1/1, no pretrain) | 0.6582 ± 0.0106 | ~0.680 | -0.022 |
-| v1 ConPCO (1/1/1, no pretrain) | 0.6621 ± 0.0065 | ~0.701 | -0.039 |
-| v2 baseline (3/1/1, bug fixes) | 0.6574 ± 0.0100 | ~0.680 | -0.023 |
-| v2 ConPCO (3/1/1, bug fixes) | 0.6624 ± 0.0065 | ~0.701 | -0.039 |
-| v3 MuFFIN (full) | 0.6824 ± 0.0031 | ~0.742 | -0.060 |
-| **v4 MuFFIN (PhnVar clamping fix)** | **0.6810 ± 0.0032** | **~0.742** | **-0.062** |
+| Config | seed 22 | seed 33 | seed 44 | seed 55 | seed 66 | mean ± std | Paper | Gap |
+|--------|---------|---------|---------|---------|---------|------------|-------|-----|
+| v1 baseline (1/1/1, no pretrain) | 0.6695 | 0.6543 | 0.6425 | 0.6586 | 0.6659 | 0.6582 ± 0.0106 | ~0.680 | -0.022 |
+| v1 ConPCO (1/1/1, no pretrain) | 0.6557 | 0.6676 | 0.6547 | 0.6643 | 0.6681 | 0.6621 ± 0.0065 | ~0.701 | -0.039 |
+| v2 baseline (3/1/1, bug fixes) | 0.6625 | 0.6442 | 0.6595 | 0.6510 | 0.6698 | 0.6574 ± 0.0100 | ~0.680 | -0.023 |
+| v2 ConPCO (3/1/1, bug fixes) | 0.6556 | 0.6650 | 0.6640 | 0.6562 | 0.6711 | 0.6624 ± 0.0065 | ~0.701 | -0.039 |
+| v3 MuFFIN (full) | 0.6802 | 0.6849 | 0.6866 | 0.6805 | 0.6799 | 0.6824 ± 0.0031 | ~0.742 | -0.060 |
+| **v4 MuFFIN (PhnVar clamping fix)** | **0.6786** | **0.6793** | **0.6866** | **0.6806** | **0.6799** | **0.6810 ± 0.0032** | **~0.742** | **-0.062** |
 
 v4 MuFFIN = pretrain + 3/1/1 weights + ConPCO + MDD (detection + diagnosis) + PhnVar (BLV one-sided clamping, σ=4.0) + canonical phone masking in diagnosis. Seeds 22,33,44,55,66. PhnVar clamping fix had negligible PCC impact (~0.001).
 
@@ -127,7 +127,7 @@ uv run p010 eval --checkpoint checkpoints/v3-muffin/seed22/best_model.pth --use-
 
 ---
 
-## Session 5 — Phase 2 foundations (HConv, CHConv, all-layer extraction)
+## Session 5 — Phase 2 foundations (HConv, CHConv)
 
 ### New components
 
@@ -135,17 +135,155 @@ uv run p010 eval --checkpoint checkpoints/v3-muffin/seed22/best_model.pth --use-
 |-----------|-------|----------------|-------------|
 | HConv | `models/hconv.py` | Shih & Harwath 2024 (2406.12209) | 1D conv over SSL layer dimension. kernel=5, stride=3, depth=floor(log_3(L)), ReLU after each conv. Last conv reduces channels, output flattened. Ported from `github.com/atosystem/SSL_Interface`. For L=25 (Large): output_dim=1023 (not 1024 — inherent to the `ceil(D//L_remaining)` arithmetic). |
 | CHConv | `models/hconv.py` | Shih et al. 2025 (2511.08389) | Multi-model layer fusion. Concatenates N models along feature dim → `[B, T, L, N×D]`, then applies HConv. Optional linear projection to target output_dim. |
-| All-layer extraction | `extract.py`, `cli.py` | — | Runs frozen SSL models (wav2vec2-large, HuBERT-large, WavLM-large) with `output_hidden_states=True` on SpeechOcean762 audio. Averages frame-level features per phone using durations from `dur_feat.npy`. Saves `[N_utt, 50, 25, 1024]` per model as float16. |
+
+---
+
+## Session 6 — Phone-level all-layer features (local training)
+
+### Key discovery
+
+The ConPCO HuggingFace dataset (`a2d8a4v/SpeechOcean762_for_ConPCO`) ships **phone-level all-layer features** as `*_all_layers.npy` files — shape `[2500, 50, 25, 1024]` (utterances, phones, layers, dim) in float16. These were already downloaded but unused. The ConPCO authors had already run the 3 SSL models (wav2vec2-large, HuBERT-large, WavLM-large), extracted all 25 transformer layers, and averaged within phone boundaries.
+
+This eliminated the need for both:
+
+- **Frame-level extraction** (`extract.py` + 143GB frame store) — deleted
+- **Live SSL extraction** (loading 3 frozen SSL models into VRAM during training) — not needed
+
+### What was removed
+
+The frame store pipeline was built in Session 5 on the assumption that we'd need to extract features ourselves. With the pre-packaged all-layer data, the entire pipeline is dead code:
+
+| Removed | Why |
+|---------|-----|
+| `extract.py` | Ran SSL models to create per-utterance frame-level shards. The `*_all_layers.npy` files already contain all-layer features at phone level. |
+| `frame_store.py` | Manifest/shard metadata types for the frame store. |
+| `GoPFrameDataset` (in `data.py`) | Loaded per-utterance `.npy` shards from the 143GB frame store. |
+| `HConvPhoneInterface`, `CHConvPhoneInterface` (in `ssl_interface.py`) | Applied HConv/CHConv at frame level then pooled to phones. |
+| `HierCBFrameInterfaceModel` (in `ssl_interface.py`) | Wrapper model for the frame-level path. |
+| `_pool_frames_to_phones`, `_align_sample` (in `ssl_interface.py`) | Frame-to-phone pooling and frame interpolation utilities. |
+| `p010 extract` CLI command | No longer needed. |
+
+The `ssl_frame_store_v1/` directory (143GB on disk) can be deleted.
+
+### What replaced it
+
+| New component | File | Description |
+|---------------|------|-------------|
+| `AllLayerDataset` | `data.py` | Memory-maps `*_all_layers.npy` files. Returns phone-level all-layer features `[50, 25, 1024]` per model per sample. No frame store, no manifests, no audio. |
+| `PhoneHConvInterface` | `ssl_interface.py` | Per-model HConv directly on phone-level input. No pooling step. |
+| `PhoneCHConvInterface` | `ssl_interface.py` | CHConv directly on phone-level input. No pooling step. |
+| `AllLayerInterfaceModel` | `ssl_interface.py` | Wrapper composing phone-level interface + HierCB downstream. Same forward signature as the old frame-level model. |
+| `SSLModelKey`, `SSL_MODEL_KEYS` | `data.py` | Moved from deleted `frame_store.py`. |
+
+### Why phone-level HConv works
+
+HConv convolves over the **layer dimension** (the 25 SSL transformer layers), not the temporal dimension. Whether the input tensor's `T` axis represents frames or phones is irrelevant to HConv — it reshapes to `[B*T, D, L]` and convolves over `L`.
+
+The Shih papers define HConv on frame-level hidden states (conv first, pool second). Our implementation applies HConv after phone pooling (pool first, conv second). These are not mathematically identical because HConv includes ReLU nonlinearities: `mean(HConv(frames)) ≠ HConv(mean(frames))`. However, the phone-level path is what the ConPCO authors extracted, and it avoids the 143GB frame store + extraction pipeline.
+
+### SSL feature data flow
+
+```text
+                       ConPCO authors (pre-packaged)
+                       ┌─────────────────────────────────────────────┐
+                       │ SpeechOcean762 audio                        │
+                       │   ↓ run wav2vec2-large, HuBERT, WavLM      │
+                       │ frame-level hidden states [F, 25, 1024]     │
+                       │   ↓ average within phone boundaries         │
+                       │ phone-level all-layer [50, 25, 1024]        │
+                       │   ↓ save as *_all_layers.npy (float16)      │
+                       └─────────────────────────────────────────────┘
+                                          ↓
+                          AllLayerDataset (memory-mapped)
+                                          ↓
+                       PhoneHConvInterface / PhoneCHConvInterface
+                          (conv over 25 layers → output_dim)
+                                          ↓
+                            HierCB downstream model
+```
+
+### Resource usage (local RTX 5070, 12GB VRAM)
+
+| Metric | Value |
+|--------|-------|
+| VRAM per run | ~2.5 GB (HConv, 24.6M params) / ~5 GB (CHConv, 63.4M params) |
+| RAM (page cache) | ~36GB shared across workers via mmap |
+| Epoch time | ~37s (HConv) / ~100s (CHConv) |
+| Max parallel runs | 2 (1 HConv + 1 CHConv) — 4 runs OOMs |
+| Data on disk | 36GB all-layer `.npy` (vs 143GB frame store, now deletable) |
 
 ### Design decisions
 
 | Decision | Detail |
 |----------|--------|
-| soundfile instead of torchaudio for audio loading | torchaudio 2.10 requires `torchcodec` (new FFmpeg replacement) which isn't installed. `soundfile` is already a dependency via librosa/datasets, reads the same WAV/FLAC formats, and returns numpy arrays which `Wav2Vec2FeatureExtractor` expects directly. For 16kHz mono WAV loading the output is identical. |
-| `Wav2Vec2FeatureExtractor` instead of `AutoProcessor` | `AutoProcessor` attempts to load a tokenizer (for CTC ASR models) which fails for base SSL models like `hubert-large-ll60k`. `Wav2Vec2FeatureExtractor` loads only the feature extraction config (normalization, padding) — correct for our use case of extracting hidden states, not doing ASR. |
-| HF_TOKEN loaded from root `.env` | The HuggingFace libraries read `os.environ["HF_TOKEN"]` directly, not pydantic-settings `.env` files. `extract.py` reads the root `.env` and injects `HF_TOKEN` into `os.environ` if not already set. This avoids the "unauthenticated requests" warning and enables faster downloads. |
-| Phone averaging before HConv | The Shih papers apply HConv at frame-level, but HConv operates over the **layer** dimension (not time), so averaging over phone durations before or after HConv is mathematically identical. Phone-averaging first avoids storing full frame-level tensors (~600× smaller: 50 phones vs ~30K frames per utterance). |
-| Float16 for all-layer features | `[2500, 50, 25, 1024]` at float32 = 12.8 GB per model. Float16 halves this to 6.4 GB. SSL hidden states are well within float16 dynamic range. |
+| Phone-level over frame-level | The `*_all_layers.npy` files are pre-pooled to phone boundaries. This skips the frame-to-phone pooling step and avoids needing raw audio or the 143GB frame store. Trade-off: `HConv(mean(frames))` instead of `mean(HConv(frames))`. |
+| Memory-mapped loading | `np.load(path, mmap_mode="r")` for the 6GB-per-file all-layer arrays. The OS page cache shares physical pages across DataLoader workers. Per-sample reads are 2.4MB (50×25×1024 float16→float32). |
+| SSL width is now configurable | Default remains the original 3-stream path: `ssl_models=(w2v_300m, hubert, wavlm)` and `ssl_output_dim=None`, which resolves to 3072 and preserves the published MuFFIN feature width. |
+| Honest one-model controls | Selecting `ssl_models=hubert` (or any single stream) with no explicit `ssl_output_dim` resolves the downstream SSL width to 1024. This is the clean control for a single-upstream experiment, but it changes the downstream input shape and therefore requires a fresh downstream model and matching pretraining if you want apples-to-apples initialization. |
+| Shape-preserving adaptation is explicit | Selecting `ssl_models=hubert` together with `ssl_output_dim=3072` keeps the downstream/pretrained shape compatible with the original branch. This is an engineering ablation, not a paper-faithful one-model HConv setup. |
+| Effective batch can be preserved with accumulation | `grad_accum_steps` accumulates `batch_size` micro-batches before each optimizer step. This is intended for low-VRAM runs where we want to shrink the micro-batch while holding the effective batch near the MuFFIN reference setting instead of silently changing optimization. |
+| Reuse `FrameSample`/`FrameBatch` types | `AllLayerDataset` returns `FrameSample` with `ssl_frames` dict. The existing `collate_frame_samples` handles padding (a no-op since all phone sequences are length 50). `frame_lengths` in `FrameBatch` is populated but ignored by `AllLayerInterfaceModel`. |
+
+### Initial results (phone-level, no pretrain, no ConPCO)
+
+| Config | seed 22 | seed 33 | seed 44 | seed 55 | seed 66 | mean ± std |
+|--------|---------|---------|---------|---------|---------|------------|
+| HConv (phone-level) | 0.3730 | 0.3922 | — | — | — | ~0.383 (2 seeds) |
+| CHConv (phone-level) | 0.4603 | 0.4626 | — | — | — | ~0.461 (2 seeds) |
+| **v1 baseline (last-layer, no HConv)** | **0.6695** | **0.6543** | **0.6425** | **0.6586** | **0.6659** | **0.6582 ± 0.0106** |
+| **v4 MuFFIN full** | **0.6786** | **0.6793** | **0.6866** | **0.6806** | **0.6799** | **0.6810 ± 0.0032** |
+
+Both HConv (0.38) and CHConv (0.46) significantly underperform the Phase 1 baseline (0.658). Remaining seeds (44, 55, 66) were killed — gap is too large to be noise. These runs use no pretraining, no ConPCO, and default hyperparameters.
+
+---
+
+## Session 7 — Honest single-stream controls + gradient accumulation
+
+### Why this was added
+
+The Phase 2 code path had two hardcoded assumptions:
+
+1. all experiments used all three SSL streams, and
+2. HConv/CHConv always projected back to 3072 dims.
+
+That made it impossible to run an honest single-stream control without editing the code, and it also forced low-VRAM experiments to change the micro-batch directly instead of preserving the effective batch. Both are bad for comparability.
+
+### What changed
+
+| Component | Files | Description |
+|-----------|-------|-------------|
+| Canonical SSL metadata | `ssl_features.py` (new) | Centralized the allowed SSL model keys, last-layer filenames, and width helpers so data loading, settings, CLI, and interface models share the same source of truth. |
+| Configurable SSL subset | `settings.py`, `data.py`, `ssl_interface.py`, `cli.py` | `ssl_models` is now a validated setting and CLI flag. Last-layer and all-layer loaders now take an explicit subset instead of assuming all 3 models. HConv/CHConv wrappers build only the requested per-model modules. |
+| Derived SSL width | `settings.py`, `cli.py` | `selected_ssl_dim` resolves the raw concatenated SSL width from the chosen subset. `resolved_ssl_output_dim` defaults to that same width unless the user explicitly overrides it. |
+| Gradient accumulation | `trainer.py`, `pretrain.py`, `settings.py`, `cli.py` | `grad_accum_steps` now accumulates micro-batches before `optimizer.step()`. This applies to both fine-tuning and pretraining. |
+
+### Resulting experiment modes
+
+| Mode | Example | Meaning |
+|------|---------|---------|
+| Original MuFFIN-width path | `--ssl-models w2v_300m,hubert,wavlm` | Default 3-stream behavior. With no explicit `--ssl-output-dim`, this resolves to 3072 and preserves the original downstream feature width. |
+| Honest one-stream control | `--ssl-models hubert` | Uses one SSL stream and resolves the downstream SSL width to 1024. This is the clean control if the question is whether HConv helps when only one upstream model is present. |
+| Shape-preserving one-stream ablation | `--ssl-models hubert --ssl-output-dim 3072` | Keeps the downstream width compatible with the 3-stream branch. Useful for checkpoint compatibility and branch-preserving ablations, but not a paper-faithful one-stream setup. |
+| Low-VRAM effective-batch hold | `--batch-size 5 --grad-accum-steps 5` | Uses micro-batch 5 while stepping the optimizer every 25 examples. This is the intended way to stay near the paper's optimization regime on the RTX 5070. |
+
+### Practical note
+
+These controls do **not** make the old phone-level HConv/CHConv results more trustworthy. They only make the next experiments honest:
+
+- single-stream controls can now be run without branch edits,
+- the distinction between faithful controls and shape-preserving adaptations is explicit, and
+- low-VRAM runs no longer need to silently change the effective batch.
+
+### Example commands
+
+```bash
+# Honest one-stream HConv control
+uv run p010 train --ssl-interface hconv --ssl-models hubert --batch-size 5 --grad-accum-steps 5
+
+# Branch-preserving one-stream HConv ablation
+uv run p010 train --ssl-interface hconv --ssl-models hubert --ssl-output-dim 3072 \
+    --batch-size 5 --grad-accum-steps 5
+```
 
 ---
 
@@ -230,6 +368,6 @@ Updated all lower bounds to match the latest available at session time. Key chan
 
 ---
 
-## Phase 2 — CHConv (pending)
+## Phase 2 — HConv/CHConv experiments (in progress)
 
-*To be filled in when Phase 2 implementation begins.*
+Initial HConv and CHConv training runs are running locally on RTX 5070 using phone-level all-layer features. Results pending — see W&B project `p010-muffin` for live metrics.

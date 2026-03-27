@@ -13,6 +13,7 @@ import torch
 
 def test_dataset_shapes(features_dir: Path) -> None:
     from p010.data import GoPDataset
+    from p010.ssl_features import ssl_feature_dim
 
     ds = GoPDataset("train", features_dir)
     assert len(ds) > 0, "Training set must be non-empty"
@@ -23,7 +24,7 @@ def test_dataset_shapes(features_dir: Path) -> None:
     gop, ssl, energy, dur, phn_score, phn_id, utt_label, word_label, word_id, mdd_label, diag_label = sample
 
     assert gop.shape == (50, 84), f"GOP shape: {gop.shape}"
-    assert ssl.shape == (50, 3072), f"SSL shape: {ssl.shape}"
+    assert ssl.shape == (50, ssl_feature_dim(ds.ssl_model_keys)), f"SSL shape: {ssl.shape}"
     assert energy.shape == (50, 7), f"Energy shape: {energy.shape}"
     assert dur.shape == (50, 1), f"Dur shape: {dur.shape}"
     assert phn_score.shape == (50,), f"phn_score shape: {phn_score.shape}"
@@ -95,9 +96,20 @@ def test_word_scores_divided_by_five(features_dir: Path) -> None:
 def test_ssl_concat_shape(features_dir: Path) -> None:
     """SSL concat: [wav2vec2 | HuBERT | WavLM] → [N, 50, 3072]."""
     from p010.data import GoPDataset
+    from p010.ssl_features import SSL_MODEL_KEYS, ssl_feature_dim
 
     ds = GoPDataset("train", features_dir)
-    assert ds.ssl.shape[-1] == 3072, f"SSL last dim should be 3072, got {ds.ssl.shape[-1]}"
+    assert ds.ssl.shape[-1] == ssl_feature_dim(SSL_MODEL_KEYS), (
+        f"SSL last dim should be {ssl_feature_dim(SSL_MODEL_KEYS)}, got {ds.ssl.shape[-1]}"
+    )
+
+
+def test_ssl_subset_shape(features_dir: Path) -> None:
+    """Selecting a single SSL stream should reduce the concatenated width accordingly."""
+    from p010.data import GoPDataset
+
+    ds = GoPDataset("train", features_dir, ssl_model_keys=("hubert",))
+    assert ds.ssl.shape[-1] == 1024, f"Single-model SSL width should be 1024, got {ds.ssl.shape[-1]}"
 
 
 def test_mdd_labels(features_dir: Path) -> None:
@@ -119,10 +131,20 @@ def test_mdd_labels(features_dir: Path) -> None:
 
 def test_make_loaders(features_dir: Path) -> None:
     from p010.data import make_loaders
+    from p010.ssl_features import SSL_MODEL_KEYS, ssl_feature_dim
 
     train_loader, test_loader = make_loaders(features_dir, batch_size=4, num_workers=0)
     batch = next(iter(train_loader))
     assert len(batch) == 11, f"Expected 11-tuple from DataLoader, got {len(batch)}"
     gop, ssl, *_ = batch
     assert gop.shape == (4, 50, 84), f"GOP batch shape: {gop.shape}"
-    assert ssl.shape == (4, 50, 3072), f"SSL batch shape: {ssl.shape}"
+    assert ssl.shape == (4, 50, ssl_feature_dim(SSL_MODEL_KEYS)), f"SSL batch shape: {ssl.shape}"
+
+
+def test_make_loaders_with_ssl_subset(features_dir: Path) -> None:
+    from p010.data import make_loaders
+
+    train_loader, _ = make_loaders(features_dir, batch_size=4, num_workers=0, ssl_model_keys=("wavlm",))
+    batch = next(iter(train_loader))
+    _, ssl, *_ = batch
+    assert ssl.shape == (4, 50, 1024), f"Subset SSL batch shape: {ssl.shape}"

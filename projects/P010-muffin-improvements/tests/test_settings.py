@@ -18,3 +18,26 @@ def test_settings_env_prefix_is_p010() -> None:
     from p010.settings import Settings
 
     assert Settings.model_config["env_prefix"] == "P010_"
+
+
+def test_ssl_interface_default_is_none() -> None:
+    from p010.settings import Settings, SSLInterfaceMode
+
+    field_info = Settings.model_fields["ssl_interface"]
+    assert field_info.default is SSLInterfaceMode.NONE
+
+
+def test_ssl_models_default_to_all_streams() -> None:
+    from p010.settings import Settings
+    from p010.ssl_features import SSL_MODEL_KEYS
+
+    assert Settings(features_dir=Path("/tmp/p010-test-features")).ssl_models == SSL_MODEL_KEYS
+
+
+def test_ssl_models_parse_and_canonicalize() -> None:
+    from p010.settings import Settings
+
+    settings = Settings(features_dir=Path("/tmp/p010-test-features"), ssl_models="wavlm,hubert")
+    assert settings.ssl_models == ("hubert", "wavlm")
+    assert settings.selected_ssl_dim == 2048
+    assert settings.resolved_ssl_output_dim == 2048

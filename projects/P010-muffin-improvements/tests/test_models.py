@@ -5,7 +5,7 @@ from __future__ import annotations
 import torch
 
 
-def _make_batch(B: int = 2, T: int = 50, device: str = "cpu"):
+def _make_batch(B: int = 2, T: int = 50, ssl_dim: int = 3072):
     """Return a synthetic batch of the right shapes.
 
     word_pos: within-utterance word position (small int, 0..N_words-1) — fits word_pos_embed vocab=50
@@ -17,7 +17,7 @@ def _make_batch(B: int = 2, T: int = 50, device: str = "cpu"):
     gop = torch.randn(B, T, 84, generator=rng)
     energy = torch.randn(B, T, 7, generator=rng)
     dur = torch.randn(B, T, 1, generator=rng)
-    ssl = torch.randn(B, T, 3072, generator=rng)
+    ssl = torch.randn(B, T, ssl_dim, generator=rng)
     phn_id = torch.randint(0, 39, (B, T))
     phn_id[:, T // 2:] = -1  # second half is padding
 
@@ -147,3 +147,17 @@ def test_hiercb_deterministic_no_grad() -> None:
 
     for t1, t2 in zip(out1, out2, strict=True):
         assert torch.allclose(t1, t2), "Eval outputs must be deterministic"
+
+
+def test_hiercb_supports_single_ssl_stream() -> None:
+    from p010.models.hiercb import HierCB
+
+    model = HierCB(embed_dim=24, ssl_dim=1024)
+    model.eval()
+
+    gop, energy, dur, ssl, phn_id, word_pos, word_id = _make_batch(B=2, ssl_dim=1024)
+    with torch.no_grad():
+        out = model(gop, energy, dur, ssl, phn_id, word_pos, word_id)
+
+    assert len(out) == 11
+    assert out[5].shape == (2, 50, 1)

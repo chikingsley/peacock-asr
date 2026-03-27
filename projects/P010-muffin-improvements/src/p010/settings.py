@@ -4,12 +4,42 @@ All hyperparameters match train_hierCB.sh exactly unless noted.
 Override via environment variables or a .env file.
 """
 
+import os
+from enum import StrEnum
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from p010.ssl_features import SSL_MODEL_KEYS, SSLModelKey, parse_ssl_model_keys, ssl_feature_dim
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _default_features_dir() -> Path:
+    """Resolve the default features directory from env or the project .env file."""
+    env_key = "P010_FEATURES_DIR"
+    env_value = os.getenv(env_key)
+    if env_value:
+        return Path(env_value).expanduser()
+
+    env_path = PROJECT_ROOT / ".env"
+    if env_path.exists():
+        for line in env_path.read_text(encoding="utf-8").splitlines():
+            if line.startswith(f"{env_key}="):
+                return Path(line.split("=", 1)[1].strip()).expanduser()
+
+    raise RuntimeError(
+        "features_dir was not provided and P010_FEATURES_DIR is not set in the environment or project .env"
+    )
+
+
+class SSLInterfaceMode(StrEnum):
+    """How SSL features are fed into the pronunciation model."""
+
+    NONE = "none"
+    HCONV = "hconv"
+    CHCONV = "chconv"
 
 
 class Settings(BaseSettings):
@@ -21,7 +51,8 @@ class Settings(BaseSettings):
 
     # ── Data ──────────────────────────────────────────────────────────────────
     features_dir: Path = Field(
-        description="Root directory containing seq_data_librispeech_v4/ (HF cache or local)"
+        default_factory=_default_features_dir,
+        description="Root directory containing seq_data_librispeech_v4/ (HF cache or local)",
     )
 
     # ── Model ─────────────────────────────────────────────────────────────────
@@ -31,10 +62,23 @@ class Settings(BaseSettings):
     u_depth: int = Field(default=1, description="Number of utterance-level BlockCNN layers")
     num_heads: int = Field(default=1, description="Attention heads in BlockCNN")
     ssl_drop: float = Field(default=0.2, description="Dropout applied to concatenated SSL features")
+    ssl_interface: SSLInterfaceMode = Field(
+        default=SSLInterfaceMode.NONE,
+        description="How SSL features are fused before entering the pronunciation model",
+    )
+    ssl_models: tuple[SSLModelKey, ...] = Field(
+        default=SSL_MODEL_KEYS,
+        description="Subset of SSL feature streams to load, kept in the repo's canonical concat order",
+    )
+    ssl_output_dim: int | None = Field(
+        default=None,
+        description="Projected SSL width after HConv/CHConv; defaults to the selected raw SSL width",
+    )
 
     # ── Training ──────────────────────────────────────────────────────────────
     lr: float = Field(default=1e-3)
     batch_size: int = Field(default=25)
+    grad_accum_steps: int = Field(default=1, ge=1, description="Micro-batches to accumulate before optimizer step")
     n_epochs: int = Field(default=100)
     noise: float = Field(default=0.0, description="Scale of input noise augmentation on GOP features")
     seed: int = Field(default=22, description="First seed in the paper's seed list (22,33,44,55,66)")
@@ -71,3 +115,24 @@ class Settings(BaseSettings):
     # ── W&B ───────────────────────────────────────────────────────────────────
     wandb_project: str = Field(default="p010-muffin")
     wandb_entity: str | None = Field(default=None)
+
+    @field_validator("ssl_models", mode="before")
+    @classmethod
+    def _parse_ssl_models(cls, value: object) -> tuple[SSLModelKey, ...]:
+        if value is None or value == "":
+            return SSL_MODEL_KEYS
+        if isinstance(value, (list, tuple, set)):
+            return parse_ssl_model_keys([str(item) for item in value])
+        if isinstance(value, str):
+            return parse_ssl_model_keys(value)
+        raise TypeError(f"Unsupported ssl_models value: {value!r}")
+
+    @property
+    def selected_ssl_dim(self) -> int:
+        """Concatenated SSL width for the configured subset."""
+        return ssl_feature_dim(self.ssl_models)
+
+    @property
+    def resolved_ssl_output_dim(self) -> int:
+        """Interface output width after optional projection."""
+        return self.ssl_output_dim or self.selected_ssl_dim
