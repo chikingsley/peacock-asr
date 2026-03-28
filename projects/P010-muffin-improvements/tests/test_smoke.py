@@ -37,7 +37,7 @@ def test_train_one_epoch(features_dir: Path, tmp_path: Path) -> None:
         device="cuda" if torch.cuda.is_available() else "cpu",
     )
 
-    train_loader, test_loader = make_loaders(
+    train_loader, test_loader, _ = make_loaders(
         settings.features_dir,
         settings.batch_size,
         num_workers=0,

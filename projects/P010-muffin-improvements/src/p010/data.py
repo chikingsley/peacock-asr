@@ -324,66 +324,108 @@ def collate_frame_samples(samples: Sequence[FrameSample]) -> FrameBatch:
     )
 
 
+def mdd_holdout_split(
+    dataset_size: int,
+    holdout_size: int = 500,
+    seed: int = 42,
+) -> tuple[list[int], list[int]]:
+    """Split training indices into train + MDD held-out (MuFFIN §V.B).
+
+    The paper holds out 500 utterances from the 2,500 training set for MDD
+    threshold search, training on the remaining 2,000. The held-out set should
+    "cover both correct and incorrect pronunciations of each phoneme"; with 500
+    random samples from 2,500, phoneme coverage is near-certain (each phoneme
+    appears in ~12,500 phone tokens across 2,500 utterances).
+
+    Args:
+        dataset_size: Total number of training samples (normally 2,500).
+        holdout_size: Number of samples to hold out (paper uses 500).
+        seed: Random seed for reproducibility.
+
+    Returns:
+        (train_indices, holdout_indices)
+    """
+    rng = np.random.RandomState(seed)
+    indices = rng.permutation(dataset_size)
+    holdout_idx = sorted(indices[:holdout_size].tolist())
+    train_idx = sorted(indices[holdout_size:].tolist())
+    return train_idx, holdout_idx
+
+
 def make_loaders(
     features_dir: Path,
     batch_size: int,
     num_workers: int = 4,
     ssl_interface: SSLInterfaceMode = SSLInterfaceMode.NONE,
     ssl_model_keys: Sequence[SSLModelKey] = SSL_MODEL_KEYS,
-) -> tuple[DataLoader[Batch], DataLoader[Batch]]:
-    """Return ``(train_loader, test_loader)`` for the requested SSL interface mode."""
+    mdd_holdout_size: int = 0,
+) -> tuple[DataLoader[Batch], DataLoader[Batch], DataLoader[Batch] | None]:
+    """Return ``(train_loader, test_loader, mdd_holdout_loader)`` for the requested SSL interface mode.
+
+    When ``mdd_holdout_size > 0``, 500 utterances are held out from training
+    for MDD threshold search (MuFFIN §V.B). The model trains on the remaining
+    2,000 utterances. ``mdd_holdout_loader`` is ``None`` when ``mdd_holdout_size == 0``.
+    """
+    from torch.utils.data import Subset
+
     pin = torch.cuda.is_available()
     persistent = num_workers > 0
 
+    collate_fn = None
     if ssl_interface is SSLInterfaceMode.NONE:
-        train_ds: Dataset[Batch] = GoPDataset("train", features_dir, ssl_model_keys=ssl_model_keys)
+        full_train_ds: Dataset[Batch] = GoPDataset("train", features_dir, ssl_model_keys=ssl_model_keys)
         test_ds: Dataset[Batch] = GoPDataset("test", features_dir, ssl_model_keys=ssl_model_keys)
-        train_loader: DataLoader[Batch] = DataLoader(
+    else:
+        full_train_ds = AllLayerDataset("train", features_dir, ssl_model_keys=ssl_model_keys)
+        test_ds = AllLayerDataset("test", features_dir, ssl_model_keys=ssl_model_keys)
+        collate_fn = collate_frame_samples
+
+    # Split training data if MDD holdout requested
+    mdd_holdout_loader: DataLoader[Batch] | None = None
+    if mdd_holdout_size > 0:
+        train_idx, holdout_idx = mdd_holdout_split(len(full_train_ds), mdd_holdout_size)  # type: ignore[arg-type]
+        train_ds: Dataset[Batch] = Subset(full_train_ds, train_idx)
+        holdout_ds: Dataset[Batch] = Subset(full_train_ds, holdout_idx)
+        mdd_holdout_loader = cast(
+            DataLoader[Batch],
+            DataLoader(
+                holdout_ds,
+                batch_size=batch_size,
+                shuffle=False,
+                num_workers=num_workers,
+                pin_memory=pin,
+                persistent_workers=persistent,
+                collate_fn=collate_fn,
+            ),
+        )
+    else:
+        train_ds = full_train_ds
+
+    train_loader: DataLoader[Batch] = cast(
+        DataLoader[Batch],
+        DataLoader(
             train_ds,
             batch_size=batch_size,
             shuffle=True,
             num_workers=num_workers,
             pin_memory=pin,
             persistent_workers=persistent,
-        )
-        test_loader: DataLoader[Batch] = DataLoader(
+            collate_fn=collate_fn,
+        ),
+    )
+    test_loader: DataLoader[Batch] = cast(
+        DataLoader[Batch],
+        DataLoader(
             test_ds,
             batch_size=batch_size,
             shuffle=False,
             num_workers=num_workers,
             pin_memory=pin,
             persistent_workers=persistent,
-        )
-        return train_loader, test_loader
-
-    train_frame_ds = AllLayerDataset("train", features_dir, ssl_model_keys=ssl_model_keys)
-    test_frame_ds = AllLayerDataset("test", features_dir, ssl_model_keys=ssl_model_keys)
-    # PyTorch's DataLoader generic tracks dataset item type, not collate_fn output type.
-    train_frame_loader = cast(
-        DataLoader[Batch],
-        DataLoader(
-            train_frame_ds,
-            batch_size=batch_size,
-            shuffle=True,
-            num_workers=num_workers,
-            pin_memory=pin,
-            persistent_workers=persistent,
-            collate_fn=collate_frame_samples,
+            collate_fn=collate_fn,
         ),
     )
-    test_frame_loader = cast(
-        DataLoader[Batch],
-        DataLoader(
-            test_frame_ds,
-            batch_size=batch_size,
-            shuffle=False,
-            num_workers=num_workers,
-            pin_memory=pin,
-            persistent_workers=persistent,
-            collate_fn=collate_frame_samples,
-        ),
-    )
-    return train_frame_loader, test_frame_loader
+    return train_loader, test_loader, mdd_holdout_loader
 
 
 _GOPT_DROPBOX = "https://www.dropbox.com/s/zc6o1d8rqq28vci/data.zip?dl=1"

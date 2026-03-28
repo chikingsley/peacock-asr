@@ -150,6 +150,38 @@ class MLP(nn.Module):
         return self.drop(self.fc2(self.drop(self.act(self.fc1(x)))))
 
 
+# ── Standard Transformer block (for pretraining, HierTFR ref [41]) ───────────
+
+class TransformerBlock(nn.Module):
+    """Standard pre-norm Transformer encoder block.
+
+    Used during pretraining (HierTFR, Yan et al. ACL 2024). The parameter names
+    (norm1, attn, norm2, mlp) match BlockCNN's attention sub-branch, so pretrained
+    weights transfer via strict=False into the attention pathway of BlockCNN.
+    """
+
+    def __init__(
+        self,
+        dim: int,
+        num_heads: int = 1,
+        mlp_ratio: float = 4.0,
+        qkv_bias: bool = False,
+        drop: float = 0.0,
+        attn_drop: float = 0.0,
+    ) -> None:
+        super().__init__()
+        self.norm1 = nn.LayerNorm(dim)
+        self.attn = Attention(dim, num_heads=num_heads, qkv_bias=qkv_bias, attn_drop=attn_drop, proj_drop=drop)
+        self.norm2 = nn.LayerNorm(dim)
+        mlp_hidden_dim = int(dim * mlp_ratio)
+        self.mlp = MLP(in_features=dim, hidden_features=mlp_hidden_dim, drop=drop)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = x + self.attn(self.norm1(x))
+        x = x + self.mlp(self.norm2(x))
+        return x
+
+
 # ── Convolutional Branchformer block ──────────────────────────────────────────
 
 class BlockCNN(nn.Module):

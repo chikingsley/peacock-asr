@@ -133,7 +133,7 @@ def test_make_loaders(features_dir: Path) -> None:
     from p010.data import make_loaders
     from p010.ssl_features import SSL_MODEL_KEYS, ssl_feature_dim
 
-    train_loader, test_loader = make_loaders(features_dir, batch_size=4, num_workers=0)
+    train_loader, test_loader, _ = make_loaders(features_dir, batch_size=4, num_workers=0)
     batch = next(iter(train_loader))
     assert len(batch) == 11, f"Expected 11-tuple from DataLoader, got {len(batch)}"
     gop, ssl, *_ = batch
@@ -144,7 +144,7 @@ def test_make_loaders(features_dir: Path) -> None:
 def test_make_loaders_with_ssl_subset(features_dir: Path) -> None:
     from p010.data import make_loaders
 
-    train_loader, _ = make_loaders(features_dir, batch_size=4, num_workers=0, ssl_model_keys=("wavlm",))
+    train_loader, _, _ = make_loaders(features_dir, batch_size=4, num_workers=0, ssl_model_keys=("wavlm",))
     batch = next(iter(train_loader))
     _, ssl, *_ = batch
     assert ssl.shape == (4, 50, 1024), f"Subset SSL batch shape: {ssl.shape}"

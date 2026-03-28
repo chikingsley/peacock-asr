@@ -5,6 +5,12 @@ Three self-supervised objectives on SpeechOcean762 features:
   2. Masked Word Prediction (MWP): predict masked lexical word IDs
   3. Utterance Comparative Labeling (UCL): predict which of two utterances has higher accuracy
 
+Architecture: Pretrains with standard Transformer encoder blocks (HierTFR ref [41]),
+NOT Branchformer (BlockCNN). When pretrained weights are loaded into HierCB for
+fine-tuning with strict=False, the shared attention-branch parameters (norm1, attn,
+norm2, mlp) transfer into BlockCNN's attention sub-branch, while the CNN branch and
+merge parameters initialize randomly. This matches the paper's protocol.
+
 Ported from HierTFR/src/traintest_hierTFR_v6_aspfix1_pretrain.py and
 HierTFR/src/models/gopt_hierAtt_v61_aspfix_pre.py.
 """
@@ -21,6 +27,7 @@ import wandb
 from torch.utils.data import DataLoader
 from tqdm import tqdm, trange
 
+from p010.models.blocks import TransformerBlock
 from p010.models.hiercb import (
     NUM_PHN_CLASSES,
     NUM_WORD_CLASSES,
@@ -69,15 +76,22 @@ def mask_uniform(
 
 # ── Pretrain Model ───────────────────────────────────────────────────────────
 
-class HierCBPretrain(HierCB):
-    """HierCB backbone + masked prediction heads for pretraining.
+class HierTFRPretrain(HierCB):
+    """HierCB backbone with TransformerBlock + masked prediction heads for pretraining.
 
-    Inherits all encoder layers from HierCB (same parameter names = weight transfer).
-    Adds three prediction heads for MPP, MWP, UCL.
+    Uses standard Transformer encoder blocks (not Branchformer/BlockCNN), matching
+    the HierTFR paper (ref [41]). Parameter names (norm1, attn, norm2, mlp) are shared
+    with BlockCNN's attention sub-branch, enabling strict=False weight transfer.
+
+    HierTFR pretrain uses w_depth=3 (both phone and word stacks have depth 3),
+    matching third_party/HierTFR/src/run_pretrain.sh.
     """
 
     def __init__(self, **kwargs: object) -> None:
         kwargs["use_mdd"] = False  # no MDD during pretraining
+        kwargs["block_cls"] = TransformerBlock  # Transformer, not Branchformer
+        # HierTFR pretrain: word depth matches phone depth (both 3)
+        kwargs.setdefault("w_depth", 3)
         super().__init__(**kwargs)  # type: ignore[arg-type]
 
         d = self.embed_dim
@@ -219,7 +233,7 @@ def _accuracy(logits: torch.Tensor, targets: torch.Tensor, ignore: int = 0) -> t
 
 def pretrain_one_config(
     settings: Settings,
-    model: HierCBPretrain,
+    model: HierTFRPretrain,
     train_loader: DataLoader,
     checkpoint_dir: Path,
 ) -> Path:

@@ -23,6 +23,7 @@ from p010.models.blocks import (
     AttentionPooling,
     BlockCNN,
     MultiHeadedAttention,
+    TransformerBlock,
     W2UFeatGen,
 )
 
@@ -61,16 +62,20 @@ class HierCB(nn.Module):
         input_dim: int = 92,     # 84 GOP + 7 energy + 1 dur
         ssl_dim: int = 3072,     # 3 × 1024 (wav2vec2 + HuBERT + WavLM)
         use_mdd: bool = False,
+        block_cls: type[nn.Module] = BlockCNN,
     ) -> None:
         super().__init__()
         self.embed_dim = embed_dim
         self.input_dim = input_dim
         self.use_mdd = use_mdd
 
-        # Phone / word / utterance transformer stacks
-        self.phn_blocks = nn.ModuleList([BlockCNN(dim=embed_dim, num_heads=num_heads) for _ in range(p_depth)])
-        self.word_blocks = nn.ModuleList([BlockCNN(dim=embed_dim, num_heads=num_heads) for _ in range(w_depth)])
-        self.utt_blocks = nn.ModuleList([BlockCNN(dim=embed_dim, num_heads=num_heads) for _ in range(u_depth)])
+        # Phone / word / utterance encoder stacks.
+        # Default: BlockCNN (Branchformer) for fine-tuning.
+        # TransformerBlock for pretraining (HierTFR ref [41]) — parameter names
+        # (norm1, attn, norm2, mlp) are a subset of BlockCNN's, enabling strict=False transfer.
+        self.phn_blocks = nn.ModuleList([block_cls(dim=embed_dim, num_heads=num_heads) for _ in range(p_depth)])
+        self.word_blocks = nn.ModuleList([block_cls(dim=embed_dim, num_heads=num_heads) for _ in range(w_depth)])
+        self.utt_blocks = nn.ModuleList([block_cls(dim=embed_dim, num_heads=num_heads) for _ in range(u_depth)])
 
         # Positional embeddings
         self.pos_embed = nn.Parameter(torch.zeros(1, 50, embed_dim))

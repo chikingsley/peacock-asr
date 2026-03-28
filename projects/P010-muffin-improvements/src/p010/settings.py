@@ -102,6 +102,12 @@ class Settings(BaseSettings):
     use_mdd: bool = Field(default=False)
     loss_w_mdd: float = Field(default=1.0, description="Weight for MDD detection (BCE) loss")
     loss_w_diag: float = Field(default=1.0, description="Weight for MDD diagnosis (CE) loss")
+    mdd_holdout_size: int = Field(
+        default=500,
+        ge=0,
+        description="MuFFIN §V.B: hold out N utterances from training for MDD threshold search. "
+        "0 = no holdout (legacy behavior). Paper uses 500, training on remaining 2,000.",
+    )
 
     # ── PhnVar (MuFFIN §IV cont) ────────────────────────────────────────────
     use_phnvar: bool = Field(default=False, description="Enable phoneme-specific logit perturbation")

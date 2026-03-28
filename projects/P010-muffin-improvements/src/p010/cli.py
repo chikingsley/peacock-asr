@@ -130,7 +130,7 @@ def pretrain(
     n_epochs: int | None,
 ) -> None:
     """Run self-supervised pretraining (MuFFIN §V.B, ref [41] HierTFR)."""
-    from p010.pretrain import HierCBPretrain, pretrain_one_config
+    from p010.pretrain import HierTFRPretrain, pretrain_one_config
 
     settings = _make_settings(
         features_dir=features_dir,
@@ -142,17 +142,21 @@ def pretrain(
         settings = settings.model_copy(update={"pretrain_epochs": n_epochs})
 
     _set_seed(settings.seed)
-    train_loader, _ = make_loaders(
+    train_loader, _, _ = make_loaders(
         settings.features_dir,
         settings.batch_size,
         ssl_model_keys=settings.ssl_models,
+        mdd_holdout_size=0,  # pretraining uses all 2,500 training utterances
     )
 
-    model = HierCBPretrain(
+    # HierTFR pretrain: TransformerBlock (not Branchformer), w_depth=3 (matching ref [41]).
+    # Pretrained weights transfer to HierCB (BlockCNN) via strict=False — shared
+    # attention-branch params (norm1, attn, norm2, mlp) transfer; CNN branch inits random.
+    model = HierTFRPretrain(
         embed_dim=settings.embed_dim,
         num_heads=settings.num_heads,
         p_depth=settings.p_depth,
-        w_depth=settings.w_depth,
+        w_depth=3,  # HierTFR pretrain: word depth = phone depth = 3
         u_depth=settings.u_depth,
         ssl_drop=settings.ssl_drop,
         ssl_dim=settings.selected_ssl_dim,
@@ -209,12 +213,16 @@ def train(
         settings = settings.model_copy(update={"n_epochs": n_epochs})
 
     _set_seed(seed)
-    train_loader, test_loader = make_loaders(
+    holdout = settings.mdd_holdout_size if settings.use_mdd else 0
+    train_loader, test_loader, _ = make_loaders(
         settings.features_dir,
         settings.batch_size,
         ssl_interface=settings.ssl_interface,
         ssl_model_keys=settings.ssl_models,
+        mdd_holdout_size=holdout,
     )
+    if holdout > 0:
+        click.echo(f"MDD holdout: {holdout} utterances held out, training on {2500 - holdout}")
     model = _build_model(settings)
 
     ckpt_dir = Path(checkpoint_dir) if checkpoint_dir else None
@@ -271,11 +279,13 @@ def sweep(
             features_dir=features_dir,
         )
         _set_seed(seed)
-        train_loader, test_loader = make_loaders(
+        holdout = settings.mdd_holdout_size if settings.use_mdd else 0
+        train_loader, test_loader, _ = make_loaders(
             settings.features_dir,
             settings.batch_size,
             ssl_interface=settings.ssl_interface,
             ssl_model_keys=settings.ssl_models,
+            mdd_holdout_size=holdout,
         )
         model = _build_model(settings)
         ckpt_dir = Path(checkpoint_dir) / f"seed{seed}"
@@ -319,11 +329,13 @@ def eval_cmd(
         batch_size=batch_size,
         features_dir=features_dir,
     )
-    train_loader, test_loader = make_loaders(
+    holdout_size = settings.mdd_holdout_size if use_mdd else 0
+    _, test_loader, mdd_holdout_loader = make_loaders(
         settings.features_dir,
         settings.batch_size,
         ssl_interface=settings.ssl_interface,
         ssl_model_keys=settings.ssl_models,
+        mdd_holdout_size=holdout_size,
     )
 
     model = _build_model(settings)
@@ -335,13 +347,13 @@ def eval_cmd(
     model = model.to(device)
 
     mdd_threshold = 0.5
-    if use_mdd:
-        click.echo("Running MDD threshold grid search on training set...")
+    if use_mdd and mdd_holdout_loader is not None:
+        click.echo(f"Running MDD threshold grid search on {holdout_size}-utterance held-out set (MuFFIN §V.B)...")
         all_logit: list[torch.Tensor] = []
         all_label: list[torch.Tensor] = []
         model.eval()
         with torch.no_grad():
-            for batch in train_loader:
+            for batch in mdd_holdout_loader:
                 device_batch = _move_batch_to_device(batch, device)
                 outputs = _forward_model(model, device_batch, settings)
                 all_logit.append(outputs[9].cpu())
