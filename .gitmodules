@@ -1,0 +1,6 @@
+[submodule "third_party/SSL_Interface"]
+	path = third_party/SSL_Interface
+	url = https://github.com/atosystem/SSL_Interface.git
+[submodule "third_party/s3prl"]
+	path = third_party/s3prl
+	url = https://github.com/s3prl/s3prl.git

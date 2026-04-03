@@ -108,9 +108,8 @@ class HierCBPretrain(HierCB):
 
         # ── Shared input projection ──────────────────────────────────────
         x = torch.cat([gop, self.ssl_drop(ssl), dur, energy], dim=-1)
-        p_x = self.p_in_proj(x)
-        w_x = self.w_in_proj(x)
-        u_x = self.u_in_proj(x)
+        x_p = self.p_in_proj(x)
+        x_w = self.w_in_proj(x)
 
         # ── 1. Masked Phoneme Prediction ─────────────────────────────────
         # Shift IDs: phn_id -1(pad)→0, 0-38→1-39. Mask token = 41.
@@ -122,7 +121,7 @@ class HierCBPretrain(HierCB):
 
         phn_one_hot = F.one_hot(phn_masked, num_classes=NUM_PHN_CLASSES).float()
         phn_embed = self.phn_proj(phn_one_hot)
-        p_x = p_x + phn_embed + self.pos_embed
+        p_x = x_p + phn_embed + self.pos_embed
 
         p_tmp_feat = []
         for blk in self.phn_blocks:
@@ -144,11 +143,11 @@ class HierCBPretrain(HierCB):
 
         phn2word_msk = self._make_word_pos_mask(word_pos)
         w_p_x = self.w_proj_cnn1(p_x.transpose(1, 2)).transpose(1, 2)
-        w_x = self.w_proj_cnn2(w_x.transpose(1, 2)).transpose(1, 2)
+        w_x = self.w_proj_cnn2(x_w.transpose(1, 2)).transpose(1, 2)
         w_x_att = self.word_input_att(w_x, w_x, w_x, phn2word_msk)
         w_p_x_att = self.word_input_att1(w_p_x, w_p_x, w_p_x, phn2word_msk)
         x_word = self.w_in_cat_proj(torch.cat([w_x_att, w_p_x_att], dim=-1))
-        x_word = x_word + word_embed + self.word_pos_embed((word_pos.int() + 1).clamp(min=0)) + p_x
+        x_word = x_word + word_embed + self.word_pos_embed((word_pos.int() + 1).clamp(min=0))
 
         for blk in self.word_blocks:
             x_word = blk(x_word)
@@ -162,22 +161,24 @@ class HierCBPretrain(HierCB):
         w2_proj = self.w_proj_ln2(x_word)
         w3_proj = self.w_proj_ln3(x_word)
         u_w_feats = self.utt_feat_ext(w1_proj, w2_proj, w3_proj)
-        u_p_feats = self.u_proj_cnn1(p_x.transpose(1, 2)).transpose(1, 2)
-        u_w_feats = self.u_proj_cnn2(u_w_feats.transpose(1, 2)).transpose(1, 2)
-        utt_feats = self.u_in_cat_proj(torch.cat([u_p_feats, u_w_feats, u_x], dim=-1)) + p_x
+        u_x_feats = self.u_proj_cnn1(x_p.transpose(1, 2)).transpose(1, 2)
+        u_p_feats = self.u_proj_cnn2(p_x.transpose(1, 2)).transpose(1, 2)
+        u_w_feats = self.u_proj_cnn3(u_w_feats.transpose(1, 2)).transpose(1, 2)
+        utt_feats = self.u_in_cat_proj(torch.cat([u_x_feats, u_p_feats, u_w_feats], dim=-1))
 
         for blk in self.utt_blocks:
             utt_feats = blk(utt_feats)
 
-        # Pool all 5 aspects and sum (matching reference line 596)
+        utt_ssl_residual = self.u_ssl_res_proj(ssl.mean(dim=1))
+        # Mirror the fine-tuning utterance heads: pooled aspect features plus SSL residual.
         u_sum = (
             self.u1_att_pooling(utt_feats)
             + self.u2_att_pooling(utt_feats)
             + self.u3_att_pooling(utt_feats)
             + self.u4_att_pooling(utt_feats)
             + self.u5_att_pooling(utt_feats)
-        )  # [B, 1, embed_dim] — squeeze to [B, embed_dim]
-        u_sum = u_sum.squeeze(1)
+            + 5 * utt_ssl_residual
+        )
 
         # Random pairing for comparative prediction
         B = utt_acc.shape[0]

@@ -12,7 +12,7 @@ from pathlib import Path
 import click
 import torch
 
-from p011.data import download_features, make_loaders
+from p011.data import download_features, make_loaders, split_train_loader_for_mdd_threshold
 from p011.models import AllLayerInterfaceModel, HierCB
 from p011.settings import PROJECT_ROOT, Settings, SSLInterfaceMode
 from p011.ssl_features import SSL_MODEL_KEYS
@@ -163,7 +163,7 @@ def _make_settings(
 
 @click.group()
 def cli() -> None:
-    """P011: paper-faithful frame-level HConv on top of MuFFIN."""
+    """P011: frame-level SSL controls and HConv experiments on top of MuFFIN."""
 
 
 @cli.command()
@@ -273,12 +273,19 @@ def train(
 
     _set_seed(seed)
     _ensure_wandb_dir()
-    train_loader, test_loader = make_loaders(
+    _, test_loader = make_loaders(
         settings.features_dir,
         settings.batch_size,
         ssl_interface=settings.ssl_interface,
         ssl_model_keys=settings.ssl_models,
     )
+    holdout_indices: list[int] | None = None
+    if settings.use_mdd:
+        train_loader, _, holdout_indices = split_train_loader_for_mdd_threshold(
+            train_loader,
+            holdout_size=settings.mdd_holdout_size,
+            seed=settings.seed,
+        )
     model = _build_model(settings)
 
     run_name = _default_run_name(settings)
@@ -287,7 +294,11 @@ def train(
         ckpt_dir / "run_manifest.json",
         settings,
         run_name=run_name,
-        extra={"kind": "train", "pretrained": pretrained},
+        extra={
+            "kind": "train",
+            "pretrained": pretrained,
+            "mdd_holdout_size": len(holdout_indices) if holdout_indices is not None else 0,
+        },
     )
     pre = Path(pretrained) if pretrained else None
     pcc = train_one_config(
@@ -377,6 +388,13 @@ def sweep(
             ssl_interface=settings.ssl_interface,
             ssl_model_keys=settings.ssl_models,
         )
+        holdout_indices: list[int] | None = None
+        if settings.use_mdd:
+            train_loader, _, holdout_indices = split_train_loader_for_mdd_threshold(
+                train_loader,
+                holdout_size=settings.mdd_holdout_size,
+                seed=settings.seed,
+            )
         model = _build_model(settings)
         run_name = _default_run_name(settings)
         ckpt_dir = sweep_root / f"seed{seed}"
@@ -384,7 +402,11 @@ def sweep(
             ckpt_dir / "run_manifest.json",
             settings,
             run_name=run_name,
-            extra={"kind": "sweep-seed", "pretrained": pretrained},
+            extra={
+                "kind": "sweep-seed",
+                "pretrained": pretrained,
+                "mdd_holdout_size": len(holdout_indices) if holdout_indices is not None else 0,
+            },
         )
         pcc = train_one_config(
             settings,
@@ -422,8 +444,7 @@ def eval_cmd(
     batch_size: int | None,
     features_dir: str | None,
 ) -> None:
-    """Evaluate a checkpoint on the test set, with optional MDD threshold search."""
-    from p011.eval import grid_search_mdd_threshold
+    """Evaluate a checkpoint on the test set."""
 
     interface_mode = _parse_ssl_interface(ssl_interface)
     settings = _make_settings(
@@ -449,20 +470,9 @@ def eval_cmd(
     device = torch.device(settings.device if torch.cuda.is_available() else "cpu")
     model = model.to(device)
 
-    mdd_threshold = 0.5
+    mdd_threshold = settings.mdd_eval_threshold
     if use_mdd:
-        click.echo("Running MDD threshold grid search on training set...")
-        all_logit: list[torch.Tensor] = []
-        all_label: list[torch.Tensor] = []
-        model.eval()
-        with torch.no_grad():
-            for batch in train_loader:
-                device_batch = _move_batch_to_device(batch, device)
-                outputs = _forward_model(model, device_batch, settings)
-                all_logit.append(outputs[9].cpu())
-                all_label.append(device_batch.mdd_label.cpu())
-        mdd_threshold = grid_search_mdd_threshold(torch.cat(all_logit), torch.cat(all_label))
-        click.echo(f"Best MDD threshold: {mdd_threshold:.1f}")
+        click.echo(f"Using MuFFIN global MDD threshold: {mdd_threshold:.1f}")
 
     metrics = _evaluate(model, test_loader, device, settings, mdd_threshold=mdd_threshold)
 

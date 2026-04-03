@@ -77,11 +77,11 @@ class HierCB(nn.Module):
         self.word_pos_embed = nn.Embedding(50, embed_dim, padding_idx=0)
         nn.init.trunc_normal_(self.pos_embed, std=0.02)
 
-        # Input projections — same weights applied independently at phone/word/utt level
+        # Input projections — Eq. (1) defines X^p; the word path keeps its own
+        # projection while the utterance path is built from Eq. (11)'s three DC branches.
         total_in = input_dim + ssl_dim
         self.p_in_proj = nn.Linear(total_in, embed_dim)
         self.w_in_proj = nn.Linear(total_in, embed_dim)
-        self.u_in_proj = nn.Linear(total_in, embed_dim)
         self.ssl_drop = nn.Dropout(ssl_drop)
 
         # Phone-level outputs
@@ -118,8 +118,7 @@ class HierCB(nn.Module):
         # Utterance-level components
         self.utt_feat_ext = W2UFeatGen(embed_dim)
         self.u_in_cat_proj = MLP(embed_dim * 3, embed_dim, embed_dim, drop=0.1)
-        # u_in_proj1/2/3 removed: defined in reference (lines 499-503) but never called
-        # in forward — vestigial from an earlier draft of the utterance path.
+        # MuFFIN Eq. (11): three distinct depth-wise conv branches over X^p, H^p, and H~^w.
         self.u_proj_cnn1 = nn.Sequential(
             nn.Conv1d(embed_dim, embed_dim * 2, kernel_size=3, groups=embed_dim, padding=1),
             nn.Conv1d(embed_dim * 2, embed_dim, kernel_size=1),
@@ -128,6 +127,11 @@ class HierCB(nn.Module):
             nn.Conv1d(embed_dim, embed_dim * 2, kernel_size=3, groups=embed_dim, padding=1),
             nn.Conv1d(embed_dim * 2, embed_dim, kernel_size=1),
         )
+        self.u_proj_cnn3 = nn.Sequential(
+            nn.Conv1d(embed_dim, embed_dim * 2, kernel_size=3, groups=embed_dim, padding=1),
+            nn.Conv1d(embed_dim * 2, embed_dim, kernel_size=1),
+        )
+        self.u_ssl_res_proj = nn.Linear(ssl_dim, embed_dim)
         self.u1_att_pooling = AttentionPooling(embed_dim)
         self.u2_att_pooling = AttentionPooling(embed_dim)
         self.u3_att_pooling = AttentionPooling(embed_dim)
@@ -174,21 +178,21 @@ class HierCB(nn.Module):
         phn: torch.Tensor,       # [B, 50]  phone ids, -1 = pad
         word_pos: torch.Tensor,  # [B, 50]  word position ids, -1 = pad
         word: torch.Tensor,      # [B, 50]  word ids, -1 = pad
+        utt_ssl_residual: torch.Tensor | None = None,
     ) -> tuple[torch.Tensor, ...]:
         # Concatenate all input features: [B, 50, 84 + 7 + 1 + 3072]
         x = torch.cat([gop, self.ssl_drop(ssl), dur, energy], dim=-1)
 
-        # Project to embed_dim independently for phone, word, utterance paths
-        p_x = self.p_in_proj(x)   # [B, 50, embed_dim]
-        w_x = self.w_in_proj(x)
-        u_x = self.u_in_proj(x)
+        # Eq. (1): X^p = Linear_p([E^GOP; E^Dur; E^Eng; E^SSL])
+        x_p = self.p_in_proj(x)
+        x_w = self.w_in_proj(x)
 
         # Phone embedding: one-hot over 40 classes (phn+1 shifts -1 pad to 0)
         phn_one_hot = F.one_hot((phn.long() + 1).clamp(min=0), num_classes=NUM_PHN_CLASSES).float()
         phn_embed = self.phn_proj(phn_one_hot)   # [B, 50, embed_dim]
 
         # Add phone embedding + positional embedding
-        p_x = p_x + phn_embed + self.pos_embed   # [B, 50, embed_dim]
+        p_x = x_p + phn_embed + self.pos_embed   # [B, 50, embed_dim]
 
         # ── Phone-level blocks ────────────────────────────────────────────────
         p_tmp_feat = []
@@ -210,13 +214,13 @@ class HierCB(nn.Module):
 
         # Mix phone-path output back into word path via cross-attention masking
         w_p_x = self.w_proj_cnn1(p_x.transpose(1, 2)).transpose(1, 2)
-        w_x = self.w_proj_cnn2(w_x.transpose(1, 2)).transpose(1, 2)
+        w_x = self.w_proj_cnn2(x_w.transpose(1, 2)).transpose(1, 2)
 
         w_x_att = self.word_input_att(w_x, w_x, w_x, phn2word_msk)
         w_p_x_att = self.word_input_att1(w_p_x, w_p_x, w_p_x, phn2word_msk)
         x_word = self.w_in_cat_proj(torch.cat([w_x_att, w_p_x_att], dim=-1))
 
-        x_word = x_word + word_embed + self.word_pos_embed((word_pos.int() + 1).clamp(min=0)) + p_x
+        x_word = x_word + word_embed + self.word_pos_embed((word_pos.int() + 1).clamp(min=0))
 
         for blk in self.word_blocks:
             x_word = blk(x_word)
@@ -231,18 +235,23 @@ class HierCB(nn.Module):
 
         # ── Utterance-level blocks ────────────────────────────────────────────
         u_w_feats = self.utt_feat_ext(w1_proj, w2_proj, w3_proj)
-        u_p_feats = self.u_proj_cnn1(p_x.transpose(1, 2)).transpose(1, 2)
-        u_w_feats = self.u_proj_cnn2(u_w_feats.transpose(1, 2)).transpose(1, 2)
-        utt_feats = self.u_in_cat_proj(torch.cat([u_p_feats, u_w_feats, u_x], dim=-1)) + p_x
+        u_x_feats = self.u_proj_cnn1(x_p.transpose(1, 2)).transpose(1, 2)
+        u_p_feats = self.u_proj_cnn2(p_x.transpose(1, 2)).transpose(1, 2)
+        u_w_feats = self.u_proj_cnn3(u_w_feats.transpose(1, 2)).transpose(1, 2)
+        utt_feats = self.u_in_cat_proj(torch.cat([u_x_feats, u_p_feats, u_w_feats], dim=-1))
 
         for blk in self.utt_blocks:
             utt_feats = blk(utt_feats)
 
-        u1 = self.mlp_head_utt1(self.u1_att_pooling(utt_feats))  # accuracy
-        u2 = self.mlp_head_utt2(self.u2_att_pooling(utt_feats))  # completeness
-        u3 = self.mlp_head_utt3(self.u3_att_pooling(utt_feats))  # fluency
-        u4 = self.mlp_head_utt4(self.u4_att_pooling(utt_feats))  # prosodic
-        u5 = self.mlp_head_utt5(self.u5_att_pooling(utt_feats))  # total
+        if utt_ssl_residual is None:
+            utt_ssl_residual = ssl.mean(dim=1)
+        utt_ssl_residual = self.u_ssl_res_proj(utt_ssl_residual)
+
+        u1 = self.mlp_head_utt1(self.u1_att_pooling(utt_feats) + utt_ssl_residual)  # accuracy
+        u2 = self.mlp_head_utt2(self.u2_att_pooling(utt_feats) + utt_ssl_residual)  # completeness
+        u3 = self.mlp_head_utt3(self.u3_att_pooling(utt_feats) + utt_ssl_residual)  # fluency
+        u4 = self.mlp_head_utt4(self.u4_att_pooling(utt_feats) + utt_ssl_residual)  # prosodic
+        u5 = self.mlp_head_utt5(self.u5_att_pooling(utt_feats) + utt_ssl_residual)  # total
 
         # ConPCO features: audio feats from first phone block, text feats from phone embed
         phn_audio_feats = self.phn_audio_proj(p_tmp_feat[0])

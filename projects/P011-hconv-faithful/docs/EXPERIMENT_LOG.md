@@ -34,6 +34,45 @@ and unique checkpoint root.
 - Verified locally on 2026-03-27 that pooling the frame store by phone durations reproduces
   the local `*_all_layers.npy` tensors up to tiny numerical error.
 
+## Feature Lineage Diagnostic
+
+Date: 2026-03-27
+
+Compared the first 200 training utterances across three sources for each SSL model:
+
+1. pooled frame-store last layer
+2. cached `*_all_layers.npy[:, :, -1, :]`
+3. cached `*_feat_v2.npy`
+
+Result:
+
+- pooled frame-store last layer matches cached `all_layers` last layer almost exactly
+  (`mean_abs_diff ~= 1e-5` for all three SSL models)
+- pooled frame-store last layer does **not** match `feat_v2`
+- `feat_v2` phone counts only matched the frame-store/all-layers path on `131/200`
+  utterances in this sample
+
+Per-model summary:
+
+- `hubert`: `mean_abs(frame_last, feat_v2)=0.2191`, cosine `0.1169`
+- `w2v_300m`: `mean_abs(frame_last, feat_v2)=0.4099`, cosine `-0.0202`
+- `wavlm`: `mean_abs(frame_last, feat_v2)=0.1753`, cosine `0.0976`
+
+Interpretation:
+
+- The frame-store path is internally self-consistent.
+- The current HConv experiments are **not** operating on the same SSL representation lineage
+  as the original `feat_v2` MuFFIN baseline.
+- The next control is therefore a frame-store run with `ssl_interface=last`, which keeps the
+  frame-store lineage but removes HConv from the equation.
+
+Control command:
+
+```bash
+cd /home/simon/github/peacock-asr/projects/P011-hconv-faithful
+uv run p011 train --ssl-interface last --ssl-models hubert --batch-size 5 --grad-accum-steps 5
+```
+
 ## Smoke Validation
 
 Date: 2026-03-27

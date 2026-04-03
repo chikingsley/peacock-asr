@@ -86,8 +86,8 @@ def test_hiercb_parameter_count() -> None:
 
     model = HierCB(embed_dim=24, p_depth=3, w_depth=2, u_depth=1)
     n = sum(p.numel() for p in model.parameters())
-    # embed_dim=24, dead weights removed → ~448K params; allow ±15%
-    assert 380_000 < n < 520_000, f"Parameter count out of range: {n:,}"
+    # Paper-faithful utterance path adds a third DC branch plus SSL residual projection.
+    assert 420_000 < n < 580_000, f"Parameter count out of range: {n:,}"
 
 
 def test_hiercb_gradients_flow() -> None:

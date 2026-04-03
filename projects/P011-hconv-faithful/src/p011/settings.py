@@ -39,6 +39,7 @@ class SSLInterfaceMode(StrEnum):
     """How SSL features are fed into the pronunciation model."""
 
     NONE = "none"
+    LAST = "last"
     HCONV = "hconv"
     CHCONV = "chconv"
 
@@ -108,6 +109,14 @@ class Settings(BaseSettings):
     use_mdd: bool = Field(default=False)
     loss_w_mdd: float = Field(default=1.0, description="Weight for MDD detection (BCE) loss")
     loss_w_diag: float = Field(default=1.0, description="Weight for MDD diagnosis (CE) loss")
+    mdd_eval_threshold: float = Field(
+        default=0.4,
+        description="MuFFIN §V.B global detection threshold after held-out tuning",
+    )
+    mdd_holdout_size: int = Field(
+        default=500,
+        description="MuFFIN §V.B held-out utterances reserved from training when MDD is enabled",
+    )
 
     # ── PhnVar (MuFFIN §IV cont) ────────────────────────────────────────────
     use_phnvar: bool = Field(default=False, description="Enable phoneme-specific logit perturbation")

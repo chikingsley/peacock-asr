@@ -68,12 +68,53 @@ def test_frame_level_hconv_model_shapes(synthetic_features_dir: Path) -> None:
     assert outputs[5].shape == (2, 50, 1)
 
 
+def test_frame_level_last_model_shapes(synthetic_features_dir: Path) -> None:
+    from p011.data import FrameStoreDataset, collate_frame_samples
+    from p011.models.ssl_interface import FrameLevelInterfaceModel
+    from p011.settings import SSLInterfaceMode
+
+    dataset = FrameStoreDataset("train", synthetic_features_dir, ssl_model_keys=("hubert",))
+    batch = collate_frame_samples([dataset[0], dataset[1]])
+    word_pos = batch.word_label[:, :, 3]
+
+    model = FrameLevelInterfaceModel(
+        SSLInterfaceMode.LAST,
+        ssl_model_keys=("hubert",),
+    )
+    model.eval()
+    with torch.no_grad():
+        outputs = model(
+            batch.gop,
+            batch.energy,
+            batch.dur,
+            batch.ssl_frames,
+            batch.phn_id,
+            word_pos,
+            batch.word_id,
+            batch.frame_lengths,
+        )
+    assert len(outputs) == 11
+    assert outputs[5].shape == (2, 50, 1)
+
+
 def test_chconv_is_not_enabled_for_p011() -> None:
     from p011.models.ssl_interface import FrameLevelInterfaceModel
     from p011.settings import SSLInterfaceMode
 
     with pytest.raises(NotImplementedError):
         FrameLevelInterfaceModel(SSLInterfaceMode.CHCONV)
+
+
+def test_frame_last_rejects_projection_override() -> None:
+    from p011.models.ssl_interface import FrameLevelInterfaceModel
+    from p011.settings import SSLInterfaceMode
+
+    with pytest.raises(ValueError):
+        FrameLevelInterfaceModel(
+            SSLInterfaceMode.LAST,
+            ssl_model_keys=("hubert",),
+            ssl_output_dim=2048,
+        )
 
 
 def test_frame_level_smoke_train_one_epoch(

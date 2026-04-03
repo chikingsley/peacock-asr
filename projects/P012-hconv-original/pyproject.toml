@@ -1,0 +1,45 @@
+[project]
+name = "p012-hconv-original"
+version = "0.1.0"
+description = "Isolated reproduction scaffold for the original HConv benchmark setup"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "torch>=2.10",
+    "torchaudio>=2.10",
+    "numpy>=2.4",
+    "pandas>=3.0",
+    "click>=8.3",
+    "PyYAML>=6.0",
+    "editdistance>=0.8",
+    "filelock>=3.19",
+    "joblib>=1.5",
+    "librosa>=0.11",
+    "omegaconf>=2.1.1",
+    "protobuf>=6.0",
+    "requests>=2.32",
+    "scikit-learn>=1.8",
+    "sentencepiece>=0.2",
+    "soundfile>=0.13",
+    "tensorboard>=2.20",
+    "tqdm>=4.67",
+    "transformers>=5.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0",
+]
+
+[project.scripts]
+p012 = "p012.cli:cli"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/p012"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"

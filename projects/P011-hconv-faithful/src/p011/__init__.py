@@ -1,1 +1,1 @@
-"""P011: paper-faithful frame-level HConv experiments on top of MuFFIN."""
+"""P011: frame-level SSL control and HConv experiments on top of MuFFIN."""

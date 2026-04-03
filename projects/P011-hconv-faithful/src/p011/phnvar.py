@@ -14,7 +14,16 @@ We follow BLV's clamping convention. With alpha=beta=1 (paper default):
 from __future__ import annotations
 
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, Subset
+
+
+def _dataset_tensor(dataset: Dataset, attr: str) -> torch.Tensor:
+    """Read a tensor attribute directly from a dataset or one of its subsets."""
+    if isinstance(dataset, Subset):
+        base = getattr(dataset.dataset, attr)
+        indices = torch.as_tensor(dataset.indices, dtype=torch.long)
+        return base[indices]
+    return getattr(dataset, attr)
 
 
 def compute_phnvar_stats(
@@ -31,8 +40,8 @@ def compute_phnvar_stats(
         QF: [39] quantity factor per phoneme (0-indexed), normalized to (0, 1].
         DF: [39] difficulty factor per phoneme, normalized to (0, 1].
     """
-    phn_id = dataset.phn_id  # type: ignore[attr-defined]   # [N, 50]
-    phn_score = dataset.phn_score  # type: ignore[attr-defined]  # [N, 50]
+    phn_id = _dataset_tensor(dataset, "phn_id")  # [N, 50]
+    phn_score = _dataset_tensor(dataset, "phn_score")  # [N, 50]
 
     valid = phn_id >= 0
     ids = phn_id[valid].long()
@@ -98,5 +107,5 @@ def perturb_diag_logits(
     scale = torch.exp(log_scale)  # [39]
 
     noise = torch.randn_like(logits) * sigma
-    noise = noise.clamp(0.0, 1.0)  # BLV: one-sided clamp — only increases logits for rare classes
+    noise = noise.clamp(-1.0, 1.0)
     return logits + noise * scale.unsqueeze(0).unsqueeze(0)

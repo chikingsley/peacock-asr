@@ -1,4 +1,4 @@
-"""Frame-level SSL interface modules for paper-faithful HConv."""
+"""Frame-level SSL interface modules for P011 controls and HConv."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from p011.frame_store import FRAME_RATE_HZ
 from p011.models.hconv import HConv
 from p011.models.hiercb import HierCB
 from p011.settings import SSLInterfaceMode
-from p011.ssl_features import SSL_FEATURE_DIM, SSL_MODEL_KEYS, SSLModelKey
+from p011.ssl_features import SSL_FEATURE_DIM, SSL_MODEL_KEYS, SSLModelKey, ssl_feature_dim
 
 type SSLFrameMap = Mapping[SSLModelKey, torch.Tensor]
 type SSLFrameLengthMap = Mapping[SSLModelKey, torch.Tensor]
@@ -66,6 +66,21 @@ def _pool_batch_frames_to_phones(
     return torch.stack(pooled, dim=0)
 
 
+def _mean_pool_batch_frames(
+    frame_features: torch.Tensor,
+    frame_lengths: torch.Tensor,
+) -> torch.Tensor:
+    """Average-pool frame features over time for utterance-level SSL residuals."""
+    pooled = []
+    for batch_idx in range(frame_features.shape[0]):
+        total_frames = int(frame_lengths[batch_idx].item())
+        if total_frames > 0:
+            pooled.append(frame_features[batch_idx, :total_frames].mean(dim=0))
+        else:
+            pooled.append(torch.zeros(frame_features.shape[-1], device=frame_features.device, dtype=frame_features.dtype))
+    return torch.stack(pooled, dim=0)
+
+
 class FrameHConvInterface(nn.Module):
     """Apply per-model HConv on frame-level all-layer SSL features."""
 
@@ -101,8 +116,36 @@ class FrameHConvInterface(nn.Module):
         return {key: self.hconvs[key](ssl_frames[key]) for key in self.ssl_model_keys}
 
 
+class FrameLastLayerInterface(nn.Module):
+    """Take the final SSL layer from the frame store, then pool to phones downstream."""
+
+    def __init__(
+        self,
+        ssl_output_dim: int | None = None,
+        ssl_model_keys: Sequence[SSLModelKey] = SSL_MODEL_KEYS,
+    ) -> None:
+        super().__init__()
+        self.ssl_model_keys = tuple(ssl_model_keys)
+        self._output_dim = ssl_feature_dim(self.ssl_model_keys)
+        if ssl_output_dim is not None and ssl_output_dim != self._output_dim:
+            raise ValueError(
+                "FrameLastLayerInterface preserves the raw last-layer width; "
+                f"expected ssl_output_dim={self._output_dim}, got {ssl_output_dim}"
+            )
+
+    @property
+    def output_dim(self) -> int:
+        return self._output_dim
+
+    def forward(self, ssl_frames: SSLFrameMap) -> dict[SSLModelKey, torch.Tensor]:
+        return {
+            key: ssl_frames[key][:, :, -1, :]
+            for key in self.ssl_model_keys
+        }
+
+
 class FrameLevelInterfaceModel(nn.Module):
-    """Pronunciation model with frame-level HConv followed by phone pooling."""
+    """Pronunciation model with a frame-level SSL interface followed by phone pooling."""
 
     def __init__(
         self,
@@ -119,14 +162,19 @@ class FrameLevelInterfaceModel(nn.Module):
         use_mdd: bool = False,
     ) -> None:
         super().__init__()
-        if ssl_interface is not SSLInterfaceMode.HCONV:
-            raise NotImplementedError("P011 only supports paper-faithful HConv for the frame-level path")
-
         self.ssl_model_keys = tuple(ssl_model_keys)
-        self.ssl_interface = FrameHConvInterface(
-            ssl_output_dim=ssl_output_dim,
-            ssl_model_keys=self.ssl_model_keys,
-        )
+        if ssl_interface is SSLInterfaceMode.HCONV:
+            self.ssl_interface = FrameHConvInterface(
+                ssl_output_dim=ssl_output_dim,
+                ssl_model_keys=self.ssl_model_keys,
+            )
+        elif ssl_interface is SSLInterfaceMode.LAST:
+            self.ssl_interface = FrameLastLayerInterface(
+                ssl_output_dim=ssl_output_dim,
+                ssl_model_keys=self.ssl_model_keys,
+            )
+        else:
+            raise NotImplementedError("P011 frame-level path only supports ssl_interface=last or hconv")
         self.downstream = HierCB(
             embed_dim=embed_dim,
             num_heads=num_heads,
@@ -150,7 +198,7 @@ class FrameLevelInterfaceModel(nn.Module):
         frame_lengths: SSLFrameLengthMap | None = None,
     ) -> tuple[torch.Tensor, ...]:
         if frame_lengths is None:
-            raise ValueError("frame_lengths are required for frame-level HConv pooling")
+            raise ValueError("frame_lengths are required for frame-level SSL pooling")
 
         frame_ssl = self.ssl_interface(ssl_frames)
         pooled = [
@@ -158,7 +206,11 @@ class FrameLevelInterfaceModel(nn.Module):
             for key in self.ssl_model_keys
         ]
         phone_ssl = torch.cat(pooled, dim=-1)
-        return self.downstream(gop, energy, dur, phone_ssl, phn, word_pos, word)
+        utt_ssl_residual = torch.cat(
+            [_mean_pool_batch_frames(frame_ssl[key], frame_lengths[key]) for key in self.ssl_model_keys],
+            dim=-1,
+        )
+        return self.downstream(gop, energy, dur, phone_ssl, phn, word_pos, word, utt_ssl_residual)
 
 
 # Alias kept so the rest of the training stack can stay simple.
@@ -167,6 +219,7 @@ AllLayerInterfaceModel = FrameLevelInterfaceModel
 
 __all__ = [
     "AllLayerInterfaceModel",
+    "FrameLastLayerInterface",
     "FrameHConvInterface",
     "FrameLevelInterfaceModel",
 ]

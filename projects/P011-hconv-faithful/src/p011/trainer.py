@@ -84,7 +84,7 @@ def _forward_model(model: nn.Module, batch: DeviceBatch, settings: Settings) -> 
         return model(batch.gop, batch.energy, batch.dur, batch.ssl, batch.phn_id, word_pos, batch.word_id)
 
     if isinstance(batch.ssl, torch.Tensor) or batch.frame_lengths is None:
-        raise TypeError("Expected frame-level SSL tensors and frame lengths for HConv/CHConv")
+        raise TypeError("Expected frame-level SSL tensors and frame lengths for frame-level SSL interfaces")
     return model(
         batch.gop,
         batch.energy,
@@ -196,8 +196,8 @@ def train_one_config(
         for batch_index, batch in enumerate(batch_bar):
             device_batch = _move_batch_to_device(batch, device)
 
-            if global_step < warm_up_steps:
-                lr_now = settings.lr * (global_step + 1) / warm_up_steps
+            if global_step <= warm_up_steps and global_step % 5 == 0:
+                lr_now = settings.lr * (global_step / warm_up_steps)
                 for param_group in optimizer.param_groups:
                     param_group["lr"] = lr_now
 
@@ -337,7 +337,7 @@ def _evaluate(
     loader: DataLoader[Batch],
     device: torch.device,
     settings: Settings,
-    mdd_threshold: float = 0.5,
+    mdd_threshold: float | None = None,
 ) -> dict[str, float]:
     """Run a full evaluation pass and return flat metrics."""
     model.eval()
@@ -400,10 +400,11 @@ def _evaluate(
     }
 
     if settings.use_mdd and all_mdd_logit:
+        threshold = settings.mdd_eval_threshold if mdd_threshold is None else mdd_threshold
         mdd_result = eval_mdd(
             torch.cat(all_mdd_logit),
             torch.cat(all_mdd_label),
-            threshold=mdd_threshold,
+            threshold=threshold,
             diag_logit=torch.cat(all_diag_logit) if all_diag_logit else None,
             diag_label=torch.cat(all_diag_label) if all_diag_label else None,
             canon_phn_id=torch.cat(all_phn_id) if all_phn_id else None,

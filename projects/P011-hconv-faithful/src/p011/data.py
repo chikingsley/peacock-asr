@@ -3,7 +3,7 @@
 Two data paths are supported:
 
 1. ``ssl_interface=none`` loads the original phone-level last-layer SSL features.
-2. ``ssl_interface=hconv/chconv`` loads per-utterance frame-level SSL shards from
+2. ``ssl_interface=last/hconv/chconv`` loads per-utterance frame-level SSL shards from
    ``ssl_frame_store_v1`` so the interface can run before phone pooling.
 """
 
@@ -17,7 +17,7 @@ from typing import cast
 import numpy as np
 import torch
 from torch import Tensor
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, Subset
 
 from p011.frame_store import load_manifest, shard_path
 from p011.settings import SSLInterfaceMode
@@ -104,6 +104,15 @@ class FrameBatch:
 
 
 type Batch = PhoneBatch | FrameBatch
+
+
+def _dataset_tensor(dataset: Dataset[Batch], attr: str) -> Tensor:
+    """Read one tensor attribute from a dataset or Subset."""
+    if isinstance(dataset, Subset):
+        base = getattr(dataset.dataset, attr)
+        indices = torch.as_tensor(dataset.indices, dtype=torch.long)
+        return base[indices]
+    return getattr(dataset, attr)
 
 
 def _load_tensor(path: Path, *, dtype: torch.dtype = torch.float32) -> Tensor:
@@ -336,6 +345,94 @@ def collate_frame_samples(samples: Sequence[FrameSample]) -> FrameBatch:
         ssl_frames=ssl_frames,
         frame_lengths=frame_lengths,
     )
+
+
+def select_mdd_holdout_indices(
+    dataset: Dataset[Batch],
+    *,
+    holdout_size: int = 500,
+    seed: int = 22,
+) -> list[int]:
+    """Pick a deterministic held-out set that covers correct/incorrect phones."""
+    phn_id = _dataset_tensor(dataset, "phn_id").long()
+    mdd_label = _dataset_tensor(dataset, "mdd_label").long()
+
+    num_utts = int(phn_id.shape[0])
+    if holdout_size <= 0 or holdout_size >= num_utts:
+        raise ValueError(f"holdout_size must be in [1, {num_utts - 1}], got {holdout_size}")
+
+    utterance_pairs: list[set[tuple[int, int]]] = []
+    for utt_idx in range(num_utts):
+        valid = (phn_id[utt_idx] >= 0) & (mdd_label[utt_idx] >= 0)
+        pairs = {
+            (int(phone_id), int(label))
+            for phone_id, label in zip(
+                phn_id[utt_idx][valid].tolist(),
+                mdd_label[utt_idx][valid].tolist(),
+                strict=True,
+            )
+            if 0 <= int(phone_id) < 39 and int(label) in (0, 1)
+        }
+        utterance_pairs.append(pairs)
+
+    import random
+
+    rng = random.Random(seed)
+    candidates = list(range(num_utts))
+    rng.shuffle(candidates)
+
+    selected: list[int] = []
+    covered: set[tuple[int, int]] = set()
+    target_pairs = {(phone_id, label) for phone_id in range(39) for label in (0, 1)}
+    while len(selected) < holdout_size and covered != target_pairs:
+        best_idx: int | None = None
+        best_gain = -1
+        best_size = -1
+        for idx in candidates:
+            pairs = utterance_pairs[idx]
+            gain = len(pairs - covered)
+            size = len(pairs)
+            if gain > best_gain or (gain == best_gain and size > best_size):
+                best_idx = idx
+                best_gain = gain
+                best_size = size
+        if best_idx is None or best_gain <= 0:
+            break
+        selected.append(best_idx)
+        candidates.remove(best_idx)
+        covered |= utterance_pairs[best_idx]
+
+    remaining = holdout_size - len(selected)
+    if remaining > 0:
+        selected.extend(candidates[:remaining])
+
+    return sorted(selected)
+
+
+def split_train_loader_for_mdd_threshold(
+    train_loader: DataLoader[Batch],
+    *,
+    holdout_size: int = 500,
+    seed: int = 22,
+) -> tuple[DataLoader[Batch], DataLoader[Batch], list[int]]:
+    """Reserve the paper's 500-utterance threshold holdout from the training loader."""
+    holdout_indices = select_mdd_holdout_indices(train_loader.dataset, holdout_size=holdout_size, seed=seed)
+    holdout_set = set(holdout_indices)
+    train_indices = [idx for idx in range(len(train_loader.dataset)) if idx not in holdout_set]
+
+    train_subset = Subset(train_loader.dataset, train_indices)
+    holdout_subset = Subset(train_loader.dataset, holdout_indices)
+
+    common_kwargs = {
+        "batch_size": train_loader.batch_size,
+        "num_workers": train_loader.num_workers,
+        "pin_memory": train_loader.pin_memory,
+        "persistent_workers": train_loader.persistent_workers,
+        "collate_fn": train_loader.collate_fn,
+    }
+    train_subset_loader = DataLoader(train_subset, shuffle=True, **common_kwargs)
+    holdout_loader = DataLoader(holdout_subset, shuffle=False, **common_kwargs)
+    return cast(DataLoader[Batch], train_subset_loader), cast(DataLoader[Batch], holdout_loader), holdout_indices
 
 
 def make_loaders(

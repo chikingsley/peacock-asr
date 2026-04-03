@@ -120,6 +120,20 @@ def test_eval_mdd_padding_excluded() -> None:
     assert "recall" in result
 
 
+def test_eval_mdd_respects_explicit_threshold() -> None:
+    """Threshold argument should control the detector cutoff."""
+    from p011.eval import eval_mdd
+
+    logit = torch.tensor([[[0.0]]])
+    label = torch.tensor([[1.0]])
+
+    result_low = eval_mdd(logit, label, threshold=0.4)
+    result_high = eval_mdd(logit, label, threshold=0.6)
+
+    assert result_low["recall"] == pytest.approx(1.0, abs=1e-5)
+    assert result_high["recall"] == pytest.approx(0.0, abs=1e-5)
+
+
 def test_eval_phn_mse_zero_perfect() -> None:
     """eval_phn with pred == target must give MSE=0."""
     from p011.eval import eval_phn
