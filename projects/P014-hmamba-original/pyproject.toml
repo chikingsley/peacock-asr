@@ -1,0 +1,28 @@
+[project]
+name = "hmamba"
+version = "0.1.0"
+description = "HMamba reproduction - NAACL 2025"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "torch>=2.11.0",
+    "numpy<2",
+    "scipy",
+    "tqdm",
+    "einops",
+    "scikit-learn",
+    "jiwer",
+    "thop",
+    "wandb",
+    "pyyaml",
+    "colorama",
+    "causal-conv1d>=1.1.0",
+    "mamba-ssm>=1.2.0",
+]
+
+[tool.uv]
+extra-build-dependencies = { "mamba-ssm" = ["torch"], "causal-conv1d" = ["torch"] }
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
