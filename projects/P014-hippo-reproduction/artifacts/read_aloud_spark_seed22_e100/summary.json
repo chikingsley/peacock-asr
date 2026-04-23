@@ -1,0 +1,28 @@
+{
+  "run_name": "read_aloud_spark_seed22_e100",
+  "device": "cuda",
+  "train_examples": 2500,
+  "test_examples": 2500,
+  "epochs": 100,
+  "batch_size": 25,
+  "learning_rate": 0.001,
+  "best_epoch": 9,
+  "best_metrics": {
+    "phone_mse": 0.12434732913970947,
+    "phone_pcc": 0.1365571470783706,
+    "word_pcc": {
+      "accuracy": 0.17172116018089637,
+      "stress": 0.0032012626549967767,
+      "total": 0.16617539791501043
+    },
+    "utterance_pcc": {
+      "accuracy": 0.21811089283843327,
+      "completeness": 0.009980800026165007,
+      "fluency": 0.2280318465918064,
+      "prosodic": 0.1972076437550467,
+      "total": 0.19951527828388407
+    },
+    "eval_loss": 0.28435447681695225
+  },
+  "output_dir": "artifacts/read_aloud_spark_seed22_e100"
+}

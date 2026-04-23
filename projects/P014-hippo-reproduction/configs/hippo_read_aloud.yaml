@@ -1,0 +1,9 @@
+training:
+  use_cono_regularizer: false
+  use_curriculum_learning: false
+
+scenario:
+  name: "read_aloud"
+  paper_table: "table_2"
+  requires_reference_text: true
+  notes: "Table 2 setting. The paper notes HiPPO* in read-aloud is trained without curriculum learning and CONO."

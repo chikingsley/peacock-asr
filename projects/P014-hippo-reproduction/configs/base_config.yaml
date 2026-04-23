@@ -1,0 +1,57 @@
+paper:
+  title: "HiPPO: Exploring A Novel Hierarchical Pronunciation Assessment Approach for Spoken Languages"
+  doi: "10.18653/v1/2025.ijcnlp-long.45"
+  acl_url: "https://aclanthology.org/2025.ijcnlp-long.45/"
+  arxiv_url: "https://arxiv.org/abs/2512.04964"
+  official_repo_url: "https://github.com/bicheng1225/HIPPO"
+  official_repo_checked_on: 2026-04-20
+  official_repo_public_state: "README only on public main branch as of 2026-04-20"
+
+model:
+  hidden_units: 24
+  phone_encoder_blocks: 3
+  word_encoder_blocks: 2
+  utterance_encoder_blocks: 1
+  mhsa_heads: 1
+  attention_pool_heads: 3
+  cnn_kernel_size: 3
+  fusion_weight_conv: 0.3
+  word_embedding_backend: "modernbert"
+  ssl_feature_dim: 3072
+  projected_ssl_dim: 24
+  ssl_models:
+    - "facebook/wav2vec2-large-960h"
+    - "facebook/hubert-large-ls960-ft"
+    - "microsoft/wavlm-large"
+
+training:
+  optimizer: "adam"
+  learning_rate: 0.001
+  batch_size: 25
+  epochs: 100
+  trials: 5
+  selection_metric: "phone_mse"
+  word_score_range:
+    - 0.0
+    - 2.0
+  utterance_score_range:
+    - 0.0
+    - 2.0
+  use_cono_regularizer: true
+  use_curriculum_learning: true
+
+data:
+  corpus: "Speechocean762"
+  sampling_rate_hz: 16000
+  asr_model: "openai/whisper-large-v3"
+  g2p_model: "g2p_en"
+  free_speaking_assignment:
+    deletion: "ignore"
+    substitution: "aligned_segment"
+    insertion: "zero"
+
+scenario:
+  name: "free_speaking"
+  paper_table: "table_1"
+  requires_reference_text: false
+  notes: "Paper-faithful free-speaking defaults."

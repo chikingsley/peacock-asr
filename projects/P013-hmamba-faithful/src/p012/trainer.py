@@ -24,10 +24,13 @@ from .models import HMamba
 from .runtime import require_cuda_device
 from .scheduler import TriStageLRScheduler
 
-try:
-    import wandb
+try:  # pragma: no cover - optional dependency
+    import trackio as wandb
 except ImportError:  # pragma: no cover - optional dependency
-    wandb = None
+    try:
+        import wandb  # type: ignore[no-redef]
+    except ImportError:  # pragma: no cover - optional dependency
+        wandb = None
 
 
 def load_conf(config: str | os.PathLike[str]) -> dict:
@@ -49,9 +52,9 @@ def load_phn_dict(path: str | os.PathLike[str]) -> dict[int, str]:
             return {int(line.split()[1]): line.split()[0] for line in rf.readlines()}
 
 
-def maybe_init_wandb(exp_dir: str) -> None:
+def maybe_init_wandb(exp_dir: str, args: argparse.Namespace) -> None:
     if wandb is not None:
-        wandb.init(project="p012-hmamba-faithful", name=exp_dir)
+        wandb.init(project="p013-hmamba-faithful", name=Path(exp_dir).name, config=vars(args))
 
 
 def maybe_log(metrics: dict[str, float]) -> None:
@@ -62,6 +65,13 @@ def maybe_log(metrics: dict[str, float]) -> None:
 def maybe_finish_wandb() -> None:
     if wandb is not None:
         wandb.finish()
+
+
+def persist_run_config(args: argparse.Namespace) -> None:
+    exp_dir = Path(args.exp_dir)
+    exp_dir.mkdir(parents=True, exist_ok=True)
+    config_path = exp_dir / "run_config.json"
+    config_path.write_text(json.dumps(vars(args), indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def gen_result_header() -> list[str]:
@@ -582,7 +592,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--seed", type=int, required=True)
     parser.add_argument("--lr", "--learning-rate", default=2e-3, type=float, metavar="LR", help="initial learning rate")
-    parser.add_argument("--warmup-step", type=int, default=100, help="number of steps for warmup")
+    parser.add_argument("--warmup-step", type=int, default=300, help="number of steps for warmup")
     parser.add_argument(
         "--phase-ratio",
         nargs=3,
@@ -600,7 +610,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--loss-type", type=str, default="dexent", choices=["xent", "dexent"])
     parser.add_argument("--loss-w-a", type=float, default=0.7)
     parser.add_argument("--loss-w-xent", type=float, default=0.003)
-    parser.add_argument("--selection-metric", type=str, default="mdd_f1", choices=["phone_mse", "mdd_f1"])
+    parser.add_argument("--selection-metric", type=str, default="phone_mse", choices=["phone_mse", "mdd_f1"])
     parser.add_argument("--pretrain", type=str, default=None)
     parser.add_argument("--model", type=str, default="HMamba")
     parser.add_argument("--model-conf", type=str, required=True)
@@ -624,7 +634,8 @@ def main() -> None:
     parser = build_arg_parser()
     args = parser.parse_args()
     device = require_cuda_device("HMamba training")
-    maybe_init_wandb(args.exp_dir)
+    persist_run_config(args)
+    maybe_init_wandb(args.exp_dir, args)
 
     print(f"I am process {os.getpid()}, running on {os.uname()[1]}: starting ({time.asctime()})")
     print(f"running on {device}")

@@ -18,6 +18,7 @@ dependencies = [
 [project.scripts]
 p012-train = "p012.trainer:main"
 p012-recog = "p012.recog:main"
+p012-mdd-eval = "p012.mdd_eval:main"
 p012-benchmark-compile = "p012.benchmark_compile:main"
 
 [build-system]
@@ -49,7 +50,7 @@ include = ["src", "tests"]
 all = "error"
 
 [tool.ty.analysis]
-allowed-unresolved-imports = ["wandb"]
+allowed-unresolved-imports = ["trackio", "wandb"]
 
 [tool.ty.terminal]
 error-on-warning = true
@@ -65,5 +66,6 @@ dev = [
     "ty==0.0.26",
 ]
 train = [
+    "trackio",
     "wandb>=0.18",
 ]

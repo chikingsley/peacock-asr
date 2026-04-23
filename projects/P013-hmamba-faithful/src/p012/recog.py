@@ -99,7 +99,7 @@ def main() -> None:
     parser.add_argument("--ssl-dir", type=str, default=None)
     parser.add_argument("--raw-dir", type=str, default=None)
     parser.add_argument("--exp-dir", type=str, required=True)
-    parser.add_argument("--checkpoint-name", type=str, default="best_mdd_f1_model.pth")
+    parser.add_argument("--checkpoint-name", type=str, default="best_audio_model.pth")
     args = parser.parse_args()
 
     conf = load_conf(args.model_conf)

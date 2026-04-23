@@ -1,0 +1,9 @@
+training:
+  use_cono_regularizer: true
+  use_curriculum_learning: true
+
+scenario:
+  name: "free_speaking"
+  paper_table: "table_1"
+  requires_reference_text: false
+  notes: "Table 1 setting from the ACL 2025 paper."

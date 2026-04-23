@@ -1,0 +1,78 @@
+[project]
+name = "p014-hippo-reproduction"
+version = "0.1.0"
+description = "Standardized scaffold and paper-fidelity audit for the HiPPO reproduction branch"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.12",
+    "pydantic-settings>=2.11",
+    "pyyaml>=6.0",
+    "rich>=14.3",
+    "trackio>=0.3.0",
+]
+
+[project.optional-dependencies]
+train = [
+    "datasets>=4.0",
+    "numpy>=1.26",
+    "scipy>=1.13",
+    "sentencepiece>=0.2",
+    "soundfile>=0.12",
+    "torchcodec>=0.11",
+    "tqdm>=4.67",
+    "torch>=2.2",
+    "torchaudio>=2.2",
+    "transformers>=4.47",
+    "g2p-en>=2.1",
+]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.15",
+    "ty>=0.0.26",
+]
+
+[project.scripts]
+p014 = "p014.cli:main"
+p014-show-config = "p014.cli:show_config_entrypoint"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/p014"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "N", "ANN", "RUF"]
+ignore = [
+    "N812",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["ANN", "S101"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ty.environment]
+python-version = "3.12"
+root = ["./src"]
+
+[tool.ty.src]
+include = ["src", "tests"]
+
+[tool.ty.rules]
+all = "error"
+
+[tool.ty.terminal]
+error-on-warning = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"
