@@ -4,3 +4,12 @@
 [submodule "third_party/s3prl"]
 	path = third_party/s3prl
 	url = https://github.com/s3prl/s3prl.git
+[submodule "projects/P010-muffin-improvements/third_party/ConPCO"]
+	path = projects/P010-muffin-improvements/third_party/ConPCO
+	url = https://github.com/bicheng1225/ConPCO.git
+[submodule "projects/P010-muffin-improvements/third_party/HierTFR"]
+	path = projects/P010-muffin-improvements/third_party/HierTFR
+	url = https://github.com/bicheng1225/HierTFR.git
+[submodule "projects/P015-ConPCO"]
+	path = projects/P015-ConPCO
+	url = https://github.com/bicheng1225/ConPCO.git
