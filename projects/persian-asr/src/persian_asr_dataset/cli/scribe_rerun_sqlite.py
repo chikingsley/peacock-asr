@@ -181,6 +181,8 @@ def create_batch(args: argparse.Namespace) -> BatchStats:
                 """,
                 (args.name, args.reason, args.where, args.model, args.language, now, now),
             )
+            if cursor.lastrowid is None:
+                raise RuntimeError("INSERT did not return a rowid for the rerun batch")
             batch_id = int(cursor.lastrowid)
             limit_sql = f"LIMIT {int(args.limit)}" if args.limit else ""
             rows = connection.execute(

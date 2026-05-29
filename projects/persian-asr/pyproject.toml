@@ -65,10 +65,10 @@ persian-train-tokenizer = "finetune_parakeet.cli.train_tokenizer:main"
 line-length = 100
 target-version = "py312"
 src = ["src"]
-extend-exclude = ["vendor"]
+extend-exclude = ["vendor", "**/omni_recipe", "**/nemo_recipes"]
 
 [tool.ty.src]
-exclude = ["vendor/"]
+exclude = ["vendor/", "**/omni_recipe/", "**/nemo_recipes/"]
 
 [tool.ruff.lint]
 extend-select = [

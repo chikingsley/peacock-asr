@@ -1496,13 +1496,13 @@ SURFACE_LABELS = {
     "max_train_metric_supported_script_rescue_text_asr_recovery_content30_highwer_strict_script": (
         "High-WER rescue plus strict script rows accepted by LLM with 300M CER <= 10%"
     ),
-    "max_train_metric_supported_script_rescue_text_asr_recovery_content30_highwer_strict_script_exact_hold": (
+    "max_train_metric_supported_script_rescue_text_asr_recovery_content30_highwer_strict_script_exact_hold": (  # noqa: E501
         "Strict script rescue plus held rows where 300M exact-matches the reference"
     ),
-    "max_train_metric_supported_script_rescue_text_asr_recovery_content30_highwer_strict_script_exact_hold_content_low_v2": (
+    "max_train_metric_supported_script_rescue_text_asr_recovery_content30_highwer_strict_script_exact_hold_content_low_v2": (  # noqa: E501
         "Exact-held surface plus accepted low-CER content held-row second pass"
     ),
-    "max_train_metric_supported_script_rescue_text_asr_recovery_content30_highwer_strict_script_exact_hold_content_low_boundary_v2": (
+    "max_train_metric_supported_script_rescue_text_asr_recovery_content30_highwer_strict_script_exact_hold_content_low_boundary_v2": (  # noqa: E501
         "Content-low v2 surface plus accepted boundary held-row second pass"
     ),
     "max_train_metric_supported_script_rescue_text_asr_recovery_held_strong_v2": (
@@ -1511,7 +1511,7 @@ SURFACE_LABELS = {
     "max_train_metric_supported_script_rescue_text_asr_recovery_held_possible_v3": (
         "Held-strong-v2 surface plus accepted possible ASR recovery rows"
     ),
-    "max_train_metric_supported_script_rescue_text_asr_recovery_held_possible_consensus_lowrisk_v1": (
+    "max_train_metric_supported_script_rescue_text_asr_recovery_held_possible_consensus_lowrisk_v1": (  # noqa: E501
         "Held-possible-v3 surface plus low-risk Scribe and 300M consensus labels"
     ),
     "script_queue": "E5 Scribe Latin/script same-speech queue",
@@ -3884,7 +3884,7 @@ def classify_text_recovery_rows(  # noqa: PLR0913
     )
 
 
-def classify_consensus_label_rows(
+def classify_consensus_label_rows(  # noqa: PLR0913
     connection: sqlite3.Connection,
     task: str,
     model: str,
