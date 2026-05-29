@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 from rapidfuzz.distance import Levenshtein
 from tqdm import tqdm
 
-from persian_asr_dataset.vendor.nvidia_stt_fa_fastconformer_hybrid_large import maybe_normalize
+from persian_asr_dataset.text_normalization import maybe_normalize
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence

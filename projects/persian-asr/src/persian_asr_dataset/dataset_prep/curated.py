@@ -18,7 +18,7 @@ from persian_asr_dataset.dataset_prep.text_audit import (
     assert_tokenizer_clean,
 )
 from persian_asr_dataset.paths import PROJECT_ROOT
-from persian_asr_dataset.vendor.nvidia_stt_fa_fastconformer_hybrid_large import maybe_normalize
+from persian_asr_dataset.text_normalization import maybe_normalize
 
 OMNI_SAMPLE_RATE = 16_000
 # Curation/selection inputs live in the core package; the final Omni parquet export

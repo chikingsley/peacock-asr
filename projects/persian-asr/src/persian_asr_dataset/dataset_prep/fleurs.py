@@ -14,7 +14,7 @@ import soundfile as sf
 from datasets import load_dataset
 from tqdm import tqdm
 
-from persian_asr_dataset.vendor.nvidia_stt_fa_fastconformer_hybrid_large import maybe_normalize
+from persian_asr_dataset.text_normalization import maybe_normalize
 
 SPLIT_MAP = {"train": "train", "validation": "dev", "test": "test"}
 OMNI_SAMPLE_RATE = 16_000

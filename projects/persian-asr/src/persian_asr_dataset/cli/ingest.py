@@ -18,7 +18,7 @@ from persian_asr_dataset.ledger import (
     upsert_sample,
 )
 from persian_asr_dataset.paths import DATA_ROOT, DEFAULT_LEDGER
-from persian_asr_dataset.vendor.nvidia_stt_fa_fastconformer_hybrid_large import maybe_normalize
+from persian_asr_dataset.text_normalization import maybe_normalize
 
 csv.field_size_limit(sys.maxsize)
 

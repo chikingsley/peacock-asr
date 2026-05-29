@@ -18,7 +18,7 @@ from tqdm import tqdm
 
 from persian_asr_dataset.ledger import connect_ledger
 from persian_asr_dataset.paths import DATA_ROOT, DEFAULT_LEDGER
-from persian_asr_dataset.vendor.nvidia_stt_fa_fastconformer_hybrid_large import maybe_normalize
+from persian_asr_dataset.text_normalization import maybe_normalize
 
 NEMO_MODEL_CARD = "nvidia/stt_fa_fastconformer_hybrid_large"
 NEMO_SAMPLE_RATE = 16_000

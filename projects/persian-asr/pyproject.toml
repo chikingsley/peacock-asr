@@ -118,6 +118,12 @@ extend-select = [
 "src/finetune_omni/benchmarks/asr.py" = [
     "PLC0415",  # FAIRSEQ2_ASSET_DIR must be set before importing the Omni pipeline.
 ]
+"src/persian_asr_dataset/text_normalization.py" = [
+    "RUF001",  # Arabic letters resembling Latin are intentional normalization data.
+    "RUF002",  # ditto in docstrings.
+    "RUF003",  # ditto in comments.
+    "RUF005",  # explicit list concatenation mirrors the upstream NVIDIA script.
+]
 
 [build-system]
 requires = ["hatchling"]

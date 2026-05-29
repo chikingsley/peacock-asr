@@ -14,7 +14,7 @@ import jiwer
 from superwhisper_api.audio.models import audio_model
 from superwhisper_api.audio.transcribe import TranscriptResult, create_process_fn
 
-from persian_asr_dataset.vendor.nvidia_stt_fa_fastconformer_hybrid_large import maybe_normalize
+from persian_asr_dataset.text_normalization import maybe_normalize
 
 DEFAULT_EMPTY_NORMALIZED_SCRIBE_WHERE = """
 normalized_scribe = ''
