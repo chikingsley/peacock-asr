@@ -16,8 +16,8 @@ import pyarrow.parquet as pq
 import soundfile as sf
 from tqdm import tqdm
 
-from persian_asr_dataset.dataset.ledger import DEFAULT_LEDGER, connect_ledger
-from persian_asr_dataset.paths import DEFAULT_NEMO_RUNS, configure_external_caches
+from persian_asr_dataset.dataset.ledger import connect_ledger
+from persian_asr_dataset.paths import DATA_ROOT, DEFAULT_LEDGER
 from persian_asr_dataset.vendor.nvidia_stt_fa_fastconformer_hybrid_large import maybe_normalize
 
 NEMO_MODEL_CARD = "nvidia/stt_fa_fastconformer_hybrid_large"
@@ -43,9 +43,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--ledger", type=Path, default=DEFAULT_LEDGER)
     parser.add_argument("--run-id", default=datetime.now(UTC).strftime("nemo-fa-%Y%m%dT%H%M%SZ"))
-    parser.add_argument("--output-root", type=Path, default=DEFAULT_NEMO_RUNS)
+    parser.add_argument("--output-root", type=Path, default=DATA_ROOT / "curation/nemo_runs")
     parser.add_argument("--source", action="append", default=[])
     parser.add_argument("--split", action="append", default=[])
+    parser.add_argument("--sample-id-file", type=Path, default=None)
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--min-duration", type=float, default=1.0)
     parser.add_argument("--max-duration", type=float, default=20.0)
@@ -75,16 +76,31 @@ def fetch_samples(args: argparse.Namespace) -> tuple[list[ExportSample], dict[st
     if args.limit:
         params.append(args.limit)
 
+    connection = connect_ledger(args.ledger)
+    join_clause = ""
+    if args.sample_id_file:
+        sample_ids = [
+            line.strip()
+            for line in args.sample_id_file.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+        connection.execute("CREATE TEMP TABLE selected_sample_ids (sample_id TEXT PRIMARY KEY)")
+        connection.executemany(
+            "INSERT OR IGNORE INTO selected_sample_ids (sample_id) VALUES (?)",
+            [(sample_id,) for sample_id in sample_ids],
+        )
+        join_clause = "JOIN selected_sample_ids USING (sample_id)"
+
     query = f"""
         SELECT sample_id, source, source_split, raw_text, duration_seconds,
                sample_rate, audio_ref, storage_kind
         FROM samples
+        {join_clause}
         WHERE {" AND ".join(clauses)}
         ORDER BY source, source_split, sample_id
         {limit_clause}
     """
 
-    connection = connect_ledger(args.ledger)
     counters = {"candidate_rows": 0, "skipped_text_normalization": 0}
     samples: list[ExportSample] = []
     for row in connection.execute(query, params):
@@ -148,6 +164,21 @@ def omni_audio_bytes(row: dict[str, Any]) -> bytes:
     return np.asarray(audio_values, dtype=np.int8).tobytes()
 
 
+def materialize_file_audio(samples: list[ExportSample], overwrite: bool) -> dict[str, str]:
+    progress = tqdm(samples, desc="materialize file audio", unit="utt")
+    for sample in samples:
+        if sample.audio_path.exists() and not overwrite:
+            progress.update()
+            continue
+        encoded = Path(sample.audio_ref).read_bytes()
+        waveform = decode_to_16k_mono(encoded)
+        sample.audio_path.parent.mkdir(parents=True, exist_ok=True)
+        sf.write(sample.audio_path, waveform, NEMO_SAMPLE_RATE, format="FLAC")
+        progress.update()
+    progress.close()
+    return {}
+
+
 def decode_to_16k_mono(encoded: bytes) -> np.ndarray:
     waveform, sample_rate = sf.read(io.BytesIO(encoded), dtype="float32", always_2d=False)
     waveform = np.asarray(waveform, dtype=np.float32)
@@ -159,38 +190,41 @@ def decode_to_16k_mono(encoded: bytes) -> np.ndarray:
 
 
 def materialize_audio(samples: list[ExportSample], overwrite: bool) -> dict[str, str]:
+    file_samples = [
+        sample for sample in samples if sample.storage_kind == "common_voice_audio_file"
+    ]
+    parquet_samples = [
+        sample for sample in samples if sample.storage_kind != "common_voice_audio_file"
+    ]
+    failures = materialize_file_audio(file_samples, overwrite) if file_samples else {}
+
     by_parquet: dict[Path, list[tuple[ExportSample, int]]] = defaultdict(list)
-    for sample in samples:
+    for sample in parquet_samples:
         parquet_path, row_index = parse_audio_ref(sample)
         by_parquet[parquet_path].append((sample, row_index))
 
-    failures: dict[str, str] = {}
-    progress = tqdm(samples, desc="materialize audio", unit="utt")
+    progress = tqdm(parquet_samples, desc="materialize parquet audio", unit="utt")
     for parquet_path, grouped in by_parquet.items():
         storage_kind = grouped[0][0].storage_kind
         column = "audio" if storage_kind == "common_voice_parquet" else "audio_bytes"
         rows = pq.read_table(parquet_path, columns=[column]).to_pylist()
         for sample, row_index in grouped:
-            try:
-                if sample.audio_path.exists() and not overwrite:
-                    progress.update()
-                    continue
-                if row_index >= len(rows):
-                    raise IndexError(
-                        f"row index {row_index} is outside {parquet_path.name} rows={len(rows)}"
-                    )
-                encoded = (
-                    common_voice_audio_bytes(rows[row_index])
-                    if storage_kind == "common_voice_parquet"
-                    else omni_audio_bytes(rows[row_index])
-                )
-                waveform = decode_to_16k_mono(encoded)
-                sample.audio_path.parent.mkdir(parents=True, exist_ok=True)
-                sf.write(sample.audio_path, waveform, NEMO_SAMPLE_RATE, format="FLAC")
-            except Exception as exc:  # noqa: BLE001 - export should keep going and report failures.
-                failures[sample.sample_id] = f"{type(exc).__name__}: {exc}"
-            finally:
+            if sample.audio_path.exists() and not overwrite:
                 progress.update()
+                continue
+            if row_index >= len(rows):
+                raise IndexError(
+                    f"row index {row_index} is outside {parquet_path.name} rows={len(rows)}"
+                )
+            encoded = (
+                common_voice_audio_bytes(rows[row_index])
+                if storage_kind == "common_voice_parquet"
+                else omni_audio_bytes(rows[row_index])
+            )
+            waveform = decode_to_16k_mono(encoded)
+            sample.audio_path.parent.mkdir(parents=True, exist_ok=True)
+            sf.write(sample.audio_path, waveform, NEMO_SAMPLE_RATE, format="FLAC")
+            progress.update()
     progress.close()
     return failures
 
@@ -244,7 +278,7 @@ def write_run_metadata(
             "min_duration": args.min_duration,
             "max_duration": args.max_duration,
             "language": args.language,
-            "normalizer": "nvidia/stt_fa_fastconformer_hybrid_large model-card maybe_normalize",
+                "normalizer": "nvidia/stt_fa_fastconformer_hybrid_large model-card maybe_normalize",
         },
         "counts": {
             **counters,
@@ -257,7 +291,6 @@ def write_run_metadata(
 
 
 def main(argv: list[str] | None = None) -> int:
-    configure_external_caches()
     args = build_parser().parse_args(argv)
     samples, counters, run_dir = fetch_samples(args)
     audio_failures = materialize_audio(samples, overwrite=args.overwrite_audio)

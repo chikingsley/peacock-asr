@@ -7,6 +7,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DATA_ROOT = Path(
     os.environ.get("PERSIAN_ASR_DATA_ROOT", str(PROJECT_ROOT / "data"))
 ).expanduser()
+DATA_ROOT = DEFAULT_DATA_ROOT
 RAW_ROOT = DEFAULT_DATA_ROOT / "raw"
 CURATION_ROOT = DEFAULT_DATA_ROOT / "curation"
 DEFAULT_LEDGER = CURATION_ROOT / "persian_corpus.sqlite"

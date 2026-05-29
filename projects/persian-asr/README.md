@@ -16,12 +16,10 @@ The active Python entry points are defined in `pyproject.toml`:
 - `persian-benchmark-omni`
 - `persian-benchmark-sherpa-onnx`
 - `persian-build-candidate-manifests`
-- `persian-dataset-export-nemo-manifest`
-- `persian-dataset-ingest`
 - `persian-dataset-run-nemo-curator`
 - `persian-export-nemo-manifest`
 - `persian-finetune-parakeet`
-- `persian-ingest-corpus`
+- `persian-ingest`
 - `persian-prepare-omni-curated`
 - `persian-prepare-omni-fleurs`
 - `persian-prepare-omni-thomcles`
@@ -81,9 +79,9 @@ uv run persian-train-omni --preset thomcles-continue
 Corpus ingestion writes source rows to the curation ledger:
 
 ```bash
-uv run persian-ingest-corpus --source common_voice_25_0
-uv run persian-ingest-corpus --source fleurs_omni
-uv run persian-ingest-corpus --source thomcles_omni
+uv run persian-ingest --source common_voice_25_0
+uv run persian-ingest --source fleurs_omni
+uv run persian-ingest --source thomcles_omni
 ```
 
 NeMo manifest export materializes audio files and JSONL for Curator:

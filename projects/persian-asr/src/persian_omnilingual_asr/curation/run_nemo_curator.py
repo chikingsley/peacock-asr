@@ -7,7 +7,7 @@ from typing import Any, cast
 
 os.environ.setdefault("RAY_ENABLE_UV_RUN_RUNTIME_ENV", "0")
 
-from persian_omnilingual_asr.curation.export_nemo_manifest import NEMO_MODEL_CARD
+from persian_asr_dataset.cli.export_nemo_manifest import NEMO_MODEL_CARD
 
 
 def build_parser() -> argparse.ArgumentParser:

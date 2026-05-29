@@ -12,12 +12,12 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 from tqdm import tqdm
 
-from persian_asr_dataset.vendor.nvidia_stt_fa_fastconformer_hybrid_large import maybe_normalize
-from persian_omnilingual_asr.dataset_prep.text_audit import (
+from persian_asr_dataset.dataset_prep.text_audit import (
     DEFAULT_TOKENIZER,
     TokenizerCoverageError,
     assert_tokenizer_clean,
 )
+from persian_asr_dataset.vendor.nvidia_stt_fa_fastconformer_hybrid_large import maybe_normalize
 
 OMNI_SAMPLE_RATE = 16_000
 DEFAULT_DATASET_ROOT = Path(
