@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -16,9 +17,15 @@ if TYPE_CHECKING:
 
 
 DEFAULT_ROOT = PROJECT_ROOT / "src" / "finetune_omni" / "data" / "training" / "omnilingual"
+# The Omni char tokenizer, kept as a tracked local asset (override with env
+# PERSIAN_OMNI_TOKENIZER). Re-download from:
+# dl.fbaipublicfiles.com/mms/omniASR_tokenizer_written_v2.model
+_OMNI_ASSETS = PROJECT_ROOT / "src" / "finetune_omni" / "assets"
 DEFAULT_TOKENIZER = Path(
-    "/home/simon/.cache/fairseq2/assets/e7be1a6acb8f76fdbca19dce/"
-    "omniASR_tokenizer_written_v2.model"
+    os.environ.get(
+        "PERSIAN_OMNI_TOKENIZER",
+        str(_OMNI_ASSETS / "omniASR_tokenizer_written_v2.model"),
+    )
 )
 WATCH_CHARS = {
     "\u200c": "ZWNJ",

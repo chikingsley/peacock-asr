@@ -120,12 +120,12 @@ def maybe_normalize(text: str) -> str | None:
     for tok in DISCARD:
         text = text.replace(tok, "")
 
-    # Drop Unicode format/control characters: ZWNJ, ZWJ, bidi marks /
-    # embeddings / isolates, soft hyphen, BOM. The Omni char tokenizer has no
-    # piece for these, so they would encode to <unk> ("⁇"). They are inaudible,
-    # so map to a space and let the final whitespace-collapse merge it.
-    # See docs/zwnj-normalization-decision-20260529.md.
-    text = "".join(" " if unicodedata.category(ch) == "Cf" else ch for ch in text)
+    # Drop Unicode format/control chars (Cf: ZWNJ, ZWJ, bidi marks/embeddings/
+    # isolates, soft hyphen, BOM) and other symbols (So: emoji, musical notes ♪♫,
+    # misc symbols). The Omni char tokenizer has no piece for these, so they
+    # would encode to <unk> ("⁇"); none are speech, so map to a space and let the
+    # final whitespace-collapse merge it. See docs/zwnj-normalization-decision-20260529.md.
+    text = "".join(" " if unicodedata.category(ch) in {"Cf", "So"} else ch for ch in text)
 
     # Unify the symbols that have the same meaning but different Unicode representation.
     text = unicodedata.normalize("NFKC", text)
