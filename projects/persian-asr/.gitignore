@@ -12,6 +12,9 @@ vendor/
 *.sqlite-wal
 *.sqlite-shm
 
+# fairseq2 asset cache (downloaded model/tokenizer assets)
+.fairseq2-assets/
+
 # Python / tooling
 __pycache__/
 *.pyc
