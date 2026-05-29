@@ -4,12 +4,16 @@ import os
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PACKAGE_DIR = Path(__file__).resolve().parent
 DEFAULT_DATA_ROOT = Path(
     os.environ.get("PERSIAN_ASR_DATA_ROOT", str(PROJECT_ROOT / "data"))
 ).expanduser()
 DEFAULT_HF_HOME = DEFAULT_DATA_ROOT / "hf-cache"
+# NeMo example finetune/tokenizer scripts (Apache-2.0) vendored into the package;
+# they import only the installed `nemo` package. Override with PERSIAN_NEMO_ROOT
+# to point at a full NeMo checkout if needed.
 DEFAULT_NEMO_ROOT = Path(
-    os.environ.get("PERSIAN_NEMO_ROOT", str(PROJECT_ROOT / "vendor" / "nemo"))
+    os.environ.get("PERSIAN_NEMO_ROOT", str(PACKAGE_DIR / "nemo_recipes"))
 ).expanduser()
 DEFAULT_TOKENIZER_ROOT = PROJECT_ROOT / "models" / "tokenizers" / "parakeet"
 # Parakeet runs live under the single top-level runs/ tree (runs/parakeet),
