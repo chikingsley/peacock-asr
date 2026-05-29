@@ -39,7 +39,7 @@ persian-benchmark-omni = "finetune_omni.benchmarks.omni:main"
 persian-benchmark-sherpa-onnx = "finetune_omni.benchmarks.sherpa_onnx:main"
 persian-benchmark-suite = "finetune_omni.benchmarks.suite:main"
 persian-build-canonical-datasets = "persian_asr_dataset.cli.build_canonical:main"
-persian-build-candidate-manifests = "finetune_omni.curation.build_candidate_manifests:main"
+persian-build-candidate-manifests = "persian_asr_dataset.curation.build_candidate_manifests:main"
 persian-export-nemo-manifest = "persian_asr_dataset.cli.export_nemo_manifest:main"
 persian-dataset-export-canonical-nemo-manifest = "persian_asr_dataset.cli.export_canonical_nemo_manifest:main"
 persian-dataset-filter-nemo-manifest = "persian_asr_dataset.cli.filter_nemo_manifest:main"
@@ -56,8 +56,8 @@ persian-prepare-omni-fleurs = "persian_asr_dataset.dataset_prep.fleurs:main"
 persian-prepare-omni-thomcles = "persian_asr_dataset.dataset_prep.thomcles:main"
 persian-omni-text-audit = "persian_asr_dataset.dataset_prep.text_audit:main"
 persian-repair-neyshekar = "persian_asr_dataset.dataset_prep.neyshekar:main"
-persian-run-nemo-curator = "finetune_omni.curation.run_nemo_curator:main"
-persian-score-omni-manifest = "finetune_omni.curation.score_omni_manifest:main"
+persian-run-nemo-curator = "persian_asr_dataset.curation.run_nemo_curator:main"
+persian-score-omni-manifest = "persian_asr_dataset.curation.score_omni_manifest:main"
 persian-train-omni = "finetune_omni.training.train:main"
 persian-train-tokenizer = "finetune_parakeet.cli.train_tokenizer:main"
 
@@ -101,7 +101,7 @@ extend-select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"src/finetune_omni/curation/run_nemo_curator.py" = [
+"src/persian_asr_dataset/curation/run_nemo_curator.py" = [
     "E402",     # Ray uv-runtime control must be set before importing Curator/Ray.
     "PLC0415",  # Curator/Xenna imports must happen after local Ray setup.
 ]
@@ -112,7 +112,7 @@ extend-select = [
 "src/persian_asr_dataset/canonical.py" = [
     "PLR0913",  # Dataset writers and source adapters carry explicit schema fields.
 ]
-"src/finetune_omni/curation/score_omni_manifest.py" = [
+"src/persian_asr_dataset/curation/score_omni_manifest.py" = [
     "PLC0415",  # FAIRSEQ2_ASSET_DIR must be set before importing the Omni pipeline.
 ]
 "src/finetune_omni/benchmarks/asr.py" = [

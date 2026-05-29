@@ -7,18 +7,17 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-# Curation/scoring data lives in the core package; omni selection output lives here.
-CORE_CURATION_ROOT = PROJECT_ROOT / "src" / "persian_asr_dataset" / "data" / "curation"
-OMNI_DATA_ROOT = Path(__file__).resolve().parents[1] / "data"
+# All curation/scoring/selection data lives inside this core package (gitignored).
+CORE_DATA_ROOT = Path(__file__).resolve().parents[1] / "data"
+CURATION_ROOT = CORE_DATA_ROOT / "curation"
 DEFAULT_POOL_MANIFEST = (
-    OMNI_DATA_ROOT
+    CORE_DATA_ROOT
     / "datasets/persian-asr-wer35-fastconformer/manifests/train_manifest.jsonl"
 )
-DEFAULT_POOL_SCORES = CORE_CURATION_ROOT / "omni_scores/fleurs-thomcles-best/scores.jsonl"
-DEFAULT_CV25_MANIFEST = CORE_CURATION_ROOT / "nemo_runs/cv25-score-pool/manifest/manifest.jsonl"
-DEFAULT_CV25_SCORES = CORE_CURATION_ROOT / "omni_scores/cv25-best/scores.jsonl"
-DEFAULT_OUTPUT_ROOT = OMNI_DATA_ROOT / "selection/candidate-manifests"
+DEFAULT_POOL_SCORES = CURATION_ROOT / "omni_scores/fleurs-thomcles-best/scores.jsonl"
+DEFAULT_CV25_MANIFEST = CURATION_ROOT / "nemo_runs/cv25-score-pool/manifest/manifest.jsonl"
+DEFAULT_CV25_SCORES = CURATION_ROOT / "omni_scores/cv25-best/scores.jsonl"
+DEFAULT_OUTPUT_ROOT = CORE_DATA_ROOT / "selection/candidate-manifests"
 
 
 @dataclass(frozen=True)

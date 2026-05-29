@@ -12,7 +12,7 @@ import pyarrow.parquet as pq
 import soundfile as sf
 from tqdm import tqdm
 
-from persian_asr_dataset.dataset.ledger import (
+from persian_asr_dataset.ledger import (
     LedgerSample,
     connect_ledger,
     upsert_sample,

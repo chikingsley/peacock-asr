@@ -16,7 +16,7 @@ import pyarrow.parquet as pq
 import soundfile as sf
 from tqdm import tqdm
 
-from persian_asr_dataset.dataset.ledger import connect_ledger
+from persian_asr_dataset.ledger import connect_ledger
 from persian_asr_dataset.paths import DATA_ROOT, DEFAULT_LEDGER
 from persian_asr_dataset.vendor.nvidia_stt_fa_fastconformer_hybrid_large import maybe_normalize
 
