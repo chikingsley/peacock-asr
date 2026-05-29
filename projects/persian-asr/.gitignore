@@ -22,3 +22,6 @@ __pycache__/
 .ruff_cache/
 .pytest_cache/
 *.egg-info/
+
+# Vendored Omnilingual ASR training recipe (re-clone: github.com/facebookresearch/omnilingual-asr)
+src/persian_omnilingual_asr/omni_recipe/

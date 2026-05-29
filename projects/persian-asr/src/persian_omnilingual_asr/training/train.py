@@ -8,7 +8,15 @@ from dataclasses import dataclass
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-OMNI_ROOT = ROOT / "vendor" / "omnilingual-asr"
+# Omnilingual ASR training recipe checkout, vendored inside the package and
+# gitignored in place. Override with PERSIAN_OMNI_RECIPE_ROOT to use another
+# checkout. Re-clone: github.com/facebookresearch/omnilingual-asr
+OMNI_ROOT = Path(
+    os.environ.get(
+        "PERSIAN_OMNI_RECIPE_ROOT",
+        str(Path(__file__).resolve().parents[1] / "omni_recipe"),
+    )
+).expanduser()
 OMNI_RECIPE_MODULE = "workflows.recipes.wav2vec2.asr"
 OMNI_RECIPE_PATH = Path("workflows/recipes/wav2vec2/asr/__main__.py")
 
@@ -77,7 +85,11 @@ def configure_environment() -> None:
 def configure_recipe_source() -> None:
     recipe = OMNI_ROOT / OMNI_RECIPE_PATH
     if not recipe.is_file():
-        raise RuntimeError(f"Missing vendored Omnilingual ASR recipe: {recipe}")
+        raise RuntimeError(
+            f"Missing Omnilingual ASR recipe: {recipe}. Re-clone it with:\n"
+            f"  git clone https://github.com/facebookresearch/omnilingual-asr.git {OMNI_ROOT}\n"
+            "or set PERSIAN_OMNI_RECIPE_ROOT to an existing checkout."
+        )
     sys.path.insert(0, str(OMNI_ROOT / "src"))
     sys.path.insert(0, str(OMNI_ROOT))
 
