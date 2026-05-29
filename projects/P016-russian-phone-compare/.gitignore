@@ -1,0 +1,9 @@
+.mfa/
+.nemo_text_processing/
+.venv/
+.venv-*/
+.ruff_cache/
+.pytest_cache/
+__pycache__/
+*.pyc
+*.log

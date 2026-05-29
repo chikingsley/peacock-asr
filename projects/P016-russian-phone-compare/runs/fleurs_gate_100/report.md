@@ -1,0 +1,1470 @@
+# P016 Free-Speaking Eval Report
+
+Scoring path: audio -> Qwen ASR -> ASR text -> lane-specific G2P -> ZIPA/XLSR phones -> PER/PFER.
+
+Known dataset text is used only for audit/reporting. It is not fed to the scorer.
+
+## Lane Summary
+
+| language | lane | n | avg PER | avg PFER |
+| --- | --- | ---: | ---: | ---: |
+| en_us | xlsr-espeak | 100 | 0.1944 | 0.1037 |
+| en_us | zipa | 100 | 0.1592 | 0.0710 |
+| ru | xlsr-espeak | 100 | 0.4676 | 0.1384 |
+| ru | xlsr-mfa | 100 | 0.5616 | 0.1377 |
+| ru | zipa | 100 | 0.2166 | 0.0619 |
+| ru | zipa-charsiu | 100 | 0.2347 | 0.0717 |
+
+## ASR Vs Known Text
+
+- `fleurs_en_us_1548` (en_us): match
+  - known: `when you call someone who is thousands of miles away you are using a satellite`
+  - asr: `When you call someone who is thousands of miles away, you are using a satellite.`
+- `fleurs_en_us_1620` (en_us): changed
+  - known: `now widely available throughout the archipelago javanese cuisine features an array of simply seasoned dishes the predominant flavorings the javanese favor being peanuts chillies sugar especially javanese coconut sugar and various aromatic spices`
+  - asr: `Now widely available throughout the archipelago, Japanese cuisine features an array of simply seasoned dishes. The predominant flavorings the Japanese favor being peanuts, chilies, sugar, especially Japanese coconut sugar, and various aromatic spices.`
+- `fleurs_en_us_1510` (en_us): changed
+  - known: `the u.n. also hopes to finalize a fund to help countries affected by global warming to cope with the impacts`
+  - asr: `The UN also hopes to finalize a fund to help countries affected by global warming to cope with the impacts.`
+- `fleurs_en_us_1578` (en_us): changed
+  - known: `then lakkha singh took the lead in singing the bhajans`
+  - asr: `Then Lakasang took the lead in singing the pasongs.`
+- `fleurs_en_us_1652` (en_us): match
+  - known: `the major religion in moldova is orthodox christian`
+  - asr: `The major religion in Moldova is Orthodox Christian.`
+- `fleurs_en_us_1531` (en_us): match
+  - known: `the east african islands are in the indian ocean off the eastern coast of africa`
+  - asr: `The East African Islands are in the Indian Ocean off the eastern coast of Africa.`
+- `fleurs_en_us_1528` (en_us): match
+  - known: `some festivals have special camping areas for families with young children`
+  - asr: `Some festivals have special camping areas for families with young children.`
+- `fleurs_en_us_1595` (en_us): changed
+  - known: `the tibetan buddhism is based on the teachings of buddha but were extended by the mahayana path of love and by a lot of techniques from indian yoga`
+  - asr: `The Tibetan Buddhism is based on the teachings of Buddha, but were extended by the Mayana Path of Love and by a lot of techniques from Indian Yoga.`
+- `fleurs_en_us_1559` (en_us): match
+  - known: `pronunciation is relatively easy in italian since most words are pronounced exactly how they are written`
+  - asr: `Pronunciation is relatively easy in Italian since most words are pronounced exactly how they are written.`
+- `fleurs_en_us_1633` (en_us): changed
+  - known: `in this dynamic transport shuttle everyone is somehow connected with and supporting a transport system based on private cars`
+  - asr: `In this dynamic transport shuttle, everyone is connected with and supporting a transport system based on private cars.`
+- `fleurs_en_us_1560` (en_us): match
+  - known: `as soon as you get out of the current swimming back is no more difficult than normally`
+  - asr: `As soon as you get out of the current, swimming back is no more difficult than normally.`
+- `fleurs_en_us_1536` (en_us): match
+  - known: `local authorities are warning residents in the vicinity of the plant to stay indoors turn off air-conditioners and not to drink tap water`
+  - asr: `Local authorities are warning residents in the vicinity of the plant to stay indoors, turn off air conditioners, and not to drink tap water.`
+- `fleurs_en_us_1619` (en_us): match
+  - known: `however most signs are indicated only in catalan because it is established by law as the first official language`
+  - asr: `However, most signs are indicated only in Catalan because it is established by law as the first official language.`
+- `fleurs_en_us_1598` (en_us): match
+  - known: `although three people were inside the house when the car impacted it none of them were hurt`
+  - asr: `Although three people were inside the house when the car impacted it, none of them were hurt.`
+- `fleurs_en_us_1549` (en_us): match
+  - known: `these theories suggest that people have certain needs and/or desires which have been internalized as they mature to adulthood`
+  - asr: `These theories suggest that people have certain needs and/or desires, which have been internalized as they mature to adulthood.`
+- `fleurs_en_us_1583` (en_us): match
+  - known: `she came to this conclusion due to the multitude of positive comments and encouragement sent to her by both female and male individuals urging that contraception medication be considered a medical necessity`
+  - asr: `She came to this conclusion due to the multitude of positive comments and encouragement sent to her by both female and male individuals, urging that contraception medication be considered a medical necessity.`
+- `fleurs_en_us_1605` (en_us): changed
+  - known: `due to the long distance from the continent mammals were unable to make the journey making the giant tortoise the primary grazing animal in the galapagos`
+  - asr: `Due to the long distance from the continent, mammals were unable to make the journey, making the giant tortoise the primary grazing animal in the Gobios.`
+- `fleurs_en_us_1593` (en_us): changed
+  - known: `eventually wooden wheels were replaced by iron wheels in 1767 the first full-iron rails were introduced`
+  - asr: `Eventually, wooden wheels were replaced by iron wheels, and in 1767, the first full iron rails were introduced.`
+- `fleurs_en_us_1551` (en_us): match
+  - known: `they are still trying to determine just how large the crash was and how the earth will be affected`
+  - asr: `They are still trying to determine just how large the crash was and how the Earth will be affected.`
+- `fleurs_en_us_1596` (en_us): match
+  - known: `naturalists and philosophers focused on classical texts and in particular on the bible in latin`
+  - asr: `Naturalists and philosophers focused on classical texts, and in particular on the Bible in Latin.`
+- `fleurs_en_us_1573` (en_us): match
+  - known: `a satellite phone is not generally a replacement for a mobile phone as you have to be outdoors with clear line of sight to the satellite to make a phone call`
+  - asr: `A satellite phone is not generally a replacement for a mobile phone, as you have to be outdoors with clear line of sight to the satellite to make a phone call.`
+- `fleurs_en_us_1629` (en_us): match
+  - known: `some reports put the official death toll at eight and official reports confirm that up to 30 were injured but final numbers are not yet known`
+  - asr: `Some reports put the official death toll at eight, and official reports confirm that up to 30 were injured, but final numbers are not yet known.`
+- `fleurs_en_us_1615` (en_us): changed
+  - known: `thousands of years ago a man called aristarchus said that the solar system moved around the sun`
+  - asr: `Thousands of years ago, a man called Aristarchus said the solar system moved around the sun.`
+- `fleurs_en_us_1526` (en_us): match
+  - known: `if you visit the arctic or antarctic areas in the winter you will experience the polar night which means that the sun doesn't rise above the horizon`
+  - asr: `If you visit the Arctic or Antarctic areas in the winter, you will experience the polar night, which means that the sun doesn't rise above the horizon.`
+- `fleurs_en_us_1550` (en_us): changed
+  - known: `skiing is a major travelling activity with many enthusiasts occasionally known as ski bums planning entire vacations around skiing at a particular location`
+  - asr: `Skiing is a major traveling activity, with many enthusiasts, occasionally known as ski boners, planning entire vacations around skiing at a particular location.`
+- `fleurs_en_us_1518` (en_us): match
+  - known: `a former filipino policeman has kept hong kong tourists hostage by hijacking their bus in manila the capital of the philippines`
+  - asr: `A former Filipino policeman has kept Hong Kong tourists hostage by hijacking their bus in Manila, the capital of the Philippines.`
+- `fleurs_en_us_1607` (en_us): match
+  - known: `it's worth half an hour to stroll about the intriguing village`
+  - asr: `It's worth half an hour to stroll about the intriguing village.`
+- `fleurs_en_us_1517` (en_us): match
+  - known: `research in ai involves making machines to automate tasks that require intelligent behavior`
+  - asr: `Research in AI involves making machines to automate tasks that require intelligent behavior.`
+- `fleurs_en_us_1511` (en_us): match
+  - known: `soon officers equipped with riot gear entered the yard and cornered the inmates with tear gas`
+  - asr: `Soon, officers equipped with riot gear entered the yard and cornered the inmates with tear gas.`
+- `fleurs_en_us_1530` (en_us): changed
+  - known: `it had been scheduled to be cut down on tuesday but was saved after an emergency court ruling`
+  - asr: `It has been scheduled to be cut down on Tuesday, but was saved after an emergency court ruling.`
+- `fleurs_en_us_1587` (en_us): match
+  - known: `the first cases of the disease this season were reported in late july`
+  - asr: `The first cases of the disease this season were reported in late July.`
+- `fleurs_en_us_1539` (en_us): match
+  - known: `members of a subculture often signal their membership through a distinctive and symbolic use of style which includes fashions mannerisms and argot`
+  - asr: `Members of a subculture often signal their membership through a distinctive and symbolic use of style, which includes fashions, mannerisms, and argot.`
+- `fleurs_en_us_1642` (en_us): changed
+  - known: `the war expenditures of u.s. imperialism in the conquest of the philippines were paid for by the filipino people themselves`
+  - asr: `The war expenditures of U.S. imperialism and the conquests of the Philippines were paid for by the Filipino people themselves.`
+- `fleurs_en_us_1613` (en_us): match
+  - known: `next some saddles particularly english saddles have safety bars that allow a stirrup leather to fall off the saddle if pulled backwards by a falling rider`
+  - asr: `Next, some saddles, particularly English saddles, have safety bars that allow a stirrup leather to fall off the saddle if pulled backwards by a falling rider.`
+- `fleurs_en_us_1635` (en_us): changed
+  - known: `we can start living more friendly to the environment we can join to the environmental movement and we can even be activists in order to reduce the future suffering in some degree`
+  - asr: `We can start living more friendly to the environment. We can join the environmental movement, and we can even be activists in order to reduce the future suffering in some degree.`
+- `fleurs_en_us_1563` (en_us): match
+  - known: `the researchers suggested that even though this is the tail of a young dinosaur the sample shows adult plumage and not a chick's down`
+  - asr: `The researchers suggested that even though this is the tail of a young dinosaur, the sample shows adult plumage and not a chick's down.`
+- `fleurs_en_us_1586` (en_us): changed
+  - known: `her first was the slalom where she earned a did not finish in her first run 36 of the 116 competitors had the same result in that race`
+  - asr: `Her first was the Shalom, where she earned a did not finish in her first run. 36 of the 116 competitors had the same result in that race.`
+- `fleurs_en_us_1541` (en_us): match
+  - known: `courier companies are well paid for delivering things quickly frequently time is very important with business documents merchandise or spare parts for an urgent repair`
+  - asr: `Courier companies are well paid for delivering things quickly. Frequently, time is very important with business documents, merchandise, or spare parts for an urgent repair.`
+- `fleurs_en_us_1520` (en_us): changed
+  - known: `out of 1,400 people polled prior to the 2010 federal election those who oppose australia becoming a republic grew by 8 per cent since 2008`
+  - asr: `Out of 1,400 people polled prior to the 2010 federal election, those who oppose Australia becoming a republic grew by 8% since 2008.`
+- `fleurs_en_us_1594` (en_us): match
+  - known: `some animals such as elephants and giraffes tend to approach closely to cars and standard equipment will allow good viewing`
+  - asr: `Some animals, such as elephants and giraffes, tend to approach closely to cars, and standard equipment will allow good viewing.`
+- `fleurs_en_us_1555` (en_us): changed
+  - known: `in the churchyard there are interesting marble sculptures of doves over some tombs`
+  - asr: `In the churchyard, there are interesting marble sculptures of dust over some tombs.`
+- `fleurs_en_us_1564` (en_us): changed
+  - known: `some patients might have contracted the bug in the hospital dr moll thinks and at least two were hospital health workers`
+  - asr: `Some patients might have contracted the bug in the hospital, Doctor Mall thinks, and at least two were hospital health workers.`
+- `fleurs_en_us_1535` (en_us): match
+  - known: `it uses satellite-based technology as opposed to older ground-radar-based technology to allow air traffic controllers to pinpoint aircraft with greater precision and give pilots more accurate information`
+  - asr: `It uses satellite-based technology, as opposed to older ground radar-based technology, to allow air traffic controllers to pinpoint aircraft with greater precision and give pilots more accurate information.`
+- `fleurs_en_us_1546` (en_us): changed
+  - known: `the feathers' structure suggests that they were not used in flight but rather for temperature regulation or display the researchers suggested that even though this is the tail of a young dinosaur the sample shows adult plumage and not a chick's down`
+  - asr: `The feathers' structure suggests that they were not used in flight, but rather for temperature regulation or display. The researchers suggest that even though this is the tail of a young dinosaur, the sample shows an adult plumage and not a chick's down.`
+- `fleurs_en_us_1527` (en_us): changed
+  - known: `poland's men's visually impaired skier maciej krezel and guide anna ogarzynska finished thirteenth in the super-g south korea's jong seork park finished twenty-fourth in the men's sitting super-g`
+  - asr: `Poland's men's visually impaired skier Maciejew Kreskell and guide Anna Olgarszynska finished 13th in the Super G. South Korea's Jong Seok Park finished 24th in the men's sitting Super G.`
+- `fleurs_en_us_1513` (en_us): match
+  - known: `argentina is well known for having one of the best polo teams and players in the world`
+  - asr: `Argentina is well known for having one of the best polo teams and players in the world.`
+- `fleurs_en_us_1584` (en_us): match
+  - known: `widespread looting reportedly continued overnight as law enforcement officers were not present on bishkek's streets`
+  - asr: `Widespread looting reportedly continued overnight as law enforcement officers were not present on Bishkek's streets.`
+- `fleurs_en_us_1521` (en_us): match
+  - known: `the satellite in space gets the call and then reflects it back down almost instantly`
+  - asr: `The satellite in space gets the call and then reflects it back down almost instantly.`
+- `fleurs_en_us_1575` (en_us): changed
+  - known: `israel demands an ongoing military presence in the valley for ten years once an agreement is signed while the pa agrees to leave such presence only for five years`
+  - asr: `Israel demands an ongoing military presence in the valley for 10 years, once an agreement is signed, while the PA agrees to leave such presence only for five years.`
+- `fleurs_en_us_1618` (en_us): changed
+  - known: `the northern part or sentinel range has antarctica's highest mountains the vinson massif peaking at 4892 m mount vinson`
+  - asr: `The northern part, or Sentinel Range, has Antarctica's highest mountains, the Vinson Massif, peaking at 4,892 meters, Mount Vinson.`
+- `fleurs_en_us_1589` (en_us): match
+  - known: `the qualities that determine a subculture as distinct may be linguistic aesthetic religious political sexual geographical or a combination of factors`
+  - asr: `The qualities that determine a subculture as distinct may be linguistic, aesthetic, religious, political, sexual, geographical, or a combination of factors.`
+- `fleurs_en_us_1568` (en_us): changed
+  - known: `though it is widely used especially among non-romani the word gypsy is often considered offensive because of its associations with negative stereotypes and inaccurate perceptions of romani people`
+  - asr: `Though it is widely used, especially among non-Romani, the word "Gypsy" is often considered offensive because of its association with negative stereotypes and inaccurate perceptions of Romani people.`
+- `fleurs_en_us_1654` (en_us): match
+  - known: `i don't know if you realize it or not but most of the goods from central america came into this country duty-free`
+  - asr: `I don't know if you realize it or not, but most of the goods from Central America came into this country duty free.`
+- `fleurs_en_us_1572` (en_us): match
+  - known: `three more bombs exploded near government buildings in a period of two hours`
+  - asr: `Three more bombs exploded near government buildings in a period of two hours.`
+- `fleurs_en_us_1659` (en_us): match
+  - known: `scientists say the explosion caused by the collision was massive`
+  - asr: `Scientists say the explosion caused by the collision was massive.`
+- `fleurs_en_us_1644` (en_us): changed
+  - known: `when asked for comment miller said mike talks a lot during the hearing...i was getting ready so i wasn't really hearing what he was saying.`
+  - asr: `When asked for comment, Miller said, "Might text a lot during the hearing. I was getting ready, so I wasn't really hearing what he was saying."`
+- `fleurs_en_us_1648` (en_us): match
+  - known: `there were no large forests in the land of canaan so wood was extremely expensive`
+  - asr: `There were no large forests in the land of Canaan, so wood was extremely expensive.`
+- `fleurs_en_us_1616` (en_us): changed
+  - known: `science now indicates that this massive carbon economy has dislodged the biosphere from one of its stable states that has supported human evolution for the past two million years`
+  - asr: `Science now indicates that this massive carbon economy has dislodged the biosphere from one of its its stable states that has supported human evolution for the past two million years.`
+- `fleurs_en_us_1600` (en_us): changed
+  - known: `examples of on-site activities include hunting fishing photography bird watching and visiting parks and studying information about the ecosystem`
+  - asr: `Examples on off-site activities including hunting, fishing, photography, bird watching, and visiting parks and studying information about the ecosystem.`
+- `fleurs_en_us_1557` (en_us): match
+  - known: `after seeing the horrors and atrocities of war during world war i nations desired to avoid such a situation again in the future`
+  - asr: `After seeing the horrors and atrocities of war during World War I, nations desired to avoid such a situation again in the future.`
+- `fleurs_en_us_1514` (en_us): match
+  - known: `when the fighting ceased after the wounded were transported to the hospital about 40 of the other remaining inmates stayed in the yard and refused to return to their cells`
+  - asr: `When the fighting ceased after the wounded were transported to the hospital, about 40 of the other remaining inmates stayed in the yard and refused to return to their cells.`
+- `fleurs_en_us_1566` (en_us): changed
+  - known: `yet eighty percent of our goods were taxed through tariffs in central american countries we treat you`
+  - asr: `Yet 80% of our goods were taxed through tariffs in Central American countries. We treat you.`
+- `fleurs_en_us_1512` (en_us): match
+  - known: `this new environment has different resources and different competitors so the new population will need different features or adaptations to be a strong competitor than what they had needed before`
+  - asr: `This new environment has different resources and different competitors, so the new population will need different features or adaptations to be a strong competitor than what they had needed before.`
+- `fleurs_en_us_1590` (en_us): match
+  - known: `the main local beer is number one' it is not a complex beer but pleasant and refreshing the other local beer is called manta`
+  - asr: `The main local beer is number one. It is not a complex beer, but pleasant and refreshing. The other local beer is called Manta.`
+- `fleurs_en_us_1612` (en_us): match
+  - known: `water is spilling over the levee in a section 100 feet wide`
+  - asr: `Water is spilling over the levee in a section 100 feet wide.`
+- `fleurs_en_us_1533` (en_us): changed
+  - known: `many common formats aps family of formats for example are equal to or closely approximate this aspect ratio`
+  - asr: `Many common formats, EPS family of formats, for example, are equal to or closely approximate this aspect ratio.`
+- `fleurs_en_us_1522` (en_us): changed
+  - known: `technology offers the solution with virtual field trips students can look at museum artifacts visit an aquarium or admire beautiful art while sitting with their class`
+  - asr: `Technology offers a solution with virtual field trips. Students can look at museum artifacts, visit an aquarium, or admire beautiful art while sitting with their class.`
+- `fleurs_en_us_1515` (en_us): changed
+  - known: `it is martelly's fifth cep in four years`
+  - asr: `It is Martelli's fifth CEP in four years.`
+- `fleurs_en_us_1547` (en_us): changed
+  - known: `nhk also reported that the kashiwazaki kariwa nuclear power plant in niigata prefecture was operating normally`
+  - asr: `NHK also reported that the Kashiwaki-ku Nuclear Power Plant in Iwagata Prefecture was operating normally.`
+- `fleurs_en_us_1524` (en_us): match
+  - known: `there are a lot of social and political effects such as the use of metric system a shift from absolutism to republicanism nationalism and the belief the country belongs to the people not to one sole ruler`
+  - asr: `There are a lot of social and political effects, such as the use of metric system, a shift from absolutism to republicanism, nationalism, and the belief the country belongs to the people, not to one sole ruler.`
+- `fleurs_en_us_1519` (en_us): changed
+  - known: `in many cases enrolling on a gap-year course abroad can actually improve your chances of moving into higher education back in your home country`
+  - asr: `In many cases, enrolling on a gap year course abroad can actually improve your chances on moving into higher education back in your home country.`
+- `fleurs_en_us_1614` (en_us): changed
+  - known: `they can see very well in the dark with night vision and move very stealthily too ocelots hunt their prey by blending in with their surroundings then pouncing on their prey`
+  - asr: `They can see very well in the dark with night vision and move very stealthily too. Ocelots hunt their prey by blending in with their surroundings and pouncing on their prey.`
+- `fleurs_en_us_1609` (en_us): changed
+  - known: `robin uthappa made the innings highest score 70 runs in just 41 balls by hitting 11 fours and 2 sixes`
+  - asr: `Robin Uthappa made the innings' highest score, 70 runs in just 41 balls, by hitting 11 fours and two sixes.`
+- `fleurs_en_us_1621` (en_us): match
+  - known: `at the beginning dress was heavily influenced by the byzantine culture in the east`
+  - asr: `At the beginning, dress was heavily influenced by the Byzantine culture in the East.`
+- `fleurs_en_us_1543` (en_us): match
+  - known: `the patient had been to nigeria where some cases of the ebola virus have occurred`
+  - asr: `The patient had been to Nigeria, where some cases of the Ebola virus have occurred.`
+- `fleurs_en_us_1591` (en_us): changed
+  - known: `former house speaker newt gingrich texas governor rick perry and congresswoman michele bachmann finished in fourth fifth and sixth place respectively`
+  - asr: `Former House Speaker Newt Gingrich, Texas Governor Rick Perry, and Congresswoman Michelle Bachmann finished in fourth, fifth, and sixth place, respectively.`
+- `fleurs_en_us_1576` (en_us): match
+  - known: `a course will normally cover all the issues discussed here in far greater detail usually with practical experience`
+  - asr: `A course will normally cover all the issues discussed here in far greater detail, usually with practical experience.`
+- `fleurs_en_us_1580` (en_us): changed
+  - known: `across the united states of america there are approximately 400,000 known cases of multiple sclerosis ms leaving it as the leading neurological disease in younger and middle aged adults`
+  - asr: `Across the United States of America, there are approximately 400,000 known cases of multiple sclerosis, leaving it as the leading neurological disease in younger and middle-aged adults.`
+- `fleurs_en_us_1556` (en_us): changed
+  - known: `his 1,000th stamp was the magnificent great deeds by swedish kings by david klöcker ehrenstrahl in 2000 which is listed in the guinness book of world records`
+  - asr: `His 1,000th stamp was the magnificent Great Deeds by Swedish King by David Clocker Estrall in 2000, which is listed in the Guinness Book of World Records.`
+- `fleurs_en_us_1606` (en_us): match
+  - known: `the portuguese destroyed it and rebuilt it under the name casa branca only to abandon it after an earthquake in 1755`
+  - asr: `The Portuguese destroyed it and rebuilt it under the name Casa Branca, only to abandon it after an earthquake in 1755.`
+- `fleurs_en_us_1577` (en_us): match
+  - known: `that didn't seem to make sense to me it certainly wasn't fair`
+  - asr: `That didn't seem to make sense to me. It certainly wasn't fair.`
+- `fleurs_en_us_1542` (en_us): changed
+  - known: `bush spokesman gordon johndroe called north korea's pledge a major step towards the goal of achieving the verifiable denuclearization of the korean peninsula`
+  - asr: `Bush spokesman Gordon Giandrea called North Korea's pledge a major step towards the goal of achieving the verifiable denuclearization of the Korean Peninsula.`
+- `fleurs_en_us_1537` (en_us): match
+  - known: `you can see the pyramids in the dark and you can see them in silence before the show begins`
+  - asr: `You can see the pyramids in the dark, and you can see them in silence before the show begins.`
+- `fleurs_en_us_1561` (en_us): match
+  - known: `most districts are served by small japanese coaster buses which are comfortable and sturdy`
+  - asr: `Most districts are served by small Japanese coaster buses, which are comfortable and sturdy.`
+- `fleurs_en_us_1603` (en_us): match
+  - known: `air accidents are common in iran which has an aging fleet that is poorly maintained both for civil and military operations`
+  - asr: `Air accidents are common in Iran, which has an aging fleet that is poorly maintained, both for civil and military operations.`
+- `fleurs_en_us_1525` (en_us): changed
+  - known: `the broad boulevards glass-fronted buildings and modern shopping centers are dotted with traditional red-tiled roofs the 18th century market and old mosques and churches although the city has an atmosphere more of mediterranean europe than traditional turkey`
+  - asr: `The broad boulevards, glass-printed buildings, and modern shopping centers are dotted with traditional red tile roofs, the 19th century market, and old mosques and churches. Although the city has an atmosphere more of Mediterranean Europe than traditional Turkey.`
+- `fleurs_en_us_1540` (en_us): match
+  - known: `in principle the tibetan buddhism is very simple it consists of kundalini yoga meditation and the path of all-embracing love`
+  - asr: `In principle, the Tibetan Buddhism is very simple. It consists of Kundalini Yoga, meditation, and the path of all-embracing love.`
+- `fleurs_en_us_1631` (en_us): changed
+  - known: `new kingdom ancient egyptians marvelled at their predecessors monuments which were then well over a thousand year old`
+  - asr: `New Kingdom ancient Egyptians marvelled at their predecessors' monuments, which were then well over a thousand years old.`
+- `fleurs_en_us_1643` (en_us): changed
+  - known: `the park covers 19,500 km² and is divided in 14 different ecozones each supporting different wildlife`
+  - asr: `The park covers 19,500 kilometers and is divided in 14 different ecozones, each supporting different wildlife.`
+- `fleurs_en_us_1624` (en_us): match
+  - known: `inland waterways can be a good theme to base a holiday around`
+  - asr: `Inland waterways can be a good theme to base a holiday around.`
+- `fleurs_en_us_1602` (en_us): changed
+  - known: `majorcan cuisine like that of similar zones in the mediterranean is based on bread vegetables and meat specially pork and uses olive oil throughout`
+  - asr: `Majorcan cuisine, like that of similar zones in Mediterranean, is based on bread, vegetables and meat, specifically pork, and uses olive oil throughout.`
+- `fleurs_en_us_1639` (en_us): match
+  - known: `since students are often the most critical audience the blog writer begins to strive to improve writing to avoid criticism`
+  - asr: `Since students are often the most critical audience, the blog writer begins to strive to improve writing to avoid criticism.`
+- `fleurs_en_us_1608` (en_us): match
+  - known: `i lost my sister and her friend and on my way there were two disabled people in wheelchairs people just jumping over and pushing them armand versace said`
+  - asr: `I lost my sister and her friend, and on my way there, were two disabled people in wheelchairs. People just jumping over and pushing them. Armand Versace said.`
+- `fleurs_en_us_1534` (en_us): match
+  - known: `combined with its relative inaccessibility timbuktu has come to be used as a metaphor for exotic distant lands`
+  - asr: `Combined with its relative inaccessibility, Timbuktu has come to be used as a metaphor for exotic distant lands.`
+- `fleurs_en_us_1623` (en_us): match
+  - known: `the articles required unanimous consent from all the states before they could be amended and states took the central government so lightly that their representatives were often absent`
+  - asr: `The articles required unanimous consent from all the states before they could be amended, and states took the central government so lightly that their representatives were often absent.`
+- `fleurs_en_us_1582` (en_us): changed
+  - known: `most of the life of the hebrew family happened in the open air`
+  - asr: `Most of the life of the Fiebrusch family opened in the air.`
+- `fleurs_en_us_1653` (en_us): changed
+  - known: `in a partnership of npws and the sporting shooters association of australia nsw inc qualified volunteers were recruited under the sporting shooters association's hunting program`
+  - asr: `In a partnership of MPWS and the Sporting Shooters Association of Australia Incorporated, qualified volunteers were recruited under the Sporting Shooters Association hunting program.`
+- `fleurs_en_us_1634` (en_us): changed
+  - known: `japans holds nearly 7,000 islands the biggest being honshu making japan the 7th largest island in the world!`
+  - asr: `Japan holds nearly 7,000 islands, the biggest being Honshu, making Japan the seventh-largest island in the world.`
+- `fleurs_en_us_1592` (en_us): changed
+  - known: `when you went abroad at first people were probably patient and understanding knowing that travellers in a new country need to adapt`
+  - asr: `When you went abroad at first, people were probably patient and understanding, knowing that travelers in a new country need to adapt.`
+- `fleurs_en_us_1630` (en_us): changed
+  - known: `arly velasquez of mexico finished fifteenth in the men's sitting super-g new zealand's adam hall finished ninth in the men's standing super-g`
+  - asr: `Arley Velasquez of Mexico finished 15th in the men's sitting Super G. New Zealand's Adam Hall finished 9th in the men's standing Super G.`
+- `fleurs_ru_1614` (ru): changed
+  - known: `они умеют отлично видеть в темноте при помощи ночного видения и почти незаметно передвигаться оцелоты выслеживают добычу сливаясь с окружающей обстановкой а затем набрасываются на добычу`
+  - asr: `Они умеют отлично видеть в темноте при помощи ночного видения и почти незаметно передвигаться. Оцилоты выслеживают добычу, сливаясь с окружающей обстановкой, а затем набрасываются на добычу.`
+- `fleurs_ru_1554` (ru): changed
+  - known: `он сказал что создал дверной звонок работающий от wifi`
+  - asr: `Он сказал, что создал дверной звонок, работающий от Wi-Fi.`
+- `fleurs_ru_1634` (ru): changed
+  - known: `в японии приблизительно 7000 островов самый большой из которых — хонсю что делает японию 7-м по величине островом в мире!`
+  - asr: `В Японии приблизительно 7 тысяч островов, самый большой из которых Хонсю, что делает Японию седьмым по величине островом в мире.`
+- `fleurs_ru_1615` (ru): changed
+  - known: `тысячи лет назад человек по имени аристарх сказал что солнечная система вращается вокруг солнца`
+  - asr: `Тысячи лет назад человек по имени Ристарх сказал, что Солнечная система вращается вокруг Солнца.`
+- `fleurs_ru_1609` (ru): changed
+  - known: `робин утхаппа набрал рекордное количество очков в иннинге 70 ранов за всего 41 подачу отбил 11 четвёрок и 2 шестёрки`
+  - asr: `Робин Утхаппа набрал рекордное количество очков в вынинге — 70 ранов за всего 41 подачу, отбил 11 четверок и две шестерки.`
+- `fleurs_ru_1549` (ru): changed
+  - known: `эти теории предполагают что у людей есть определённые потребности и/или желания которые накапливаются внутри в процессе взросления`
+  - asr: `Эти теории предполагают, что у людей есть определенная потребности и/или желания, которые накапливаются внутри в процессе взросления.`
+- `fleurs_ru_1587` (ru): match
+  - known: `о первых случаях заболевания в этом сезоне было сообщено в июле`
+  - asr: `О первых случаях заболевания в этом сезоне было сообщено в июле.`
+- `fleurs_ru_1618` (ru): changed
+  - known: `в северной части то есть на хребте сентинел находятся самые высокие горы антарктиды массив винсон самая высшая точка которого достигает 4892 м и называется пик винсон`
+  - asr: `В северной части, то есть на хребте Сантинел, находятся самые высокие горы Антарктиды – массив Винсон. Самая высшая точка которого достигает 4892 метра и называется пик Винсон.`
+- `fleurs_ru_1651` (ru): changed
+  - known: `вариант становящийся всё более популярным для тех кто планирует взять академический год это путешествовать и учиться`
+  - asr: `Вариант, становящийся все более популярным для тех, кто планирует взять академический год, это путешествовать и учиться.`
+- `fleurs_ru_1647` (ru): match
+  - known: `изложенные мнения часто поверхностны расплывчаты и чрезмерно упрощены по сравнению с повсеместно доступной более подробной информацией`
+  - asr: `Изложенные мнения часто поверхностны, расплывчаты и чрезмерно упрощены по сравнению с повсеместно доступной более подробной информацией.`
+- `fleurs_ru_1600` (ru): match
+  - known: `среди примеров активного отдыха на объекте охота рыбная ловля фотографирование наблюдение за птицами посещение парков и изучение информации об экосистеме`
+  - asr: `Среди примеров активного отдыха на объекте охота, рыбная ловля, фотографирование, наблюдение за птицами, посещение парков и изучение информации об экосистеме.`
+- `fleurs_ru_1516` (ru): changed
+  - known: `пожалуйста относитесь к этому месту со всем достоинством серьёзностью и уважением которых оно заслуживает не шутите про холокост и нацистов`
+  - asr: `Пожалуйста, относитесь к этому месту со всем достоинством, серьезностью и уважением, которых оно заслуживает. Не шутите про Холокост и нацистов.`
+- `fleurs_ru_1560` (ru): match
+  - known: `как только вы выйдете из течения плыть обратно будет не труднее чем обычно`
+  - asr: `Как только вы выйдете из течения, плыть обратно будет не труднее, чем обычно.`
+- `fleurs_ru_1619` (ru): changed
+  - known: `однако большинство знаков указываются только на каталанском языке поскольку он по закону является первым официальным языком`
+  - asr: `Однако большинство знаков указывается только на каталонском языке, поскольку он по закону является первым официальным языком.`
+- `fleurs_ru_1525` (ru): match
+  - known: `широкие бульвары здания со стеклянными фасадами современные торговые центры перемежаются местами с традиционными крышами с красной черепицей рынком xviii века старыми мечетями и церквями хотя город и имеет больше атмосферу средиземноморской европы чем традиционной турции`
+  - asr: `Широкие бульвары, здания со стеклянными фасадами, современные торговые центры перемежаются местами с традиционными крышами с красной черепицей, рынком XVIII века, старыми мечетями и церквями, хотя город и имеет больше атмосферу Средиземноморской Европы, чем традиционной Турции.`
+- `fleurs_ru_1563` (ru): changed
+  - known: `исследователи предположили что несмотря на то что это хвост молодого динозавра данный образец имеет оперение взрослой особи а не пух цыплёнка`
+  - asr: `Исследователи предположили, что, несмотря на то, что это хвост молодого динозавра, данный образец имеет оперение взрослой особи, а не пух цыпленка.`
+- `fleurs_ru_1534` (ru): match
+  - known: `в связи со своей относительной недоступностью тимбукту стал метафорой экзотической дальней земли`
+  - asr: `В связи со своей относительной недоступностью Тимбукту стал метафорой экзотической дальней земли.`
+- `fleurs_ru_1522` (ru): changed
+  - known: `технология предлагает решение при помощи виртуальных экскурсий учащиеся могут осматривать музейные экспонаты посещать аквариум или наслаждаться прекрасным искусством сидя со своим классом`
+  - asr: `Технология предлагает решения при помощи виртуальных экскурсий. Учащиеся могут осматривать музейные экспонаты, посещать аквариум или наслаждаться прекрасным искусством, сидя со своим классом.`
+- `fleurs_ru_1654` (ru): changed
+  - known: `не знаю осознаете вы или нет но большая часть товаров из центральной америки была ввезена в эту страну беспошлинно`
+  - asr: `Не знаю, осознаете вы или нет, но большая часть товаров из Центральной Америки была ввезена в эту страну без пошлин.`
+- `fleurs_ru_1640` (ru): match
+  - known: `на ледяной и снежной дороге трение низкое и вы не сможете вести машину так же как на обычном асфальте`
+  - asr: `На ледяной и снежной дороге трение низкое, и вы не сможете вести машину так же, как на обычном асфальте.`
+- `fleurs_ru_1622` (ru): match
+  - known: `президент сша джордж буш приветствовал это заявление`
+  - asr: `Президент США Джордж Буш приветствовал это заявление.`
+- `fleurs_ru_1572` (ru): match
+  - known: `еще три бомбы взорвались возле правительственных зданий в течение двух часов`
+  - asr: `Еще три бомбы взорвались возле правительственных зданий в течение двух часов.`
+- `fleurs_ru_1601` (ru): changed
+  - known: `учёные считают что оцелоты идут по следу животных и находят добычу по запаху отслеживая с помощью обоняния ее передвижения по земле`
+  - asr: `Ученые считают, что оцилоты идут по следу животных и находят добычу по запаху, отслеживая с помощью обоняния ее передвижение по земле.`
+- `fleurs_ru_1585` (ru): changed
+  - known: `с течением времени по мере того как новая популяция начинает адаптироваться к новой среде она начинает всё меньше и меньше походить на остальную популяцию`
+  - asr: `С течением времени, по мере того как новая популяция начинает адаптироваться к новой среде, она начинает все меньше и меньше походить на остальную популяцию.`
+- `fleurs_ru_1545` (ru): changed
+  - known: `в зависимости от содержания жидкости карри может быть сухим или мокрым`
+  - asr: `В зависимости от содержания жидкости кари может быть сухим или мокрым.`
+- `fleurs_ru_1514` (ru): changed
+  - known: `когда драка прекратилась после того как раненые были доставлены в больницу еще около 40 заключенных остались во дворе и отказались возвращаться в свои камеры`
+  - asr: `Когда драка прекратилась после того, как раненые были доставлены в больницу, еще около сорока заключенных остались во дворе и отказались возвращаться в свои камеры.`
+- `fleurs_ru_1553` (ru): changed
+  - known: `рождество это один из наиболее важных праздников в христианстве и оно отмечается как день рождения иисуса`
+  - asr: `Рождество — это один из наиболее важных праздников христианства, и оно отмечается как день рождения Иисуса.`
+- `fleurs_ru_1629` (ru): changed
+  - known: `по некоторым сообщениям официальное количество жертв достигает восьми человек и официальные сводки подтверждают что до 30 человек были ранены но окончательные цифры еще неизвестны`
+  - asr: `По некоторым сообщениям, официально количество жертв достигает 8 человек. Официальные сводки подтверждают, что до 30 человек были ранены, но окончательные цифры еще не известны.`
+- `fleurs_ru_1565` (ru): match
+  - known: `главная цель науки это выяснить каким образом устроен мир применив научный метод этот метод фактически лежит в основе большинства научных исследований`
+  - asr: `Главная цель науки – это выяснить, каким образом устроен мир, применив научный метод. Этот метод фактически лежит в основе большинства научных исследований.`
+- `fleurs_ru_1512` (ru): changed
+  - known: `у этой новой среды есть другие ресурсы и другие конкуренты поэтому новой популяции будут необходимы другие характеристики или изменения по сравнению с теми которые у неё были раньше чтобы стать сильным соперником`
+  - asr: `У этой новой среды есть другие ресурсы и другие конкуренты, поэтому новой популяции будут необходимы другие характеристики или изменения по сравнению с теми, которые у нее были раньше, чтобы стать сильным соперником.`
+- `fleurs_ru_1519` (ru): changed
+  - known: `во многих случаях поступление на какой-либо курс за границей во время академического отпуска действительно может повысить ваши шансы на поступление в высшие учебные заведения на родине`
+  - asr: `Во многих случаях поступление на какой-либо курс за границей во время академического отпуска действительно может повысить ваши шансы на поступление в высшее учебное заведение на родине.`
+- `fleurs_ru_1624` (ru): match
+  - known: `внутренние водные пути могут стать хорошей темой для проведения какого-либо праздника`
+  - asr: `Внутренние водные пути могут стать хорошей темой для проведения какого-либо праздника.`
+- `fleurs_ru_1528` (ru): match
+  - known: `на некоторых фестивалях есть специальные зоны кемпингов для семей с малолетними детьми`
+  - asr: `На некоторых фестивалях есть специальные зоны кемпингов для семей с малолетними детьми.`
+- `fleurs_ru_1635` (ru): match
+  - known: `мы можем начать жить больше заботясь об окружающей среде мы можем стать членами экологического движения и даже можем быть активистами чтобы хоть немного облегчить дальнейшие страдания`
+  - asr: `Мы можем начать жить больше заботясь об окружающей среде. Мы можем стать членами экологического движения и даже можем быть активистами, чтобы хоть немного облегчить дальнейшие страдания.`
+- `fleurs_ru_1548` (ru): match
+  - known: `когда вы звоните кому-то за тысячи миль от вас вы используете спутник`
+  - asr: `Когда вы звоните кому-то за тысячи миль от вас, вы используете спутник.`
+- `fleurs_ru_1659` (ru): match
+  - known: `учёные говорят что взрыв вызванный столкновением был очень мощным`
+  - asr: `Учёные говорят, что взрыв, вызванный столкновением, был очень мощным.`
+- `fleurs_ru_1571` (ru): match
+  - known: `арабы также принесли в этот регион ислам особенно он укоренился на коморах и майотте`
+  - asr: `Арабы также принесли в этот регион ислам, особенно он укоренился на Коморах и Майотте.`
+- `fleurs_ru_1542` (ru): changed
+  - known: `представитель буша гордон джондро назвал обещание северной кореи большим шагом на пути к цели по достижению поддающегося проверке ядерного разоружения корейского полуострова`
+  - asr: `Представитель Буша Гордон Джондра назвал обещание Северной Кореи большим шагом на пути к цели по достижению поддающегося проверке ядерного разоружения Корейского полуострова.`
+- `fleurs_ru_1616` (ru): match
+  - known: `в настоящее время наука указывает что огромная углеводородная экономика повлияла на одно из стабильных состояний биосферы которое поддерживало эволюцию человечества на протяжении последних двух миллионов лет`
+  - asr: `В настоящее время наука указывает, что огромная углеводородная экономика повлияла на одно из стабильных состояний биосферы, которое поддерживало эволюцию человечества на протяжении последних двух миллионов лет.`
+- `fleurs_ru_1520` (ru): changed
+  - known: `из 1400 человек опрошенных в преддверии федеральных выборов 2010 года число тех кто выступает против того чтобы австралия стала республикой выросло с 2008 года на 8 процентов`
+  - asr: `Из 1400 человек опрошенных в преддверии федеральных выборов 2010 года число тех, кто выступает против того, чтобы Австралия стала республикой, выросло с 2008 года на 8%.`
+- `fleurs_ru_1510` (ru): match
+  - known: `оон также надеется завершить создание фонда помощи странам страдающим от глобального потепления для борьбы с его последствиями`
+  - asr: `ООН также надеется завершить создание фонда помощи странам, страдающим от глобального потепления, для борьбы с его последствиями.`
+- `fleurs_ru_1580` (ru): match
+  - known: `в сша обнаружено приблизительно 400 тысяч случаев рассеянного склероза рс что делает рассеянный склероз главным неврологическим заболеванием молодежи и людей среднего возраста`
+  - asr: `В США обнаружено приблизительно 400 тысяч случаев рассеянного склероза (РС), что делает рассеянный склероз главным неврологическим заболеванием молодежи и людей среднего возраста.`
+- `fleurs_ru_1597` (ru): changed
+  - known: `деньги можно обменять в единственном банке на этих островах который находится на порт-стэнли напротив магазина fic west`
+  - asr: `Деньги можно обменять в единственном банке на этих островах, который находится на Порт Стэнли напротив магазина Fig West.`
+- `fleurs_ru_1637` (ru): changed
+  - known: `6-го октября 1789-го года разозлённая толпа женщин с рынка заставила  вернуться в париж из версаля пришедших в ужас короля людовика xvi королеву марию-антуаннету их двух маленьких детей 11-ти летнюю марию-терезу и 4-х летнего луи-чарлза и сестру короля мадам элизабет`
+  - asr: `6 октября 1789 года разъяренная толпа женщин с рынка заставила вернуться в Париж из Версаля пришедших в ужас короля Людовика XVI, королеву Марию-Антуанетту и их двух маленьких детей, 11-летнюю Марию и 4-летнего Луи-Чарльза и сестру короля мадам Элизабет.`
+- `fleurs_ru_1526` (ru): match
+  - known: `если вы посетите арктику или антарктику зимой вы узнаете что такое полярная ночь когда солнце не поднимается над горизонтом`
+  - asr: `Если вы посетите Арктику или Антарктику зимой, вы узнаете, что такое полярная ночь, когда солнце не поднимается над горизонтом.`
+- `fleurs_ru_1645` (ru): changed
+  - known: `её всепроникающая сила коснулась каждого от короля до простолюдина`
+  - asr: `Ее всепроникающая сила коснулась каждого, от короля до простолюдина.`
+- `fleurs_ru_1517` (ru): match
+  - known: `исследования в области ии включают в себя создание машин для автоматизации задач требующих интеллектуального поведения`
+  - asr: `Исследования в области ИИ включают в себя создание машин для автоматизации задач, требующих интеллектуального поведения.`
+- `fleurs_ru_1550` (ru): changed
+  - known: `горные лыжи — это главное туристическое направление для многих любителей лыж их еще иногда называют лыжными бездельниками планирующих отдых целиком вокруг катания в определенном месте`
+  - asr: `Горная лыжа это главное туристическое направление для многих любителей лыж. Их еще иногда называют лыжными бездельниками, планирующих отдых целиком вокруг катания в определенном месте.`
+- `fleurs_ru_1521` (ru): match
+  - known: `спутник в космосе принимает звонок и практически мгновенно отражает его обратно вниз`
+  - asr: `Спутник в космосе принимает звонок и практически мгновенно отражает его обратно вниз.`
+- `fleurs_ru_1594` (ru): changed
+  - known: `некоторые животные такие как слоны или жирафы часто приближаются к машинам так что и с обычным оборудованием можно получить хороший вид`
+  - asr: `Некоторые животные, такие как слоны или жирафы, часто приближаются к машинам, так что с обычным оборудованием можно получить хороший вид.`
+- `fleurs_ru_1641` (ru): match
+  - known: `эти леса не просто мангровые болота к ним также относятся некоторые из последних оставшихся могучих джунглей которые когда-то покрывали гангскую равнину`
+  - asr: `Эти леса не просто мангровые болота. К ним также относятся некоторые из последних оставшихся могучих джунглей, которые когда-то покрывали Гангскую равнину.`
+- `fleurs_ru_1652` (ru): changed
+  - known: `основной религией в молдавии является православное христианство`
+  - asr: `Основной религии в Молдавии является православное христианство.`
+- `fleurs_ru_1568` (ru): changed
+  - known: `хотя слово gypsy широко используется особенно среди нецыган оно часто считается обидным из-за ассоциаций связанных с негативными стереотипами и неверными представлениями о цыганском народе`
+  - asr: `Хотя слово "гипси" широко используется, особенно среди нецыган, оно часто считается обидным из-за ассоциаций, связанных с негативными стереотипами и неверными представлениями о цыганском народе.`
+- `fleurs_ru_1573` (ru): match
+  - known: `как правило спутниковый телефон не является заменой мобильному телефону поскольку вам необходимо находиться на улице в зоне прямой видимости со спутника чтобы позвонить`
+  - asr: `Как правило, спутниковый телефон не является заменой мобильному телефону, поскольку вам необходимо находиться на улице в зоне прямой видимости со спутника, чтобы позвонить.`
+- `fleurs_ru_1648` (ru): match
+  - known: `на земле ханаана не было больших лесов поэтому древесина была чрезвычайно дорогой`
+  - asr: `На земле Ханаана не было больших лесов, поэтому древесина была чрезвычайно дорогой.`
+- `fleurs_ru_1636` (ru): match
+  - known: `испанцы начали период колонизации который длился три столетия`
+  - asr: `Испанцы начали период колонизации, который длился три столетия.`
+- `fleurs_ru_1546` (ru): changed
+  - known: `структура перьев наводит на мысль что они не использовались для полёта а скорее для регуляции температуры и демонстрирования исследователи предположили что хотя это и хвост молодого динозавра но в образце представлено взрослое оперение а не пух цыплёнка`
+  - asr: `Структура перьев наводит на мысль, что они не использовались для полета, а скорее для регуляции температуры и демонстрирования. Исследователи предположили, что хотя это и хвост молодого динозавра, но в образце представлена взрослое перьяние, а не пух цыпленка.`
+- `fleurs_ru_1577` (ru): match
+  - known: `это не казалось мне имеющим смысл конечно это не было справедливым`
+  - asr: `Это не казалось мне имеющим смысл. Конечно, это не было справедливым.`
+- `fleurs_ru_1612` (ru): match
+  - known: `вода выливается за плотину на отрезке шириной 100 футов`
+  - asr: `Вода выливается за плотину на отрезке шириной 100 футов.`
+- `fleurs_ru_1566` (ru): changed
+  - known: `тем не менее восемьдесят процентов наших товаров облагалось налогом согласно тарифам в странах центральной америки`
+  - asr: `Тем не менее, 80% наших товаров облагалось налогом согласно тарифам в странах Центральной Америки.`
+- `fleurs_ru_1621` (ru): match
+  - known: `сначала одежда находилась под сильным влиянием византийской культуры на востоке`
+  - asr: `Сначала одежда находилась под сильным влиянием византийской культуры на Востоке.`
+- `fleurs_ru_1595` (ru): match
+  - known: `тибетский буддизм основан на учениях будды но был дополнен махаянским путем любви и множеством техник индийской йоги`
+  - asr: `Тибетский буддизм основан на учениях Будды, но был дополнен махаянским путем любви и множеством техник индийской йоги.`
+- `fleurs_ru_1623` (ru): match
+  - known: `для внесения поправок согласно статьям требуется единогласное одобрение всех штатов но штаты так безответственно отнеслись к центральному правительству что их представители часто отсутствовали`
+  - asr: `Для внесения поправок, согласно статьям, требуется единогласное одобрение всех штатов, но штаты так безответственно отнеслись к центральному правительству, что их представители часто отсутствовали.`
+- `fleurs_ru_1605` (ru): changed
+  - known: `из-за большого расстояния от континента млекопитающие не могли добраться до туда что делает гигантскую черепаху основным травоядным животным на галапагосских островах`
+  - asr: `Из-за большого расстояния от континента млекопитающие не могли добраться туда, что делает гигантскую черепаху основным травоядным животным на Галапагосских островах.`
+- `fleurs_ru_1586` (ru): match
+  - known: `ее первым соревнованием был слалом в первом забеге которого она не доехала до финиша 36 из 116 участников имели такой же результат в той гонке`
+  - asr: `Ее первым соревнованием был слалом. В первом забеге которого она не доехала до финиша. 36 из 116 участников имели такой же результат в той гонке.`
+- `fleurs_ru_1543` (ru): match
+  - known: `больной посещал нигерию где обнаружен ряд случаев инфицирования вирусом эбола`
+  - asr: `Больной посещал Нигерию, где обнаружен ряд случаев инфицирования вирусом Эбола.`
+- `fleurs_ru_1606` (ru): match
+  - known: `португальцы уничтожили его и заново отстроили под названием каза-бранка но покинули его после землетрясения 1755 года`
+  - asr: `Португальцы уничтожили его и заново отстроили под названием Каза-Бранка, но покинули его после землетрясения 1755 года.`
+- `fleurs_ru_1607` (ru): match
+  - known: `стоит уделить полчаса и прогуляться по необычной деревне`
+  - asr: `Стоит уделить полчаса и прогуляться по необычной деревне.`
+- `fleurs_ru_1581` (ru): changed
+  - known: `амазонка также является самой широкой рекой на земле ширина которой иногда составляет шесть миль`
+  - asr: `Амазонка также является самой широкой рекой на Земле, ширина которой иногда составляет 6 миль.`
+- `fleurs_ru_1540` (ru): changed
+  - known: `принцип тибетского буддизма очень прост он состоит из кундалини-йоги медитации и пути всепоглощающей любви`
+  - asr: `Принцип тибетского буддизма очень прост. Он состоит из кундалини йоги, медитации и путей, все поглощающих любви.`
+- `fleurs_ru_1551` (ru): changed
+  - known: `они по-прежнему стараются определить насколько большим было столкновение и как пострадает земля`
+  - asr: `Они по-прежнему стараются определить, насколько большим было столкновение и как пострадала Земля.`
+- `fleurs_ru_1570` (ru): match
+  - known: `у него также не было полномочий отменять налоговое законодательство и тарифы штатов`
+  - asr: `У него также не было полномочий отменять налоговое законодательство и тарифы штатов.`
+- `fleurs_ru_1591` (ru): changed
+  - known: `бывший спикер палаты ньют гингрич губернатор техаса рик перри и конгресмен мишель бахман заняли четвертое пятое и шестое места соответственно`
+  - asr: `Бывший спикер Палаты Ньют Гингрич, губернатор Техаса Рик Перри и конгрессмен Мишель Бахман заняли четвертое, пятое и шестое места, соответственно.`
+- `fleurs_ru_1536` (ru): match
+  - known: `местные власти предупреждают жителей проживающих поблизости от станции о необходимости оставаться в помещениях выключить кондиционеры и не пить воду из-под крана`
+  - asr: `Местные власти предупреждают жителей, проживающих поблизости от станции, о необходимости оставаться в помещениях, выключить кондиционеры и не пить воду из-под крана.`
+- `fleurs_ru_1589` (ru): match
+  - known: `характеристики которые определяют субкультуру как отдельную могут быть лингвистическими эстетическими религиозными политическими сексуальными географическими или сочетанием факторов`
+  - asr: `Характеристики, которые определяют субкультуру как отдельную, могут быть лингвистическими, эстетическими, религиозными, политическими, сексуальными, географическими или сочетанием факторов.`
+- `fleurs_ru_1531` (ru): changed
+  - known: `восточно-африканские острова находятся в индийском океане у восточного побережья африки`
+  - asr: `Восточноафриканские острова находятся в Индийском океане у восточного побережья Африки.`
+- `fleurs_ru_1584` (ru): match
+  - known: `согласно сообщениям массовое мародерство продолжалось всю ночь поскольку на улицах бишкека не было сотрудников органов охраны правопорядка`
+  - asr: `Согласно сообщениям, массовое мародерство продолжалось всю ночь, поскольку на улицах Бишкека не было сотрудников органов охраны правопорядка.`
+- `fleurs_ru_1598` (ru): match
+  - known: `хотя внутри здания в тот момент когда в него врезался автомобиль находились три человека никто не пострадал`
+  - asr: `Хотя внутри здания в тот момент, когда в него врезался автомобиль, находились три человека, никто не пострадал.`
+- `fleurs_ru_1655` (ru): changed
+  - known: `так высказана мысль о том что обучение и социализация  являются важными мотивирующими факторами для использования интернета james et al. 1995`
+  - asr: `Так высказано мысли о том, что обучение и социализация являются важными мотивирующими факторами для использования интернета. Джеймс Эдолл, 1995.`
+- `fleurs_ru_1658` (ru): changed
+  - known: `учитывая то что в день можно было выиграть только восемнадцать медалей ряду стран не удалось оказаться на пьедестале почёта`
+  - asr: `Учитывая то, что в день можно было выиграть только 18 медалей, ряду стран не удалось оказаться на пьедестале почета.`
+- `fleurs_ru_1559` (ru): match
+  - known: `произношение в итальянском языке относительно простое так как большая часть слов произносится ровно так как пишется`
+  - asr: `Произношение в итальянском языке относительно простое, так как большая часть слов произносится ровно так, как пишется.`
+- `fleurs_ru_1599` (ru): changed
+  - known: `исходная популяция совсем не изменилась она всё ещё нуждается в тех же адаптациях что и раньше`
+  - asr: `Исходная популяция совсем не изменилась, она все еще нуждается в тех же адаптациях, что и раньше.`
+- `fleurs_ru_1561` (ru): changed
+  - known: `большинство районов обслуживается небольшими японскими автобусами coaster удобными и надежными`
+  - asr: `Большинство районов обслуживается небольшими японскими автобусами Koaster, удобными и надежными.`
+- `fleurs_ru_1631` (ru): match
+  - known: `в новом царстве древних египтян восхищались памятниками созданными их предшественниками более тысячи лет назад`
+  - asr: `В новом царстве древних египтян восхищались памятниками, созданными их предшественниками более тысячи лет назад.`
+- `fleurs_ru_1515` (ru): changed
+  - known: `это пятый cep мартейи за четыре года`
+  - asr: `Это пятый серб Мартеи за четыре года.`
+- `fleurs_ru_1628` (ru): changed
+  - known: `ремесленные изделия можно определить как антиквариат несмотря на то что по возрасту они моложе аналогичных товаров массового производства`
+  - asr: `Ремесленные изделия можно определить как антиквариат, несмотря на то, что по возрасту у них моложе аналогичных товаров массового производства.`
+- `fleurs_ru_1608` (ru): changed
+  - known: `я потерял сестру и ее друга и на моем пути было двое инвалидов в инвалидных колясках люди просто прыгали через них и толкали - рассказывал арман версаче`
+  - asr: `Я потерял сестру и её друга, и на моём пути было двое инвалидов в инвалидных колясках. Люди просто прыгали через них и толкали, рассказывал Арман Версача.`
+- `fleurs_ru_1578` (ru): changed
+  - known: `затем лакха сингх взял на себя лидерство в пении бхаджанов`
+  - asr: `Затем Лакххасингх взял на себя литературу в пении пхаджанов.`
+- `fleurs_ru_1535` (ru): match
+  - known: `она использует спутниковую технологию вместо старой технологии на основе наземных рлс что позволит авиадиспетчерам точнее определять положение самолетов и давать пилотам более точную информацию`
+  - asr: `Она использует спутниковую технологию вместо старой технологии на основе наземных РЛС, что позволит авиадиспетчерам точнее определять положение самолетов и давать пилотам более точную информацию.`
+- `fleurs_ru_1552` (ru): match
+  - known: `результаты анализа графиков будут размещены на общедоступном сайте`
+  - asr: `Результаты анализа графиков будут размещены на общедоступном сайте.`
+- `fleurs_ru_1592` (ru): match
+  - known: `когда вы вначале отправились за границу люди скорее всего относились к вам с терпением и пониманием зная что путешественникам нужно адаптироваться в новой стране`
+  - asr: `Когда вы вначале отправились за границу, люди, скорее всего, относились к вам с терпением и пониманием, зная, что путешественникам нужно адаптироваться в новой стране.`
+- `fleurs_ru_1555` (ru): match
+  - known: `на церковном кладбище над некоторыми могилами есть интересные мраморные скульптуры голубей`
+  - asr: `На церковном кладбище над некоторыми могилами есть интересные мраморные скульптуры голубей.`
+- `fleurs_ru_1537` (ru): match
+  - known: `пирамиды можно увидеть в темноте и вы также можете увидеть их в тишине перед началом шоу`
+  - asr: `Пирамиды можно увидеть в темноте, и вы также можете увидеть их в тишине перед началом шоу.`
+- `fleurs_ru_1532` (ru): changed
+  - known: `баба шьям были поданы 108 тарелок чаппан-бхог в индуизме — 56 различных яств включая сладости фрукты орехи и другие блюда преподносимые божеству`
+  - asr: `Бабашям были поданы 108 тарелок чапан-пахог, в индуизме 56 различных яств, включая сладости, фрукты, орехи и другие блюда, преподносимые божеству.`
+- `fleurs_ru_1620` (ru): changed
+  - known: `яванская кухня сегодня широко распространенная на всем архипелаге включает в себя ассортимент незатейливо приправленных блюд. наибольшее предпочтение яванцы отдают таким вкусовым добавкам как арахис чили сахар особенно яванский кокосовый сахар и разные ароматические специи`
+  - asr: `Иванская кухня, сегодня широко распространенная на всем архипелаге, включает в себя ассортимент незатейливо приправленных блюд. Наибольшее предпочтение иванцы отдают таким вкусовым добавкам, как арахис, чили, сахар, особенно иванский кокосовый сахар и разные ароматические специи.`
+- `fleurs_ru_1574` (ru): match
+  - known: `зима может быть обманчиво холодной температура редко опускается ниже нуля но сочетание ветра и влажности воздуха создает ощущение более холодной погоды в сравнении с тем что показывает термометр`
+  - asr: `Зима может быть обманчиво холодной, температура редко опускается ниже нуля, но сочетание ветра и влажности воздуха создает ощущение более холодной погоды, в сравнении с тем, что показывает термометр.`
+- `fleurs_ru_1547` (ru): changed
+  - known: `nhk также сообщила что аэс касивазаки карива расположенная в префектуре ниигата работала в стандартном режиме`
+  - asr: `NHK также сообщила, что АЭС Касивазаки-Карива, расположенная в префектуре Нигата, работала в стандартном режиме.`
+- `fleurs_ru_1596` (ru): changed
+  - known: `натуралисты и философы сосредоточили свое внимание на aнтичных текстах и особенно на библии на латинском языке`
+  - asr: `Натуралисты и философы сосредоточили свое внимание на античных текстах и особенно на Библии на латинском языке.`
+- `fleurs_ru_1627` (ru): match
+  - known: `рацион древних римлян не мог включать продукты которые попали в европу из америки или азии в последующие века`
+  - asr: `Рацион древних римлян не мог включать продукты, которые попали в Европу из Америки или Азии в последующие века.`
+- `fleurs_ru_1649` (ru): match
+  - known: `в японии первые празднования цветения сакуры устраивались императором только для себя и других членов аристократии при императорском дворе`
+  - asr: `В Японии первые празднования цветения сакуры устраивались императором только для себя и других членов аристократии при императорском дворе.`
+
+## Target Backends
+
+- `fleurs_en_us_1548`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1620`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1510`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1578`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1652`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1531`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1528`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1595`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1559`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1633`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1560`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1536`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1619`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1598`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1549`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1583`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1605`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1593`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1551`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1596`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1573`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1629`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1615`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1526`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1550`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1518`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1607`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1517`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1511`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1530`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1587`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1539`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1642`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1613`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1635`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1563`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1586`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1541`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1520`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1594`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1555`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1564`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1535`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1546`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1527`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1513`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1584`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1521`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1575`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1618`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1589`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1568`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1654`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1572`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1659`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1644`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1648`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1616`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1600`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1557`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1514`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1566`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1512`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1590`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1612`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1533`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1522`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1515`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1547`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1524`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1519`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1614`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1609`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1621`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1543`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1591`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1576`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1580`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1556`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1606`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1577`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1542`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1537`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1561`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1603`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1525`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1540`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1631`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1643`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1624`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1602`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1639`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1608`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1534`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1623`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1582`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1653`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1634`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1592`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_en_us_1630`
+  - zipa: `espeak-ng:en-us`, warnings: none
+  - xlsr-espeak: `espeak-ng:en-us`, warnings: none
+- `fleurs_ru_1614`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1554`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1634`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1615`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1609`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1549`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1587`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1618`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1651`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1647`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1600`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1516`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1560`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1619`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1525`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1563`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1534`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1522`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1654`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1640`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1622`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1572`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1601`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1585`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1545`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1514`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1553`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1629`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1565`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1512`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1519`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1624`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1528`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1635`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1548`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1659`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1571`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1542`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1616`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1520`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1510`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1580`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1597`
+  - zipa: `mfa:russian_mfa+espeak-ng:en-us-latin`, warnings: Latin-script words in Russian text used espeak-ng:en-us target G2P.
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa+espeak-ng:en-us-latin`, warnings: Latin-script words in Russian text used espeak-ng:en-us target G2P.
+- `fleurs_ru_1637`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1526`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1645`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1517`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1550`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1521`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1594`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1641`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1652`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1568`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1573`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1648`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1636`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1546`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1577`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1612`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1566`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1621`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1595`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1623`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1605`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1586`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1543`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1606`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1607`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1581`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1540`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1551`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1570`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1591`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1536`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1589`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1531`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1584`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1598`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1655`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1658`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1559`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1599`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1561`
+  - zipa: `mfa:russian_mfa+espeak-ng:en-us-latin`, warnings: Latin-script words in Russian text used espeak-ng:en-us target G2P.
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa+espeak-ng:en-us-latin`, warnings: Latin-script words in Russian text used espeak-ng:en-us target G2P.
+- `fleurs_ru_1631`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1515`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1628`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1608`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1578`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1535`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1552`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1592`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1555`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1537`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1532`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1620`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1574`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1547`
+  - zipa: `mfa:russian_mfa+espeak-ng:en-us-latin`, warnings: Latin-script words in Russian text used espeak-ng:en-us target G2P.
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa+espeak-ng:en-us-latin`, warnings: Latin-script words in Russian text used espeak-ng:en-us target G2P.
+- `fleurs_ru_1596`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1627`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+- `fleurs_ru_1649`
+  - zipa: `mfa:russian_mfa`, warnings: none
+  - xlsr-espeak: `espeak-ng:ru`, warnings: none
+  - zipa-charsiu: `charsiu:charsiu/g2p_multilingual_byT5_tiny_16_layers_100`, warnings: none
+  - xlsr-mfa: `mfa:russian_mfa`, warnings: none
+
+## Worst 30 Word Rows
+
+| sample | language | lane | word | PER | PFER | target | heard | details |
+| --- | --- | --- | --- | ---: | ---: | --- | --- | --- |
+| fleurs_en_us_1618 | en_us | xlsr-espeak | 4 | 8.6667 | 8.4722 | `f ɔ ɹ` | `f o ʊ θ a ʊ z ə n d e ɪ ɾ h ʌ n d ɹ ə d æ n d n a ɪ n d` | substitutions: `ɔ->d`<br>insertions: `o, ʊ, θ, a, ʊ, z, ə, n, d, e, ɪ, ɾ, h, ʌ, n, ə, d, æ, n, d, n, a, ɪ, n, d` |
+| fleurs_en_us_1618 | en_us | zipa | 4 | 8.3333 | 8.3333 | `f ɔ ɹ` | `f ɔ ɹ θ a ʊ z ə n d e ɪ t h ʌ n d ɹ ə d ə n d n a ɪ n t` | insertions: `ɹ, θ, a, ʊ, z, ə, n, d, e, ɪ, t, h, ʌ, n, d, ə, d, ə, n, d, n, a, ɪ, n, t` |
+| fleurs_en_us_1586 | en_us | xlsr-espeak | the | 7.5000 | 7.5000 | `ð ə` | `ð ə w ʌ n h ʌ n d ɹ ə d s ɪ k s t` | insertions: `ə, w, ʌ, n, h, ʌ, n, d, ɹ, d, s, ɪ, k, s, t` |
+| fleurs_en_us_1586 | en_us | zipa | the | 7.0000 | 7.0000 | `ð ə` | `ð ə w ə n h ə n d ə˞ d s ɪ k s t` | insertions: `ə, w, ə, n, h, n, d, ə˞, d, s, ɪ, k, s, t` |
+| fleurs_en_us_1606 | en_us | zipa | in | 6.5000 | 6.5000 | `ɪ n` | `ɪ n d s ɛ v ə n t i n f ɪ f t` | insertions: `n, d, s, ɛ, v, ə, n, t, i, f, ɪ, f, t` |
+| fleurs_en_us_1606 | en_us | xlsr-espeak | in | 6.0000 | 6.0000 | `ɪ n` | `ɪ n s ɛ v ə n t i n f ɪ f t` | insertions: `n, s, ɛ, v, ə, n, t, i, f, ɪ, f, t` |
+| fleurs_en_us_1520 | en_us | zipa | the | 4.0000 | 4.0000 | `ð ə` | `ð ə t u θ a ʊ z ə n` | insertions: `ə, t, u, θ, a, ʊ, z, n` |
+| fleurs_en_us_1593 | en_us | zipa | and | 3.3333 | 3.0417 | `æ n d` | `ə n d s ɛ v ə n t i n s` | substitutions: `æ->ə`<br>insertions: `s, ɛ, v, ə, n, t, i, n, s` |
+| fleurs_en_us_1593 | en_us | xlsr-espeak | and | 3.0000 | 2.7083 | `æ n d` | `æ n s ɛ v ə n t i n s` | substitutions: `d->s`<br>insertions: `n, s, ɛ, v, ə, n, t, i` |
+| fleurs_ru_1580 | ru | zipa | в | 3.0000 | 2.4167 | `f` | `v s ɨ` | substitutions: `f->ɨ`<br>insertions: `v, s` |
+| fleurs_ru_1520 | ru | zipa | 8 | 2.4000 | 2.0667 | `v o sʲ ɪ mʲ` | `v o sʲ e m p r o t s ɛ n t ə f` | substitutions: `ɪ->ə, mʲ->f`<br>insertions: `e, m, p, r, o, t, s, ɛ, n, t` |
+| fleurs_ru_1520 | ru | zipa-charsiu | 8 | 2.4000 | 2.0667 | `v o sʲ ɪ mʲ` | `v o sʲ e m p r o t s ɛ n t ə f` | substitutions: `ɪ->ə, mʲ->f`<br>insertions: `e, m, p, r, o, t, s, ɛ, n, t` |
+| fleurs_ru_1520 | ru | xlsr-espeak | 8 | 2.4000 | 2.0583 | `v o sʲ i mʲ` | `v o sʲ ɪ m p r ʌ t s ɛ n t ʌ v` | substitutions: `i->ʌ, mʲ->v`<br>insertions: `ɪ, m, p, r, ʌ, t, s, ɛ, n, t` |
+| fleurs_ru_1520 | ru | xlsr-mfa | 8 | 2.2000 | 2.0417 | `v o sʲ ɪ mʲ` | `v o sʲ ɪ m p r ʌ t s ɛ n t ʌ v` | substitutions: `mʲ->v`<br>insertions: `m, p, r, ʌ, t, s, ɛ, n, t, ʌ` |
+| fleurs_en_us_1586 | en_us | xlsr-espeak | run | 2.0000 | 2.0000 | `ɹ ʌ n` | `ɹ ʌ n f ə˞ ɾ i s ɪ` | insertions: `f, ə˞, ɾ, i, s, ɪ` |
+| fleurs_en_us_1520 | en_us | zipa | since | 2.0000 | 2.0000 | `s ɪ n s` | `s ɪ n s t u θ a ʊ z ə n` | insertions: `t, u, θ, a, ʊ, z, ə, n` |
+| fleurs_en_us_1520 | en_us | xlsr-espeak | 8 | 2.0000 | 2.0000 | `e ɪ t` | `e ɪ p ɹ ə˞ s ɛ n t` | insertions: `p, ɹ, ə˞, s, ɛ, n` |
+| fleurs_ru_1580 | ru | xlsr-mfa | в | 2.0000 | 2.0000 | `f` | `f s e` | insertions: `s, e` |
+| fleurs_ru_1574 | ru | xlsr-espeak | и | 2.0000 | 2.0000 | `ɪ` | `ɪ j o` | insertions: `j, o` |
+| fleurs_ru_1574 | ru | xlsr-mfa | и | 2.0000 | 2.0000 | `ɪ` | `ɪ j o` | insertions: `j, o` |
+| fleurs_en_us_1593 | en_us | zipa | in | 2.0000 | 1.6875 | `ɪ n` | `ɪ k s t i` | substitutions: `n->i`<br>insertions: `k, s, t` |
+| fleurs_en_us_1593 | en_us | xlsr-espeak | in | 2.0000 | 1.6875 | `ɪ n` | `ɪ k s t i` | substitutions: `n->i`<br>insertions: `k, s, t` |
+| fleurs_en_us_1586 | en_us | zipa | run | 2.0000 | 1.6806 | `ɹ ʌ n` | `ɹ ə n θ ɹ i s ɪ` | substitutions: `ʌ->ə`<br>insertions: `θ, ɹ, i, s, ɪ` |
+| fleurs_en_us_1520 | en_us | zipa | 8 | 1.6667 | 1.6667 | `e ɪ t` | `e ɪ p ə˞ s ɛ n t` | insertions: `p, ə˞, s, ɛ, n` |
+| fleurs_en_us_1566 | en_us | zipa | 80 | 1.7500 | 1.5625 | `e ɪ ɾ i` | `e ɪ t i p ə˞ s ɛ n t` | substitutions: `ɾ->t`<br>insertions: `p, ə˞, s, ɛ, n, t` |
+| fleurs_en_us_1510 | en_us | xlsr-espeak | the | 1.5000 | 1.5000 | `ð ə` | `ð ə j u w` | insertions: `j, u, w` |
+| fleurs_en_us_1633 | en_us | zipa | is | 1.5000 | 1.5000 | `ɪ z` | `ɪ z ʃ o ʊ` | insertions: `ʃ, o, ʊ` |
+| fleurs_en_us_1520 | en_us | xlsr-espeak | since | 1.5000 | 1.5000 | `s ɪ n s` | `s ɪ n s t u ð a ɪ z` | insertions: `t, u, ð, a, ɪ, z` |
+| fleurs_en_us_1609 | en_us | xlsr-espeak | just | 1.4000 | 1.4000 | `d ʒ ʌ s t` | `d ʒ ʌ s s t f o ʊ ɾ i w` | insertions: `s, f, o, ʊ, ɾ, i, w` |
+| fleurs_ru_1545 | ru | xlsr-mfa | в | 2.0000 | 1.3750 | `f` | `v ʌ` | substitutions: `f->ʌ`<br>insertions: `v` |
+
+## Read
+
+- The end-to-end free-speaking path runs on this sample.
+- English is bounded but still has false-positive surface area.
+- Russian remains noisy enough that the current score should be treated as diagnostic, not learner feedback.
+- en_us/xlsr-espeak: avg PER 0.1944, avg PFER 0.1037.
+- en_us/zipa: avg PER 0.1592, avg PFER 0.0710.
+- ru/xlsr-espeak: avg PER 0.4676, avg PFER 0.1384.
+- ru/xlsr-mfa: avg PER 0.5616, avg PFER 0.1377.
+- ru/zipa: avg PER 0.2166, avg PFER 0.0619.
+- ru/zipa-charsiu: avg PER 0.2347, avg PFER 0.0717.
+- High-error rows are concentrated in short function words, abbreviations/numbers, and Russian target/recognizer inventory mismatches.
