@@ -8,10 +8,13 @@ DEFAULT_DATA_ROOT = Path(
     os.environ.get("PERSIAN_ASR_DATA_ROOT", str(PROJECT_ROOT / "data"))
 ).expanduser()
 DEFAULT_HF_HOME = DEFAULT_DATA_ROOT / "hf-cache"
-PARAKEET_ROOT = PROJECT_ROOT / "parakeet"
-DEFAULT_NEMO_ROOT = PROJECT_ROOT / "vendor" / "nemo"
+DEFAULT_NEMO_ROOT = Path(
+    os.environ.get("PERSIAN_NEMO_ROOT", str(PROJECT_ROOT / "vendor" / "nemo"))
+).expanduser()
 DEFAULT_TOKENIZER_ROOT = PROJECT_ROOT / "tokenizers" / "parakeet"
-DEFAULT_RUNS_ROOT = PARAKEET_ROOT / "runs"
+# Parakeet runs live under the single top-level runs/ tree (runs/parakeet),
+# consolidated from the former top-level parakeet/runs.
+DEFAULT_RUNS_ROOT = PROJECT_ROOT / "runs" / "parakeet"
 
 
 def configure_external_caches() -> None:
