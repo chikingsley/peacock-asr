@@ -19,8 +19,9 @@ OMNI_ROOT = Path(
 ).expanduser()
 OMNI_RECIPE_MODULE = "workflows.recipes.wav2vec2.asr"
 OMNI_RECIPE_PATH = Path("workflows/recipes/wav2vec2/asr/__main__.py")
-# Training recipe configs live next to this module.
+# Training recipe configs live next to this module; runs land inside the package.
 CONFIG_DIR = Path(__file__).resolve().parent / "configs"
+RUNS_ROOT = Path(__file__).resolve().parents[1] / "runs"
 
 
 @dataclass(frozen=True)
@@ -32,23 +33,23 @@ class TrainingPreset:
 PRESETS = {
     "fleurs-300m": TrainingPreset(
         config=CONFIG_DIR / "fleurs-fa-ir-ctc-300m-v2-finetune.yaml",
-        output_dir=ROOT / "runs/omni-ctc-300m-fleurs-fa-ir-ft",
+        output_dir=RUNS_ROOT / "fleurs-fa-ir-ft",
     ),
     "thomcles-continue": TrainingPreset(
         config=CONFIG_DIR / "thomcles-ctc-300m-v2-continue-from-fleurs.yaml",
-        output_dir=ROOT / "runs/omni-ctc-300m-fleurs-fa-ir-thomcles-continue",
+        output_dir=RUNS_ROOT / "fleurs-fa-ir-thomcles-continue",
     ),
     "persian-clean-100h-300m": TrainingPreset(
         config=CONFIG_DIR / "persian-asr-clean-100h-filter-ctc-300m-v2.yaml",
-        output_dir=ROOT / "runs/omni-ctc-300m-persian-clean-100h-filter",
+        output_dir=RUNS_ROOT / "persian-clean-100h-filter",
     ),
     "persian-balanced-100h-300m": TrainingPreset(
         config=CONFIG_DIR / "persian-asr-balanced-100h-filter-ctc-300m-v2.yaml",
-        output_dir=ROOT / "runs/omni-ctc-300m-persian-balanced-100h-filter",
+        output_dir=RUNS_ROOT / "persian-balanced-100h-filter",
     ),
     "persian-target-100h-300m": TrainingPreset(
         config=CONFIG_DIR / "persian-asr-target-100h-filter-ctc-300m-v2.yaml",
-        output_dir=ROOT / "runs/omni-ctc-300m-persian-target-100h-filter",
+        output_dir=RUNS_ROOT / "persian-target-100h-filter",
     ),
 }
 

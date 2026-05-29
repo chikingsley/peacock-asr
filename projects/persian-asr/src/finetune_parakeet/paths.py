@@ -19,7 +19,7 @@ DEFAULT_NEMO_ROOT = Path(
 DEFAULT_MODEL_ROOT = PACKAGE_DIR / "models"
 DEFAULT_CTC_MODEL = DEFAULT_MODEL_ROOT / "ctc.nemo"
 DEFAULT_TOKENIZER_ROOT = PACKAGE_DIR / "tokenizer"
-DEFAULT_RUNS_ROOT = PROJECT_ROOT / "runs" / "parakeet"
+DEFAULT_RUNS_ROOT = PACKAGE_DIR / "runs"
 
 
 def configure_external_caches() -> None:
