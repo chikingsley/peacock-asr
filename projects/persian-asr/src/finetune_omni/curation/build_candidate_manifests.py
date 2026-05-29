@@ -41,8 +41,8 @@ class Candidate:
     row: dict[str, Any]
     candidate_split: str
     original_source_split: str
-    persian_omnilingual_asr_wer: float
-    persian_omnilingual_asr_cer: float
+    finetune_omni_wer: float
+    finetune_omni_cer: float
     nvidia_wer: float | None
 
     @property
@@ -157,8 +157,8 @@ def load_candidates(
                     row=row,
                     candidate_split=split,
                     original_source_split=str(row["source_split"]),
-                    persian_omnilingual_asr_wer=float(score["wer"]),
-                    persian_omnilingual_asr_cer=float(score["cer"]),
+                    finetune_omni_wer=float(score["wer"]),
+                    finetune_omni_cer=float(score["cer"]),
                     nvidia_wer=float(row["wer"]) if row.get("wer") is not None else None,
                 )
             )
@@ -171,7 +171,7 @@ def passes_recipe(candidate: Candidate, recipe: Recipe) -> bool:
         return False
     if word_count(candidate.row) < recipe.min_words:
         return False
-    if candidate.persian_omnilingual_asr_wer > recipe.max_omni_wer:
+    if candidate.finetune_omni_wer > recipe.max_omni_wer:
         return False
     return not (
         recipe.max_nvidia_wer is not None
@@ -183,8 +183,8 @@ def passes_recipe(candidate: Candidate, recipe: Recipe) -> bool:
 def quality_key(candidate: Candidate) -> tuple[float, float, float, float]:
     nvidia_wer = candidate.nvidia_wer if candidate.nvidia_wer is not None else 999.0
     return (
-        candidate.persian_omnilingual_asr_wer,
-        candidate.persian_omnilingual_asr_cer,
+        candidate.finetune_omni_wer,
+        candidate.finetune_omni_cer,
         nvidia_wer,
         candidate.duration_hours,
     )
@@ -235,8 +235,8 @@ def manifest_payload(candidate: Candidate) -> dict[str, Any]:
     row = dict(candidate.row)
     row["source_split"] = candidate.candidate_split
     row["original_source_split"] = candidate.original_source_split
-    row["persian_omnilingual_asr_wer"] = candidate.persian_omnilingual_asr_wer
-    row["persian_omnilingual_asr_cer"] = candidate.persian_omnilingual_asr_cer
+    row["finetune_omni_wer"] = candidate.finetune_omni_wer
+    row["finetune_omni_cer"] = candidate.finetune_omni_cer
     row["nvidia_wer"] = candidate.nvidia_wer
     return row
 
@@ -257,7 +257,7 @@ def summarize(selected: list[Candidate]) -> dict[str, Any]:
         hours_by_source[source] += candidate.duration_hours
         max_omni_wer_by_source[source] = max(
             max_omni_wer_by_source[source],
-            candidate.persian_omnilingual_asr_wer,
+            candidate.finetune_omni_wer,
         )
         if candidate.nvidia_wer is not None:
             max_nvidia_wer_by_source[source] = max(
@@ -271,7 +271,7 @@ def summarize(selected: list[Candidate]) -> dict[str, Any]:
         "hours_by_split": dict(sorted(hours_by_split.items())),
         "rows_by_source": dict(sorted(rows_by_source.items())),
         "hours_by_source": dict(sorted(hours_by_source.items())),
-        "max_persian_omnilingual_asr_wer_by_source": dict(
+        "max_finetune_omni_wer_by_source": dict(
             sorted(max_omni_wer_by_source.items())
         ),
         "max_nvidia_wer_by_source": dict(sorted(max_nvidia_wer_by_source.items())),

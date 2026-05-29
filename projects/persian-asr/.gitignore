@@ -25,3 +25,7 @@ __pycache__/
 
 # Vendored Omnilingual ASR training recipe (re-clone: github.com/facebookresearch/omnilingual-asr)
 src/persian_omnilingual_asr/omni_recipe/
+
+# In-package model/tokenizer artifacts (organized here, ignored in place)
+src/finetune_parakeet/models/
+src/finetune_parakeet/tokenizer/

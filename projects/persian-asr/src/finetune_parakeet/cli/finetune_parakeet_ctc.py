@@ -12,12 +12,14 @@ from nemo.utils.exp_manager import exp_manager
 from nemo.utils.trainer_utils import resolve_trainer_cfg
 from omegaconf import OmegaConf
 
-from persian_parakeet_asr.paths import DEFAULT_RUNS_ROOT, PROJECT_ROOT, configure_external_caches
+from finetune_parakeet.paths import (
+    DEFAULT_CTC_MODEL,
+    DEFAULT_RUNS_ROOT,
+    configure_external_caches,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
-
-DEFAULT_CTC_MODEL = PROJECT_ROOT / "models/parakeet-ctc-109m/ctc.nemo"
 
 
 def build_parser() -> argparse.ArgumentParser:

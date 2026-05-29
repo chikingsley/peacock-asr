@@ -33,13 +33,13 @@ dependencies = [
 superwhisper-api = { path = "../superwhisper-api", editable = true }
 
 [project.scripts]
-persian-benchmark-asr = "persian_omnilingual_asr.benchmarks.asr:main"
-persian-benchmark-compare = "persian_omnilingual_asr.benchmarks.compare:main"
-persian-benchmark-omni = "persian_omnilingual_asr.benchmarks.omni:main"
-persian-benchmark-sherpa-onnx = "persian_omnilingual_asr.benchmarks.sherpa_onnx:main"
-persian-benchmark-suite = "persian_omnilingual_asr.benchmarks.suite:main"
+persian-benchmark-asr = "finetune_omni.benchmarks.asr:main"
+persian-benchmark-compare = "finetune_omni.benchmarks.compare:main"
+persian-benchmark-omni = "finetune_omni.benchmarks.omni:main"
+persian-benchmark-sherpa-onnx = "finetune_omni.benchmarks.sherpa_onnx:main"
+persian-benchmark-suite = "finetune_omni.benchmarks.suite:main"
 persian-build-canonical-datasets = "persian_asr_dataset.cli.build_canonical:main"
-persian-build-candidate-manifests = "persian_omnilingual_asr.curation.build_candidate_manifests:main"
+persian-build-candidate-manifests = "finetune_omni.curation.build_candidate_manifests:main"
 persian-export-nemo-manifest = "persian_asr_dataset.cli.export_nemo_manifest:main"
 persian-dataset-export-canonical-nemo-manifest = "persian_asr_dataset.cli.export_canonical_nemo_manifest:main"
 persian-dataset-filter-nemo-manifest = "persian_asr_dataset.cli.filter_nemo_manifest:main"
@@ -49,17 +49,17 @@ persian-scribe-build-curation-db = "persian_asr_dataset.cli.build_scribe_curatio
 persian-scribe-curation = "persian_asr_dataset.cli.scribe_curation:main"
 persian-scribe-rerun-sqlite = "persian_asr_dataset.cli.scribe_rerun_sqlite:main"
 persian-scribe-script-equivalence = "persian_asr_dataset.cli.scribe_script_equivalence:main"
-persian-finetune-parakeet-ctc = "persian_parakeet_asr.cli.finetune_parakeet_ctc:main"
-persian-finetune-parakeet = "persian_parakeet_asr.cli.finetune_parakeet:main"
+persian-finetune-parakeet-ctc = "finetune_parakeet.cli.finetune_parakeet_ctc:main"
+persian-finetune-parakeet = "finetune_parakeet.cli.finetune_parakeet:main"
 persian-prepare-omni-curated = "persian_asr_dataset.dataset_prep.curated:main"
 persian-prepare-omni-fleurs = "persian_asr_dataset.dataset_prep.fleurs:main"
 persian-prepare-omni-thomcles = "persian_asr_dataset.dataset_prep.thomcles:main"
 persian-omni-text-audit = "persian_asr_dataset.dataset_prep.text_audit:main"
 persian-repair-neyshekar = "persian_asr_dataset.dataset_prep.neyshekar:main"
-persian-run-nemo-curator = "persian_omnilingual_asr.curation.run_nemo_curator:main"
-persian-score-omni-manifest = "persian_omnilingual_asr.curation.score_omni_manifest:main"
-persian-train-omni = "persian_omnilingual_asr.training.train:main"
-persian-train-tokenizer = "persian_parakeet_asr.cli.train_tokenizer:main"
+persian-run-nemo-curator = "finetune_omni.curation.run_nemo_curator:main"
+persian-score-omni-manifest = "finetune_omni.curation.score_omni_manifest:main"
+persian-train-omni = "finetune_omni.training.train:main"
+persian-train-tokenizer = "finetune_parakeet.cli.train_tokenizer:main"
 
 [tool.ruff]
 line-length = 100
@@ -101,7 +101,7 @@ extend-select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"src/persian_omnilingual_asr/curation/run_nemo_curator.py" = [
+"src/finetune_omni/curation/run_nemo_curator.py" = [
     "E402",     # Ray uv-runtime control must be set before importing Curator/Ray.
     "PLC0415",  # Curator/Xenna imports must happen after local Ray setup.
 ]
@@ -112,10 +112,10 @@ extend-select = [
 "src/persian_asr_dataset/canonical.py" = [
     "PLR0913",  # Dataset writers and source adapters carry explicit schema fields.
 ]
-"src/persian_omnilingual_asr/curation/score_omni_manifest.py" = [
+"src/finetune_omni/curation/score_omni_manifest.py" = [
     "PLC0415",  # FAIRSEQ2_ASSET_DIR must be set before importing the Omni pipeline.
 ]
-"src/persian_omnilingual_asr/benchmarks/asr.py" = [
+"src/finetune_omni/benchmarks/asr.py" = [
     "PLC0415",  # FAIRSEQ2_ASSET_DIR must be set before importing the Omni pipeline.
 ]
 
@@ -126,6 +126,6 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = [
   "src/persian_asr_dataset",
-  "src/persian_omnilingual_asr",
-  "src/persian_parakeet_asr",
+  "src/finetune_omni",
+  "src/finetune_parakeet",
 ]

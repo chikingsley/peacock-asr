@@ -33,8 +33,8 @@ The active Python entry points are defined in `pyproject.toml`:
 
 ```text
 src/persian_asr_dataset/           # dataset ledger, source ingest, NeMo Curator export/scoring
-src/persian_omnilingual_asr/       # Omnilingual benchmarks, data prep, scoring, training
-src/persian_parakeet_asr/          # Parakeet tokenizer and fine-tune launch helpers
+src/finetune_omni/       # Omnilingual benchmarks, data prep, scoring, training
+src/finetune_parakeet/          # Parakeet tokenizer and fine-tune launch helpers
 vendor/omnilingual-asr/            # pinned Facebook/Meta Omnilingual ASR checkout
 vendor/nemo/                       # pinned NVIDIA NeMo checkout for ASR scripts
 vendor/mobius/                     # pinned FluidInference/Mobius checkout for CoreML tooling

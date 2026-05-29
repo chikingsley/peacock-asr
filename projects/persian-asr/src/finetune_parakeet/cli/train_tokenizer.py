@@ -5,7 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from persian_parakeet_asr.paths import (
+from finetune_parakeet.paths import (
     DEFAULT_NEMO_ROOT,
     DEFAULT_TOKENIZER_ROOT,
     configure_external_caches,
