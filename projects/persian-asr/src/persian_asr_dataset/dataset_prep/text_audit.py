@@ -9,11 +9,13 @@ from typing import TYPE_CHECKING
 import pyarrow.parquet as pq
 import sentencepiece as spm
 
+from persian_asr_dataset.paths import PROJECT_ROOT
+
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
 
-DEFAULT_ROOT = Path("data/training/omnilingual")
+DEFAULT_ROOT = PROJECT_ROOT / "src" / "finetune_omni" / "data" / "training" / "omnilingual"
 DEFAULT_TOKENIZER = Path(
     "/home/simon/.cache/fairseq2/assets/e7be1a6acb8f76fdbca19dce/"
     "omniASR_tokenizer_written_v2.model"

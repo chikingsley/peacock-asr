@@ -17,17 +17,16 @@ from persian_asr_dataset.dataset_prep.text_audit import (
     TokenizerCoverageError,
     assert_tokenizer_clean,
 )
+from persian_asr_dataset.paths import PROJECT_ROOT
 from persian_asr_dataset.vendor.nvidia_stt_fa_fastconformer_hybrid_large import maybe_normalize
 
 OMNI_SAMPLE_RATE = 16_000
-DEFAULT_DATASET_ROOT = Path(
-    "/home/simon/github/peacock-asr/projects/persian-asr/data/selection/candidate-manifests/"
-    "persian-asr-clean-100h-filter"
+# Omni dataset inputs/outputs live inside the finetune_omni package (gitignored).
+OMNI_DATA_ROOT = PROJECT_ROOT / "src" / "finetune_omni" / "data"
+DEFAULT_DATASET_ROOT = (
+    OMNI_DATA_ROOT / "selection" / "candidate-manifests" / "persian-asr-clean-100h-filter"
 )
-DEFAULT_OUTPUT_ROOT = Path(
-    "/home/simon/github/peacock-asr/projects/persian-asr/data/training/omnilingual/"
-    "persian_asr_clean_100h_filter"
-)
+DEFAULT_OUTPUT_ROOT = OMNI_DATA_ROOT / "training" / "omnilingual" / "persian_asr_clean_100h_filter"
 DEV_SOURCE_SPLITS = {"dev", "validation"}
 SKIPPED_SOURCE_SPLITS = {"test"}
 PARQUET_SCHEMA = pa.schema(

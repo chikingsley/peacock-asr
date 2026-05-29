@@ -590,7 +590,8 @@ def build_all(
     project_splits: set[str] | None = None,
 ) -> list[DatasetSummary]:
     raw_root = data_root / "raw"
-    canonical_root = data_root / "canonical"
+    # Canonical datasets live flattened directly under data_root (no canonical/ wrapper).
+    canonical_root = data_root
     tasks = [
         (
             "fleurs",
