@@ -1,0 +1,21 @@
+# Heavy data, model, and run artifacts — regenerable, not source.
+data/
+runs/
+models/
+parakeet/
+benchmarks/
+tokenizers/
+vendor/
+
+# Derived comparison store (rebuild with `persian-benchmark-compare`).
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# Python / tooling
+__pycache__/
+*.pyc
+.venv/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
