@@ -1,0 +1,57 @@
+[project]
+name = "omni-curator"
+version = "0.1.0"
+description = "In-house ASR dataset curator: raw audio -> segment -> Scribe ensemble -> compile-down -> stitch -> polish -> transcript."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  # ElevenLabs Scribe + the free SuperWhisper text endpoint (compile-down / stitch / polish).
+  "superwhisper-api",
+  # Audio cutting/probing and the NeMo frame-VAD segmenter.
+  "soundfile==0.13.1",
+  "numpy==2.4.6",
+  "torchaudio==2.9.1",
+  "nemo-toolkit[asr]>=2.7.3",
+]
+
+[dependency-groups]
+dev = [
+  "ruff==0.15.15",
+  "ty==0.0.40",
+]
+
+[tool.uv.sources]
+superwhisper-api = { path = "../../projects/superwhisper-api", editable = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/omni_curator"]
+
+[project.scripts]
+omni-curator = "omni_curator.cli:main"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src"]
+
+[tool.ruff.lint]
+# "ruff max": enable everything, then turn off only the genuinely impractical or
+# formatter-conflicting rules.
+select = ["ALL"]
+ignore = [
+  "D",        # mandatory docstrings everywhere — too heavy for a library this size
+  "COM812",   # trailing-comma rule conflicts with the formatter
+  "ISC001",   # implicit-str-concat rule conflicts with the formatter
+  "ANN401",   # allow typing.Any at genuine dynamic boundaries (Scribe/NeMo payloads)
+  "TD002", "TD003", "FIX002",  # don't require issue links on TODOs
+  "EM101", "EM102", "TRY003",  # allow inline exception messages
+  "PLR0913",  # pipeline entry points legitimately take many knobs
+  "PLC0415",  # heavy/optional deps (nemo, torch, superwhisper) are imported lazily on purpose
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/test_*.py" = ["S101", "PLR2004"]  # asserts + magic values are fine in tests
+"src/omni_curator/cli.py" = ["T201"]  # the CLI prints

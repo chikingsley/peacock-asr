@@ -1,0 +1,5 @@
+.venv/
+scratch/
+sync.log
+__pycache__/
+*.pyc
