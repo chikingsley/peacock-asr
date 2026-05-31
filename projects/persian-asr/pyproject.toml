@@ -30,7 +30,7 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-superwhisper-api = { path = "../superwhisper-api", editable = true }
+superwhisper-api = { path = "../../packages/superwhisper-api", editable = true }
 
 [project.scripts]
 persian-benchmark-asr = "finetune_omni.benchmarks.asr:main"

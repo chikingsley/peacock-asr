@@ -2798,7 +2798,7 @@ wheels = [
 [[package]]
 name = "superwhisper-api"
 version = "0.1.0"
-source = { editable = "../superwhisper-api" }
+source = { editable = "../../packages/superwhisper-api" }
 dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
@@ -2886,7 +2886,7 @@ requires-dist = [
     { name = "pyarrow", specifier = "==24.0.0" },
     { name = "ruff", specifier = "==0.15.15" },
     { name = "soundfile", specifier = "==0.13.1" },
-    { name = "superwhisper-api", editable = "../superwhisper-api" },
+    { name = "superwhisper-api", editable = "../../packages/superwhisper-api" },
     { name = "tajiknlp", extras = ["neural"], specifier = "==1.2.0" },
     { name = "tensorboard", specifier = "==2.20.0" },
     { name = "torchaudio", specifier = "==2.9.1" },

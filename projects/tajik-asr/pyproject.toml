@@ -24,7 +24,7 @@ dependencies = [
 ]
 
 [tool.uv.sources]
-superwhisper-api = { path = "../superwhisper-api", editable = true }
+superwhisper-api = { path = "../../packages/superwhisper-api", editable = true }
 
 [tool.uv]
 # omnilingual-asr 0.2.0 (latest) pins fairseq2<=0.6.0, but we run the latest fairseq2 0.8.1

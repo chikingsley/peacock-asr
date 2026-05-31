@@ -20,7 +20,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-superwhisper-api = { path = "../../projects/superwhisper-api", editable = true }
+superwhisper-api = { path = "../superwhisper-api", editable = true }
 
 [build-system]
 requires = ["hatchling"]
