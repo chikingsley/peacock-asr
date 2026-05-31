@@ -14,7 +14,11 @@ dependencies = [
   "pyarrow==24.0.0",
   "soundfile==0.13.1",
   "librosa==0.11.0",
-  "jiwer==4.0.0",
+  # jiwer's process_words/process_characters API is stable across 3.x and 4.x; pinned with a
+  # floor (not ==4.0.0) so consumer projects whose other deps cap jiwer can still resolve
+  # (e.g. tajik-asr's nemo-toolkit requires jiwer<4.0.0). Core only uses process_words /
+  # process_characters, both present since jiwer 3.x.
+  "jiwer>=3.1.0,<5",
   # Typed config models + YAML emission for the recipe.
   "pydantic>=2.11",
   "pyyaml>=6.0",
