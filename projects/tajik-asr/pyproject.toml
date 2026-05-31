@@ -12,14 +12,14 @@ dependencies = [
   "numpy==2.4.6",
   "omnilingual-asr==0.2.0",
   "pyarrow==24.0.0",
-  "ruff==0.15.13",
+  "ruff==0.15.15",
   "soundfile==0.13.1",
   "superwhisper-api",
   "tajiknlp[neural]==1.2.0",
   "tensorboard==2.20.0",
   "torchaudio==2.9.1",
   "tqdm==4.67.3",
-  "ty==0.0.35",
+  "ty==0.0.40",
   "yt-dlp==2026.3.17",
 ]
 
@@ -62,9 +62,12 @@ packages = ["src/tajik_omnilingual_asr"]
 line-length = 100
 target-version = "py312"
 src = ["src"]
+# Vendored, archived ParsTranslit upstream (dead-end Persian->Tajik translit; imports the
+# dropped ctranslate2 dep). Not our code, not linted — like omni_recipe.
+extend-exclude = ["**/archive/parstranslit"]
 
 [tool.ty.src]
-exclude = ["**/omni_recipe/"]
+exclude = ["**/omni_recipe/", "**/archive/parstranslit/"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B"]
