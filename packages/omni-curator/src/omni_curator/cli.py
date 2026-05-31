@@ -9,7 +9,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from omni_curator.pipeline import chunks_path, vad_path
+from omni_curator.create.pipeline import chunks_path, vad_path
 
 
 def build_parser() -> argparse.ArgumentParser:

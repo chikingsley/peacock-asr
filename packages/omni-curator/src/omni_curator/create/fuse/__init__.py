@@ -7,9 +7,9 @@
 
 from __future__ import annotations
 
-from omni_curator.fuse._extract import extract_transcript
-from omni_curator.fuse.compile_down import compile_down
-from omni_curator.fuse.polish import polish
-from omni_curator.fuse.stitch import stitch
+from omni_curator.create.fuse._extract import extract_transcript
+from omni_curator.create.fuse.compile_down import compile_down
+from omni_curator.create.fuse.polish import polish
+from omni_curator.create.fuse.stitch import stitch
 
 __all__ = ["compile_down", "extract_transcript", "polish", "stitch"]

@@ -11,7 +11,13 @@ dependencies = [
   "numpy==2.4.6",
   "torchaudio==2.9.1",
   "nemo-toolkit[asr]>=2.7.3",
+  # Standardized WER/CER (benchmark). <4 keeps jiwer.compute_measures for nemo compatibility.
+  "jiwer>=3.1.0,<5",
 ]
+
+[project.optional-dependencies]
+# ingest/huggingface.py (FLEURS etc.). Common Voice is pulled direct from Mozilla (no HF dep).
+ingest = ["datasets>=3.0.0"]
 
 [dependency-groups]
 dev = [

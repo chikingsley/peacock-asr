@@ -22,9 +22,14 @@ from functools import partial
 from typing import TYPE_CHECKING, Any
 
 from omni_curator.audio import audio_duration, cut_audio
-from omni_curator.fuse import compile_down, polish, stitch
-from omni_curator.segmenters import segment_chunks, segment_vad
-from omni_curator.transcribe import DEFAULT_LANGS, default_key, make_scribe_fns, transcribe_clip
+from omni_curator.create.fuse import compile_down, polish, stitch
+from omni_curator.create.segmenters import segment_chunks, segment_vad
+from omni_curator.create.transcribe import (
+    DEFAULT_LANGS,
+    default_key,
+    make_scribe_fns,
+    transcribe_clip,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path

@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from omni_curator.segmenters.chunks import segment_chunks
-from omni_curator.segmenters.vad import SpeechWindow, boolean_windows, segment_vad
+from omni_curator.create.segmenters.chunks import segment_chunks
+from omni_curator.create.segmenters.vad import SpeechWindow, boolean_windows, segment_vad
 
 __all__ = ["SpeechWindow", "boolean_windows", "segment_chunks", "segment_vad"]

@@ -1,12 +1,16 @@
-"""omni-curator: turn raw audio into ASR fine-tuning transcripts.
+"""omni-curator: build ASR fine-tuning datasets from any source.
 
-Pipeline: segment -> Scribe ensemble -> compile-down -> (stitch) -> polish. Two finalized paths
-in :mod:`omni_curator.pipeline` (``vad_path`` and ``chunks_path``); building blocks in
-:mod:`omni_curator.segmenters`, :mod:`omni_curator.transcribe`, and :mod:`omni_curator.fuse`.
+Two ways data comes in: :mod:`omni_curator.create` generates labels for raw, untranscribed audio
+(YouTube etc.); :mod:`omni_curator.ingest` pulls datasets that already have transcripts (FLEURS,
+Common Voice). Both yield :class:`~omni_curator.sample.Sample`s, which flow through
+:mod:`~omni_curator.process` (16 kHz / normalize / tokenizer-coverage) into
+:mod:`~omni_curator.store` (SQLite), scored by :mod:`~omni_curator.benchmark` (WER/CER).
+
+The top-level re-exports the create pipeline for convenience.
 """
 
 from __future__ import annotations
 
-from omni_curator.pipeline import Clip, Transcript, chunks_path, vad_path
+from omni_curator.create.pipeline import Clip, Transcript, chunks_path, vad_path
 
 __all__ = ["Clip", "Transcript", "chunks_path", "vad_path"]

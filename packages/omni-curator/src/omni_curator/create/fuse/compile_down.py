@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from omni_curator.fuse._extract import extract_transcript
+from omni_curator.create.fuse._extract import extract_transcript
 
 if TYPE_CHECKING:
     from superwhisper_api.text.client import SuperwhisperClient
