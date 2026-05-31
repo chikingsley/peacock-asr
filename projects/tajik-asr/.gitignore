@@ -1,0 +1,22 @@
+.fairseq2-cache/
+.hf-cache/
+runs/
+__pycache__/
+*.pyc
+.ruff_cache/
+.pytest_cache/
+src/tajik_omnilingual_asr/omni_recipe/
+.venv/
+.fairseq2-assets/
+# Large binaries — gitignored in place (model weights, source audio + sqlite, built parquet)
+src/tajik_omnilingual_asr/models/
+src/tajik_omnilingual_asr/dataset_prep/artifacts/
+
+# Vendored ParsTranslit CTranslate2 models (re-export from github.com/merchantrayyan/ParsTranslit)
+# Archived 2026-05-30: the Persian->Tajik augmentation approach is a dead end (see
+# docs/persian-augmentation-experiment-20260530.md); code kept under archive/ for provenance.
+src/tajik_omnilingual_asr/dataset_prep/archive/parstranslit/ct2_fatg/
+src/tajik_omnilingual_asr/dataset_prep/archive/parstranslit/ct2_tgfa/
+
+# Derived Tajik vocab (rebuild from ParsTranslit data + v0 corpus)
+src/tajik_omnilingual_asr/dataset_prep/archive/parstranslit/tajik_vocab.txt
