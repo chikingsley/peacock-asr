@@ -1790,6 +1790,47 @@ wheels = [
 ]
 
 [[package]]
+name = "omni-finetune-core"
+version = "0.1.0"
+source = { editable = "../../packages/omni-finetune-core" }
+dependencies = [
+    { name = "fairseq2", extra = ["arrow"] },
+    { name = "huggingface-hub" },
+    { name = "jiwer" },
+    { name = "librosa" },
+    { name = "numpy" },
+    { name = "omnilingual-asr" },
+    { name = "pyarrow" },
+    { name = "pydantic" },
+    { name = "pyyaml" },
+    { name = "soundfile" },
+    { name = "torchaudio" },
+    { name = "tqdm" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fairseq2", extras = ["arrow"], specifier = "==0.8.1" },
+    { name = "huggingface-hub", specifier = "==0.36.2" },
+    { name = "jiwer", specifier = ">=3.1.0,<5" },
+    { name = "librosa", specifier = "==0.11.0" },
+    { name = "numpy", specifier = "==2.4.6" },
+    { name = "omnilingual-asr", specifier = "==0.2.0" },
+    { name = "pyarrow", specifier = "==24.0.0" },
+    { name = "pydantic", specifier = ">=2.11" },
+    { name = "pyyaml", specifier = ">=6.0" },
+    { name = "soundfile", specifier = "==0.13.1" },
+    { name = "torchaudio", specifier = "==2.9.1" },
+    { name = "tqdm", specifier = "==4.67.3" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "ruff", specifier = "==0.15.15" },
+    { name = "ty", specifier = "==0.0.40" },
+]
+
+[[package]]
 name = "omnilingual-asr"
 version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2861,6 +2902,7 @@ dependencies = [
     { name = "librosa" },
     { name = "nemo-toolkit", extra = ["asr"] },
     { name = "numpy" },
+    { name = "omni-finetune-core" },
     { name = "omnilingual-asr" },
     { name = "pyarrow" },
     { name = "ruff" },
@@ -2882,6 +2924,7 @@ requires-dist = [
     { name = "librosa", specifier = "==0.11.0" },
     { name = "nemo-toolkit", extras = ["asr"], specifier = ">=2.7.3" },
     { name = "numpy", specifier = "==2.4.6" },
+    { name = "omni-finetune-core", editable = "../../packages/omni-finetune-core" },
     { name = "omnilingual-asr", specifier = "==0.2.0" },
     { name = "pyarrow", specifier = "==24.0.0" },
     { name = "ruff", specifier = "==0.15.15" },

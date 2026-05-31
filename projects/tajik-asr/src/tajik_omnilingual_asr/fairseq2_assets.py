@@ -4,10 +4,12 @@ Replaces the hand-maintained ``.fairseq2-assets/`` YAML directory. The training
 config refers to the model/tokenizer/dataset by name (``omni_ctc_300m_v2_base``,
 ``omni_asr_tokenizer_written_v2_local``, ``tajik_asr_corpus``); fairseq2 resolves
 those names through its asset store, which is populated from every package that
-exposes a ``fairseq2.extension`` entry point. We register our three cards here so the
+exposes a ``fairseq2.extension`` entry point. We register our cards here so the
 definitions live next to the code that uses them, and so the on-disk paths are derived
 from ``__file__`` instead of being hardcoded absolute paths.
 
+The card *shapes* (the three card kinds and their key sets) are the typed Pydantic
+models in :mod:`omni_finetune_core.assets`; this module only supplies the Tajik values.
 Wired up via the ``[project.entry-points."fairseq2.extension"]`` entry point in
 ``pyproject.toml`` -> ``setup_fairseq2_extension``.
 """
@@ -15,9 +17,17 @@ Wired up via the ``[project.entry-points."fairseq2.extension"]`` entry point in
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from fairseq2.composition.assets import register_in_memory_assets
-from fairseq2.runtime.dependency import DependencyContainer
+from omni_finetune_core.assets import (
+    MixtureParquetDatasetCard,
+    ModelCard,
+    TokenizerCard,
+    register_cards,
+)
+
+if TYPE_CHECKING:
+    from fairseq2.runtime.dependency import DependencyContainer
 
 # This file lives at src/tajik_omnilingual_asr/fairseq2_assets.py, so the package
 # directory holds models/ and dataset_prep/.
@@ -41,56 +51,47 @@ _PARQUET_V1 = (
 
 TOKENIZER_NAME = "omni_asr_tokenizer_written_v2_local"
 
-ASSET_CARDS: list[dict[str, object]] = [
-    {
-        "name": TOKENIZER_NAME,
-        "tokenizer_family": "char_tokenizer",
-        "tokenizer": str(_MODELS / "omniASR_tokenizer_written_v2.model"),
-    },
-    {
-        "name": "omni_ctc_300m_v2_base",
-        "model_family": "wav2vec2_asr",
-        "model_arch": "300m_v2",
-        "checkpoint": str(_MODELS / "omniASR-CTC-300M-v2.pt"),
-        "tokenizer_ref": TOKENIZER_NAME,
-    },
-    {
-        "name": "omni_ctc_300m_v2_tajik_step_1800",
-        "model_family": "wav2vec2_asr",
-        "model_arch": "300m_v2",
-        "checkpoint": str(
+CARDS = [
+    TokenizerCard(
+        name=TOKENIZER_NAME,
+        tokenizer=_MODELS / "omniASR_tokenizer_written_v2.model",
+    ),
+    ModelCard(
+        name="omni_ctc_300m_v2_base",
+        checkpoint=_MODELS / "omniASR-CTC-300M-v2.pt",
+        tokenizer_ref=TOKENIZER_NAME,
+    ),
+    ModelCard(
+        name="omni_ctc_300m_v2_tajik_step_1800",
+        checkpoint=(
             _PROJECT
             / "runs/omni-ctc-300m-tajik-asr-corpus-v0/ws_1.3dcb9e0b/"
             / "checkpoints/step_1800/model/pp_00/tp_00/sdp_00.pt"
         ),
-        "tokenizer_ref": TOKENIZER_NAME,
-    },
-    {
-        # v1 (Persian-augmented) best dev-WER checkpoint (step_4000).
-        "name": "omni_ctc_300m_v2_tajik_v1_step_4000",
-        "model_family": "wav2vec2_asr",
-        "model_arch": "300m_v2",
-        "checkpoint": str(
+        tokenizer_ref=TOKENIZER_NAME,
+    ),
+    # v1 (Persian-augmented) best dev-WER checkpoint (step_4000).
+    ModelCard(
+        name="omni_ctc_300m_v2_tajik_v1_step_4000",
+        checkpoint=(
             _PROJECT
             / "runs/omni-ctc-300m-tajik-asr-corpus-v1/ws_1.fbafaafe/"
             / "checkpoints/step_4000/model/pp_00/tp_00/sdp_00.pt"
         ),
-        "tokenizer_ref": TOKENIZER_NAME,
-    },
-    {
-        "name": "tajik_asr_corpus",
-        "dataset_family": "mixture_parquet_asr_dataset",
-        "dataset_config": {"data": str(_PARQUET)},
-        "tokenizer_ref": TOKENIZER_NAME,
-    },
-    {
-        "name": "tajik_asr_corpus_v1",
-        "dataset_family": "mixture_parquet_asr_dataset",
-        "dataset_config": {"data": str(_PARQUET_V1)},
-        "tokenizer_ref": TOKENIZER_NAME,
-    },
+        tokenizer_ref=TOKENIZER_NAME,
+    ),
+    MixtureParquetDatasetCard(
+        name="tajik_asr_corpus",
+        data=_PARQUET,
+        tokenizer_ref=TOKENIZER_NAME,
+    ),
+    MixtureParquetDatasetCard(
+        name="tajik_asr_corpus_v1",
+        data=_PARQUET_V1,
+        tokenizer_ref=TOKENIZER_NAME,
+    ),
 ]
 
 
 def setup_fairseq2_extension(container: DependencyContainer) -> None:
-    register_in_memory_assets(container, "tajik_omnilingual_asr", ASSET_CARDS)
+    register_cards(container, "tajik_omnilingual_asr", CARDS)

@@ -10,6 +10,7 @@ dependencies = [
   "librosa==0.11.0",
   "nemo-toolkit[asr]>=2.7.3",
   "numpy==2.4.6",
+  "omni-finetune-core",
   "omnilingual-asr==0.2.0",
   "pyarrow==24.0.0",
   "ruff==0.15.15",
@@ -25,6 +26,7 @@ dependencies = [
 
 [tool.uv.sources]
 superwhisper-api = { path = "../../packages/superwhisper-api", editable = true }
+omni-finetune-core = { path = "../../packages/omni-finetune-core", editable = true }
 
 [tool.uv]
 # omnilingual-asr 0.2.0 (latest) pins fairseq2<=0.6.0, but we run the latest fairseq2 0.8.1
@@ -63,11 +65,11 @@ line-length = 100
 target-version = "py312"
 src = ["src"]
 # Vendored, archived ParsTranslit upstream (dead-end Persian->Tajik translit; imports the
-# dropped ctranslate2 dep). Not our code, not linted — like omni_recipe.
+# dropped ctranslate2 dep). Not our code, not linted.
 extend-exclude = ["**/archive/parstranslit"]
 
 [tool.ty.src]
-exclude = ["**/omni_recipe/", "**/archive/parstranslit/"]
+exclude = ["**/archive/parstranslit/"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B"]

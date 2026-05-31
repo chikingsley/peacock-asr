@@ -28,9 +28,9 @@ import glob
 import os
 from pathlib import Path
 
-import jiwer
 import numpy as np
 import pyarrow.parquet as pq
+from omni_finetune_core.metrics import compute_measures
 
 from tajik_omnilingual_asr.dataset_prep.text_normalization import normalize_text
 
@@ -76,20 +76,17 @@ def load_test(artifact: str, limit: int, max_dur: float) -> tuple[list, list[str
 
 
 def measures(refs: list[str], hyps: list[str]) -> dict[str, float]:
-    """Corpus-level metrics via jiwer. WER/MER/WIL + S/D/I/H from one alignment."""
-    if not refs:
-        return dict.fromkeys(("wer", "cer", "mer", "wil", "sub", "del", "ins", "hits"), 0.0)
-    w = jiwer.process_words(refs, hyps)
-    c = jiwer.process_characters(refs, hyps)
+    """Corpus-level metrics via the shared core scorer. WER/MER/WIL + S/D/I/H per alignment."""
+    m = compute_measures(refs, hyps)
     return {
-        "wer": 100.0 * w.wer,
-        "cer": 100.0 * c.cer,
-        "mer": 100.0 * w.mer,
-        "wil": 100.0 * w.wil,
-        "sub": float(w.substitutions),
-        "del": float(w.deletions),
-        "ins": float(w.insertions),
-        "hits": float(w.hits),
+        "wer": m.wer,
+        "cer": m.cer,
+        "mer": m.mer,
+        "wil": m.wil,
+        "sub": float(m.substitutions),
+        "del": float(m.deletions),
+        "ins": float(m.insertions),
+        "hits": float(m.hits),
     }
 
 

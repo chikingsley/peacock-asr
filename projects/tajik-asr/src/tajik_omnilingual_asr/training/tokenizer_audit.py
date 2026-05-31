@@ -6,6 +6,7 @@ from collections import Counter
 from pathlib import Path
 
 from fairseq2.data.tokenizers.hub import load_tokenizer
+from omni_finetune_core.tokenizer_audit import audit_texts
 
 ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_MANIFEST = (
@@ -47,28 +48,27 @@ def main(argv: list[str] | None = None) -> int:
     encoder = tokenizer.create_raw_encoder()
     unk_idx = tokenizer.vocab_info.unk_idx
 
-    rows = 0
-    unknown_rows = 0
-    unknown_tokens = 0
+    # Materialize the corpus once so the shared core scorer and the per-example
+    # diagnostic below see the same texts.
+    entries = list(iter_text(args.manifest_dir))
+
+    # Headline rows / unknown-rows / unknown-tokens come from the shared core auditor.
+    report = audit_texts((text for _, _, text in entries), tokenizer)
+
     char_counts: Counter[str] = Counter()
     examples: list[tuple[str, int, int, str, list[str]]] = []
-
-    for split, line_nr, text in iter_text(args.manifest_dir):
-        rows += 1
+    for split, line_nr, text in entries:
         char_counts.update(text)
         token_ids = encoder(text).tolist()
-        tokens = encoder.encode_as_tokens(text)
         row_unknowns = token_ids.count(unk_idx) if unk_idx is not None else 0
-        if row_unknowns:
-            unknown_rows += 1
-            unknown_tokens += row_unknowns
-            if len(examples) < args.max_examples:
-                examples.append((split, line_nr, row_unknowns, text, tokens))
+        if row_unknowns and len(examples) < args.max_examples:
+            tokens = encoder.encode_as_tokens(text)
+            examples.append((split, line_nr, row_unknowns, text, tokens))
 
     print(f"tokenizer\t{args.tokenizer}")
-    print(f"rows\t{rows}")
-    print(f"unknown_rows\t{unknown_rows}")
-    print(f"unknown_tokens\t{unknown_tokens}")
+    print(f"rows\t{report.rows}")
+    print(f"unknown_rows\t{report.unk_rows}")
+    print(f"unknown_tokens\t{report.unk_tokens}")
     print(f"unique_chars\t{len(char_counts)}")
 
     if examples:
@@ -77,7 +77,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{split}:{line_nr}\tunknowns={count}\t{text}\t{tokens}")
         return 1
 
-    return 0
+    return 0 if report.clean else 1
 
 
 if __name__ == "__main__":

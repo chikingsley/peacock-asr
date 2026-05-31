@@ -1,24 +1,12 @@
 from __future__ import annotations
 
 import argparse
-import os
-import runpy
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from omni_finetune_core.train import configure_environment, run_recipe
+
 ROOT = Path(__file__).resolve().parents[3]
-# Omnilingual ASR training recipe checkout, vendored inside the package and
-# gitignored in place. Override with TAJIK_OMNI_RECIPE_ROOT to use another
-# checkout. Re-clone: github.com/facebookresearch/omnilingual-asr
-OMNI_ROOT = Path(
-    os.environ.get(
-        "TAJIK_OMNI_RECIPE_ROOT",
-        str(Path(__file__).resolve().parents[1] / "omni_recipe"),
-    )
-).expanduser()
-OMNI_RECIPE_MODULE = "workflows.recipes.wav2vec2.asr"
-OMNI_RECIPE_PATH = Path("workflows/recipes/wav2vec2/asr/__main__.py")
 CONFIG_DIR = Path(__file__).resolve().parent / "configs"
 
 
@@ -63,47 +51,17 @@ def resolve_paths(args: argparse.Namespace) -> tuple[Path, Path]:
     return config_file.resolve(), output_dir.resolve()
 
 
-def configure_environment() -> None:
-    os.environ.setdefault("HF_HOME", str(ROOT / ".hf-cache"))
-    os.environ.setdefault("HF_DATASETS_CACHE", str(ROOT / ".hf-cache/datasets"))
-    os.environ.setdefault("FAIRSEQ2_CACHE_DIR", str(ROOT / ".fairseq2-cache/assets"))
-    os.environ.setdefault("PYTORCH_ALLOC_CONF", "expandable_segments:True")
-    os.environ.setdefault("CUDA_MODULE_LOADING", "LAZY")
-    os.environ.setdefault("TORCH_SHOW_CPP_STACKTRACES", "1")
-
-
-def configure_recipe_source() -> None:
-    recipe = OMNI_ROOT / OMNI_RECIPE_PATH
-    if not recipe.is_file():
-        raise RuntimeError(
-            f"Missing Omnilingual ASR recipe: {recipe}. Clone it with:\n"
-            f"  git clone https://github.com/facebookresearch/omnilingual-asr.git {OMNI_ROOT}\n"
-            "or set TAJIK_OMNI_RECIPE_ROOT to an existing checkout."
-        )
-    sys.path.insert(0, str(OMNI_ROOT / "src"))
-    sys.path.insert(0, str(OMNI_ROOT))
-
-
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     config_file, output_dir = resolve_paths(args)
 
-    configure_environment()
-    configure_recipe_source()
-    output_dir.parent.mkdir(parents=True, exist_ok=True)
-    os.chdir(OMNI_ROOT)
+    configure_environment(ROOT)
 
     recipe_args = list(args.recipe_args)
     if recipe_args and recipe_args[0] == "--":
         recipe_args = recipe_args[1:]
-    sys.argv = [
-        OMNI_RECIPE_MODULE,
-        str(output_dir),
-        "--config-file",
-        str(config_file),
-        *recipe_args,
-    ]
-    runpy.run_module(OMNI_RECIPE_MODULE, run_name="__main__")
+
+    run_recipe(config_file, output_dir, extra_args=recipe_args)
     return 0
 
 
