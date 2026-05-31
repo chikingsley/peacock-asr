@@ -16,7 +16,7 @@ dependencies = [
   "onnxruntime==1.26.0",
   "pyarrow==24.0.0",
   "rapidfuzz==3.14.5",
-  "ruff==0.15.13",
+  "ruff==0.15.15",
   "sherpa-onnx==1.13.2",
   "sherpa-onnx-bin==1.13.2",
   "sherpa-onnx-core==1.13.2",
@@ -26,7 +26,7 @@ dependencies = [
   "torch==2.8.0",
   "torchaudio==2.8.0",
   "tqdm==4.67.3",
-  "ty==0.0.35",
+  "ty==0.0.40",
 ]
 
 [tool.uv.sources]
