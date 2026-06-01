@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
     from omni_curator.sample import Sample
-    from omni_curator.store.sqlite import CuratorStore
+    from omni_curator.store import CuratorStore
 
 
 @dataclass

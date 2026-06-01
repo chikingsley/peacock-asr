@@ -60,7 +60,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
 
     from omni_curator.sample import Sample
-    from omni_curator.store.sqlite import CuratorStore
+    from omni_curator.store import CuratorStore
 
 SAMPLE_RATE = 16_000
 
