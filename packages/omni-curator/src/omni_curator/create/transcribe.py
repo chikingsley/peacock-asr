@@ -7,6 +7,7 @@ differences and run-to-run variance are both visible to ``fuse.compile_down``.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -53,3 +54,47 @@ def transcribe_clip(clip: Path, scribe_fns: dict[str, Any], *, runs: int = 1) ->
             if transcript:
                 variants.append(transcript)
     return variants
+
+
+@dataclass(frozen=True)
+class TimedWord:
+    """One ElevenLabs Scribe word with its audio timing (seconds), relative to the clip start."""
+
+    text: str
+    start: float
+    end: float
+
+    @property
+    def mid(self) -> float:
+        return (self.start + self.end) / 2.0
+
+
+def scribe_word_fn(key: str, language: str | None = None, *, model: str = "scribe-v2") -> Any:
+    """Bind one Scribe transcription fn (``language=None`` -> auto-detect) for word timing."""
+    from superwhisper_api.audio.models import audio_model
+    from superwhisper_api.audio.transcribe import create_process_fn
+
+    spec = audio_model(model)
+    return create_process_fn(spec, key, language=language, diarize=False)
+
+
+def transcribe_words(clip: Path, scribe_fn: Any) -> list[TimedWord]:
+    """Scribe a clip and return its word-level timestamps (drops spacing / audio-event entries).
+
+    ElevenLabs Scribe returns ``raw_response["words"]`` as a list of
+    ``{"text", "start", "end", "type"}`` entries, where ``type`` is ``"word"`` for actual words and
+    ``"spacing"`` / ``"audio_event"`` for the rest. Only real words carry usable timing, so the
+    others are dropped here. Times are seconds from the start of ``clip``.
+    """
+    raw = scribe_fn(clip).as_dict().get("raw_response") or {}
+    words: list[TimedWord] = []
+    for entry in raw.get("words", []) if isinstance(raw, dict) else []:
+        if not isinstance(entry, dict) or entry.get("type") != "word":
+            continue
+        text = str(entry.get("text") or "").strip()
+        start = entry.get("start")
+        end = entry.get("end")
+        if not text or not isinstance(start, int | float) or not isinstance(end, int | float):
+            continue
+        words.append(TimedWord(text=text, start=float(start), end=float(end)))
+    return words

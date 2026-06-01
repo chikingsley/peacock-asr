@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from omni_curator.sample import Sample
 
 
@@ -24,11 +29,15 @@ def to_16k_flac(src: Path, dst: Path) -> None:
 
 
 def resample_sample(sample: Sample, out_dir: Path) -> Sample:
-    """Resample a sample's audio to 16 kHz mono FLAC under ``out_dir``; return it updated."""
+    """Resample a sample's audio to 16 kHz mono FLAC under ``out_dir``; return it updated.
+
+    Skips the ffmpeg pass if the output already exists, so a re-run resumes instead of redoing.
+    """
     import soundfile as sf
 
     dst = out_dir / f"{sample.id}.flac"
-    to_16k_flac(Path(sample.audio_path), dst)
+    if not dst.exists():
+        to_16k_flac(Path(sample.audio_path), dst)
     info = sf.info(str(dst))
     return replace(
         sample,
@@ -36,3 +45,20 @@ def resample_sample(sample: Sample, out_dir: Path) -> Sample:
         sample_rate=16_000,
         duration=float(info.frames) / float(info.samplerate),
     )
+
+
+def resample_samples(
+    samples: Iterable[Sample], out_dir: Path, *, workers: int | None = None
+) -> list[Sample]:
+    """Resample many samples in parallel (ffmpeg per clip, so threads give real speedup), with a
+    progress bar. Already-converted clips are skipped, so this resumes cleanly. ``workers`` defaults
+    to all CPU cores (each ffmpeg ≈ one core; oversubscribing past core-count doesn't help).
+    """
+    from tqdm import tqdm
+
+    items = list(samples)
+    max_workers = workers or (os.cpu_count() or 8)
+    worker = partial(resample_sample, out_dir=out_dir)
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        done = tqdm(pool.map(worker, items), total=len(items), desc=f"resample {out_dir.name}")
+        return list(done)
