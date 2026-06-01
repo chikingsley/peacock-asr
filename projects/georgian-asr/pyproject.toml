@@ -28,6 +28,7 @@ override-dependencies = [
 
 [project.scripts]
 georgian-ingest = "georgian_asr.ingest:main"
+georgian-export = "georgian_asr.export:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -53,3 +54,4 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "src/georgian_asr/ingest.py" = ["T201"]  # the ingest CLI prints
+"src/georgian_asr/export.py" = ["T201"]  # the export CLI prints
