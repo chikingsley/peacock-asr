@@ -153,7 +153,10 @@ def cmd_label(args: argparse.Namespace) -> int:
         if not flacs:
             continue
         store = CuratorStore(CHANNELS / ch.slug / "store.sqlite")  # own store = parallel-safe
+        done = {s.id.rsplit("_", 1)[0] for s in store.iter_samples()}  # video prefixes already done
         for flac in flacs:
+            if f"{ch.slug}_{flac.stem}" in done:  # incremental: skip already-labeled videos
+                continue
             try:
                 # VAD gives non-overlapping speech segments = clean training clips (chunks overlap).
                 total += label_to_store(
