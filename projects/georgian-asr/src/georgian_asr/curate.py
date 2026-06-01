@@ -147,18 +147,22 @@ def cmd_label(args: argparse.Namespace) -> int:
     from omni_curator.store import CuratorStore
 
     store = CuratorStore(DB)
-    total = 0
+    total = failed = 0
     for ch in _selected_channels(args):
         flacs = sorted((CREATE / ch.slug).glob("*.flac"))
         for flac in flacs:
-            # VAD gives non-overlapping speech segments = clean training clips (chunks overlap).
-            total += label_to_store(
-                flac, store=store, source=f"youtube-{ch.slug}", language=LANGUAGE,
-                script=SCRIPT, id_prefix=f"{ch.slug}_{flac.stem}",
-                out_dir=DATA / "labeled" / ch.slug / flac.stem, path="vad", citation=ch.url,
-            )
+            try:
+                # VAD gives non-overlapping speech segments = clean training clips (chunks overlap).
+                total += label_to_store(
+                    flac, store=store, source=f"youtube-{ch.slug}", language=LANGUAGE,
+                    script=SCRIPT, id_prefix=f"{ch.slug}_{flac.stem}",
+                    out_dir=DATA / "labeled" / ch.slug / flac.stem, path="vad", citation=ch.url,
+                )
+            except Exception as exc:  # noqa: BLE001 — one bad video must not abort the run
+                failed += 1
+                print(f"  ! {ch.slug}/{flac.name}: {type(exc).__name__}: {exc}")
         print(f"  {ch.slug}: store now {store.counts()}")
-    print(f"labeled {total} clips -> {DB}")
+    print(f"labeled {total} clips ({failed} videos failed) -> {DB}")
     store.close()
     return 0
 
