@@ -1,6 +1,6 @@
 """Score fine-tuned Tajik omni CTC models on the held-out test split.
 
-Entry point ``tajik-eval-test``. Runs one or more registered model cards over the
+Entry point ``tajik-eval``. Runs one or more registered model cards over the
 omni-parquet test partitions (default: the v0 test split), transcribes on CPU by
 default so it doesn't contend with the GPU, normalizes both sides with the project
 normalizer, and reports corpus-level metrics (jiwer ``process_words`` /
@@ -11,10 +11,10 @@ split is the useful diagnostic for these models: a word-boundary merge (e.g.
 ``бо дӯстон`` -> ``бодӯстон``) shows up as a deletion + substitution while CER barely
 moves, which is exactly the WER-vs-CER gap we keep seeing.
 
-  tajik-eval-test                          # v0 vs v1, full test split, CPU
-  tajik-eval-test --limit 5                # smoke test
-  tajik-eval-test --device cuda            # if the GPU is free
-  tajik-eval-test --models v0=omni_ctc_300m_v2_tajik_step_1800
+  tajik-eval                          # v0 vs v1, full test split, CPU
+  tajik-eval --limit 5                # smoke test
+  tajik-eval --device cuda            # if the GPU is free
+  tajik-eval --models v0=omni_ctc_300m_v2_tajik_step_1800
 
 Audio is read straight from the parquet (audio_bytes = FLAC int8) and handed to the
 pipeline as int8 arrays; no temp files. Clips longer than the omni pipeline's 40s cap
@@ -24,17 +24,15 @@ are excluded (and counted) since the pipeline raises on them.
 from __future__ import annotations
 
 import argparse
-import glob
 import os
 from pathlib import Path
 
 import numpy as np
 import pyarrow.parquet as pq
+from omni_curator.process.normalize import normalize
 from omni_finetune_core.metrics import compute_measures
 
-from tajik_omnilingual_asr.dataset_prep.text_normalization import normalize_text
-
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[2]
 ARTIFACTS = ROOT / "src/tajik_omnilingual_asr/dataset_prep/artifacts"
 LANG = "tgk_Cyrl"
 SAMPLE_RATE = 16_000
@@ -45,17 +43,16 @@ DEFAULT_MODELS = [
 ]
 
 
-def test_glob(artifact: str) -> str:
-    return str(
-        ARTIFACTS / artifact / "omni_parquet/version=0"
-        / "corpus=*/split=test/language=tgk_Cyrl/*.parquet"
-    )
+def test_parquets(artifact: str) -> list[Path]:
+    base = ARTIFACTS / artifact / "omni_parquet/version=0"
+    return sorted(base.glob("corpus=*/split=test/language=tgk_Cyrl/*.parquet"))
 
 
 def load_test(artifact: str, limit: int, max_dur: float) -> tuple[list, list[str], list[str], int]:
     audio, refs, corpora = [], [], []
     excluded = 0
-    for path in sorted(glob.glob(test_glob(artifact))):
+    for parquet_path in test_parquets(artifact):
+        path = str(parquet_path)
         corpus = next(p.split("=")[1] for p in path.split("/") if p.startswith("corpus="))
         t = pq.read_table(path, columns=["text", "audio_bytes", "audio_size"])
         for text, ab, size in zip(
@@ -132,7 +129,7 @@ def main(argv: list[str] | None = None) -> int:
         f"corpora: {sorted(set(corpora))} | device: {args.device}",
         flush=True,
     )
-    refs_norm = [normalize_text(r) for r in refs]
+    refs_norm = [normalize(r, LANG) for r in refs]
 
     summary = {}
     for label, card in models:
@@ -140,7 +137,7 @@ def main(argv: list[str] | None = None) -> int:
         pipe = ASRInferencePipeline(card, device=args.device, dtype=dtype)
         hyps_raw = pipe.transcribe(audio, lang=[LANG] * len(audio), batch_size=args.batch_size)
         del pipe
-        hyps = [normalize_text(h) for h in hyps_raw]
+        hyps = [normalize(h, LANG) for h in hyps_raw]
         m = measures(refs_norm, hyps)
         summary[label] = m
         print(

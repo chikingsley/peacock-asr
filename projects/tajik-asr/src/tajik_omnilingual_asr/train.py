@@ -6,7 +6,7 @@ from pathlib import Path
 
 from omni_finetune_core.train import configure_environment, run_recipe
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[2]
 CONFIG_DIR = Path(__file__).resolve().parent / "configs"
 
 

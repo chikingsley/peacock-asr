@@ -39,20 +39,14 @@ override-dependencies = [
 ]
 
 [project.scripts]
-# Convention: tajik-<verb>-<object>. Day-to-day pipeline: build -> export -> audit -> train.
-# (curate-scribe is an auxiliary tool.) One-time/superseded scripts live in
-# dataset_prep/archive/ with no entry point — run via `python -m` if ever needed.
-tajik-build-combined = "tajik_omnilingual_asr.dataset_prep.combined:main"
-tajik-export-manifest = "tajik_omnilingual_asr.dataset_prep.omni_manifest:main"
-tajik-export-parquet = "tajik_omnilingual_asr.dataset_prep.omni_parquet:main"
-tajik-curate-scribe = "tajik_omnilingual_asr.dataset_prep.curation.scribe:main"
+# The thin per-language standard (matches georgian-asr): curate (data) + train/eval (model).
+# Curation/normalization/export/tokenizer-audit all live in the shared packages now.
 tajik-curate = "tajik_omnilingual_asr.curate:main"
-tajik-audit-tokenizer = "tajik_omnilingual_asr.training.tokenizer_audit:main"
-tajik-train = "tajik_omnilingual_asr.training.train:main"
-tajik-eval-test = "tajik_omnilingual_asr.eval.test_split:main"
+tajik-train = "tajik_omnilingual_asr.train:main"
+tajik-eval = "tajik_omnilingual_asr.eval:main"
 
 [project.entry-points."fairseq2.extension"]
-tajik_asr = "tajik_omnilingual_asr.fairseq2_assets:setup_fairseq2_extension"
+tajik_asr = "tajik_omnilingual_asr.assets:setup_fairseq2_extension"
 
 [build-system]
 requires = ["hatchling"]
@@ -65,15 +59,9 @@ packages = ["src/tajik_omnilingual_asr"]
 line-length = 100
 target-version = "py312"
 src = ["src"]
-# Archived/dead one-off dataset-prep code and vendored ParsTranslit upstream — kept for
-# reference, not maintained, and nothing live imports it. Not linted at all.
-extend-exclude = ["**/archive"]
 
 [tool.ty.environment]
 python = ".venv"
-
-[tool.ty.src]
-exclude = ["**/archive/parstranslit/"]
 
 # "ruff max": enable everything, then turn off only the genuinely impractical or
 # formatter-conflicting rules. Matches omni-curator / omni-finetune-core / georgian-asr.
@@ -95,12 +83,6 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"src/tajik_omnilingual_asr/eval/test_split.py" = [
-    "RUF002",  # Cyrillic letters resembling Latin are intentional Tajik text.
-]
-# Channel names/notes are intentional Tajik (Cyrillic) text.
+# Cyrillic letters resembling Latin are intentional Tajik text.
+"src/tajik_omnilingual_asr/eval.py" = ["RUF002"]
 "src/tajik_omnilingual_asr/sources.py" = ["RUF001", "RUF002", "RUF003"]
-# SQL is built only from static fragments and `?` placeholder lists derived from
-# list lengths; all user-supplied values are passed as bound parameters, not
-# interpolated. No external input reaches the query text.
-"src/tajik_omnilingual_asr/dataset_prep/curation/scribe.py" = ["S608"]
