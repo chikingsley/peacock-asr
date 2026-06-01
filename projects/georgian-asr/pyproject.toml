@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Georgian ASR: a fresh-language reference project driving omni-curator + omni-finetune-core end to end."
 requires-python = ">=3.12,<3.13"
 dependencies = [
-  "omni-curator[ingest]",
+  "omni-curator[ingest,youtube]",
   "omni-finetune-core",
 ]
 
@@ -27,8 +27,7 @@ override-dependencies = [
 ]
 
 [project.scripts]
-georgian-ingest = "georgian_asr.ingest:main"
-georgian-export = "georgian_asr.export:main"
+georgian-curate = "georgian_asr.curate:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -53,5 +52,5 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"src/georgian_asr/ingest.py" = ["T201"]  # the ingest CLI prints
+"src/georgian_asr/curate.py" = ["T201"]  # the curate CLI prints
 "src/georgian_asr/export.py" = ["T201"]  # the export CLI prints
