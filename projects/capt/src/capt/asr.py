@@ -43,7 +43,7 @@ class ScribeAsrTranscriber:
     def transcribe(self, audio_path: str, language: str | None = None) -> AsrResult:
         import numpy as np
 
-        from p016_compare.audio import load_audio_16k
+        from capt.audio import load_audio_16k
 
         audio = load_audio_16k(audio_path)
         pcm = (np.clip(audio, -1.0, 1.0) * 32767.0).astype("<i2").tobytes()

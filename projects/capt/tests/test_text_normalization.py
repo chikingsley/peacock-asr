@@ -1,9 +1,9 @@
 import pytest
 
-import p016_compare.g2p as g2p_module
-import p016_compare.text_normalization as text_norm_module
-from p016_compare.g2p import TargetG2P
-from p016_compare.text_normalization import _choose_russian_candidate, normalize_written_text
+import capt.g2p as g2p_module
+import capt.text_normalization as text_norm_module
+from capt.g2p import TargetG2P
+from capt.text_normalization import _choose_russian_candidate, normalize_written_text
 
 
 def test_english_acronyms_expand_to_spoken_letter_names(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -4,7 +4,7 @@
 For each language in the manifest we recognize every clip once with ZIPA, then score the KNOWN
 reference text (read-aloud) against each candidate G2P backend by mean PFER (panphon feature
 distance vs the ZIPA output). The lowest-PFER backend per language is written to the routing
-table (src/p016_compare/g2p_routing.json), which TargetG2P(backend="routed") then consumes.
+table (src/capt/g2p_routing.json), which TargetG2P(backend="routed") then consumes.
 
 Processing is per-language and CHECKPOINTED: the routing table + report are updated after each
 language finishes, so a long multi-language run is crash-resumable. ``--skip-routed`` skips
@@ -22,8 +22,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from p016_compare.g2p import TargetG2P
-from p016_compare.pipeline import PronunciationComparePipeline, _score_lane
+from capt.g2p import TargetG2P
+from capt.pipeline import PronunciationComparePipeline, _score_lane
 
 DEFAULT_CANDIDATES = ["espeak", "epitran", "charsiu", "paper"]
 
@@ -36,7 +36,7 @@ def main() -> None:
     parser.add_argument(
         "--routing-out",
         type=Path,
-        default=Path("src/p016_compare/g2p_routing.json"),
+        default=Path("src/capt/g2p_routing.json"),
         help="Routing table to update (merged + checkpointed after each language).",
     )
     parser.add_argument(

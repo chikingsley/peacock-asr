@@ -1,7 +1,7 @@
 [project]
-name = "p016-russian-phone-compare"
+name = "capt"
 version = "0.1.0"
-description = "No-training comparison harness for ASR+G2P canonical phones against ZIPA and XLSR-eSpeak phone recognizers"
+description = "Computer-assisted pronunciation training: no-training, multilingual pronunciation scoring (text -> G2P -> canonical IPA vs ZIPA phone recognizer, panphon PFER)."
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "accelerate>=1.0",
@@ -17,6 +17,8 @@ dependencies = [
     "onnxruntime>=1.18; platform_system != 'Linux'",
     "panphon>=0.22",
     "phonemizer>=3.3",
+    # Trained-G2P (`trained` backend) for the no-G2P gap languages; ships OpenFST/OpenGrm binaries.
+    "phonetisaurus>=0.3",
     "soundfile>=0.13",
     # ElevenLabs Scribe v2 realtime ASR lane (asr.ScribeAsrTranscriber).
     "superwhisper-api",
@@ -42,7 +44,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/p016_compare"]
+packages = ["src/capt"]
 
 [tool.ruff]
 line-length = 100
@@ -73,11 +75,11 @@ ignore = [
 # Cyrillic letters resembling Latin are intentional Russian normalization data.
 # S603/S607: subprocess calls invoke known, trusted binaries (MFA, espeak-ng, sys.executable)
 # with fixed argument vectors; the only variable inputs are file paths and word lists.
-"src/p016_compare/g2p.py" = ["RUF001", "S603", "S607"]
+"src/capt/g2p.py" = ["RUF001", "S603", "S607"]
 # S603: ZIPA recognizer shells out to the bundled inference script via sys.executable.
-"src/p016_compare/recognizers.py" = ["S603"]
-"src/p016_compare/normalization.py" = ["RUF001"]
-"src/p016_compare/text_normalization.py" = ["RUF001"]
+"src/capt/recognizers.py" = ["S603"]
+"src/capt/normalization.py" = ["RUF001"]
+"src/capt/text_normalization.py" = ["RUF001"]
 "tests/test_normalization.py" = ["RUF001", "S101", "PLR2004"]
 "tests/test_text_normalization.py" = ["RUF001", "S101", "PLR2004"]
 "tests/test_text_normalization_integration.py" = ["RUF001", "S101", "PLR2004"]

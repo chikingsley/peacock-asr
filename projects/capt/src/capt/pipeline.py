@@ -3,18 +3,18 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
-from p016_compare.alignment import (
+from capt.alignment import (
     AlignmentOp,
     alignment_rows,
     needleman_wunsch,
     summarize,
 )
-from p016_compare.feature_metrics import (
+from capt.feature_metrics import (
     alignment_feature_distance,
     feature_edit_summary,
 )
-from p016_compare.g2p import G2PResult, TargetG2P
-from p016_compare.recognizers import (
+from capt.g2p import G2PResult, TargetG2P
+from capt.recognizers import (
     PhoneRecognitionResult,
     ZipaOnnxRecognizer,
     safe_recognize,

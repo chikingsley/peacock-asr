@@ -50,7 +50,7 @@ the funnel's ceiling (read-aloud) and what deriving the target via ASR costs (fr
 - **Removed (locked in):** the Gradio app, the Qwen ASR lane, the XLSR-eSpeak recognizer + all
   its lanes, the Charsiu G2P backend, the diagnostic lanes, and the single-file `analyze`/
   `cli.py` machinery. The project is now exactly the two-path dataset eval. Visual comes later.
-- **ASR = ElevenLabs Scribe v2** (`p016_compare.asr.ScribeAsrTranscriber`) via the
+- **ASR = ElevenLabs Scribe v2** (`capt.asr.ScribeAsrTranscriber`) via the
   `superwhisper-api` realtime stream. Free-form only; read-aloud needs no ASR.
 - **Recognizer = ZIPA only** (universal IPA, ONNX). Recognition depends only on the audio, so the
   eval recognizes **once** per sample and scores both target sources against it

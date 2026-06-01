@@ -28,11 +28,11 @@ from pathlib import Path
 from statistics import mean
 from typing import TYPE_CHECKING, Any
 
-from p016_compare.asr import ScribeAsrTranscriber
-from p016_compare.pipeline import DEFAULT_LANE_CONFIGS, PronunciationComparePipeline
+from capt.asr import ScribeAsrTranscriber
+from capt.pipeline import DEFAULT_LANE_CONFIGS, PronunciationComparePipeline
 
 if TYPE_CHECKING:
-    from p016_compare.pipeline import LaneResult
+    from capt.pipeline import LaneResult
 
 READ_ALOUD = "read_aloud"
 FREE_FORM = "free_form"

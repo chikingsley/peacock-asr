@@ -6,7 +6,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from p016_compare.normalization import split_phone_text
+from capt.normalization import split_phone_text
 
 
 @dataclass(frozen=True)

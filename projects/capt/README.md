@@ -18,7 +18,7 @@ compared and dropped — ZIPA won. G2P target: espeak-ng (universal), with a Rus
 ## Setup (gmk-server)
 
 ```bash
-cd ~/github/peacock-asr/projects/P016-russian-phone-compare
+cd ~/github/peacock-asr/projects/capt
 ~/.local/bin/uv sync --extra zipa
 scripts/bootstrap_zipa.sh     # ZIPA repo + ONNX into artifacts/zipa-large-crctc-ns-800k/
 scripts/bootstrap_mfa.sh      # optional: Russian MFA lane (.mfa/); espeak-ng fallback otherwise

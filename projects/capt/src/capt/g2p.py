@@ -11,8 +11,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from p016_compare.normalization import normalize_phone_tokens, split_phone_text
-from p016_compare.text_normalization import WrittenTextNormalization, normalize_written_text
+from capt.normalization import normalize_phone_tokens, split_phone_text
+from capt.text_normalization import WrittenTextNormalization, normalize_written_text
 
 _WORD_RE = re.compile(r"[^\W_]+(?:[-'][^\W_]+)?", re.UNICODE)
 _ROMAN_RE = re.compile(r"^[ivxlcdm]+$")
@@ -679,8 +679,12 @@ def _try_single(
         return _result(words, phones, label, warnings, text_normalization)
     except Exception as exc:  # noqa: BLE001 - any backend failure falls back to espeak
         warnings.append(f"{label} G2P failed for {language!r}: {exc}")
+    try:
         return _espeak_result(words, expanded_words, part_counts, language, warnings,
                               text_normalization)
+    except RuntimeError as exc:  # no espeak voice either (gap lang) — empty target, no crash
+        warnings.append(f"no G2P backend available for {language!r}: {exc}")
+        return _result(words, [[] for _ in words], "none", warnings, text_normalization)
 
 
 def _chain_g2p(

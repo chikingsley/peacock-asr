@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 
-import p016_compare.g2p as g2p_module
-from p016_compare.g2p import TargetG2P
-from p016_compare.normalization import normalize_phone_tokens, split_phone_text
+import capt.g2p as g2p_module
+from capt.g2p import TargetG2P
+from capt.normalization import normalize_phone_tokens, split_phone_text
 
 
 def test_split_spaced_phone_text() -> None:
