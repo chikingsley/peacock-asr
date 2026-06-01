@@ -34,6 +34,7 @@ CANONICAL = DATA / "canonical_audio"  # resampled ingest clips
 RAW = DATA / "raw"  # transient dataset downloads
 DATASETS = DATA / "datasets"  # exported ablations (datasets/vN)
 TOKENIZER = Path(__file__).resolve().parent / "models" / "omniASR_tokenizer_written_v2.model"
+COOKIES = DATA / "youtube_cookies.txt"  # optional Netscape cookies.txt; used if present (anti-bot)
 _BATCH = 200
 
 
@@ -85,11 +86,14 @@ def cmd_download(args: argparse.Namespace) -> int:
     """Download each selected channel's audio as 16 kHz FLAC; report hours landed."""
     from omni_curator.create.sources.youtube import download_channel
 
+    cookies = COOKIES if COOKIES.exists() else None
     channels = _selected_channels(args)
     total_hours = 0.0
     for ch in channels:
         print(f"== {ch.slug} ({ch.tier}): {ch.url}")
-        result = download_channel(ch.url, out_dir=CREATE / ch.slug, limit=args.limit)
+        result = download_channel(
+            ch.url, out_dir=CREATE / ch.slug, limit=args.limit, cookies=cookies
+        )
         total_hours += result.hours
         print(f"   {result.flac_count} files, {result.hours:.2f} h -> {CREATE / ch.slug}")
     print(f"TOTAL: {total_hours:.2f} h across {len(channels)} channel(s) under {CREATE}")

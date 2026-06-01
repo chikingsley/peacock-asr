@@ -92,7 +92,12 @@ def list_channel_videos(channel_url: str, *, limit: int | None = None) -> list[s
 
 
 def download_channel(
-    channel_url: str, *, out_dir: Path, limit: int | None = None, sleep: float = 1.0
+    channel_url: str,
+    *,
+    out_dir: Path,
+    limit: int | None = None,
+    sleep: float = 1.0,
+    cookies: Path | None = None,
 ) -> ChannelDownload:
     """Download a channel's videos as 16 kHz mono FLAC into ``out_dir`` (resumable, skip-existing).
 
@@ -100,8 +105,10 @@ def download_channel(
     videos; per-video failures (private/region-locked/removed) are skipped via ``--ignore-errors``
     rather than aborting the channel. ``limit`` caps to the first N videos. ``sleep`` seconds
     between requests keeps YouTube from rate-limiting / bot-blocking the session (too many fast
-    parallel requests trigger "Sign in to confirm you're not a bot"). Returns the file count and a
-    header-only duration tally so a caller can see how many hours landed.
+    parallel requests trigger "Sign in to confirm you're not a bot"). ``cookies`` is an optional
+    Netscape cookies.txt (e.g. exported from a logged-in browser) — yt-dlp's official fix for the
+    bot-check; passed via ``--cookies`` when supplied. Returns the file count and a header-only
+    duration tally so a caller can see how many hours landed.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     cmd = [
@@ -116,6 +123,8 @@ def download_channel(
         *_AUDIO_TO_16K_FLAC,
         "-o", str(out_dir / "%(id)s.%(ext)s"),
     ]
+    if cookies is not None:
+        cmd += ["--cookies", str(cookies)]
     if limit is not None:
         cmd += ["--playlist-end", str(limit)]
     cmd.append(channel_url)
