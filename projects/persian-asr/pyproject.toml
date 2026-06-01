@@ -67,6 +67,9 @@ target-version = "py312"
 src = ["src"]
 extend-exclude = ["vendor", "**/omni_recipe", "**/nemo_recipes"]
 
+[tool.ty.environment]
+python = ".venv"
+
 [tool.ty.src]
 exclude = ["vendor/", "**/omni_recipe/", "**/nemo_recipes/"]
 

@@ -41,6 +41,9 @@ line-length = 100
 target-version = "py312"
 src = ["src"]
 
+[tool.ty.environment]
+python = ".venv"
+
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [

@@ -76,5 +76,8 @@ runtime-evaluated-base-classes = ["pydantic.BaseModel"]
 [tool.ruff.lint.per-file-ignores]
 "**/test_*.py" = ["S101", "PLR2004"]  # asserts + magic values are fine in tests
 
+[tool.ty.environment]
+python = ".venv"
+
 [tool.ty.src]
 exclude = ["src/omni_finetune_core/recipe"]

@@ -68,6 +68,9 @@ src = ["src"]
 # dropped ctranslate2 dep). Not our code, not linted.
 extend-exclude = ["**/archive/parstranslit"]
 
+[tool.ty.environment]
+python = ".venv"
+
 [tool.ty.src]
 exclude = ["**/archive/parstranslit/"]
 

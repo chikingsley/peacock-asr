@@ -1,0 +1,23 @@
+{
+  // Multi-root workspace: each project/package is its own root so the ty and
+  // Python extensions discover that folder's own .venv (instead of the monorepo
+  // root, which has no virtualenv). Open via: File > Open Workspace from File…
+  "folders": [
+    { "name": "persian-asr", "path": "projects/persian-asr" },
+    { "name": "tajik-asr", "path": "projects/tajik-asr" },
+    { "name": "georgian-asr", "path": "projects/georgian-asr" },
+    { "name": "P016-russian-phone-compare", "path": "projects/P016-russian-phone-compare" },
+    { "name": "omni-finetune-core", "path": "packages/omni-finetune-core" },
+    { "name": "omni-curator", "path": "packages/omni-curator" },
+    { "name": "superwhisper-api", "path": "packages/superwhisper-api" },
+    { "name": "↑ repo root", "path": "." }
+  ],
+  "settings": {
+    // ty provides type-checking; disable Pylance's analysis to avoid two
+    // language servers fighting (ty auto-disables the Python ext's server too).
+    "python.languageServer": "None",
+    "python.terminal.activateEnvironment": true,
+    // Each folder's interpreter is its own .venv (resolved per-folder below).
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python"
+  }
+}

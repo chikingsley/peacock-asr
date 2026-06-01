@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# ingest/huggingface.py (FLEURS etc.). Common Voice is pulled direct from Mozilla (no HF dep).
+# datasets powers ingest/huggingface.py (FLEURS); audio is read as raw bytes, decoded by soundfile.
 ingest = ["datasets>=3.0.0"]
 
 [dependency-groups]
@@ -42,6 +42,9 @@ omni-curator = "omni_curator.cli:main"
 line-length = 100
 target-version = "py312"
 src = ["src"]
+
+[tool.ty.environment]
+python = ".venv"
 
 [tool.ruff.lint]
 # "ruff max": enable everything, then turn off only the genuinely impractical or
