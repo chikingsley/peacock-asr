@@ -14,7 +14,10 @@ from typing import TYPE_CHECKING
 from georgian_asr import LANGUAGE
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from omni_curator.sample import Sample
+    from omni_curator.store import CuratorStore
 
 _ROOT = Path(__file__).resolve().parents[2]
 DATA = _ROOT / "data"
@@ -23,6 +26,13 @@ CANONICAL = DATA / "canonical_audio"
 DB = DATA / "curator.sqlite"
 
 _BATCH = 200
+
+# Mozilla Data Collective dataset ids for Georgian Common Voice — recorded so we never look them
+# up again (the download goes via the MDC API; see omni_curator.ingest.commonvoice).
+COMMONVOICE_KA = {
+    "scripted-25": "cmn2h4m7901gzo1072qn7zoes",
+    "spontaneous-3": "cmmysmqds00fwmf07e72ap8dg",
+}
 
 
 def _load_root_env() -> None:
@@ -38,18 +48,11 @@ def _load_root_env() -> None:
         os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
 
 
-def _ingest_fleurs() -> int:
-    # FLEURS is already 16 kHz mono -> write canonical FLAC straight into canonical_audio/.
-    os.environ.setdefault("HF_HOME", str(RAW / "hf-cache"))  # transient HF cache lands in raw/
-    from omni_curator.ingest.huggingface import load_fleurs
-    from omni_curator.store import CuratorStore
-
-    store = CuratorStore(DB)
+def _store_batched(store: CuratorStore, samples: Iterable[Sample]) -> int:
+    """Upsert a stream of samples into the store in batches; return the count written."""
     count = 0
     batch: list[Sample] = []
-    for sample in load_fleurs(
-        "ka_ge", language=LANGUAGE, audio_dir=CANONICAL / "fleurs", streaming=False
-    ):
+    for sample in samples:
         batch.append(sample)
         count += 1
         if len(batch) >= _BATCH:
@@ -57,33 +60,40 @@ def _ingest_fleurs() -> int:
             batch = []
     if batch:
         store.upsert(batch)
+    return count
+
+
+def _ingest_fleurs() -> int:
+    os.environ.setdefault("HF_HOME", str(RAW / "hf-cache"))  # transient HF cache lands in raw/
+    from omni_curator.ingest.huggingface import load_fleurs
+    from omni_curator.store import CuratorStore
+
+    store = CuratorStore(DB)
+    count = _store_batched(
+        store,
+        load_fleurs("ka_ge", language=LANGUAGE, audio_dir=CANONICAL / "fleurs", streaming=True),
+    )
     store.close()
     return count
 
 
 def _ingest_commonvoice() -> int:
-    cv_dir = os.environ.get("COMMONVOICE_KA_DIR")
-    if not cv_dir:
-        msg = (
-            "set COMMONVOICE_KA_DIR to an extracted Common Voice ka directory "
-            "(download the tarball direct from commonvoice.mozilla.org)"
-        )
+    api_key = os.environ.get("MDC_API_KEY")
+    if not api_key:
+        msg = "set MDC_API_KEY in the root .env (Mozilla Data Collective API key)"
         raise SystemExit(msg)
-    from omni_curator.ingest.commonvoice import load_commonvoice
+    from omni_curator.ingest.commonvoice import download_commonvoice, load_commonvoice
     from omni_curator.process import resample_sample
     from omni_curator.store import CuratorStore
 
     store = CuratorStore(DB)
     count = 0
-    batch: list[Sample] = []
-    for sample in load_commonvoice(Path(cv_dir), language=LANGUAGE):
-        batch.append(resample_sample(sample, CANONICAL / "commonvoice"))  # mp3 48k -> 16k FLAC
-        count += 1
-        if len(batch) >= _BATCH:
-            store.upsert(batch)
-            batch = []
-    if batch:
-        store.upsert(batch)
+    for name, dataset_id in COMMONVOICE_KA.items():
+        # download into transient raw/, resample mp3 48k -> 16k FLAC into canonical_audio/
+        cv_dir = download_commonvoice(dataset_id, dest=RAW / "commonvoice" / name, api_key=api_key)
+        loaded = load_commonvoice(cv_dir, language=LANGUAGE, source=f"commonvoice-{name}")
+        canonical = (resample_sample(s, CANONICAL / "commonvoice" / name) for s in loaded)
+        count += _store_batched(store, canonical)
     store.close()
     return count
 
