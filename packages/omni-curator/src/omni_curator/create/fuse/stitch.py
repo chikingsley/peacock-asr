@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from omni_curator.create.fuse._client import default_client
 from omni_curator.create.fuse._extract import extract_transcript
 
 if TYPE_CHECKING:
@@ -50,9 +51,7 @@ def stitch(
     if not cleaned:
         return ""
     if client is None:
-        from superwhisper_api.text.client import SuperwhisperClient as _Client
-
-        client = _Client()
+        client = default_client()
     prompt = _STITCH.format(lang=language, script=script, overlap=overlap)
     result = cleaned[0]
     for nxt in cleaned[1:]:

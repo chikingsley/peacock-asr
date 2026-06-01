@@ -10,7 +10,7 @@ point the curator at "somewhere" — you point it at the target project's artifa
   segment → Scribe ensemble → compile-down → (stitch) → polish. Clean source → `chunks_path`;
   messy/multi-speaker → `vad_path`.
 - **`ingest/`** — datasets that **already have transcripts**: `huggingface.py` (FLEURS, …) and
-  `commonvoice.py` (Common Voice, pulled **direct from Mozilla**, not the Hub).
+  `commonvoice.py` (Common Voice, from the **Mozilla Data Collective**).
 
 Both yield `Sample`s, so everything downstream is source-agnostic.
 

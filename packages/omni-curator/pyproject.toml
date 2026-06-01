@@ -18,6 +18,8 @@ dependencies = [
 [project.optional-dependencies]
 # datasets powers ingest/huggingface.py (FLEURS); audio is read as raw bytes, decoded by soundfile.
 ingest = ["datasets>=3.0.0"]
+# yt-dlp for create/sources/youtube.py (also needs deno + ffmpeg on PATH).
+youtube = ["yt-dlp"]
 
 [dependency-groups]
 dev = [

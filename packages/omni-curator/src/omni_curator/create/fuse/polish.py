@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from omni_curator.create.fuse._client import default_client
 from omni_curator.create.fuse._extract import extract_transcript
 
 if TYPE_CHECKING:
@@ -53,9 +54,7 @@ def polish(
     if not text:
         return ""
     if client is None:
-        from superwhisper_api.text.client import SuperwhisperClient as _Client
-
-        client = _Client()
+        client = default_client()
     response = client.generate(
         model, [{"role": "user", "content": f"{_POLISH}\n\n{text}"}], max_tokens=max_tokens
     )

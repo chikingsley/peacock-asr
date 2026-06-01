@@ -30,6 +30,7 @@ from omni_curator.create.transcribe import (
     make_scribe_fns,
     transcribe_clip,
 )
+from omni_curator.sample import Sample
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -61,6 +62,37 @@ class Transcript:
             ),
             encoding="utf-8",
         )
+
+    def to_samples(
+        self,
+        *,
+        source: str,
+        language: str,
+        id_prefix: str,
+        citation: str | None = None,
+        split: str = "train",
+        sample_rate: int = 16_000,
+    ) -> list[Sample]:
+        """Each labelled clip becomes a store Sample (the create -> store bridge; empties skipped).
+
+        ``id_prefix`` makes ids unique across recordings (e.g. the video id); the clips are the
+        16 kHz FLAC cuts produced by the pipeline.
+        """
+        return [
+            Sample(
+                id=f"{id_prefix}_{clip.index:04d}",
+                source=source,
+                language=language,
+                text=clip.label,
+                audio_path=clip.audio_path,
+                duration=round(clip.end - clip.start, 3),
+                sample_rate=sample_rate,
+                split=split,
+                citation=citation,
+            )
+            for clip in self.clips
+            if clip.label.strip()
+        ]
 
 
 def _label_clip(

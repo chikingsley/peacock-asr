@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from omni_curator.create.fuse._client import default_client
 from omni_curator.create.fuse._extract import extract_transcript
 
 if TYPE_CHECKING:
@@ -54,9 +55,7 @@ def compile_down(
     if not cleaned:
         return ""
     if client is None:
-        from superwhisper_api.text.client import SuperwhisperClient as _Client
-
-        client = _Client()
+        client = default_client()
     body = "\n".join(f"[hypothesis {i + 1}] {v}" for i, v in enumerate(cleaned))
     prompt = (instruction or _INSTRUCTION).format(lang=language, script=script)
     response = client.generate(
