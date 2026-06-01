@@ -16,12 +16,12 @@ stage).
 from __future__ import annotations
 
 import json
+import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from functools import partial
 from typing import TYPE_CHECKING, Any
 
-from omni_curator.audio import audio_duration, cut_audio
 from omni_curator.create.fuse import compile_down, polish, stitch
 from omni_curator.create.segmenters import segment_chunks, segment_vad
 from omni_curator.create.transcribe import (
@@ -36,6 +36,34 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from superwhisper_api.text.client import SuperwhisperClient
+
+
+# --------------------------------------------------------------------------------------------
+# Create-stage audio primitives — cut a span out of a source recording, measure a file's length.
+# Used only by the create paths below (and create/align), so they live here rather than as a
+# package-level module.
+# --------------------------------------------------------------------------------------------
+
+
+def cut_audio(source: Path, output: Path, start: float, end: float) -> None:
+    """Cut ``[start, end)`` from ``source`` to a 16 kHz mono FLAC at ``output`` (via ffmpeg)."""
+    output.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(  # noqa: S603
+        [  # noqa: S607
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+            "-ss", f"{start:.3f}", "-to", f"{end:.3f}", "-i", str(source),
+            "-ar", "16000", "-ac", "1", "-c:a", "flac", str(output),
+        ],
+        check=True,
+    )
+
+
+def audio_duration(audio: Path) -> float:
+    """Duration of ``audio`` in seconds."""
+    import soundfile as sf
+
+    info = sf.info(str(audio))
+    return float(info.frames) / float(info.samplerate)
 
 
 @dataclass

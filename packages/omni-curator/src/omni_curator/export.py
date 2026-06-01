@@ -276,22 +276,32 @@ def _select(store: CuratorStore, selection: Selection) -> Iterator[Sample]:
         yield sample
 
 
-def _write_partition(
-    samples: list[tuple[Sample, str]],
-    out_dir: Path,
-    *,
-    row_group_size: int,
-) -> tuple[int, float, int]:
-    """Write one partition to ``part-00000.parquet``; return (rows, hours, skipped).
+def _chunked(
+    items: list[tuple[Sample, str]], n: int
+) -> Iterator[list[tuple[Sample, str]]]:
+    """Yield ``items`` in lists of at most ``n`` (the streaming batch boundary)."""
+    batch: list[tuple[Sample, str]] = []
+    for item in items:
+        batch.append(item)
+        if len(batch) >= n:
+            yield batch
+            batch = []
+    if batch:
+        yield batch
 
-    ``samples`` is a list of ``(sample, normalized_text)`` — the NORMALIZED label is written, the
-    sample's stored text is never touched.
+
+def _batch_to_table(batch: list[tuple[Sample, str]]) -> tuple[pa.Table, int, int]:
+    """Decode one batch of ``(sample, normalized_text)`` into an OMNI_SCHEMA table.
+
+    Reads + FLAC-encodes only this batch's audio, so the memory held is one batch, not the whole
+    partition. Returns the table, the batch's total audio samples (for the hours tally), and the
+    count skipped for missing audio. The NORMALIZED label is written; the stored text is untouched.
     """
     texts: list[str] = []
     audio: list[np.ndarray] = []
     sizes: list[int] = []
     skipped = 0
-    for sample, norm_text in samples:
+    for sample, norm_text in batch:
         path = Path(sample.audio_path)
         if not path.exists():
             skipped += 1
@@ -299,9 +309,6 @@ def _write_partition(
         texts.append(norm_text)
         audio.append(_flac_bytes(path))
         sizes.append(max(1, round(sample.duration * SAMPLE_RATE)))
-    if not texts:
-        return 0, 0.0, skipped
-    out_dir.mkdir(parents=True, exist_ok=True)
     table = pa.Table.from_arrays(
         [
             pa.array(texts, type=pa.string()),
@@ -310,9 +317,39 @@ def _write_partition(
         ],
         schema=OMNI_SCHEMA,
     )
-    pq.write_table(table, out_dir / "part-00000.parquet", row_group_size=row_group_size)
-    hours = sum(sizes) / SAMPLE_RATE / 3600
-    return len(texts), hours, skipped
+    return table, sum(sizes), skipped
+
+
+def _write_partition(
+    samples: list[tuple[Sample, str]],
+    out_dir: Path,
+    *,
+    row_group_size: int,
+) -> tuple[int, float, int]:
+    """Stream one partition to ``part-00000.parquet`` in batches; return (rows, hours, skipped).
+
+    Decode -> write -> free, ``row_group_size`` rows at a time, via a :class:`pq.ParquetWriter`
+    (each ``write_table`` appends a row group). Peak memory is one batch of audio, never the whole
+    partition — buffering a full partition is what OOM'd the early v0 dry-run (145 h decodes to
+    ~30+ GB). The writer is opened lazily so an all-missing-audio partition writes no file.
+    """
+    out_path = out_dir / "part-00000.parquet"
+    writer: pq.ParquetWriter | None = None
+    rows = skipped = total_samples = 0
+    for batch in _chunked(samples, row_group_size):
+        table, batch_samples, batch_skipped = _batch_to_table(batch)
+        skipped += batch_skipped
+        if table.num_rows == 0:
+            continue
+        if writer is None:
+            out_dir.mkdir(parents=True, exist_ok=True)
+            writer = pq.ParquetWriter(out_path, OMNI_SCHEMA)
+        writer.write_table(table, row_group_size=row_group_size)
+        rows += table.num_rows
+        total_samples += batch_samples
+    if writer is not None:
+        writer.close()
+    return rows, total_samples / SAMPLE_RATE / 3600, skipped
 
 
 def write_language_distribution(version_root: Path, out_path: Path) -> Path:

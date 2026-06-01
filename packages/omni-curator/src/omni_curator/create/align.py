@@ -47,8 +47,7 @@ import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, cast
 
-from omni_curator.audio import cut_audio
-from omni_curator.create.pipeline import Clip, Transcript
+from omni_curator.create.pipeline import Clip, Transcript, cut_audio
 from omni_curator.create.segmenters import segment_vad
 
 if TYPE_CHECKING:
