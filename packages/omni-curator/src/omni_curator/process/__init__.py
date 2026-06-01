@@ -11,5 +11,13 @@ Audio resample is here now; text normalization + tokenizer-coverage land next.
 from __future__ import annotations
 
 from omni_curator.process.audio import resample_sample, resample_samples, to_16k_flac
+from omni_curator.process.normalize import NORMALIZERS, base_normalize, normalize
 
-__all__ = ["resample_sample", "resample_samples", "to_16k_flac"]
+__all__ = [
+    "NORMALIZERS",
+    "base_normalize",
+    "normalize",
+    "resample_sample",
+    "resample_samples",
+    "to_16k_flac",
+]

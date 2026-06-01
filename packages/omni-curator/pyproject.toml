@@ -29,6 +29,20 @@ youtube = ["yt-dlp"]
 # uroman romanizes any-script transcripts for MMS_FA CTC forced alignment (create/align.py).
 # torchaudio (the MMS_FA aligner itself) is already a core dependency.
 align = ["uroman>=1.3"]
+# Per-language text normalization (process/normalize.py). Each lib is imported lazily inside its
+# language handler, so installing this extra is only needed for the languages you actually run.
+#   tajiknlp    — Tajik (tgk_Cyrl) Cyrillic normalizer + cleaner (mirrors the tajik-asr project)
+#   hazm        — Persian (fas_Arab) orthographic normalization
+#   num2words   — Persian number words (lang="fa")
+#   num2geotext — Georgian (kat_Geor) integer/float -> Georgian words (v0.0.1; wrapped defensively)
+#   anbani      — Georgian script utilities (Mtavruli capital -> Mkhedruli folding)
+normalize = [
+  "tajiknlp>=1.2",
+  "hazm>=0.12",
+  "num2words>=0.5.14",
+  "num2geotext>=0.0.1",
+  "anbani>=0.9.5",
+]
 
 [dependency-groups]
 dev = [
