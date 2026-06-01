@@ -10,9 +10,17 @@
   is identical either way; this is about where the decision lives. (Left at label time for now.)
 
 ## tajik-asr
-- [ ] **Common Voice not re-derived.** `sources.COMMONVOICE` is empty — no Mozilla Data Collective
-  dataset ids for Tajik yet, so the new store has FLEURS + YouTube but no CV. Add the MDC ids to
-  re-ingest CV through the new pipeline.
+- [ ] **Re-ingest the legacy HF datasets.** The old `tajik_asr_combined_v0` had 3 corpora, all from
+  HuggingFace (NOT Mozilla Data Collective — there is no Tajik MDC id; CV came from HF):
+  - `common_voice_25_tg` — Common Voice 25, Tajik (config `tg`)
+  - `fleurs_tg_tj` — FLEURS (✅ already re-ingested in the new store)
+  - `muhtasham/tajik-asr-augmented-test` — small augmented set (~200 rows; historically dragged the
+    Scribe WER macro — verify before trusting)
+  More vetted Tajik HF candidates (not used in v0): `shunyalabs/tajik-speech-dataset` (audio+transcript),
+  `WueNLP/sib-fleurs` (config `tgk_Cyrl`), `WueNLP/belebele-fleurs` (config `tgk_Cyrl`),
+  `abduaziz-fleurs-cleaned`, `2m-belebele`.
+  Ingesting these needs a **generic HF-audio loader** in omni-curator (today only `load_fleurs` +
+  the MDC `load_commonvoice` exist). Then list them in `tajik sources.py` and ingest → store.
 - [ ] **Converge `train.py` to the preset.** tajik's `train.py` loads tuned YAML configs
   (`configs/*.yaml`) while georgian builds the config in Python from `gpu_max_finetune`. The preset
   was derived from these runs, so switching tajik to it (and deleting `configs/`) would make the two
