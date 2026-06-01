@@ -169,6 +169,7 @@ def cmd_label(args: argparse.Namespace) -> int:
                     flac, store=store, source=f"youtube-{ch.slug}", language=LANGUAGE,
                     script=SCRIPT, id_prefix=f"{ch.slug}_{flac.stem}",
                     out_dir=DATA / "labeled" / ch.slug / flac.stem, path="vad", citation=ch.url,
+                    workers=16,  # Scribe is free + I/O-bound; label each video's spans in parallel
                 )
             except Exception as exc:  # noqa: BLE001 — one bad video must not abort the run
                 failed += 1
