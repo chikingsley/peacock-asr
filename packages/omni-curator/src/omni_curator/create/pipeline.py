@@ -30,6 +30,7 @@ from omni_curator.create.transcribe import (
     make_scribe_fns,
     transcribe_clip,
 )
+from omni_curator.process.language import keep_for_language
 from omni_curator.sample import Sample
 
 if TYPE_CHECKING:
@@ -101,10 +102,12 @@ class Transcript:
         split: str = "train",
         sample_rate: int = 16_000,
     ) -> list[Sample]:
-        """Each labelled clip becomes a store Sample (the create -> store bridge; empties skipped).
+        """Each labelled clip becomes a store Sample (the create -> store bridge).
 
         ``id_prefix`` makes ids unique across recordings (e.g. the video id); the clips are the
-        16 kHz FLAC cuts produced by the pipeline.
+        16 kHz FLAC cuts produced by the pipeline. Clips with an empty label, or one the language
+        gate rejects (e.g. a Russian segment in a Tajik source — see
+        :func:`omni_curator.process.language.keep_for_language`), are skipped.
         """
         return [
             Sample(
@@ -119,7 +122,7 @@ class Transcript:
                 citation=citation,
             )
             for clip in self.clips
-            if clip.label.strip()
+            if clip.label.strip() and keep_for_language(clip.label, language)
         ]
 
 

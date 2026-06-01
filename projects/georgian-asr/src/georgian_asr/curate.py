@@ -150,12 +150,12 @@ def cmd_label(args: argparse.Namespace) -> int:
     total = 0
     for ch in _selected_channels(args):
         flacs = sorted((CREATE / ch.slug).glob("*.flac"))
-        path = "chunks" if ch.tier == "clean" else "vad"  # clean -> chunks+align; noisy -> VAD
         for flac in flacs:
+            # VAD gives non-overlapping speech segments = clean training clips (chunks overlap).
             total += label_to_store(
                 flac, store=store, source=f"youtube-{ch.slug}", language=LANGUAGE,
                 script=SCRIPT, id_prefix=f"{ch.slug}_{flac.stem}",
-                out_dir=DATA / "labeled" / ch.slug / flac.stem, path=path, citation=ch.url,
+                out_dir=DATA / "labeled" / ch.slug / flac.stem, path="vad", citation=ch.url,
             )
         print(f"  {ch.slug}: store now {store.counts()}")
     print(f"labeled {total} clips -> {DB}")
