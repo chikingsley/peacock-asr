@@ -107,6 +107,7 @@ ignore = [
     "EM101", "EM102", "TRY003",  # allow inline exception messages
     "PLR0913",  # pipeline/dataset entry points legitimately take many knobs
     "PLC0415",  # heavy/optional deps imported lazily on purpose
+    "T201",     # CLI / dataset-prep / report tooling: stdout is the interface
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -126,12 +127,6 @@ ignore = [
 ]
 "src/finetune_omni/benchmarks/asr.py" = [
     "PLC0415",  # FAIRSEQ2_ASSET_DIR must be set before importing the Omni pipeline.
-]
-"src/persian_omnilingual_asr/eval/test_split.py" = [
-    "T201",  # report CLI: prints WER/CER tables to stdout by design.
-]
-"src/persian_omnilingual_asr/training/tokenizer_audit.py" = [
-    "T201",  # audit CLI: prints coverage report + unknown-token examples to stdout.
 ]
 "src/persian_asr_dataset/text_normalization.py" = [
     "RUF001",  # Arabic letters resembling Latin are intentional normalization data.
