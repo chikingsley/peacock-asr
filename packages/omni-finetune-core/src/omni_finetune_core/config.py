@@ -70,6 +70,10 @@ class DatasetConfig(_Base):
 
 class ModelConfig(_Base):
     name: str
+    # The dtype the model's parameters load in. Left unset (fairseq2 default float32) for the 300M
+    # static-mixed-precision path; set to "torch.bfloat16" for the 1B PURE-bf16 path, where
+    # mixed_precision.mode="off" runs everything in this dtype (no fp32 master copy — see presets).
+    dtype: Dtype | None = None
 
 
 class TokenizerConfig(_Base):
@@ -96,6 +100,10 @@ class LrSchedulerConfig(_Base):
 
 
 class MixedPrecision(_Base):
+    # "static" (fairseq2 default): fwd/bwd in `dtype`, optimizer step in full fp32 (keeps an fp32
+    # master copy — safe, but costs memory). "off": whole run in `model.dtype` (pure bf16, no fp32
+    # copy — needed to fit the 1B). "auto": torch.amp autocast. Left unset = fairseq2's "static".
+    mode: Literal["off", "static", "auto"] | None = None
     dtype: Dtype = "torch.bfloat16"
 
 
@@ -115,6 +123,9 @@ class TrainerConfig(_Base):
     activation_checkpointing: ActivationCheckpointing = Field(
         default_factory=ActivationCheckpointing
     )
+    # Gradient-norm clip. Unset for the 300M; set to 1.0 for the 1B pure-bf16 path, where the
+    # missing fp32 master copy makes AdamW numerically riskier and clipping guards against spikes.
+    max_grad_norm: float | None = None
     gc_every_n_steps: int = 100
 
 

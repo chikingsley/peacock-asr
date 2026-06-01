@@ -50,13 +50,34 @@ def _gpu12_trainer() -> TrainerConfig:
     )
 
 
-def _dataset(name: str, summary_path: str, *, max_num_elements: int) -> DatasetConfig:
+def _gpu12_trainer_1b() -> TrainerConfig:
+    """The trainer block that fits omni 1B CTC on ~12 GB: PURE bf16 + grad clip + grad-accum 4.
+
+    ``mixed_precision.mode="off"`` runs everything — including the AdamW step — in bf16, dropping
+    the fp32 optimizer master copy the default "static" mode keeps (~8 GB vs the ~16 GB the safe
+    fp32-optimizer path needs for the 1B). Pure-bf16 AdamW is numerically riskier, so
+    ``max_grad_norm=1.0`` clips spikes and grad-accum 4 restores effective batch size lost to the
+    small per-step element budget. Validated on the Persian 1B run (peaks ~9.1 GiB at 960k elems).
+    """
+    return TrainerConfig(
+        mixed_precision=MixedPrecision(mode="off", dtype="torch.bfloat16"),
+        grad_accumulation=GradAccumulation(num_batches=4),
+        activation_checkpointing=ActivationCheckpointing(mode="layerwise", every_nth_layer=1),
+        max_grad_norm=1.0,
+    )
+
+
+def _dataset(
+    name: str, summary_path: str, *, max_num_elements: int, max_audio_len: int = 960_000
+) -> DatasetConfig:
     return DatasetConfig(
         name=name,
         mixture_parquet_storage_config=MixtureParquetStorageConfig(
             dataset_summary_path=summary_path
         ),
-        asr_task_config=AsrTaskConfig(max_num_elements=max_num_elements),
+        asr_task_config=AsrTaskConfig(
+            max_num_elements=max_num_elements, max_audio_len=max_audio_len
+        ),
     )
 
 
@@ -117,6 +138,39 @@ def gpu_max_finetune(
         tokenizer=TokenizerConfig(name=tokenizer),
         optimizer=OptimizerConfig(config=OptimizerInner(lr=lr)),
         trainer=_gpu12_trainer(),
+        regime=_best_wer_regime(num_steps, validate_every=validate_every),
+    )
+
+
+def gpu_max_finetune_1b(
+    *,
+    model: str,
+    dataset: str,
+    tokenizer: str,
+    dataset_summary_path: str,
+    num_steps: int,
+    lr: float = 1e-5,
+    max_num_elements: int = 960_000,
+    max_audio_len: int = 480_000,
+    validate_every: int = 1_000,
+) -> TrainingConfig:
+    """Regime A for the **1B** model — pure-bf16 fit on a ~12 GB GPU.
+
+    Same shape as :func:`gpu_max_finetune` but for the 1B: ``model.dtype`` is bf16 and the trainer
+    runs pure bf16 (no fp32 optimizer copy — see :func:`_gpu12_trainer_1b`). Clips are capped at
+    ``max_audio_len`` (480k samples = 30 s) to bound activation memory; the omni inference pipeline
+    caps at 40 s anyway, and ``max_num_elements`` defaults to 960k (~two 30 s clips per batch).
+    Watch the first ~1-2k steps for loss spikes / NaNs and drop ``lr`` if it destabilizes.
+    """
+    return TrainingConfig(
+        model=ModelConfig(name=model, dtype="torch.bfloat16"),
+        dataset=_dataset(
+            dataset, dataset_summary_path,
+            max_num_elements=max_num_elements, max_audio_len=max_audio_len,
+        ),
+        tokenizer=TokenizerConfig(name=tokenizer),
+        optimizer=OptimizerConfig(config=OptimizerInner(lr=lr)),
+        trainer=_gpu12_trainer_1b(),
         regime=_best_wer_regime(num_steps, validate_every=validate_every),
     )
 

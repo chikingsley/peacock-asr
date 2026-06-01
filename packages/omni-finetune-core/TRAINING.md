@@ -1,4 +1,4 @@
-# Fine-tuning omni 300M CTC — what works
+# Fine-tuning omni CTC (300M + 1B) — what works
 
 Two regimes that have actually run on our ~12 GB GPU, captured so we (or an agent) don't
 re-derive or re-break them. Both are type-checked builders in `omni_finetune_core.presets`; build
@@ -33,6 +33,30 @@ cfg = gpu_max_finetune(
     num_steps=recommend_num_steps(hours=5.8, target_epochs=30),  # ≈3750
 )
 ```
+
+## The 1B model — `gpu_max_finetune_1b` (pure bf16)
+
+The 1B only fits on 12 GB in **pure bf16**: `mixed_precision.mode="off"` + `model.dtype="torch.bfloat16"`
+means there is **no fp32 master copy**, so weights + AdamW states stay in bf16 (~8 GB) instead of the
+~16 GB the safe fp32-optimizer default ("static") needs. The trade-off is numerical: pure-bf16 AdamW
+is spikier, so the preset adds `max_grad_norm 1.0` (clip) + `grad_accumulation 4`, and caps clips at
+`max_audio_len 480_000` (30 s) to bound activation memory. Validated on the Persian 1B run — peaks
+~9.1 GiB / 80% at `max_num_elements 960_000`. Watch the first ~1–2k steps for loss spikes / NaNs and
+drop `lr` if it destabilizes.
+
+```python
+from omni_finetune_core.presets import gpu_max_finetune_1b
+
+cfg = gpu_max_finetune_1b(
+    model="omniASR_CTC_1B_v2",  # upstream base card (auto-downloaded); no local card needed
+    dataset="georgian_asr_corpus", tokenizer="omniASR_tokenizer_written_v2",
+    dataset_summary_path=".../language_distribution_0.tsv",
+    num_steps=34_000,
+)
+```
+
+The difference from the 300M in one line: **300M** keeps an fp32 optimizer copy ("static" mixed
+precision); **1B** can't afford one, so it runs everything in bf16 and clips gradients to stay stable.
 
 ## Regime B — `warm_restart` (only after a plateau)
 
