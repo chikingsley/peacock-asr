@@ -105,6 +105,13 @@ class Selection:
       ``len(norm_text.split()) / duration`` falls outside ``[min, max]``.
 
     Non-positive durations are treated as failing every rate bound (cannot be a valid clip).
+
+    ``max_scribe_wer`` / ``max_scribe_cer`` are the store-level Scribe-verification gate (see
+    :mod:`omni_curator.verify`): drop a clip whose label disagrees too much with a fresh Scribe
+    transcription. They read ``sample.scribe_wer`` / ``sample.scribe_cer``, so you must run
+    :func:`omni_curator.verify.verify_store` first for them to bite. A clip with NO score
+    (``scribe_wer is None``) is KEPT even when a bound is set — an un-scored clip is never silently
+    dropped; run verification to score it, then re-export.
     """
 
     sources: list[str] | None = None
@@ -116,18 +123,34 @@ class Selection:
     max_chars_per_second: float | None = None
     min_words_per_second: float | None = None
     max_words_per_second: float | None = None
+    max_scribe_wer: float | None = None
+    max_scribe_cer: float | None = None
 
     def keeps(self, sample: Sample) -> bool:
-        """Whether ``sample`` passes the value/duration filters (per-source cap handled later)."""
+        """Whether ``sample`` passes the value/duration/scribe filters (per-source cap later)."""
         if self.sources is not None and sample.source not in self.sources:
             return False
         if self.splits is not None and sample.split not in self.splits:
             return False
         if self.languages is not None and sample.language not in self.languages:
             return False
-        return not (
+        if (
             self.max_duration_seconds is not None
             and sample.duration > self.max_duration_seconds
+        ):
+            return False
+        # Scribe-verification gate: only drops clips that HAVE a score over the bound; an un-scored
+        # clip (scribe_wer/cer is None) is kept — run verify_store first for the gate to bite.
+        if (
+            self.max_scribe_wer is not None
+            and sample.scribe_wer is not None
+            and sample.scribe_wer > self.max_scribe_wer
+        ):
+            return False
+        return not (
+            self.max_scribe_cer is not None
+            and sample.scribe_cer is not None
+            and sample.scribe_cer > self.max_scribe_cer
         )
 
     def keeps_quality(self, norm_text: str, duration: float) -> str | None:
@@ -451,6 +474,8 @@ def _selection_dict(selection: Selection) -> dict[str, object]:
         "max_chars_per_second": selection.max_chars_per_second,
         "min_words_per_second": selection.min_words_per_second,
         "max_words_per_second": selection.max_words_per_second,
+        "max_scribe_wer": selection.max_scribe_wer,
+        "max_scribe_cer": selection.max_scribe_cer,
     }
 
 

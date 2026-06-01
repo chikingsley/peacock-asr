@@ -24,4 +24,9 @@ class Sample:
     split: str = "train"  # train | dev | test
     speaker_id: str | None = None
     citation: str | None = None  # where it came from (URL / dataset id) — credit the source
+    # Store-level Scribe verification scores: the label scored against a fresh Scribe pass
+    # (lower is cleaner). ``None`` until ``omni_curator.verify.verify_store`` has scored the clip;
+    # the full jiwer detail + the Scribe hypothesis live in ``meta["scribe"]``.
+    scribe_wer: float | None = None
+    scribe_cer: float | None = None
     meta: dict[str, object] = field(default_factory=dict)  # source-specific extras

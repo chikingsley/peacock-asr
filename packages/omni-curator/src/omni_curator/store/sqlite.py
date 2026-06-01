@@ -30,22 +30,32 @@ CREATE TABLE IF NOT EXISTS samples (
     split       TEXT NOT NULL DEFAULT 'train',
     speaker_id  TEXT,
     citation    TEXT,
+    scribe_wer  REAL,
+    scribe_cer  REAL,
     meta        TEXT NOT NULL DEFAULT '{}'
 );
 CREATE INDEX IF NOT EXISTS idx_samples_source ON samples(source);
 CREATE INDEX IF NOT EXISTS idx_samples_split  ON samples(split);
 """
 
+#: Columns added after the first stores were created — migrated in via ``ALTER TABLE`` so existing
+#: DBs (e.g. the georgian pool) gain them without losing rows. ``name -> column type``.
+_MIGRATIONS = {
+    "scribe_wer": "REAL",
+    "scribe_cer": "REAL",
+}
+
 _COLUMNS = (
     "id", "source", "language", "text", "audio_path", "duration",
-    "sample_rate", "split", "speaker_id", "citation", "meta",
+    "sample_rate", "split", "speaker_id", "citation", "scribe_wer", "scribe_cer", "meta",
 )
 
 
 def _to_row(s: Sample) -> tuple[object, ...]:
     return (
         s.id, s.source, s.language, s.text, s.audio_path, s.duration,
-        s.sample_rate, s.split, s.speaker_id, s.citation, json.dumps(s.meta, ensure_ascii=False),
+        s.sample_rate, s.split, s.speaker_id, s.citation, s.scribe_wer, s.scribe_cer,
+        json.dumps(s.meta, ensure_ascii=False),
     )
 
 
@@ -54,6 +64,7 @@ def _from_row(row: sqlite3.Row) -> Sample:
         id=row["id"], source=row["source"], language=row["language"], text=row["text"],
         audio_path=row["audio_path"], duration=row["duration"], sample_rate=row["sample_rate"],
         split=row["split"], speaker_id=row["speaker_id"], citation=row["citation"],
+        scribe_wer=row["scribe_wer"], scribe_cer=row["scribe_cer"],
         meta=json.loads(row["meta"]),
     )
 
@@ -67,6 +78,21 @@ class CuratorStore:
         self._conn = sqlite3.connect(db_path)
         self._conn.row_factory = sqlite3.Row
         self._conn.executescript(_SCHEMA)
+        self._migrate()
+
+    def _migrate(self) -> None:
+        """Add any columns a pre-existing store predates (idempotent).
+
+        ``CREATE TABLE IF NOT EXISTS`` never alters an already-created table, so a store written
+        before a column existed (the georgian pool predates ``scribe_wer``/``scribe_cer``) keeps
+        the old shape. Diff the live columns against the expected set and ``ALTER TABLE ADD COLUMN``
+        the difference — existing rows get the column with a ``NULL`` default, untouched otherwise.
+        """
+        have = {row["name"] for row in self._conn.execute("PRAGMA table_info(samples)")}
+        with self._conn:
+            for name, col_type in _MIGRATIONS.items():
+                if name not in have:
+                    self._conn.execute(f"ALTER TABLE samples ADD COLUMN {name} {col_type}")
 
     def close(self) -> None:
         self._conn.close()
@@ -101,6 +127,35 @@ class CuratorStore:
         query = f"SELECT * FROM samples{where} ORDER BY id"  # noqa: S608 — clauses are fixed strings; params are bound
         for row in self._conn.execute(query, params):
             yield _from_row(row)
+
+    def set_score(
+        self,
+        sample_id: str,
+        *,
+        scribe_wer: float,
+        scribe_cer: float,
+        detail: dict[str, object],
+    ) -> None:
+        """Persist a Scribe verification score on one row.
+
+        Writes ``scribe_wer``/``scribe_cer`` (the two fast-filter columns) and merges ``detail``
+        into ``meta`` under the ``scribe`` key — the full jiwer breakdown (S/D/I/H) plus the Scribe
+        hypothesis text. The two columns exist for SQL filtering; ``meta["scribe"]`` holds the rest.
+        Idempotent per id: re-scoring overwrites both columns and the ``scribe`` meta entry.
+        """
+        with self._conn:
+            row = self._conn.execute(
+                "SELECT meta FROM samples WHERE id = ?", (sample_id,)
+            ).fetchone()
+            if row is None:
+                msg = f"no sample with id {sample_id!r} to score"
+                raise KeyError(msg)
+            meta = json.loads(row["meta"])
+            meta["scribe"] = detail
+            self._conn.execute(
+                "UPDATE samples SET scribe_wer = ?, scribe_cer = ?, meta = ? WHERE id = ?",
+                (scribe_wer, scribe_cer, json.dumps(meta, ensure_ascii=False), sample_id),
+            )
 
     def counts(self) -> dict[str, int]:
         """Sample count + total hours per source."""
