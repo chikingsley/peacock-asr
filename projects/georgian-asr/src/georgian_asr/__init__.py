@@ -11,6 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 
 LANGUAGE = "kat_Geor"  # Georgian in Georgian (Mkhedruli) script — the curator language code
+SCRIPT = "Mkhedruli"  # the script the create-pipeline LLM should keep labels in
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / "data"

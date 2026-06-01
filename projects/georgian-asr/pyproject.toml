@@ -28,6 +28,11 @@ override-dependencies = [
 
 [project.scripts]
 georgian-curate = "georgian_asr.curate:main"
+georgian-train = "georgian_asr.train:main"
+georgian-eval = "georgian_asr.eval:main"
+
+[project.entry-points."fairseq2.extension"]
+georgian_asr = "georgian_asr.assets:setup_fairseq2_extension"
 
 [build-system]
 requires = ["hatchling"]
@@ -53,4 +58,5 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "src/georgian_asr/curate.py" = ["T201"]  # the curate CLI prints
-"src/georgian_asr/export.py" = ["T201"]  # the export CLI prints
+"src/georgian_asr/train.py" = ["T201"]  # the train CLI prints status
+"src/georgian_asr/eval.py" = ["T201"]   # the eval CLI prints the report
