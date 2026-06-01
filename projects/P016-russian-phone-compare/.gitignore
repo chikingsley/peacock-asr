@@ -7,3 +7,8 @@
 __pycache__/
 *.pyc
 *.log
+# Regenerable data / scratch — not source:
+runs/
+experiments/
+*.onnx
+*.npz

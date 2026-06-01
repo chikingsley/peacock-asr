@@ -1,3 +1,7 @@
+from pathlib import Path
+
+import pytest
+
 import p016_compare.g2p as g2p_module
 from p016_compare.g2p import TargetG2P
 from p016_compare.normalization import normalize_phone_tokens, split_phone_text
@@ -56,7 +60,7 @@ def test_normalizes_seen_phone_symbol_variants() -> None:
     assert normalize_phone_tokens(["sʲː", "ɕː"]) == ["sʲ", "ɕ"]
 
 
-def test_auto_zipa_uses_espeak_for_english_function_words(monkeypatch) -> None:
+def test_auto_zipa_uses_espeak_for_english_function_words(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         g2p_module,
         "_espeak_g2p",
@@ -69,7 +73,10 @@ def test_auto_zipa_uses_espeak_for_english_function_words(monkeypatch) -> None:
     assert result.phones_per_word_normalized[0] == ["ð", "ə"]
 
 
-def test_mfa_executable_prefers_project_local_install(monkeypatch, tmp_path) -> None:
+def test_mfa_executable_prefers_project_local_install(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
     project_mfa = tmp_path / ".mfa" / "env" / "bin" / "mfa"
     project_mfa.parent.mkdir(parents=True)
     project_mfa.write_text("#!/bin/sh\n", encoding="utf-8")
@@ -81,7 +88,9 @@ def test_mfa_executable_prefers_project_local_install(monkeypatch, tmp_path) -> 
     assert g2p_module._mfa_executable() == str(project_mfa)
 
 
-def test_russian_mfa_rewrites_latin_wifi_and_cardinal_digits(monkeypatch) -> None:
+def test_russian_mfa_rewrites_latin_wifi_and_cardinal_digits(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     seen_words = []
 
     def fake_mfa_g2p(words: list[str], model_name: str) -> list[list[str]]:
@@ -97,7 +106,7 @@ def test_russian_mfa_rewrites_latin_wifi_and_cardinal_digits(monkeypatch) -> Non
     assert result.phones_per_word_raw == [["вай", "фай"], ["семь"]]
 
 
-def test_russian_mfa_rewrites_roman_century_ordinals(monkeypatch) -> None:
+def test_russian_mfa_rewrites_roman_century_ordinals(monkeypatch: pytest.MonkeyPatch) -> None:
     seen_words = []
 
     def fake_mfa_g2p(words: list[str], model_name: str) -> list[list[str]]:
@@ -113,7 +122,7 @@ def test_russian_mfa_rewrites_roman_century_ordinals(monkeypatch) -> None:
     assert result.phones_per_word_raw == [["восемнадцатого"], ["века"]]
 
 
-def test_russian_mfa_uses_espeak_for_latin_word_islands(monkeypatch) -> None:
+def test_russian_mfa_uses_espeak_for_latin_word_islands(monkeypatch: pytest.MonkeyPatch) -> None:
     seen_mfa = []
     seen_espeak = []
 
@@ -143,7 +152,7 @@ def test_russian_mfa_uses_espeak_for_latin_word_islands(monkeypatch) -> None:
     ]
 
 
-def test_russian_mfa_rewrites_dates_years_and_age_suffixes(monkeypatch) -> None:
+def test_russian_mfa_rewrites_dates_years_and_age_suffixes(monkeypatch: pytest.MonkeyPatch) -> None:
     seen_words = []
 
     def fake_mfa_g2p(words: list[str], model_name: str) -> list[list[str]]:

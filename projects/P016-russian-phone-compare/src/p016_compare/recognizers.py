@@ -5,9 +5,7 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
-from p016_compare.audio import load_audio_16k
 from p016_compare.normalization import split_phone_text
 
 
@@ -30,57 +28,6 @@ class PhoneRecognitionResult:
             normalized_tokens=[],
             error=str(error),
         )
-
-
-class XlsrEspeakRecognizer:
-    name = "xlsr-espeak"
-    model_id = "facebook/wav2vec2-xlsr-53-espeak-cv-ft"
-
-    def __init__(self) -> None:
-        self._processor: Any | None = None
-        self._model: Any | None = None
-        self._device: str | None = None
-
-    def recognize(self, audio_path: str | Path) -> PhoneRecognitionResult:
-        processor, model, device = self._load()
-        audio = load_audio_16k(audio_path)
-        try:
-            import torch
-        except ImportError as exc:
-            raise RuntimeError("torch is not installed.") from exc
-
-        inputs = processor(audio, sampling_rate=16_000, return_tensors="pt")
-        input_values = inputs.input_values.to(device)
-        with torch.no_grad():
-            logits = model(input_values).logits
-        predicted_ids = torch.argmax(logits, dim=-1)
-        decoded = processor.batch_decode(predicted_ids)[0]
-        tokens = split_phone_text(decoded)
-        return PhoneRecognitionResult(
-            name=self.name,
-            model_id=self.model_id,
-            raw_text=decoded,
-            raw_tokens=decoded.split(),
-            normalized_tokens=tokens,
-        )
-
-    def _load(self) -> tuple[Any, Any, str]:
-        if self._processor is not None and self._model is not None and self._device is not None:
-            return self._processor, self._model, self._device
-        try:
-            import torch
-            from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor
-        except ImportError as exc:
-            raise RuntimeError("transformers and torch are required for XLSR-eSpeak.") from exc
-
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        processor = Wav2Vec2Processor.from_pretrained(self.model_id)
-        model = Wav2Vec2ForCTC.from_pretrained(self.model_id).to(device)
-        model.eval()
-        self._processor = processor
-        self._model = model
-        self._device = device
-        return processor, model, device
 
 
 class ZipaOnnxRecognizer:
@@ -142,12 +89,12 @@ class ZipaOnnxRecognizer:
 
 
 def safe_recognize(
-    recognizer: XlsrEspeakRecognizer | ZipaOnnxRecognizer,
+    recognizer: ZipaOnnxRecognizer,
     audio_path: str | Path,
 ) -> PhoneRecognitionResult:
     try:
         return recognizer.recognize(audio_path)
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - intentional: surface any recognizer failure as a failed result
         return PhoneRecognitionResult.failed(recognizer.name, recognizer.model_id, exc)
 
 

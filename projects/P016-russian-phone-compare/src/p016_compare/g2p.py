@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import re
 import shutil
@@ -15,7 +16,13 @@ from p016_compare.text_normalization import WrittenTextNormalization, normalize_
 
 _WORD_RE = re.compile(r"[^\W_]+(?:[-'][^\W_]+)?", re.UNICODE)
 _ROMAN_RE = re.compile(r"^[ivxlcdm]+$")
-CHARSIU_MODEL_ID = "charsiu/g2p_multilingual_byT5_tiny_16_layers_100"
+# Bounds for the supported integer/numeral range when spelling numbers as Russian words.
+MAX_SPELLED_NUMBER = 9999
+HUNDRED = 100
+THOUSAND = 1000
+TWO_THOUSAND = 2000
+# An MFA dictionary line needs at least a word plus one phone token.
+MIN_MFA_DICT_FIELDS = 2
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 PROJECT_MFA_DIR = PROJECT_ROOT / ".mfa"
 PROJECT_MFA_BIN = PROJECT_MFA_DIR / "env" / "bin" / "mfa"
@@ -222,49 +229,27 @@ class TargetG2P:
 
         expanded_words, part_counts = _expand_words(words, language)
         warnings: list[str] = list(text_normalization.warnings) if text_normalization else []
-        if self.preferred_backend in {"auto_zipa", "charsiu"}:
-            if self.preferred_backend == "auto_zipa" and language.startswith("en"):
-                voice = _espeak_voice(language)
-                phones = _merge_word_parts(_espeak_g2p(expanded_words, voice), part_counts)
-                return _result(words, phones, f"espeak-ng:{voice}", warnings, text_normalization)
-            try:
-                phones = _merge_word_parts(_charsiu_g2p(expanded_words, language), part_counts)
-                return _result(
-                    words,
-                    phones,
-                    f"charsiu:{CHARSIU_MODEL_ID}",
-                    warnings,
-                    text_normalization,
-                )
-            except RuntimeError as exc:
-                if self.preferred_backend == "charsiu":
-                    raise
-                warnings.append(str(exc))
 
-        if self.preferred_backend == "espeak":
-            voice = _espeak_voice(language)
-            phones = _merge_word_parts(_espeak_g2p(expanded_words, voice), part_counts)
-            return _result(words, phones, f"espeak-ng:{voice}", warnings, text_normalization)
-
-        if language.startswith("ru") and self.preferred_backend in {"auto", "mfa"}:
-            try:
-                raw_phones, backend, mfa_warnings = _russian_mfa_g2p(expanded_words)
-                warnings.extend(mfa_warnings)
-                phones = _merge_word_parts(raw_phones, part_counts)
-                return _result(words, phones, backend, warnings, text_normalization)
-            except RuntimeError as exc:
-                if self.preferred_backend == "mfa":
-                    raise
-                warnings.append(str(exc))
-
-        voice = _espeak_voice(language)
-        phones = _merge_word_parts(_espeak_g2p(expanded_words, voice), part_counts)
-        backend = f"espeak-ng:{voice}"
-        if self.preferred_backend == "auto_zipa":
-            warnings.append("CharsiuG2P was unavailable; used espeak-ng fallback.")
-        elif language.startswith("ru"):
-            warnings.append("Russian MFA G2P was unavailable; used espeak-ng fallback.")
-        return _result(words, phones, backend, warnings, text_normalization)
+        backend = self.preferred_backend
+        if backend == "routed":
+            backend = _routed_backend(language)
+        if backend in {"auto", "paper"}:
+            return _chain_g2p(
+                words, expanded_words, part_counts, language, warnings, text_normalization
+            )
+        if backend in _SINGLE_BACKENDS:
+            return _try_single(
+                _SINGLE_BACKENDS[backend], backend, words, expanded_words, part_counts,
+                language, warnings, text_normalization,
+            )
+        if backend == "mfa" and language.startswith("ru"):
+            raw_phones, mfa_backend, mfa_warnings = _russian_mfa_g2p(expanded_words)
+            warnings.extend(mfa_warnings)
+            phones = _merge_word_parts(raw_phones, part_counts)
+            return _result(words, phones, mfa_backend, warnings, text_normalization)
+        return _espeak_result(
+            words, expanded_words, part_counts, language, warnings, text_normalization
+        )
 
 
 def _result(
@@ -369,7 +354,7 @@ def _russian_roman_parts(
         return []
     previous_normalized = previous_word.casefold() if previous_word else None
     next_normalized = next_word.casefold() if next_word else None
-    if next_normalized == "века" or previous_normalized in {"людовика"}:
+    if next_normalized == "века" or previous_normalized == "людовика":
         ordinal = _russian_ordinal_genitive_parts(number)
         if ordinal:
             return ordinal
@@ -386,7 +371,7 @@ def _roman_to_int(word: str) -> int | None:
         else:
             total += value
             previous = value
-    if total <= 0 or total > 9999:
+    if total <= 0 or total > MAX_SPELLED_NUMBER:
         return None
     return total
 
@@ -401,16 +386,16 @@ def _russian_ordinal_genitive_parts(number: int) -> list[str]:
 
 
 def _russian_year_genitive_parts(number: int) -> list[str]:
-    if number < 100:
+    if number < HUNDRED:
         return _russian_ordinal_genitive_parts(number)
-    if number < 1000:
-        hundreds, remainder = divmod(number, 100)
+    if number < THOUSAND:
+        hundreds, remainder = divmod(number, HUNDRED)
         parts = [RU_HUNDREDS[hundreds * 100]] if hundreds else []
         ordinal = _russian_ordinal_genitive_parts(remainder)
         if ordinal:
             return [*parts, *ordinal]
         return []
-    if 1000 <= number < 2000:
+    if THOUSAND <= number < TWO_THOUSAND:
         ordinal = _russian_year_genitive_parts(number - 1000)
         if ordinal:
             return ["тысяча", *ordinal]
@@ -427,7 +412,7 @@ def _russian_counting_genitive_parts(number: int) -> list[str]:
 
 
 def _russian_cardinal_parts(number: int) -> list[str]:
-    if number < 0 or number > 9999:
+    if number < 0 or number > MAX_SPELLED_NUMBER:
         return []
     if number == 0:
         return ["ноль"]
@@ -522,7 +507,7 @@ def _mfa_g2p(words: list[str], model_name: str) -> list[list[str]]:
         if not stripped:
             continue
         parts = stripped.split()
-        if len(parts) < 2:
+        if len(parts) < MIN_MFA_DICT_FIELDS:
             continue
         pronunciations.setdefault(parts[0].lower(), parts[1:])
 
@@ -584,50 +569,6 @@ def _mfa_env(mfa_bin: str) -> dict[str, str]:
     return env
 
 
-def _charsiu_g2p(words: list[str], language: str) -> list[list[str]]:
-    code = _charsiu_language_code(language)
-    tokenizer, model = _charsiu_model()
-    try:
-        import torch
-    except ImportError as exc:
-        raise RuntimeError("torch is required for CharsiuG2P.") from exc
-
-    prefixed_words = [f"<{code}>: {word}" for word in words]
-    inputs = tokenizer(
-        prefixed_words,
-        padding=True,
-        add_special_tokens=False,
-        return_tensors="pt",
-    )
-    with torch.no_grad():
-        predictions = model.generate(**inputs, num_beams=1, max_length=64)
-    phone_texts = tokenizer.batch_decode(predictions.tolist(), skip_special_tokens=True)
-    return [split_phone_text(phone_text) for phone_text in phone_texts]
-
-
-@lru_cache(maxsize=1)
-def _charsiu_model() -> tuple[Any, Any]:
-    try:
-        from transformers import AutoTokenizer, T5ForConditionalGeneration
-    except ImportError as exc:
-        raise RuntimeError("transformers is required for CharsiuG2P.") from exc
-
-    tokenizer = AutoTokenizer.from_pretrained(CHARSIU_MODEL_ID)
-    model = T5ForConditionalGeneration.from_pretrained(CHARSIU_MODEL_ID)
-    model.eval()
-    return tokenizer, model
-
-
-def _charsiu_language_code(language: str) -> str:
-    if language == "en_gb":
-        return "eng-uk"
-    if language.startswith("en"):
-        return "eng-us"
-    if language.startswith("ru"):
-        return "rus"
-    raise RuntimeError(f"CharsiuG2P does not have a configured language code for {language!r}.")
-
-
 def _espeak_g2p(words: list[str], voice: str) -> list[list[str]]:
     if shutil.which("espeak-ng") is None:
         raise RuntimeError("espeak-ng CLI not found; cannot run fallback G2P.")
@@ -665,6 +606,211 @@ def _espeak_g2p_sentence(words: list[str], voice: str) -> list[list[str]] | None
     return [split_phone_text(phone_word) for phone_word in phone_words]
 
 
+def _espeak_result(
+    words: list[str],
+    expanded_words: list[str],
+    part_counts: list[int],
+    language: str,
+    warnings: list[str],
+    text_normalization: WrittenTextNormalization | None,
+) -> G2PResult:
+    voice = _espeak_voice(language)
+    phones = _merge_word_parts(_espeak_g2p(expanded_words, voice), part_counts)
+    return _result(words, phones, f"espeak-ng:{voice}", warnings, text_normalization)
+
+
+# FLEURS config / language code -> Epitran code (ISO 639-3 + script). Epitran's IPA convention
+# matches ZIPA's training targets. Latin/Cyrillic are pure-Python; eng needs flite and jpn needs
+# MeCab — a missing system dep raises and falls back to espeak (recorded in warnings).
+# Keyed by the FLEURS config's first token (af_za -> "af"). Values verified against Epitran's
+# installed map set. eng is omitted (Epitran English needs flite; CharsiuG2P covers it); CJK
+# (cmn/ja/yue) need romanization first, so they route to per-script tools, not Epitran.
+_EPITRAN_CODES = {
+    "af": "afr-Latn", "am": "amh-Ethi", "ar": "ara-Arab", "az": "aze-Latn", "bn": "ben-Beng",
+    "ca": "cat-Latn", "ceb": "ceb-Latn", "ckb": "ckb-Arab", "cs": "ces-Latn", "cy": "cym-Latn",
+    "de": "deu-Latn", "es": "spa-Latn", "et": "est-Latn", "fa": "fas-Arab", "ff": "ful-Latn",
+    "fi": "fin-Latn", "fil": "tgl-Latn", "fr": "fra-Latn", "ga": "gle-Latn", "gl": "glg-Latn",
+    "ha": "hau-Latn", "hi": "hin-Deva", "hr": "hrv-Latn", "hu": "hun-Latn", "id": "ind-Latn",
+    "it": "ita-Latn", "jv": "jav-Latn", "ka": "kat-Geor", "kk": "kaz-Cyrl", "km": "khm-Khmr",
+    "kn": "kan-Knda", "ko": "kor-Hang", "ky": "kir-Cyrl", "lg": "lug-Latn", "lo": "lao-Laoo",
+    "lt": "lit-Latn", "lv": "lav-Latn", "mi": "mri-Latn", "ml": "mal-Mlym", "mn": "mon-Cyrl-bab",
+    "mr": "mar-Deva", "ms": "msa-Latn", "mt": "mlt-Latn", "my": "mya-Mymr", "nl": "nld-Latn",
+    "ny": "nya-Latn", "oc": "oci-Latn", "om": "orm-Latn", "or": "ori-Orya", "pa": "pan-Guru",
+    "pl": "pol-Latn", "ps": "pbu-Arab", "pt": "por-Latn", "ro": "ron-Latn", "ru": "rus-Cyrl",
+    "sl": "slv-Latn", "sn": "sna-Latn", "so": "som-Latn", "sr": "srp-Cyrl", "sv": "swe-Latn",
+    "sw": "swa-Latn", "ta": "tam-Taml", "te": "tel-Telu", "tg": "tgk-Cyrl", "th": "tha-Thai",
+    "tr": "tur-Latn", "uk": "ukr-Cyrl", "ur": "urd-Arab", "uz": "uzb-Latn", "vi": "vie-Latn",
+    "xh": "xho-Latn", "yo": "yor-Latn", "zu": "zul-Latn",
+}
+
+
+def _epitran_code(language: str) -> str:
+    key = language.split("_", 1)[0].lower()
+    if key not in _EPITRAN_CODES:
+        raise RuntimeError(f"No Epitran code configured for {language!r}.")
+    return _EPITRAN_CODES[key]
+
+
+@lru_cache(maxsize=8)
+def _epitran_instance(code: str) -> Any:
+    import epitran
+
+    return epitran.Epitran(code)
+
+
+def _epitran_g2p(words: list[str], language: str) -> list[list[str]]:
+    epi = _epitran_instance(_epitran_code(language))
+    return [split_phone_text(epi.transliterate(word)) for word in words]
+
+
+def _try_single(
+    g2p_fn: Any,
+    label: str,
+    words: list[str],
+    expanded_words: list[str],
+    part_counts: list[int],
+    language: str,
+    warnings: list[str],
+    text_normalization: WrittenTextNormalization | None,
+) -> G2PResult:
+    """Run one G2P backend; on any failure, record a warning and fall back to espeak-ng."""
+    try:
+        phones = _merge_word_parts(g2p_fn(expanded_words, language), part_counts)
+        return _result(words, phones, label, warnings, text_normalization)
+    except Exception as exc:  # noqa: BLE001 - any backend failure falls back to espeak
+        warnings.append(f"{label} G2P failed for {language!r}: {exc}")
+        return _espeak_result(words, expanded_words, part_counts, language, warnings,
+                              text_normalization)
+
+
+def _chain_g2p(
+    words: list[str],
+    expanded_words: list[str],
+    part_counts: list[int],
+    language: str,
+    warnings: list[str],
+    text_normalization: WrittenTextNormalization | None,
+) -> G2PResult:
+    """ZIPA paper recipe: Epitran -> CharsiuG2P -> espeak-ng, normalized to ZIPA's inventory."""
+    try:
+        phones = _merge_word_parts(_epitran_g2p(expanded_words, language), part_counts)
+        return _result(
+            words, phones, f"epitran:{_epitran_code(language)}", warnings, text_normalization
+        )
+    except Exception as exc:  # noqa: BLE001 - chain to CharsiuG2P
+        warnings.append(f"epitran G2P failed for {language!r}: {exc}")
+    try:
+        phones = _merge_word_parts(_charsiu_g2p(expanded_words, language), part_counts)
+        return _result(
+            words, phones, f"charsiu:{_charsiu_code(language)}", warnings, text_normalization
+        )
+    except Exception as exc:  # noqa: BLE001 - chain to espeak-ng
+        warnings.append(f"charsiu G2P failed for {language!r}: {exc}")
+    try:
+        return _espeak_result(
+            words, expanded_words, part_counts, language, warnings, text_normalization
+        )
+    except RuntimeError as exc:  # no working G2P (e.g. no espeak voice) — empty target, no crash
+        warnings.append(f"no G2P backend available for {language!r}: {exc}")
+        return _result(words, [[] for _ in words], "none", warnings, text_normalization)
+
+
+# FLEURS / language code -> CharsiuG2P tag (the byT5 multilingual G2P, ZIPA's secondary source).
+CHARSIU_MODEL_ID = "charsiu/g2p_multilingual_byT5_tiny_16_layers_100"
+# Keyed by FLEURS first token -> CharsiuG2P tag (idiosyncratic: ger/dut/geo/cze/gre/bur/ice;
+# regional variants chosen to match the FLEURS locale: spa-latin for es_419, por-bz for pt_br,
+# vie-n, zho-s). Complementary to Epitran — Charsiu covers bg/el/da/is/hy/mk/sk/bs/be/gu etc.
+_CHARSIU_CODES = {
+    "af": "afr", "am": "amh", "ar": "ara", "az": "aze", "be": "bel", "bg": "bul", "bn": "ben",
+    "bs": "bos", "ca": "cat", "cmn": "zho-s", "cs": "cze", "cy": "wel-nw", "da": "dan",
+    "de": "ger", "el": "gre", "en": "eng-us", "es": "spa-latin", "et": "est", "fa": "fas",
+    "fi": "fin", "fil": "tgl", "fr": "fra", "ga": "gle", "gl": "glg", "gu": "guj", "hi": "hin",
+    "hr": "hbs-latn", "hu": "hun", "hy": "arm-e", "id": "ind", "is": "ice", "it": "ita",
+    "ja": "jpn", "ka": "geo", "kk": "kaz", "km": "khm", "ko": "kor", "lb": "ltz", "lt": "lit",
+    "mk": "mac", "mt": "mlt", "my": "bur", "nb": "nob", "nl": "dut", "or": "ori", "pl": "pol",
+    "pt": "por-bz", "ro": "ron", "ru": "rus", "sd": "snd", "sk": "slo", "sl": "slv", "sr": "srp",
+    "sv": "swe", "sw": "swa", "ta": "tam", "th": "tha", "tr": "tur", "uk": "ukr", "vi": "vie-n",
+    "yue": "yue",
+}
+
+
+def _charsiu_code(language: str) -> str:
+    key = language.split("_", 1)[0].lower()
+    if key not in _CHARSIU_CODES:
+        raise RuntimeError(f"No CharsiuG2P code configured for {language!r}.")
+    return _CHARSIU_CODES[key]
+
+
+@lru_cache(maxsize=1)
+def _charsiu_model() -> tuple[Any, Any]:
+    from transformers import AutoTokenizer, T5ForConditionalGeneration
+
+    tokenizer = AutoTokenizer.from_pretrained(CHARSIU_MODEL_ID)
+    model = T5ForConditionalGeneration.from_pretrained(CHARSIU_MODEL_ID)
+    model.eval()
+    return tokenizer, model
+
+
+def _charsiu_g2p(words: list[str], language: str) -> list[list[str]]:
+    import torch
+
+    code = _charsiu_code(language)
+    tokenizer, model = _charsiu_model()
+    prefixed = [f"<{code}>: {word}" for word in words]
+    inputs = tokenizer(prefixed, padding=True, add_special_tokens=False, return_tensors="pt")
+    with torch.no_grad():
+        predictions = model.generate(**inputs, num_beams=1, max_length=64)
+    decoded = tokenizer.batch_decode(predictions.tolist(), skip_special_tokens=True)
+    return [split_phone_text(text) for text in decoded]
+
+
+# FLEURS / language code -> trained Phonetisaurus FST. These ZIPA-distilled models cover the
+# "gap" languages that have no Epitran/CharsiuG2P/espeak voice (so the paper chain returns empty).
+# Stems are keyed by the full FLEURS config (ig_ng.fst); training lives in experiments/g2p_train.
+G2P_MODELS_DIR = Path(__file__).parent / "g2p_models"
+
+
+def _trained_model_path(language: str) -> Path:
+    path = G2P_MODELS_DIR / f"{language}.fst"
+    if not path.exists():
+        raise RuntimeError(f"No trained G2P model for {language!r} at {path}.")
+    return path
+
+
+def _trained_g2p(words: list[str], language: str) -> list[list[str]]:
+    import phonetisaurus
+
+    model_path = _trained_model_path(language)
+    predictions = dict(phonetisaurus.predict(words, model_path))
+    # Phonetisaurus lowercases keys and may drop a word it cannot decode; key on the lowered word
+    # and fall back to an empty pronunciation so the per-word alignment stays positional.
+    return [split_phone_text(" ".join(predictions.get(word.lower(), []))) for word in words]
+
+
+# Single-backend G2P dispatch: backend name -> (words, language) -> phones_per_word. Each runs
+# through _try_single (espeak-ng fallback on failure). "trained" loads a ZIPA-distilled FST.
+_SINGLE_BACKENDS = {
+    "epitran": _epitran_g2p,
+    "charsiu": _charsiu_g2p,
+    "trained": _trained_g2p,
+}
+
+
+@lru_cache(maxsize=1)
+def _routing_table() -> dict[str, str]:
+    """Per-language best-G2P table produced by scripts/g2p_ablation.py (empty if not yet built)."""
+    path = Path(__file__).parent / "g2p_routing.json"
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _routed_backend(language: str) -> str:
+    """Resolve the per-language best backend (full code, then bare lang); default = paper chain."""
+    table = _routing_table()
+    return table.get(language) or table.get(language.split("_", 1)[0]) or "paper"
+
+
 def _espeak_voice(language: str) -> str:
     if language == "en_gb":
         return "en-gb"
@@ -672,4 +818,7 @@ def _espeak_voice(language: str) -> str:
         return "en-us"
     if language.startswith("ru"):
         return "ru"
-    return language
+    # FLEURS configs are "<lang>_<region>" (fr_fr, de_de, es_419); espeak-ng wants the bare
+    # language ("fr", "de", "es"). Take the part before the first underscore; bare codes pass
+    # through unchanged. This is what lets the espeak target lane run for any FLEURS language.
+    return language.split("_", 1)[0]

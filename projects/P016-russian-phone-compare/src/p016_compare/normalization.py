@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from collections.abc import Iterable
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 _BLANK_TOKENS = {
     "",
@@ -50,6 +53,18 @@ _CANONICAL_TOKENS = {
 }
 _SPACE_RE = re.compile(r"\s+")
 
+# ZIPA's broad-transcription token inventory (artifacts/.../tokens.txt): base IPA symbols + the
+# 15 diacritics ZIPA keeps. The paper normalizes targets to this set (PHOIBLE-validate, unify
+# Unicode, cap diacritics). We reproduce that: drop any char ZIPA cannot emit and cap to one
+# diacritic, so the G2P target lives in the same space as the recognizer output.
+_ZIPA_DIACRITICS = frozenset("ʰʲʷʼː˞ˠˤ" + "̴̥̩̪̺̃̚")
+_ZIPA_BASE = frozenset(
+    "abcdefghijklmnopqrstuvwxyz"
+    "æçðøħŋœǀǁǂǃ"
+    "ɐɑɒɓɔɕɖɗɘəɛɜɞɟɠɢɣɤɥɦɧɨɪɬɭɮɯɰɱɲɳɴɵɶɸɹɺɻɽɾʀʁʂʃʄʈʉʊʋʌʍʎʏʐʑʒʔʕʘʙʛʜʝʟʡʢ"
+    "βθχᶑⱱ"
+)
+
 
 def split_phone_text(text: str) -> list[str]:
     cleaned = unicodedata.normalize("NFC", text.strip())
@@ -82,6 +97,7 @@ def normalize_phone_token(token: str) -> str:
     token = token.replace("ɡ", "g")
     token = token.strip()
     token = _CANONICAL_TOKENS.get(token, token)
+    token = _restrict_to_zipa(token)
     if token in _BLANK_TOKENS:
         return ""
     return token
@@ -124,3 +140,18 @@ def _expand_token(token: str) -> list[str]:
     if expanded is None:
         return [token]
     return list(expanded)
+
+
+def _restrict_to_zipa(token: str) -> str:
+    """Map a phone into ZIPA's broad inventory: keep only emittable chars, cap to 1 diacritic.
+
+    Drops symbols ZIPA cannot output (e.g. the non-syllabic mark ̯) and extra diacritics, so a
+    G2P target lands in the same space as the recognizer's output before alignment.
+    """
+    base = [ch for ch in token if ch in _ZIPA_BASE]
+    diacritics = [ch for ch in token if ch in _ZIPA_DIACRITICS]
+    if not base:
+        # No base char: a standalone diacritic (ZIPA emits these as separate tokens) is kept so
+        # the caller can attach it to the previous phone; anything else is unemittable -> drop.
+        return "".join(diacritics[:1])
+    return "".join(base) + "".join(diacritics[:1])

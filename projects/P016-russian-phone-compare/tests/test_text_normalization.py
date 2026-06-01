@@ -1,10 +1,12 @@
+import pytest
+
 import p016_compare.g2p as g2p_module
 import p016_compare.text_normalization as text_norm_module
 from p016_compare.g2p import TargetG2P
 from p016_compare.text_normalization import _choose_russian_candidate, normalize_written_text
 
 
-def test_english_acronyms_expand_to_spoken_letter_names(monkeypatch) -> None:
+def test_english_acronyms_expand_to_spoken_letter_names(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(text_norm_module, "_nemo_normalize", lambda text, language: text)
 
     result = normalize_written_text("The UN and U.S. discussed AI with the PA.", "en_us")
@@ -15,7 +17,7 @@ def test_english_acronyms_expand_to_spoken_letter_names(monkeypatch) -> None:
     assert result.backend == "nemo-text-processing:en"
 
 
-def test_russian_acronyms_expand_before_nemo(monkeypatch) -> None:
+def test_russian_acronyms_expand_before_nemo(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(text_norm_module, "_nemo_normalize", lambda text, language: text)
 
     result = normalize_written_text("В США ООН и АЭС использовали РЛС.", "ru")
@@ -90,7 +92,7 @@ def test_russian_candidate_choice_prefers_hundreds_before_tysyach() -> None:
     assert result == "приблизительно четыреста тысяч случаев"
 
 
-def test_g2p_from_text_scores_normalized_words(monkeypatch) -> None:
+def test_g2p_from_text_scores_normalized_words(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         text_norm_module,
         "_nemo_normalize",

@@ -6,7 +6,9 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "accelerate>=1.0",
     "datasets<4",
-    "gradio>=5.0",
+    # ZIPA's training targets were generated with Epitran (+ CharsiuG2P) then PHOIBLE-normalized,
+    # so Epitran is the convention-matched G2P for scoring against ZIPA. Primary target backend.
+    "epitran>=1.25",
     "huggingface-hub>=0.34",
     "librosa>=0.11",
     "nemo-text-processing>=1.1.0",
@@ -15,12 +17,16 @@ dependencies = [
     "onnxruntime>=1.18; platform_system != 'Linux'",
     "panphon>=0.22",
     "phonemizer>=3.3",
-    "qwen-asr>=0.0.6",
     "soundfile>=0.13",
+    # ElevenLabs Scribe v2 realtime ASR lane (asr.ScribeAsrTranscriber).
+    "superwhisper-api",
     "torch>=2.8",
     "torchaudio>=2.8",
     "transformers>=4.55",
 ]
+
+[tool.uv.sources]
+superwhisper-api = { path = "../../packages/superwhisper-api", editable = true }
 
 [project.optional-dependencies]
 zipa = [
@@ -30,10 +36,6 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.15",
 ]
-
-[project.scripts]
-p016-app = "p016_compare.app:main"
-p016-compare = "p016_compare.cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -48,8 +50,37 @@ target-version = "py312"
 src = ["src", "tests"]
 extend-exclude = ["artifacts", "third_party"]
 
+# "ruff max": enable everything, then turn off only the genuinely impractical or
+# formatter-conflicting rules. Matches omni-curator / omni-finetune-core / georgian-asr.
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B", "N"]
+select = ["ALL"]
+ignore = [
+    "D",        # mandatory docstrings everywhere — too heavy
+    "COM812",   # trailing-comma rule conflicts with the formatter
+    "ISC001",   # implicit-str-concat rule conflicts with the formatter
+    "ANN401",   # allow typing.Any at genuine dynamic boundaries
+    "TD002", "TD003", "FIX002",  # don't require issue links on TODOs
+    "EM101", "EM102", "TRY003",  # allow inline exception messages
+    "PLR0913",  # entry points legitimately take many knobs
+    "PLC0415",  # heavy/optional deps imported lazily on purpose
+    "T201",     # CLI / scripts / report tooling: stdout is the interface
+]
+
+[tool.ruff.lint.per-file-ignores]
+# asserts + magic values are fine in tests; ARG001/ARG002/ARG005 because test doubles
+# mirror real signatures (unused params are intentional); SLF001 because tests verify internal state.
+"tests/**/*.py" = ["S101", "PLR2004", "ARG001", "ARG002", "ARG005", "SLF001"]
+# Cyrillic letters resembling Latin are intentional Russian normalization data.
+# S603/S607: subprocess calls invoke known, trusted binaries (MFA, espeak-ng, sys.executable)
+# with fixed argument vectors; the only variable inputs are file paths and word lists.
+"src/p016_compare/g2p.py" = ["RUF001", "S603", "S607"]
+# S603: ZIPA recognizer shells out to the bundled inference script via sys.executable.
+"src/p016_compare/recognizers.py" = ["S603"]
+"src/p016_compare/normalization.py" = ["RUF001"]
+"src/p016_compare/text_normalization.py" = ["RUF001"]
+"tests/test_normalization.py" = ["RUF001", "S101", "PLR2004"]
+"tests/test_text_normalization.py" = ["RUF001", "S101", "PLR2004"]
+"tests/test_text_normalization_integration.py" = ["RUF001", "S101", "PLR2004"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

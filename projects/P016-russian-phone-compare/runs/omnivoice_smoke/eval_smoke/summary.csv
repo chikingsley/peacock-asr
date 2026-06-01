@@ -1,5 +1,0 @@
-id,source,language,category,reference_text,asr_text,lane,backend,PER,PFER,feature_distance,errors,matches,substitutions,deletions,insertions,reference_count,audio
-en_th_001,omnivoice,en_us,english_th,The thin author thought that these three words were clear.,The thin author thought that these three words were clear.,zipa,espeak-ng:en-us,0.0,0.0,0.0,0,30,0,0,0,30,runs/omnivoice_smoke/audio/en_th_001.wav
-en_th_001,omnivoice,en_us,english_th,The thin author thought that these three words were clear.,The thin author thought that these three words were clear.,xlsr-espeak,espeak-ng:en-us,0.1333,0.0458,1.375,4,26,3,1,0,30,runs/omnivoice_smoke/audio/en_th_001.wav
-en_rhotic_001,omnivoice,en_us,english_rhotic,The careful driver turned over the red road marker.,The careful driver turned over the red road marker.,zipa,espeak-ng:en-us,0.0,0.0,0.0,0,36,0,0,0,36,runs/omnivoice_smoke/audio/en_rhotic_001.wav
-en_rhotic_001,omnivoice,en_us,english_rhotic,The careful driver turned over the red road marker.,The careful driver turned over the red road marker.,xlsr-espeak,espeak-ng:en-us,0.1111,0.0856,3.0833,4,32,1,3,0,36,runs/omnivoice_smoke/audio/en_rhotic_001.wav

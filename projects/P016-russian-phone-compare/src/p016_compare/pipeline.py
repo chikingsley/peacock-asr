@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
-from time import perf_counter
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from p016_compare.alignment import (
     AlignmentOp,
@@ -11,8 +9,6 @@ from p016_compare.alignment import (
     needleman_wunsch,
     summarize,
 )
-from p016_compare.asr import AsrResult, QwenAsrTranscriber
-from p016_compare.audio import audio_duration_seconds
 from p016_compare.feature_metrics import (
     alignment_feature_distance,
     feature_edit_summary,
@@ -20,12 +16,14 @@ from p016_compare.feature_metrics import (
 from p016_compare.g2p import G2PResult, TargetG2P
 from p016_compare.recognizers import (
     PhoneRecognitionResult,
-    XlsrEspeakRecognizer,
     ZipaOnnxRecognizer,
     safe_recognize,
 )
 
-RecognizerName = Literal["zipa", "xlsr-espeak"]
+if TYPE_CHECKING:
+    from pathlib import Path
+
+RecognizerName = Literal["zipa"]
 
 
 @dataclass(frozen=True)
@@ -50,51 +48,7 @@ class LaneResult:
     timing: dict[str, float | bool]
 
 
-@dataclass(frozen=True)
-class PipelineResult:
-    asr: AsrResult
-    lanes: list[LaneResult]
-    timing: dict[str, object]
-
-    def as_dict(self) -> dict[str, object]:
-        return {
-            "asr": {
-                "text": self.asr.text,
-                "language": self.asr.language,
-                "model_id": self.asr.model_id,
-            },
-            "targets": {
-                lane.name: _target_payload(lane.target) for lane in self.lanes
-            },
-            "lanes": [
-                {
-                    "name": lane.name,
-                    "recognizer": lane.recognition.name,
-                    "model_id": lane.recognition.model_id,
-                    "error": lane.recognition.error,
-                    "target": _target_payload(lane.target),
-                    "raw_text": lane.recognition.raw_text,
-                    "raw_tokens": lane.recognition.raw_tokens,
-                    "normalized_tokens": lane.recognition.normalized_tokens,
-                    "sentence": lane.sentence,
-                    "words": lane.words,
-                    "alignment": lane.alignment,
-                    "timing": lane.timing,
-                }
-                for lane in self.lanes
-            ],
-            "timing": self.timing,
-        }
-
-
-DEFAULT_LANE_CONFIGS = (
-    LaneConfig("zipa", "zipa", "mfa"),
-    LaneConfig("xlsr-espeak", "xlsr-espeak", "espeak"),
-)
-DIAGNOSTIC_LANE_CONFIGS = (
-    LaneConfig("zipa-charsiu", "zipa", "charsiu", languages=("ru",)),
-    LaneConfig("xlsr-mfa", "xlsr-espeak", "mfa", languages=("ru",)),
-)
+DEFAULT_LANE_CONFIGS = (LaneConfig("zipa", "zipa", "routed"),)
 
 
 class PronunciationComparePipeline:
@@ -102,91 +56,48 @@ class PronunciationComparePipeline:
         self,
         lane_configs: tuple[LaneConfig, ...] = DEFAULT_LANE_CONFIGS,
     ) -> None:
-        self.asr = QwenAsrTranscriber()
         self.lane_configs = lane_configs
         self.zipa = ZipaOnnxRecognizer()
-        self.xlsr = XlsrEspeakRecognizer()
 
-    def analyze(
+    def recognize(
         self,
         audio_path: str | Path,
-        language: str,
-    ) -> PipelineResult:
-        pipeline_start = perf_counter()
-        audio_seconds = audio_duration_seconds(audio_path)
-        asr_start = perf_counter()
-        asr = self.asr.transcribe(str(audio_path), language=language)
-        asr_seconds = _elapsed(asr_start)
+    ) -> dict[RecognizerName, PhoneRecognitionResult]:
+        """Run each distinct recognizer once on the audio (independent of any target text)."""
         recognitions: dict[RecognizerName, PhoneRecognitionResult] = {}
-        recognition_seconds: dict[RecognizerName, float] = {}
+        for config in self.lane_configs:
+            if config.recognizer not in recognitions:
+                recognitions[config.recognizer] = safe_recognize(
+                    _recognizer_for(config.recognizer, self), audio_path
+                )
+        return recognitions
+
+    def score_text(
+        self,
+        language: str,
+        target_text: str,
+        recognitions: dict[RecognizerName, PhoneRecognitionResult],
+    ) -> list[LaneResult]:
+        """Score one target text against precomputed recognitions, per applicable lane.
+
+        Target phones come from G2P of ``target_text`` — the known reference (read-aloud) or
+        the ASR hypothesis (free-form). Recognitions are reused across both modes because they
+        depend only on the audio, so a recognizer runs once per sample, not once per mode.
+        """
         lanes: list[LaneResult] = []
         for config in self.lane_configs:
             if not config.applies_to(language):
                 continue
-            lane_start = perf_counter()
-            target_start = perf_counter()
-            target = TargetG2P(config.target_backend).from_text(asr.text, language=language)
-            target_seconds = _elapsed(target_start)
-            recognition = recognitions.get(config.recognizer)
-            recognizer_cached = recognition is not None
-            recognizer_seconds = 0.0
-            if recognition is None:
-                recognizer_start = perf_counter()
-                recognition = safe_recognize(_recognizer_for(config.recognizer, self), audio_path)
-                recognizer_seconds = _elapsed(recognizer_start)
-                recognitions[config.recognizer] = recognition
-                recognition_seconds[config.recognizer] = recognizer_seconds
-            score_start = perf_counter()
-            lane = _score_lane(config.name, target, recognition)
-            score_seconds = _elapsed(score_start)
-            lanes.append(
-                _with_lane_timing(
-                    lane,
-                    {
-                        "target_g2p_seconds": target_seconds,
-                        "recognizer_seconds": recognizer_seconds,
-                        "recognizer_cached": recognizer_cached,
-                        "score_seconds": score_seconds,
-                        "total_seconds": _elapsed(lane_start),
-                    },
-                )
-            )
-        total_seconds = _elapsed(pipeline_start)
-        return PipelineResult(
-            asr=asr,
-            lanes=lanes,
-            timing={
-                "audio_seconds": audio_seconds,
-                "asr_seconds": asr_seconds,
-                "recognizer_seconds": dict(recognition_seconds),
-                "lane_seconds": {lane.name: lane.timing for lane in lanes},
-                "total_seconds": total_seconds,
-                "rtf": _rtf(total_seconds, audio_seconds),
-            },
-        )
-
-
-def _target_payload(target: G2PResult) -> dict[str, object]:
-    return {
-        "backend": target.backend,
-        "warnings": target.warnings,
-        "input_text": target.input_text,
-        "normalized_text": target.normalized_text,
-        "text_normalization_backend": target.text_normalization_backend,
-        "text_normalization_warnings": target.text_normalization_warnings,
-        "words": target.words,
-        "phones_raw": target.phones_per_word_raw,
-        "phones_normalized": target.phones_per_word_normalized,
-    }
+            target = TargetG2P(config.target_backend).from_text(target_text, language=language)
+            lanes.append(_score_lane(config.name, target, recognitions[config.recognizer]))
+        return lanes
 
 
 def _recognizer_for(
-    name: RecognizerName,
+    _name: RecognizerName,
     pipeline: PronunciationComparePipeline,
-) -> ZipaOnnxRecognizer | XlsrEspeakRecognizer:
-    if name == "zipa":
-        return pipeline.zipa
-    return pipeline.xlsr
+) -> ZipaOnnxRecognizer:
+    return pipeline.zipa
 
 
 def _score_lane(
@@ -260,31 +171,6 @@ def _score_lane(
     )
 
 
-def _with_lane_timing(
-    lane: LaneResult,
-    timing: dict[str, float | bool],
-) -> LaneResult:
-    return LaneResult(
-        name=lane.name,
-        recognition=lane.recognition,
-        target=lane.target,
-        sentence=lane.sentence,
-        words=lane.words,
-        alignment=lane.alignment,
-        timing=timing,
-    )
-
-
-def _elapsed(start: float) -> float:
-    return round(perf_counter() - start, 6)
-
-
-def _rtf(total_seconds: float, audio_seconds: float) -> float | None:
-    if audio_seconds <= 0:
-        return None
-    return round(total_seconds / audio_seconds, 6)
-
-
 def _ops_by_word(
     ops: list[AlignmentOp],
     word_spans: list[tuple[int, int]],
@@ -328,10 +214,11 @@ def _substitution_detail(
     hypothesis: list[str],
     ops: list[AlignmentOp],
 ) -> str:
-    parts = []
-    for op in ops:
-        if op.op == "substitution" and op.ref_index is not None and op.hyp_index is not None:
-            parts.append(f"{reference[op.ref_index]}->{hypothesis[op.hyp_index]}")
+    parts = [
+        f"{reference[op.ref_index]}->{hypothesis[op.hyp_index]}"
+        for op in ops
+        if op.op == "substitution" and op.ref_index is not None and op.hyp_index is not None
+    ]
     return ", ".join(parts)
 
 

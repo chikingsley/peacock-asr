@@ -65,7 +65,7 @@ def test_real_nemo_normalizes_written_forms(
 
 
 @pytest.mark.integration
-def test_english_g2p_receives_real_nemo_words(monkeypatch) -> None:
+def test_english_g2p_receives_real_nemo_words(monkeypatch: pytest.MonkeyPatch) -> None:
     seen_words = []
 
     def fake_espeak_g2p(words: list[str], voice: str) -> list[list[str]]:
@@ -82,7 +82,7 @@ def test_english_g2p_receives_real_nemo_words(monkeypatch) -> None:
 
 
 @pytest.mark.integration
-def test_russian_g2p_receives_real_nemo_words(monkeypatch) -> None:
+def test_russian_g2p_receives_real_nemo_words(monkeypatch: pytest.MonkeyPatch) -> None:
     seen_words = []
 
     def fake_mfa_g2p(words: list[str], model_name: str) -> list[list[str]]:

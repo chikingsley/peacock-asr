@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass
-from typing import Any
+from typing import Protocol
 
 
 @dataclass(frozen=True)
@@ -11,48 +12,61 @@ class AsrResult:
     model_id: str
 
 
-class QwenAsrTranscriber:
-    def __init__(self, model_id: str = "Qwen/Qwen3-ASR-1.7B") -> None:
-        self.model_id = model_id
-        self._model: Any | None = None
+class AsrTranscriber(Protocol):
+    """ASR lane interface: an audio path + optional language hint -> AsrResult."""
+
+    model_id: str
+
+    def transcribe(self, audio_path: str, language: str | None = None) -> AsrResult: ...
+
+
+# ElevenLabs Scribe expects ISO 639-3 language hints; None lets it auto-detect.
+_SCRIBE_LANGUAGES = {"ru": "rus", "en": "eng"}
+
+
+def _scribe_language(language: str | None) -> str | None:
+    if not language:
+        return None
+    return _SCRIBE_LANGUAGES.get(language.lower().split("_", 1)[0])
+
+
+class ScribeAsrTranscriber:
+    """ElevenLabs Scribe v2 via the superwhisper-api realtime stream (file mode).
+
+    Streams the audio through the realtime websocket and returns the final committed
+    transcript. In manual-commit (file) mode the server commits once, at the flush, so the
+    last committed event carries the full cumulative transcript.
+    """
+
+    model_id = "elevenlabs/scribe_v2_realtime"
 
     def transcribe(self, audio_path: str, language: str | None = None) -> AsrResult:
-        model = self._load_model()
-        result = model.transcribe(audio=audio_path, language=_qwen_language(language))[0]
-        return AsrResult(
-            text=str(getattr(result, "text", "")).strip(),
-            language=str(getattr(result, "language", language or "")),
-            model_id=self.model_id,
-        )
+        import numpy as np
 
-    def _load_model(self) -> Any:
-        if self._model is not None:
-            return self._model
-        try:
-            import torch
-            from qwen_asr import Qwen3ASRModel
-        except ImportError as exc:
-            raise RuntimeError(
-                "Qwen ASR is not installed. Run `uv sync` in this project, then retry."
-            ) from exc
+        from p016_compare.audio import load_audio_16k
 
-        cuda = torch.cuda.is_available()
-        self._model = Qwen3ASRModel.from_pretrained(
-            self.model_id,
-            dtype=torch.bfloat16 if cuda else torch.float32,
-            device_map="cuda:0" if cuda else "cpu",
-            max_inference_batch_size=1,
-            max_new_tokens=256,
-        )
-        return self._model
+        audio = load_audio_16k(audio_path)
+        pcm = (np.clip(audio, -1.0, 1.0) * 32767.0).astype("<i2").tobytes()
+        text = asyncio.run(_scribe_transcribe(pcm, _scribe_language(language)))
+        return AsrResult(text=text, language=language or "", model_id=self.model_id)
 
 
-def _qwen_language(language: str | None) -> str | None:
-    if language is None:
-        return None
-    normalized = language.lower()
-    if normalized.startswith("ru"):
-        return "Russian"
-    if normalized.startswith("en"):
-        return "English"
-    return None
+async def _scribe_transcribe(pcm: bytes, language: str | None) -> str:
+    from superwhisper_api.audio.realtime import (
+        ELEVENLABS_MODEL_ID,
+        SAMPLE_RATE,
+        file_chunks,
+        stream_events,
+    )
+
+    final = ""
+    async for event in stream_events(
+        file_chunks(pcm),
+        provider_name="elevenlabs",
+        model_id=ELEVENLABS_MODEL_ID,
+        sample_rate=SAMPLE_RATE,
+        language=language,
+    ):
+        if event.kind == "committed":
+            final = event.text
+    return final.strip()

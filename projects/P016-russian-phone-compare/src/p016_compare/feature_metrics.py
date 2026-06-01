@@ -1,9 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 @dataclass(frozen=True)
@@ -95,7 +97,7 @@ def _feature_vector(phone: str) -> tuple[int, ...] | None:
         return None
     try:
         segments = table.word_fts(phone)
-    except Exception:
+    except Exception:  # noqa: BLE001 - panphon may raise varied errors on unparseable phones; treat any as "no vector"
         return None
     if len(segments) != 1:
         return None

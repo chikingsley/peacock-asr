@@ -150,7 +150,8 @@ def normalize_written_text(text: str, language: str) -> WrittenTextNormalization
 
     try:
         normalized = _nemo_normalize(prepared, nemo_lang)
-    except Exception as exc:  # pragma: no cover - exercised through integration fallback
+    # Deliberate fallback to acronym-expanded text on any NeMo failure.
+    except Exception as exc:  # pragma: no cover  # noqa: BLE001
         return WrittenTextNormalization(
             original_text=text,
             normalized_text=prepared,
