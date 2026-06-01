@@ -83,17 +83,17 @@ def _ingest_commonvoice() -> int:
         msg = "set MDC_API_KEY in the root .env (Mozilla Data Collective API key)"
         raise SystemExit(msg)
     from omni_curator.ingest.commonvoice import download_commonvoice, load_commonvoice
-    from omni_curator.process import resample_sample
+    from omni_curator.process import resample_samples
     from omni_curator.store import CuratorStore
 
     store = CuratorStore(DB)
     count = 0
     for name, dataset_id in COMMONVOICE_KA.items():
-        # download into transient raw/, resample mp3 48k -> 16k FLAC into canonical_audio/
+        # download to raw/, parallel-resample mp3 -> 16k FLAC into canonical_audio/
         cv_dir = download_commonvoice(dataset_id, dest=RAW / "commonvoice" / name, api_key=api_key)
         loaded = load_commonvoice(cv_dir, language=LANGUAGE, source=f"commonvoice-{name}")
-        canonical = (resample_sample(s, CANONICAL / "commonvoice" / name) for s in loaded)
-        count += _store_batched(store, canonical)
+        canonical = resample_samples(loaded, CANONICAL / "commonvoice" / name)
+        count += store.upsert(canonical)
     store.close()
     return count
 
