@@ -41,3 +41,14 @@ second, harder-to-trust lane wasn't worth it versus improving the G2P lane that 
 **Revisit if:** we want a fluency/holistic signal for free-form speech (where segmental G2P scoring
 is weakest), or we decide to validate both lanes head-to-head on speechocean762 (PCC vs human
 scores). The prototype + how-to-validate notes are in `experiments/mixgop/README.md`.
+
+## 2026-06-01 — REJECTED: distilled-G2P as the universal backend (stays gap-only)
+Tested whether scaffold-distilled Phonetisaurus should replace rule-G2P routing on covered
+languages (the de_de=0.109 lead). Re-test across 10 covered langs (300-utt train, same held-out
+eval): distilled wins only 2/10 (de_de, es_419 — both ties within 6-clip noise) and loses 8/10,
+badly on ja (0.60 vs 0.39), ko (0.42 vs 0.13), hi (0.37 vs 0.19). Mean PFER routed 0.135 vs
+distilled 0.220. **Decision: keep `trained` as a GAP-FILLER ONLY** — not universal, not even an
+ablation co-candidate for covered languages. Rule G2Ps generalize better on covered langs;
+distillation is limited by low eval-word reuse + noisy targets. byT5 (deferred to free GPU) would
+improve distilled numbers but the high-value byT5 experiment is the **9 gap languages**, not
+covered ones. Study: experiments/g2p_train/RESULTS_UNIVERSAL.md.
