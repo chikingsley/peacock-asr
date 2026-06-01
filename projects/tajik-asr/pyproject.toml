@@ -98,6 +98,8 @@ ignore = [
 "src/tajik_omnilingual_asr/eval/test_split.py" = [
     "RUF002",  # Cyrillic letters resembling Latin are intentional Tajik text.
 ]
+# Channel names/notes are intentional Tajik (Cyrillic) text.
+"src/tajik_omnilingual_asr/sources.py" = ["RUF001", "RUF002", "RUF003"]
 # SQL is built only from static fragments and `?` placeholder lists derived from
 # list lengths; all user-supplied values are passed as bound parameters, not
 # interpolated. No external input reaches the query text.

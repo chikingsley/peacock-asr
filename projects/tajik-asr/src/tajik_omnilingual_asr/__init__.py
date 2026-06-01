@@ -10,6 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 
 LANGUAGE = "tgk_Cyrl"  # Tajik (Cyrillic) — the curator language code
+SCRIPT = "Cyrillic"  # the script the create-pipeline LLM should keep labels in
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / "data"

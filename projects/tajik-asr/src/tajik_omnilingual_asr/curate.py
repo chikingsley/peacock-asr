@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING
 
 from omni_curator.quality import OMNI_MAX_DURATION_S
 
-from tajik_omnilingual_asr import DATA, DB, LANGUAGE, ROOT, sources
+from tajik_omnilingual_asr import DATA, DB, LANGUAGE, ROOT, SCRIPT, sources
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -137,6 +137,34 @@ def cmd_ingest(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_label(args: argparse.Namespace) -> int:
+    """Label downloaded channel audio into the store (segment -> Scribe ensemble -> align -> store).
+
+    Clean/scripted channels use the chunks->align path; noisy/conversational ones use VAD. Each
+    video's clips land in the store under ``source = youtube-<slug>``. Expensive (a Scribe ensemble
+    per clip, free but slow) — run it once the downloads have settled.
+    """
+    _load_root_env()
+    from omni_curator.create.run import label_to_store
+    from omni_curator.store import CuratorStore
+
+    store = CuratorStore(DB)
+    total = 0
+    for ch in _selected_channels(args):
+        flacs = sorted((CREATE / ch.slug).glob("*.flac"))
+        path = "chunks" if ch.tier == "clean" else "vad"  # clean -> chunks+align; noisy -> VAD
+        for flac in flacs:
+            total += label_to_store(
+                flac, store=store, source=f"youtube-{ch.slug}", language=LANGUAGE,
+                script=SCRIPT, id_prefix=f"{ch.slug}_{flac.stem}",
+                out_dir=DATA / "labeled" / ch.slug / flac.stem, path=path, citation=ch.url,
+            )
+        print(f"  {ch.slug}: store now {store.counts()}")
+    print(f"labeled {total} clips -> {DB}")
+    store.close()
+    return 0
+
+
 def cmd_verify(args: argparse.Namespace) -> int:
     """Scribe-score every un-scored clip in the store (idempotent); print the spread."""
     _load_root_env()
@@ -204,6 +232,10 @@ def main(argv: list[str] | None = None) -> int:
     p_dl = sub.add_parser("download", help="download channel audio -> data/create/<slug>")
     _add_channel_args(p_dl)
     p_dl.set_defaults(func=cmd_download)
+
+    p_lb = sub.add_parser("label", help="label downloaded channel audio into the store (create)")
+    _add_channel_args(p_lb)
+    p_lb.set_defaults(func=cmd_label)
 
     p_in = sub.add_parser("ingest", help="ingest an existing-labeled dataset into the store")
     p_in.add_argument("dataset", choices=("fleurs", "commonvoice"))
