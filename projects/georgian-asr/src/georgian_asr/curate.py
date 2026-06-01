@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from omni_curator.store import CuratorStore
 
 CREATE = DATA / "create"  # raw channel audio (full videos, 16 kHz FLAC) awaiting labeling
+CHANNELS = DATA / "channels"  # per-channel curator stores (labeled clips), merged before export
 CANONICAL = DATA / "canonical_audio"  # resampled ingest clips
 RAW = DATA / "raw"  # transient dataset downloads
 DATASETS = DATA / "datasets"  # exported ablations (datasets/vN)
@@ -146,10 +147,12 @@ def cmd_label(args: argparse.Namespace) -> int:
     from omni_curator.create.run import label_to_store
     from omni_curator.store import CuratorStore
 
-    store = CuratorStore(DB)
     total = failed = 0
     for ch in _selected_channels(args):
         flacs = sorted((CREATE / ch.slug).glob("*.flac"))
+        if not flacs:
+            continue
+        store = CuratorStore(CHANNELS / ch.slug / "store.sqlite")  # own store = parallel-safe
         for flac in flacs:
             try:
                 # VAD gives non-overlapping speech segments = clean training clips (chunks overlap).
@@ -161,9 +164,26 @@ def cmd_label(args: argparse.Namespace) -> int:
             except Exception as exc:  # noqa: BLE001 — one bad video must not abort the run
                 failed += 1
                 print(f"  ! {ch.slug}/{flac.name}: {type(exc).__name__}: {exc}")
-        print(f"  {ch.slug}: store now {store.counts()}")
-    print(f"labeled {total} clips ({failed} videos failed) -> {DB}")
-    store.close()
+        print(f"  {ch.slug}: {store.counts()} -> {CHANNELS / ch.slug / 'store.sqlite'}")
+        store.close()
+    print(f"labeled {total} clips ({failed} videos failed)")
+    return 0
+
+
+def cmd_merge(args: argparse.Namespace) -> int:  # noqa: ARG001
+    """Merge the per-channel stores into the master ``curator.sqlite`` (FLEURS already there)."""
+    from omni_curator.store import CuratorStore
+
+    master = CuratorStore(DB)
+    merged = 0
+    for sub in sorted(CHANNELS.glob("*/store.sqlite")):
+        src = CuratorStore(sub)
+        samples = list(src.iter_samples())
+        merged += master.upsert(samples)
+        src.close()
+        print(f"  +{len(samples):>6} from {sub.parent.name}")
+    print(f"merged {merged} clips -> {DB}  (store now {master.counts()}, {master.hours():.1f} h)")
+    master.close()
     return 0
 
 
@@ -235,9 +255,12 @@ def main(argv: list[str] | None = None) -> int:
     _add_channel_args(p_dl)
     p_dl.set_defaults(func=cmd_download)
 
-    p_lb = sub.add_parser("label", help="label downloaded channel audio into the store (create)")
+    p_lb = sub.add_parser("label", help="label channel audio into per-channel stores (create)")
     _add_channel_args(p_lb)
     p_lb.set_defaults(func=cmd_label)
+
+    p_mg = sub.add_parser("merge", help="merge per-channel stores into the master curator.sqlite")
+    p_mg.set_defaults(func=cmd_merge)
 
     p_in = sub.add_parser("ingest", help="ingest an existing-labeled dataset into the store")
     p_in.add_argument("dataset", choices=("fleurs", "commonvoice"))

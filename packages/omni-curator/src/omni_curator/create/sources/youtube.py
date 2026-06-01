@@ -92,20 +92,24 @@ def list_channel_videos(channel_url: str, *, limit: int | None = None) -> list[s
 
 
 def download_channel(
-    channel_url: str, *, out_dir: Path, limit: int | None = None
+    channel_url: str, *, out_dir: Path, limit: int | None = None, sleep: float = 1.0
 ) -> ChannelDownload:
     """Download a channel's videos as 16 kHz mono FLAC into ``out_dir`` (resumable, skip-existing).
 
     A yt-dlp ``--download-archive`` records what's been fetched, so re-running only pulls new
     videos; per-video failures (private/region-locked/removed) are skipped via ``--ignore-errors``
-    rather than aborting the channel. ``limit`` caps to the first N videos. Returns the file count
-    and a header-only duration tally so a caller can see how many hours landed.
+    rather than aborting the channel. ``limit`` caps to the first N videos. ``sleep`` seconds
+    between requests keeps YouTube from rate-limiting / bot-blocking the session (too many fast
+    parallel requests trigger "Sign in to confirm you're not a bot"). Returns the file count and a
+    header-only duration tally so a caller can see how many hours landed.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     cmd = [
         *_ytdlp_base(),
         "--download-archive", str(out_dir / "downloaded.txt"),
         "--ignore-errors",
+        "--sleep-requests", str(sleep),  # throttle so YouTube doesn't rate-limit / bot-block us
+        "--retries", "10", "--extractor-retries", "5",
         *_AUDIO_TO_16K_FLAC,
         "-o", str(out_dir / "%(id)s.%(ext)s"),
     ]
