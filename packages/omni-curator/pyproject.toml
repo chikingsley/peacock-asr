@@ -26,6 +26,9 @@ dependencies = [
 ingest = ["datasets>=3.0.0"]
 # yt-dlp for create/sources/youtube.py (also needs deno + ffmpeg on PATH).
 youtube = ["yt-dlp"]
+# uroman romanizes any-script transcripts for MMS_FA CTC forced alignment (create/align.py).
+# torchaudio (the MMS_FA aligner itself) is already a core dependency.
+align = ["uroman>=1.3"]
 
 [dependency-groups]
 dev = [
