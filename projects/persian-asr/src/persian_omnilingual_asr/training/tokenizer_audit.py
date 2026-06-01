@@ -11,14 +11,17 @@ token. Exit code is non-zero if any unknowns are found (so it can gate a build).
 from __future__ import annotations
 
 import argparse
-import glob
 import os
 from collections import Counter
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pyarrow.parquet as pq
 from fairseq2.data.tokenizers.hub import load_tokenizer
 from omni_finetune_core.tokenizer_audit import audit_texts
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 ROOT = Path(__file__).resolve().parents[3]
 # scribe-v4 is the current training line; override with --data-dir for an ablation set.
@@ -29,7 +32,9 @@ LANG = "fas_Arab"
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Audit Omnilingual tokenizer coverage.")
-    parser.add_argument("--data-dir", type=Path, default=DEFAULT_DATA, help="version=0 parquet root")
+    parser.add_argument(
+        "--data-dir", type=Path, default=DEFAULT_DATA, help="version=0 parquet root"
+    )
     parser.add_argument("--tokenizer", default=DEFAULT_TOKENIZER)
     parser.add_argument("--max-examples", type=int, default=20)
     return parser
@@ -41,10 +46,9 @@ def configure_environment() -> None:
     os.environ.setdefault("FAIRSEQ2_CACHE_DIR", str(ROOT / ".fairseq2-cache/assets"))
 
 
-def iter_text(data_dir: Path):
-    pattern = str(data_dir / "corpus=*/split=*/language=*/*.parquet")
-    for path in sorted(glob.glob(pattern)):
-        split = next((p.split("=")[1] for p in path.split("/") if p.startswith("split=")), "?")
+def iter_text(data_dir: Path) -> Iterator[tuple[str, int, str]]:
+    for path in sorted(data_dir.glob("corpus=*/split=*/language=*/*.parquet")):
+        split = next((p.split("=")[1] for p in path.parts if p.startswith("split=")), "?")
         table = pq.read_table(path, columns=["text"])
         for line_nr, text in enumerate(table.column("text").to_pylist(), start=1):
             if text:

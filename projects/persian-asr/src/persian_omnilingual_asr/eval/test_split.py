@@ -10,10 +10,10 @@ Persian's training parquet currently carries only ``train``/``dev`` splits (no `
 so the default split is ``dev``. Point ``--data-dir`` at any ``version=0`` root and pass
 ``--models label=card_name`` to compare checkpoints.
 
-  persian-omni-eval                                   # scribe-v4 dev, default model, CPU
-  persian-omni-eval --limit 5                          # smoke test
-  persian-omni-eval --models v4=omni_ctc_300m_v2_scribe_v4_20260530_best base=omni_ctc_300m_v2_scribe_v4_baseline_step34000
-  persian-omni-eval --device cuda                      # if the GPU is free
+  persian-omni-eval                       # scribe-v4 dev, default model, CPU
+  persian-omni-eval --limit 5             # smoke test
+  persian-omni-eval --models v4=omni_ctc_300m_v2_scribe_v4_20260530_best
+  persian-omni-eval --device cuda         # if the GPU is free
 
 Audio is read straight from the parquet (audio_bytes = FLAC int8) and handed to the
 pipeline as int8 arrays; no temp files. Clips longer than the omni pipeline's 40s cap are
@@ -23,7 +23,6 @@ excluded (and counted) since the pipeline raises on them.
 from __future__ import annotations
 
 import argparse
-import glob
 import os
 from pathlib import Path
 
@@ -51,9 +50,8 @@ def load_split(
 ) -> tuple[list, list[str], list[str], int]:
     audio, refs, corpora = [], [], []
     excluded = 0
-    pattern = str(data_dir / f"corpus=*/split={split}/language={LANG}/*.parquet")
-    for path in sorted(glob.glob(pattern)):
-        corpus = next(p.split("=")[1] for p in path.split("/") if p.startswith("corpus="))
+    for path in sorted(data_dir.glob(f"corpus=*/split={split}/language={LANG}/*.parquet")):
+        corpus = next(p.split("=")[1] for p in path.parts if p.startswith("corpus="))
         t = pq.read_table(path, columns=["text", "audio_bytes", "audio_size"])
         for text, ab, size in zip(
             t.column("text").to_pylist(),

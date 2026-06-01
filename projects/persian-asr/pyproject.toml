@@ -94,34 +94,19 @@ python = ".venv"
 [tool.ty.src]
 exclude = ["vendor/", "**/omni_recipe/", "**/nemo_recipes/"]
 
+# "ruff max": enable everything, then turn off only the genuinely impractical or
+# formatter-conflicting rules. Matches omni-curator / omni-finetune-core / georgian-asr.
 [tool.ruff.lint]
-extend-select = [
-    "F",        # Pyflakes rules
-    "W",        # PyCodeStyle warnings
-    "E",        # PyCodeStyle errors
-    "I",        # Sort imports properly
-    "UP",       # Require modern Python syntax for the configured target version
-    "B",        # Catch likely bugs and design problems
-    "N",        # Enforce PEP8 naming
-    "C4",       # Catch incorrect use of comprehensions, dict, list, etc
-    "FA",       # Enforce from __future__ import annotations
-    "ISC",      # Good use of string concatenation
-    "ICN",      # Use common import conventions
-    "RET",      # Good return practices
-    "SIM",      # Common simplification rules
-    "TID",      # Some good import practices
-    "TC",       # Enforce importing certain types in a TYPE_CHECKING block
-    "PTH",      # Use pathlib instead of os.path
-    "TD",       # Be diligent with TODO comments
-    "NPY",      # Some numpy-specific things
-    "FURB",     # Suggest more idiomatic Python patterns
-    "RUF",      # Ruff-specific correctness and cleanup rules
-    "ARG",      # Catch unused function arguments
-    "DTZ",      # Require timezone-aware datetime usage
-    "PERF",     # Catch avoidable performance footguns
-    "PL",       # Pylint-derived correctness checks
-    "A",        # Avoid shadowing Python builtins
-    "BLE",      # Avoid broad blind exception handling
+select = ["ALL"]
+ignore = [
+    "D",        # mandatory docstrings everywhere — too heavy
+    "COM812",   # trailing-comma rule conflicts with the formatter
+    "ISC001",   # implicit-str-concat rule conflicts with the formatter
+    "ANN401",   # allow typing.Any at genuine dynamic boundaries
+    "TD002", "TD003", "FIX002",  # don't require issue links on TODOs
+    "EM101", "EM102", "TRY003",  # allow inline exception messages
+    "PLR0913",  # pipeline/dataset entry points legitimately take many knobs
+    "PLC0415",  # heavy/optional deps imported lazily on purpose
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -141,6 +126,12 @@ extend-select = [
 ]
 "src/finetune_omni/benchmarks/asr.py" = [
     "PLC0415",  # FAIRSEQ2_ASSET_DIR must be set before importing the Omni pipeline.
+]
+"src/persian_omnilingual_asr/eval/test_split.py" = [
+    "T201",  # report CLI: prints WER/CER tables to stdout by design.
+]
+"src/persian_omnilingual_asr/training/tokenizer_audit.py" = [
+    "T201",  # audit CLI: prints coverage report + unknown-token examples to stdout.
 ]
 "src/persian_asr_dataset/text_normalization.py" = [
     "RUF001",  # Arabic letters resembling Latin are intentional normalization data.

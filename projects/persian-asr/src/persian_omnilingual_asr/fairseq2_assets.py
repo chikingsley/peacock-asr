@@ -68,8 +68,14 @@ def _dataset(name: str, data: Path) -> MixtureParquetDatasetCard:
 
 MODEL_CARDS = [
     # --- FLEURS / Thomcles baselines (exported best/final checkpoints) ---
-    _model("omni_ctc_300m_v2_fleurs_fa_ir_best", _CKPTS / "omni_ctc_300m_v2_fleurs_fa_ir_best/model.pt"),
-    _model("omni_ctc_300m_v2_fleurs_fa_ir_final", _CKPTS / "omni_ctc_300m_v2_fleurs_fa_ir_final/model.pt"),
+    _model(
+        "omni_ctc_300m_v2_fleurs_fa_ir_best",
+        _CKPTS / "omni_ctc_300m_v2_fleurs_fa_ir_best/model.pt",
+    ),
+    _model(
+        "omni_ctc_300m_v2_fleurs_fa_ir_final",
+        _CKPTS / "omni_ctc_300m_v2_fleurs_fa_ir_final/model.pt",
+    ),
     _model(
         "omni_ctc_300m_v2_fleurs_fa_ir_thomcles_final",
         _CKPTS / "omni_ctc_300m_v2_fleurs_fa_ir_thomcles_final/model.pt",
@@ -103,11 +109,15 @@ MODEL_CARDS = [
     # --- Scribe v3 max (continued from exact-match best) ---
     _model(
         "omni_ctc_300m_v2_persian_scribe_v3_max_20260527_best_retained_step38000",
-        _sharded(_RUNS / "omni-ctc-300m-scribe-v3-max-20260527-from-exact-best/ws_1.519fd28b", 38000),
+        _sharded(
+            _RUNS / "omni-ctc-300m-scribe-v3-max-20260527-from-exact-best/ws_1.519fd28b", 38000
+        ),
     ),
     _model(
         "omni_ctc_300m_v2_persian_scribe_v3_max_20260527_final_step40000",
-        _sharded(_RUNS / "omni-ctc-300m-scribe-v3-max-20260527-from-exact-best/ws_1.519fd28b", 40000),
+        _sharded(
+            _RUNS / "omni-ctc-300m-scribe-v3-max-20260527-from-exact-best/ws_1.519fd28b", 40000
+        ),
     ),
     # --- Scribe v4 (current line): re-warm best + pinned pre-rewarm baseline ---
     _model(
