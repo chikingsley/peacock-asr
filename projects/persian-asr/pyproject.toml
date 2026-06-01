@@ -54,6 +54,7 @@ persian_asr = "persian_omnilingual_asr.fairseq2_assets:setup_fairseq2_extension"
 persian-omni-train = "persian_omnilingual_asr.training.train:main"
 persian-omni-eval = "persian_omnilingual_asr.eval.test_split:main"
 persian-omni-audit-tokenizer = "persian_omnilingual_asr.training.tokenizer_audit:main"
+persian-omni-tune = "persian_omnilingual_asr.training.tune:main"
 persian-benchmark-asr = "finetune_omni.benchmarks.asr:main"
 persian-benchmark-compare = "finetune_omni.benchmarks.compare:main"
 persian-benchmark-omni = "finetune_omni.benchmarks.omni:main"
@@ -127,6 +128,21 @@ ignore = [
 ]
 "src/finetune_omni/benchmarks/asr.py" = [
     "PLC0415",  # FAIRSEQ2_ASSET_DIR must be set before importing the Omni pipeline.
+]
+"src/persian_asr_dataset/cli/scribe_curation.py" = [
+    "S608",  # dynamic SQL builds from trusted internal schema identifiers (SURFACES dict, view defs, SQL-escaped task/model), not user input.
+]
+"src/persian_asr_dataset/cli/scribe_rerun_sqlite.py" = [
+    "S608",  # dynamic SQL builds from int-coerced limits and an operator-supplied --where clause (trusted internal CLI), not end-user input.
+]
+"src/persian_asr_dataset/cli/export_nemo_manifest.py" = [
+    "S608",  # dynamic SQL builds from trusted internal clause constants + a parameterized temp-table join, not user input.
+]
+"src/persian_asr_dataset/cli/scribe_script_equivalence.py" = [
+    "S608",  # dynamic SQL builds from an int-coerced limit + an operator-supplied --where clause (trusted internal CLI), not end-user input.
+]
+"src/persian_asr_dataset/dataset_prep/thomcles.py" = [
+    "C901",  # main() is a one-off linear ingest script (download -> filter -> convert -> stratify); flat by nature.
 ]
 "src/persian_asr_dataset/text_normalization.py" = [
     "RUF001",  # Arabic letters resembling Latin are intentional normalization data.
