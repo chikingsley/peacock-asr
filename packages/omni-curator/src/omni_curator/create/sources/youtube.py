@@ -108,7 +108,10 @@ def download_channel(
         *_ytdlp_base(),
         "--download-archive", str(out_dir / "downloaded.txt"),
         "--ignore-errors",
-        "--sleep-requests", str(sleep),  # throttle so YouTube doesn't rate-limit / bot-block us
+        # Throttle so YouTube doesn't rate-limit / bot-block us — the two official sleep knobs:
+        # --sleep-requests delays metadata extraction, --sleep-interval/--max delays each download.
+        "--sleep-requests", str(sleep),
+        "--sleep-interval", str(sleep), "--max-sleep-interval", str(round(sleep * 3, 1)),
         "--retries", "10", "--extractor-retries", "5",
         *_AUDIO_TO_16K_FLAC,
         "-o", str(out_dir / "%(id)s.%(ext)s"),
