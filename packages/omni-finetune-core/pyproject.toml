@@ -25,6 +25,11 @@ dependencies = [
   "tqdm==4.67.3",
 ]
 
+[project.scripts]
+# Generic batch-budget tuning sweep — run from any consuming project's venv (its
+# fairseq2 asset cards load automatically); point --cache-root at that project's tree.
+omni-tune = "omni_finetune_core.tune:main"
+
 [dependency-groups]
 dev = [
   "ruff==0.15.15",

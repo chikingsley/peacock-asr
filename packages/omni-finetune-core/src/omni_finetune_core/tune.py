@@ -17,6 +17,8 @@ wraps these in a CLI that first points the HF/fairseq2 caches at its own tree (s
 
 from __future__ import annotations
 
+import argparse
+import itertools
 import json
 import os
 import signal
@@ -26,7 +28,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from omni_finetune_core.train import RECIPE_MODULE
+from omni_finetune_core.train import RECIPE_MODULE, configure_environment
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -216,3 +218,71 @@ def format_report(results: Sequence[TrialResult], *, mem_ceiling: float = 0.9) -
             f"{best.elements_per_sec:,.0f} elem/s)"
         )
     return "\n".join(lines)
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="omni-tune",
+        description="Find the largest batch budget that fits this GPU, ranked by throughput.",
+    )
+    parser.add_argument("--config-file", type=Path, required=True)
+    parser.add_argument(
+        "--max-num-elements", type=int, nargs="+", required=True, help="batch-budget values to try"
+    )
+    parser.add_argument(
+        "--max-audio-len",
+        type=int,
+        nargs="+",
+        default=[480_000],
+        help="clip-length cap(s) in samples; 480000=30s, 640000=40s (Omni inference cap)",
+    )
+    parser.add_argument("--steps", type=int, default=8, help="train steps per trial")
+    parser.add_argument("--mem-ceiling", type=float, default=0.9, help="max peak reserved fraction")
+    parser.add_argument("--timeout", type=float, default=600.0, help="per-trial seconds")
+    parser.add_argument(
+        "--cache-root",
+        type=Path,
+        default=Path.cwd(),
+        help="project root whose .hf-cache/.fairseq2-cache the trials reuse (default: cwd)",
+    )
+    parser.add_argument(
+        "--output-root",
+        type=Path,
+        default=None,
+        help="where trial dirs go (default: <cache-root>/runs/_tune)",
+    )
+    parser.add_argument("--cluster", default="none", help="fairseq2 common.cluster (default: none)")
+    parser.add_argument("recipe_args", nargs=argparse.REMAINDER, help="extra key=value overrides")
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+    configure_environment(args.cache_root)
+
+    extra = list(args.recipe_args)
+    if extra and extra[0] == "--":
+        extra = extra[1:]
+    overrides = [f"common.cluster={args.cluster}", *extra]
+    output_root = args.output_root or (args.cache_root / "runs" / "_tune")
+
+    # A budget must hold at least one max-length clip, else it rounds to 0.
+    candidates = [
+        (mal, mne)
+        for mal, mne in itertools.product(args.max_audio_len, args.max_num_elements)
+        if mne >= mal
+    ]
+    results = sweep(
+        args.config_file.resolve(),
+        candidates,
+        output_root=output_root,
+        steps=args.steps,
+        timeout_s=args.timeout,
+        extra_overrides=overrides,
+    )
+    print(format_report(results, mem_ceiling=args.mem_ceiling))  # noqa: T201 - CLI output
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
