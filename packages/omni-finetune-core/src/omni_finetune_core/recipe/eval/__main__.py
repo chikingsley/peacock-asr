@@ -8,6 +8,5 @@ from fairseq2.recipe.cli import eval_main
 
 from .recipe import Wav2Vec2AsrEvalRecipe
 
-recipe = Wav2Vec2AsrEvalRecipe()
-
-eval_main(recipe)
+if __name__ == "__main__":
+    eval_main(Wav2Vec2AsrEvalRecipe())

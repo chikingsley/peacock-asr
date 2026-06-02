@@ -55,10 +55,10 @@ CLI: `omni-curator <audio> --path vad|chunks --out-dir <dir> --language <L> --sc
   point `OMNI_CURATOR_VAD_MODEL` at a local `.nemo`. `chunks_path` does not need NeMo.
 - `ffmpeg` on PATH (clip cutting).
 
-## Not yet (next passes)
+## The full pipeline (all implemented)
 
-- **Close the loop:** a chunking stage (utterances → fixed clips) and a `dataset/` writer that
-  emits real `omni-parquet`, so the output is a training set, not just text.
-- **Per-language text normalization** layer (Tajik / Persian / … pluggable), applied to labels
-  before they become a dataset.
-- Source ingestion (YouTube download/captions) currently lives in the language projects.
+`create` (YouTube → VAD/chunks → Scribe ensemble → labels) and `ingest` (FLEURS, Common Voice via
+MDC, any HF audio dataset via `load_hf_audio`) both feed `store` (the SQLite master pool). `process`
+normalizes text per-language (`process/normalize`) and gates content-language (`process/language`).
+`verify` Scribe-scores every clip. `export` materializes a `datasets/vN` omni-parquet ablation
+(normalize → language gate → quality filter → tokenizer-coverage gate → write).

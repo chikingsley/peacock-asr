@@ -44,5 +44,5 @@ ingest / create ─► process (16 kHz · normalize · tokenizer-coverage) ─�
   re-download, no re-process, just a different query.
 
 So adding `v2 = v1 + World-Speech` or `v1 = v0 − spontaneous` is a recipe over the same pool, never a
-new pipeline. The one piece still to build is the **`store → datasets/vN` export** — where an ablation
-is defined.
+new pipeline. The **`store → datasets/vN` export** (`omni_curator.export`) is where an ablation is
+defined — a `Selection` over the pool, materialized to omni-parquet.

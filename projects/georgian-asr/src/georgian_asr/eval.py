@@ -46,21 +46,24 @@ def load_test(limit: int, max_dur: float) -> tuple[list, list[str], list[str], i
     for parquet_path in test_parquets():
         path = str(parquet_path)
         corpus = next(p.split("=")[1] for p in path.split("/") if p.startswith("corpus="))
-        t = pq.read_table(path, columns=["text", "audio_bytes", "audio_size"])
-        for text, ab, size in zip(
-            t.column("text").to_pylist(),
-            t.column("audio_bytes").to_pylist(),
-            t.column("audio_size").to_pylist(),
-            strict=True,
+        # Stream batches so --limit stops early instead of reading the whole partition.
+        for batch in pq.ParquetFile(path).iter_batches(
+            batch_size=256, columns=["text", "audio_bytes", "audio_size"]
         ):
-            if size / SAMPLE_RATE > max_dur:
-                excluded += 1
-                continue
-            audio.append(np.asarray(ab, dtype=np.int8))
-            refs.append(text)
-            corpora.append(corpus)
-            if limit and len(audio) >= limit:
-                return audio, refs, corpora, excluded
+            for text, ab, size in zip(
+                batch.column("text").to_pylist(),
+                batch.column("audio_bytes").to_pylist(),
+                batch.column("audio_size").to_pylist(),
+                strict=True,
+            ):
+                if size / SAMPLE_RATE > max_dur:
+                    excluded += 1
+                    continue
+                audio.append(np.asarray(ab, dtype=np.int8))
+                refs.append(text)
+                corpora.append(corpus)
+                if limit and len(audio) >= limit:
+                    return audio, refs, corpora, excluded
     return audio, refs, corpora, excluded
 
 

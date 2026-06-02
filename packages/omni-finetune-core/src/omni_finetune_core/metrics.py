@@ -1,7 +1,7 @@
 """Language-agnostic ASR scoring via jiwer.
 
 Callers pass already-normalized reference/hypothesis strings (normalization is
-language-specific and lives in the per-language projects). One ``jiwer.process_words``
+language-specific and lives in ``omni_curator.process.normalize``). One ``jiwer.process_words``
 pass yields WER/MER/WIL plus the substitution/deletion/insertion/hit breakdown — the
 S/D/I split is the useful diagnostic for omni CTC, where a word-boundary merge shows up
 as a deletion + substitution while CER barely moves.
