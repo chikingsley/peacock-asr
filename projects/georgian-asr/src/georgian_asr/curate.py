@@ -106,7 +106,7 @@ def cmd_ingest(args: argparse.Namespace) -> int:
     store = CuratorStore(DB)
     if args.dataset == "fleurs":
         os.environ.setdefault("HF_HOME", str(RAW / "hf-cache"))
-        from omni_curator.ingest.huggingface import load_fleurs
+        from omni_curator.ingest.fleurs import load_fleurs
 
         count = _store_batched(
             store,
