@@ -49,6 +49,24 @@ eval): distilled wins only 2/10 (de_de, es_419 — both ties within 6-clip noise
 badly on ja (0.60 vs 0.39), ko (0.42 vs 0.13), hi (0.37 vs 0.19). Mean PFER routed 0.135 vs
 distilled 0.220. **Decision: keep `trained` as a GAP-FILLER ONLY** — not universal, not even an
 ablation co-candidate for covered languages. Rule G2Ps generalize better on covered langs;
-distillation is limited by low eval-word reuse + noisy targets. byT5 (deferred to free GPU) would
-improve distilled numbers but the high-value byT5 experiment is the **9 gap languages**, not
-covered ones. Study: experiments/g2p_train/RESULTS_UNIVERSAL.md.
+distillation is limited by low eval-word reuse + noisy targets.
+**Scope: this rejection is for distilled-Phonetisaurus specifically.** byT5-distilled-universal is
+UNTESTED — byT5-tiny already beat Phonetisaurus on the gaps (ig_ng 0.230 vs 0.235), so it could
+plausibly beat the rule backends on covered languages too. The universal question stays OPEN for
+byT5; re-test on a few covered langs during the byT5 (GPU) run, alongside the gap byT5 run.
+Study: experiments/g2p_train/RESULTS_UNIVERSAL.md.
+
+## 2026-06-01 — byT5 base-model + training strategy (research-backed; for the GPU run)
+Q: best trainable G2P base for small per-language data in 2026; byT5 vs mT5 vs newer.
+- **byT5 (byte-level) > mT5 (subword) for G2P** — CharsiuG2P: ByT5-small 8.8 PER vs mT5-small 11.9
+  (equal params); tiny byT5 (7–20M) beats pretrained mT5-small. byte vocab ≤256 + any-script.
+- **byT5 not superseded in 2026.** Lightweight 2025 alt LatPhon (7.5M, RoPE+lang-ID) beats byT5 on
+  6 high-resource European langs but unproven low-resource/broad-IPA → not for us. NVIDIA NeMo
+  supports exactly two trainable G2P: ByT5 G2P + G2P-Conformer-CTC (~20x smaller, non-autoregr.).
+- **Strategy (changes the plan): JOINT multilingual fine-tune, not per-language.** Fine-tune from
+  CharsiuG2P's *pretrained* multilingual ByT5 (tiny for ~1.5k pairs; small = accuracy ceiling) over
+  all gap langs at once with language-ID prefixes. Joint mitigates small-data instability
+  (multilingual ByT5 PER vs dict-size ρ=-0.05 vs -0.64 monolingual-from-scratch); pretrained init
+  beats random. `run_neural.py` is per-language → needs a joint variant for the GPU run.
+- Caveat: CharsiuG2P pretrained IPA is Wiktionary-style, not ZIPA broad-IPA; our ZIPA-distilled
+  fine-tune targets teach the convention, pretrained init supplies priors (untested for ZIPA).
