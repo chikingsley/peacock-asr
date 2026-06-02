@@ -28,16 +28,20 @@ curate download → label → merge → (ingest) → verify → export → train
 data/
   create/<slug>/    downloaded channel audio
   channels/<slug>/  per-channel labeled stores
+  labeled/<slug>/   per-video VAD clip cuts (label workspace)
   canonical_audio/  resampled ingest clips
+  raw/              transient dataset downloads (HF cache, Common Voice)
   curator.sqlite    master pool (merge target)
   datasets/vN/      exported omni-parquet ablations
 ```
 
 ## Sources (`sources.py`)
 
-- **FLEURS** `tg_tj`; **Common Voice 25** `tg`; HF datasets (e.g. `muhtasham/tajik-asr-augmented-test`).
-- **YouTube** — 43 vetted channels (19 clean: news / audiobook / narration / lessons; 24 noisy:
-  talk / podcast / vlog).
+Wired now: **FLEURS** `tg_tj`, and **43 vetted YouTube channels** (19 clean — news / audiobook /
+narration / lessons; 24 noisy — talk / podcast / vlog).
+
+Planned (see `TODO.md`, not yet in `sources.py`): **Common Voice 25** `tg` and HF datasets
+(`muhtasham/tajik-asr-augmented-test`, …) via `omni_curator.ingest.huggingface.load_hf_audio`.
 
 ## Legacy
 
