@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 
 import capt.g2p as g2p_module
@@ -73,95 +71,50 @@ def test_auto_zipa_uses_espeak_for_english_function_words(monkeypatch: pytest.Mo
     assert result.phones_per_word_normalized[0] == ["ð", "ə"]
 
 
-def test_mfa_executable_prefers_project_local_install(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    project_mfa = tmp_path / ".mfa" / "env" / "bin" / "mfa"
-    project_mfa.parent.mkdir(parents=True)
-    project_mfa.write_text("#!/bin/sh\n", encoding="utf-8")
-
-    monkeypatch.delenv("MFA_BIN", raising=False)
-    monkeypatch.setattr(g2p_module, "PROJECT_MFA_BIN", project_mfa)
-    monkeypatch.setattr(g2p_module.shutil, "which", lambda _: "/usr/bin/mfa")
-
-    assert g2p_module._mfa_executable() == str(project_mfa)
-
-
-def test_russian_mfa_rewrites_latin_wifi_and_cardinal_digits(
+def test_russian_rewrites_latin_wifi_and_cardinal_digits(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     seen_words = []
 
-    def fake_mfa_g2p(words: list[str], model_name: str) -> list[list[str]]:
+    def fake_espeak_g2p(words: list[str], voice: str) -> list[list[str]]:
         seen_words.extend(words)
         return [[word] for word in words]
 
-    monkeypatch.setattr(g2p_module, "_mfa_g2p", fake_mfa_g2p)
+    monkeypatch.setattr(g2p_module, "_espeak_g2p", fake_espeak_g2p)
 
-    result = TargetG2P("mfa").from_words(["wi-fi", "7"], "ru")
+    result = TargetG2P("espeak").from_words(["wi-fi", "7"], "ru")
 
     assert seen_words == ["вай", "фай", "семь"]
     assert result.words == ["wi-fi", "7"]
     assert result.phones_per_word_raw == [["вай", "фай"], ["семь"]]
 
 
-def test_russian_mfa_rewrites_roman_century_ordinals(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_russian_rewrites_roman_century_ordinals(monkeypatch: pytest.MonkeyPatch) -> None:
     seen_words = []
 
-    def fake_mfa_g2p(words: list[str], model_name: str) -> list[list[str]]:
+    def fake_espeak_g2p(words: list[str], voice: str) -> list[list[str]]:
         seen_words.extend(words)
         return [[word] for word in words]
 
-    monkeypatch.setattr(g2p_module, "_mfa_g2p", fake_mfa_g2p)
+    monkeypatch.setattr(g2p_module, "_espeak_g2p", fake_espeak_g2p)
 
-    result = TargetG2P("mfa").from_words(["xviii", "века"], "ru")
+    result = TargetG2P("espeak").from_words(["xviii", "века"], "ru")
 
     assert seen_words == ["восемнадцатого", "века"]
     assert result.words == ["xviii", "века"]
     assert result.phones_per_word_raw == [["восемнадцатого"], ["века"]]
 
 
-def test_russian_mfa_uses_espeak_for_latin_word_islands(monkeypatch: pytest.MonkeyPatch) -> None:
-    seen_mfa = []
-    seen_espeak = []
-
-    def fake_mfa_g2p(words: list[str], model_name: str) -> list[list[str]]:
-        seen_mfa.extend(words)
-        return [[f"mfa:{word}"] for word in words]
-
-    def fake_espeak_g2p(words: list[str], voice: str) -> list[list[str]]:
-        seen_espeak.extend(words)
-        return [[f"espeak:{word}"] for word in words]
-
-    monkeypatch.setattr(g2p_module, "_mfa_g2p", fake_mfa_g2p)
-    monkeypatch.setattr(g2p_module, "_espeak_g2p", fake_espeak_g2p)
-
-    result = TargetG2P("mfa").from_words(["магазин", "fig", "west"], "ru")
-
-    assert seen_mfa == ["магазин"]
-    assert seen_espeak == ["fig", "west"]
-    assert result.backend == "mfa:russian_mfa+espeak-ng:en-us-latin"
-    assert result.phones_per_word_raw == [
-        ["mfa:магазин"],
-        ["espeak:fig"],
-        ["espeak:west"],
-    ]
-    assert result.warnings == [
-        "Latin-script words in Russian text used espeak-ng:en-us target G2P."
-    ]
-
-
-def test_russian_mfa_rewrites_dates_years_and_age_suffixes(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_russian_rewrites_dates_years_and_age_suffixes(monkeypatch: pytest.MonkeyPatch) -> None:
     seen_words = []
 
-    def fake_mfa_g2p(words: list[str], model_name: str) -> list[list[str]]:
+    def fake_espeak_g2p(words: list[str], voice: str) -> list[list[str]]:
         seen_words.extend(words)
         return [[word] for word in words]
 
-    monkeypatch.setattr(g2p_module, "_mfa_g2p", fake_mfa_g2p)
+    monkeypatch.setattr(g2p_module, "_espeak_g2p", fake_espeak_g2p)
 
-    TargetG2P("mfa").from_words(
+    TargetG2P("espeak").from_words(
         ["6", "октября", "1789", "года", "людовика", "xvi", "11-летнюю", "4-летнего"],
         "ru",
     )

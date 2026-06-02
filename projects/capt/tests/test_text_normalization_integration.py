@@ -85,13 +85,13 @@ def test_english_g2p_receives_real_nemo_words(monkeypatch: pytest.MonkeyPatch) -
 def test_russian_g2p_receives_real_nemo_words(monkeypatch: pytest.MonkeyPatch) -> None:
     seen_words = []
 
-    def fake_mfa_g2p(words: list[str], model_name: str) -> list[list[str]]:
+    def fake_espeak_g2p(words: list[str], voice: str) -> list[list[str]]:
         seen_words.extend(words)
         return [[word] for word in words]
 
-    monkeypatch.setattr(g2p_module, "_mfa_g2p", fake_mfa_g2p)
+    monkeypatch.setattr(g2p_module, "_espeak_g2p", fake_espeak_g2p)
 
-    result = TargetG2P("mfa").from_text("80% в США", "ru")
+    result = TargetG2P("espeak").from_text("80% в США", "ru")
 
     assert result.words == ["восемьдесят", "процентов", "в", "сэ", "шэ", "а"]
     assert seen_words == result.words

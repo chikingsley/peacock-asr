@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 import shutil
 import subprocess
-import tempfile
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -21,12 +19,6 @@ MAX_SPELLED_NUMBER = 9999
 HUNDRED = 100
 THOUSAND = 1000
 TWO_THOUSAND = 2000
-# An MFA dictionary line needs at least a word plus one phone token.
-MIN_MFA_DICT_FIELDS = 2
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-PROJECT_MFA_DIR = PROJECT_ROOT / ".mfa"
-PROJECT_MFA_BIN = PROJECT_MFA_DIR / "env" / "bin" / "mfa"
-PROJECT_MFA_ROOT = PROJECT_MFA_DIR / "root"
 RU_ASR_WORD_REWRITES = {
     "wi-fi": ["вай", "фай"],
     "wifi": ["вай", "фай"],
@@ -242,11 +234,6 @@ class TargetG2P:
                 _SINGLE_BACKENDS[backend], backend, words, expanded_words, part_counts,
                 language, warnings, text_normalization,
             )
-        if backend == "mfa" and language.startswith("ru"):
-            raw_phones, mfa_backend, mfa_warnings = _russian_mfa_g2p(expanded_words)
-            warnings.extend(mfa_warnings)
-            phones = _merge_word_parts(raw_phones, part_counts)
-            return _result(words, phones, mfa_backend, warnings, text_normalization)
         return _espeak_result(
             words, expanded_words, part_counts, language, warnings, text_normalization
         )
@@ -463,110 +450,6 @@ def _merge_word_parts(
         merged.append(phones)
         cursor += count
     return merged
-
-
-def _mfa_g2p(words: list[str], model_name: str) -> list[list[str]]:
-    mfa_bin = _mfa_executable()
-    if mfa_bin is None:
-        raise RuntimeError("MFA CLI not found; cannot run Russian MFA G2P.")
-
-    cmd = [
-        mfa_bin,
-        "g2p",
-        "--quiet",
-        "--no_use_mp",
-        "--num_pronunciations",
-        "1",
-    ]
-    with tempfile.TemporaryDirectory(prefix="p016_mfa_g2p_") as temp_dir:
-        temp_path = Path(temp_dir)
-        input_path = temp_path / "words.txt"
-        output_path = temp_path / "phones.dict"
-        input_path.write_text("\n".join(words) + "\n", encoding="utf-8")
-        proc = subprocess.run(
-            [
-                *cmd,
-                str(input_path),
-                model_name,
-                str(output_path),
-            ],
-            text=True,
-            capture_output=True,
-            check=False,
-            env=_mfa_env(mfa_bin),
-        )
-        if proc.returncode != 0:
-            raise RuntimeError(f"MFA G2P failed: {proc.stderr.strip() or proc.stdout.strip()}")
-        if not output_path.exists():
-            raise RuntimeError("MFA G2P did not write an output dictionary.")
-        output = output_path.read_text(encoding="utf-8")
-
-    pronunciations: dict[str, list[str]] = {}
-    for line in output.splitlines():
-        stripped = line.strip()
-        if not stripped:
-            continue
-        parts = stripped.split()
-        if len(parts) < MIN_MFA_DICT_FIELDS:
-            continue
-        pronunciations.setdefault(parts[0].lower(), parts[1:])
-
-    missing = [word for word in words if word not in pronunciations]
-    if missing:
-        raise RuntimeError(f"MFA G2P returned no pronunciation for: {', '.join(missing[:8])}")
-    return [pronunciations[word] for word in words]
-
-
-def _russian_mfa_g2p(words: list[str]) -> tuple[list[list[str]], str, list[str]]:
-    latin_positions = [index for index, word in enumerate(words) if _is_latin_word(word)]
-    if not latin_positions:
-        return _mfa_g2p(words, "russian_mfa"), "mfa:russian_mfa", []
-
-    phones_by_index: list[list[str] | None] = [None] * len(words)
-    cyrillic_pairs = [
-        (index, word) for index, word in enumerate(words) if index not in latin_positions
-    ]
-    if cyrillic_pairs:
-        cyrillic_phones = _mfa_g2p([word for _, word in cyrillic_pairs], "russian_mfa")
-        for (index, _), phones in zip(cyrillic_pairs, cyrillic_phones, strict=True):
-            phones_by_index[index] = phones
-
-    latin_words = [words[index] for index in latin_positions]
-    latin_phones = _espeak_g2p(latin_words, "en-us")
-    for index, phones in zip(latin_positions, latin_phones, strict=True):
-        phones_by_index[index] = phones
-
-    return (
-        [phones or [] for phones in phones_by_index],
-        "mfa:russian_mfa+espeak-ng:en-us-latin",
-        ["Latin-script words in Russian text used espeak-ng:en-us target G2P."],
-    )
-
-
-def _is_latin_word(word: str) -> bool:
-    return bool(re.fullmatch(r"[a-z]+(?:'[a-z]+)?", word.casefold()))
-
-
-def _mfa_executable() -> str | None:
-    configured = os.getenv("MFA_BIN")
-    if configured:
-        configured_path = Path(configured).expanduser()
-        if configured_path.exists():
-            return str(configured_path)
-    if PROJECT_MFA_BIN.exists():
-        return str(PROJECT_MFA_BIN)
-    discovered = shutil.which("mfa")
-    if discovered:
-        return discovered
-    return None
-
-
-def _mfa_env(mfa_bin: str) -> dict[str, str]:
-    env = os.environ.copy()
-    env.setdefault("MFA_ROOT_DIR", str(PROJECT_MFA_ROOT))
-    mfa_bin_dir = str(Path(mfa_bin).resolve().parent)
-    env["PATH"] = f"{mfa_bin_dir}:{env.get('PATH', '')}"
-    return env
 
 
 def _espeak_g2p(words: list[str], voice: str) -> list[list[str]]:
