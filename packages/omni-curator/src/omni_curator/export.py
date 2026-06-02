@@ -55,6 +55,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from omni_curator.process import normalize as normalize_text
+from omni_curator.process.language import keep_for_language
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
@@ -125,6 +126,10 @@ class Selection:
     max_words_per_second: float | None = None
     max_scribe_wer: float | None = None
     max_scribe_cer: float | None = None
+    #: Drop clips whose text isn't the target language (via the per-language gate registry). True =
+    #: keep only the target language (the usual training case); False = keep every language in the
+    #: store (e.g. exporting the other-language segments of language-learning content).
+    language_gate: bool = True
 
     def keeps(self, sample: Sample) -> bool:
         """Whether ``sample`` passes the value/duration/scribe filters (per-source cap later)."""
@@ -386,6 +391,12 @@ def _normalize_and_filter(
     dropped: dict[str, int] = defaultdict(int)
     for sample in _select(store, selection):
         norm_text = normalize_text(sample.text, sample.language)
+        # Language gate (the ONLY content-language filter): drop clips whose text isn't the target
+        # language — e.g. a Russian segment from a Tajik source. The store keeps every clip (Scribe
+        # auto-detect transcribes each in its own language); this is where we select the target.
+        if selection.language_gate and not keep_for_language(norm_text, sample.language):
+            dropped["language"] += 1
+            continue
         reason = selection.keeps_quality(norm_text, sample.duration)
         if reason is not None:
             dropped[reason] += 1
