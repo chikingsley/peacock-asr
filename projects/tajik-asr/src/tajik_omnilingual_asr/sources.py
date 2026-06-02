@@ -55,12 +55,6 @@ YOUTUBE_CHANNELS: tuple[Channel, ...] = (
     ),
     _ch("radio_ozodi", "@Radio-Ozodi", "clean", "RFE/RL Tajik service: news + shows."),
     _ch(
-        "ozodivideo",
-        "UCyTDJHSzuKZ2JZO41c5Do1A",
-        "clean",
-        "Radio Ozodi legacy channel: formal broadcast.",
-    ),
-    _ch(
         "tv_tajikistan",
         "UC0NDr4nXx-c4cto_RLz9UPA",
         "clean",
