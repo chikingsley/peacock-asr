@@ -35,3 +35,6 @@ wandb/
 
 # Processed features (large Arrow files)
 data/
+
+# Scratch / dry-run outputs
+scratch/

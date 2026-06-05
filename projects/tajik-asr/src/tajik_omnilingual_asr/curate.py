@@ -33,6 +33,8 @@ CHANNELS = DATA / "channels"  # per-channel curator stores (labeled clips), merg
 CANONICAL = DATA / "canonical_audio"  # resampled ingest clips
 RAW = DATA / "raw"  # transient dataset downloads
 DATASETS = DATA / "datasets"  # exported ablations (datasets/vN)
+QUEUE = DATA / "queue.sqlite"  # split-pipeline work queue (segment producer -> labelq consumer)
+CLIPS = DATA / "clips"  # split-pipeline cut clips (segment output); not the fused data/labeled
 TOKENIZER = Path(__file__).resolve().parent / "models" / "omniASR_tokenizer_written_v2.model"
 COOKIES = DATA / "youtube_cookies.txt"  # optional Netscape cookies.txt; used if present (anti-bot)
 _BATCH = 200
@@ -245,6 +247,116 @@ def cmd_export(args: argparse.Namespace) -> int:
     return 0
 
 
+def _labeled_video_ids(slug: str) -> set[str]:
+    """Video ids already labeled in a channel's store (``<slug>_<stem>``) — for incremental skip."""
+    from omni_curator.store import CuratorStore
+
+    db = CHANNELS / slug / "store.sqlite"
+    if not db.exists():
+        return set()
+    store = CuratorStore(db)
+    done = {s.id.rsplit("_", 1)[0] for s in store.iter_samples()}
+    store.close()
+    return done
+
+
+def cmd_enqueue(args: argparse.Namespace) -> int:
+    """Seed the split-pipeline queue with not-yet-labeled channel videos (segment stage input).
+
+    Incremental: skips videos already in the per-channel store, so it picks up exactly the work the
+    fused ``label`` left. Run it *after* stopping the fused job for the selected channels (shared
+    ``video_id`` -> shared output) to avoid double-labeling.
+    """
+    from omni_curator.create.queue import QueueStore, QVideo
+
+    videos: list[QVideo] = []
+    for ch in _selected_channels(args):
+        flacs = sorted((CREATE / ch.slug).glob("*.flac"))
+        done = set() if args.all else _labeled_video_ids(ch.slug)
+        for flac in flacs[: args.limit] if args.limit else flacs:
+            video_id = f"{ch.slug}_{flac.stem}"
+            if video_id in done:
+                continue
+            videos.append(QVideo(video_id, ch.slug, str(flac), ch.tier, ch.url))
+    queue = QueueStore(QUEUE)
+    inserted = queue.enqueue_videos(videos)
+    counts = queue.status_counts()
+    queue.close()
+    print(f"enqueued {inserted} new videos ({len(videos)} candidates) -> {QUEUE}")
+    print(f"  queue now: videos={counts['videos']} clips={counts['clips']}")
+    return 0
+
+
+def cmd_segment(args: argparse.Namespace) -> int:
+    """Segment stage: resident-model VAD producers cut queued videos into clips (CPU-bound)."""
+    from omni_curator.create.segment import run_segmenters
+
+    run_segmenters(
+        QUEUE, procs=args.procs, clips_root=CLIPS, language=LANGUAGE, script=SCRIPT,
+        max_dur=args.max_duration, pending_hwm=args.hwm,
+    )
+    from omni_curator.create.queue import QueueStore
+
+    queue = QueueStore(QUEUE)
+    print(f"segment done. queue: {queue.status_counts()}")
+    queue.close()
+    return 0
+
+
+def cmd_labelq(args: argparse.Namespace) -> int:
+    """Label stage: drain the clip queue with ~200-250 concurrent Scribe workers (I/O-bound)."""
+    _load_root_env()
+    from omni_curator.create.labelq import run_labeler
+
+    labeled = run_labeler(
+        QUEUE, workers=args.workers, batch=args.batch, runs=args.runs,
+        idle_rounds=args.idle_rounds,
+        on_progress=lambda n: print(f"  labeled {n}", flush=True) if n % 1000 == 0 else None,
+    )
+    print(f"labeled {labeled} clips")
+    return 0
+
+
+def cmd_harvest(args: argparse.Namespace) -> int:
+    """Fold labeled queue clips into the per-channel stores (idempotent insert-if-absent)."""
+    import json
+
+    from omni_curator.create.queue import QueueStore
+    from omni_curator.sample import Sample
+    from omni_curator.store import CuratorStore
+
+    queue = QueueStore(QUEUE)
+    stores: dict[str, CuratorStore] = {}
+    written = skipped = 0
+    while True:
+        clips = queue.harvestable(args.batch)
+        if not clips:
+            break
+        by_channel: dict[str, list[Sample]] = {}
+        for c in clips:
+            if not c.label.strip():  # empty label: nothing to train on, but still mark harvested
+                skipped += 1
+                continue
+            by_channel.setdefault(c.channel, []).append(
+                Sample(
+                    id=c.clip_id, source=f"youtube-{c.channel}", language=c.language, text=c.label,
+                    audio_path=c.clip_path, duration=round(c.end - c.start, 3), sample_rate=16_000,
+                    citation=c.citation,
+                    meta={"variants": json.loads(c.variants)} if c.variants else {},
+                )
+            )
+        for slug, samples in by_channel.items():
+            if slug not in stores:
+                stores[slug] = CuratorStore(CHANNELS / slug / "store.sqlite")
+            written += stores[slug].insert_if_absent(samples)
+        queue.mark_harvested([c.clip_id for c in clips])
+    for store in stores.values():
+        store.close()
+    queue.close()
+    print(f"harvested {written} clips into {len(stores)} channel stores ({skipped} empty skipped)")
+    return 0
+
+
 def _add_channel_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--channel", choices=sorted(sources.CHANNELS_BY_SLUG), help="one channel by slug"
@@ -268,6 +380,28 @@ def main(argv: list[str] | None = None) -> int:
     p_lb = sub.add_parser("label", help="label channel audio into per-channel stores (create)")
     _add_channel_args(p_lb)
     p_lb.set_defaults(func=cmd_label)
+
+    p_eq = sub.add_parser("enqueue", help="[split] seed the queue with not-yet-labeled videos")
+    _add_channel_args(p_eq)
+    p_eq.add_argument("--all", action="store_true", help="ignore the already-labeled skip")
+    p_eq.set_defaults(func=cmd_enqueue)
+
+    p_sg = sub.add_parser("segment", help="[split] VAD-segment queued videos into clips (CPU)")
+    p_sg.add_argument("--procs", type=int, default=6, help="resident-model segment processes")
+    p_sg.add_argument("--max-duration", type=float, default=30.0, help="hard cap per VAD span (s)")
+    p_sg.add_argument("--hwm", type=int, default=50_000, help="pending-clip backpressure ceiling")
+    p_sg.set_defaults(func=cmd_segment)
+
+    p_lq = sub.add_parser("labelq", help="[split] drain the clip queue with Scribe workers (I/O)")
+    p_lq.add_argument("--workers", type=int, default=200, help="concurrent Scribe calls")
+    p_lq.add_argument("--batch", type=int, default=None, help="clips per claim (default 2x worker)")
+    p_lq.add_argument("--runs", type=int, default=1, help="Scribe ensemble runs per clip")
+    p_lq.add_argument("--idle-rounds", type=int, default=3, help="empty polls before exit")
+    p_lq.set_defaults(func=cmd_labelq)
+
+    p_hv = sub.add_parser("harvest", help="[split] fold labeled clips into per-channel stores")
+    p_hv.add_argument("--batch", type=int, default=2000)
+    p_hv.set_defaults(func=cmd_harvest)
 
     p_mg = sub.add_parser("merge", help="merge per-channel stores into the master curator.sqlite")
     p_mg.set_defaults(func=cmd_merge)

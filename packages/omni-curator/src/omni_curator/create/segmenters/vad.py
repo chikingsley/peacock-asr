@@ -82,7 +82,19 @@ def _load_model(model_path: Path | str | None) -> Any:
     return EncDecFrameClassificationModel.from_pretrained(NEMO_VAD_MODEL_NAME, map_location=cpu)
 
 
-def segment_vad(
+def load_vad_model(model_path: Path | str | None = None) -> Any:
+    """Load the NeMo frame-VAD model once, ready for reuse across many files.
+
+    The split (segment) pipeline keeps one model resident per process; :func:`segment_vad` is the
+    convenience that loads + runs in a single call (one-off use).
+    """
+    model = _load_model(model_path)
+    model.eval()
+    return model
+
+
+def segment_vad_with(
+    model: Any,
     audio: Path,
     *,
     threshold: float = 0.5,
@@ -91,14 +103,11 @@ def segment_vad(
     max_dur: float = 30.0,
     frame_seconds: float = 0.02,
     speech_class_index: int = 1,
-    model_path: Path | str | None = None,
 ) -> list[tuple[float, float]]:
-    """Speech windows from the NeMo frame-VAD (speech-bounded, language-blind, no overlap)."""
+    """Speech windows from an already-loaded frame-VAD ``model`` (see :func:`load_vad_model`)."""
     import numpy as np
     import torch
 
-    model = _load_model(model_path)
-    model.eval()
     with torch.no_grad():
         logits = model.transcribe([str(audio)], batch_size=1, logprobs=True)[0]
     probs = torch.softmax(torch.from_numpy(np.asarray(logits)), dim=-1).numpy()
@@ -111,3 +120,27 @@ def segment_vad(
         hard_max_seconds=max_dur,
     )
     return [(w.start, w.end) for w in windows]
+
+
+def segment_vad(
+    audio: Path,
+    *,
+    threshold: float = 0.5,
+    min_dur: float = 1.0,
+    merge_gap: float = 1.5,
+    max_dur: float = 30.0,
+    frame_seconds: float = 0.02,
+    speech_class_index: int = 1,
+    model_path: Path | str | None = None,
+) -> list[tuple[float, float]]:
+    """Speech windows from the NeMo frame-VAD (speech-bounded, language-blind, no overlap)."""
+    return segment_vad_with(
+        load_vad_model(model_path),
+        audio,
+        threshold=threshold,
+        min_dur=min_dur,
+        merge_gap=merge_gap,
+        max_dur=max_dur,
+        frame_seconds=frame_seconds,
+        speech_class_index=speech_class_index,
+    )

@@ -113,6 +113,21 @@ class CuratorStore:
             )
         return len(samples)
 
+    def insert_if_absent(self, samples: list[Sample]) -> int:
+        """Insert samples whose id is new; leave existing rows untouched. Returns rows inserted.
+
+        Unlike :meth:`upsert` (``INSERT OR REPLACE``), this never overwrites — so a re-run (e.g. the
+        queue ``harvest`` step replaying after a partial crash) can't clobber an existing row's
+        ``scribe_wer``/``cer``/``meta`` that verify has since written.
+        """
+        placeholders = ", ".join("?" for _ in _COLUMNS)
+        with self._conn:
+            cur = self._conn.executemany(
+                f"INSERT OR IGNORE INTO samples ({', '.join(_COLUMNS)}) VALUES ({placeholders})",  # noqa: S608 — columns are an internal constant; values are bound params
+                [_to_row(s) for s in samples],
+            )
+            return cur.rowcount
+
     def iter_samples(
         self, *, source: str | None = None, split: str | None = None
     ) -> Iterator[Sample]:
