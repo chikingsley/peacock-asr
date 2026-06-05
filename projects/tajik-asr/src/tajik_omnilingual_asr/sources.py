@@ -72,7 +72,6 @@ YOUTUBE_CHANNELS: tuple[Channel, ...] = (
         "clean",
         "Televisioni Safina: culture/talk (music in places).",
     ),
-    _ch("niat_khovar", "@niat_Khovar_tj", "clean", "NIAT Khovar state news agency video."),
     _ch(
         "ilm_va_tabiat",
         "UCRMoGKKQyKW2VCnx4O6LwDQ",
