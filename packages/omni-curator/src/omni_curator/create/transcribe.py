@@ -16,12 +16,52 @@ if TYPE_CHECKING:
 #: target language code, e.g. ``("auto", "tgk")`` or ``("auto", "fr")``.
 DEFAULT_LANGS = ("auto",)
 
+_AUTH_ERROR_MARKERS = ("401", "unauthorized", "403", "forbidden")
+
+
+class ScribeError(RuntimeError):
+    """A Scribe call returned an error result. ``auth=True`` flags a dead/unauthorized key.
+
+    Callers MUST treat ``auth`` errors as run-level events, never per-clip noise: renew the
+    key (:func:`renew_scribe_key`) or abort. Retrying a dead key thousands of times is how
+    a key source gets burned.
+    """
+
+    def __init__(self, message: str, *, auth: bool = False) -> None:
+        super().__init__(message)
+        self.auth = auth
+
+
+def raise_for_scribe_error(result: dict[str, Any]) -> None:
+    """Raise :class:`ScribeError` if a transcription result dict carries an ``error``."""
+    error = result.get("error")
+    if error:
+        msg = str(error)
+        lowered = msg.lower()
+        raise ScribeError(msg, auth=any(m in lowered for m in _AUTH_ERROR_MARKERS))
+
 
 def default_key() -> str:
-    """Resolve the ElevenLabs key (env -> macOS cache -> Mac-mirror)."""
+    """Resolve the ElevenLabs key (env -> last self-minted key -> macOS cache -> Mac-mirror)."""
     from superwhisper_api.auth import ensure_elevenlabs_key
 
     return ensure_elevenlabs_key()
+
+
+def renew_scribe_key() -> str:
+    """Mint a fresh batch key via the Superwhisper proxy and make it the process default.
+
+    Sets ``ELEVENLABS_API_KEY`` so every later :func:`default_key` in this process resolves
+    to the renewed key; the mint also persists it for future processes. Raises if the proxy
+    refuses — callers must then abort, not keep calling with the dead key.
+    """
+    import os
+
+    from superwhisper_api.auth import mint_elevenlabs_batch_key
+
+    key = mint_elevenlabs_batch_key()
+    os.environ["ELEVENLABS_API_KEY"] = key
+    return key
 
 
 def make_scribe_fns(
@@ -45,11 +85,17 @@ def make_scribe_fns(
 
 
 def transcribe_clip(clip: Path, scribe_fns: dict[str, Any], *, runs: int = 1) -> list[str]:
-    """Run every ensemble function (``runs`` times each) over one clip; return the transcripts."""
+    """Run every ensemble function (``runs`` times each) over one clip; return the transcripts.
+
+    Raises :class:`ScribeError` on an errored call (auth-classified) — an API failure must
+    surface as a failure, never silently become an empty transcript / empty label.
+    """
     variants: list[str] = []
     for fn in scribe_fns.values():
         for _ in range(runs):
-            transcript = str(fn(clip).as_dict().get("transcript") or "").strip()
+            result = fn(clip).as_dict()
+            raise_for_scribe_error(result)
+            transcript = str(result.get("transcript") or "").strip()
             if transcript:
                 variants.append(transcript)
     return variants

@@ -210,7 +210,10 @@ def cmd_verify(args: argparse.Namespace) -> int:
         store, key=args.source, scribe_language=args.scribe_language,
         workers=args.workers, force=args.force,
     )
-    print(f"scored {stats.scored}, skipped {stats.skipped}, failed {stats.failed}")
+    renew_note = f", key renewals {stats.renewals}" if stats.renewals else ""
+    print(f"scored {stats.scored}, skipped {stats.skipped}, failed {stats.failed}{renew_note}")
+    for msg, n in stats.top_failures():
+        print(f"  {n:>6}x {msg[:140]}")
     if stats.scored:
         print(f"  WER {stats.wer}  CER {stats.cer}")
     for source, summ in scribe_summary(store).items():
@@ -312,6 +315,7 @@ def cmd_labelq(args: argparse.Namespace) -> int:
         QUEUE, workers=args.workers, batch=args.batch, runs=args.runs,
         idle_rounds=args.idle_rounds,
         on_progress=lambda n: print(f"  labeled {n}", flush=True) if n % 1000 == 0 else None,
+        on_event=lambda msg: print(msg, flush=True),
     )
     print(f"labeled {labeled} clips")
     return 0
