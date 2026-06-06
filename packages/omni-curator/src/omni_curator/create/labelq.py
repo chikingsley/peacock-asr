@@ -21,9 +21,9 @@ from __future__ import annotations
 import json
 import threading
 import time
-from collections import Counter
-from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Any
+from collections import Counter, deque
+from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
+from typing import TYPE_CHECKING, NamedTuple
 from uuid import uuid4
 
 from omni_curator.create.queue import QueueStore
@@ -33,9 +33,21 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
 
+    from superwhisper_api.audio.transcribe import ProcessFn
+    from superwhisper_api.text.client import SuperwhisperClient
+
     from omni_curator.create.queue import QClip
 
-_local = threading.local()
+class _ThreadState(threading.local):
+    """Per-thread Scribe fns (rebuilt when the key generation moves) + text client."""
+
+    def __init__(self) -> None:
+        self.scribe_fns: dict[str, ProcessFn] | None = None
+        self.fns_generation: int | None = None
+        self.client: SuperwhisperClient | None = None
+
+
+_state = _ThreadState()
 _fns_generation = 0  # bumped on key renewal so every pool thread rebuilds its Scribe fns
 
 
@@ -44,22 +56,21 @@ def _bump_fns_generation() -> None:
     _fns_generation += 1
 
 
-def _scribe_fns(langs: tuple[str, ...]) -> dict[str, Any]:
-    if getattr(_local, "fns_generation", None) != _fns_generation:
+def _scribe_fns(langs: tuple[str, ...]) -> dict[str, ProcessFn]:
+    if _state.scribe_fns is None or _state.fns_generation != _fns_generation:
         from omni_curator.create.transcribe import default_key, make_scribe_fns
 
-        _local.scribe_fns = make_scribe_fns(default_key(), langs)
-        _local.fns_generation = _fns_generation
-    return _local.scribe_fns
+        _state.scribe_fns = make_scribe_fns(default_key(), langs)
+        _state.fns_generation = _fns_generation
+    return _state.scribe_fns
 
 
-def _client() -> Any:
-    client = getattr(_local, "client", None)
-    if client is None:
+def _client() -> SuperwhisperClient:
+    if _state.client is None:
         from superwhisper_api.text.client import SuperwhisperClient
 
-        client = _local.client = SuperwhisperClient()
-    return client
+        _state.client = SuperwhisperClient()
+    return _state.client
 
 
 def _label_clip(
@@ -99,18 +110,22 @@ class _Breaker:
         self.errors: Counter[str] = Counter()
 
     def record(
-        self, done: int, errs: list[tuple[QClip, Exception]], labeled: int
+        self,
+        done: int,
+        errs: list[tuple[QClip, Exception]],
+        labeled: int,
+        *,
+        auth_hit: bool,
     ) -> bool:
         """Account one batch outcome; ``True`` -> renew the key now."""
         if done:
             self.consecutive = 0
             self.renewals = 0
-        if not errs:
-            return False
         self.consecutive += len(errs)
         for _, exc in errs:
             self.errors[f"{type(exc).__name__}: {exc}"[:160]] += 1
-        if any(isinstance(exc, ScribeError) and exc.auth for _, exc in errs):
+        if auth_hit:
+            self.errors["auth failure (dead key)"] += 1
             if self.renewals >= self.max_renewals:
                 self._abort(f"key renewal exhausted ({self.renewals}x)", labeled)
             self.renewals += 1
@@ -149,11 +164,13 @@ def run_labeler(
     Stops after ``idle_rounds`` consecutive empty polls (the segmenter has drained); raise it / set
     it huge to run as a long-lived service alongside a still-feeding segmenter.
 
-    Failed clips are requeued via ``fail_clips`` (attempts-capped). An auth failure renews the key
-    and rebuilds the pool's Scribe fns; ``max_renewals`` back-to-back renewals with no successful
-    batch between them, or ``breaker_threshold`` consecutive failed clips, abort the run. The queue
-    loses nothing on abort — failed clips are already requeued, claimed ones get lease-reclaimed.
-    ``on_event`` receives operator messages (renewals, the final failure summary).
+    Failure policy: non-auth clip failures requeue via ``fail_clips`` (attempts-capped). On the
+    FIRST auth failure in a batch, submission stops, in-flight calls drain, every unprocessed /
+    auth-failed clip is released back to pending WITHOUT an attempt charge (a dead key is not the
+    clip's fault), and the key is renewed — so the spray bound per outage is the in-flight window
+    (``workers``), never the whole batch. ``max_renewals`` back-to-back renewals with no
+    successful batch between them, or ``breaker_threshold`` consecutive failed clips, abort the
+    run. ``on_event`` receives operator messages (renewals, the final failure summary).
     """
     queue = QueueStore(queue_path)
     batch = batch or workers * 2
@@ -175,13 +192,15 @@ def run_labeler(
                     time.sleep(poll_s)
                     continue
                 empty = 0
-                outcomes = list(pool.map(worker, clips))
-                done = [result for _, result, exc in outcomes if exc is None and result]
-                errs = [(clip, exc) for clip, _, exc in outcomes if exc is not None]
-                labeled += queue.complete_clips(token, done)
-                for msg, clip_ids in _group_errors(errs).items():
+                outcome = _process_batch(pool, worker, clips, window=workers)
+                labeled += queue.complete_clips(token, outcome.done)
+                for msg, clip_ids in _group_errors(outcome.failures).items():
                     queue.fail_clips(token, clip_ids, msg)
-                if breaker.record(len(done), errs, labeled):
+                if outcome.released:
+                    queue.release_clips(token, [c.clip_id for c in outcome.released])
+                if breaker.record(
+                    len(outcome.done), outcome.failures, labeled, auth_hit=outcome.auth_hit
+                ):
                     notify(f"auth failure — renewing key ({breaker.renewals})")
                     renew_scribe_key()
                     _bump_fns_generation()
@@ -194,6 +213,54 @@ def run_labeler(
             f"labelq failures ({sum(breaker.errors.values())}): {breaker.errors.most_common(5)}"
         )
     return labeled
+
+
+class _BatchOutcome(NamedTuple):
+    """One claimed batch, fully accounted: every clip is in exactly one bucket."""
+
+    done: list[tuple[str, str, str]]  # labeled (clip_id, label, variants) -> complete_clips
+    failures: list[tuple[QClip, Exception]]  # non-auth failures -> fail_clips (attempt charged)
+    released: list[QClip]  # auth-failed or never submitted -> release_clips (no charge)
+    auth_hit: bool
+
+
+def _process_batch(
+    pool: ThreadPoolExecutor,
+    worker: Callable[[QClip], tuple[QClip, tuple[str, str, str] | None, Exception | None]],
+    clips: list[QClip],
+    *,
+    window: int,
+) -> _BatchOutcome:
+    """Stream a claimed batch through the pool with a bounded submission window.
+
+    Submission stops on the first auth failure, so a dead key costs at most ``window`` in-flight
+    calls — never the whole batch. Unsubmitted clips and auth-failed clips land in ``released``.
+    """
+    todo: deque[QClip] = deque(clips)
+    futures: dict[Future[tuple[QClip, tuple[str, str, str] | None, Exception | None]], QClip] = {}
+    done: list[tuple[str, str, str]] = []
+    failures: list[tuple[QClip, Exception]] = []
+    released: list[QClip] = []
+    auth_hit = False
+    while todo or futures:
+        while todo and len(futures) < window and not auth_hit:
+            clip = todo.popleft()
+            futures[pool.submit(worker, clip)] = clip
+        if not futures:
+            break
+        finished, _ = wait(futures, return_when=FIRST_COMPLETED)
+        for future in finished:
+            clip = futures.pop(future)
+            _, result, exc = future.result()
+            if exc is None and result is not None:
+                done.append(result)
+            elif isinstance(exc, ScribeError) and exc.auth:
+                auth_hit = True
+                released.append(clip)
+            elif exc is not None:
+                failures.append((clip, exc))
+    released.extend(todo)
+    return _BatchOutcome(done, failures, released, auth_hit)
 
 
 def _group_errors(errs: list[tuple[QClip, Exception]]) -> dict[str, list[str]]:

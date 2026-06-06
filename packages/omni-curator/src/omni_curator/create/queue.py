@@ -264,6 +264,24 @@ class QueueStore:
                     (max_attempts, error[:500], now, cid, claim_token),
                 )
 
+    def release_clips(self, claim_token: str, clip_ids: list[str]) -> None:
+        """Return claimed clips to ``pending`` WITHOUT charging an attempt (guarded by token).
+
+        For run-level events that are not the clip's fault — a dead key (auth outage), an abort,
+        clips claimed but never processed. ``claim_clips`` charges ``attempts`` at claim time, so
+        a key outage would otherwise burn every clip's retry budget and permanently fail the head
+        of the queue before the run-level renewal/abort machinery resolves it.
+        """
+        now = time.time()
+        with self._tx():
+            for cid in clip_ids:
+                self._conn.execute(
+                    "UPDATE clips SET status='pending', attempts=attempts-1, claim_token=NULL, "
+                    "locked_at=NULL, updated_at=? "
+                    "WHERE clip_id=? AND status='labeling' AND claim_token=?",
+                    (now, cid, claim_token),
+                )
+
     def reclaim_stale_clips(self, lease_s: float) -> int:
         """Expired-lease clips back to ``pending``, token cleared (so late writes are rejected)."""
         now = time.time()

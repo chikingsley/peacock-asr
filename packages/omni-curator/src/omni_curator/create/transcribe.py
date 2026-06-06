@@ -7,10 +7,13 @@ differences and run-to-run variance are both visible to ``fuse.compile_down``.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
     from pathlib import Path
+
+    from superwhisper_api.audio.transcribe import ProcessFn
 
 #: Default ensemble: a single auto-detect / code-switching pass. Callers usually add the
 #: target language code, e.g. ``("auto", "tgk")`` or ``("auto", "fr")``.
@@ -24,15 +27,18 @@ class ScribeError(RuntimeError):
 
     Callers MUST treat ``auth`` errors as run-level events, never per-clip noise: renew the
     key (:func:`renew_scribe_key`) or abort. Retrying a dead key thousands of times is how
-    a key source gets burned.
+    a key source gets burned. ``generation`` carries the key generation the failing call was
+    made with — consumers that renew mid-run use it to tell a stale in-flight failure (old
+    generation, already handled) from a failure of the current key.
     """
 
-    def __init__(self, message: str, *, auth: bool = False) -> None:
+    def __init__(self, message: str, *, auth: bool = False, generation: int = 0) -> None:
         super().__init__(message)
         self.auth = auth
+        self.generation = generation
 
 
-def raise_for_scribe_error(result: dict[str, Any]) -> None:
+def raise_for_scribe_error(result: Mapping[str, object]) -> None:
     """Raise :class:`ScribeError` if a transcription result dict carries an ``error``."""
     error = result.get("error")
     if error:
@@ -70,7 +76,7 @@ def make_scribe_fns(
     *,
     model: str = "scribe-v2",
     diarize: bool = False,
-) -> dict[str, Any]:
+) -> dict[str, ProcessFn]:
     """One bound transcription function per language setting (``auto``/``""`` -> auto-detect)."""
     from superwhisper_api.audio.models import audio_model
     from superwhisper_api.audio.transcribe import create_process_fn
@@ -84,7 +90,7 @@ def make_scribe_fns(
     }
 
 
-def transcribe_clip(clip: Path, scribe_fns: dict[str, Any], *, runs: int = 1) -> list[str]:
+def transcribe_clip(clip: Path, scribe_fns: Mapping[str, ProcessFn], *, runs: int = 1) -> list[str]:
     """Run every ensemble function (``runs`` times each) over one clip; return the transcripts.
 
     Raises :class:`ScribeError` on an errored call (auth-classified) — an API failure must
