@@ -8,7 +8,11 @@ dataset:
   storage_mode: "MIXTURE_PARQUET"
   task_mode: "ASR"
   mixture_parquet_storage_config:
-    dataset_summary_path: "/home/simon/github/peacock-asr/projects/tajik-asr/data/datasets/v2/language_distribution_0.tsv"
+    # Hand-WEIGHTED copy of language_distribution_0.tsv: fleurs listed at 490 effective hours
+    # (true: 11.8) so clean read speech — the benchmark domain — is ~12% of sampled batches
+    # instead of 2%. Run 1 (true hours, lr 1e-5) drifted: dev WER rose 20.35 -> 21.68 over
+    # 4k steps while UER improved — pure domain migration toward 99%-YouTube.
+    dataset_summary_path: "/home/simon/github/peacock-asr/projects/tajik-asr/data/datasets/v2/language_distribution_weighted.tsv"
     beta_corpus: 0.5
     beta_language: 0.5
     fragment_loading:
@@ -26,7 +30,17 @@ tokenizer:
 
 optimizer:
   config:
-    lr: 1e-05
+    # 1e-5 (the 5.8h-v0 setting) migrated the model to the dominant domain within 2k steps on
+    # this corpus. 5e-6 + explicit tri-stage (the shape of Persian's winning rewarm) adapts
+    # the acoustics without abandoning the base model's read-speech competence.
+    lr: 5e-06
+
+lr_scheduler:
+  name: "tri_stage"
+  config:
+    stage_ratio: [0.1, 0.4, 0.5]
+    start_lr_scale: 0.01
+    final_lr_scale: 0.05
 
 trainer:
   freeze_encoder_for_n_steps: 0
