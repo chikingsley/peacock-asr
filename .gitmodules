@@ -1,0 +1,3 @@
+[submodule "packages/superwhisper-api"]
+	path = packages/superwhisper-api
+	url = https://github.com/chikingsley/superwhisper-api.git
