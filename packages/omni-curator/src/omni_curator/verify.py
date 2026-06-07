@@ -23,6 +23,7 @@ with ``scribe_wer IS NULL`` unless ``force``, so an aborted run resumes where it
 from __future__ import annotations
 
 import statistics
+import threading
 from collections import Counter
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from dataclasses import dataclass, field
@@ -30,7 +31,7 @@ from itertools import islice
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-from omni_curator.benchmark import normalize, score_pair
+from omni_curator.benchmark import dominant_script, normalize, score_pair
 from omni_curator.create.transcribe import (
     ScribeError,
     default_key,
@@ -39,10 +40,36 @@ from omni_curator.create.transcribe import (
     renew_scribe_key,
 )
 
+#: Human-readable script names for the transliteration prompt, by FLORES script code.
+_SCRIPT_NAMES = {
+    "Cyrl": "Cyrillic",
+    "Arab": "Perso-Arabic script",
+    "Latn": "Latin script",
+    "Geor": "Georgian script",
+}
+
+class _ThreadState(threading.local):
+    """Per-thread SuperWhisper text client for transliteration (not assumed thread-safe)."""
+
+    def __init__(self) -> None:
+        self.client: SuperwhisperClient | None = None
+
+
+_state = _ThreadState()
+
+
+def _text_client() -> SuperwhisperClient:
+    if _state.client is None:
+        from superwhisper_api.text.client import SuperwhisperClient
+
+        _state.client = SuperwhisperClient()
+    return _state.client
+
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
 
     from superwhisper_api.audio.transcribe import ProcessFn
+    from superwhisper_api.text.client import SuperwhisperClient
 
     from omni_curator.sample import Sample
     from omni_curator.store import CuratorStore
@@ -124,6 +151,10 @@ def _score_one(sample: Sample, scribe_fn: ProcessFn) -> dict[str, object]:
     the Scribe ``hypothesis`` text, plus the ``reference`` label. Raises on a Scribe / audio error
     (the superwhisper fn returns a ``Failure`` whose dict carries ``error`` but no ``transcript``) —
     the caller turns the raised error into a counted failure rather than scoring an empty string.
+
+    A hypothesis in a different script than the label (Scribe rendering Tajik speech in
+    Perso-Arabic) is transliterated to the label's script first — WER across scripts compares
+    alphabets, not speech. The raw hypothesis is preserved as ``hypothesis_raw``.
     """
     # The superwhisper process fn takes a Path, not a str.
     result = scribe_fn(Path(sample.audio_path)).as_dict()
@@ -131,9 +162,29 @@ def _score_one(sample: Sample, scribe_fn: ProcessFn) -> dict[str, object]:
     if "transcript" not in result:
         raise RuntimeError("scribe returned no transcript")
     hypothesis = str(result.get("transcript") or "").strip()
+    return _score_hypothesis(sample, hypothesis)
+
+
+def _score_hypothesis(sample: Sample, hypothesis: str) -> dict[str, object]:
+    """Score one (label, hypothesis) pair, transliterating a cross-script hypothesis first."""
+    detail_extra: dict[str, object] = {}
+    ref_script = dominant_script(sample.text)
+    hyp_script = dominant_script(hypothesis)
+    if hypothesis and ref_script and hyp_script and hyp_script != ref_script:
+        from omni_curator.create.fuse import transliterate
+
+        raw = hypothesis
+        hypothesis = transliterate(
+            raw,
+            language=sample.language,
+            script=_SCRIPT_NAMES.get(ref_script, ref_script),
+            client=_text_client(),
+        )
+        detail_extra = {"hypothesis_raw": raw, "scoring": "transliterated"}
     detail = score_pair(sample.text, hypothesis)
     detail["hypothesis"] = hypothesis
     detail["reference"] = sample.text
+    detail.update(detail_extra)
     return detail
 
 
@@ -303,6 +354,89 @@ def _abort(pool: ThreadPoolExecutor, reason: str, stats: VerifyStats, exc: Excep
         f"top failures: {stats.top_failures(3)}; last: {exc}"
     )
     raise RuntimeError(msg)
+
+
+def _cross_script_candidates(store: CuratorStore, *, key: str | None) -> list[tuple[Sample, str]]:
+    """Scored rows whose saved hypothesis is in a different script than the label.
+
+    Skips rows already scored via transliteration (``hypothesis_raw`` present) — idempotency.
+    """
+    candidates: list[tuple[Sample, str]] = []
+    samples = store.iter_samples(source=key) if key is not None else store.iter_samples()
+    for sample in samples:
+        if sample.scribe_wer is None:
+            continue
+        scribe_raw = sample.meta.get("scribe")
+        if not isinstance(scribe_raw, dict):
+            continue
+        scribe = cast("dict[str, object]", scribe_raw)
+        if "hypothesis_raw" in scribe:
+            continue
+        hypothesis = str(scribe.get("hypothesis") or "")
+        ref_script = dominant_script(sample.text)
+        hyp_script = dominant_script(hypothesis)
+        if hypothesis and ref_script and hyp_script and hyp_script != ref_script:
+            candidates.append((sample, hypothesis))
+    return candidates
+
+
+def rescore_cross_script(
+    store: CuratorStore,
+    *,
+    key: str | None = None,
+    workers: int = 50,
+    breaker_threshold: int = 50,
+    on_progress: Callable[[int], None] | None = None,
+) -> VerifyStats:
+    """Re-score already-verified rows whose stored hypothesis is in a different script.
+
+    Earlier verify runs scored the raw hypothesis even when Scribe rendered it in another
+    script than the label (WER ~1.0 on correct content). This pass reuses the hypothesis
+    saved in ``meta["scribe"]`` — NO Scribe calls — transliterates it to the label's script,
+    and overwrites the score. Idempotent: rows already carrying ``hypothesis_raw`` (scored
+    via transliteration) are skipped. The only network work is one free text-LLM call per
+    mismatched row.
+    """
+    from tqdm import tqdm
+
+    candidates = _cross_script_candidates(store, key=key)
+    stats = VerifyStats()
+    if not candidates:
+        return stats
+    wers: list[float] = []
+    cers: list[float] = []
+    consecutive = 0
+    queued = iter(candidates)
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {
+            pool.submit(_score_hypothesis, s, h): s for s, h in islice(queued, workers * 2)
+        }
+        progress = tqdm(total=len(candidates), desc="rescore-script", unit="clip")
+        while futures:
+            finished, _ = wait(futures, return_when=FIRST_COMPLETED)
+            for future in finished:
+                sample = futures.pop(future)
+                progress.update(1)
+                try:
+                    detail = future.result()
+                except Exception as exc:  # noqa: BLE001 — counted; the breaker bounds the damage
+                    stats.failed += 1
+                    stats.failures.append((sample.id, f"{type(exc).__name__}: {exc}"))
+                    consecutive += 1
+                    if consecutive >= breaker_threshold:
+                        _abort(pool, f"{consecutive} consecutive failures", stats, exc)
+                    continue
+                consecutive = 0
+                _record_score(store, stats, sample, detail, wers, cers)
+                if on_progress:
+                    on_progress(stats.scored)
+            for nxt, hyp in islice(queued, len(finished)):
+                futures[pool.submit(_score_hypothesis, nxt, hyp)] = nxt
+        progress.close()
+
+    stats.wer = _distribution(wers)
+    stats.cer = _distribution(cers)
+    return stats
 
 
 def store_total(store: CuratorStore, *, key: str | None = None) -> int:

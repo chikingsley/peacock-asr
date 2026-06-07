@@ -222,6 +222,28 @@ def cmd_verify(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_rescore(args: argparse.Namespace) -> int:
+    """Re-score verified rows whose hypothesis was rendered in the wrong script (no Scribe)."""
+    _load_root_env()
+    from omni_curator.store import CuratorStore
+    from omni_curator.verify import rescore_cross_script, scribe_summary
+
+    store = CuratorStore(DB)
+    stats = rescore_cross_script(
+        store, key=args.source, workers=args.workers,
+        on_progress=lambda n: print(f"  rescored {n}", flush=True) if n % 5000 == 0 else None,
+    )
+    print(f"rescored {stats.scored}, failed {stats.failed}")
+    for msg, n in stats.top_failures():
+        print(f"  {n:>6}x {msg[:140]}")
+    if stats.scored:
+        print(f"  WER {stats.wer}  CER {stats.cer}")
+    for source, summ in scribe_summary(store).items():
+        print(f"  {source}: {summ}")
+    store.close()
+    return 0
+
+
 def _coverage_check(texts: list[str]) -> int:
     """Count rows whose normalized text produces a tokenizer ``<unk>`` (the export gate)."""
     from fairseq2.data.tokenizers.char import load_char_tokenizer
@@ -369,10 +391,8 @@ def _add_channel_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--limit", type=int, help="cap to the first N videos per channel")
 
 
-def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Curate Tajik ASR data via omni-curator.")
-    sub = parser.add_subparsers(dest="command", required=True)
-
+def _add_create_parsers(sub: argparse._SubParsersAction) -> None:  # noqa: SLF001 — argparse's own subparser type
+    """Register the create-stage subcommands (download + the split queue pipeline)."""
     p_list = sub.add_parser("list", help="size channels (video counts, no download)")
     _add_channel_args(p_list)
     p_list.set_defaults(func=cmd_list)
@@ -407,6 +427,13 @@ def main(argv: list[str] | None = None) -> int:
     p_hv.add_argument("--batch", type=int, default=2000)
     p_hv.set_defaults(func=cmd_harvest)
 
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Curate Tajik ASR data via omni-curator.")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    _add_create_parsers(sub)
+
     p_mg = sub.add_parser("merge", help="merge per-channel stores into the master curator.sqlite")
     p_mg.set_defaults(func=cmd_merge)
 
@@ -420,6 +447,11 @@ def main(argv: list[str] | None = None) -> int:
     p_vf.add_argument("--workers", type=int, default=100)
     p_vf.add_argument("--force", action="store_true", help="re-score already-scored clips")
     p_vf.set_defaults(func=cmd_verify)
+
+    p_rs = sub.add_parser("rescore", help="re-score wrong-script hypotheses (no Scribe calls)")
+    p_rs.add_argument("--source", help="restrict to one source")
+    p_rs.add_argument("--workers", type=int, default=50)
+    p_rs.set_defaults(func=cmd_rescore)
 
     p_ex = sub.add_parser("export", help="store -> omni-parquet ablation (coverage-gated)")
     p_ex.add_argument("name", help="ablation dir under data/datasets/ (e.g. v0)")
