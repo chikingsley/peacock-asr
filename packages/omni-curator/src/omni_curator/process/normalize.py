@@ -167,6 +167,13 @@ _TAJIK_NORMALIZER = None
 _TAJIK_PUNCT_RE = re.compile(r"[^\w\sЀ-ӿ]", re.UNICODE)
 _TAJIK_CONTROL_RE = re.compile(r"[\u0000-\u001f\u007f-\u009f]")
 _TAJIK_SOFT_HYPHEN = "\u00ad"
+#: Historic Cyrillic combining marks (titlo etc., U+0483-U+0489) — OCR/typing noise in modern
+#: Tajik text, not tokenizer-covered; the Cyrillic keep-range below would retain them.
+_TAJIK_COMBINING_RE = re.compile(r"[\u0483-\u0489]")
+#: Quranic annotation marks (U+06D6-U+06ED) + alef wasla: recitation labels quote the Quran in
+#: full Quranic orthography; these are not tokenizer-covered (plain Arabic letters are).
+_QURANIC_MARKS_RE = re.compile(r"[\u06d6-\u06ed]")
+_ALEF_WASLA = "\u0671"  # Quranic alef wasla -> plain alef
 
 
 def normalize_tajik(text: str) -> str:
@@ -194,6 +201,9 @@ def normalize_tajik(text: str) -> str:
     normalized = normalized.replace(_TAJIK_SOFT_HYPHEN, " ")
     normalized = normalized.replace("№", " no ")
     normalized = normalized.replace("no", " no ")
+    normalized = _TAJIK_COMBINING_RE.sub("", normalized)
+    normalized = normalized.replace(_ALEF_WASLA, "\u0627")
+    normalized = _QURANIC_MARKS_RE.sub("", normalized)
     normalized = _TAJIK_CONTROL_RE.sub(" ", normalized)
     normalized = _TAJIK_PUNCT_RE.sub(" ", normalized)
     return _WHITESPACE_RE.sub(" ", normalized).strip()
