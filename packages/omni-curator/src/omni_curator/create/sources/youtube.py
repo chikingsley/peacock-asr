@@ -143,3 +143,34 @@ def download_channel(
             continue
         total += info.frames / info.samplerate
     return ChannelDownload(channel_url, out_dir, len(flacs), total)
+
+
+def refresh_cookies_from_browser(profile_dir: Path, out_path: Path) -> int:
+    """Export fresh YouTube cookies from a local logged-in Chrome profile to ``out_path``.
+
+    The durable fix for YouTube's bot-check: a real Chrome profile (e.g. the persistent home of
+    a KasmVNC browser container, logged into YouTube once) lives on this machine, and yt-dlp
+    extracts its live cookies on demand — no manual exports, no macOS TCC. Safe to run while
+    that browser is up (yt-dlp copies the cookie DB). Returns the youtube.com cookie count;
+    raises if extraction produced none (profile logged out / wrong profile dir).
+    """
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    cmd = [
+        sys.executable, "-m", "yt_dlp",
+        "--cookies-from-browser", f"chrome:{profile_dir}",
+        "--cookies", str(out_path),
+        "--skip-download", "--no-warnings", "--quiet",
+        "https://www.youtube.com/watch?v=jNQXAC9IVRw",  # any stable public video works
+    ]
+    subprocess.run(cmd, check=False)  # noqa: S603 — fixed argv, no shell
+    if not out_path.exists():
+        msg = f"yt-dlp wrote no cookie file at {out_path}"
+        raise RuntimeError(msg)
+    count = sum(
+        1 for line in out_path.read_text(encoding="utf-8").splitlines()
+        if "youtube.com" in line and not line.startswith("#")
+    )
+    if count == 0:
+        msg = f"no youtube.com cookies extracted from {profile_dir} — is the profile logged in?"
+        raise RuntimeError(msg)
+    return count

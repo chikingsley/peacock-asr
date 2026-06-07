@@ -102,6 +102,20 @@ def cmd_download(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_cookies(args: argparse.Namespace) -> int:
+    """Refresh ``data/youtube_cookies.txt`` from the logged-in browser profile (KasmVNC Chrome)."""
+    _load_root_env()
+    from omni_curator.create.sources.youtube import refresh_cookies_from_browser
+
+    profile = args.profile or os.environ.get("YT_COOKIES_PROFILE")
+    if not profile:
+        msg = "set YT_COOKIES_PROFILE in the root .env (path to a logged-in Chrome profile)"
+        raise SystemExit(msg)
+    count = refresh_cookies_from_browser(Path(profile), COOKIES)
+    print(f"refreshed {count} youtube.com cookies -> {COOKIES}")
+    return 0
+
+
 def cmd_ingest(args: argparse.Namespace) -> int:
     """Ingest an existing-labeled dataset (FLEURS / Common Voice) into the curator store."""
     _load_root_env()
@@ -337,6 +351,10 @@ def main(argv: list[str] | None = None) -> int:
     p_dl = sub.add_parser("download", help="download channel audio -> data/create/<slug>")
     _add_channel_args(p_dl)
     p_dl.set_defaults(func=cmd_download)
+
+    p_ck = sub.add_parser("cookies", help="refresh youtube_cookies.txt from the browser profile")
+    p_ck.add_argument("--profile", help="Chrome profile dir (default: $YT_COOKIES_PROFILE)")
+    p_ck.set_defaults(func=cmd_cookies)
 
     p_eq = sub.add_parser("enqueue", help="seed the queue with not-yet-labeled videos")
     _add_channel_args(p_eq)
