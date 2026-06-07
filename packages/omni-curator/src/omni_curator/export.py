@@ -56,6 +56,7 @@ import pyarrow.parquet as pq
 
 from omni_curator.process import normalize as normalize_text
 from omni_curator.process.language import keep_for_language
+from omni_curator.quality import is_descriptor_only
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
@@ -130,14 +131,19 @@ class Selection:
     #: keep only the target language (the usual training case); False = keep every language in the
     #: store (e.g. exporting the other-language segments of language-learning content).
     language_gate: bool = True
+    #: Drop labels with no lexical content ('[outro jingle]', '♪', '...') — they verify at WER ~0
+    #: (a fresh Scribe pass emits the same descriptor) so the WER gate alone would keep them.
+    drop_descriptor_only: bool = True
 
     def keeps(self, sample: Sample) -> bool:
         """Whether ``sample`` passes the value/duration/scribe filters (per-source cap later)."""
         if self.sources is not None and sample.source not in self.sources:
             return False
-        if self.splits is not None and sample.split not in self.splits:
+        if self.drop_descriptor_only and is_descriptor_only(sample.text):
             return False
-        if self.languages is not None and sample.language not in self.languages:
+        if (self.splits is not None and sample.split not in self.splits) or (
+            self.languages is not None and sample.language not in self.languages
+        ):
             return False
         if (
             self.max_duration_seconds is not None

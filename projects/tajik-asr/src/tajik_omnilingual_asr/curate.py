@@ -391,7 +391,7 @@ def _add_channel_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--limit", type=int, help="cap to the first N videos per channel")
 
 
-def _add_create_parsers(sub: argparse._SubParsersAction) -> None:  # noqa: SLF001 — argparse's own subparser type
+def _add_create_parsers(sub: argparse._SubParsersAction) -> None:
     """Register the create-stage subcommands (download + the split queue pipeline)."""
     p_list = sub.add_parser("list", help="size channels (video counts, no download)")
     _add_channel_args(p_list)

@@ -21,6 +21,7 @@ Sources:
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 
@@ -55,6 +56,24 @@ LENIENT_MIN_WORDS = 1
 #: audio — never export above this regardless of WER tier (the one hard, model-imposed bound).
 OMNI_MAX_DURATION_S = 40.0
 
+#: Bracketed/parenthesized descriptor segments; what remains after removing them (and every
+#: non-letter) decides whether a label has any lexical content at all.
+_DESCRIPTOR_SEGMENTS = re.compile(r"\[[^\]]*\]|\([^)]*\)")
+_NON_LETTERS = re.compile(r"[\W\d_]+")
+
+
+def is_descriptor_only(text: str) -> bool:
+    """Return True when a label carries NO lexical content — only descriptors/symbols.
+
+    Scribe labels non-speech with descriptors ('[outro jingle]', '[музыка]', '♪', '...'); a
+    fresh Scribe pass produces the same descriptor, so such a label scores WER ~0 and a WER
+    gate KEEPS it (~23k clips / 28 h of the tajik pool). There is nothing to train on —
+    :class:`omni_curator.export.Selection` drops these at export.
+    """
+    without_segments = _DESCRIPTOR_SEGMENTS.sub(" ", text)
+    return not _NON_LETTERS.sub("", without_segments)
+
+
 __all__ = [
     "BROADCAST",
     "CONVERSATIONAL",
@@ -65,4 +84,5 @@ __all__ = [
     "OMNI_MAX_DURATION_S",
     "RESOURCE_MAX_WER",
     "WerTiers",
+    "is_descriptor_only",
 ]
