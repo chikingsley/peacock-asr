@@ -55,19 +55,20 @@ def default_key() -> str:
 
 
 def renew_scribe_key() -> str:
-    """Mint a fresh batch key via the Superwhisper proxy and make it the process default.
+    """Replace a dead batch key via the single-flight renewal in superwhisper-api.
 
-    Sets ``ELEVENLABS_API_KEY`` so every later :func:`default_key` in this process resolves
-    to the renewed key; the mint also persists it for future processes. Raises if the proxy
-    refuses — callers must then abort, not keep calling with the dead key.
+    Delegates to :func:`superwhisper_api.auth.renew_elevenlabs_batch_key` (one mint across
+    all threads; an explicit ``ELEVENLABS_API_KEY`` env override is respected by raising).
+    The minted key is persisted, so later :func:`default_key` calls — and rebuilt thread
+    fns — resolve to it without any env mutation. Raises if the proxy refuses — callers
+    must then abort, not keep calling with the dead key.
+
+    NOTE: superwhisper-api also renews transport-level (401 -> renew -> retry once), so
+    this is defense-in-depth for the curator's run-level breaker, not the first responder.
     """
-    import os
+    from superwhisper_api.auth import renew_elevenlabs_batch_key
 
-    from superwhisper_api.auth import mint_elevenlabs_batch_key
-
-    key = mint_elevenlabs_batch_key()
-    os.environ["ELEVENLABS_API_KEY"] = key
-    return key
+    return renew_elevenlabs_batch_key(default_key())
 
 
 def make_scribe_fns(
