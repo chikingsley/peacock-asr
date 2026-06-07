@@ -113,6 +113,40 @@ is not recorded anywhere, it says "not recorded".
 
 ---
 
+## 2026-06-07 — v2: the full new-pipeline corpus (~1,070 h), 300M fine-tune
+
+- **Data:** first export off the rebuilt omni-curator split pipeline. 41 Tajik YouTube channels
+  (VAD-segmented, Scribe-ensemble labeled, compile-down to Cyrillic) + FLEURS, Scribe-verified with
+  **script-aware scoring** (cross-script hypotheses transliterated before WER so Perso-Arabic Scribe
+  output doesn't fake WER 1.0 on correct Cyrillic labels), gated at WER ≤ 0.35 + a descriptor-junk
+  filter + the language gate (37 k Russian-content clips dropped). Export `data/datasets/v2`:
+  **183,140 rows / 1,070.8 h** (1,067 h train + FLEURS dev 240 / test 599 complete — curation gates
+  are train-only by design, `Selection.gated_splits`). Coverage gate 0 `<unk>`.
+- **Training:** two runs. Run 1 (true-hours mixture TSV, lr 1e-5) **drifted** — FLEURS dev WER rose
+  20.35 → 21.68 over 4 k steps while UER improved: pure domain migration toward the ~99 %-YouTube
+  mix (FLEURS was 2 % of sampled batches under sqrt tempering). Stopped, rebalanced. **Run 2**:
+  hand-weighted TSV lifting FLEURS to ~12 % of sampling, lr 5e-6 + explicit tri-stage. Dev WER
+  20.15 → 19.07 (8 k) → 18.01 (12 k) → 17.06 best @ **step 19500**. (Survived a /tmp-tmpfs fragment-
+  cache overflow at step ~15 k — `cache_dir` moved to real disk, resumed in place from step_14500.)
+  Card `omni_ctc_300m_v2_tajik_v2_step_19500`; preset `tajik-corpus-v2-300m`.
+- **Result (anchored 3-way, FLEURS test, 599 rows, identical splits):**
+
+  | model | data | WER | CER | MER | WIL |
+  |---|---|---|---|---|---|
+  | base (no FT) | — | 19.74 | 5.62 | 19.47 | 32.84 |
+  | v0 | 5.8 h | 17.34 | 4.88 | 17.11 | 29.06 |
+  | **v2** | **1,070 h** | **17.17** | 4.90 | **16.95** | **28.70** |
+
+- **Verdict:** v2 is the **best model** (lowest WER/MER/WIL), beating base by 2.6 and edging v0. But
+  **+0.17 WER over v0 from 184× the data is thin, and the benchmark is why**: FLEURS test is
+  read-aloud speech, which v0's 5.8 h already adapted the model to; the v2 corpus is overwhelmingly
+  *conversational* YouTube, whose value can't show on a read-aloud exam. The pipeline is proven
+  end-to-end and produced our best checkpoint; **measuring what the 1,070 h actually bought needs a
+  held-out conversational test set** (carve YouTube by video — never split a video across train/test)
+  — that is the next experiment.
+
+---
+
 ## Gaps / not recorded
 
 - v0 **test** WER/CER was first measured 2026-05-30 (the v0 entry above), not on the original

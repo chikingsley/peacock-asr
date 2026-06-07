@@ -40,8 +40,10 @@ per language project:  ONE master store: data/curator.sqlite
 - [x] Dev split: FLEURS dev/test are the benchmarks (complete in export; gates are train-only by design — `Selection.gated_splits`)
 - [x] Export v2: WER ≤ 0.35 + descriptor-junk filter + language gate; 0 unk
 - [x] Train tajik 300M launched (v2 preset, 20k steps)
-- [ ] **When training finishes:** eval best checkpoint (FLEURS test + a benchmark suite like Persian's), record in EXPERIMENTS.md; decide v3 (more data? different gate?)
+- [x] Train tajik v2 + eval: best **step_19500, FLEURS test WER 17.17** (base 19.74, v0 17.34). Recorded in EXPERIMENTS.md. v2 wins but margin over v0 is thin — FLEURS can't show the conversational gain.
+- [ ] **Conversational test set (the real next experiment).** FLEURS is read-aloud; the 1,070h is conversational, so the benchmark can't measure what the data bought. Hold out a YouTube slice BY VIDEO (no video split across train/test), set `split='test'` on those rows, re-export + re-eval base/v0/v2. This is what proves (or disproves) the data lever.
 - [ ] Retry the 31 failed verify/rescore rows (re-run `verify` + `rescore`, both incremental)
+- [ ] Move the legacy `--output-dir` workspaces aside; document that changing the config's workspace-hashing fields forces a fresh `ws_*` (checkpoints must be hand-moved to resume) — bit us on the v2 crash recovery.
 
 ## One pipeline, one structure (meta — after the above is moving)
 
