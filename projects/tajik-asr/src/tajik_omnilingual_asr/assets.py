@@ -84,6 +84,16 @@ CARDS = [
         ),
         tokenizer_ref=TOKENIZER_NAME,
     ),
+    # v2 (full new-pipeline corpus, ~1,070 h) best dev-WER checkpoint (step_19500, FLEURS dev 17.06).
+    ModelCard(
+        name="omni_ctc_300m_v2_tajik_v2_step_19500",
+        checkpoint=(
+            _PROJECT
+            / "runs/omni-ctc-300m-tajik-asr-corpus-v2-r2/ws_1.a8b9ba67/"
+            / "checkpoints/step_19500/model/pp_00/tp_00/sdp_00.pt"
+        ),
+        tokenizer_ref=TOKENIZER_NAME,
+    ),
     MixtureParquetDatasetCard(
         name="tajik_asr_corpus",
         data=_PARQUET,
