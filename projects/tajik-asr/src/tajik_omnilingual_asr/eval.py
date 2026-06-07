@@ -43,15 +43,16 @@ DEFAULT_MODELS = [
 ]
 
 
-def test_parquets(artifact: str) -> list[Path]:
-    base = ARTIFACTS / artifact / "omni_parquet/version=0"
-    return sorted(base.glob("corpus=*/split=test/language=tgk_Cyrl/*.parquet"))
+def test_parquets(version_root: Path) -> list[Path]:
+    return sorted(version_root.glob("corpus=*/split=test/language=tgk_Cyrl/*.parquet"))
 
 
-def load_test(artifact: str, limit: int, max_dur: float) -> tuple[list, list[str], list[str], int]:
+def load_test(
+    version_root: Path, limit: int, max_dur: float
+) -> tuple[list, list[str], list[str], int]:
     audio, refs, corpora = [], [], []
     excluded = 0
-    for parquet_path in test_parquets(artifact):
+    for parquet_path in test_parquets(version_root):
         path = str(parquet_path)
         corpus = next(p.split("=")[1] for p in path.split("/") if p.startswith("corpus="))
         # Stream batches so --limit stops early instead of reading the whole partition.
@@ -103,7 +104,12 @@ def parse_models(values: list[str] | None) -> list[tuple[str, str]]:
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Score Tajik omni CTC models on the test split.")
     p.add_argument(
-        "--artifact", default="tajik_asr_combined_v0", help="artifact holding the test split"
+        "--artifact", default="tajik_asr_combined_v0", help="legacy artifact holding a test split"
+    )
+    p.add_argument(
+        "--dataset-root", type=Path, default=None,
+        help="version=0 root of a new-pipeline export (e.g. data/datasets/v2/version=0); "
+        "overrides --artifact",
     )
     p.add_argument("--models", nargs="+", default=None, help="label=card_name (default: v0 vs v1)")
     p.add_argument("--device", default="cpu", help="cpu (default) or cuda")
@@ -126,7 +132,8 @@ def main(argv: list[str] | None = None) -> int:
     from omnilingual_asr.models.inference.pipeline import ASRInferencePipeline
 
     models = parse_models(args.models)
-    audio, refs, corpora, excluded = load_test(args.artifact, args.limit, args.max_duration)
+    version_root = args.dataset_root or (ARTIFACTS / args.artifact / "omni_parquet/version=0")
+    audio, refs, corpora, excluded = load_test(version_root, args.limit, args.max_duration)
     print(
         f"test rows: {len(audio)} (excluded {excluded} > {args.max_duration:.0f}s) | "
         f"corpora: {sorted(set(corpora))} | device: {args.device}",
