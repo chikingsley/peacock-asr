@@ -17,6 +17,9 @@ dataset:
     beta_language: 0.5
     fragment_loading:
       cache: true
+      # On real disk, NOT the default tempfile.mkdtemp() -> /tmp: /tmp is a 47G tmpfs and the
+      # mmap'd audio fragments overflowed it at step ~15k (pyarrow EDQUOT, run killed).
+      cache_dir: "/home/simon/github/peacock-asr/projects/tajik-asr/data/cache/fragments"
   asr_task_config:
      min_audio_len: 16_000
      max_audio_len: 960_000
