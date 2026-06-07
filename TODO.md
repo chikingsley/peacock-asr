@@ -2,17 +2,17 @@
 
 One file, all open work, by area. Status lines reflect 2026-06-05.
 
-## Status snapshot (2026-06-05)
+## Status snapshot (2026-06-07)
 
 | What | Where it stands |
 |---|---|
 | Tajik YouTube curation | **DONE.** 41 channels, 342,845 clips / 1,826 h, all labeled + harvested + merged into `data/curator.sqlite` (346,025 rows with FLEURS) |
-| Tajik verify (Scribe scoring) | 247,478/346,025 scored, **but the scores need a redo**: `auto` language let Scribe return Persian script for Cyrillic-labeled clips → fake WER 1.0 on ~half the channels. Full `--force` re-verify queued behind the script-aware scoring fix |
-| Circuit breaker + key renewal | **DONE, proven live** (tafakkur_tv run started on a dead key, self-renewed, scored 367/367). Commits: monorepo `584e2006`, superwhisper-api `73db273` |
-| Tajik training | Not started — blocked on re-verify → export |
+| Tajik verify (Scribe scoring) | **DONE.** Every scoreable row scored; 150k wrong-script grades re-scored via content-preserving transliteration (`rescore`). Honest gate sweep: WER≤0.35 → 247k clips / 1,435 h |
+| Tajik export | **DONE: `data/datasets/v2`** — 183,140 rows / 1,070.8 h (1,067.4 train + FLEURS dev/test COMPLETE), WER≤0.35 + descriptor-junk filter + language gate (37k Russian dropped), coverage gate 0 unk |
+| Tajik training | **RUNNING** (tmux `tj-train`): 300M from base on v2, lr 1e-5, 20k steps (~1 epoch, ~7.5 h wall), FLEURS-dev validation every 500 steps, best-WER checkpoints kept. `runs/omni-ctc-300m-tajik-asr-corpus-v2` |
+| Circuit breaker + key renewal | **DONE, proven live**, both layers: transport-level 401→renew→retry (superwhisper-api `0dbb542`) + run-level breaker/renewal in curator (`584e2006`, `c5b4cedf`) |
 | Persian | Nothing running. 1B eval (June 2) **lost to the 300M on every benchmark** (FLEURS 10.6 vs 8.5, CV 24.3 vs 19.4, mana 10.8 vs 6.6, youtube 26.2 vs 20.2). Final Persian model: **300M scribe-v4-rewarm** (`benchmarks/suites/canonical-tests-scribe-v4-rewarm-20260530`) |
 | Georgian | On the split pipeline (committed). No model side yet (no assets/train/eval) |
-| GPU | Idle (2 MiB used) — free for the tajik run once export lands |
 
 ## The data flow (reference — how it all fits)
 
@@ -33,13 +33,15 @@ per language project:  ONE master store: data/curator.sqlite
 
 ## Now / next (ordered)
 
-- [ ] **Codex review** of the breaker/renewal work + structural critique (launched 2026-06-05)
-- [ ] **Script-aware verify scoring.** Scribe (even forced `tgk`) deterministically returns Perso-Arabic script for some Tajik clips; same words, wrong alphabet → WER 1.0. Fix: detect hypothesis script ≠ label script → transliterate hypothesis to the label's script (free text LLM, script conversion only, raw kept in meta) → then jiwer.
-- [ ] **Kill the `Any` types** in `transcribe.make_scribe_fns` / labelq `_client` / fuse client fns — real protocol types or nothing. (No `Any` where the type is known.)
-- [ ] **Full re-verify**, all 346k rows, `--force`, one consistent method (overnight; free).
-- [ ] **Tajik dev split decision:** keep FLEURS dev/test as the benchmarks (same as Persian); optionally carve a small YouTube dev slice **by video** (never split a video across train/dev). Then set `split` on those rows before export.
-- [ ] **Export v0:** WER ≤ 0.35 + duration bounds + **junk filter**: bracket-descriptor-only labels (`[outro jingle]`, `[музыка]`) pass the WER gate (label == hypothesis) and must be dropped at export.
-- [ ] **Train tajik 300M** on the export (new dataset card in `assets.py`, same benchmark suite pattern as Persian).
+- [x] Codex review of the breaker/renewal work — all 7 findings fixed (`c5b4cedf`)
+- [x] Script-aware verify scoring (Sonnet transliteration won the bake-off vs uroman skeleton; hypothesis-only prompt, garbage control clean) + `rescore` CLI
+- [x] Kill the `Any` types (ProcessFn/Mapping/SuperwhisperClient throughout)
+- [x] Full verify + 150k-row rescore — every scoreable row has an honest score
+- [x] Dev split: FLEURS dev/test are the benchmarks (complete in export; gates are train-only by design — `Selection.gated_splits`)
+- [x] Export v2: WER ≤ 0.35 + descriptor-junk filter + language gate; 0 unk
+- [x] Train tajik 300M launched (v2 preset, 20k steps)
+- [ ] **When training finishes:** eval best checkpoint (FLEURS test + a benchmark suite like Persian's), record in EXPERIMENTS.md; decide v3 (more data? different gate?)
+- [ ] Retry the 31 failed verify/rescore rows (re-run `verify` + `rescore`, both incremental)
 
 ## One pipeline, one structure (meta — after the above is moving)
 
