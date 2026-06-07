@@ -48,6 +48,10 @@ _PARQUET = (
 _PARQUET_V1 = (
     _PKG / "dataset_prep" / "artifacts" / "tajik_asr_combined_v1" / "omni_parquet" / "version=0"
 )
+# v2 = the new curator pipeline's first full export: FLEURS + 41 YouTube channels
+# (~1,400 h), Scribe-verified with script-aware scoring, WER <= 0.35 + junk filter.
+# Produced by `tajik-curate export v2 --max-wer 0.35`; lives in the project data dir.
+_PARQUET_V2 = _PROJECT / "data" / "datasets" / "v2" / "version=0"
 
 TOKENIZER_NAME = "omni_asr_tokenizer_written_v2_local"
 
@@ -88,6 +92,11 @@ CARDS = [
     MixtureParquetDatasetCard(
         name="tajik_asr_corpus_v1",
         data=_PARQUET_V1,
+        tokenizer_ref=TOKENIZER_NAME,
+    ),
+    MixtureParquetDatasetCard(
+        name="tajik_asr_corpus_v2",
+        data=_PARQUET_V2,
         tokenizer_ref=TOKENIZER_NAME,
     ),
 ]

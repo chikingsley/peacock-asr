@@ -26,6 +26,12 @@ PRESETS = {
         config=CONFIG_DIR / "tajik-asr-corpus-v1-ctc-300m-v2.yaml",
         output_dir=ROOT / "runs/omni-ctc-300m-tajik-asr-corpus-v1",
     ),
+    # v2 = the new curator pipeline's full export: FLEURS + 41 YouTube channels (~1,400 h),
+    # script-aware Scribe verification, WER <= 0.35 + descriptor-junk filter.
+    "tajik-corpus-v2-300m": TrainingPreset(
+        config=CONFIG_DIR / "tajik-asr-corpus-v2-ctc-300m-v2.yaml",
+        output_dir=ROOT / "runs/omni-ctc-300m-tajik-asr-corpus-v2",
+    ),
 }
 
 
