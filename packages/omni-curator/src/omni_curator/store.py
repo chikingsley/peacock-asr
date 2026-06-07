@@ -72,11 +72,17 @@ def _from_row(row: sqlite3.Row) -> Sample:
 class CuratorStore:
     """A SQLite-backed collection of curated :class:`Sample`s."""
 
-    def __init__(self, db_path: Path) -> None:
+    def __init__(self, db_path: Path, *, busy_timeout_ms: int = 60_000) -> None:
         db_path.parent.mkdir(parents=True, exist_ok=True)
         self.path = db_path
-        self._conn = sqlite3.connect(db_path)
+        self._conn = sqlite3.connect(db_path, timeout=busy_timeout_ms / 1000)
         self._conn.row_factory = sqlite3.Row
+        # WAL + a long busy timeout: verify/rescore write per-clip scores while readers (and
+        # occasionally another writer) hold the DB — the default journal mode threw
+        # "database is locked" the moment two writers met.
+        self._conn.execute("PRAGMA journal_mode=WAL")
+        self._conn.execute("PRAGMA synchronous=NORMAL")
+        self._conn.execute(f"PRAGMA busy_timeout={busy_timeout_ms}")
         self._conn.executescript(_SCHEMA)
         self._migrate()
 
