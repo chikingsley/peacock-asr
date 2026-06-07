@@ -30,7 +30,7 @@ from itertools import islice
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-from omni_curator.benchmark import score_pair
+from omni_curator.benchmark import normalize, score_pair
 from omni_curator.create.transcribe import (
     ScribeError,
     default_key,
@@ -61,6 +61,7 @@ class VerifyStats:
     scored: int = 0
     skipped: int = 0
     failed: int = 0
+    unscoreable: int = 0  # label normalizes to nothing (e.g. '♪') — never scoreable, no call made
     renewals: int = 0
     wer: dict[str, float] = field(default_factory=dict)
     cer: dict[str, float] = field(default_factory=dict)
@@ -96,12 +97,24 @@ def _distribution(values: list[float]) -> dict[str, float]:
     }
 
 
-def _pending(store: CuratorStore, *, key: str | None, force: bool) -> list[Sample]:
-    """Samples to score this run: filtered by ``key`` (source), un-scored unless ``force``."""
+def _pending(store: CuratorStore, *, key: str | None, force: bool) -> tuple[list[Sample], int]:
+    """Samples to score this run: filtered by ``key`` (source), un-scored unless ``force``.
+
+    Returns ``(scoreable, unscoreable)``. A label that normalizes to nothing (``.``, ``...``,
+    ``♪`` — Scribe's silence/music markers) can never be scored (jiwer rejects an empty
+    reference), so those rows are dropped here BEFORE any Scribe call is spent on them; they
+    stay ``scribe_wer IS NULL`` and the export junk filter is what removes them from training.
+    """
     samples = store.iter_samples(source=key) if key is not None else store.iter_samples()
-    if force:
-        return list(samples)
-    return [s for s in samples if s.scribe_wer is None]
+    chosen = samples if force else (s for s in samples if s.scribe_wer is None)
+    scoreable: list[Sample] = []
+    unscoreable = 0
+    for sample in chosen:
+        if normalize(sample.text):
+            scoreable.append(sample)
+        else:
+            unscoreable += 1
+    return scoreable, unscoreable
 
 
 def _score_one(sample: Sample, scribe_fn: ProcessFn) -> dict[str, object]:
@@ -158,9 +171,9 @@ def verify_store(
     """
     from tqdm import tqdm
 
-    pending = _pending(store, key=key, force=force)
+    pending, unscoreable = _pending(store, key=key, force=force)
     total = store_total(store, key=key)
-    stats = VerifyStats(skipped=total - len(pending))
+    stats = VerifyStats(skipped=total - len(pending) - unscoreable, unscoreable=unscoreable)
     if not pending:
         return stats
 
