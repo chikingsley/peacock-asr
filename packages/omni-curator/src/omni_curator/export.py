@@ -134,21 +134,32 @@ class Selection:
     #: Drop labels with no lexical content ('[outro jingle]', '♪', '...') — they verify at WER ~0
     #: (a fresh Scribe pass emits the same descriptor) so the WER gate alone would keep them.
     drop_descriptor_only: bool = True
+    #: Splits the CURATION gates (Scribe WER/CER, language, descriptor) apply to. Quality gates
+    #: select training data; held-out benchmark splits must stay complete and comparable — a
+    #: censored test set scores against a different exam. Hard structural bounds (duration) and
+    #: the value filters (sources/splits/languages) always apply.
+    gated_splits: frozenset[str] = frozenset({"train"})
+
+    def gates(self, sample: Sample) -> bool:
+        """Whether the curation gates (WER/CER/language/descriptor) apply to ``sample``."""
+        return sample.split in self.gated_splits
 
     def keeps(self, sample: Sample) -> bool:
         """Whether ``sample`` passes the value/duration/scribe filters (per-source cap later)."""
-        if self.sources is not None and sample.source not in self.sources:
-            return False
-        if self.drop_descriptor_only and is_descriptor_only(sample.text):
-            return False
-        if (self.splits is not None and sample.split not in self.splits) or (
-            self.languages is not None and sample.language not in self.languages
+        if (
+            (self.sources is not None and sample.source not in self.sources)
+            or (self.splits is not None and sample.split not in self.splits)
+            or (self.languages is not None and sample.language not in self.languages)
         ):
             return False
         if (
             self.max_duration_seconds is not None
             and sample.duration > self.max_duration_seconds
         ):
+            return False
+        if not self.gates(sample):
+            return True  # held-out split: curation gates below don't apply
+        if self.drop_descriptor_only and is_descriptor_only(sample.text):
             return False
         # Scribe-verification gate: only drops clips that HAVE a score over the bound; an un-scored
         # clip (scribe_wer/cer is None) is kept — run verify_store first for the gate to bite.
@@ -400,10 +411,18 @@ def _normalize_and_filter(
         # Language gate (the ONLY content-language filter): drop clips whose text isn't the target
         # language — e.g. a Russian segment from a Tajik source. The store keeps every clip (Scribe
         # auto-detect transcribes each in its own language); this is where we select the target.
-        if selection.language_gate and not keep_for_language(norm_text, sample.language):
+        if (
+            selection.language_gate
+            and selection.gates(sample)
+            and not keep_for_language(norm_text, sample.language)
+        ):
             dropped["language"] += 1
             continue
-        reason = selection.keeps_quality(norm_text, sample.duration)
+        reason = (
+            selection.keeps_quality(norm_text, sample.duration)
+            if selection.gates(sample)
+            else None
+        )
         if reason is not None:
             dropped[reason] += 1
             continue
