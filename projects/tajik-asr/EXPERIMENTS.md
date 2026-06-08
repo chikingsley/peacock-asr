@@ -147,6 +147,36 @@ is not recorded anywhere, it says "not recorded".
 
 ---
 
+## 2026-06-08 — held-out conversational test set + v3 (the fair benchmark)
+
+- **Why:** v2's win on FLEURS was thin (17.17 vs v0 17.34) because FLEURS is read-aloud and the
+  v2 corpus is conversational — the benchmark couldn't see the conversational gain, and v2 had
+  trained on every YouTube clip so no clean held-out existed.
+- **Held-out set:** 157 **whole** conversational videos (no clip split across train/test),
+  deterministic `sha1(video_id) % 50 == 0` over noisy-tier channels, frozen in
+  `heldout_test_videos.json`. Carved at export (`Selection.heldout_test_videos`): held-out clips
+  are gated as the train rows they are, the passing ones regroup to `split=test`, the rest of each
+  held-out video drops — so no held-out video reaches train. v3 export: **1,625-clip conversational
+  test** (18 channels) + FLEURS dev/test, train 180,683 (≈1,625 fewer than v2). References are
+  machine-labeled (Scribe+compile-down, same ≤0.35 bar as training) — a rigorous *relative*
+  benchmark, with FLEURS gold alongside as the absolute anchor.
+- **Baseline (conversational held-out, 1,625 clips, pooled):**
+
+  | model | data | WER | CER | MER |
+  |---|---|---|---|---|
+  | base (no FT) | — | 57.87 | 31.32 | 56.98 |
+  | v0 | 5.8 h read | 49.89 | 18.88 | 48.89 |
+  | v2 *(saw these clips — contaminated)* | 1,070 h | 37.40 | 13.91 | 36.32 |
+
+- **Read:** the conversational benchmark spreads the models across **20 WER points** (58 → 50 → 37)
+  where FLEURS jammed them into 3 (20 → 17 → 17) — it is the discriminating eval FLEURS could not
+  be. v2's 37.40 is a *contaminated ceiling*; the fair number is **v3** (trained without the
+  held-out), launched on the v3 export with the same recipe as v2 run 2 (weighted FLEURS mix,
+  lr 5e-6 tri-stage, 20 k steps). The v3-vs-v0 gap on this set is the real measure of what the
+  1,070 h bought. **[v3 result pending.]**
+
+---
+
 ## Gaps / not recorded
 
 - v0 **test** WER/CER was first measured 2026-05-30 (the v0 entry above), not on the original
