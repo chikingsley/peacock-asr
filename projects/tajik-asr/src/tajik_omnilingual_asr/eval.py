@@ -112,6 +112,10 @@ def build_parser() -> argparse.ArgumentParser:
         "overrides --artifact",
     )
     p.add_argument("--models", nargs="+", default=None, help="label=card_name (default: v0 vs v1)")
+    p.add_argument("--exclude-corpus", nargs="+", default=None,
+                   help="drop these corpora from the eval (e.g. fleurs -> conversational-only)")
+    p.add_argument("--only-corpus-prefix", default=None,
+                   help="keep only corpora starting with this (e.g. youtube- -> conversational)")
     p.add_argument("--device", default="cpu", help="cpu (default) or cuda")
     p.add_argument("--batch-size", type=int, default=4)
     p.add_argument("--max-duration", type=float, default=MAX_AUDIO_SEC, help="drop clips longer")
@@ -134,6 +138,16 @@ def main(argv: list[str] | None = None) -> int:
     models = parse_models(args.models)
     version_root = args.dataset_root or (ARTIFACTS / args.artifact / "omni_parquet/version=0")
     audio, refs, corpora, excluded = load_test(version_root, args.limit, args.max_duration)
+    keep = [
+        i
+        for i, c in enumerate(corpora)
+        if (args.exclude_corpus is None or c not in args.exclude_corpus)
+        and (args.only_corpus_prefix is None or c.startswith(args.only_corpus_prefix))
+    ]
+    if len(keep) != len(corpora):
+        audio = [audio[i] for i in keep]
+        refs = [refs[i] for i in keep]
+        corpora = [corpora[i] for i in keep]
     print(
         f"test rows: {len(audio)} (excluded {excluded} > {args.max_duration:.0f}s) | "
         f"corpora: {sorted(set(corpora))} | device: {args.device}",

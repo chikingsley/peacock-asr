@@ -32,6 +32,11 @@ PRESETS = {
         config=CONFIG_DIR / "tajik-asr-corpus-v2-ctc-300m-v2.yaml",
         output_dir=ROOT / "runs/omni-ctc-300m-tajik-asr-corpus-v2",
     ),
+    # v3 = v2 minus the held-out conversational test (157 whole videos); the fair benchmark run.
+    "tajik-corpus-v3-300m": TrainingPreset(
+        config=CONFIG_DIR / "tajik-asr-corpus-v3-ctc-300m-v2.yaml",
+        output_dir=ROOT / "runs/omni-ctc-300m-tajik-asr-corpus-v3",
+    ),
 }
 
 

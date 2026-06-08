@@ -52,6 +52,10 @@ _PARQUET_V1 = (
 # (~1,400 h), Scribe-verified with script-aware scoring, WER <= 0.35 + junk filter.
 # Produced by `tajik-curate export v2 --max-wer 0.35`; lives in the project data dir.
 _PARQUET_V2 = _PROJECT / "data" / "datasets" / "v2" / "version=0"
+# v3 = v2's corpus minus a held-out conversational test set (157 whole videos carved to
+# split=test); the only difference from v2 is that those videos are out of train. The fair
+# conversational benchmark — v3 has never seen the held-out clips it is scored on.
+_PARQUET_V3 = _PROJECT / "data" / "datasets" / "v3" / "version=0"
 
 TOKENIZER_NAME = "omni_asr_tokenizer_written_v2_local"
 
@@ -107,6 +111,11 @@ CARDS = [
     MixtureParquetDatasetCard(
         name="tajik_asr_corpus_v2",
         data=_PARQUET_V2,
+        tokenizer_ref=TOKENIZER_NAME,
+    ),
+    MixtureParquetDatasetCard(
+        name="tajik_asr_corpus_v3",
+        data=_PARQUET_V3,
         tokenizer_ref=TOKENIZER_NAME,
     ),
 ]
