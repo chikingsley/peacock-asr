@@ -84,7 +84,7 @@ CARDS = [
         ),
         tokenizer_ref=TOKENIZER_NAME,
     ),
-    # v2 (full new-pipeline corpus, ~1,070 h) best dev-WER checkpoint (step_19500, FLEURS dev 17.06).
+    # v2 (full new-pipeline corpus, ~1,070 h) best dev-WER ckpt (step_19500, FLEURS dev 17.06).
     ModelCard(
         name="omni_ctc_300m_v2_tajik_v2_step_19500",
         checkpoint=(

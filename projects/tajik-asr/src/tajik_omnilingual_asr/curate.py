@@ -266,12 +266,28 @@ def _coverage_check(texts: list[str]) -> int:
     return audit_texts(texts, load_char_tokenizer(TOKENIZER, None)).unk_rows
 
 
+HELDOUT_MANIFEST = Path(__file__).resolve().parent / "heldout_test_videos.json"
+
+
+def _heldout_videos() -> frozenset[str]:
+    """The frozen held-out conversational-test video ids (empty if the manifest is absent)."""
+    import json
+
+    if not HELDOUT_MANIFEST.exists():
+        return frozenset()
+    return frozenset(json.loads(HELDOUT_MANIFEST.read_text())["video_ids"])
+
+
 def cmd_export(args: argparse.Namespace) -> int:
     """Materialize a dataset ablation: store -> omni-parquet under data/datasets/<name>."""
     from omni_curator.export import Selection, export_dataset
     from omni_curator.store import CuratorStore
 
-    selection = Selection(max_duration_seconds=args.max_duration, max_scribe_wer=args.max_wer)
+    heldout = frozenset() if args.no_heldout else _heldout_videos()
+    selection = Selection(
+        max_duration_seconds=args.max_duration, max_scribe_wer=args.max_wer,
+        heldout_test_videos=heldout,
+    )
     store = CuratorStore(DB)
     stats = export_dataset(
         store, DATASETS / args.name, version=0, selection=selection,
@@ -279,7 +295,10 @@ def cmd_export(args: argparse.Namespace) -> int:
     )
     store.close()
     print(f"exported {stats.rows} rows ({stats.hours:.2f} h) -> {DATASETS / args.name}")
+    if heldout:
+        print(f"  held-out conversational test: {len(heldout)} videos carved to split=test")
     print(f"  by corpus: {stats.rows_by_corpus}")
+    print(f"  by split: {stats.rows_by_split}")
     if stats.dropped_quality_total:
         print(f"  dropped by quality filter: {stats.dropped_by_quality}")
     print(f"  coverage gate <unk> rows: {stats.unk_rows}")
@@ -476,6 +495,8 @@ def main(argv: list[str] | None = None) -> int:
     p_ex.add_argument("--max-wer", type=float, default=None, help="drop clips above this WER")
     p_ex.add_argument("--max-duration", type=float, default=OMNI_MAX_DURATION_S)
     p_ex.add_argument("--no-strict", action="store_true", help="warn instead of fail on <unk>")
+    p_ex.add_argument("--no-heldout", action="store_true",
+                      help="do NOT carve the frozen held-out conversational videos to split=test")
     p_ex.set_defaults(func=cmd_export)
 
     args = parser.parse_args(argv)

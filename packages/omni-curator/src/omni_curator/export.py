@@ -139,10 +139,20 @@ class Selection:
     #: censored test set scores against a different exam. Hard structural bounds (duration) and
     #: the value filters (sources/splits/languages) always apply.
     gated_splits: frozenset[str] = frozenset({"train"})
+    #: Video ids (``clip_id`` minus the ``_NNNN`` segment suffix) to carve into a held-out TEST
+    #: split — a leakage-safe, whole-video benchmark for create-pipeline data that has no natural
+    #: dev/test. A held-out clip is still gated as the ``train`` row it is stored as; the PASSING
+    #: ones are regrouped into ``split=test``, the failing ones drop (so no held-out video ever
+    #: reaches train). Pass the frozen manifest's ids.
+    heldout_test_videos: frozenset[str] = frozenset()
 
     def gates(self, sample: Sample) -> bool:
         """Whether the curation gates (WER/CER/language/descriptor) apply to ``sample``."""
-        return sample.split in self.gated_splits
+        return sample.split in self.gated_splits or self.is_heldout(sample)
+
+    def is_heldout(self, sample: Sample) -> bool:
+        """Whether ``sample``'s video is held out (gated as train, then regrouped to test)."""
+        return bool(self.heldout_test_videos) and _video_id(sample) in self.heldout_test_videos
 
     def keeps(self, sample: Sample) -> bool:
         """Whether ``sample`` passes the value/duration/scribe filters (per-source cap later)."""
@@ -281,6 +291,11 @@ def _flac_bytes(audio_path: Path) -> np.ndarray:
     buffer = io.BytesIO()
     sf.write(buffer, samples, SAMPLE_RATE, format="FLAC")
     return np.frombuffer(buffer.getvalue(), dtype=np.int8)
+
+
+def _video_id(sample: Sample) -> str:
+    """The clip's source video id — its ``clip_id`` (``{video_id}_{seg:04d}``) minus the suffix."""
+    return sample.id.rsplit("_", 1)[0]
 
 
 def _select(store: CuratorStore, selection: Selection) -> Iterator[Sample]:
@@ -426,7 +441,11 @@ def _normalize_and_filter(
         if reason is not None:
             dropped[reason] += 1
             continue
-        grouped[sample.source, sample.split, sample.language].append((sample, norm_text))
+        # Held-out clips are stored (and gated) as train; the survivors regroup into the test
+        # partition. A held-out video's failing clips were just dropped above — so the whole
+        # video is either in test or nowhere, never train (no leakage).
+        out_split = "test" if selection.is_heldout(sample) else sample.split
+        grouped[sample.source, out_split, sample.language].append((sample, norm_text))
     return grouped, dict(dropped)
 
 
@@ -549,6 +568,7 @@ def _selection_dict(selection: Selection) -> dict[str, object]:
         "max_words_per_second": selection.max_words_per_second,
         "max_scribe_wer": selection.max_scribe_wer,
         "max_scribe_cer": selection.max_scribe_cer,
+        "heldout_test_videos": len(selection.heldout_test_videos) or None,
     }
 
 
