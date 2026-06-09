@@ -70,7 +70,7 @@ per language project:  ONE master store: data/curator.sqlite
   `pipeline.py`, `align.py`, `fuse/stitch.py`, `fuse/polish.py`, `segmenters/chunks.py`, the package
   `cli.py` + its `omni-curator` entry point, and tajik `cmd_label`. `cut_audio` (the one survivor the
   split needs) moved to `create/audio.py`. Package + both projects pass ruff + ty.
-- [ ] **`create/` reorg** by stage: no single-file folders, no folder-with-one-folder. Stage-ordered: sources → queue/segment → transcribe/labelq → fuse → harvest.
+- [x] **`create/` reorg — DONE (`6c70295b`).** Flat, one module per stage, in pipeline order: `youtube → queue → vad → segment → transcribe → fuse → labelq`. Single-file folders gone; fuse/ package merged to fuse.py (same import path); cut_audio folded into segment.py.
 - [ ] **The language template.** "New language" = copy 5 files (`sources.py`, `curate.py`, `assets.py`, `train.py`, `eval.py`), fill `sources.py`, add ONE normalizer function in the package. Georgian + tajik conformed byte-for-byte; documented in omni-curator. Codex xhigh review before locking.
 - [ ] **Dedup `curate.py`** across georgian/tajik — move the shared CLI/workflow builder into omni-curator (projects pass only language config + paths). Part of the template work.
 - [ ] **Georgian model side:** `assets.py`, `train.py`, `eval.py` (copy from the template once locked).
