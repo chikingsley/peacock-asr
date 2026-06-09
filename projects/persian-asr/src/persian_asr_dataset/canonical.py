@@ -126,7 +126,7 @@ def common_voice_reader(handle: Any) -> csv.DictReader[str]:
 
 
 def stable_bucket(value: str, modulo: int = 10_000) -> int:
-    digest = hashlib.sha1(value.encode("utf-8")).hexdigest()
+    digest = hashlib.sha1(value.encode("utf-8"), usedforsecurity=False).hexdigest()
     return int(digest[:12], 16) % modulo
 
 

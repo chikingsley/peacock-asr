@@ -76,7 +76,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def target_split(source_split: str, include_source_test: bool) -> str | None:
+def target_split(source_split: str, *, include_source_test: bool) -> str | None:
     split = source_split.lower()
     if split in DEV_SOURCE_SPLITS:
         return "dev"
@@ -216,7 +216,9 @@ def export(args: argparse.Namespace) -> dict[str, Any]:
         progress = tqdm(handle, total=total, desc="curated Persian -> omni parquet", unit="utt")
         for line in progress:
             row = json.loads(line)
-            split = target_split(str(row["source_split"]), args.include_source_test)
+            split = target_split(
+                str(row["source_split"]), include_source_test=args.include_source_test
+            )
             if split is None:
                 skipped_by_source_split[str(row["source_split"])] += 1
                 continue

@@ -43,7 +43,7 @@ SKIP = set(
 )
 
 DISCARD = [
-    # "(laughter)" in Farsi
+    # "(laughter)" in Farsi  # noqa: ERA001 — label for the Farsi token below, not dead code
     "(خنده)",
     # ASCII
     "!",

@@ -33,3 +33,6 @@ src/finetune_parakeet/runs/
 # In-package datasets (gitignored in place)
 src/persian_asr_dataset/data/
 src/finetune_omni/data/
+
+# fairseq2 asset cache (regenerated; not source)
+.fairseq2-cache/

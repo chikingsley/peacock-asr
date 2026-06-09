@@ -84,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.dry_run:
         return 0
     args.output_root.mkdir(parents=True, exist_ok=True)
-    subprocess.run(command, check=True)
+    subprocess.run(command, check=True)  # noqa: S603 — trusted operator CLI: list-form argv (no shell); interpreter is the operator-supplied --python path
     return 0
 
 

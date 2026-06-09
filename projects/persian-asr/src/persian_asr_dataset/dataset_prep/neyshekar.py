@@ -86,7 +86,7 @@ def build_parser() -> argparse.ArgumentParser:
 def read_json_rows(path: Path) -> list[dict[str, Any]]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, list):
-        raise ValueError(f"expected a JSON list in {path}")
+        raise TypeError(f"expected a JSON list in {path}")
     return [dict(row) for row in payload]
 
 

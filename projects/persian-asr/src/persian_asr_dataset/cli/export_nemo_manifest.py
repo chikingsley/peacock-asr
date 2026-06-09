@@ -136,7 +136,7 @@ def fetch_samples(args: argparse.Namespace) -> tuple[list[ExportSample], dict[st
 
 
 def hashed_audio_name(sample_id: str) -> Path:
-    digest = hashlib.sha1(sample_id.encode("utf-8")).hexdigest()
+    digest = hashlib.sha1(sample_id.encode("utf-8"), usedforsecurity=False).hexdigest()
     return Path(digest[:2]) / f"{digest}.flac"
 
 
@@ -164,7 +164,7 @@ def omni_audio_bytes(row: dict[str, Any]) -> bytes:
     return np.asarray(audio_values, dtype=np.int8).tobytes()
 
 
-def materialize_file_audio(samples: list[ExportSample], overwrite: bool) -> dict[str, str]:
+def materialize_file_audio(samples: list[ExportSample], *, overwrite: bool) -> dict[str, str]:
     progress = tqdm(samples, desc="materialize file audio", unit="utt")
     for sample in samples:
         if sample.audio_path.exists() and not overwrite:
@@ -189,14 +189,14 @@ def decode_to_16k_mono(encoded: bytes) -> np.ndarray:
     return np.asarray(waveform, dtype=np.float32)
 
 
-def materialize_audio(samples: list[ExportSample], overwrite: bool) -> dict[str, str]:
+def materialize_audio(samples: list[ExportSample], *, overwrite: bool) -> dict[str, str]:
     file_samples = [
         sample for sample in samples if sample.storage_kind == "common_voice_audio_file"
     ]
     parquet_samples = [
         sample for sample in samples if sample.storage_kind != "common_voice_audio_file"
     ]
-    failures = materialize_file_audio(file_samples, overwrite) if file_samples else {}
+    failures = materialize_file_audio(file_samples, overwrite=overwrite) if file_samples else {}
 
     by_parquet: dict[Path, list[tuple[ExportSample, int]]] = defaultdict(list)
     for sample in parquet_samples:

@@ -66,7 +66,12 @@ def run_pipeline(args: argparse.Namespace) -> None:
     from nemo_curator.tasks import AudioBatch, DocumentBatch
 
     class DecoderInferenceAsrNemoStage(InferenceAsrNemoStage):
-        def __init__(self, *stage_args, decoder_type: str = "ctc", **stage_kwargs) -> None:
+        def __init__(
+            self,
+            *stage_args: object,
+            decoder_type: str = "ctc",
+            **stage_kwargs: object,
+        ) -> None:
             super().__init__(*stage_args, **stage_kwargs)
             self.decoder_type = decoder_type
 

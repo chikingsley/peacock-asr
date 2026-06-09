@@ -8,7 +8,10 @@ from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 import jiwer
 from superwhisper_api.audio.models import audio_model
@@ -346,7 +349,7 @@ def record_failure(
 
 def submit_next(
     pool: ThreadPoolExecutor,
-    process_fn,
+    process_fn: Callable[[Path], TranscriptResult],
     items: list[dict[str, Any]],
     futures: dict[Future[TranscriptResult], dict[str, Any]],
     index: list[int],

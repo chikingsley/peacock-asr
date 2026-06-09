@@ -51,7 +51,7 @@ def connect(path: Path) -> sqlite3.Connection:
     return connection
 
 
-def create_table(connection: sqlite3.Connection, replace: bool) -> None:
+def create_table(connection: sqlite3.Connection, *, replace: bool) -> None:
     if replace:
         connection.execute("DROP TABLE IF EXISTS scribe_curation")
     connection.executescript(
@@ -265,7 +265,7 @@ def upsert_rows(connection: sqlite3.Connection, values: list[tuple[Any, ...]]) -
     )
 
 
-def build(database: Path, rows_path: Path, replace: bool) -> BuildStats:
+def build(database: Path, rows_path: Path, *, replace: bool) -> BuildStats:
     connection = connect(database)
     now = utc_now()
     stats = {
@@ -278,7 +278,7 @@ def build(database: Path, rows_path: Path, replace: bool) -> BuildStats:
         "pending_classification": 0,
     }
     try:
-        create_table(connection, replace)
+        create_table(connection, replace=replace)
         lookup = scribe_results(connection)
         batch: list[tuple[Any, ...]] = []
         with rows_path.open(encoding="utf-8") as handle:

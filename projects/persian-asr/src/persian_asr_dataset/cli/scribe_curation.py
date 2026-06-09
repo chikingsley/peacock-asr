@@ -16,7 +16,10 @@ from superwhisper_api.text.client import SuperwhisperClient, json_schema_respons
 from superwhisper_api.text.models import model_spec
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable, Iterable
+
+    ClassifyOneFn = Callable[[sqlite3.Row, SuperwhisperClient, str, int], dict[str, Any]]
+    _ClassifyResult = tuple[sqlite3.Row, dict[str, Any] | None, str | None]
 
 
 DEFAULT_DATABASE = Path(
@@ -2167,7 +2170,13 @@ def print_rows_jsonl(rows: list[dict[str, Any]]) -> None:
         print(json.dumps(row, ensure_ascii=False, sort_keys=True))
 
 
-def manifest_where_sql(surface: str, include_script_reviews: bool, task: str, model: str) -> str:
+def manifest_where_sql(
+    surface: str,
+    task: str,
+    model: str,
+    *,
+    include_script_reviews: bool,
+) -> str:
     base = require_surface(surface)
     if not include_script_reviews:
         return f"({base})"
@@ -2449,16 +2458,19 @@ def write_summary_md(output_root: Path, stats: ExportStats) -> None:
     (output_root / "summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def export_manifest(  # noqa: PLR0913
+def export_manifest(
     connection: sqlite3.Connection,
     surface: str,
     output_root: Path,
     splits: list[str],
-    include_script_reviews: bool,
     task: str,
     model: str,
+    *,
+    include_script_reviews: bool,
 ) -> ExportStats:
-    where_sql = manifest_where_sql(surface, include_script_reviews, task, model)
+    where_sql = manifest_where_sql(
+        surface, task, model, include_script_reviews=include_script_reviews
+    )
     manifest_dir = output_root / "manifests"
     manifest_dir.mkdir(parents=True, exist_ok=True)
     rows_written = 0
@@ -2497,7 +2509,7 @@ def export_manifest(  # noqa: PLR0913
     return stats
 
 
-def review_manifest_rows(  # noqa: PLR0913
+def review_manifest_rows(
     connection: sqlite3.Connection,
     task: str,
     model: str,
@@ -2548,7 +2560,7 @@ def review_manifest_payload(row: sqlite3.Row) -> dict[str, Any]:
     return payload
 
 
-def export_review_manifest(  # noqa: PLR0913
+def export_review_manifest(
     connection: sqlite3.Connection,
     output: Path,
     task: str,
@@ -2686,7 +2698,7 @@ def asr_queue_manifest_payload(row: sqlite3.Row, queue: str) -> dict[str, Any]:
     }
 
 
-def export_asr_queue_manifest(  # noqa: PLR0913
+def export_asr_queue_manifest(
     connection: sqlite3.Connection,
     output: Path,
     queue: str,
@@ -2965,7 +2977,10 @@ def coerce_review_text(value: Any) -> str:
 
 def normalize_review_text_fields(response: Any) -> dict[str, Any]:
     if not isinstance(response, dict):
-        raise ValueError("classifier response must be a JSON object")
+        # Intentionally ValueError, not TypeError: this runs inside the classify retry
+        # loop / worker (both catch `except Exception`); changing the type would be a
+        # silent deviation from the pre-refactor contract.
+        raise ValueError("classifier response must be a JSON object")  # noqa: TRY004
     normalized = dict(response)
     normalized["reason"] = coerce_review_text(normalized["reason"])
     normalized["evidence"] = coerce_review_text(normalized["evidence"])
@@ -3161,7 +3176,7 @@ def asr_recovery_flag_case(alias: str = "asr") -> str:
     """
 
 
-def pending_asr_recovery_rows(  # noqa: PLR0913
+def pending_asr_recovery_rows(
     connection: sqlite3.Connection,
     task: str,
     model: str,
@@ -3561,18 +3576,50 @@ def classify_consensus_label_one(
     return dict(response)
 
 
-def classify_script_rows(  # noqa: PLR0913
+def _run_bounded(
+    rows: list[sqlite3.Row],
+    worker: Callable[[sqlite3.Row], _ClassifyResult],
+    on_result: Callable[[_ClassifyResult], None],
+    max_workers: int,
+) -> None:
+    """Map ``worker`` over ``rows`` with at most ~``max_workers`` in flight, streaming
+    each result to ``on_result`` as it completes (order-independent)."""
+    max_in_flight = max(max_workers * 4, max_workers)
+    index = 0
+    futures: dict[Future[_ClassifyResult], sqlite3.Row] = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as pool:
+        while index < len(rows) and len(futures) < max_in_flight:
+            futures[pool.submit(worker, rows[index])] = rows[index]
+            index += 1
+        while futures:
+            done, _ = wait(set(futures), return_when=FIRST_COMPLETED)
+            for future in done:
+                futures.pop(future)
+                on_result(future.result())
+                while index < len(rows) and len(futures) < max_in_flight:
+                    futures[pool.submit(worker, rows[index])] = rows[index]
+                    index += 1
+
+
+def _run_classification(
     connection: sqlite3.Connection,
     task: str,
     model: str,
-    limit: int,
+    rows: list[sqlite3.Row],
+    skipped_existing: int,
+    classify_one_fn: ClassifyOneFn,
     max_workers: int,
     max_tokens: int,
 ) -> ReviewStats:
-    rows, skipped_existing = pending_script_rows(connection, task, model, limit)
+    """Run ``classify_one_fn`` over ``rows`` with bounded parallelism and persist results.
+
+    Shared engine for the ``classify_*_rows`` entry points: they differ only in which
+    pending-row query feeds ``rows`` and which per-row classifier is passed here.
+    """
+    db_path = connection.execute("PRAGMA database_list").fetchone()["file"]
     if not rows:
         return ReviewStats(
-            database=connection.execute("PRAGMA database_list").fetchone()["file"],
+            database=db_path,
             task=task,
             model=model,
             selected=0,
@@ -3587,39 +3634,25 @@ def classify_script_rows(  # noqa: PLR0913
     counters = {"reviewed": 0, "failed": 0}
     failures: list[str] = []
 
-    def worker(item: sqlite3.Row) -> tuple[sqlite3.Row, dict[str, Any] | None, str | None]:
+    def worker(item: sqlite3.Row) -> _ClassifyResult:
         try:
-            return item, classify_one(item, client, model, max_tokens), None
+            return item, classify_one_fn(item, client, model, max_tokens), None
         except Exception as exc:  # noqa: BLE001 - batch review should continue and report failures.
             return item, None, f"{type(exc).__name__}: {exc}"
 
-    max_in_flight = max(max_workers * 4, max_workers)
-    index = 0
-    futures: dict[Future[tuple[sqlite3.Row, dict[str, Any] | None, str | None]], sqlite3.Row] = {}
-    with ThreadPoolExecutor(max_workers=max_workers) as pool:
-        while index < len(rows) and len(futures) < max_in_flight:
-            futures[pool.submit(worker, rows[index])] = rows[index]
-            index += 1
-        while futures:
-            done, _ = wait(set(futures), return_when=FIRST_COMPLETED)
-            for future in done:
-                _item = futures.pop(future)
-                row, classification, error = future.result()
-                if classification is None:
-                    counters["failed"] += 1
-                    failures.append(f"{row['job_order']}: {error}")
-                    print(f"FAIL {row['job_order']}: {error}", file=sys.stderr)
-                else:
-                    with write_lock:
-                        store_review(connection, row, task, model, classification)
-                    counters["reviewed"] += 1
-                    print(
-                        f"OK {row['job_order']}: {classification['decision']}",
-                        file=sys.stderr,
-                    )
-                while index < len(rows) and len(futures) < max_in_flight:
-                    futures[pool.submit(worker, rows[index])] = rows[index]
-                    index += 1
+    def on_result(result: _ClassifyResult) -> None:
+        row, classification, error = result
+        if classification is None:
+            counters["failed"] += 1
+            failures.append(f"{row['job_order']}: {error}")
+            print(f"FAIL {row['job_order']}: {error}", file=sys.stderr)
+            return
+        with write_lock:
+            store_review(connection, row, task, model, classification)
+        counters["reviewed"] += 1
+        print(f"OK {row['job_order']}: {classification['decision']}", file=sys.stderr)
+
+    _run_bounded(rows, worker, on_result, max_workers)
 
     if failures:
         print("Failures:", file=sys.stderr)
@@ -3627,7 +3660,7 @@ def classify_script_rows(  # noqa: PLR0913
             print(failure, file=sys.stderr)
 
     return ReviewStats(
-        database=connection.execute("PRAGMA database_list").fetchone()["file"],
+        database=db_path,
         task=task,
         model=model,
         selected=len(rows),
@@ -3637,7 +3670,28 @@ def classify_script_rows(  # noqa: PLR0913
     )
 
 
-def classify_asr_rescue_rows(  # noqa: PLR0913
+def classify_script_rows(
+    connection: sqlite3.Connection,
+    task: str,
+    model: str,
+    limit: int,
+    max_workers: int,
+    max_tokens: int,
+) -> ReviewStats:
+    rows, skipped_existing = pending_script_rows(connection, task, model, limit)
+    return _run_classification(
+        connection,
+        task,
+        model,
+        rows,
+        skipped_existing,
+        classify_one,
+        max_workers,
+        max_tokens,
+    )
+
+
+def classify_asr_rescue_rows(
     connection: sqlite3.Connection,
     task: str,
     model: str,
@@ -3647,74 +3701,19 @@ def classify_asr_rescue_rows(  # noqa: PLR0913
     flags: list[str],
 ) -> ReviewStats:
     rows, skipped_existing = pending_asr_rescue_rows(connection, task, model, limit, flags)
-    if not rows:
-        return ReviewStats(
-            database=connection.execute("PRAGMA database_list").fetchone()["file"],
-            task=task,
-            model=model,
-            selected=0,
-            reviewed=0,
-            failed=0,
-            skipped_existing=skipped_existing,
-        )
-
-    client = SuperwhisperClient()
-    model_spec(model)
-    write_lock = threading.Lock()
-    counters = {"reviewed": 0, "failed": 0}
-    failures: list[str] = []
-
-    def worker(item: sqlite3.Row) -> tuple[sqlite3.Row, dict[str, Any] | None, str | None]:
-        try:
-            return item, classify_asr_rescue_one(item, client, model, max_tokens), None
-        except Exception as exc:  # noqa: BLE001 - batch review should continue and report failures.
-            return item, None, f"{type(exc).__name__}: {exc}"
-
-    max_in_flight = max(max_workers * 4, max_workers)
-    index = 0
-    futures: dict[Future[tuple[sqlite3.Row, dict[str, Any] | None, str | None]], sqlite3.Row] = {}
-    with ThreadPoolExecutor(max_workers=max_workers) as pool:
-        while index < len(rows) and len(futures) < max_in_flight:
-            futures[pool.submit(worker, rows[index])] = rows[index]
-            index += 1
-        while futures:
-            done, _ = wait(set(futures), return_when=FIRST_COMPLETED)
-            for future in done:
-                _item = futures.pop(future)
-                row, classification, error = future.result()
-                if classification is None:
-                    counters["failed"] += 1
-                    failures.append(f"{row['job_order']}: {error}")
-                    print(f"FAIL {row['job_order']}: {error}", file=sys.stderr)
-                else:
-                    with write_lock:
-                        store_review(connection, row, task, model, classification)
-                    counters["reviewed"] += 1
-                    print(
-                        f"OK {row['job_order']}: {classification['decision']}",
-                        file=sys.stderr,
-                    )
-                while index < len(rows) and len(futures) < max_in_flight:
-                    futures[pool.submit(worker, rows[index])] = rows[index]
-                    index += 1
-
-    if failures:
-        print("Failures:", file=sys.stderr)
-        for failure in failures[:20]:
-            print(failure, file=sys.stderr)
-
-    return ReviewStats(
-        database=connection.execute("PRAGMA database_list").fetchone()["file"],
-        task=task,
-        model=model,
-        selected=len(rows),
-        reviewed=counters["reviewed"],
-        failed=counters["failed"],
-        skipped_existing=skipped_existing,
+    return _run_classification(
+        connection,
+        task,
+        model,
+        rows,
+        skipped_existing,
+        classify_asr_rescue_one,
+        max_workers,
+        max_tokens,
     )
 
 
-def classify_asr_recovery_rows(  # noqa: PLR0913
+def classify_asr_recovery_rows(
     connection: sqlite3.Connection,
     task: str,
     model: str,
@@ -3734,74 +3733,19 @@ def classify_asr_recovery_rows(  # noqa: PLR0913
         asr_model_label,
         flags,
     )
-    if not rows:
-        return ReviewStats(
-            database=connection.execute("PRAGMA database_list").fetchone()["file"],
-            task=task,
-            model=model,
-            selected=0,
-            reviewed=0,
-            failed=0,
-            skipped_existing=skipped_existing,
-        )
-
-    client = SuperwhisperClient()
-    model_spec(model)
-    write_lock = threading.Lock()
-    counters = {"reviewed": 0, "failed": 0}
-    failures: list[str] = []
-
-    def worker(item: sqlite3.Row) -> tuple[sqlite3.Row, dict[str, Any] | None, str | None]:
-        try:
-            return item, classify_asr_recovery_one(item, client, model, max_tokens), None
-        except Exception as exc:  # noqa: BLE001 - batch review should continue and report failures.
-            return item, None, f"{type(exc).__name__}: {exc}"
-
-    max_in_flight = max(max_workers * 4, max_workers)
-    index = 0
-    futures: dict[Future[tuple[sqlite3.Row, dict[str, Any] | None, str | None]], sqlite3.Row] = {}
-    with ThreadPoolExecutor(max_workers=max_workers) as pool:
-        while index < len(rows) and len(futures) < max_in_flight:
-            futures[pool.submit(worker, rows[index])] = rows[index]
-            index += 1
-        while futures:
-            done, _ = wait(set(futures), return_when=FIRST_COMPLETED)
-            for future in done:
-                _item = futures.pop(future)
-                row, classification, error = future.result()
-                if classification is None:
-                    counters["failed"] += 1
-                    failures.append(f"{row['job_order']}: {error}")
-                    print(f"FAIL {row['job_order']}: {error}", file=sys.stderr)
-                else:
-                    with write_lock:
-                        store_review(connection, row, task, model, classification)
-                    counters["reviewed"] += 1
-                    print(
-                        f"OK {row['job_order']}: {classification['decision']}",
-                        file=sys.stderr,
-                    )
-                while index < len(rows) and len(futures) < max_in_flight:
-                    futures[pool.submit(worker, rows[index])] = rows[index]
-                    index += 1
-
-    if failures:
-        print("Failures:", file=sys.stderr)
-        for failure in failures[:20]:
-            print(failure, file=sys.stderr)
-
-    return ReviewStats(
-        database=connection.execute("PRAGMA database_list").fetchone()["file"],
-        task=task,
-        model=model,
-        selected=len(rows),
-        reviewed=counters["reviewed"],
-        failed=counters["failed"],
-        skipped_existing=skipped_existing,
+    return _run_classification(
+        connection,
+        task,
+        model,
+        rows,
+        skipped_existing,
+        classify_asr_recovery_one,
+        max_workers,
+        max_tokens,
     )
 
 
-def classify_text_recovery_rows(  # noqa: PLR0913
+def classify_text_recovery_rows(
     connection: sqlite3.Connection,
     task: str,
     model: str,
@@ -3817,74 +3761,19 @@ def classify_text_recovery_rows(  # noqa: PLR0913
         limit,
         queue,
     )
-    if not rows:
-        return ReviewStats(
-            database=connection.execute("PRAGMA database_list").fetchone()["file"],
-            task=task,
-            model=model,
-            selected=0,
-            reviewed=0,
-            failed=0,
-            skipped_existing=skipped_existing,
-        )
-
-    client = SuperwhisperClient()
-    model_spec(model)
-    write_lock = threading.Lock()
-    counters = {"reviewed": 0, "failed": 0}
-    failures: list[str] = []
-
-    def worker(item: sqlite3.Row) -> tuple[sqlite3.Row, dict[str, Any] | None, str | None]:
-        try:
-            return item, classify_text_recovery_one(item, client, model, max_tokens), None
-        except Exception as exc:  # noqa: BLE001 - batch review should continue and report failures.
-            return item, None, f"{type(exc).__name__}: {exc}"
-
-    max_in_flight = max(max_workers * 4, max_workers)
-    index = 0
-    futures: dict[Future[tuple[sqlite3.Row, dict[str, Any] | None, str | None]], sqlite3.Row] = {}
-    with ThreadPoolExecutor(max_workers=max_workers) as pool:
-        while index < len(rows) and len(futures) < max_in_flight:
-            futures[pool.submit(worker, rows[index])] = rows[index]
-            index += 1
-        while futures:
-            done, _ = wait(set(futures), return_when=FIRST_COMPLETED)
-            for future in done:
-                _item = futures.pop(future)
-                row, classification, error = future.result()
-                if classification is None:
-                    counters["failed"] += 1
-                    failures.append(f"{row['job_order']}: {error}")
-                    print(f"FAIL {row['job_order']}: {error}", file=sys.stderr)
-                else:
-                    with write_lock:
-                        store_review(connection, row, task, model, classification)
-                    counters["reviewed"] += 1
-                    print(
-                        f"OK {row['job_order']}: {classification['decision']}",
-                        file=sys.stderr,
-                    )
-                while index < len(rows) and len(futures) < max_in_flight:
-                    futures[pool.submit(worker, rows[index])] = rows[index]
-                    index += 1
-
-    if failures:
-        print("Failures:", file=sys.stderr)
-        for failure in failures[:20]:
-            print(failure, file=sys.stderr)
-
-    return ReviewStats(
-        database=connection.execute("PRAGMA database_list").fetchone()["file"],
-        task=task,
-        model=model,
-        selected=len(rows),
-        reviewed=counters["reviewed"],
-        failed=counters["failed"],
-        skipped_existing=skipped_existing,
+    return _run_classification(
+        connection,
+        task,
+        model,
+        rows,
+        skipped_existing,
+        classify_text_recovery_one,
+        max_workers,
+        max_tokens,
     )
 
 
-def classify_consensus_label_rows(  # noqa: PLR0913
+def classify_consensus_label_rows(
     connection: sqlite3.Connection,
     task: str,
     model: str,
@@ -3893,70 +3782,15 @@ def classify_consensus_label_rows(  # noqa: PLR0913
     max_tokens: int,
 ) -> ReviewStats:
     rows, skipped_existing = pending_consensus_label_rows(connection, task, model, limit)
-    if not rows:
-        return ReviewStats(
-            database=connection.execute("PRAGMA database_list").fetchone()["file"],
-            task=task,
-            model=model,
-            selected=0,
-            reviewed=0,
-            failed=0,
-            skipped_existing=skipped_existing,
-        )
-
-    client = SuperwhisperClient()
-    model_spec(model)
-    write_lock = threading.Lock()
-    counters = {"reviewed": 0, "failed": 0}
-    failures: list[str] = []
-
-    def worker(item: sqlite3.Row) -> tuple[sqlite3.Row, dict[str, Any] | None, str | None]:
-        try:
-            return item, classify_consensus_label_one(item, client, model, max_tokens), None
-        except Exception as exc:  # noqa: BLE001 - batch review should continue and report failures.
-            return item, None, f"{type(exc).__name__}: {exc}"
-
-    max_in_flight = max(max_workers * 4, max_workers)
-    index = 0
-    futures: dict[Future[tuple[sqlite3.Row, dict[str, Any] | None, str | None]], sqlite3.Row] = {}
-    with ThreadPoolExecutor(max_workers=max_workers) as pool:
-        while index < len(rows) and len(futures) < max_in_flight:
-            futures[pool.submit(worker, rows[index])] = rows[index]
-            index += 1
-        while futures:
-            done, _ = wait(set(futures), return_when=FIRST_COMPLETED)
-            for future in done:
-                _item = futures.pop(future)
-                row, classification, error = future.result()
-                if classification is None:
-                    counters["failed"] += 1
-                    failures.append(f"{row['job_order']}: {error}")
-                    print(f"FAIL {row['job_order']}: {error}", file=sys.stderr)
-                else:
-                    with write_lock:
-                        store_review(connection, row, task, model, classification)
-                    counters["reviewed"] += 1
-                    print(
-                        f"OK {row['job_order']}: {classification['decision']}",
-                        file=sys.stderr,
-                    )
-                while index < len(rows) and len(futures) < max_in_flight:
-                    futures[pool.submit(worker, rows[index])] = rows[index]
-                    index += 1
-
-    if failures:
-        print("Failures:", file=sys.stderr)
-        for failure in failures[:20]:
-            print(failure, file=sys.stderr)
-
-    return ReviewStats(
-        database=connection.execute("PRAGMA database_list").fetchone()["file"],
-        task=task,
-        model=model,
-        selected=len(rows),
-        reviewed=counters["reviewed"],
-        failed=counters["failed"],
-        skipped_existing=skipped_existing,
+    return _run_classification(
+        connection,
+        task,
+        model,
+        rows,
+        skipped_existing,
+        classify_consensus_label_one,
+        max_workers,
+        max_tokens,
     )
 
 
@@ -4071,163 +3905,214 @@ def build_parser() -> argparse.ArgumentParser:  # noqa: PLR0915
     return parser
 
 
-def run_with_connection(args: argparse.Namespace) -> int:  # noqa: PLR0911, PLR0912, PLR0915
+def _cmd_report(connection: sqlite3.Connection, args: argparse.Namespace) -> int:
+    payload = report_payload(connection, args.review_task, args.review_model)
+    if args.format == "markdown":
+        print_report_markdown(payload)
+    else:
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+    return 0
+
+
+def _cmd_sample(connection: sqlite3.Connection, args: argparse.Namespace) -> int:
+    where_sql = (
+        require_surface(args.surface)
+        if args.surface
+        else f"row_decision = {_quote_sql_text(args.decision)}"
+    )
+    rows = sample_rows(connection, where_sql, args.limit)
+    if args.format == "markdown":
+        print_markdown_table(
+            rows,
+            [
+                "job_order",
+                "row_decision",
+                "audit_difference_category",
+                "wer",
+                "cer",
+                "raw_reference_text",
+                "resolved_raw_scribe_text",
+            ],
+        )
+    else:
+        print_rows_jsonl(rows)
+    return 0
+
+
+def _cmd_export_manifest(connection: sqlite3.Connection, args: argparse.Namespace) -> int:
+    splits = args.split or ["train", "dev", "test"]
+    export_stats = export_manifest(
+        connection=connection,
+        surface=args.surface,
+        output_root=args.output_root.expanduser(),
+        splits=splits,
+        include_script_reviews=args.include_script_reviews,
+        task=args.review_task,
+        model=args.review_model,
+    )
+    print(json.dumps(asdict(export_stats), ensure_ascii=False, indent=2))
+    return 0
+
+
+def _cmd_export_review_manifest(connection: sqlite3.Connection, args: argparse.Namespace) -> int:
+    decisions = args.decision or [
+        "same_speech_wrong_script",
+        "same_speech_minor_mixed_script",
+    ]
+    review_manifest_stats = export_review_manifest(
+        connection=connection,
+        output=args.output,
+        task=args.task,
+        model=args.review_model,
+        decisions=decisions,
+        limit=args.limit,
+        max_duration=args.max_duration,
+    )
+    print(json.dumps(asdict(review_manifest_stats), ensure_ascii=False, indent=2))
+    return 0
+
+
+def _cmd_export_asr_queue_manifest(
+    connection: sqlite3.Connection,
+    args: argparse.Namespace,
+) -> int:
+    asr_manifest_stats = export_asr_queue_manifest(
+        connection=connection,
+        output=args.output,
+        queue=args.queue,
+        limit=args.limit,
+        max_duration=args.max_duration,
+        exclude_existing_model_label=args.exclude_existing_model_label,
+    )
+    print(json.dumps(asdict(asr_manifest_stats), ensure_ascii=False, indent=2))
+    return 0
+
+
+def _cmd_import_asr_check(connection: sqlite3.Connection, args: argparse.Namespace) -> int:
+    asr_check_stats = import_asr_check(
+        connection=connection,
+        manifest=args.manifest,
+        samples=args.samples,
+        model_label=args.model_label,
+    )
+    print(json.dumps(asdict(asr_check_stats), ensure_ascii=False, indent=2))
+    return 0
+
+
+def _cmd_classify_script(connection: sqlite3.Connection, args: argparse.Namespace) -> int:
+    review_stats = classify_script_rows(
+        connection=connection,
+        task=args.task,
+        model=args.model,
+        limit=args.limit,
+        max_workers=args.max_workers,
+        max_tokens=args.max_tokens,
+    )
+    print(json.dumps(asdict(review_stats), ensure_ascii=False, indent=2))
+    return 0 if review_stats.failed == 0 else 1
+
+
+def _cmd_classify_asr_rescue(connection: sqlite3.Connection, args: argparse.Namespace) -> int:
+    flags = args.flag or ["strong_rescue_review", "weak_rescue_review"]
+    review_stats = classify_asr_rescue_rows(
+        connection=connection,
+        task=args.task,
+        model=args.model,
+        limit=args.limit,
+        max_workers=args.max_workers,
+        max_tokens=args.max_tokens,
+        flags=flags,
+    )
+    print(json.dumps(asdict(review_stats), ensure_ascii=False, indent=2))
+    return 0 if review_stats.failed == 0 else 1
+
+
+def _cmd_classify_asr_recovery(connection: sqlite3.Connection, args: argparse.Namespace) -> int:
+    flags = args.flag or [
+        "asr_exact_reference",
+        "asr_strong_reference",
+        "asr_possible_reference",
+    ]
+    review_stats = classify_asr_recovery_rows(
+        connection=connection,
+        task=args.task,
+        model=args.model,
+        limit=args.limit,
+        max_workers=args.max_workers,
+        max_tokens=args.max_tokens,
+        queue=args.queue,
+        asr_model_label=args.asr_model_label,
+        flags=flags,
+    )
+    print(json.dumps(asdict(review_stats), ensure_ascii=False, indent=2))
+    return 0 if review_stats.failed == 0 else 1
+
+
+def _cmd_classify_text_recovery(connection: sqlite3.Connection, args: argparse.Namespace) -> int:
+    review_stats = classify_text_recovery_rows(
+        connection=connection,
+        task=args.task,
+        model=args.model,
+        limit=args.limit,
+        max_workers=args.max_workers,
+        max_tokens=args.max_tokens,
+        queue=args.queue,
+    )
+    print(json.dumps(asdict(review_stats), ensure_ascii=False, indent=2))
+    return 0 if review_stats.failed == 0 else 1
+
+
+def _cmd_classify_consensus_label(
+    connection: sqlite3.Connection,
+    args: argparse.Namespace,
+) -> int:
+    review_stats = classify_consensus_label_rows(
+        connection=connection,
+        task=args.task,
+        model=args.model,
+        limit=args.limit,
+        max_workers=args.max_workers,
+        max_tokens=args.max_tokens,
+    )
+    print(json.dumps(asdict(review_stats), ensure_ascii=False, indent=2))
+    return 0 if review_stats.failed == 0 else 1
+
+
+def _cmd_review_summary(connection: sqlite3.Connection, _args: argparse.Namespace) -> int:
+    payload = review_counts(connection, SAME_SPEECH_TASK, None)
+    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    return 0
+
+
+# Commands that only need (connection, args). `install-views` is handled separately
+# because it is the one command that consumes the ViewStats returned by the shared setup.
+_COMMANDS: dict[str, Callable[[sqlite3.Connection, argparse.Namespace], int]] = {
+    "report": _cmd_report,
+    "sample": _cmd_sample,
+    "export-manifest": _cmd_export_manifest,
+    "export-review-manifest": _cmd_export_review_manifest,
+    "export-asr-queue-manifest": _cmd_export_asr_queue_manifest,
+    "import-asr-check": _cmd_import_asr_check,
+    "classify-script": _cmd_classify_script,
+    "classify-asr-rescue": _cmd_classify_asr_rescue,
+    "classify-asr-recovery": _cmd_classify_asr_recovery,
+    "classify-text-recovery": _cmd_classify_text_recovery,
+    "classify-consensus-label": _cmd_classify_consensus_label,
+    "review-summary": _cmd_review_summary,
+}
+
+
+def run_with_connection(args: argparse.Namespace) -> int:
     connection = connect(args.database)
     try:
         stats = install_views(connection)
         if args.command == "install-views":
             print(json.dumps(asdict(stats), ensure_ascii=False, indent=2))
             return 0
-        if args.command == "report":
-            payload = report_payload(connection, args.review_task, args.review_model)
-            if args.format == "markdown":
-                print_report_markdown(payload)
-            else:
-                print(json.dumps(payload, ensure_ascii=False, indent=2))
-            return 0
-        if args.command == "sample":
-            where_sql = (
-                require_surface(args.surface)
-                if args.surface
-                else f"row_decision = {_quote_sql_text(args.decision)}"
-            )
-            rows = sample_rows(connection, where_sql, args.limit)
-            if args.format == "markdown":
-                print_markdown_table(
-                    rows,
-                    [
-                        "job_order",
-                        "row_decision",
-                        "audit_difference_category",
-                        "wer",
-                        "cer",
-                        "raw_reference_text",
-                        "resolved_raw_scribe_text",
-                    ],
-                )
-            else:
-                print_rows_jsonl(rows)
-            return 0
-        if args.command == "export-manifest":
-            splits = args.split or ["train", "dev", "test"]
-            export_stats = export_manifest(
-                connection=connection,
-                surface=args.surface,
-                output_root=args.output_root.expanduser(),
-                splits=splits,
-                include_script_reviews=args.include_script_reviews,
-                task=args.review_task,
-                model=args.review_model,
-            )
-            print(json.dumps(asdict(export_stats), ensure_ascii=False, indent=2))
-            return 0
-        if args.command == "export-review-manifest":
-            decisions = args.decision or [
-                "same_speech_wrong_script",
-                "same_speech_minor_mixed_script",
-            ]
-            review_manifest_stats = export_review_manifest(
-                connection=connection,
-                output=args.output,
-                task=args.task,
-                model=args.review_model,
-                decisions=decisions,
-                limit=args.limit,
-                max_duration=args.max_duration,
-            )
-            print(json.dumps(asdict(review_manifest_stats), ensure_ascii=False, indent=2))
-            return 0
-        if args.command == "export-asr-queue-manifest":
-            asr_manifest_stats = export_asr_queue_manifest(
-                connection=connection,
-                output=args.output,
-                queue=args.queue,
-                limit=args.limit,
-                max_duration=args.max_duration,
-                exclude_existing_model_label=args.exclude_existing_model_label,
-            )
-            print(json.dumps(asdict(asr_manifest_stats), ensure_ascii=False, indent=2))
-            return 0
-        if args.command == "import-asr-check":
-            asr_check_stats = import_asr_check(
-                connection=connection,
-                manifest=args.manifest,
-                samples=args.samples,
-                model_label=args.model_label,
-            )
-            print(json.dumps(asdict(asr_check_stats), ensure_ascii=False, indent=2))
-            return 0
-        if args.command == "classify-script":
-            review_stats = classify_script_rows(
-                connection=connection,
-                task=args.task,
-                model=args.model,
-                limit=args.limit,
-                max_workers=args.max_workers,
-                max_tokens=args.max_tokens,
-            )
-            print(json.dumps(asdict(review_stats), ensure_ascii=False, indent=2))
-            return 0 if review_stats.failed == 0 else 1
-        if args.command == "classify-asr-rescue":
-            flags = args.flag or ["strong_rescue_review", "weak_rescue_review"]
-            review_stats = classify_asr_rescue_rows(
-                connection=connection,
-                task=args.task,
-                model=args.model,
-                limit=args.limit,
-                max_workers=args.max_workers,
-                max_tokens=args.max_tokens,
-                flags=flags,
-            )
-            print(json.dumps(asdict(review_stats), ensure_ascii=False, indent=2))
-            return 0 if review_stats.failed == 0 else 1
-        if args.command == "classify-asr-recovery":
-            flags = args.flag or [
-                "asr_exact_reference",
-                "asr_strong_reference",
-                "asr_possible_reference",
-            ]
-            review_stats = classify_asr_recovery_rows(
-                connection=connection,
-                task=args.task,
-                model=args.model,
-                limit=args.limit,
-                max_workers=args.max_workers,
-                max_tokens=args.max_tokens,
-                queue=args.queue,
-                asr_model_label=args.asr_model_label,
-                flags=flags,
-            )
-            print(json.dumps(asdict(review_stats), ensure_ascii=False, indent=2))
-            return 0 if review_stats.failed == 0 else 1
-        if args.command == "classify-text-recovery":
-            review_stats = classify_text_recovery_rows(
-                connection=connection,
-                task=args.task,
-                model=args.model,
-                limit=args.limit,
-                max_workers=args.max_workers,
-                max_tokens=args.max_tokens,
-                queue=args.queue,
-            )
-            print(json.dumps(asdict(review_stats), ensure_ascii=False, indent=2))
-            return 0 if review_stats.failed == 0 else 1
-        if args.command == "classify-consensus-label":
-            review_stats = classify_consensus_label_rows(
-                connection=connection,
-                task=args.task,
-                model=args.model,
-                limit=args.limit,
-                max_workers=args.max_workers,
-                max_tokens=args.max_tokens,
-            )
-            print(json.dumps(asdict(review_stats), ensure_ascii=False, indent=2))
-            return 0 if review_stats.failed == 0 else 1
-        if args.command == "review-summary":
-            payload = review_counts(connection, SAME_SPEECH_TASK, None)
-            print(json.dumps(payload, ensure_ascii=False, indent=2))
-            return 0
-        raise SystemExit(f"unknown command: {args.command}")
+        handler = _COMMANDS.get(args.command)
+        if handler is None:
+            raise SystemExit(f"unknown command: {args.command}")
+        return handler(connection, args)
     finally:
         connection.close()
 

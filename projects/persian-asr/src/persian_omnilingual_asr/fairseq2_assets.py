@@ -128,6 +128,14 @@ MODEL_CARDS = [
         "omni_ctc_300m_v2_scribe_v4_baseline_step34000",
         _sharded(_FT_RUNS / "scribe-v4/ws_1.760d57f2", 34000),
     ),
+    # --- 1B scale-up on scribe-v4 (stopped early at step 28000: plateaued ~16.9 dev WER,
+    # below the 300M's 11.27 — pure-bf16-no-master fit on the 12GB card underperforms). ---
+    ModelCard(
+        name="omni_ctc_1b_v2_scribe_v4_20260602_step28000",
+        checkpoint=_sharded(_RUNS / "omni-ctc-1b-v2-scribe-v4/ws_1.93e20ec7", 28000),
+        tokenizer_ref=TOKENIZER_NAME,
+        model_arch="1b_v2",
+    ),
 ]
 
 DATASET_CARDS = [
