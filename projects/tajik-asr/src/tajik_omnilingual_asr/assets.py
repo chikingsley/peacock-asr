@@ -118,6 +118,17 @@ CARDS = [
         data=_PARQUET_V3,
         tokenizer_ref=TOKENIZER_NAME,
     ),
+    # v3 (v2 corpus minus the held-out conversational test) best dev-WER ckpt (step_20000,
+    # FLEURS dev 17.41). The fair model for the conversational held-out — never saw those clips.
+    ModelCard(
+        name="omni_ctc_300m_v2_tajik_v3_step_20000",
+        checkpoint=(
+            _PROJECT
+            / "runs/omni-ctc-300m-tajik-asr-corpus-v3/ws_1.83a064a5/"
+            / "checkpoints/step_20000/model/pp_00/tp_00/sdp_00.pt"
+        ),
+        tokenizer_ref=TOKENIZER_NAME,
+    ),
 ]
 
 

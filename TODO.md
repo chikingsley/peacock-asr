@@ -41,7 +41,8 @@ per language project:  ONE master store: data/curator.sqlite
 - [x] Export v2: WER ≤ 0.35 + descriptor-junk filter + language gate; 0 unk
 - [x] Train tajik 300M launched (v2 preset, 20k steps)
 - [x] Train tajik v2 + eval: best **step_19500, FLEURS test WER 17.17** (base 19.74, v0 17.34). Recorded in EXPERIMENTS.md. v2 wins but margin over v0 is thin — FLEURS can't show the conversational gain.
-- [ ] **Conversational test set (the real next experiment).** FLEURS is read-aloud; the 1,070h is conversational, so the benchmark can't measure what the data bought. Hold out a YouTube slice BY VIDEO (no video split across train/test), set `split='test'` on those rows, re-export + re-eval base/v0/v2. This is what proves (or disproves) the data lever.
+- [x] **Conversational test set — DONE, the data lever is proven.** Held-out 157 whole videos (frozen manifest, leakage-safe carve at export). On the conversational held-out (1,625 clips): v0 49.89 → **v3 37.65 WER** (−12.2 pts / −24.5% rel from 1,070h), and v3≈v2-contaminated (37.65 vs 37.40) so it's real generalization not memorization. **Shipping model: `omni_ctc_300m_v2_tajik_v3_step_20000`.** Recorded in EXPERIMENTS.md.
+- [ ] **Scale conversational data (next lever).** The pipeline scales; more conversational hours should keep moving the held-out WER. Queue more channels / more videos per channel, re-run create→verify→export→train (v4). Optionally a native-speaker spot-check of the machine-labeled references first.
 - [ ] Retry the 31 failed verify/rescore rows (re-run `verify` + `rescore`, both incremental)
 - [ ] Move the legacy `--output-dir` workspaces aside; document that changing the config's workspace-hashing fields forces a fresh `ws_*` (checkpoints must be hand-moved to resume) — bit us on the v2 crash recovery.
 

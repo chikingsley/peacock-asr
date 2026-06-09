@@ -169,11 +169,25 @@ is not recorded anywhere, it says "not recorded".
   | v2 *(saw these clips — contaminated)* | 1,070 h | 37.40 | 13.91 | 36.32 |
 
 - **Read:** the conversational benchmark spreads the models across **20 WER points** (58 → 50 → 37)
-  where FLEURS jammed them into 3 (20 → 17 → 17) — it is the discriminating eval FLEURS could not
-  be. v2's 37.40 is a *contaminated ceiling*; the fair number is **v3** (trained without the
-  held-out), launched on the v3 export with the same recipe as v2 run 2 (weighted FLEURS mix,
-  lr 5e-6 tri-stage, 20 k steps). The v3-vs-v0 gap on this set is the real measure of what the
-  1,070 h bought. **[v3 result pending.]**
+  where FLEURS jammed them into 3 (20 → 17 → 17) — it is the discriminating eval FLEURS could not be.
+
+- **v3 result (the fair number, conversational held-out, 1,625 clips):** v3 (`step_20000`, FLEURS
+  dev 17.41) trained on the corpus *minus* the held-out videos.
+
+  | model | data | WER | CER | MER |
+  |---|---|---|---|---|
+  | v0 | 5.8 h read | 49.89 | 18.88 | 48.89 |
+  | **v3** (clean) | 1,070 h | **37.65** | **14.04** | **36.59** |
+  | v2 (contaminated) | 1,070 h | 37.40 | 13.91 | 36.32 |
+
+- **CONCLUSION:** the 1,070 h bought a **12.24-point WER drop on real conversational Tajik**
+  (49.89 → 37.65, **−24.5 % relative**; CER −25.6 %) — the data lever is real and large, and FLEURS
+  hid all of it (v0→v2 there was 0.17). Critically, **v3 (37.65) ≈ v2-contaminated (37.40)**, a
+  0.25-pt gap: v3 never saw these clips, v2 did, yet they match — so v2's number was *not* memorization,
+  the model genuinely generalizes to conversational Tajik. **v3 is the shipping model**
+  (`omni_ctc_300m_v2_tajik_v3_step_20000`) — the honest one, matching the contaminated ceiling.
+  Next lever for conversational WER is *more* conversational data (the pipeline scales) and/or a
+  native-speaker spot-check of the machine-labeled references.
 
 ---
 
