@@ -16,7 +16,7 @@ One file, all open work, by area. Status lines reflect 2026-06-05.
 
 ## The data flow (reference — how it all fits)
 
-```
+```text
 per language project:  ONE master store: data/curator.sqlite
   ingest  (FLEURS, HF Common Voice, any HF audio dataset)  ──►  rows (split preserved: train/dev/test)
   create  (YouTube: enqueue → segment → labelq → harvest)  ──►  per-channel staging stores

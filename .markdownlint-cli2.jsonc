@@ -1,0 +1,25 @@
+{
+  // Repo markdown style. Structural rules on (tables, headings, lists); prose line-length off —
+  // these are lab notebooks (EXPERIMENTS.md, docs/) with long sentences and wide result tables.
+  "config": {
+    "MD013": false, // line-length: not enforced for prose/notebooks (code is ruff's E501)
+    "MD024": { "siblings_only": true }, // duplicate headings ok across sections (per-experiment)
+    "MD033": false, // inline HTML allowed
+    "MD041": false, // first line need not be a top-level heading
+    "MD060": false  // table pipe-spacing is cosmetic (invisible when rendered)
+  },
+  "globs": ["**/*.md"],
+  "ignores": [
+    "**/node_modules/**",
+    "**/.venv/**",
+    "**/runs/**",
+    "**/data/**",
+    "**/omni_recipe/**", // vendored upstream OmniASR recipe — not ours to restyle
+    "**/third_party/**",
+    "**/archive/**", // archived/superseded experiment trees
+    "**/archived/**",
+    "docs/research/**", // imported research-paper library (converted PDFs) + archived strategy notes
+    "docs/markdown/**", // imported paper markdown
+    "**/modelcard_template.md"
+  ]
+}
