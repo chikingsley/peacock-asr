@@ -1,30 +1,32 @@
 # Tajik ASR
 
 Fine-tuning OmniASR CTC for Tajik (`tgk_Cyrl`). A thin per-language project — config (`sources.py`)
-+ wiring (`curate.py`, `train.py`, `eval.py`, `assets.py`) over the shared packages
+plus wiring (`curate.py`, `train.py`, `eval.py`, `assets.py`) over the shared packages
 [`omni-curator`](../../packages/omni-curator) (data) and
 [`omni-finetune-core`](../../packages/omni-finetune-core) (training).
 
 ## Pipeline
 
-```
-curate download → label → merge → (ingest) → verify → export → train → eval
+```text
+curate download → enqueue → segment → labelq → harvest → merge → (ingest) → verify → export
 ```
 
 - `tajik-curate download [--tier clean]` — pull YouTube channel audio (`sources.YOUTUBE_CHANNELS`)
   to `data/create/<slug>/` (16 kHz FLAC, resumable, cookie-authenticated).
-- `tajik-curate label [--channel X]` — VAD-segment + Scribe-ensemble label each video into a
-  per-channel store `data/channels/<slug>/store.sqlite` (parallel-safe, incremental).
+- `tajik-curate enqueue / segment / labelq / harvest` — the split create pipeline: queue
+  not-yet-labeled videos, VAD-segment them into clips (CPU producers), Scribe-label the clip
+  queue (~200 I/O workers), fold labeled clips into `data/channels/<slug>/store.sqlite`.
 - `tajik-curate merge` — fold the per-channel stores into the master `data/curator.sqlite`.
 - `tajik-curate ingest fleurs|commonvoice` — existing-labeled datasets into the store.
-- `tajik-curate verify` — Scribe-score every clip (WER/CER persisted for the export gate).
+- `tajik-curate verify` / `rescore` — Scribe-score every clip (script-aware; WER/CER persisted
+  for the export gate).
 - `tajik-curate export vN [--max-wer ...]` — `Selection` over the pool → omni-parquet under
   `data/datasets/vN` (normalize → language gate → quality filter → tokenizer-coverage gate).
 - `tajik-train` / `tajik-eval` — fine-tune / score via `omni-finetune-core` presets + `assets.py` cards.
 
 ## Data layout (`data/`, gitignored)
 
-```
+```text
 data/
   create/<slug>/    downloaded channel audio
   channels/<slug>/  per-channel labeled stores
