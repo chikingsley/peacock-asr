@@ -45,13 +45,11 @@ per language project:  ONE master store: data/curator.sqlite
   ~1,070 h we already had. The held-out proved more conversational data → lower conversational WER, so:
   queue more channels and/or more videos per existing channel → `download → enqueue → segment → labelq
   → harvest → merge → verify → export v4 → train`. Same recipe, bigger corpus. Biggest expected win.
-- [ ] **Recover wrongly-dropped Tajik (gate fix).** Audit (2026-06-08) of the 38,133 language-gate
-  drops: ~95% genuinely non-Tajik (79% Russian w/ ы э щ ъ ё; 5% English from learning channels; 4%
-  Persian-Arabic; Chinese) — all correctly dropped. **But ~1,185–2,000 are valid Tajik** wrongly
-  tossed because they use none of the 6 Tajik-only letters (ғ ӣ қ ӯ ҳ ҷ) — e.g. "Хушбахтона боз",
-  "Зебо калима месозад". Fix `keep_for_language`: add a Tajik function-word/stopword signal (keep when
-  vocab looks Tajik even with 0 Tajik-only letters). Recovers ~1% of training + helps every future
-  export. The English/Persian/Chinese drops are correct — no loss there.
+- [x] **Recover wrongly-dropped Tajik (gate fix) — DONE (`6259a355`).** Audit of the 38,133 drops:
+  ~95% genuinely non-Tajik (Russian/English/Persian/Chinese, correctly dropped). Added a function-word
+  vocabulary tiebreak to `keep_for_language` for clips with no exclusive letters either way. Measured:
+  **+1,563 Tajik recovered, 0 regressions, 0 Russian re-admitted.** Applies to the next export (v4) —
+  the shipped v3 predates it (worth folding into the v4 scale run, not a re-export on its own).
 - [x] Tidy: deleted the 43 MB `ws_1.c4af3cd1` stub + the empty root `src/` skeleton. Gotcha noted:
   editing a training config changes fairseq2's `ws_<hash>` so a re-launch starts fresh — to resume,
   hand-move checkpoints into the new ws dir. (`runs/.../-v2/ws_1.f42fe811` (7.4 G) = the abandoned
