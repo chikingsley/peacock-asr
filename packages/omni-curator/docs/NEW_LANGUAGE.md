@@ -10,13 +10,19 @@ reference implementations — identical in shape, differing only in their config
 
    ```text
    projects/<lang>-asr/
-     pyproject.toml          deps: omni-curator[ingest,youtube,normalize] (+ omni-finetune-core
-                             for the model side); a <lang>-curate script entry point
+     pyproject.toml          deps: omni-curator[ingest,youtube,normalize] + omni-finetune-core;
+                             <lang>-curate / <lang>-train / <lang>-eval script entry points;
+                             a fairseq2.extension entry -> assets:setup_fairseq2_extension
      src/<lang>_asr/
        __init__.py           LANGUAGE ("xxx_Yyyy"), SCRIPT, ROOT/DATA/DB path constants
        sources.py            the language config: FLEURS config, Common Voice ids, channel
                              registry (omni_curator.create.youtube.Channel via channel())
        curate.py             ~45 lines: build a CuratorProject, delegate to project.main
+       assets.py             fairseq2 cards (omni_finetune_core.assets shapes): tokenizer,
+                             base model, dataset card(s), trained-checkpoint cards
+       train.py              a FinetuneProject (omni_finetune_core.project) + delegate:
+                             pinned TrainingPreset recipes and/or the generic --regime path
+       eval.py               ~6 lines: delegate to omni_finetune_core.project.eval_main
        models/               (gitignored) the omni tokenizer + base checkpoint
    ```
 
@@ -53,6 +59,12 @@ reference implementations — identical in shape, differing only in their config
    videos — see `tajik heldout_test_videos.json` and `Selection.heldout_test_videos`), and set
    the project's `mixture_weights` if a small clean corpus needs lifting against a large
    conversational mass (tajik's anti-drift recipe: `{"fleurs": 490.0}`).
+
+8. **Train + eval**: `<lang>-train --regime gpu_max` budgets ~30 epochs from the export's true
+   hours; once a recipe proves out, pin it as a named `TrainingPreset` (typed config — see
+   tajik's `tajik-corpus-v3-300m`). Always set `fragment_cache_dir` to real disk. Register the
+   best checkpoint as a ModelCard in `assets.py`, add it to `eval_models`, and score with
+   `<lang>-eval` (`--only-corpus-prefix youtube-` = the conversational held-out alone).
 
 ## What the project may NOT contain
 

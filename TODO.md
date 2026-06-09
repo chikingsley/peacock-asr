@@ -77,9 +77,14 @@ per language project:  ONE master store: data/curator.sqlite
   rescore/heldout/mixture-weights for free). Ingest sources are a registry (`IngestFn`) so Persian's
   seven corpora become entries, not API changes; coverage gate stays injected via
   `omni_curator/coverage.py`; fail-fast config validation. Recipe: `docs/NEW_LANGUAGE.md`.
-  **Remaining for the full template:** the model side (`assets.py`/`train.py`/`eval.py`) — converge
-  tajik's YAML configs to the core preset first (behavioral-equivalence check), then template it.
-- [ ] **Georgian model side:** `assets.py`, `train.py`, `eval.py` (copy from the template once locked).
+- [x] **The language template (model side) — DONE (`18248691`).** `omni_finetune_core/project.py`
+  owns train + eval, parameterized by `FinetuneProject`: pinned `TrainingPreset`s (typed configs —
+  tajik v3 proven field-equivalent to its YAML, `configs/` deleted) + georgian's generic `--regime`
+  path (step budget from TRUE export hours, never the weighted TSV). `fragment_cache_dir` now
+  expressible in the typed config (the /tmp-crash fix can't regress). Eval ported to core with the
+  normalizer injected; 7 core tests seeded. Both projects' train/eval are thin config.
+- [x] **Georgian model side** — already existed (145.3 h v0 export!); now on the template
+  (`georgian-train --regime gpu_max` ready to run; eval defaults to the v0 test split).
 - [ ] **Migrate persian-asr** into the template structure (LAST — preserve all artifacts/checkpoints as legacy cards; the 300M rewarm is the production model).
 
 ## tajik-asr (data backlog)
@@ -92,7 +97,7 @@ per language project:  ONE master store: data/curator.sqlite
   The generic loader exists (`omni_curator.ingest.huggingface.load_hf_audio`); wire ids into `sources.py` + `curate ingest`.
 - [ ] **Wire export → train/eval:** `assets.py`/`eval.py`/YAMLs still point at legacy `dataset_prep/artifacts/...`; add the `data/datasets/v0` card when the first export lands.
 - [ ] **Language-learning channels** ("teach Tajik speakers X") + extra Achilov channels → enqueue. Channel policy: meaningful-%-Tajik gets downloaded; only pure music/song channels skipped.
-- [ ] **Converge tajik `train.py` to the preset** (georgian builds config in Python from `gpu_max_finetune`); behavioral-equivalence check first, then delete `configs/`.
+- [x] ~~Converge tajik `train.py` to the preset~~ — done as part of the model-side template.
 - [ ] Mark zero-span (no-speech) videos in the queue so future enqueues skip them instead of re-segmenting.
 
 ## omni-curator (carried over)
