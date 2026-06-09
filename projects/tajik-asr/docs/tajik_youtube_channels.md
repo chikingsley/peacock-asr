@@ -70,6 +70,7 @@ auto-captions exist (weak labels, not gold). **Language tags are unreliable for 
 (commonly `fa`/`ru`/`uz`/`tr`) — confirm by sampling audio before committing a channel.
 
 ### Podcasts / interviews / long-form talk (most productive)
+
 - **Alifbo Comms**: youtube.com/channel/UCMfbonlj1-gWdFnHSJTlMcQ — `v62RNNaKU2M` — Tajik podcast (~60min), native speech. **Strong.**
 - **HoReCa Podcast**: youtube.com/channel/UC3WE_j0wgnE61CgXq7dqMNQ — `fQQ4oJrEZkE` — food-industry interview podcast (~37min), Tajik Cyrillic.
 - **РАСОНАНИГОР (Rasonanigor)**: youtube.com/channel/UCKzS0So73sl9vvbFgy_S1zw — `aPGmA88YftA` — Tajik interview series, long-form.
@@ -78,29 +79,35 @@ auto-captions exist (weak labels, not gold). **Language tags are unreliable for 
 - Follow-up: Your Tajikistan (UClie_j5Akjd2_r5pnVx7lcA), Lobby (UC4jEprvdtr0nILHDwUmfmdw), 2 дақиқаи тоҷикӣ (UCyM92LdXr_EnuokJ2NPXYrA).
 
 ### Science / education (productive)
+
 - **Илм ва табиат TV (Science & Nature)**: youtube.com/channel/UCRMoGKKQyKW2VCnx4O6LwDQ — `DUgbupyWiEM` — dedicated Tajik science/edu TV, formal lectures. **Excellent.**
 - **4maghz**: youtube.com/channel/UCFJJHJ-Ttel1JjCoUtnLQ6A — `B2C4fpm_jzM` — Tajik history/edu narration (~15min). Probe.
 
 ### Health / medicine
+
 - **Hikmat TV**: youtube.com/channel/UCLz6ZBwkj6vuked4v1aFxBQ — `cFUnNDlPnnA` — health/religious talks, Tajik narration.
 - **Tafakkur TV**: youtube.com/channel/UCfmKtwKyaMnB84jjRb7-I1w — `P6DVvnh3QXc` — Tajik science/health explainer narration.
 - DOCTOR IBROHIM (UCdZzmg7_AfaPnjXWUF_2ZBA) — dental/health, `tr` tag, verify.
 
 ### Business / money / motivation
+
 - **MUVAFFAQ BOSH**: youtube.com/channel/UCB74EB2AocZLtMvrVrtscgg — `nb10TqRuC4E` — Tajik motivational monologues.
 - **BiZNES Tj**: youtube.com/channel/UCqxE0aoGKXylnc1xFEZkQbg — `wvA-SBA4Q10` — business, mixed ru/tg, verify.
 - Also: motivshahrom (UCTqtMEY4Jpkn5hPguVw2aeQ), Само Таджикистан (UC3K2P_X-KDgG-MTTDqSW89w).
 
 ### Cooking / vlogs (moderate — short-form, music risk)
+
 - **Лаззатҳои Гуногун**: youtube.com/channel/UCL0So6jCIn2X47UFOPk8yBA — `G1_5q0UvZNg` — high-volume Tajik cooking voice-over (~5min).
 - **ПУХТУПАЗХОИ ТОЧИКИ**: youtube.com/channel/UCqxpfmG_83-f0TS1end5PeA — `06VkWZdIyrY` — Tajik cooking voice-over.
 - **Модари Мехрубон**: youtube.com/channel/UC6n_zsamupItB08nt9QlenA — `8Jmli39P7PA` — Tajik family/lifestyle vlogs.
 
 ### Productive new queries
+
 `подкаст тоҷикӣ мусоҳиба` · `илм ва табиат тоҷикӣ` · `саломатии инсон тоҷикӣ` ·
 `тиҷорат ва пул кор кардан тоҷикӣ` · (moderate) `пухтупаз таомҳои тоҷикӣ`, `влоги ҳаррӯзаи ман тоҷикӣ`
 
 ### Low-yield topics
+
 Beauty/`ороиш` (sewing/hair, much non-Tajik), gaming, cars, travel (dominated by music
 videos + Russian vlogs). A few compound tech/religion queries returned empty — likely
 transient throttling, worth re-running.
