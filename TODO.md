@@ -66,8 +66,10 @@ per language project:  ONE master store: data/curator.sqlite
 
 ## One pipeline, one structure (meta — after the above is moving)
 
-- [ ] **Delete the fused path.** `create/run.py` (`label_to_store`, `label_youtube`), `pipeline.py` (`vad_path`, `chunks_path`, `_label_spans`), tajik `cmd_label`, package `cli.py` fused commands. Prereq: relocate `cut_audio`/`audio_duration` (used by the split's `segment.py`).
-- [ ] **Delete chunks/align.** (`align.py`, `fuse/stitch.py`, `chunks_path`.) Built for scripted/clean audio, never used by any project — VAD handled everything including audiobooks. One pipeline. Git history keeps it if ever wanted.
+- [x] **Delete the fused path + chunks/align — DONE (`a4d2f067`).** Removed ~850 lines: `create/run.py`,
+  `pipeline.py`, `align.py`, `fuse/stitch.py`, `fuse/polish.py`, `segmenters/chunks.py`, the package
+  `cli.py` + its `omni-curator` entry point, and tajik `cmd_label`. `cut_audio` (the one survivor the
+  split needs) moved to `create/audio.py`. Package + both projects pass ruff + ty.
 - [ ] **`create/` reorg** by stage: no single-file folders, no folder-with-one-folder. Stage-ordered: sources → queue/segment → transcribe/labelq → fuse → harvest.
 - [ ] **The language template.** "New language" = copy 5 files (`sources.py`, `curate.py`, `assets.py`, `train.py`, `eval.py`), fill `sources.py`, add ONE normalizer function in the package. Georgian + tajik conformed byte-for-byte; documented in omni-curator. Codex xhigh review before locking.
 - [ ] **Dedup `curate.py`** across georgian/tajik — move the shared CLI/workflow builder into omni-curator (projects pass only language config + paths). Part of the template work.
