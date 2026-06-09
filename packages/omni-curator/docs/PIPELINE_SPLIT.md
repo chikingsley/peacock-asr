@@ -9,7 +9,7 @@ Today `label_to_store` → `vad_path`/`chunks_path` does, **per video, in one pr
 (`create/pipeline.py:190`):
 
 1. `segment_vad(audio)` — loads a NeMo frame-VAD model on CPU and runs it `batch_size=1`
-   (`segmenters/vad.py:100‑103`). **CPU-bound.**
+   (`vad.py:100‑103`). **CPU-bound.**
 2. *then* `_label_spans(...)` — a `ThreadPoolExecutor(max_workers=workers)` doing, per span,
    `cut_audio` (ffmpeg) → `transcribe_clip` (Scribe ensemble, HTTP) → `compile_down`
    (SuperWhisper, HTTP) (`create/pipeline.py:155‑187`). **I/O-bound.**

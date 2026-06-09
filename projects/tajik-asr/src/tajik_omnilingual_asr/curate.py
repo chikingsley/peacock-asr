@@ -76,7 +76,7 @@ def _store_batched(store: CuratorStore, samples: Iterable[Sample]) -> int:
 
 def cmd_list(args: argparse.Namespace) -> int:
     """Size each selected channel (video counts, no download)."""
-    from omni_curator.create.sources.youtube import list_channel_videos
+    from omni_curator.create.youtube import list_channel_videos
 
     for ch in _selected_channels(args):
         ids = list_channel_videos(ch.url, limit=args.limit)
@@ -86,7 +86,7 @@ def cmd_list(args: argparse.Namespace) -> int:
 
 def cmd_download(args: argparse.Namespace) -> int:
     """Download each selected channel's audio as 16 kHz FLAC; report hours landed."""
-    from omni_curator.create.sources.youtube import download_channel
+    from omni_curator.create.youtube import download_channel
 
     cookies = COOKIES if COOKIES.exists() else None
     channels = _selected_channels(args)
@@ -105,7 +105,7 @@ def cmd_download(args: argparse.Namespace) -> int:
 def cmd_cookies(args: argparse.Namespace) -> int:
     """Refresh ``data/youtube_cookies.txt`` from the logged-in browser profile (KasmVNC Chrome)."""
     _load_root_env()
-    from omni_curator.create.sources.youtube import refresh_cookies_from_browser
+    from omni_curator.create.youtube import refresh_cookies_from_browser
 
     profile = args.profile or os.environ.get("YT_COOKIES_PROFILE")
     if not profile:

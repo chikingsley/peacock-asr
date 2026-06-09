@@ -13,15 +13,28 @@ The Scribe/label half lives in :mod:`omni_curator.create.labelq`; both share the
 
 from __future__ import annotations
 
+import subprocess
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from omni_curator.create.audio import cut_audio
 from omni_curator.create.queue import QClip, QueueStore, QVideo
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+
+def cut_audio(source: Path, output: Path, start: float, end: float) -> None:
+    """Cut ``[start, end)`` from ``source`` to a 16 kHz mono FLAC at ``output`` (via ffmpeg)."""
+    output.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(  # noqa: S603
+        [  # noqa: S607
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+            "-ss", f"{start:.3f}", "-to", f"{end:.3f}", "-i", str(source),
+            "-ar", "16000", "-ac", "1", "-c:a", "flac", str(output),
+        ],
+        check=True,
+    )
 
 
 def _cut_clips(
@@ -74,7 +87,7 @@ def segment_worker(
     vad_kwargs: dict[str, Any] | None = None,
 ) -> int:
     """Resident-model loop: claim -> VAD -> cut -> enqueue till the queue drains. Returns videos."""
-    from omni_curator.create.segmenters.vad import load_vad_model, segment_vad_with
+    from omni_curator.create.vad import load_vad_model, segment_vad_with
 
     queue = QueueStore(queue_path)
     model = load_vad_model()
