@@ -45,14 +45,26 @@ per language project:  ONE master store: data/curator.sqlite
   ~1,070 h we already had. The held-out proved more conversational data → lower conversational WER, so:
   queue more channels and/or more videos per existing channel → `download → enqueue → segment → labelq
   → harvest → merge → verify → export v4 → train`. Same recipe, bigger corpus. Biggest expected win.
-- [ ] **(Optional, before scaling) native-speaker spot-check** of ~100 machine-labeled conversational
-  clips — the only way to know our *true* accuracy vs the Scribe-label ceiling (we can't beat the
-  teacher on a benchmark the teacher wrote). Tells us if label quality, not data volume, is the cap.
-- [ ] Tidy: delete the 43 MB empty `runs/.../v2-r2/ws_1.c4af3cd1` stub (crash-recovery leftover; the
-  shipped model is in `ws_1.a8b9ba67`). Note the gotcha: editing a training config changes fairseq2's
-  `ws_<hash>` so a re-launch starts fresh — to resume, hand-move checkpoints into the new ws dir.
-  (The "269 unscored rows" are `♪`/`.`/`…` non-speech markers verify correctly skips and export drops —
-  nothing to retry.)
+- [ ] **Recover wrongly-dropped Tajik (gate fix).** Audit (2026-06-08) of the 38,133 language-gate
+  drops: ~95% genuinely non-Tajik (79% Russian w/ ы э щ ъ ё; 5% English from learning channels; 4%
+  Persian-Arabic; Chinese) — all correctly dropped. **But ~1,185–2,000 are valid Tajik** wrongly
+  tossed because they use none of the 6 Tajik-only letters (ғ ӣ қ ӯ ҳ ҷ) — e.g. "Хушбахтона боз",
+  "Зебо калима месозад". Fix `keep_for_language`: add a Tajik function-word/stopword signal (keep when
+  vocab looks Tajik even with 0 Tajik-only letters). Recovers ~1% of training + helps every future
+  export. The English/Persian/Chinese drops are correct — no loss there.
+- [x] Tidy: deleted the 43 MB `ws_1.c4af3cd1` stub + the empty root `src/` skeleton. Gotcha noted:
+  editing a training config changes fairseq2's `ws_<hash>` so a re-launch starts fresh — to resume,
+  hand-move checkpoints into the new ws dir. (`runs/.../-v2/ws_1.f42fe811` (7.4 G) = the abandoned
+  run-1 drift, reclaimable if space is needed — no card references it.)
+- [x] ~~Retry failed verify/rescore rows~~ — non-issue: the 269 unscored are `♪`/`.`/`…` non-speech
+  markers verify correctly skips and export drops.
+
+## Someday / not now (needs things we don't have yet)
+
+- **Native-speaker ground-truth check.** The one thing that would tell us our *true* conversational
+  accuracy (vs the Scribe-label ceiling — we can't beat the teacher on a benchmark the teacher wrote).
+  Not actionable now (no Tajik speaker available); revisit if/when one is. Until then, the held-out
+  conversational WER is a rigorous *relative* benchmark, not an absolute truth.
 
 ## One pipeline, one structure (meta — after the above is moving)
 
