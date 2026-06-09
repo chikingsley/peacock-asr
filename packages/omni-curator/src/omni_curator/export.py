@@ -410,6 +410,35 @@ def write_language_distribution(version_root: Path, out_path: Path) -> Path:
     return out_path
 
 
+def write_weighted_distribution(
+    true_tsv: Path, out_path: Path, weights: dict[str, float]
+) -> Path:
+    """Write a SAMPLING-WEIGHT copy of the mixture TSV with per-corpus hour overrides.
+
+    fairseq2's mixture reader weights each corpus by the TSV hours (tempered by
+    ``beta_corpus``), so overriding a corpus's listed hours is the lever for re-balancing the
+    sampled batches — e.g. lifting a small clean read-speech corpus (FLEURS, ~12 true hours)
+    to a meaningful share against ~1,000 h of conversational audio. The TRUE hours stay in the
+    untouched ``language_distribution_<N>.tsv`` and ``export_summary.json``; this file is a
+    declared training-mixture recipe, not provenance. Raises on a weight for a corpus that is
+    not in the export (catches typos and stale recipes).
+    """
+    lines = true_tsv.read_text(encoding="utf-8").splitlines()
+    corpora = {line.split("\t", 1)[0] for line in lines[1:]}
+    unknown = set(weights) - corpora
+    if unknown:
+        msg = f"mixture weights for corpora not in the export: {sorted(unknown)}"
+        raise ValueError(msg)
+    out = [lines[0]]
+    for line in lines[1:]:
+        corpus, language, hours = line.split("\t")
+        if corpus in weights:
+            hours = f"{weights[corpus]:.8f}"
+        out.append(f"{corpus}\t{language}\t{hours}")
+    out_path.write_text("\n".join(out) + "\n", encoding="utf-8")
+    return out_path
+
+
 def _normalize_and_filter(
     store: CuratorStore,
     selection: Selection,
@@ -482,6 +511,7 @@ def export_dataset(
     row_group_size: int = 100,
     coverage_check: Callable[[list[str]], int] | None = None,
     strict: bool = True,
+    mixture_weights: dict[str, float] | None = None,
 ) -> ExportStats:
     """Materialize the ``selection`` over ``store`` as omni-parquet under ``output_dir``.
 
@@ -548,10 +578,16 @@ def export_dataset(
     stats.hours_by_corpus = dict(sorted(hours_corpus.items()))
 
     if stats.rows:
-        write_language_distribution(
+        true_tsv = write_language_distribution(
             version_root, output_dir / f"language_distribution_{version}.tsv"
         )
-    _write_summary(output_dir, version, selection, stats)
+        if mixture_weights:
+            # The declared training-mixture recipe lives next to the true-hours TSV and in the
+            # summary — reproducible from the export args, never a hand-edited orphan file.
+            write_weighted_distribution(
+                true_tsv, output_dir / "language_distribution_weighted.tsv", mixture_weights
+            )
+    _write_summary(output_dir, version, selection, stats, mixture_weights=mixture_weights)
     return stats
 
 
@@ -573,13 +609,19 @@ def _selection_dict(selection: Selection) -> dict[str, object]:
 
 
 def _write_summary(
-    output_dir: Path, version: int, selection: Selection, stats: ExportStats
+    output_dir: Path,
+    version: int,
+    selection: Selection,
+    stats: ExportStats,
+    *,
+    mixture_weights: dict[str, float] | None = None,
 ) -> Path:
     """Record the recipe + result so an ablation dir documents how it was built."""
     summary = {
         "version": version,
         "output_dir": str(output_dir),
         "selection": _selection_dict(selection),
+        "mixture_weights": mixture_weights,
         "rows": stats.rows,
         "rows_by_split": stats.rows_by_split,
         "rows_by_corpus": stats.rows_by_corpus,

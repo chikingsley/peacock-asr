@@ -180,6 +180,14 @@ is not recorded anywhere, it says "not recorded".
   | **v3** (clean) | 1,070 h | **37.65** | **14.04** | **36.59** |
   | v2 (contaminated) | 1,070 h | 37.40 | 13.91 | 36.32 |
 
+- **Comparability rules for future versions (v4+):** (1) the test set = clips from the frozen 157
+  videos *that pass the curation gates*, and gates evolve (the 2026-06-09 vocabulary-gate fix will
+  admit more clips) — so **always compare models on the SAME export's test partition** (re-eval old
+  models via `tajik-eval --dataset-root .../vN/version=0`), never across exports. (2) Known
+  asymmetry, deliberate: FLEURS test is exported unfiltered (gold labels — never censor the exam),
+  the conversational held-out IS WER-gated (machine labels — an unfiltered reference would grade
+  against known-garbage labels). Consequence: the conversational number measures agreement on
+  clips where Scribe agrees with itself; it is a *relative* benchmark.
 - **CONCLUSION:** the 1,070 h bought a **12.24-point WER drop on real conversational Tajik**
   (49.89 → 37.65, **−24.5 % relative**; CER −25.6 %) — the data lever is real and large, and FLEURS
   hid all of it (v0→v2 there was 0.17). Critically, **v3 (37.65) ≈ v2-contaminated (37.40)**, a

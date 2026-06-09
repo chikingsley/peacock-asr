@@ -10,7 +10,9 @@ Locks in two measurement-integrity rules learned the hard way:
 
 from __future__ import annotations
 
-from omni_curator.export import Selection
+import pytest
+
+from omni_curator.export import Selection, write_weighted_distribution
 from omni_curator.quality import is_descriptor_only
 
 
@@ -63,3 +65,20 @@ def test_descriptor_only_cases():
         assert is_descriptor_only(text), f"junk not flagged: {text!r}"
     for text in real:
         assert not is_descriptor_only(text), f"real label flagged as junk: {text!r}"
+
+
+def test_write_weighted_distribution(tmp_path):
+    true_tsv = tmp_path / "language_distribution_0.tsv"
+    true_tsv.write_text(
+        "corpus\tlanguage\thours\n"
+        "fleurs\ttgk_Cyrl\t11.83351667\n"
+        "youtube-chan\ttgk_Cyrl\t94.02941667\n",
+        encoding="utf-8",
+    )
+    out = write_weighted_distribution(true_tsv, tmp_path / "weighted.tsv", {"fleurs": 490.0})
+    lines = out.read_text(encoding="utf-8").splitlines()
+    assert lines[1] == "fleurs\ttgk_Cyrl\t490.00000000"  # overridden
+    assert lines[2] == "youtube-chan\ttgk_Cyrl\t94.02941667"  # untouched
+
+    with pytest.raises(ValueError, match="not in the export"):
+        write_weighted_distribution(true_tsv, tmp_path / "bad.tsv", {"flerus": 490.0})  # typo

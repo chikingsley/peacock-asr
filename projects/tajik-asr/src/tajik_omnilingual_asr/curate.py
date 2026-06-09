@@ -240,12 +240,33 @@ def _heldout_videos() -> frozenset[str]:
     return frozenset(json.loads(HELDOUT_MANIFEST.read_text())["video_ids"])
 
 
+#: The training-mixture recipe that fixed the v2 run-1 domain drift (FLEURS dev WER rose
+#: 20.35 -> 21.68 while the model migrated to the 99%-YouTube mix): list FLEURS at 490
+#: effective hours (true: ~11.8) so clean read speech is ~12% of sampled batches under
+#: beta_corpus=0.5 sqrt tempering. The training configs point at the weighted TSV.
+DEFAULT_MIXTURE_WEIGHTS = {"fleurs": 490.0}
+
+
+def _parse_weights(values: list[str] | None) -> dict[str, float]:
+    """``corpus=hours`` pairs -> dict; no flag -> the project default recipe."""
+    if not values:
+        return DEFAULT_MIXTURE_WEIGHTS
+    weights: dict[str, float] = {}
+    for value in values:
+        corpus, _, hours = value.partition("=")
+        if not hours:
+            raise SystemExit(f"--mixture-weight expects corpus=hours, got {value!r}")
+        weights[corpus] = float(hours)
+    return weights
+
+
 def cmd_export(args: argparse.Namespace) -> int:
     """Materialize a dataset ablation: store -> omni-parquet under data/datasets/<name>."""
     from omni_curator.export import Selection, export_dataset
     from omni_curator.store import CuratorStore
 
     heldout = frozenset() if args.no_heldout else _heldout_videos()
+    weights = {} if args.no_mixture_weights else _parse_weights(args.mixture_weight)
     selection = Selection(
         max_duration_seconds=args.max_duration, max_scribe_wer=args.max_wer,
         heldout_test_videos=heldout,
@@ -254,11 +275,14 @@ def cmd_export(args: argparse.Namespace) -> int:
     stats = export_dataset(
         store, DATASETS / args.name, version=0, selection=selection,
         coverage_check=_coverage_check, strict=not args.no_strict,
+        mixture_weights=weights or None,
     )
     store.close()
     print(f"exported {stats.rows} rows ({stats.hours:.2f} h) -> {DATASETS / args.name}")
     if heldout:
         print(f"  held-out conversational test: {len(heldout)} videos carved to split=test")
+    if weights:
+        print(f"  mixture weights -> language_distribution_weighted.tsv: {weights}")
     print(f"  by corpus: {stats.rows_by_corpus}")
     print(f"  by split: {stats.rows_by_split}")
     if stats.dropped_quality_total:
@@ -455,6 +479,11 @@ def main(argv: list[str] | None = None) -> int:
     p_ex.add_argument("--no-strict", action="store_true", help="warn instead of fail on <unk>")
     p_ex.add_argument("--no-heldout", action="store_true",
                       help="do NOT carve the frozen held-out conversational videos to split=test")
+    p_ex.add_argument("--mixture-weight", action="append", metavar="CORPUS=HOURS",
+                      help="sampling-weight override for the weighted TSV (repeatable; "
+                      "default: fleurs=490, the v2/v3 anti-drift recipe)")
+    p_ex.add_argument("--no-mixture-weights", action="store_true",
+                      help="write no weighted TSV (true hours only)")
     p_ex.set_defaults(func=cmd_export)
 
     args = parser.parse_args(argv)
