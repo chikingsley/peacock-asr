@@ -1,8 +1,7 @@
 """SQLite work queue decoupling segmentation (CPU producer) from labeling (I/O consumer).
 
-The fused create path (``label_to_store`` -> ``vad_path``) runs VAD then Scribe sequentially per
-video in one process, so neither the CPU (VAD) nor the network (Scribe) is ever saturated. This
-queue splits the two stages:
+Running VAD then Scribe sequentially per video in one process saturates neither the CPU (VAD) nor
+the network (Scribe). This queue splits the two stages so each runs flat out:
 
 - ``segment`` workers claim a *video* (rare, coarse claims), VAD-segment it, cut the clips to disk,
   and enqueue ``clips`` rows.

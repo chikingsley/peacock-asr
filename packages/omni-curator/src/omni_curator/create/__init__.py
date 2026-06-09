@@ -1,23 +1,13 @@
-"""create: generate labels for raw, untranscribed audio.
+"""create: generate labels for raw, untranscribed audio (YouTube, podcasts, shows).
 
-For sources whose audio has NO transcript (YouTube, podcasts, shows), this synthesizes the labels:
-segment -> Scribe ensemble -> compile-down -> (stitch) -> polish. Two finalized paths,
-``vad_path`` (dense speech) and ``chunks_path`` (sparse/drill audio). The counterpart is
-:mod:`omni_curator.ingest`, which pulls datasets that ALREADY have transcripts.
+For sources whose audio has NO transcript, this synthesizes the labels through a split,
+queue-driven pipeline (the counterpart is :mod:`omni_curator.ingest`, which pulls datasets that
+ALREADY have transcripts):
+
+- :mod:`omni_curator.create.segment` — VAD-segment a video into clips (CPU producer).
+- :mod:`omni_curator.create.labelq` — Scribe-ensemble + compile-down each clip (I/O consumer).
+- :mod:`omni_curator.create.queue` — the SQLite work queue decoupling the two.
+
+These are driven directly from a per-language project CLI (e.g. ``tajik-curate
+enqueue|segment|labelq|harvest``); there is nothing to re-export here.
 """
-
-from __future__ import annotations
-
-from omni_curator.create.align import align_to_clips
-from omni_curator.create.pipeline import Clip, Transcript, chunks_path, vad_path
-from omni_curator.create.run import label_to_store, label_youtube
-
-__all__ = [
-    "Clip",
-    "Transcript",
-    "align_to_clips",
-    "chunks_path",
-    "label_to_store",
-    "label_youtube",
-    "vad_path",
-]

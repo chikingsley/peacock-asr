@@ -17,7 +17,7 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from omni_curator.create.pipeline import cut_audio
+from omni_curator.create.audio import cut_audio
 from omni_curator.create.queue import QClip, QueueStore, QVideo
 
 if TYPE_CHECKING:

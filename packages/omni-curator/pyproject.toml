@@ -60,9 +60,6 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/omni_curator"]
 
-[project.scripts]
-omni-curator = "omni_curator.cli:main"
-
 [tool.ruff]
 line-length = 100
 target-version = "py312"

@@ -158,44 +158,6 @@ def cmd_ingest(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_label(args: argparse.Namespace) -> int:
-    """Label downloaded channel audio into the store (segment -> Scribe ensemble -> align -> store).
-
-    Clean/scripted channels use the chunks->align path; noisy/conversational ones use VAD. Each
-    video's clips land in the store under ``source = youtube-<slug>``. Expensive (a Scribe ensemble
-    per clip, free but slow) — run it once the downloads have settled.
-    """
-    _load_root_env()
-    from omni_curator.create.run import label_to_store
-    from omni_curator.store import CuratorStore
-
-    total = failed = 0
-    for ch in _selected_channels(args):
-        flacs = sorted((CREATE / ch.slug).glob("*.flac"))
-        if not flacs:
-            continue
-        store = CuratorStore(CHANNELS / ch.slug / "store.sqlite")  # own store = parallel-safe
-        done = {s.id.rsplit("_", 1)[0] for s in store.iter_samples()}  # video prefixes already done
-        for flac in flacs:
-            if f"{ch.slug}_{flac.stem}" in done:  # incremental: skip already-labeled videos
-                continue
-            try:
-                # VAD gives non-overlapping speech segments = clean training clips (chunks overlap).
-                total += label_to_store(
-                    flac, store=store, source=f"youtube-{ch.slug}", language=LANGUAGE,
-                    script=SCRIPT, id_prefix=f"{ch.slug}_{flac.stem}",
-                    out_dir=DATA / "labeled" / ch.slug / flac.stem, path="vad", citation=ch.url,
-                    workers=16,  # Scribe is free + I/O-bound; label each video's spans in parallel
-                )
-            except Exception as exc:  # noqa: BLE001 — one bad video must not abort the run
-                failed += 1
-                print(f"  ! {ch.slug}/{flac.name}: {type(exc).__name__}: {exc}")
-        print(f"  {ch.slug}: {store.counts()} -> {CHANNELS / ch.slug / 'store.sqlite'}")
-        store.close()
-    print(f"labeled {total} clips ({failed} videos failed)")
-    return 0
-
-
 def cmd_merge(args: argparse.Namespace) -> int:  # noqa: ARG001
     """Merge the per-channel stores into the master ``curator.sqlite`` (FLEURS already there)."""
     from omni_curator.store import CuratorStore
@@ -437,10 +399,6 @@ def _add_create_parsers(sub: argparse._SubParsersAction) -> None:
     p_ck = sub.add_parser("cookies", help="refresh youtube_cookies.txt from the browser profile")
     p_ck.add_argument("--profile", help="Chrome profile dir (default: $YT_COOKIES_PROFILE)")
     p_ck.set_defaults(func=cmd_cookies)
-
-    p_lb = sub.add_parser("label", help="label channel audio into per-channel stores (create)")
-    _add_channel_args(p_lb)
-    p_lb.set_defaults(func=cmd_label)
 
     p_eq = sub.add_parser("enqueue", help="[split] seed the queue with not-yet-labeled videos")
     _add_channel_args(p_eq)
