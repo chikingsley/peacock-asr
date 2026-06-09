@@ -71,8 +71,14 @@ per language project:  ONE master store: data/curator.sqlite
   `cli.py` + its `omni-curator` entry point, and tajik `cmd_label`. `cut_audio` (the one survivor the
   split needs) moved to `create/audio.py`. Package + both projects pass ruff + ty.
 - [x] **`create/` reorg — DONE (`6c70295b`).** Flat, one module per stage, in pipeline order: `youtube → queue → vad → segment → transcribe → fuse → labelq`. Single-file folders gone; fuse/ package merged to fuse.py (same import path); cut_audio folded into segment.py.
-- [ ] **The language template.** "New language" = copy 5 files (`sources.py`, `curate.py`, `assets.py`, `train.py`, `eval.py`), fill `sources.py`, add ONE normalizer function in the package. Georgian + tajik conformed byte-for-byte; documented in omni-curator. Codex xhigh review before locking.
-- [ ] **Dedup `curate.py`** across georgian/tajik — move the shared CLI/workflow builder into omni-curator (projects pass only language config + paths). Part of the template work.
+- [x] **The language template (curate side) — DONE (`8823c481`), Codex xhigh reviewed.** The entire
+  12-command CLI lives in `omni_curator/project.py`, parameterized by a frozen `CuratorProject`;
+  tajik + georgian `curate.py` are ~45 lines of pure config, identical in shape (georgian gained
+  rescore/heldout/mixture-weights for free). Ingest sources are a registry (`IngestFn`) so Persian's
+  seven corpora become entries, not API changes; coverage gate stays injected via
+  `omni_curator/coverage.py`; fail-fast config validation. Recipe: `docs/NEW_LANGUAGE.md`.
+  **Remaining for the full template:** the model side (`assets.py`/`train.py`/`eval.py`) — converge
+  tajik's YAML configs to the core preset first (behavioral-equivalence check), then template it.
 - [ ] **Georgian model side:** `assets.py`, `train.py`, `eval.py` (copy from the template once locked).
 - [ ] **Migrate persian-asr** into the template structure (LAST — preserve all artifacts/checkpoints as legacy cards; the 300M rewarm is the production model).
 
