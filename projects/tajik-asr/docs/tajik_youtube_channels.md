@@ -104,4 +104,3 @@ auto-captions exist (weak labels, not gold). **Language tags are unreliable for 
 Beauty/`ороиш` (sewing/hair, much non-Tajik), gaming, cars, travel (dominated by music
 videos + Russian vlogs). A few compound tech/religion queries returned empty — likely
 transient throttling, worth re-running.
-
