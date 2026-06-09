@@ -1,18 +1,17 @@
 # TODO — peacock-asr
 
-One file, all open work, by area. Status lines reflect 2026-06-05.
+One file, all open work, by area.
 
-## Status snapshot (2026-06-07)
+## Status snapshot (2026-06-08)
 
 | What | Where it stands |
 |---|---|
-| Tajik YouTube curation | **DONE.** 41 channels, 342,845 clips / 1,826 h, all labeled + harvested + merged into `data/curator.sqlite` (346,025 rows with FLEURS) |
-| Tajik verify (Scribe scoring) | **DONE.** Every scoreable row scored; 150k wrong-script grades re-scored via content-preserving transliteration (`rescore`). Honest gate sweep: WER≤0.35 → 247k clips / 1,435 h |
-| Tajik export | **DONE: `data/datasets/v2`** — 183,140 rows / 1,070.8 h (1,067.4 train + FLEURS dev/test COMPLETE), WER≤0.35 + descriptor-junk filter + language gate (37k Russian dropped), coverage gate 0 unk |
-| Tajik training | **RUNNING** (tmux `tj-train`): 300M from base on v2, lr 1e-5, 20k steps (~1 epoch, ~7.5 h wall), FLEURS-dev validation every 500 steps, best-WER checkpoints kept. `runs/omni-ctc-300m-tajik-asr-corpus-v2` |
+| Tajik pipeline | **DONE end-to-end.** 41 channels → 342,845 clips / 1,826 h → Scribe-verified (script-aware) → export `data/datasets/v3` (1,070.8 h, held-out conversational test carved out). |
+| Tajik models | **v3 SHIPS** (`omni_ctc_300m_v2_tajik_v3_step_20000`). FLEURS test 17.2 WER; **conversational held-out: v0 49.9 → v3 37.7 WER** (the data lever, proven). v2 = the contaminated full-data run (kept for reference). |
 | Circuit breaker + key renewal | **DONE, proven live**, both layers: transport-level 401→renew→retry (superwhisper-api `0dbb542`) + run-level breaker/renewal in curator (`584e2006`, `c5b4cedf`) |
-| Persian | Nothing running. 1B eval (June 2) **lost to the 300M on every benchmark** (FLEURS 10.6 vs 8.5, CV 24.3 vs 19.4, mana 10.8 vs 6.6, youtube 26.2 vs 20.2). Final Persian model: **300M scribe-v4-rewarm** (`benchmarks/suites/canonical-tests-scribe-v4-rewarm-20260530`) |
-| Georgian | On the split pipeline (committed). No model side yet (no assets/train/eval) |
+| Persian | Done/parked. Final model: **300M scribe-v4-rewarm** (1B lost on every benchmark). Migration into the template structure is the only remaining Persian work (last). |
+| Georgian | On the split pipeline (committed). No model side yet (no assets/train/eval). |
+| GPU | Free. Nothing running. |
 
 ## The data flow (reference — how it all fits)
 
@@ -42,9 +41,18 @@ per language project:  ONE master store: data/curator.sqlite
 - [x] Train tajik 300M launched (v2 preset, 20k steps)
 - [x] Train tajik v2 + eval: best **step_19500, FLEURS test WER 17.17** (base 19.74, v0 17.34). Recorded in EXPERIMENTS.md. v2 wins but margin over v0 is thin — FLEURS can't show the conversational gain.
 - [x] **Conversational test set — DONE, the data lever is proven.** Held-out 157 whole videos (frozen manifest, leakage-safe carve at export). On the conversational held-out (1,625 clips): v0 49.89 → **v3 37.65 WER** (−12.2 pts / −24.5% rel from 1,070h), and v3≈v2-contaminated (37.65 vs 37.40) so it's real generalization not memorization. **Shipping model: `omni_ctc_300m_v2_tajik_v3_step_20000`.** Recorded in EXPERIMENTS.md.
-- [ ] **Scale conversational data (next lever).** The pipeline scales; more conversational hours should keep moving the held-out WER. Queue more channels / more videos per channel, re-run create→verify→export→train (v4). Optionally a native-speaker spot-check of the machine-labeled references first.
-- [ ] Retry the 31 failed verify/rescore rows (re-run `verify` + `rescore`, both incremental)
-- [ ] Move the legacy `--output-dir` workspaces aside; document that changing the config's workspace-hashing fields forces a fresh `ws_*` (checkpoints must be hand-moved to resume) — bit us on the v2 crash recovery.
+- [ ] **Scale conversational data — THE next lever (not started).** Everything so far trained on the
+  ~1,070 h we already had. The held-out proved more conversational data → lower conversational WER, so:
+  queue more channels and/or more videos per existing channel → `download → enqueue → segment → labelq
+  → harvest → merge → verify → export v4 → train`. Same recipe, bigger corpus. Biggest expected win.
+- [ ] **(Optional, before scaling) native-speaker spot-check** of ~100 machine-labeled conversational
+  clips — the only way to know our *true* accuracy vs the Scribe-label ceiling (we can't beat the
+  teacher on a benchmark the teacher wrote). Tells us if label quality, not data volume, is the cap.
+- [ ] Tidy: delete the 43 MB empty `runs/.../v2-r2/ws_1.c4af3cd1` stub (crash-recovery leftover; the
+  shipped model is in `ws_1.a8b9ba67`). Note the gotcha: editing a training config changes fairseq2's
+  `ws_<hash>` so a re-launch starts fresh — to resume, hand-move checkpoints into the new ws dir.
+  (The "269 unscored rows" are `♪`/`.`/`…` non-speech markers verify correctly skips and export drops —
+  nothing to retry.)
 
 ## One pipeline, one structure (meta — after the above is moving)
 
