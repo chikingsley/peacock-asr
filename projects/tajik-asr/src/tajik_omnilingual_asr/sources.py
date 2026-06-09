@@ -6,33 +6,14 @@ omni-curator; ``curate.py`` wires these into it. Adding/removing a source is an 
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from omni_curator.create.youtube import Channel
+from omni_curator.create.youtube import channel as _ch
 
 #: google/fleurs config for Tajik.
 FLEURS_CONFIG = "tg_tj"
 
 #: Common Voice via Mozilla Data Collective — dataset ids (filled when discovered; needs MDC key).
 COMMONVOICE: dict[str, str] = {}
-
-
-@dataclass(frozen=True)
-class Channel:
-    """A vetted Tajik YouTube source: where to pull + how clean to expect it."""
-
-    slug: str
-    url: str
-    tier: str  # "clean" = scripted/single-speaker (chunks->align) | "noisy" = conversational (VAD)
-    note: str
-
-
-def _ch(slug: str, ident: str, tier: str, note: str) -> Channel:
-    """Build a Channel; ``ident`` is a @handle or a UC... id (expanded to a full URL)."""
-    url = (
-        f"https://www.youtube.com/{ident}"
-        if ident.startswith("@")
-        else f"https://www.youtube.com/channel/{ident}"
-    )
-    return Channel(slug, url, tier, note)
 
 
 #: Vetted in docs/tajik_youtube_channels.md + channel research. Every genuinely-Tajik channel found;
@@ -199,4 +180,3 @@ YOUTUBE_CHANNELS: tuple[Channel, ...] = (
     _ch("ozodagon", "@ozodagontv", "noisy", "Ozodagon: independent news/interviews."),
 )
 
-CHANNELS_BY_SLUG = {c.slug: c for c in YOUTUBE_CHANNELS}

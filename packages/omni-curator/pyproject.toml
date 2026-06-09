@@ -86,7 +86,7 @@ ignore = [
 # annotations; no __init__.py by design (pytest rootdir discovery).
 "tests/**" = ["S101", "PLR2004", "ANN", "ARG001", "INP001", "N812", "RUF001", "RUF002", "RUF003"]
 "**/test_*.py" = ["S101", "PLR2004"]  # asserts + magic values are fine in tests
-"src/omni_curator/cli.py" = ["T201"]  # the CLI prints
+"src/omni_curator/project.py" = ["T201"]  # the per-language project CLI prints
 # The language gate is inherently bilingual Cyrillic vocabulary: "ambiguous character" lints
 # (а vs a, etc.) are exactly wrong here, and a space-joined word string beats a 90-item list.
 "src/omni_curator/process/language.py" = ["RUF001", "RUF003", "SIM905"]

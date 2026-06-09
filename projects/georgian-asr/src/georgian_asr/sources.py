@@ -6,7 +6,8 @@ omni-curator; ``curate.py`` wires these into it. Adding/removing a source is an 
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from omni_curator.create.youtube import Channel
+from omni_curator.create.youtube import channel as _ch
 
 #: google/fleurs config for Georgian.
 FLEURS_CONFIG = "ka_ge"
@@ -18,18 +19,7 @@ COMMONVOICE: dict[str, str] = {
 }
 
 
-@dataclass(frozen=True)
-class Channel:
-    """A vetted YouTube source: where to pull + how clean to expect it."""
 
-    slug: str
-    url: str
-    tier: str  # "clean" = scripted/single-speaker (chunks->align) | "noisy" = conversational (VAD)
-    note: str
-
-
-def _ch(slug: str, url: str, tier: str, note: str) -> Channel:
-    return Channel(slug, url, tier, note)
 
 
 #: Georgian YouTube channels for the create path. Policy: a channel qualifies when a meaningful
@@ -76,4 +66,3 @@ YOUTUBE_CHANNELS: tuple[Channel, ...] = (
         "Komedi Shou (Rustavi 2 sketches) — scripted dialogue; re-upload channel, verify size"),
 )
 
-CHANNELS_BY_SLUG = {c.slug: c for c in YOUTUBE_CHANNELS}

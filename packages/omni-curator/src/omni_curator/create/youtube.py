@@ -15,6 +15,27 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
+@dataclass(frozen=True)
+class Channel:
+    """A vetted channel in a project's source registry: where to pull + how clean to expect it."""
+
+    slug: str
+    url: str
+    tier: str  # "clean" = scripted/single-speaker | "noisy" = conversational
+    note: str
+
+
+def channel(slug: str, ident: str, tier: str, note: str) -> Channel:
+    """Build a :class:`Channel`; ``ident`` is a full URL, an ``@handle``, or a ``UC...`` id."""
+    if ident.startswith(("http://", "https://")):
+        url = ident
+    elif ident.startswith("@"):
+        url = f"https://www.youtube.com/{ident}"
+    else:
+        url = f"https://www.youtube.com/channel/{ident}"
+    return Channel(slug, url, tier, note)
+
+
 @dataclass
 class YoutubeAudio:
     video_id: str
