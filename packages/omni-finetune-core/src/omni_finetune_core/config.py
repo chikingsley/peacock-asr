@@ -49,6 +49,10 @@ class AsrTaskConfig(_Base):
 
 class FragmentLoading(_Base):
     cache: bool = True
+    #: Where cached Arrow fragments are mmap'd. The fairseq2 default (tempfile.mkdtemp() under
+    #: /tmp) overflows a tmpfs on audio-heavy corpora and kills the run mid-training — always
+    #: point this at real disk for large datasets.
+    cache_dir: str | None = None
 
 
 class MixtureParquetStorageConfig(_Base):

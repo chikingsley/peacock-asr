@@ -19,6 +19,7 @@ from omni_finetune_core.config import (
     AsrTaskConfig,
     CommonConfig,
     DatasetConfig,
+    FragmentLoading,
     GradAccumulation,
     LrSchedulerConfig,
     LrSchedulerInner,
@@ -68,12 +69,18 @@ def _gpu12_trainer_1b() -> TrainerConfig:
 
 
 def _dataset(
-    name: str, summary_path: str, *, max_num_elements: int, max_audio_len: int = 960_000
+    name: str,
+    summary_path: str,
+    *,
+    max_num_elements: int,
+    max_audio_len: int = 960_000,
+    fragment_cache_dir: str | None = None,
 ) -> DatasetConfig:
     return DatasetConfig(
         name=name,
         mixture_parquet_storage_config=MixtureParquetStorageConfig(
-            dataset_summary_path=summary_path
+            dataset_summary_path=summary_path,
+            fragment_loading=FragmentLoading(cache_dir=fragment_cache_dir),
         ),
         asr_task_config=AsrTaskConfig(
             max_num_elements=max_num_elements, max_audio_len=max_audio_len
@@ -128,13 +135,20 @@ def gpu_max_finetune(
     lr: float = 1e-5,
     max_num_elements: int = _ANCHOR_MAX_ELEMENTS,
     validate_every: int = 200,
+    fragment_cache_dir: str | None = None,
 ) -> TrainingConfig:
     """Regime A — fresh fine-tune that maxes a ~12 GB GPU. ``lr_scheduler`` left to the recipe
     default (tri-stage: warmup 10% / hold 40% / decay 50%, peaking at ``lr``).
+
+    Set ``fragment_cache_dir`` to real disk for large corpora — the fairseq2 default caches
+    Arrow fragments under /tmp, and a tmpfs overflow kills the run mid-training.
     """
     return TrainingConfig(
         model=ModelConfig(name=model),
-        dataset=_dataset(dataset, dataset_summary_path, max_num_elements=max_num_elements),
+        dataset=_dataset(
+            dataset, dataset_summary_path,
+            max_num_elements=max_num_elements, fragment_cache_dir=fragment_cache_dir,
+        ),
         tokenizer=TokenizerConfig(name=tokenizer),
         optimizer=OptimizerConfig(config=OptimizerInner(lr=lr)),
         trainer=_gpu12_trainer(),
@@ -153,6 +167,7 @@ def gpu_max_finetune_1b(
     max_num_elements: int = 960_000,
     max_audio_len: int = 480_000,
     validate_every: int = 1_000,
+    fragment_cache_dir: str | None = None,
 ) -> TrainingConfig:
     """Regime A for the **1B** model — pure-bf16 fit on a ~12 GB GPU.
 
@@ -167,6 +182,7 @@ def gpu_max_finetune_1b(
         dataset=_dataset(
             dataset, dataset_summary_path,
             max_num_elements=max_num_elements, max_audio_len=max_audio_len,
+            fragment_cache_dir=fragment_cache_dir,
         ),
         tokenizer=TokenizerConfig(name=tokenizer),
         optimizer=OptimizerConfig(config=OptimizerInner(lr=lr)),
@@ -186,6 +202,7 @@ def warm_restart(
     max_num_elements: int = _ANCHOR_MAX_ELEMENTS,
     validate_every: int = 500,
     no_sweep_dir: bool = True,
+    fragment_cache_dir: str | None = None,
 ) -> TrainingConfig:
     """Regime B — warm-restart from a best-checkpoint card.
 
@@ -197,7 +214,10 @@ def warm_restart(
     """
     return TrainingConfig(
         model=ModelConfig(name=checkpoint_card),
-        dataset=_dataset(dataset, dataset_summary_path, max_num_elements=max_num_elements),
+        dataset=_dataset(
+            dataset, dataset_summary_path,
+            max_num_elements=max_num_elements, fragment_cache_dir=fragment_cache_dir,
+        ),
         tokenizer=TokenizerConfig(name=tokenizer),
         optimizer=OptimizerConfig(config=OptimizerInner(lr=peak_lr)),
         lr_scheduler=LrSchedulerConfig(config=LrSchedulerInner()),

@@ -32,6 +32,7 @@ omni-tune = "omni_finetune_core.tune:main"
 
 [dependency-groups]
 dev = [
+  "pytest>=8",
   "ruff==0.15.15",
   "ty==0.0.40",
 ]
@@ -80,6 +81,10 @@ runtime-evaluated-base-classes = ["pydantic.BaseModel"]
 
 [tool.ruff.lint.per-file-ignores]
 "**/test_*.py" = ["S101", "PLR2004"]  # asserts + magic values are fine in tests
+# The per-language project CLI: prints are its output; torch/omnilingual_asr/presets import
+# lazily so `--help` and config-building stay instant.
+"src/omni_finetune_core/project.py" = ["T201", "PLC0415"]
+"tests/**" = ["S101", "PLR2004", "ANN", "ARG001", "INP001", "N812", "RUF001", "RUF003"]
 
 [tool.ty.environment]
 python = ".venv"
