@@ -4,53 +4,53 @@ Discovery date: 2026-05-30
 
 ## Seed
 
-- TAJIK SHOW: https://www.youtube.com/channel/UC8IkRmxUGVZhpJd3qYpWgwQ
-  - Seed video: https://www.youtube.com/watch?v=5OtJQ9d5SFw
+- TAJIK SHOW: <https://www.youtube.com/channel/UC8IkRmxUGVZhpJd3qYpWgwQ>
+  - Seed video: <https://www.youtube.com/watch?v=5OtJQ9d5SFw>
   - Example title: "ГАПА РОСТАШ" бо Олимчон Махмудов
   - Long-form comedy/interview content. Description is Tajik Cyrillic with some Russian mixing.
 
 ## Strong Candidates
 
-- Забон - омӯзиши забони тоҷикӣ: https://www.youtube.com/channel/UC1A3lbraoH8suk3e13_daYA
+- Забон - омӯзиши забони тоҷикӣ: <https://www.youtube.com/channel/UC1A3lbraoH8suk3e13_daYA>
   - Tajik language lesson channel. Short lesson videos, likely clean speech.
-- Intellect Online Tj: https://www.youtube.com/channel/UCth6mHHRSBxTsIzAtUo4I6A
+- Intellect Online Tj: <https://www.youtube.com/channel/UCth6mHHRSBxTsIzAtUo4I6A>
   - Tajik grammar/school lesson videos. Likely formal Tajik and board/classroom speech.
-- Learning Tajik with Achilovs: https://www.youtube.com/channel/UCFGB29XZkEGS1Vw7WplBqIg
+- Learning Tajik with Achilovs: <https://www.youtube.com/channel/UCFGB29XZkEGS1Vw7WplBqIg>
   - Tajik learning content. English plus Tajik segments, useful with strong filtering.
-- TAJIK SHOW: https://www.youtube.com/channel/UC8IkRmxUGVZhpJd3qYpWgwQ
+- TAJIK SHOW: <https://www.youtube.com/channel/UC8IkRmxUGVZhpJd3qYpWgwQ>
   - Long interviews/comedy. More natural speech, likely mixed with Russian/Uzbek and crosstalk.
-- Аsia-Plus TV: https://www.youtube.com/channel/UCxaPn-OJIG6FY2oM1TB0ZSw
+- Аsia-Plus TV: <https://www.youtube.com/channel/UCxaPn-OJIG6FY2oM1TB0ZSw>
   - Interviews and news-style content. Long videos, likely useful after speaker/music filtering.
-- Ozodivideo: https://www.youtube.com/channel/UCyTDJHSzuKZ2JZO41c5Do1A
+- Ozodivideo: <https://www.youtube.com/channel/UCyTDJHSzuKZ2JZO41c5Do1A>
   - News in Tajik/Persian-script-heavy metadata. Good source for formal broadcast speech.
-- TV TAJIKISTAN - TVT TOJIKISTON - ТВ ТОЧИКИСТОН: https://www.youtube.com/channel/UC0NDr4nXx-c4cto_RLz9UPA
+- TV TAJIKISTAN - TVT TOJIKISTON - ТВ ТОЧИКИСТОН: <https://www.youtube.com/channel/UC0NDr4nXx-c4cto_RLz9UPA>
   - Regular Tajikistan news uploads. Good source for broadcast/news speech.
-- Timeless Tajik Tales: https://www.youtube.com/channel/UC1F6CkzuinA8WrSPPQ7IrZA
+- Timeless Tajik Tales: <https://www.youtube.com/channel/UC1F6CkzuinA8WrSPPQ7IrZA>
   - Tajik stories for kids. Likely narrated speech with music risk.
-- Алифбо.Афсонаҳо.Чистонҳо .: https://www.youtube.com/channel/UCs3-_kS3W6kzr0MiVhbuRkg
+- Алифбо.Афсонаҳо.Чистонҳо .: <https://www.youtube.com/channel/UCs3-_kS3W6kzr0MiVhbuRkg>
   - Alphabet, stories, riddles. Good children/narration candidate.
-- Tajik Kids TV: https://www.youtube.com/channel/UCak1RKJm8YAzzNt-fJsrJcw
+- Tajik Kids TV: <https://www.youtube.com/channel/UCak1RKJm8YAzzNt-fJsrJcw>
   - Tajik alphabet and kids songs. Useful for speech only after music filtering.
-- 1000 Китоб-Книга: https://www.youtube.com/channel/UCu2DqlrzjVrkSE45s_DrsMQ
+- 1000 Китоб-Книга: <https://www.youtube.com/channel/UCu2DqlrzjVrkSE45s_DrsMQ>
   - Tajik folk stories. Candidate for narrated speech.
-- QURAN DASTURAMALI INSON: https://www.youtube.com/channel/UCIXU4ymUyAKI6XlHd6Od0kA
+- QURAN DASTURAMALI INSON: <https://www.youtube.com/channel/UCIXU4ymUyAKI6XlHd6Od0kA>
   - Tajik translations of Quran meanings. Highly structured, likely recitation plus Tajik translation.
-- Learning Phrases with Chris & Friends: https://www.youtube.com/channel/UCCIWbFzZg_lmCg51-p9OPTA
+- Learning Phrases with Chris & Friends: <https://www.youtube.com/channel/UCCIWbFzZg_lmCg51-p9OPTA>
   - Bilingual phrase videos including English/Arabic/Uzbek paired with Tajik. Useful only with language filtering.
-- Useful Chinese with Chris: https://www.youtube.com/channel/UCwd_tJB2TqFdOuKzPi0fyWg
+- Useful Chinese with Chris: <https://www.youtube.com/channel/UCwd_tJB2TqFdOuKzPi0fyWg>
   - Chinese-Tajik phrase video found. Useful only with language filtering.
-- Useful German with Chris: https://www.youtube.com/channel/UCUjEem6VD2xmJDK-q7D1BCA
+- Useful German with Chris: <https://www.youtube.com/channel/UCUjEem6VD2xmJDK-q7D1BCA>
   - German-Tajik phrase video found. Useful only with language filtering.
 
 ## Secondary Candidates
 
-- VASHGIRD: https://www.youtube.com/channel/UCOMGlLskQ6oMQxdcAa9r7pg
-- Блоги Тоҷикон: https://www.youtube.com/channel/UC1an9Iqjb_j9MqSKOimishw
-- Najm TV: https://www.youtube.com/channel/UCtbkheg9Y_4Gqd5fJvTPnIA
-- Dfilm tj: https://www.youtube.com/channel/UCkWYn30XkWkBG7Xz3EUQdxA
-- ТЕЛЕКАНАЛ “АЗИЯ” (Худжанд): https://www.youtube.com/channel/UCvnaB27ZQkp4NHdspt8occA
-- Avlod Media: https://www.youtube.com/channel/UCqd3RiPrwKD-MvPh2x-4O_w
-- Muminov tv music: https://www.youtube.com/channel/UCGHumDIhdxgfr9o7dRgs9tw
+- VASHGIRD: <https://www.youtube.com/channel/UCOMGlLskQ6oMQxdcAa9r7pg>
+- Блоги Тоҷикон: <https://www.youtube.com/channel/UC1an9Iqjb_j9MqSKOimishw>
+- Najm TV: <https://www.youtube.com/channel/UCtbkheg9Y_4Gqd5fJvTPnIA>
+- Dfilm tj: <https://www.youtube.com/channel/UCkWYn30XkWkBG7Xz3EUQdxA>
+- ТЕЛЕКАНАЛ “АЗИЯ” (Худжанд): <https://www.youtube.com/channel/UCvnaB27ZQkp4NHdspt8occA>
+- Avlod Media: <https://www.youtube.com/channel/UCqd3RiPrwKD-MvPh2x-4O_w>
+- Muminov tv music: <https://www.youtube.com/channel/UCGHumDIhdxgfr9o7dRgs9tw>
 
 ## Search Terms That Worked
 

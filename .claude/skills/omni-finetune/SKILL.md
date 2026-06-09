@@ -41,7 +41,7 @@ train(cfg, output_dir=Path("runs/v1"))       # writes config.yaml, runs the reci
   recipe-default tri-stage schedule (warmup 10% → hold 40% → decay 50%), best-WER checkpointing.
 - **`gpu_max_finetune_1b`** (the 1B model): same shape, but **pure bf16** — `model.dtype` bf16 +
   `mixed_precision.mode="off"` (no fp32 optimizer copy, ~8 GB vs ~16 GB), with `max_grad_norm 1.0`
-  + grad-accum 4 for stability and clips capped at 30 s. `model="omniASR_CTC_1B_v2"` (upstream base,
+  - grad-accum 4 for stability and clips capped at 30 s. `model="omniASR_CTC_1B_v2"` (upstream base,
   auto-downloaded). Watch the first ~1–2k steps for loss spikes / NaNs; drop `lr` if it destabilizes.
 - **`warm_restart`** (only after a dev-WER plateau): loads weights from a **best-checkpoint card**
   (not base) → fresh optimizer + lower peak (`peak_lr 2e-6`, explicit tri-stage). Real but tiny

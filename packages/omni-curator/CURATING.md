@@ -16,7 +16,7 @@ Both yield `Sample`s, so everything downstream is source-agnostic.
 
 ## Project data layout (gitignored)
 
-```
+```text
 <project>/data/
   raw/              ← downloads, TRANSIENT. Used to process, then disposable (re-download anytime).
   canonical_audio/  ← the canonical 16 kHz mono FLAC clips. The audio of record.
@@ -26,7 +26,7 @@ Both yield `Sample`s, so everything downstream is source-agnostic.
 
 ## The flow
 
-```
+```text
 ingest / create ─► process (16 kHz · normalize · tokenizer-coverage) ─► store        [ONCE]
                                                                           (curator.sqlite + canonical_audio/)
                                                                             │

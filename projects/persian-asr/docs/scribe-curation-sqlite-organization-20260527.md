@@ -21,11 +21,11 @@ data/curation/scribe_jobs/scribe-canonical-all-20260516T192536Z/scribev2.full-20
 
 Official references:
 
-- NVIDIA NeMo Curator audio curation pipeline: ingestion, optional ASR inference, WER/CER quality metrics, filtering, export. https://docs.nvidia.com/nemo/curator/latest/about/concepts/audio/curation-pipeline.html
-- NVIDIA NeMo Curator WER filtering: calculate WER, inspect distributions, apply thresholds, tune thresholds by domain. https://docs.nvidia.com/nemo/curator/curate-audio/process-data/quality-assessment/wer-filtering
-- NVIDIA Speech Data Explorer: inspect alphabet, vocabulary/OOV words, zero-accuracy words, and high-CER utterances. https://docs.nvidia.com/nemo-framework/user-guide/25.02/nemotoolkit/tools/speech_data_explorer.html
-- Meta self-training for end-to-end ASR: strong teacher models, pseudo-label filtering, and ensemble/agreement improve student training. https://ai.meta.com/research/publications/self-training-for-end-to-end-speech-recognition/
-- Hugging Face ASR fine-tuning guidance: train on a transcript field, normalize text consistently, and skip empty normalized references during metric computation. https://huggingface.co/docs/transformers/tasks/asr
+- NVIDIA NeMo Curator audio curation pipeline: ingestion, optional ASR inference, WER/CER quality metrics, filtering, export. <https://docs.nvidia.com/nemo/curator/latest/about/concepts/audio/curation-pipeline.html>
+- NVIDIA NeMo Curator WER filtering: calculate WER, inspect distributions, apply thresholds, tune thresholds by domain. <https://docs.nvidia.com/nemo/curator/curate-audio/process-data/quality-assessment/wer-filtering>
+- NVIDIA Speech Data Explorer: inspect alphabet, vocabulary/OOV words, zero-accuracy words, and high-CER utterances. <https://docs.nvidia.com/nemo-framework/user-guide/25.02/nemotoolkit/tools/speech_data_explorer.html>
+- Meta self-training for end-to-end ASR: strong teacher models, pseudo-label filtering, and ensemble/agreement improve student training. <https://ai.meta.com/research/publications/self-training-for-end-to-end-speech-recognition/>
+- Hugging Face ASR fine-tuning guidance: train on a transcript field, normalize text consistently, and skip empty normalized references during metric computation. <https://huggingface.co/docs/transformers/tasks/asr>
 
 Operational interpretation:
 

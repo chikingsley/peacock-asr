@@ -46,7 +46,7 @@ Four commands: **`enqueue` → `segment` → `labelq` → `harvest`.**
 
 ## Architecture
 
-```
+```text
 downloaded FLACs            work queue (data/queue.sqlite, WAL)            canonical
 data/create/<slug>/*.flac                                                 data/channels/<slug>/store.sqlite
         │                                                                          ▲
@@ -166,7 +166,7 @@ The existing `merge → curator.sqlite` flow is unchanged (`curate.py:183`).
 
 ## New files (nothing existing is edited until sign-off)
 
-```
+```text
 packages/omni-curator/src/omni_curator/create/
   queue.py     # QueueStore: schema, enqueue, claim/lease, batch-claim, write-back, harvest helpers
   segment.py   # resident-model VAD producer loop (one process); segment_run(queue, ...)
@@ -220,4 +220,5 @@ enqueue|segment|labelq|harvest`. Georgian/Persian inherit it (logic is in the pa
 - `SuperwhisperClient` / Scribe fns: instantiate per-thread (thread-local) — they're HTTP wrappers,
   safe default regardless of proven thread-safety.
 - Tune `P_seg` and `W_label` empirically against ~80% CPU / ~200–250 Scribe concurrency.
-```
+
+```text

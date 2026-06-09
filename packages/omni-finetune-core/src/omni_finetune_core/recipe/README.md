@@ -3,6 +3,7 @@
 We provide two fairseq2 recipes, which are pre-configured training and evaluation workflows that combine models, datasets, and hyperparameters into reproducible experiments that you can run with a single command.
 
 `wav2vec2.asr.recipe` - Training recipe supporting:
+
 - Train the CTC model starting with a W2V encoder ([./configs/ctc-from-encoder.yaml](./configs/ctc-from-encoder.yaml))
 - Train the CTC model given a CTC checkpoint ([./configs/ctc-finetune.yaml](./configs/ctc-finetune.yaml))
 - Train the LLM model starting with a W2V encoder ([./configs/llm-from-encoder.yaml](./configs/llm-from-encoder.yaml))
@@ -12,9 +13,10 @@ We provide two fairseq2 recipes, which are pre-configured training and evaluatio
 
 Each recipe stores its configurations as YAML files in its config directory [`wav2vec2.asr.config`](./configs) and [`wav2vec2.asr.eval.config`](./eval/configs). The evaluation recipe reuses the datasets from the training recipe.
 
-### Dataset Backends
+## Dataset Backends
 
 Our dataset implementation supports flexible combinations of storage and task backends:
+
 - Mixture parquet backend - [`MixtureParquetStorage`](/src/omnilingual_asr/datasets/storage/mixture_parquet_storage.py)
 - Manifest-based backend - [`ManifestStorage`](/src/omnilingual_asr/datasets/storage/manifest_storage.py)
 - SSL task  - [`SslTask`](/src/omnilingual_asr/datasets/tasks/ssl_task.py)
@@ -54,7 +56,7 @@ Set an output directory for the resulting artifacts (model checkpoints during tr
 
 We offer the following recommendations for users who are compute-constrained and wish to fine-tune our smaller CTC checkpoints on specific low-resource languages. As reported in Section 5.7.5 of the paper, fine-tuning smaller-scale CTC models in these settings produced models that were competitive with our 7B LLM ASR model on the specific languages. Of course, the optimal fine-tuning hyper-parameters will vary from language to language, but the following presets performed generally well and serve as a good starting point.
 
-```
+```text
 dataset:
   (...)
   asr_task_config:

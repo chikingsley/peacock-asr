@@ -24,6 +24,7 @@ NeMo's documented **lenient** preset (its defaults): `max_wer 50%`, `min_dur 0.3
 `max_dur 60 s`, `min_words 1` — a "remove only clearly broken clips" floor, not a quality bar.
 
 Map for our corpora:
+
 - `commonvoice-scripted-*`, `fleurs` → **broadcast** tiers.
 - `commonvoice-spontaneous-*`, YouTube drill/show audio → **conversational** tiers.
 

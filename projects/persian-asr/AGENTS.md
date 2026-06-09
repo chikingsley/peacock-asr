@@ -9,12 +9,13 @@
 - Shared ASR tools live as peer projects under `peacock-asr/projects`; use uv-visible console scripts from the project environment rather than import-path hacks.
 
 Official uv references:
-- Project command execution: https://docs.astral.sh/uv/concepts/projects/run/
-- CLI command behavior: https://docs.astral.sh/uv/reference/cli/
-- Tools and `uvx`: https://docs.astral.sh/uv/concepts/tools/
-- Tool usage guidance: https://docs.astral.sh/uv/guides/tools/
-- Scripts and inline metadata: https://docs.astral.sh/uv/guides/scripts/
-- Workspaces and `--package`: https://docs.astral.sh/uv/concepts/projects/workspaces/
+
+- Project command execution: <https://docs.astral.sh/uv/concepts/projects/run/>
+- CLI command behavior: <https://docs.astral.sh/uv/reference/cli/>
+- Tools and `uvx`: <https://docs.astral.sh/uv/concepts/tools/>
+- Tool usage guidance: <https://docs.astral.sh/uv/guides/tools/>
+- Scripts and inline metadata: <https://docs.astral.sh/uv/guides/scripts/>
+- Workspaces and `--package`: <https://docs.astral.sh/uv/concepts/projects/workspaces/>
 
 ## Scribe / ElevenLabs
 
@@ -22,8 +23,9 @@ Official uv references:
 - Preserve raw ElevenLabs STT responses when endpoint confidence, word timings, logprobs, language probability, or entity metadata are part of the analysis.
 
 Official ElevenLabs references:
-- Speech-to-text API: https://elevenlabs.io/docs/api-reference/speech-to-text/convert
-- Speech-to-text overview: https://elevenlabs.io/docs/capabilities/speech-to-text
+
+- Speech-to-text API: <https://elevenlabs.io/docs/api-reference/speech-to-text/convert>
+- Speech-to-text overview: <https://elevenlabs.io/docs/capabilities/speech-to-text>
 
 ## Required Local Skill
 

@@ -26,7 +26,7 @@ The v3 Omni CTC run (`persian_asr_scribe_v3_max_20260527`) emits the unknown-tok
 
 Root cause (verified locally, not inferred):
 
-```
+```text
 v3 training text contains ZWNJ (U+200C)
   -> Omni char tokenizer has no ZWNJ piece; ZWNJ PieceToId == unk_id (3)
   -> training teaches <unk> at Persian morpheme boundaries
@@ -115,7 +115,7 @@ Because `maybe_normalize()` is the single chokepoint, this propagates automatica
 Add a preflight that fails any Omni export/train when training `text` produces tokenizer
 unknowns. Require `unk_rows == 0`. The audit logic already exists:
 
-```
+```text
 uv run persian-omni-text-audit <export-name>
 ```
 
@@ -142,10 +142,10 @@ Whether to build the ZWNJ-restoration post-processor depends on the end use:
 
 ## Sources
 
-- Joint Persian Word Segmentation Correction and ZWNJ Recognition Using BERT (COLING 2020) — ZWNJ recoverable from text at ~92% F1: https://arxiv.org/abs/2010.00287
-- Correcting Space and ZWNJ Errors in Persian Text (RANLP 2025): https://acl-bg.org/proceedings/2025/RANLP%202025/pdf/2025.ranlp-1.40.pdf
-- PSRB: A Comprehensive Benchmark for Evaluating Persian ASR Systems — ZWNJ inflates Persian WER, calls for linguistic normalization: https://www.themoonlight.io/en/review/psrb-a-comprehensive-benchmark-for-evaluating-persian-asr-systems
-- Omnilingual ASR (Meta, 2025): https://arxiv.org/html/2511.09690v1
-- Hugging Face ASR evaluation (WER vs CER behavior): https://huggingface.co/learn/audio-course/en/chapter5/evaluation
-- JiWER usage: https://jitsi.github.io/jiwer/usage/
-- CER for multilingual ASR evaluation: https://arxiv.org/abs/2410.07400
+- Joint Persian Word Segmentation Correction and ZWNJ Recognition Using BERT (COLING 2020) — ZWNJ recoverable from text at ~92% F1: <https://arxiv.org/abs/2010.00287>
+- Correcting Space and ZWNJ Errors in Persian Text (RANLP 2025): <https://acl-bg.org/proceedings/2025/RANLP%202025/pdf/2025.ranlp-1.40.pdf>
+- PSRB: A Comprehensive Benchmark for Evaluating Persian ASR Systems — ZWNJ inflates Persian WER, calls for linguistic normalization: <https://www.themoonlight.io/en/review/psrb-a-comprehensive-benchmark-for-evaluating-persian-asr-systems>
+- Omnilingual ASR (Meta, 2025): <https://arxiv.org/html/2511.09690v1>
+- Hugging Face ASR evaluation (WER vs CER behavior): <https://huggingface.co/learn/audio-course/en/chapter5/evaluation>
+- JiWER usage: <https://jitsi.github.io/jiwer/usage/>
+- CER for multilingual ASR evaluation: <https://arxiv.org/abs/2410.07400>

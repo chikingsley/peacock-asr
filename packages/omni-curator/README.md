@@ -4,7 +4,7 @@ In-house ASR dataset **curator** — turns raw audio into fine-tuning transcript
 `omni-finetune-core` (the training side); together they're our equivalent of NVIDIA's NeMo
 Curator, built for the Omni-ASR toolchain.
 
-```
+```text
 audio ─► segment ─► Scribe ensemble ─► compile-down ─► (stitch) ─► polish ─► transcript
 ```
 

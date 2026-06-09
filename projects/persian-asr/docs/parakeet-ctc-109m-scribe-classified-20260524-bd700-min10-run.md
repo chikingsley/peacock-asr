@@ -502,7 +502,7 @@ early-stopping `min_delta=0.001`. The run is near the hard `max_steps=130260` ca
 
 Training then stopped at the hard step cap:
 
-- stop reason in launch log: ``Trainer.fit` stopped: `max_steps=130260` reached.`
+- stop reason in launch log: ``Trainer.fit` stopped: `max_steps=130260`reached.`
 - final TensorBoard train step observed: `130249`
 - final validation remained epoch `21` with `val_wer=0.20084`
 - final exported `.nemo` updated:

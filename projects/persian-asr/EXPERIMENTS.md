@@ -49,11 +49,13 @@ in chronological order. Factual only; numbers are grounded in repo files
 ## Parakeet 109M — early baselines (dates not recorded; pre-tracking)
 
 ### Parakeet base 109M — control (`parakeet-110m`)
+
 - **Goal:** Sanity floor — the untuned NeMo Parakeet base on Persian.
 - **Result:** 100.00% WER / 100.00% CER on every split (no Persian capability).
 - **Verdict:** Control only — establishes that all Persian skill comes from fine-tuning.
 
 ### Parakeet broad-plus-mana 109M (`parakeet-broad-plus-mana`)
+
 - **Changed:** Broad early Persian set + Mana TTS; recipe `batch_duration 700`, lr 1e-4,
   warmup 5000, the predecessor run `parakeet-ctc-109m-broad-plus-mana-20260515` (best epoch 12,
   val_wer 0.2926).
@@ -62,12 +64,14 @@ in chronological order. Factual only; numbers are grounded in repo files
 - **Verdict:** Dead end as a broad model — collapses on Common Voice / Neyshekar.
 
 ### Parakeet broad-filtered 109M (`parakeet-broad-filtered`)
+
 - **Result:** Every split 46–100% WER (CV 46.4%, FLEURS 57.8%, neyshekar 99.9%).
 - **Verdict:** Dead end — the filtering hurt rather than helped.
 
 ## Omni 300M — early data-recipe sweep (dates not recorded; pre-Scribe; re-scored 2026-05-28)
 
 ### Omni FLEURS-only 300M (`fleurs-fa-ir-ctc-300m-v2-finetune` → `omni-fleurs-fa-ir`)
+
 - **Goal:** Fine-tune Omni 300M on FLEURS Persian alone (cleanest read speech) as a first target.
 - **Changed:** Dataset `fleurs_fa_ir`; grad-accum 8, `max_num_elements` 960k, num_steps 5,000,
   validate/checkpoint every 500.
@@ -75,12 +79,14 @@ in chronological order. Factual only; numbers are grounded in repo files
 - **Verdict:** Superseded — strong on its own domain, useless broadly (too little / too narrow data).
 
 ### Omni FLEURS→Thomcles 300M (`thomcles-ctc-300m-v2-continue-from-fleurs` → `omni-fleurs-thomcles`)
+
 - **Changed:** Continue from the FLEURS-final checkpoint (`omni_ctc_300m_v2_fleurs_fa_ir_final`) on
   `thomcles_persian_farsi_speech`; same 5,000-step regime.
 - **Result:** FLEURS 16.50% (worse than FLEURS-only), CV 36.45%, youtube 36.41% (better than FLEURS-only).
 - **Verdict:** Superseded — adding Thomcles broadened it slightly but still far from usable.
 
 ### Omni 100h-filter family: clean / balanced / target (300M, 15k steps)
+
 - **Goal:** Compare three 100-hour selection strategies from the curation ledger
   (`persian_asr_clean_100h_filter`, `persian_asr_balanced_100h_filter`, `persian_asr_target_100h_filter`),
   each num_steps 15,000, grad-accum 2, `max_num_elements` 3.84M.
@@ -92,6 +98,7 @@ in chronological order. Factual only; numbers are grounded in repo files
   target/balanced best on youtube; none competitive with the later Scribe runs.
 
 ### Omni wer35-fastconformer-filtered 300M (`omni-wer35-fastconformer`)
+
 - **Changed:** Data filtered by FastConformer-CTC WER ≤ 35% (NeMo Curator pass).
 - **Result:** CV 23.79% / FLEURS 11.81% / mana 30.57% / neyshekar 25.76% / youtube 35.13%.
 - **Verdict:** Superseded — best of the pre-Scribe Omni runs on several splits, but Scribe-verified
