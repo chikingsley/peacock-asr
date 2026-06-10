@@ -13,6 +13,7 @@ dependencies = [
   "nemo-curator==1.1.0",
   "nemo-toolkit[asr]>=2.7.3",
   "numpy==2.4.6",
+  "omni-curator[ingest,youtube,normalize]",
   "omni-finetune-core",
   "omnilingual-asr==0.2.0",
   "onnxruntime==1.26.0",
@@ -33,6 +34,7 @@ dependencies = [
 
 [tool.uv.sources]
 superwhisper-api = { path = "../../packages/superwhisper-api", editable = true }
+omni-curator = { path = "../../packages/omni-curator", editable = true }
 omni-finetune-core = { path = "../../packages/omni-finetune-core", editable = true }
 
 [tool.uv]
@@ -48,8 +50,16 @@ override-dependencies = [
 
 [project.entry-points."fairseq2.extension"]
 persian_asr = "persian_omnilingual_asr.fairseq2_assets:setup_fairseq2_extension"
+# The template package registers ONLY new card names (it imports the legacy cards instead of
+# redefining them — duplicate names across fairseq2 metadata providers are a hard error).
+persian_asr_v2 = "persian_asr.assets:setup_fairseq2_extension"
 
 [project.scripts]
+# The template-shaped package (persian_asr): the thin per-language standard. The -v2 train/eval
+# names keep the legacy CLIs below untouched.
+persian-curate = "persian_asr.curate:main"
+persian-train-v2 = "persian_asr.train:main"
+persian-eval-v2 = "persian_asr.eval:main"
 # Omni fine-tune / eval on the shared omni-finetune-core recipe (persian_omnilingual_asr).
 persian-omni-train = "persian_omnilingual_asr.training.train:main"
 persian-omni-eval = "persian_omnilingual_asr.eval.test_split:main"
@@ -156,6 +166,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = [
+  "src/persian_asr",
   "src/persian_asr_dataset",
   "src/persian_omnilingual_asr",
   "src/finetune_omni",
