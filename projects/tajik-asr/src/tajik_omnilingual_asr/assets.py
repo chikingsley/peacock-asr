@@ -34,24 +34,12 @@ if TYPE_CHECKING:
 _PKG = Path(__file__).resolve().parent
 _PROJECT = Path(__file__).resolve().parents[2]
 _MODELS = _PKG / "models"
-# The training parquet lives inside its source artifact (sibling of omni_manifest/).
-# Versioning is by artifact dir: point this at tajik_asr_combined_v1/... for v1, etc.
-# The parquet's own version=0 partition is a fairseq2 layout requirement, not the axis.
+# The legacy v0 parquet lives inside its source artifact (kept as the baseline-model
+# provenance; v1/v2 data was superseded, recorded in EXPERIMENTS.md, and deleted —
+# kept datasets live on the Peacockery HF org).
 _PARQUET = (
     _PKG / "dataset_prep" / "artifacts" / "tajik_asr_combined_v0" / "omni_parquet" / "version=0"
 )
-# v1 = v0's real Tajik corpora + a transliterated-Persian (FLEURS) augmentation corpus
-# (corpus=persian_translit_fleurs). Same version=0 layout; mixture weights come from the
-# sibling language_distribution_0.tsv. DEAD END (kept for provenance) — see
-# docs/persian-augmentation-experiment-20260530.md; builder archived under
-# dataset_prep/archive/build_persian_augmentation.py.
-_PARQUET_V1 = (
-    _PKG / "dataset_prep" / "artifacts" / "tajik_asr_combined_v1" / "omni_parquet" / "version=0"
-)
-# v2 = the new curator pipeline's first full export: FLEURS + 41 YouTube channels
-# (~1,400 h), Scribe-verified with script-aware scoring, WER <= 0.35 + junk filter.
-# Produced by `tajik-curate export v2 --max-wer 0.35`; lives in the project data dir.
-_PARQUET_V2 = _PROJECT / "data" / "datasets" / "v2" / "version=0"
 # v3 = v2's corpus minus a held-out conversational test set (157 whole videos carved to
 # split=test); the only difference from v2 is that those videos are out of train. The fair
 # conversational benchmark — v3 has never seen the held-out clips it is scored on.
@@ -78,16 +66,6 @@ CARDS = [
         ),
         tokenizer_ref=TOKENIZER_NAME,
     ),
-    # v1 (Persian-augmented) best dev-WER checkpoint (step_4000).
-    ModelCard(
-        name="omni_ctc_300m_v2_tajik_v1_step_4000",
-        checkpoint=(
-            _PROJECT
-            / "runs/omni-ctc-300m-tajik-asr-corpus-v1/ws_1.fbafaafe/"
-            / "checkpoints/step_4000/model/pp_00/tp_00/sdp_00.pt"
-        ),
-        tokenizer_ref=TOKENIZER_NAME,
-    ),
     # v2 (full new-pipeline corpus, ~1,070 h) best dev-WER ckpt (step_19500, FLEURS dev 17.06).
     ModelCard(
         name="omni_ctc_300m_v2_tajik_v2_step_19500",
@@ -101,16 +79,6 @@ CARDS = [
     MixtureParquetDatasetCard(
         name="tajik_asr_corpus",
         data=_PARQUET,
-        tokenizer_ref=TOKENIZER_NAME,
-    ),
-    MixtureParquetDatasetCard(
-        name="tajik_asr_corpus_v1",
-        data=_PARQUET_V1,
-        tokenizer_ref=TOKENIZER_NAME,
-    ),
-    MixtureParquetDatasetCard(
-        name="tajik_asr_corpus_v2",
-        data=_PARQUET_V2,
         tokenizer_ref=TOKENIZER_NAME,
     ),
     MixtureParquetDatasetCard(
