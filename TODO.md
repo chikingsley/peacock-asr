@@ -57,6 +57,28 @@ per language project:  ONE master store: data/curator.sqlite
 - [x] ~~Retry failed verify/rescore rows~~ — non-issue: the 269 unscored are `♪`/`.`/`…` non-speech
   markers verify correctly skips and export drops.
 
+## HuggingFace publishing (policy set 2026-06-10)
+
+**Policy: HF (Peacockery org, public) is the archive; local is working state.** When a dataset
+version or model ships (has a result in EXPERIMENTS.md), push it with a plain-prose card
+(provenance, gates, the machine-label caveat, benchmark numbers); superseded versions get their
+numbers recorded and are deleted locally, never pushed. Naming: models `<family>-<size>-<language>`
+(one repo per family+language holding the current BEST — recipe jargon stays in the card);
+datasets `<language>-asr-corpus-vN` (immutable snapshots) + `<language>-asr-<scope>` for
+community sets.
+
+- [x] Fleurs mirror dupes deleted from HF (`fleurs-parquet`, `google-fleurs`).
+- [ ] **In flight (tmux `hf-upload`, resumable):** models `omni-ctc-300m-tajik` (v3 step_20000),
+  `omni-ctc-300m-persian` (scribe-v4-rewarm step_7000), `parakeet-ctc-109m-persian` (the
+  scribe-classified BEST — the later exact-match run regressed and stays retired); datasets
+  `georgian-asr-corpus-v0` (7.8G), `persian-asr-corpus-v4` (60G), `tajik-asr-corpus-v3` (71G).
+- [ ] **`tajik-asr-youtube`** — the community set: all Tajik-language-gated YouTube clips, NO WER
+  gate, rich schema (audio, text, channel, video_id, duration, scribe_wer/cer) so users set their
+  own quality threshold. Needs a small HF-format exporter (store -> HF audio dataset), then upload.
+- [ ] After uploads verify: delete the two superseded persian model repos on HF
+  (`omni-ctc-300m-v2-fleurs-fa-ir`, `...-thomcles-continue`); decide local deletion of the
+  persian scribe-v4 60G parquet + tajik v3 71G parquet (HF copy becomes canonical).
+
 ## Someday / not now (needs things we don't have yet)
 
 - **Native-speaker ground-truth check.** The one thing that would tell us our *true* conversational
