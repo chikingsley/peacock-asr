@@ -17,7 +17,7 @@ from pathlib import Path
 from omni_curator.coverage import char_tokenizer_coverage
 from omni_curator.project import (
     CuratorProject,
-    commonvoice_hf_mirror_source,
+    commonvoice_source,
     fleurs_source,
     huggingface_source,
 )
@@ -34,12 +34,10 @@ PROJECT = CuratorProject(
     data=DATA,
     db=DB,
     channels=sources.YOUTUBE_CHANNELS,
-    # No MDC Common Voice for Tajik (sources.COMMONVOICE empty); CV-25 comes via HF instead.
+    # Common Voice comes from the Mozilla Data Collective (the canonical channel).
     ingests={
         "fleurs": fleurs_source(sources.FLEURS_CONFIG),
-        "commonvoice22": commonvoice_hf_mirror_source(
-            *sources.COMMONVOICE_HF_MIRROR, source="hf-commonvoice22"
-        ),
+        "commonvoice": commonvoice_source(sources.COMMONVOICE),
         # force_split="train": third-party/augmented datasets never enter the benchmark
         # partition (benchmark splits export ungated — a trust decision per dataset).
         **{

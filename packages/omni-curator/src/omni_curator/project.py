@@ -396,60 +396,6 @@ def commonvoice_source(datasets: Mapping[str, str]) -> IngestFn:
     return load
 
 
-def commonvoice_hf_mirror_source(
-    repo: str, lang: str, *, source: str | None = None
-) -> IngestFn:
-    """Ready-made ingest: a Common Voice HF mirror (``fsicoli/common_voice_NN_0`` layout).
-
-    Mozilla stopped publishing CV to HF at v17; the community mirrors keep the raw CV layout
-    (``audio/<lang>/<split>/<lang>_<split>_<shard>.tar`` + ``transcript/<lang>/<split>.tsv``)
-    as a *script* dataset, which modern ``datasets`` refuses to load. This downloads the raw
-    files instead (hub download is cached/idempotent), flattens the tar shards into the
-    ``clips/`` + per-split-tsv layout :func:`omni_curator.ingest.commonvoice.load_commonvoice`
-    parses, and resamples to 16 kHz like the MDC path.
-    """
-
-    def load(project: CuratorProject) -> Iterable[Sample]:
-        import json as _json
-        import tarfile
-
-        from huggingface_hub import hf_hub_download
-
-        from omni_curator.ingest.commonvoice import load_commonvoice
-        from omni_curator.process import resample_samples
-
-        name = source or f"hf-cv-{lang}"
-        os.environ.setdefault("HF_HOME", str(project.raw_dir / "hf-cache"))
-        cv_dir = project.raw_dir / name
-        clips = cv_dir / "clips"
-        clips.mkdir(parents=True, exist_ok=True)
-
-        def fetch(path: str) -> Path:
-            return Path(hf_hub_download(repo, path, repo_type="dataset"))
-
-        shards = _json.loads(fetch("n_shards.json").read_text(encoding="utf-8"))[lang]
-        for split in ("train", "dev", "test"):
-            tsv = cv_dir / f"{split}.tsv"
-            if not tsv.exists():
-                tsv.write_bytes(fetch(f"transcript/{lang}/{split}.tsv").read_bytes())
-            for shard in range(shards[split]):
-                tar_path = fetch(f"audio/{lang}/{split}/{lang}_{split}_{shard}.tar")
-                with tarfile.open(tar_path) as tar:
-                    for member in tar.getmembers():
-                        if not member.isfile():
-                            continue
-                        target = clips / Path(member.name).name  # flatten the shard dir
-                        if target.exists():
-                            continue
-                        extracted = tar.extractfile(member)
-                        if extracted is not None:
-                            target.write_bytes(extracted.read())
-        loaded = load_commonvoice(cv_dir, language=project.language, source=name)
-        yield from resample_samples(loaded, project.canonical_dir / name)
-
-    return load
-
-
 def huggingface_source(
     repo: str,
     *,

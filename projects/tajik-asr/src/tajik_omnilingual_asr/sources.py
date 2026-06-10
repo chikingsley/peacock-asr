@@ -12,8 +12,11 @@ from omni_curator.create.youtube import channel as _ch
 #: google/fleurs config for Tajik.
 FLEURS_CONFIG = "tg_tj"
 
-#: Common Voice via Mozilla Data Collective — dataset ids (filled when discovered; needs MDC key).
-COMMONVOICE: dict[str, str] = {}
+#: Common Voice via the Mozilla Data Collective (the canonical CV channel; needs MDC_API_KEY).
+#: "Common Voice Scripted Speech 25.0 - Tajik" — mozilladatacollective.com/datasets/<id>.
+COMMONVOICE: dict[str, str] = {
+    "scripted-25": "cmn29h5x9017vmm079ptonmpm",
+}
 
 #: HuggingFace audio datasets (the legacy v0 corpora + vetted candidates), ingested via the
 #: generic loader: name -> (repo, config). Common Voice 25 is HF-gated (HF_TOKEN + accepted
@@ -24,10 +27,7 @@ HUGGINGFACE: dict[str, tuple[str, str | None]] = {
     "muhtasham": ("muhtasham/tajik-asr-augmented-test", None),
 }
 
-#: Common Voice via the fsicoli HF mirror (Mozilla stopped publishing to HF at v17, which has
-#: no Tajik; 22 is the newest mirror with tg). Raw-CV-layout, ingested by
-#: commonvoice_hf_mirror_source.
-COMMONVOICE_HF_MIRROR = ("fsicoli/common_voice_22_0", "tg")
+
 
 
 #: Vetted in docs/tajik_youtube_channels.md + channel research. Every genuinely-Tajik channel found;
@@ -219,4 +219,3 @@ YOUTUBE_CHANNELS: tuple[Channel, ...] = (
         "Useful German with Chris: German-Tajik phrase pairs.",
     ),
 )
-
