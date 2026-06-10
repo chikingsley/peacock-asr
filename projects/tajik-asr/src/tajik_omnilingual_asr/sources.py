@@ -15,10 +15,25 @@ FLEURS_CONFIG = "tg_tj"
 #: Common Voice via Mozilla Data Collective — dataset ids (filled when discovered; needs MDC key).
 COMMONVOICE: dict[str, str] = {}
 
+#: HuggingFace audio datasets (the legacy v0 corpora + vetted candidates), ingested via the
+#: generic loader: name -> (repo, config). Common Voice 25 is HF-gated (HF_TOKEN + accepted
+#: terms). Candidates not yet wired: shunyalabs/tajik-speech-dataset, WueNLP/sib-fleurs +
+#: WueNLP/belebele-fleurs (config tgk_Cyrl).
+HUGGINGFACE: dict[str, tuple[str, str | None]] = {
+    # Augmented set; historically dragged the Scribe WER macro — the WER gate decides per clip.
+    "muhtasham": ("muhtasham/tajik-asr-augmented-test", None),
+}
+
+#: Common Voice via the fsicoli HF mirror (Mozilla stopped publishing to HF at v17, which has
+#: no Tajik; 22 is the newest mirror with tg). Raw-CV-layout, ingested by
+#: commonvoice_hf_mirror_source.
+COMMONVOICE_HF_MIRROR = ("fsicoli/common_voice_22_0", "tg")
+
 
 #: Vetted in docs/tajik_youtube_channels.md + channel research. Every genuinely-Tajik channel found;
-#: per-video language/quality filtering happens later in the pipeline. Pure-music and bilingual-
-#: phrase channels (mostly non-Tajik audio) are deliberately excluded.
+#: per-video language/quality filtering happens later in the pipeline. Only pure-music/song
+#: channels are excluded; bilingual channels are IN — the tgk_Cyrl language gate (exclusive
+#: letters + function-word tiebreak) drops the non-Tajik clips at export.
 YOUTUBE_CHANNELS: tuple[Channel, ...] = (
     # --- clean: news / broadcast / audiobook / narration / lessons / science / stories ---
     _ch("asiaplus", "@asiaplustj", "clean", "Asia-Plus: Аудиокитоб studio audiobooks + news."),
@@ -178,5 +193,30 @@ YOUTUBE_CHANNELS: tuple[Channel, ...] = (
     ),
     _ch("avlod_media", "UCqd3RiPrwKD-MvPh2x-4O_w", "noisy", "Avlod Media: Tajik media/talk."),
     _ch("ozodagon", "@ozodagontv", "noisy", "Ozodagon: independent news/interviews."),
+    # --- bilingual language-learning (Tajik segments survive the language gate) --------------
+    _ch(
+        "learning_tajik_achilovs",
+        "UCFGB29XZkEGS1Vw7WplBqIg",
+        "clean",
+        "Learning Tajik with Achilovs: English+Tajik lessons; gate keeps the Tajik.",
+    ),
+    _ch(
+        "chris_phrases",
+        "UCCIWbFzZg_lmCg51-p9OPTA",
+        "clean",
+        "Learning Phrases with Chris & Friends: multilingual phrase pairs incl. Tajik.",
+    ),
+    _ch(
+        "chris_chinese",
+        "UCwd_tJB2TqFdOuKzPi0fyWg",
+        "clean",
+        "Useful Chinese with Chris: Chinese-Tajik phrase pairs.",
+    ),
+    _ch(
+        "chris_german",
+        "UCUjEem6VD2xmJDK-q7D1BCA",
+        "clean",
+        "Useful German with Chris: German-Tajik phrase pairs.",
+    ),
 )
 

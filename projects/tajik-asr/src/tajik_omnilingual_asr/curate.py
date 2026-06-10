@@ -15,7 +15,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from omni_curator.coverage import char_tokenizer_coverage
-from omni_curator.project import CuratorProject, fleurs_source
+from omni_curator.project import (
+    CuratorProject,
+    commonvoice_hf_mirror_source,
+    fleurs_source,
+    huggingface_source,
+)
 from omni_curator.project import main as project_main
 
 from tajik_omnilingual_asr import DATA, DB, LANGUAGE, ROOT, SCRIPT, sources
@@ -29,9 +34,21 @@ PROJECT = CuratorProject(
     data=DATA,
     db=DB,
     channels=sources.YOUTUBE_CHANNELS,
-    # No Common Voice entry yet: there is no Tajik MDC dataset (sources.COMMONVOICE is empty);
-    # register commonvoice_source(...) here when ids land.
-    ingests={"fleurs": fleurs_source(sources.FLEURS_CONFIG)},
+    # No MDC Common Voice for Tajik (sources.COMMONVOICE empty); CV-25 comes via HF instead.
+    ingests={
+        "fleurs": fleurs_source(sources.FLEURS_CONFIG),
+        "commonvoice22": commonvoice_hf_mirror_source(
+            *sources.COMMONVOICE_HF_MIRROR, source="hf-commonvoice22"
+        ),
+        # force_split="train": third-party/augmented datasets never enter the benchmark
+        # partition (benchmark splits export ungated — a trust decision per dataset).
+        **{
+            name: huggingface_source(
+                repo, config=config, source=f"hf-{name}", force_split="train"
+            )
+            for name, (repo, config) in sources.HUGGINGFACE.items()
+        },
+    },
     env_file=ROOT.parents[1] / ".env",  # monorepo-root .env (Scribe / MDC / HF keys)
     coverage_check=char_tokenizer_coverage(_PKG / "models" / "omniASR_tokenizer_written_v2.model"),
     heldout_manifest=_PKG / "heldout_test_videos.json",

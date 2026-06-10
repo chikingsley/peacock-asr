@@ -65,9 +65,24 @@ def _slug(value: str) -> str:
 def _load_split(
     load_dataset: Any, repo: str, config: str | None, split: str, *, streaming: bool
 ) -> Any:
-    if config is None:
-        return load_dataset(repo, split=split, streaming=streaming)
-    return load_dataset(repo, config, split=split, streaming=streaming)
+    """Load one split, tolerating absent ones: ``dev`` falls back to HF's usual
+    ``validation`` name, and a split the dataset simply doesn't have returns ``None``
+    (the caller skips it) — dataset split layouts vary too much to hard-require all three.
+    """
+
+    def _load(name: str) -> Any:
+        if config is None:
+            return load_dataset(repo, split=name, streaming=streaming)
+        return load_dataset(repo, config, split=name, streaming=streaming)
+
+    candidates = (split, "validation") if split == "dev" else (split,)
+    for name in candidates:
+        try:
+            return _load(name)
+        except ValueError as exc:  # datasets raises ValueError("Bad split: ...")
+            if "Bad split" not in str(exc):
+                raise
+    return None
 
 
 def _read_audio(audio: object, soundfile: Any) -> tuple[Any, int]:
@@ -117,6 +132,8 @@ def load_hf_audio(
 
     for split in splits:
         loaded = _load_split(load_dataset, repo, config, split, streaming=streaming)
+        if loaded is None:  # the dataset doesn't have this split
+            continue
         audio_col = _audio_column(audio_column, _column_names(loaded))
         dataset = loaded.cast_column(audio_col, Audio(decode=False))
         detected_text_col = _text_column(text_column, _column_names(dataset))

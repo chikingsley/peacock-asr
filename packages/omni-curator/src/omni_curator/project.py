@@ -396,6 +396,97 @@ def commonvoice_source(datasets: Mapping[str, str]) -> IngestFn:
     return load
 
 
+def commonvoice_hf_mirror_source(
+    repo: str, lang: str, *, source: str | None = None
+) -> IngestFn:
+    """Ready-made ingest: a Common Voice HF mirror (``fsicoli/common_voice_NN_0`` layout).
+
+    Mozilla stopped publishing CV to HF at v17; the community mirrors keep the raw CV layout
+    (``audio/<lang>/<split>/<lang>_<split>_<shard>.tar`` + ``transcript/<lang>/<split>.tsv``)
+    as a *script* dataset, which modern ``datasets`` refuses to load. This downloads the raw
+    files instead (hub download is cached/idempotent), flattens the tar shards into the
+    ``clips/`` + per-split-tsv layout :func:`omni_curator.ingest.commonvoice.load_commonvoice`
+    parses, and resamples to 16 kHz like the MDC path.
+    """
+
+    def load(project: CuratorProject) -> Iterable[Sample]:
+        import json as _json
+        import tarfile
+
+        from huggingface_hub import hf_hub_download
+
+        from omni_curator.ingest.commonvoice import load_commonvoice
+        from omni_curator.process import resample_samples
+
+        name = source or f"hf-cv-{lang}"
+        os.environ.setdefault("HF_HOME", str(project.raw_dir / "hf-cache"))
+        cv_dir = project.raw_dir / name
+        clips = cv_dir / "clips"
+        clips.mkdir(parents=True, exist_ok=True)
+
+        def fetch(path: str) -> Path:
+            return Path(hf_hub_download(repo, path, repo_type="dataset"))
+
+        shards = _json.loads(fetch("n_shards.json").read_text(encoding="utf-8"))[lang]
+        for split in ("train", "dev", "test"):
+            tsv = cv_dir / f"{split}.tsv"
+            if not tsv.exists():
+                tsv.write_bytes(fetch(f"transcript/{lang}/{split}.tsv").read_bytes())
+            for shard in range(shards[split]):
+                tar_path = fetch(f"audio/{lang}/{split}/{lang}_{split}_{shard}.tar")
+                with tarfile.open(tar_path) as tar:
+                    for member in tar.getmembers():
+                        if not member.isfile():
+                            continue
+                        target = clips / Path(member.name).name  # flatten the shard dir
+                        if target.exists():
+                            continue
+                        extracted = tar.extractfile(member)
+                        if extracted is not None:
+                            target.write_bytes(extracted.read())
+        loaded = load_commonvoice(cv_dir, language=project.language, source=name)
+        yield from resample_samples(loaded, project.canonical_dir / name)
+
+    return load
+
+
+def huggingface_source(
+    repo: str,
+    *,
+    config: str | None = None,
+    splits: tuple[str, ...] = ("train", "dev", "test"),
+    source: str | None = None,
+    text_column: str | None = None,
+    force_split: str | None = None,
+) -> IngestFn:
+    """Ready-made ingest: any HF audio dataset (column auto-detect; 16 kHz mono FLAC clips).
+
+    ``source`` defaults to ``hf-<repo tail>`` (the store's corpus name). Gated datasets
+    (Common Voice) need ``HF_TOKEN`` in the env file + accepted terms on the Hub.
+
+    ``force_split`` overrides every ingested row's split — set ``"train"`` for third-party /
+    machine-augmented datasets whose own "test" split must NOT become part of the project's
+    benchmark partition (benchmark splits are exported ungated, so this is a trust decision).
+    """
+
+    def load(project: CuratorProject) -> Iterable[Sample]:
+        import dataclasses
+
+        os.environ.setdefault("HF_HOME", str(project.raw_dir / "hf-cache"))
+        from omni_curator.ingest.huggingface import load_hf_audio
+
+        name = source or f"hf-{repo.rsplit('/', 1)[-1].lower()}"
+        samples = load_hf_audio(
+            repo, language=project.language, source=name, config=config, splits=splits,
+            text_column=text_column, audio_dir=project.canonical_dir / name,
+        )
+        if force_split is None:
+            return samples
+        return (dataclasses.replace(s, split=force_split) for s in samples)
+
+    return load
+
+
 def cmd_ingest(project: CuratorProject, args: argparse.Namespace) -> int:
     """Ingest one of the project's registered existing-labeled sources into the master store."""
     project.load_env()
