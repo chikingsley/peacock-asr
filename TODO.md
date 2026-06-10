@@ -85,20 +85,40 @@ per language project:  ONE master store: data/curator.sqlite
   normalizer injected; 7 core tests seeded. Both projects' train/eval are thin config.
 - [x] **Georgian model side** — already existed (145.3 h v0 export!); now on the template
   (`georgian-train --regime gpu_max` ready to run; eval defaults to the v0 test split).
-- [ ] **Migrate persian-asr** into the template structure (LAST — preserve all artifacts/checkpoints as legacy cards; the 300M rewarm is the production model).
+- [x] **Migrate persian-asr — phase 1 DONE (`38b9779f`, agent-run, additive).** New
+  `src/persian_asr/` template package: `persian-curate` (full 12 commands), `persian-train-v2`
+  (the production scribe-v4-rewarm recipe PINNED as a typed preset — 0 field diffs vs its YAML),
+  `persian-eval-v2`; production checkpoint registered as
+  `omni_ctc_300m_v2_persian_scribe_v4_rewarm_production` (step_7000, dev WER 11.15). Legacy cards
+  imported (not redefined — fairseq2 raises on duplicate names), zero legacy removals.
+  **Phase 2 (deletion pass) follow-ups:** port the 5 legacy corpora as IngestFns
+  (`persian_asr_dataset.canonical.{mana_tts,neyshekar,worldspeech,cv25,omni(thomcles)}_samples`),
+  then retire `persian_asr_dataset` + `persian_omnilingual_asr` CLIs and rename `-v2` entry
+  points; `finetune_parakeet` is a separate decision; freeze a Persian heldout manifest + first
+  `persian-curate export v0` before any new training.
 
-## tajik-asr (data backlog)
+## tajik-asr (data backlog) — audited 2026-06-09; 3 of 5 items were stale/done
 
-- [ ] **Re-ingest the legacy HF datasets** (the "old tajik data" — all HuggingFace, no Tajik MDC):
-  - `common_voice_25_tg` — Common Voice 25, Tajik (HF config `tg`)
-  - `fleurs_tg_tj` — ✅ already re-ingested
-  - `muhtasham/tajik-asr-augmented-test` (~200 rows; historically dragged Scribe WER macro — verify before trusting)
-  - candidates: `shunyalabs/tajik-speech-dataset`, `WueNLP/sib-fleurs` (`tgk_Cyrl`), `WueNLP/belebele-fleurs` (`tgk_Cyrl`)
-  The generic loader exists (`omni_curator.ingest.huggingface.load_hf_audio`); wire ids into `sources.py` + `curate ingest`.
-- [ ] **Wire export → train/eval:** `assets.py`/`eval.py`/YAMLs still point at legacy `dataset_prep/artifacts/...`; add the `data/datasets/v0` card when the first export lands.
-- [ ] **Language-learning channels** ("teach Tajik speakers X") + extra Achilov channels → enqueue. Channel policy: meaningful-%-Tajik gets downloaded; only pure music/song channels skipped.
+- [x] **Re-ingest the legacy HF datasets — DONE (`887854fe`), ingested + verified LIVE:**
+  - `hf-muhtasham` (1,300 rows / 2.9 h, forced split=train — augmented data never enters the
+    benchmark partition) and `hf-commonvoice22` (282 gold rows / 0.4 h, splits preserved —
+    human-validated CV dev/test are legitimate benchmark corpora). All 1,582 Scribe-scored,
+    0 failures. NOTE: "common_voice_25_tg" never existed on HF — Mozilla stopped publishing at
+    v17 (no Tajik); CV Tajik comes from the `fsicoli/common_voice_22_0` mirror via the new
+    `commonvoice_hf_mirror_source`.
+  - Candidates still unwired (small, optional): `shunyalabs/tajik-speech-dataset`,
+    `WueNLP/sib-fleurs` + `WueNLP/belebele-fleurs` (`tgk_Cyrl`) — one `HUGGINGFACE` registry
+    line each, when wanted.
+- [x] ~~Wire export → train/eval~~ — stale: done by the v3 cards + model-side template
+  (`assets.py` keeps `dataset_prep/` paths only as legacy PROVENANCE cards, deliberate).
+- [x] **Language-learning channels — sources wired (`887854fe`):** `learning_tajik_achilovs` +
+  the three "with Chris" channels added (the vocabulary language gate makes their Tajik
+  harvestable; foreign clips drop at export). `zabon_omuzishi`/`intellect_online` were already
+  in. Download + label happens as part of the v4 scale run.
 - [x] ~~Converge tajik `train.py` to the preset~~ — done as part of the model-side template.
-- [ ] Mark zero-span (no-speech) videos in the queue so future enqueues skip them instead of re-segmenting.
+- [x] ~~Mark zero-span videos~~ — non-issue while `queue.sqlite` persists: the 257 zero-span
+  videos are status=segmented there, and enqueue's INSERT OR IGNORE on the video-id PK means
+  they never re-segment. Only relevant if the queue db is ever wiped.
 
 ## omni-curator (carried over)
 
