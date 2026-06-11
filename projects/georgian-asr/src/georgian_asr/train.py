@@ -8,7 +8,8 @@
 from __future__ import annotations
 
 from omni_curator.process import normalize
-from omni_finetune_core.project import FinetuneProject, train_main
+from omni_finetune_core.presets import gpu_max_finetune
+from omni_finetune_core.project import FinetuneProject, TrainingPreset, train_main
 
 from georgian_asr import DATA, LANGUAGE, ROOT
 
@@ -16,8 +17,25 @@ PROJECT = FinetuneProject(
     name="georgian",
     language=LANGUAGE,
     root=ROOT,
-    # Generic-regime config: the v0 export (~145 h). Pin a named preset here once a recipe
-    # proves out (see tajik's tajik-corpus-v3-300m for the shape).
+    presets={
+        # v0 = 145.3 h gold (FLEURS + Common Voice scripted/spontaneous). ~10-epoch budget
+        # with best-WER selection; the dev split is 13,456 clips, so validation runs every
+        # 1,000 steps instead of the preset default 200 (each pass costs minutes).
+        "georgian-corpus-v0-300m": TrainingPreset(
+            config=lambda: gpu_max_finetune(
+                model="omni_ctc_300m_v2_georgian_base",
+                dataset="georgian_asr_corpus",
+                tokenizer="omni_asr_tokenizer_written_v2_local",
+                dataset_summary_path=str(DATA / "datasets/v0/language_distribution_0.tsv"),
+                num_steps=30_000,
+                lr=1e-5,
+                validate_every=1_000,
+                fragment_cache_dir=str(DATA / "cache/fragments"),
+            ),
+            output_dir=ROOT / "runs/omni-ctc-300m-georgian-asr-corpus-v0",
+        ),
+    },
+    # Generic-regime config: the v0 export (~145 h).
     model_card="omni_ctc_300m_v2_georgian_base",
     dataset_card="georgian_asr_corpus",
     tokenizer_card="omni_asr_tokenizer_written_v2_local",
