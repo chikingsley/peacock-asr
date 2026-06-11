@@ -1,0 +1,5 @@
+# Generated artifacts: 85M label corpus + KenLM files; rebuild with lmplz (see run.py docstring)
+corpus.txt
+*.arpa
+*.bin
+*.log

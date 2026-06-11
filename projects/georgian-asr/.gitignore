@@ -10,3 +10,4 @@ sync*.log
 # Vendored model weights — the 1.3 GB omni 300M CTC checkpoint (copied from tajik) and any
 # trained checkpoints. The tokenizer .model stays committed; *.pt is never committed.
 *.pt
+runs/
