@@ -199,6 +199,48 @@ is not recorded anywhere, it says "not recorded".
 
 ---
 
+## 2026-06-11 — LM-fused beam decoding (inference-time, no training)
+
+- **Why:** roadmap experiment #2 — the production readout is greedy CTC; a CTC model carries no
+  language prior of its own, so fusing an external word n-gram at decode time is the standard
+  free lever. Question: how much WER does it buy on the *same* shipping checkpoint, and at what
+  decode-speed cost (RTFX was the user's stated concern)?
+- **Setup:** `experiments/lm_decoding/run.py`. KenLM word 4-gram (`lmplz`, prune 0 1 1 1) trained
+  on our own 180,683 v3 train labels → 65 MB binary. pyctcdecode beam over per-frame log-probs
+  captured from the production pipeline (preprocessing byte-identical to shipping greedy; the
+  tokenizer is character-level — 10,284 single-char pieces, literal `" "` as word boundary, blank
+  = index 0 `<s>`). Model `omni_ctc_300m_v2_tajik_v3_step_20000`, CPU fp32 forward, fp16 logit
+  capture in chunks (a full-split float32 capture is ~65 GB — earlyoom killed the first attempt).
+- **FLEURS test (599 rows), α/β grid swept here** (so this number is mildly optimistic):
+
+  | readout | WER | CER | decode |
+  |---|---|---|---|
+  | greedy (production) | 16.94 | 4.84 | ~free |
+  | beam w=64, no LM | 16.74 | 4.81 | 306× RT |
+  | **beam + KenLM α=0.5 β=0.0** | **14.50** | 4.68 | 304× RT |
+
+  Grid shape: all gain is the LM weight; the word-insertion bonus **hurts** (every β=0 row beats
+  its β>0 siblings); α≥1.0 lets the LM bulldoze the acoustics (α=1.5 → WER 30.9).
+- **Conversational held-out (1,625 clips), α=0.5/β=0.0 applied blind — the honest number:**
+
+  | readout | WER | CER | decode |
+  |---|---|---|---|
+  | greedy (production) | 37.64 | 14.04 | ~free |
+  | beam, no LM | 36.98 | 13.93 | 253× RT |
+  | **beam + KenLM α=0.5 β=0.0** | **31.66** | 14.31 | 258× RT |
+
+  CER nudges *up* while WER drops 6 points: the LM snaps near-miss character soup into valid
+  words — exactly the word-level correction an n-gram should buy. Beam alone is worth ~0.6.
+- **CONCLUSION: −5.98 WER on conversational (37.64 → 31.66, −15.9 % rel) and −2.4 on FLEURS, zero
+  training, same checkpoint.** For scale: the entire 1,070 h v3 fine-tune bought 12.2 conversational
+  points; a 65 MB n-gram built in minutes buys half that again. Decode cost ~255× realtime on 8 CPU
+  workers (pyctcdecode pure Python) — pipelines after the GPU forward, so production RTFX impact is
+  small; flashlight/torchaudio CUDA decoders exist if it ever matters. **Next:** bigger/cleaner text
+  corpus for the LM (new-channel transcripts + monolingual Tajik text), α re-sweep on dev only, and
+  the same experiment on Persian/Georgian; then decide whether to productize in omni-finetune-core.
+
+---
+
 ## Gaps / not recorded
 
 - v0 **test** WER/CER was first measured 2026-05-30 (the v0 entry above), not on the original

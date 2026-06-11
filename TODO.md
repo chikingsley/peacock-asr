@@ -45,6 +45,9 @@ per language project:  ONE master store: data/curator.sqlite
   ~1,070 h we already had. The held-out proved more conversational data → lower conversational WER, so:
   queue more channels and/or more videos per existing channel → `download → enqueue → segment → labelq
   → harvest → merge → verify → export v4 → train`. Same recipe, bigger corpus. Biggest expected win.
+  **v4 step budget: 3–5 epochs** (user decision 2026-06-11; v2/v3's single epoch was the outlier —
+  NeMo's fine-tune configs default to max_epochs 50/100 with best-checkpoint selection, no minimum,
+  verified against their actual configs). At ~1,070 h that's roughly 60–115k steps; keep best-WER ckpt.
 - [x] **Recover wrongly-dropped Tajik (gate fix) — DONE (`6259a355`).** Audit of the 38,133 drops:
   ~95% genuinely non-Tajik (Russian/English/Persian/Chinese, correctly dropped). Added a function-word
   vocabulary tiebreak to `keep_for_language` for clips with no exclusive letters either way. Measured:

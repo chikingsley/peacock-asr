@@ -7,14 +7,19 @@ KenLM word 4-gram trained on our own training labels (corpus.txt -> lm4.bin via 
 Reports WER/CER per readout plus decode-stage wall time, so the quality/speed trade is
 measured rather than argued.
 
-  uv run python experiments/lm_decoding/run.py --limit 50                     # smoke
-  uv run python experiments/lm_decoding/run.py                                # FLEURS test
-  uv run python experiments/lm_decoding/run.py --only-corpus-prefix youtube-  # held-out
+Rows stream through in chunks and log-probs are held in float16, so peak memory stays a few
+GB regardless of row count (the 10,288-dim vocab makes whole-split float32 capture ~30 MB
+per audio minute — the full v3 test split would need ~65 GB).
+
+  uv run python experiments/lm_decoding/run.py --limit 50                        # smoke
+  uv run python experiments/lm_decoding/run.py --only-corpus-prefix fleurs --sweep
+  uv run python experiments/lm_decoding/run.py --only-corpus-prefix youtube-     # held-out
 """
 
 from __future__ import annotations
 
 import argparse
+import multiprocessing as mp
 import time
 from pathlib import Path
 
@@ -43,6 +48,23 @@ def load_rows(limit: int, prefix: str | None) -> tuple[list, list[str]]:
     return audio, refs
 
 
+def build_labels(sp, captured: list[np.ndarray]) -> tuple[list[str], int]:
+    """Alphabet from tokenizer pieces; CTC blank = the empirically dominant argmax index
+    (blank rules silence). The tokenizer is character-level (10,284 single-char pieces,
+    literal " " as the word boundary) — raw pieces ARE the alphabet; the multi-char specials
+    are never emitted, so they get unused placeholder chars to keep the alphabet clean."""
+    labels = [sp.id_to_piece(i) for i in range(sp.get_piece_size())]
+    counts = np.zeros(len(labels), dtype=np.int64)
+    for lp in captured[:200]:
+        idx, c = np.unique(lp.argmax(axis=-1), return_counts=True)
+        counts[idx] += c
+    blank = int(counts.argmax())
+    print(f"blank index: {blank} (piece {labels[blank]!r})", flush=True)
+    labels = [chr(0xE000 + i) if len(p) > 1 else p for i, p in enumerate(labels)]
+    labels[blank] = ""
+    return labels, blank
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=0)
@@ -51,6 +73,7 @@ def main() -> int:
     ap.add_argument("--beta", type=float, default=1.5, help="word insertion bonus")
     ap.add_argument("--beam-width", type=int, default=64)
     ap.add_argument("--batch-size", type=int, default=8)
+    ap.add_argument("--chunk-rows", type=int, default=100, help="rows per capture/decode chunk")
     ap.add_argument("--sweep", action="store_true", help="grid-search alpha/beta on these rows")
     args = ap.parse_args()
 
@@ -69,6 +92,7 @@ def main() -> int:
     pipe = ASRInferencePipeline(MODEL_CARD, device="cpu", dtype=torch.float32)
 
     # Capture log-probs by shadowing the pipeline's apply step with an identical body + tap.
+    # float16: halves the buffer; the decoder gets float32 casts per chunk.
     captured: list[np.ndarray] = []
 
     def apply_and_capture(batch):  # noqa: ANN001, ANN202
@@ -81,8 +105,8 @@ def main() -> int:
         texts = []
         for j in range(logits.shape[0]):
             n = bl_out.seq_lens[j]
-            lp = torch.log_softmax(logits[j, :n].float(), dim=-1).cpu().numpy()
-            captured.append(lp)
+            lp = torch.log_softmax(logits[j, :n].float(), dim=-1)
+            captured.append(lp.to(torch.float16).cpu().numpy())
             seq = logits[j, :n].argmax(dim=-1)
             mask = torch.ones(seq.shape[0], dtype=torch.bool)
             mask[1:] = seq[1:] != seq[:-1]
@@ -90,44 +114,6 @@ def main() -> int:
         return texts
 
     pipe._apply_model_wav2vec2asr = apply_and_capture  # noqa: SLF001 — experiment tap
-
-    t0 = time.monotonic()
-    greedy = pipe.transcribe(audio, lang=[LANG] * len(audio), batch_size=args.batch_size)
-    t_model = time.monotonic() - t0
-    audio_secs = sum(lp.shape[0] for lp in captured) * 0.02  # ~20 ms per frame
-    print(f"model forward+greedy: {t_model:.1f}s for ~{audio_secs/3600:.2f}h audio", flush=True)
-
-    # Labels: tokenizer pieces; CTC blank = the empirically dominant index (blank rules silence).
-    sp = spm.SentencePieceProcessor(model_file=str(TOKENIZER))
-    labels = [sp.id_to_piece(i) for i in range(sp.get_piece_size())]
-    counts = np.zeros(len(labels), dtype=np.int64)
-    for lp in captured[:200]:
-        idx, c = np.unique(lp.argmax(axis=-1), return_counts=True)
-        counts[idx] += c
-    blank = int(counts.argmax())
-    print(f"blank index: {blank} (piece {labels[blank]!r}); "
-          f"specials: {[(i, labels[i]) for i in range(min(5, len(labels)))]}", flush=True)
-    labels[blank] = ""
-    # The tokenizer is character-level (10,284 single-char pieces, literal " " as the word
-    # boundary) — raw pieces ARE the alphabet. The remaining multi-char entries are specials
-    # the model never emits; give them unused placeholder chars so pyctcdecode sees a clean
-    # char alphabet instead of guessing BPE.
-    labels = [chr(0xE000 + i) if len(p) > 1 else p for i, p in enumerate(labels)]
-    labels[blank] = ""
-
-    # Word vocabulary for the LM decoder (its binary KenLM can't self-report unigrams).
-    unigrams = sorted({w for line in (HERE / "corpus.txt").open() for w in line.split()})
-    print(f"unigrams: {len(unigrams)}", flush=True)
-
-    def score(name: str, hyps: list[str], seconds: float) -> None:
-        m = compute_measures(refs_norm, [normalize(h, LANG) for h in hyps])
-        print(f"{name:<22} WER {m.wer:6.2f}%  CER {m.cer:6.2f}%  "
-              f"decode {seconds:6.1f}s ({audio_secs/max(seconds, 1e-9):7.0f}x realtime)",
-              flush=True)
-
-    score("greedy (production)", greedy, 0.0)
-
-    import multiprocessing as mp
 
     grids: list[tuple[str, str | None, float, float]] = [
         ("beam (no LM)", None, 0.0, 0.0),
@@ -140,18 +126,73 @@ def main() -> int:
             for b in (0.0, 1.5, 3.0)
         ]
 
-    for name, kenlm_path, alpha, beta in grids:
-        decoder = build_ctcdecoder(
-            labels,
-            kenlm_model_path=kenlm_path,
-            unigrams=unigrams if kenlm_path else None,
-            alpha=alpha,
-            beta=beta,
-        )
-        t0 = time.monotonic()
-        with mp.get_context("fork").Pool(8) as pool:
-            hyps = decoder.decode_batch(pool, captured, beam_width=args.beam_width)
-        score(name, hyps, time.monotonic() - t0)
+    # Word vocabulary for the LM decoder (its binary KenLM can't self-report unigrams).
+    unigrams = sorted({w for line in (HERE / "corpus.txt").open() for w in line.split()})
+    print(f"unigrams: {len(unigrams)}", flush=True)
+
+    sp = spm.SentencePieceProcessor(model_file=str(TOKENIZER))
+    greedy_hyps: list[str] = []
+    hyps: dict[str, list[str]] = {name: [] for name, *_ in grids}
+    decode_secs: dict[str, float] = dict.fromkeys(hyps, 0.0)
+    decoders = None
+    pool = None
+    total_frames = 0
+    t_model = 0.0
+
+    try:
+        for start in range(0, len(audio), args.chunk_rows):
+            chunk = audio[start : start + args.chunk_rows]
+            captured.clear()
+            t0 = time.monotonic()
+            greedy_hyps.extend(
+                pipe.transcribe(chunk, lang=[LANG] * len(chunk), batch_size=args.batch_size)
+            )
+            t_model += time.monotonic() - t0
+            total_frames += sum(lp.shape[0] for lp in captured)
+
+            if decoders is None:
+                labels, _ = build_labels(sp, captured)
+                decoders = [
+                    (
+                        name,
+                        build_ctcdecoder(
+                            labels,
+                            kenlm_model_path=kenlm_path,
+                            unigrams=unigrams if kenlm_path else None,
+                            alpha=alpha,
+                            beta=beta,
+                        ),
+                    )
+                    for name, kenlm_path, alpha, beta in grids
+                ]
+                # fork AFTER the decoders exist: workers inherit them (kenlm can't pickle)
+                pool = mp.get_context("fork").Pool(8)
+
+            chunk_lps = [lp.astype(np.float32) for lp in captured]
+            for name, decoder in decoders:
+                t0 = time.monotonic()
+                hyps[name].extend(
+                    decoder.decode_batch(pool, chunk_lps, beam_width=args.beam_width)
+                )
+                decode_secs[name] += time.monotonic() - t0
+            done = min(start + args.chunk_rows, len(audio))
+            print(f"  chunk done: {done}/{len(audio)} rows", flush=True)
+    finally:
+        if pool is not None:
+            pool.terminate()
+
+    audio_secs = total_frames * 0.02  # ~20 ms per frame
+    print(f"model forward+greedy: {t_model:.1f}s for ~{audio_secs/3600:.2f}h audio", flush=True)
+
+    def score(name: str, out: list[str], seconds: float) -> None:
+        m = compute_measures(refs_norm, [normalize(h, LANG) for h in out])
+        print(f"{name:<22} WER {m.wer:6.2f}%  CER {m.cer:6.2f}%  "
+              f"decode {seconds:6.1f}s ({audio_secs/max(seconds, 1e-9):7.0f}x realtime)",
+              flush=True)
+
+    score("greedy (production)", greedy_hyps, 0.0)
+    for name, _ in decoders or []:
+        score(name, hyps[name], decode_secs[name])
     return 0
 
 
