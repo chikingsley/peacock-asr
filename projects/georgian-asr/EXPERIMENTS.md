@@ -25,3 +25,20 @@ test split) unless noted.
   train labels (Tajik gained −16 % rel for free); (2) more epochs (dev was still creeping at
   30k); (3) the real one: data — 145 h gold vs the 1,070 h that moved Tajik; the Georgian
   YouTube scrape hasn't started.
+
+## 2026-06-12 — KenLM fusion on v0 (inference-time, no training)
+
+- **Setup:** same harness as the Tajik experiment (`experiments/lm_decoding/run.py`); word
+  4-gram from the v0 train labels (64,633 lines → 7 MB binary). FLEURS test, 979 rows, full
+  α/β grid (so mildly optimistic — no held-out exists for Georgian yet).
+
+  | readout | WER | CER | decode |
+  |---|---|---|---|
+  | greedy (production) | 24.71 | 4.62 | ~free |
+  | beam, no LM | 24.67 | 4.60 | 287× RT |
+  | **beam + KenLM (α=0.3–0.7 plateau)** | **18.90–18.97** | 3.84 | ~290× RT |
+
+- **CONCLUSION: −5.8 WER (−23.5 % rel) — larger than Tajik's −16 %,** consistent with a small
+  scripted corpus the LM covers well. Flat across α=0.3–0.7 and insensitive to β (unlike Tajik,
+  where β hurt). Pending: blind apply to the CV-scripted test partition (13k rows, ~7 h CPU
+  forward) and an LM rebuilt from a larger Georgian text corpus.

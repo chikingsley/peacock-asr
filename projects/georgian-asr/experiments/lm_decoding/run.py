@@ -29,10 +29,10 @@ import torch
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 LM_BIN = HERE / "lm4.bin"
-TOKENIZER = ROOT / "src/tajik_omnilingual_asr/models/omniASR_tokenizer_written_v2.model"
-DATASET_ROOT = ROOT / "data/datasets/v3/version=0"
-MODEL_CARD = "omni_ctc_300m_v2_tajik_v3_step_20000"
-LANG = "tgk_Cyrl"
+TOKENIZER = ROOT / "src/georgian_asr/models/omniASR_tokenizer_written_v2.model"
+DATASET_ROOT = ROOT / "data/datasets/v0/version=0"
+MODEL_CARD = "omni_ctc_300m_v2_georgian_v0_step_29000"
+LANG = "kat_Geor"
 
 
 def load_rows(limit: int, prefix: str | None) -> tuple[list, list[str]]:
