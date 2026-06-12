@@ -54,6 +54,17 @@ CARDS = [
         data=_PARQUET,
         tokenizer_ref=TOKENIZER_NAME,
     ),
+    # v0 (145.3 h gold: FLEURS + Common Voice scripted/spontaneous) best dev-WER ckpt —
+    # step_29000, dev WER 18.92 (monotonic 30.8 -> 18.92 over the run; step_30000 was 18.93).
+    ModelCard(
+        name="omni_ctc_300m_v2_georgian_v0_step_29000",
+        checkpoint=(
+            _PROJECT
+            / "runs/omni-ctc-300m-georgian-asr-corpus-v0/ws_1.2bca5361/"
+            / "checkpoints/step_29000/model/pp_00/tp_00/sdp_00.pt"
+        ),
+        tokenizer_ref=TOKENIZER_NAME,
+    ),
 ]
 
 
