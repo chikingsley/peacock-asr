@@ -4,7 +4,7 @@ Reads every corpus=*/split=train parquet under the version root, writes the text
 as corpus.txt, then runs lmplz + build_binary (packages/kenlm/build/bin). Labels are
 already normalized at export time, so no further text processing happens here.
 
-  uv run python scripts/build_lm.py projects/georgian-asr/data/datasets/v0/version=0 \
+  uv run omni-build-lm projects/georgian-asr/data/datasets/v0/version=0 \
       projects/georgian-asr/experiments/lm_decoding
 """
 
@@ -17,7 +17,8 @@ from pathlib import Path
 
 import pyarrow.parquet as pq
 
-KENLM_BIN = Path(__file__).resolve().parents[1] / "packages/kenlm/build/bin"
+# packages/omni-curator/src/omni_curator/build_lm.py -> packages/kenlm/build/bin
+KENLM_BIN = Path(__file__).resolve().parents[3] / "kenlm/build/bin"
 
 
 def main() -> int:

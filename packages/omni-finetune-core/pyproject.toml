@@ -29,6 +29,8 @@ dependencies = [
 # Generic batch-budget tuning sweep — run from any consuming project's venv (its
 # fairseq2 asset cards load automatically); point --cache-root at that project's tree.
 omni-tune = "omni_finetune_core.tune:main"
+# Bench raw omniASR-LLM variants on a project's test split (the LLM-ceiling probe).
+omni-bench-llm = "omni_finetune_core.bench_llm:main"
 
 [dependency-groups]
 dev = [

@@ -7,13 +7,13 @@ description: Upload a large dataset or model folder to the Hugging Face Hub so f
 
 ## The rule: one file per commit
 
-Use **`scripts/hf_upload_dataset.py`** (per-shard, single-commit). Each file is uploaded as its
+Use **`.claude/skills/hf-upload/hf_upload_dataset.py`** (per-shard, single-commit). Each file is uploaded as its
 own commit, so it lands on the Hub the instant it finishes, already-uploaded files are skipped on
 re-run, and a dropped connection costs at most the one file in flight.
 
 ```bash
 HF_HUB_ENABLE_HF_TRANSFER=1 uv run --with "huggingface_hub[cli,hf_transfer]" \
-  python scripts/hf_upload_dataset.py Peacockery/<repo> <local_folder> \
+  python .claude/skills/hf-upload/hf_upload_dataset.py Peacockery/<repo> <local_folder> \
   --repo-type dataset --glob '*.parquet'
 ```
 

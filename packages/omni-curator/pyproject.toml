@@ -21,6 +21,10 @@ dependencies = [
   "tqdm>=4.66",
 ]
 
+[project.scripts]
+# Build a KenLM word n-gram from a dataset export's train labels (for beam-decode LM fusion).
+omni-build-lm = "omni_curator.build_lm:main"
+
 [project.optional-dependencies]
 # datasets powers ingest/huggingface.py (FLEURS); audio is read as raw bytes, decoded by soundfile.
 ingest = ["datasets>=3.0.0"]

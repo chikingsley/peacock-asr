@@ -5,7 +5,7 @@ evals use, so the numbers are directly comparable to the per-project EXPERIMENTS
 Answers: how much does an LLM decoder buy on this language before we invest in any
 LLM-in-the-loop training?
 
-  uv run --project projects/tajik-asr python scripts/bench_omni_llm.py \
+  uv run --project projects/tajik-asr omni-bench-llm \
       projects/tajik-asr/data/datasets/v3/version=0 tgk_Cyrl \
       --corpus-prefix fleurs --corpus-prefix youtube-
 """
