@@ -2,16 +2,40 @@
 
 One file, all open work, by area.
 
-## Status snapshot (2026-06-08)
+## Status snapshot (2026-06-13)
 
 | What | Where it stands |
 |---|---|
-| Tajik pipeline | **DONE end-to-end.** 41 channels → 342,845 clips / 1,826 h → Scribe-verified (script-aware) → export `data/datasets/v3` (1,070.8 h, held-out conversational test carved out). |
-| Tajik models | **v3 SHIPS** (`omni_ctc_300m_v2_tajik_v3_step_20000`). FLEURS test 17.2 WER; **conversational held-out: v0 49.9 → v3 37.7 WER** (the data lever, proven). v2 = the contaminated full-data run (kept for reference). |
-| Circuit breaker + key renewal | **DONE, proven live**, both layers: transport-level 401→renew→retry (superwhisper-api `0dbb542`) + run-level breaker/renewal in curator (`584e2006`, `c5b4cedf`) |
-| Persian | Done/parked. Final model: **300M scribe-v4-rewarm** (1B lost on every benchmark). Migration into the template structure is the only remaining Persian work (last). |
-| Georgian | On the split pipeline (committed). No model side yet (no assets/train/eval). |
-| GPU | Free. Nothing running. |
+| Tajik | **v3 SHIPS** (`omni_ctc_300m_v2_tajik_v3_step_20000`, FLEURS 16.9 / conversational held-out 37.6). **v4 scale run in progress:** 35 round-2 channels wired (80 total) + downloading now (tmux `tj-download`). KenLM fusion proven (−16% rel, α=0.5/β=0). |
+| Farsi (was "persian") | **Full atomic rename done** — project `farsi-asr`, modules `farsi_*`, cards `*_farsi_*`, HF repos `*-farsi`, language tag `fa`. Production = `omni_ctc_300m_v2_farsi_v4_step_41000` (scribe-v4 34k + 7k warm restart; the name now reflects cumulative steps). Parked. |
+| Dari | **NEW project scaffolded** (`dari-asr`, commit `50817454`): `fas_Arab`, 27 channels, Pimsleur seed, Farsi warm-start card. No data yet — needs download→label→export→train. |
+| Georgian | **v0 trained** (`omni_ctc_300m_v2_georgian_v0_step_29000`, pooled 20.7 WER) + KenLM fusion (24.7→18.9 FLEURS). Data on `/mnt/overflow`. |
+| HF (Peacockery) | All datasets + models up & correctly named/tagged; tajik-asr-youtube (191G) uploaded via per-shard committer; the `hf-upload` skill bans the broken batch pattern. |
+| Disk / storage | `/` at 498G free; georgian + farsi data moved to `/mnt/overflow/peacock-asr/<lang>/` (symlinked). Tajik still on `/` (live download). |
+| **GPU** | **DOWN — hardware bus-drop under load (Xid 79), twice. Needs host reboot + power cap (~175W) + temp logging. Gates ALL training/eval/LLM-bench.** |
+
+## Next — ordered (2026-06-13)
+
+**Blocker for all training:** reboot the GPU host, apply power cap (`nvidia-smi -pl 175`) + temp
+logging, confirm `nvidia-smi` enumerates the device. It fell off the bus twice under sustained load.
+
+1. **Tajik v4** (data lever, biggest expected win): let `tj-download` finish → re-audit empty
+   `data/create/` dirs (some channels yield few files — investigate after the pass) → `enqueue →
+   segment → labelq → harvest → merge → verify → export v4 --max-wer 0.35`. Then add a
+   `tajik-corpus-v4-300m` preset (3–5 epochs ≈ 75–130k steps at the v4 hour count), train, eval all
+   models on the v4 test partition, apply KenLM α=0.5/β=0 at decode. Dedup the `tv_tajikistan`/
+   `tvt_tojikiston` same-channel pair. Gate-fix +1,563 clips already in the store.
+2. **Dari v0** (project scaffolded): refresh cookies → `dari-curate download` (28 channels, tmux) +
+   stage Pimsleur Dari (m4a→16kHz FLAC into `data/create/pimsleur_dari/`, both levels from
+   `catalog/Pimsleur/Dari Persian/`) → create pipeline → export v0 → train BOTH cold-base and
+   Farsi-warm (`--regime warm_restart --lr 2e-6`), compare. Optional: add a Pashto language gate to
+   `omni_curator/process/language.py` (exclusive Pashto letters) for the bilingual channels.
+3. **Georgian**: 28 new channels researched (`docs/georgian_youtube_channels.md`) — wire into
+   sources.py for a first Georgian YouTube scrape (v1), and a KenLM-fused eval.
+4. **LLM ceiling bench** (`omni-bench-llm`): run on Tajik/Georgian/Farsi once GPU is back — decides
+   whether any LLM-in-the-loop (GER/NAR) work is worth it. Weights pre-cached.
+5. **Farsi**: re-upload corrected card; dedup Thomcles vs asr_farsi_youtube (overlap, leakage risk)
+   on the next export. Project is otherwise parked.
 
 ## The data flow (reference — how it all fits)
 
