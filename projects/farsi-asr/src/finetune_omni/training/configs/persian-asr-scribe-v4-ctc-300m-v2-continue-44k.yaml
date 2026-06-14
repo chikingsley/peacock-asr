@@ -1,0 +1,67 @@
+model:
+  name: "omni_ctc_300m_v2_persian_scribe_exact_match_20260525_best"
+
+# Continue scribe-v4 for +10k steps (34000 -> 44000). Resumes from the full training
+# state at step_34000 (model+optimizer+trainer+data_reader). CRITICAL: fairseq2 derives
+# the run subdir as ws_{world_size}.{sha1(whole config)}, so ANY config change yields a
+# NEW worktree and a COLD restart. To actually resume we set common.no_sweep_dir: true
+# (below) and launch with --output-dir pointing straight at the existing worktree:
+#   --output-dir src/finetune_omni/runs/scribe-v4/ws_1.760d57f2
+# Rationale: dev-WER was still the best at the last step (11.27% @ 34k, no overfit).
+dataset:
+  name: "scribe_v4"
+  train_split: "train"
+  valid_split: "dev"
+  storage_mode: "MIXTURE_PARQUET"
+  task_mode: "ASR"
+  mixture_parquet_storage_config:
+    dataset_summary_path: "/home/simon/github/peacock-asr/projects/persian-asr/src/finetune_omni/data/training/omnilingual/scribe-v4/language_distribution_0.tsv"
+    beta_corpus: 0.5
+    beta_language: 0.5
+    fragment_loading:
+      cache: true
+  asr_task_config:
+     min_audio_len: 16_000
+     max_audio_len: 960_000
+     max_num_elements: 3_840_000
+     batch_shuffle_window: 1
+     normalize_audio: true
+     example_shuffle_window: 1
+
+tokenizer:
+  name: "omniASR_tokenizer_written_v2"
+
+common:
+  # Use --output-dir as the run dir verbatim (no ws_{hash} subdir) so we resume the
+  # existing ws_1.760d57f2 worktree instead of spawning a fresh cold-start run.
+  no_sweep_dir: true
+
+optimizer:
+  config:
+    lr: 1e-05
+
+trainer:
+  freeze_encoder_for_n_steps: 0
+  mixed_precision:
+    dtype: "torch.bfloat16"
+  grad_accumulation:
+    num_batches: 2
+  activation_checkpointing:
+    mode: "layerwise"
+    every_nth_layer: 1
+  gc_every_n_steps: 100
+
+regime:
+  # +10k steps. Unlike the original v4 regime (last-n only), also keep the best-WER
+  # checkpoints so a mid-run peak in the 35k-44k window isn't lost to keep_last_n.
+  num_steps: 44_000
+  score_metric: "wer"
+  validate_every_n_steps: 1_000
+  validate_after_n_steps: 999
+  checkpoint_every_n_steps: 1_000
+  checkpoint_after_n_steps: 999
+  keep_best_n_checkpoints: 3
+  keep_last_n_checkpoints: 3
+  save_model_only: "all_but_last"
+  publish_metrics_every_n_steps: 1
+  publish_metrics_after_n_steps: 0
