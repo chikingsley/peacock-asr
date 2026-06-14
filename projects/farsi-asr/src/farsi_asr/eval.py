@@ -6,7 +6,7 @@ No new-pipeline export exists yet, so ``--dataset-root`` is required for now (th
 
   persian-eval-v2 --dataset-root data/datasets/v0/version=0
   persian-eval-v2 --dataset-root ... \
-      --models prod=omni_ctc_300m_v2_farsi_production
+      --models prod=omni_ctc_300m_v2_farsi_v4_step_7000
 """
 
 from __future__ import annotations

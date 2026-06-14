@@ -37,7 +37,7 @@ _PROJECT = Path(__file__).resolve().parents[2]
 #: benchmarked as benchmarks/suites/canonical-tests-scribe-v4-rewarm-20260530 — it beat the 1B
 #: on every benchmark). Same checkpoint the legacy ``omni_ctc_300m_v2_scribe_v4_20260530_best``
 #: card points at, under a stable production alias for the template-side eval surface.
-PRODUCTION_MODEL = "omni_ctc_300m_v2_farsi_production"
+PRODUCTION_MODEL = "omni_ctc_300m_v2_farsi_v4_step_7000"
 
 CARDS = [
     ModelCard(
