@@ -49,46 +49,46 @@ override-dependencies = [
 ]
 
 [project.entry-points."fairseq2.extension"]
-persian_asr = "persian_omnilingual_asr.fairseq2_assets:setup_fairseq2_extension"
+farsi_asr = "farsi_omnilingual_asr.fairseq2_assets:setup_fairseq2_extension"
 # The template package registers ONLY new card names (it imports the legacy cards instead of
 # redefining them — duplicate names across fairseq2 metadata providers are a hard error).
-persian_asr_v2 = "persian_asr.assets:setup_fairseq2_extension"
+farsi_asr_v2 = "farsi_asr.assets:setup_fairseq2_extension"
 
 [project.scripts]
-# The template-shaped package (persian_asr): the thin per-language standard. The -v2 train/eval
+# The template-shaped package (farsi_asr): the thin per-language standard. The -v2 train/eval
 # names keep the legacy CLIs below untouched.
-farsi-curate = "persian_asr.curate:main"
-farsi-train-v2 = "persian_asr.train:main"
-farsi-eval-v2 = "persian_asr.eval:main"
-# Omni fine-tune / eval on the shared omni-finetune-core recipe (persian_omnilingual_asr).
-farsi-omni-train = "persian_omnilingual_asr.training.train:main"
-farsi-omni-eval = "persian_omnilingual_asr.eval.test_split:main"
-farsi-omni-audit-tokenizer = "persian_omnilingual_asr.training.tokenizer_audit:main"
+farsi-curate = "farsi_asr.curate:main"
+farsi-train-v2 = "farsi_asr.train:main"
+farsi-eval-v2 = "farsi_asr.eval:main"
+# Omni fine-tune / eval on the shared omni-finetune-core recipe (farsi_omnilingual_asr).
+farsi-omni-train = "farsi_omnilingual_asr.training.train:main"
+farsi-omni-eval = "farsi_omnilingual_asr.eval.test_split:main"
+farsi-omni-audit-tokenizer = "farsi_omnilingual_asr.training.tokenizer_audit:main"
 farsi-benchmark-asr = "finetune_omni.benchmarks.asr:main"
 farsi-benchmark-compare = "finetune_omni.benchmarks.compare:main"
 farsi-benchmark-omni = "finetune_omni.benchmarks.omni:main"
 farsi-benchmark-sherpa-onnx = "finetune_omni.benchmarks.sherpa_onnx:main"
 farsi-benchmark-suite = "finetune_omni.benchmarks.suite:main"
-farsi-build-canonical-datasets = "persian_asr_dataset.cli.build_canonical:main"
-farsi-build-candidate-manifests = "persian_asr_dataset.curation.build_candidate_manifests:main"
-farsi-export-nemo-manifest = "persian_asr_dataset.cli.export_nemo_manifest:main"
-farsi-dataset-export-canonical-nemo-manifest = "persian_asr_dataset.cli.export_canonical_nemo_manifest:main"
-farsi-dataset-filter-nemo-manifest = "persian_asr_dataset.cli.filter_nemo_manifest:main"
-farsi-ingest = "persian_asr_dataset.cli.ingest:main"
-farsi-dataset-run-nemo-curator = "persian_asr_dataset.cli.run_nemo_curator:main"
-farsi-scribe-build-curation-db = "persian_asr_dataset.cli.build_scribe_curation_db:main"
-farsi-scribe-curation = "persian_asr_dataset.cli.scribe_curation:main"
-farsi-scribe-rerun-sqlite = "persian_asr_dataset.cli.scribe_rerun_sqlite:main"
-farsi-scribe-script-equivalence = "persian_asr_dataset.cli.scribe_script_equivalence:main"
+farsi-build-canonical-datasets = "farsi_asr_dataset.cli.build_canonical:main"
+farsi-build-candidate-manifests = "farsi_asr_dataset.curation.build_candidate_manifests:main"
+farsi-export-nemo-manifest = "farsi_asr_dataset.cli.export_nemo_manifest:main"
+farsi-dataset-export-canonical-nemo-manifest = "farsi_asr_dataset.cli.export_canonical_nemo_manifest:main"
+farsi-dataset-filter-nemo-manifest = "farsi_asr_dataset.cli.filter_nemo_manifest:main"
+farsi-ingest = "farsi_asr_dataset.cli.ingest:main"
+farsi-dataset-run-nemo-curator = "farsi_asr_dataset.cli.run_nemo_curator:main"
+farsi-scribe-build-curation-db = "farsi_asr_dataset.cli.build_scribe_curation_db:main"
+farsi-scribe-curation = "farsi_asr_dataset.cli.scribe_curation:main"
+farsi-scribe-rerun-sqlite = "farsi_asr_dataset.cli.scribe_rerun_sqlite:main"
+farsi-scribe-script-equivalence = "farsi_asr_dataset.cli.scribe_script_equivalence:main"
 farsi-finetune-parakeet-ctc = "finetune_parakeet.cli.finetune_parakeet_ctc:main"
 farsi-finetune-parakeet = "finetune_parakeet.cli.finetune_parakeet:main"
-farsi-prepare-omni-curated = "persian_asr_dataset.dataset_prep.curated:main"
-farsi-prepare-omni-fleurs = "persian_asr_dataset.dataset_prep.fleurs:main"
-farsi-prepare-omni-thomcles = "persian_asr_dataset.dataset_prep.thomcles:main"
-farsi-omni-text-audit = "persian_asr_dataset.dataset_prep.text_audit:main"
-farsi-repair-neyshekar = "persian_asr_dataset.dataset_prep.neyshekar:main"
-farsi-run-nemo-curator = "persian_asr_dataset.curation.run_nemo_curator:main"
-farsi-score-omni-manifest = "persian_asr_dataset.curation.score_omni_manifest:main"
+farsi-prepare-omni-curated = "farsi_asr_dataset.dataset_prep.curated:main"
+farsi-prepare-omni-fleurs = "farsi_asr_dataset.dataset_prep.fleurs:main"
+farsi-prepare-omni-thomcles = "farsi_asr_dataset.dataset_prep.thomcles:main"
+farsi-omni-text-audit = "farsi_asr_dataset.dataset_prep.text_audit:main"
+farsi-repair-neyshekar = "farsi_asr_dataset.dataset_prep.neyshekar:main"
+farsi-run-nemo-curator = "farsi_asr_dataset.curation.run_nemo_curator:main"
+farsi-score-omni-manifest = "farsi_asr_dataset.curation.score_omni_manifest:main"
 farsi-train-omni = "finetune_omni.training.train:main"
 farsi-train-tokenizer = "finetune_parakeet.cli.train_tokenizer:main"
 
@@ -121,39 +121,39 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"src/persian_asr_dataset/curation/run_nemo_curator.py" = [
+"src/farsi_asr_dataset/curation/run_nemo_curator.py" = [
     "E402",     # Ray uv-runtime control must be set before importing Curator/Ray.
     "PLC0415",  # Curator/Xenna imports must happen after local Ray setup.
 ]
-"src/persian_asr_dataset/cli/run_nemo_curator.py" = [
+"src/farsi_asr_dataset/cli/run_nemo_curator.py" = [
     "E402",     # Ray uv-runtime control must be set before importing Curator/Ray.
     "PLC0415",  # Curator/Xenna imports must happen after local Ray setup.
 ]
-"src/persian_asr_dataset/canonical.py" = [
+"src/farsi_asr_dataset/canonical.py" = [
     "PLR0913",  # Dataset writers and source adapters carry explicit schema fields.
 ]
-"src/persian_asr_dataset/curation/score_omni_manifest.py" = [
+"src/farsi_asr_dataset/curation/score_omni_manifest.py" = [
     "PLC0415",  # FAIRSEQ2_ASSET_DIR must be set before importing the Omni pipeline.
 ]
 "src/finetune_omni/benchmarks/asr.py" = [
     "PLC0415",  # FAIRSEQ2_ASSET_DIR must be set before importing the Omni pipeline.
 ]
-"src/persian_asr_dataset/cli/scribe_curation.py" = [
+"src/farsi_asr_dataset/cli/scribe_curation.py" = [
     "S608",  # dynamic SQL builds from trusted internal schema identifiers (SURFACES dict, view defs, SQL-escaped task/model), not user input.
 ]
-"src/persian_asr_dataset/cli/scribe_rerun_sqlite.py" = [
+"src/farsi_asr_dataset/cli/scribe_rerun_sqlite.py" = [
     "S608",  # dynamic SQL builds from int-coerced limits and an operator-supplied --where clause (trusted internal CLI), not end-user input.
 ]
-"src/persian_asr_dataset/cli/export_nemo_manifest.py" = [
+"src/farsi_asr_dataset/cli/export_nemo_manifest.py" = [
     "S608",  # dynamic SQL builds from trusted internal clause constants + a parameterized temp-table join, not user input.
 ]
-"src/persian_asr_dataset/cli/scribe_script_equivalence.py" = [
+"src/farsi_asr_dataset/cli/scribe_script_equivalence.py" = [
     "S608",  # dynamic SQL builds from an int-coerced limit + an operator-supplied --where clause (trusted internal CLI), not end-user input.
 ]
-"src/persian_asr_dataset/dataset_prep/thomcles.py" = [
+"src/farsi_asr_dataset/dataset_prep/thomcles.py" = [
     "C901",  # main() is a one-off linear ingest script (download -> filter -> convert -> stratify); flat by nature.
 ]
-"src/persian_asr_dataset/text_normalization.py" = [
+"src/farsi_asr_dataset/text_normalization.py" = [
     "RUF001",  # Arabic letters resembling Latin are intentional normalization data.
     "RUF002",  # ditto in docstrings.
     "RUF003",  # ditto in comments.
@@ -166,9 +166,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = [
-  "src/persian_asr",
-  "src/persian_asr_dataset",
-  "src/persian_omnilingual_asr",
+  "src/farsi_asr",
+  "src/farsi_asr_dataset",
+  "src/farsi_omnilingual_asr",
   "src/finetune_omni",
   "src/finetune_parakeet",
 ]
