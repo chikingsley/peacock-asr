@@ -62,6 +62,19 @@ Language-specific in each `<language>-asr` project:
 - default CTC/TDT run names
 - text normalization and curation policy outside the Parakeet trainer
 
+## Training Metric Policy
+
+Checkpoint and early-readout metrics are architecture-specific:
+
+- CTC runs monitor validation WER. CTC validation loss is cheap, but WER is the selection signal
+  used by the existing Parakeet CTC recipes and does not have the TDT/RNNT decode issue.
+- TDT/RNNT runs enable `model.compute_eval_loss = True` after restoring the base model and
+  changing vocabulary, then monitor `val_loss` for best validation checkpoints. BF16 TDT/RNNT
+  validation WER can be noisy after tokenizer changes, so use fp32 checkpoint eval for WER gates.
+- New Parakeet recipes must inspect the restored model/YAML config rather than assuming this flag.
+  Some NVIDIA transducer configs ship with `compute_eval_loss: false`; the shared TDT harness
+  overrides it intentionally.
+
 ## TDT Status
 
 TDT is supported here as shared mechanics, not as a fully promoted production recipe. The reusable
