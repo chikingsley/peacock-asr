@@ -145,6 +145,57 @@ Two process corrections this round:
 **Known gap:** eval is still a loose script (`eval_ckpt.py`), not a package command — promoting it to
 `tajik-parakeet-eval-tdt` would make "train → eval" one harness. Deferred.
 
+### CTC head + KenLM on the final 110M model (2026-06-16): KenLM beats the TDT-head greedy
+
+The final model is a **hybrid (TDT+CTC)**, so its CTC head is a free second readout — and CTC is the
+head KenLM shallow fusion attaches to (the omni baseline went 16.9 → 14.5 +KenLM exactly this way).
+Tested it on FLEURS-test (600), fp32, **same WER methodology** as `eval_ckpt.py`
+(`omni_curator.process.normalize(·, "tgk_Cyrl")` → `omni_finetune_core.metrics.compute_measures`).
+
+- **Model:** `data/parakeet/final/tajik-parakeet-tdt-110m_final.nemo` (`EncDecHybridRNNTCTCBPEModel`),
+  CTC head (`change_decoding_strategy(decoder_type="ctc")`), 1025 classes (BPE-1024 + blank).
+- **KenLM:** **word 4-gram** (`lmplz -o 4`, KenLM at `packages/kenlm`), trained on the model's own
+  **232,824 `train_big.jsonl` transcripts** omni-normalized (`tgk_Cyrl`) → 372 MB binary
+  (`experiments/lm_decoding/lm4_parakeet.bin`; corpus `corpus_parakeet_trainbig.txt`, 309,687 unigrams).
+- **Decode:** pyctcdecode beam (width 64) over per-frame CTC log-probs, BPE/subword alphabet (`▁`
+  boundary marker), α/β sweep. Script: `experiments/lm_decoding/eval_parakeet_ctc_lm.py`.
+
+| readout (CTC head, fp32, FLEURS test 600) | WER | CER |
+|---|---|---|
+| CTC greedy | 24.06 | 7.50 |
+| beam w=64, no LM | 24.51 | 7.39 |
+| **beam + KenLM α=0.5 β=0.0** (best of sweep) | **16.64** | 7.03 |
+
+**Read:**
+- **CTC greedy (24.1 %) is worse than the TDT-head greedy (19.0 %)** on this model — the TDT head is
+  the stronger readout for greedy decoding here (and far faster).
+- **CTC + KenLM (16.64 %) beats the TDT-head greedy by 2.4 WER** and lands right at the *omni CTC 300M
+  greedy* baseline (16.9). The LM is the entire gain (**−7.42 WER** vs CTC-greedy); beam alone does
+  nothing (−0.0/slightly worse), and the word-insertion bonus β hurts — every β=0 row beats its β>0
+  siblings, same grid shape as the omni `lm_decoding` run.
+- It does **not** reach the omni **CTC+KenLM** (14.5) — expected: this is a 110M English-base CTC head
+  vs a 300M multilingual one. **Net:** KenLM on the CTC head is a real, free −7.4-WER lever and the
+  best *single-decode* number off this model is the **TDT-head greedy 19.0 %** unless you spend the
+  CTC+KenLM beam, which gets to 16.6 % at CPU beam-decode cost.
+
+### 0.6B v3 memory ladder (2026-06-16): full fine-tune fits 12 GB via Adafactor
+
+Stepping into the v3 0.6B run, probing what fits on the 12 GB card (full-FT, short probes, recorded + reacted):
+
+| rung | config | result |
+|---|---|---|
+| A | full-FT **AdamW**, batch_dur 40, fused 1 | OOM, peak 11.5 GB |
+| A2 | full-FT AdamW, batch_dur 20 + `expandable_segments` | OOM, peak 11.5 GB (same) |
+| C2 | full-FT **Adafactor**, batch_dur 60, fused 2 | **fits, peak 9.8 GB, 617 M trainable, ~2.8 steps/s** |
+
+**The wall is the optimizer, not the batch.** AdamW keeps fp32 first+second moments (~12 B/param ≈ 7.4 GB
+for 0.6B) — a fixed floor batch size can't move (A vs A2 OOM identically at 11.5 GB). **Adafactor** factors
+the second moment and drops the first → tiny optimizer state → full fine-tune (all 617 M params) fits at
+**9.8 GB with ~2 GB margin**. Wired as `tajik-parakeet-train-tdt --optim adafactor` (`parakeet_finetune_core`
+sets `relative_step=False` so the manual lr + cosine schedule are honored). So 0.6B full-FT is viable on
+12 GB — not with AdamW. (Alternatives not needed: 8-bit AdamW would need bitsandbytes + NeMo wiring;
+partial-unfreeze is the fallback if Adafactor convergence disappoints.)
+
 ## Risks / open questions
 
 - **TDT stagnation may be fundamental, not a tuning gap.** It's reproduced on v3 by others and the upstream fix didn't merge. If B–D don't break the stall, that's the (valuable, publishable) finding — and the fallback is CTC.

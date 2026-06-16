@@ -1,5 +1,6 @@
 # Generated artifacts: 85M label corpus + KenLM files; rebuild with lmplz (see run.py docstring)
 corpus.txt
+corpus_parakeet_trainbig.txt
 *.arpa
 *.bin
 *.log

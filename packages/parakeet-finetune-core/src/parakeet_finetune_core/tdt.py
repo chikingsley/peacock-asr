@@ -191,6 +191,7 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
     parser.add_argument("--max-dur", type=float, default=30.0)
     parser.add_argument("--max-steps", type=int, default=100_000)
     parser.add_argument("--lr", type=float, default=3e-4)
+    parser.add_argument("--optim", default="adamw", help="adamw | adafactor")
     parser.add_argument("--warmup", type=int, default=2000)
     parser.add_argument("--val-every", type=int, default=2000)
     parser.add_argument("--log-every", type=int, default=50)
@@ -306,10 +307,21 @@ def run(args: argparse.Namespace) -> None:
                     Path(validation_manifest), args.max_dur, args.num_workers
                 ),
                 "optim": {
-                    "name": "adamw",
+                    "name": args.optim,
                     "lr": args.lr,
-                    "betas": [0.9, 0.98],
                     "weight_decay": 1e-3,
+                    # AdamW keeps fp32 first+second moments (~12 B/param); adafactor factors the
+                    # second moment + drops the first (tiny state) so 0.6B full-FT fits 12 GB.
+                    # adafactor: relative_step off so it honors our manual lr + cosine schedule.
+                    **(
+                        {"betas": [0.9, 0.98]}
+                        if args.optim == "adamw"
+                        else {
+                            "relative_step": False,
+                            "scale_parameter": False,
+                            "warmup_init": False,
+                        }
+                    ),
                     "sched": {
                         "name": "CosineAnnealing",
                         "warmup_steps": args.warmup,

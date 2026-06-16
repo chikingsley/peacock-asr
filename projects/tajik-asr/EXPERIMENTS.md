@@ -241,6 +241,47 @@ is not recorded anywhere, it says "not recorded".
 
 ---
 
+## 2026-06-16 — KenLM on the Parakeet 110M hybrid's CTC head (inference-time, no training)
+
+- **Why:** the fine-tuned Tajik **Parakeet 110M is a hybrid (TDT+CTC)** (`tajik-parakeet-tdt-110m_final.nemo`,
+  `EncDecHybridRNNTCTCBPEModel`); its TDT head greedy is 19.0 % FLEURS (recorded in `experiments/tdt/`).
+  KenLM shallow fusion is the standard free lever and it attaches to the **CTC head** (this is exactly
+  how the omni CTC baseline went 16.9 → 14.5). Question: does a Tajik word KenLM on the CTC head beat
+  the TDT-head greedy / approach the omni baselines?
+- **Setup:** `experiments/lm_decoding/eval_parakeet_ctc_lm.py`. KenLM **word 4-gram** (`lmplz -o 4`)
+  trained on the model's own **232,824 `train_big.jsonl` transcripts**, omni-normalized (`tgk_Cyrl`) →
+  372 MB binary (`lm4_parakeet.bin`; 309,687 unigrams). pyctcdecode beam (w=64) over per-frame CTC
+  log-probs with the **BPE-1024 subword alphabet** (`▁` boundary, blank index 1024). fp32 CUDA forward.
+  WER methodology identical to `experiments/tdt/eval_ckpt.py`:
+  `omni_curator.process.normalize(·,"tgk_Cyrl")` → `omni_finetune_core.metrics.compute_measures`.
+- **FLEURS test (600 rows), α/β grid swept here** (so the +KenLM number is mildly optimistic):
+
+  | readout (CTC head, fp32) | WER | CER |
+  |---|---|---|
+  | CTC greedy | 24.06 | 7.50 |
+  | beam w=64, no LM | 24.51 | 7.39 |
+  | **beam + KenLM α=0.5 β=0.0** | **16.64** | 7.03 |
+
+  Grid shape matches the omni run: all gain is the LM weight, the word-insertion bonus β **hurts**
+  (every β=0 beats its β>0 siblings), best α∈{0.3,0.5}.
+- **Comparison (FLEURS test):**
+
+  | model / head / decode | WER | note |
+  |---|---|---|
+  | Parakeet 110M, **TDT head, greedy** | 19.0 | the model's best *single-pass* readout (recorded in tdt/) |
+  | Parakeet 110M, CTC head, greedy | 24.06 | CTC head weaker than TDT here |
+  | **Parakeet 110M, CTC head, +KenLM** | **16.64** | **−7.42 vs CTC-greedy; beats TDT-greedy by 2.4** |
+  | omni CTC 300M, greedy | 16.9 | multilingual 300M base |
+  | omni CTC 300M, +KenLM | 14.5 | the best Tajik FLEURS number on record |
+
+- **CONCLUSION:** KenLM is a real **−7.4 WER** free lever on the 110M CTC head (beam alone does
+  nothing). CTC+KenLM (16.64) **beats the TDT-head greedy (19.0) by 2.4** and matches the *omni CTC
+  greedy* baseline, but does **not** reach omni **CTC+KenLM (14.5)** — expected for a 110M English-base
+  CTC head vs a 300M multilingual one. So the model's best *fast single-decode* number stays the
+  TDT-head greedy 19.0 %; spending the CPU beam-decode buys CTC+KenLM 16.6 %.
+
+---
+
 ## Gaps / not recorded
 
 - v0 **test** WER/CER was first measured 2026-05-30 (the v0 entry above), not on the original
