@@ -101,6 +101,11 @@ ignore = [
 # Arabic letters resembling Latin are intentional Persian text; long channel-list data lines.
 "src/farsi_asr/sources.py" = ["RUF001", "RUF002", "RUF003", "E501"]
 
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
