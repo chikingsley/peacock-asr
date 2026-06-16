@@ -40,10 +40,10 @@ PROJECT = CuratorProject(
     #   - common_voice_25: farsi_asr_dataset.canonical.cv25_samples, a local Mozilla CV v25 dump
     ingests={"fleurs": fleurs_source(sources.FLEURS_CONFIG)},
     env_file=ROOT.parents[1] / ".env",  # monorepo-root .env (Scribe / MDC / HF keys)
-    # The omni tokenizer .model shipped with the legacy finetune_omni assets dir — same file the
+    # The omni tokenizer .model from the repo-level shared base-model cache — same file the
     # upstream omniASR_tokenizer_written_v2 card downloads; reused as the export coverage gate.
     coverage_check=char_tokenizer_coverage(
-        ROOT / "src" / "finetune_omni" / "assets" / "omniASR_tokenizer_written_v2.model"
+        ROOT.parents[1] / "base_models" / "omni" / "omniASR_tokenizer_written_v2.model"
     ),
     # No held-out conversational manifest yet — freeze one before the first new-pipeline training
     # run (see NEW_LANGUAGE.md step 7).
