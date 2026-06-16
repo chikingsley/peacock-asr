@@ -72,12 +72,17 @@ class CuratorProject:
     coverage_check: Callable[[list[str]], int] | None = None
     heldout_manifest: Path | None = None
     mixture_weights: Mapping[str, float] = field(default_factory=dict)
+    #: Per-source license: ``source name -> (license_id, commercial_use)``. Stamped onto every
+    #: exported row (license/commercial_use columns); an unregistered source defaults to
+    #: ``("unknown", False)`` so it's excluded from a ``--commercial-only`` export.
+    licenses: Mapping[str, tuple[str, bool]] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         """Freeze the collections and reject config typos at construction time."""
         object.__setattr__(self, "channels", tuple(self.channels))
         object.__setattr__(self, "ingests", dict(self.ingests))
         object.__setattr__(self, "mixture_weights", dict(self.mixture_weights))
+        object.__setattr__(self, "licenses", dict(self.licenses))
         slugs = [c.slug for c in self.channels]
         if len(slugs) != len(set(slugs)):
             dupes = sorted({s for s in slugs if slugs.count(s) > 1})
@@ -527,6 +532,7 @@ def cmd_export(project: CuratorProject, args: argparse.Namespace) -> int:
         store, project.datasets_dir / args.name, version=0, selection=selection,
         coverage_check=project.coverage_check, strict=not args.no_strict,
         mixture_weights=weights or None,
+        licenses=project.licenses, commercial_only=args.commercial_only,
     )
     store.close()
     print(f"exported {stats.rows} rows ({stats.hours:.2f} h)"
@@ -622,6 +628,8 @@ def _add_store_parsers(sub: argparse._SubParsersAction, project: CuratorProject)
     p_ex.add_argument("--mixture-weight", action="append", metavar="CORPUS=HOURS",
                       help="sampling-weight override for the weighted TSV (repeatable; "
                       "default: the project recipe)")
+    p_ex.add_argument("--commercial-only", action="store_true",
+                      help="export only commercial-licensed sources (drops NC/unknown)")
     p_ex.add_argument("--no-mixture-weights", action="store_true",
                       help="write no weighted TSV (true hours only)")
     p_ex.set_defaults(func=cmd_export)

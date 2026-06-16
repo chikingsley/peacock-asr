@@ -59,7 +59,7 @@ from omni_curator.process.language import keep_for_language
 from omni_curator.quality import is_descriptor_only
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable, Iterator
+    from collections.abc import Callable, Iterable, Iterator, Mapping
 
     from omni_curator.sample import Sample
     from omni_curator.store import CuratorStore
@@ -73,6 +73,15 @@ OMNI_SCHEMA: pa.Schema = pa.schema(
         ("audio_bytes", pa.list_(pa.int8())),
         ("audio_size", pa.int64()),
     ]
+)
+
+#: What the export actually writes: the training columns + per-source license provenance. The
+#: trainer reads only its three columns by name (``columns=[...]``), so the extra two are inert for
+#: training but let an export be queried/filtered by license. ``license`` = the precise identifier
+#: (for attribution / ShareAlike); ``commercial_use`` = the derived filter key. Constant per
+#: partition (a partition is one ``corpus=<source>``, so one license).
+EXPORT_SCHEMA: pa.Schema = pa.schema(
+    [*OMNI_SCHEMA, pa.field("license", pa.string()), pa.field("commercial_use", pa.bool_())]
 )
 
 
@@ -327,12 +336,15 @@ def _chunked(
         yield batch
 
 
-def _batch_to_table(batch: list[tuple[Sample, str]]) -> tuple[pa.Table, int, int]:
-    """Decode one batch of ``(sample, normalized_text)`` into an OMNI_SCHEMA table.
+def _batch_to_table(
+    batch: list[tuple[Sample, str]], license_str: str, *, commercial: bool
+) -> tuple[pa.Table, int, int]:
+    """Decode one batch of ``(sample, normalized_text)`` into an EXPORT_SCHEMA table.
 
     Reads + FLAC-encodes only this batch's audio, so the memory held is one batch, not the whole
     partition. Returns the table, the batch's total audio samples (for the hours tally), and the
     count skipped for missing audio. The NORMALIZED label is written; the stored text is untouched.
+    ``license_str``/``commercial`` are constant for the partition (one source) and written per row.
     """
     texts: list[str] = []
     audio: list[np.ndarray] = []
@@ -346,13 +358,16 @@ def _batch_to_table(batch: list[tuple[Sample, str]]) -> tuple[pa.Table, int, int
         texts.append(norm_text)
         audio.append(_flac_bytes(path))
         sizes.append(max(1, round(sample.duration * SAMPLE_RATE)))
+    n = len(texts)
     table = pa.Table.from_arrays(
         [
             pa.array(texts, type=pa.string()),
             pa.array(audio, type=pa.list_(pa.int8())),
             pa.array(sizes, type=pa.int64()),
+            pa.array([license_str] * n, type=pa.string()),
+            pa.array([commercial] * n, type=pa.bool_()),
         ],
-        schema=OMNI_SCHEMA,
+        schema=EXPORT_SCHEMA,
     )
     return table, sum(sizes), skipped
 
@@ -362,6 +377,8 @@ def _write_partition(
     out_dir: Path,
     *,
     row_group_size: int,
+    license_str: str = "unknown",
+    commercial: bool = False,
 ) -> tuple[int, float, int]:
     """Stream one partition to ``part-00000.parquet`` in batches; return (rows, hours, skipped).
 
@@ -374,13 +391,15 @@ def _write_partition(
     writer: pq.ParquetWriter | None = None
     rows = skipped = total_samples = 0
     for batch in _chunked(samples, row_group_size):
-        table, batch_samples, batch_skipped = _batch_to_table(batch)
+        table, batch_samples, batch_skipped = _batch_to_table(
+            batch, license_str, commercial=commercial
+        )
         skipped += batch_skipped
         if table.num_rows == 0:
             continue
         if writer is None:
             out_dir.mkdir(parents=True, exist_ok=True)
-            writer = pq.ParquetWriter(out_path, OMNI_SCHEMA)
+            writer = pq.ParquetWriter(out_path, EXPORT_SCHEMA)
         writer.write_table(table, row_group_size=row_group_size)
         rows += table.num_rows
         total_samples += batch_samples
@@ -512,6 +531,8 @@ def export_dataset(
     coverage_check: Callable[[list[str]], int] | None = None,
     strict: bool = True,
     mixture_weights: dict[str, float] | None = None,
+    licenses: Mapping[str, tuple[str, bool]] | None = None,
+    commercial_only: bool = False,
 ) -> ExportStats:
     """Materialize the ``selection`` over ``store`` as omni-parquet under ``output_dir``.
 
@@ -560,10 +581,17 @@ def export_dataset(
     by_corpus: dict[str, int] = defaultdict(int)
     hours_split: dict[str, float] = defaultdict(float)
     hours_corpus: dict[str, float] = defaultdict(float)
+    licenses = licenses or {}
     for (corpus, split, language), samples in sorted(grouped.items()):
+        # License is per-source (one corpus = one license). Unknown -> ("unknown", non-commercial),
+        # so an unregistered source is conservatively excluded from a --commercial-only export.
+        license_str, commercial = licenses.get(corpus, ("unknown", False))
+        if commercial_only and not commercial:
+            continue
         out_dir = partition_dir(version_root, corpus, split, language)
         rows, hours, skipped = _write_partition(
-            samples, out_dir, row_group_size=row_group_size
+            samples, out_dir, row_group_size=row_group_size,
+            license_str=license_str, commercial=commercial,
         )
         stats.rows += rows
         stats.skipped_missing_audio += skipped

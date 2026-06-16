@@ -11,7 +11,10 @@ lands in the store. FLEURS + Common Voice ingest via the standard factories toda
 
 from __future__ import annotations
 
-from omni_curator.create.youtube import Channel
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from omni_curator.create.youtube import Channel
 
 #: google/fleurs config for Russian.
 FLEURS_CONFIG = "ru_ru"
@@ -36,6 +39,19 @@ HUGGINGFACE: dict[str, tuple[str, str | None]] = {
 #:   rulibrispeech -> OpenSLR SLR96 (https://openslr.org/96/) — ~98 h audiobooks
 #:   m_ailabs   -> caito.de M-AILABS Russian (~47 h);  ruslan -> github ruslan-corpus (~31 h)
 PURE_SOURCES = ("golos_slr114", "rulibrispeech_slr96", "m_ailabs", "ruslan")
+
+#: Per-source license registry -> (license_id, commercial_use). Stamped onto every exported row
+#: (license / commercial_use columns); `export --commercial-only` drops the False (NC) sources.
+LICENSES: dict[str, tuple[str, bool]] = {
+    "fleurs": ("CC-BY-4.0", True),
+    "tonebooks": ("Apache-2.0", True),
+    "espeech_webinars": ("Apache-2.0", True),
+    "espeech_podcasts": ("CC-BY-NC-4.0", False),
+    "golos": ("CC-BY-SA-4.0", True),
+    "ruls": ("PD", True),
+    "sova_dataset": ("CC-BY-4.0", True),
+    "ru_open_stt": ("CC-BY-NC", False),
+}
 
 #: LOCAL pre-labelled corpora already on disk (data/<name> -> /mnt/overflow) — own formats, each
 #: needs a manifest-parsing adapter. LICENSE-tagged (verified 2026-06-15):
