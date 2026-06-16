@@ -11,9 +11,11 @@ from parakeet_finetune_core.tdt import (
     JsonlValLogger,
     apply_loss_init_fix,
     configure_fused_tdt_loss,
+    enable_eval_loss,
     freeze_encoder,
     train_ds,
     val_ds,
+    validation_checkpoint_config,
 )
 
 
@@ -64,6 +66,7 @@ class FakeModel:
     def __init__(self, joint):
         self.joint = joint
         self.cfg = {"loss": {"tdt_kwargs": {"durations": [0, 1, 2, 3, 4]}}}
+        self.compute_eval_loss = False
         self.loss: Any = object()
         self.wer = object()
 
@@ -102,6 +105,15 @@ def test_configure_fused_tdt_loss_passes_model_loss_and_wer():
         "loss": model.loss,
         "metric": model.wer,
     }
+
+
+def test_enable_eval_loss_updates_runtime_flag_and_model_cfg():
+    model = FakeModel(FakeJoint())
+
+    enable_eval_loss(model)
+
+    assert model.compute_eval_loss is True
+    assert model.cfg["compute_eval_loss"] is True
 
 
 class FakeParameter:
@@ -175,6 +187,14 @@ def test_tdt_dataset_configs_use_lhotse_train_and_plain_validation(tmp_path):
     assert validation_config["batch_size"] == 2
     assert validation_config["num_workers"] == 2
     assert validation_config["max_duration"] == 25.0
+
+
+def test_validation_checkpoint_monitors_eval_loss(tmp_path):
+    config = validation_checkpoint_config(tmp_path / "checkpoints")
+
+    assert config["monitor"] == "val_loss"
+    assert config["mode"] == "min"
+    assert config["filename"] == "best-valloss-step{step}-{val_loss:.3f}"
 
 
 def test_jsonl_train_logger_writes_rounded_loss_and_lr(tmp_path):

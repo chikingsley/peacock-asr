@@ -90,6 +90,23 @@ def configure_fused_tdt_loss(model: Any, fused_batch_size: int) -> None:
     model.joint.set_fuse_loss_wer(fuse_loss_wer=True, loss=model.loss, metric=model.wer)
 
 
+def enable_eval_loss(model: Any) -> None:
+    model.compute_eval_loss = True
+    cfg = getattr(model, "cfg", None)
+    if cfg is None:
+        return
+    if isinstance(cfg, dict):
+        cfg["compute_eval_loss"] = True
+        return
+    try:
+        cfg.compute_eval_loss = True
+    except (AttributeError, TypeError, ValueError):
+        from omegaconf import open_dict
+
+        with open_dict(cfg):
+            cfg.compute_eval_loss = True
+
+
 def freeze_encoder(model: Any, *, unfreeze_top: int = 0) -> str:
     model.encoder.freeze()
     if unfreeze_top <= 0:
@@ -135,6 +152,17 @@ def val_ds(manifest: Path, max_dur: float, num_workers: int) -> dict[str, Any]:
         "pin_memory": True,
         "min_duration": 0.5,
         "max_duration": max_dur,
+    }
+
+
+def validation_checkpoint_config(ckpt_dir: Path) -> dict[str, Any]:
+    return {
+        "dirpath": str(ckpt_dir),
+        "save_top_k": 2,
+        "monitor": "val_loss",
+        "mode": "min",
+        "filename": "best-valloss-step{step}-{val_loss:.3f}",
+        "auto_insert_metric_name": False,
     }
 
 
@@ -226,8 +254,10 @@ def run(args: argparse.Namespace) -> None:
     )
     num_classes = apply_loss_init_fix(model)
     configure_fused_tdt_loss(model, args.fused_batch_size)
+    enable_eval_loss(model)
     print(
-        f"RNNTLoss num_classes={num_classes}; fused_batch_size={args.fused_batch_size}",
+        f"RNNTLoss num_classes={num_classes}; fused_batch_size={args.fused_batch_size}; "
+        f"compute_eval_loss={model.compute_eval_loss}",
         flush=True,
     )
     if args.freeze_encoder or args.unfreeze_top > 0:
@@ -244,12 +274,7 @@ def run(args: argparse.Namespace) -> None:
         auto_insert_metric_name=False,
     )
     checkpoint_val = ModelCheckpoint(
-        dirpath=str(ckpt_dir),
-        save_top_k=2,
-        monitor="val_wer",
-        mode="min",
-        filename="best-valwer-step{step}-{val_wer:.3f}",
-        auto_insert_metric_name=False,
+        **validation_checkpoint_config(ckpt_dir),
     )
     trainer = pl.Trainer(
         devices=1,
