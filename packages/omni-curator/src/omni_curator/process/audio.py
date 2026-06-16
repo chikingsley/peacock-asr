@@ -28,11 +28,13 @@ def to_16k_flac(src: Path, dst: Path) -> None:
     )
 
 
-def resample_sample(sample: Sample, out_dir: Path) -> Sample:
+def resample_sample(sample: Sample, out_dir: Path) -> Sample | None:
     """Resample a sample's audio to 16 kHz mono FLAC under ``out_dir``; return it updated.
 
     Skips the ffmpeg pass if the output already exists AND is a valid FLAC, so a re-run resumes.
     A clip left truncated by a killed run is re-encoded rather than poisoning the whole resume.
+    Returns ``None`` if the *source* audio can't be decoded (a corrupt clip in a noisy corpus) so
+    one bad file is skipped instead of aborting the whole ingest.
     """
     import soundfile as sf
 
@@ -44,8 +46,12 @@ def resample_sample(sample: Sample, out_dir: Path) -> Sample:
         except sf.LibsndfileError:
             info = None  # truncated/corrupt (killed mid-write) -> re-encode below
     if info is None:
-        to_16k_flac(Path(sample.audio_path), dst)
-        info = sf.info(str(dst))
+        try:
+            to_16k_flac(Path(sample.audio_path), dst)
+            info = sf.info(str(dst))
+        except (subprocess.CalledProcessError, sf.LibsndfileError):
+            dst.unlink(missing_ok=True)  # undecodable source -> drop this clip
+            return None
     return replace(
         sample,
         audio_path=str(dst),
@@ -68,4 +74,4 @@ def resample_samples(
     worker = partial(resample_sample, out_dir=out_dir)
     with ThreadPoolExecutor(max_workers=max_workers) as pool:
         done = tqdm(pool.map(worker, items), total=len(items), desc=f"resample {out_dir.name}")
-        return list(done)
+        return [s for s in done if s is not None]  # drop clips with undecodable source audio
