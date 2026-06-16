@@ -9,6 +9,5 @@ __pycache__/
 .fairseq2-assets/
 # Large binaries — gitignored in place (model weights, source audio + sqlite, built parquet)
 src/tajik_asr/models/
-src/tajik_asr/dataset_prep/artifacts/
 data/           # omni-curator create downloads + store (16 kHz FLAC, curator.sqlite)
 .smoke-scratch/

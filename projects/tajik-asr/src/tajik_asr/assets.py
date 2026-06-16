@@ -29,18 +29,13 @@ from omni_finetune_core.assets import (
 if TYPE_CHECKING:
     from fairseq2.runtime.dependency import DependencyContainer
 
-# This file lives at src/tajik_asr/assets.py, so the package
-# directory holds models/ and dataset_prep/.
 _PKG = Path(__file__).resolve().parent
 _PROJECT = Path(__file__).resolve().parents[2]
 _MODELS = _PKG / "models"
 _OMNI_BASE = Path(__file__).resolve().parents[4] / "base_models" / "omni"
-# The legacy v0 parquet lives inside its source artifact (kept as the baseline-model
-# provenance; v1/v2 data was superseded, recorded in EXPERIMENTS.md, and deleted —
-# kept datasets live on the Peacockery HF org).
-_PARQUET = (
-    _PKG / "dataset_prep" / "artifacts" / "tajik_asr_combined_v0" / "omni_parquet" / "version=0"
-)
+# v0 = the baseline-model provenance corpus (v1/v2 superseded, recorded in EXPERIMENTS.md and
+# deleted; kept datasets live on the Peacockery HF org). Canonical data lives under data/, not src.
+_PARQUET = _PROJECT / "data" / "datasets" / "v0" / "version=0"
 # v3 = v2's corpus minus a held-out conversational test set (157 whole videos carved to
 # split=test); the only difference from v2 is that those videos are out of train. The fair
 # conversational benchmark — v3 has never seen the held-out clips it is scored on.
