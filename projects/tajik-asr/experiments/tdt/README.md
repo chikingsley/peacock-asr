@@ -103,6 +103,16 @@ Stock `change_vocabulary` fine-tune of the 110M hybrid on FLEURS-Tajik (400 trai
 
 **But neither head learns Tajik content** (CTC also stuck ~0.99 in both arms). CTC stalling too — vs issue #14140 where CTC reached ~0.1 on 1800 h — proves this is **cold-start + tiny-data, not the bug**: the 110M is English-base (no Cyrillic acoustic prior) and 400 rows is far too little to learn a new script. **The 110M/400-row testbed validated the *fix* but cannot show *competitive* TDT training.** That requires the v3-centric build (next).
 
+### Gate C (v3) + measurement-trust probe (2026-06-16): WER readings are UNTRUSTWORTHY; loss does train
+
+Tried to run the cheap v3 overfit gate (B-on-v3: fresh Tajik tokenizer + loss-fix). Findings:
+
+- **v3 (0.6B) full fine-tune does not fit the 12 GB card** (AdamW optimizer state on 0.6B is the killer). Frozen-encoder fits but **can't memorize** (val_wer ~0.95); top-12-of-24 layers unfrozen (311M trainable) **also stuck ~0.96**. 311M params failing to memorize ~220 rows is *implausible* → suspect a measurement bug, not a learning failure.
+- **bf16 vs fp32 decode probe (110M, fp32, overfit, log train_loss):** in fp32 the **train_loss DOES drop (197→142)** — the model *is* training — **but val_wer stays stuck ~0.95** anyway. So it is **not** purely the documented bf16-TDT-decode bug (#14140); the greedy WER is pinned ~0.95 regardless of dtype/model/freeze *while the loss decreases*.
+- **Conclusion: across every TDT config the WER metric is untrustworthy** (TDT decode-after-`change_vocabulary` config and/or transducers needing far more steps/data than a tiny overfit). We cannot read "does it learn Tajik" off these WER numbers. The *loss* says the model trains; the *WER* says nothing reliable yet.
+
+**What's solid regardless:** the loss-init bug + fix are validated at the mechanism level (gate 3); the harness, manifest converter, Tajik tokenizer, and v3 inspection are done; and the 12 GB card forces partial-unfreeze (not full FT) for v3. **What's needed for a real answer:** (1) verify decoding on a *known/memorized* example (print hyp vs ref) so WER is trustworthy; (2) then a proper run — real 180k data, more steps, fp32-or-patched-decode, partial-unfreeze — not more tiny overfit probes.
+
 ## Risks / open questions
 
 - **TDT stagnation may be fundamental, not a tuning gap.** It's reproduced on v3 by others and the upstream fix didn't merge. If B–D don't break the stall, that's the (valuable, publishable) finding — and the fallback is CTC.
