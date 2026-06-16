@@ -214,20 +214,30 @@ def cmd_list(project: CuratorProject, args: argparse.Namespace) -> int:
 
 def cmd_download(project: CuratorProject, args: argparse.Namespace) -> int:
     """Download each selected channel's audio as 16 kHz FLAC; report hours landed."""
+    import shutil
+
     from omni_curator.create.youtube import download_channel
 
     cookies = project.cookies_path if project.cookies_path.exists() else None
     channels = project.selected_channels(args)
     total_hours = 0.0
+    done = 0
     for ch in channels:
+        if args.disk_guard:
+            free_gb = shutil.disk_usage(project.create_dir).free / 1e9
+            if free_gb < args.disk_guard:
+                print(f"DISK GUARD: {free_gb:.0f} G free < {args.disk_guard} G"
+                      f" — stopping before {ch.slug}")
+                break
         print(f"== {ch.slug} ({ch.tier}): {ch.url}")
         result = download_channel(
             ch.url, out_dir=project.create_dir / ch.slug, limit=args.limit, cookies=cookies
         )
         total_hours += result.hours
+        done += 1
         print(f"   {result.flac_count} files, {result.hours:.2f} h"
               f" -> {project.create_dir / ch.slug}")
-    print(f"TOTAL: {total_hours:.2f} h across {len(channels)} channel(s)"
+    print(f"TOTAL: {total_hours:.2f} h across {done} channel(s)"
           f" under {project.create_dir}")
     return 0
 
@@ -439,15 +449,32 @@ def huggingface_source(
 
 
 def cmd_ingest(project: CuratorProject, args: argparse.Namespace) -> int:
-    """Ingest one of the project's registered existing-labeled sources into the master store."""
+    """Ingest one or more of the project's registered existing-labeled sources into the store."""
     project.load_env()
+    # HF-backed sources cache under the project's data dir, not ~/.cache (matches download/create).
+    os.environ.setdefault("HF_HOME", str(project.raw_dir / "hf-cache"))
     from omni_curator.store import CuratorStore
 
-    source = project.ingests[args.dataset]
+    datasets = sorted(project.ingests) if args.all else args.dataset
+    if not datasets:
+        print("specify one or more datasets, or --all")
+        return 2
     store = CuratorStore(project.db)
-    count = _store_batched(store, source(project))
-    print(f"ingested {count} {args.dataset} samples -> {project.db}")
+    failed: list[str] = []
+    for name in datasets:
+        try:
+            count = _store_batched(store, project.ingests[name](project))
+        except Exception as exc:  # in --all, one bad source must not abort the rest
+            if not args.all:
+                store.close()
+                raise
+            failed.append(name)
+            print(f"SKIP {name}: {type(exc).__name__}: {exc}")
+            continue
+        print(f"ingested {count} {name} samples -> {project.db}")
     print(f"store now: {store.counts()}  ({store.hours():.2f} h)")
+    if failed:
+        print(f"skipped (errors): {', '.join(failed)}")
     store.close()
     return 0
 
@@ -567,6 +594,8 @@ def _add_source_parsers(sub: argparse._SubParsersAction, project: CuratorProject
 
     p_dl = sub.add_parser("download", help="download channel audio -> data/create/<slug>")
     _add_channel_args(p_dl, project)
+    p_dl.add_argument("--disk-guard", type=int, metavar="GB",
+                      help="stop before a channel if free space on the data fs drops below GB")
     p_dl.set_defaults(func=cmd_download)
 
     p_ck = sub.add_parser("cookies", help="refresh youtube_cookies.txt from the browser profile")
@@ -602,8 +631,10 @@ def _add_store_parsers(sub: argparse._SubParsersAction, project: CuratorProject)
     p_mg = sub.add_parser("merge", help="merge per-channel stores into the master store")
     p_mg.set_defaults(func=cmd_merge)
 
-    p_in = sub.add_parser("ingest", help="ingest an existing-labeled dataset into the store")
-    p_in.add_argument("dataset", choices=sorted(project.ingests))
+    p_in = sub.add_parser("ingest", help="ingest existing-labeled dataset(s) into the store")
+    p_in.add_argument("dataset", nargs="*", choices=sorted(project.ingests),
+                      help="one or more registered sources (omit when using --all)")
+    p_in.add_argument("--all", action="store_true", help="ingest every registered source")
     p_in.set_defaults(func=cmd_ingest)
 
     p_vf = sub.add_parser("verify", help="Scribe-score un-scored clips in the store")
