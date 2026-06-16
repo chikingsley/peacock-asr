@@ -176,6 +176,8 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--lam", type=float, default=0.02)
     ap.add_argument("--clip", type=float, default=1.0)
     ap.add_argument("--qformer-layers", type=int, default=1)
+    ap.add_argument("--downsample", type=int, default=5, help="acoustic downsample (IBM=5)")
+    ap.add_argument("--block-size", type=int, default=15, help="Q-Former window (block %% ds == 0)")
     ap.add_argument("--tie", action="store_true")
     return ap.parse_args()
 
@@ -208,7 +210,9 @@ def main() -> int:
     if args.tie:
         fp.weight.data = tf.weight.data[:VOCAB].clone()
         print("TIED output head to input embeddings", flush=True)
-    cfg = ProjCfg(num_layers=args.qformer_layers)
+    assert args.block_size % args.downsample == 0, "block_size must be divisible by downsample"
+    cfg = ProjCfg(num_layers=args.qformer_layers, downsample_rate=args.downsample,
+                  block_size=args.block_size)
     projector = QFormerProjector(cfg).to(device=device, dtype=dtype)
     trainable = list(projector.parameters()) + lora
     print(f"trainable: Q-Former {sum(p.numel() for p in projector.parameters()) / 1e6:.1f}M "
