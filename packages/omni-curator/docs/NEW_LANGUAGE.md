@@ -4,6 +4,34 @@ A language project is **pure config**. All curation logic, every CLI command, an
 layout live in `omni_curator.project`; the project supplies values. Georgian and tajik are the
 reference implementations — identical in shape, differing only in their config values.
 
+## Step 0 — find the data (always run this checklist)
+
+Before scraping anything, sweep the open sources — for many languages a usable corpus already
+exists. Check **all** of these for the new language, every time:
+
+1. **Google FLEURS** (`google/fleurs` on HF) — read speech, the benchmark anchor. Find the
+   `xx_yy` config; if there's none, the language has no FLEURS (e.g. Dari).
+2. **Common Voice** — the **Mozilla Data Collective** (MDC, not the old HF mirror): grab the
+   dataset id + download with the MDC key. Maintain the running MDC id list as it's assembled.
+3. **OpenSLR** — <https://www.openslr.org/resources.php>. **Always check** — a large share of
+   low/mid-resource speech corpora live here (Google-funded SLR sets, university corpora, TTS
+   data usable as clean ASR pairs).
+4. **Hugging Face datasets, ASR filter** —
+   <https://huggingface.co/datasets?task_categories=task_categories:automatic-speech-recognition>
+   (and search the language name / ISO code; also browse by *modality: audio*). YODAS, MLS,
+   community scrapes, etc.
+5. **Multilingual LibriSpeech / LibriVox-derived** (MLS, M-AILABS) — public-domain audiobook
+   read speech for the bigger languages.
+6. **General web + paper search** — look for any released corpus (university, NGO, government,
+   a paper's supplementary data). A lot exists outside the aggregators if you search the
+   language + "speech corpus" / "ASR dataset".
+7. **YouTube scrape (the create path)** — the fallback / conversational lever when little
+   labelled data exists (Tajik, Dari, Georgian). Channel registry in `sources.py`.
+
+Ingest sources (1–6) preserve their splits and need no labelling; the create path (7) is
+Scribe-labelled. A high-resource language (Russian) is mostly 1–6; a low-resource one (Dari) is
+mostly 7.
+
 ## The recipe
 
 1. **Create the project skeleton** (copy from `projects/georgian-asr`):
@@ -65,6 +93,27 @@ reference implementations — identical in shape, differing only in their config
    tajik's `tajik-corpus-v3-300m`). Always set `fragment_cache_dir` to real disk. Register the
    best checkpoint as a ModelCard in `assets.py`, add it to `eval_models`, and score with
    `<lang>-eval` (`--only-corpus-prefix youtube-` = the conversational held-out alone).
+
+## The decode stack — after the CTC is trained
+
+Fine-tuning the CTC is the *acoustic* half. The decode stack on top is where the per-language
+accuracy/speed trade is set. In order of effort:
+
+1. **Greedy CTC** — the production baseline. Fast, no extra work.
+2. **+ KenLM fusion (always do this)** — build a word n-gram from the language's own training text
+   (`omni-build-lm <export>/version=0 <out_dir>`), fuse at decode (the `lm_decoding` experiment).
+   Proven ~−16 % relative on Tajik for **zero training**, CPU-only. This is the guaranteed floor
+   uplift for every language.
+3. **+ NAR editor (the upside, where the omni Llama covers the language)** — a frozen omni Llama
+   decoder edits the CTC draft in one bidirectional pass: LLM-class accuracy without autoregressive
+   latency. Per language you only train a small LoRA + projector (the frozen CTC and frozen shared
+   Llama are reused). See `projects/tajik-asr/experiments/nar/`. Falls back to KenLM where the Llama
+   doesn't know the language well enough.
+
+**Steady-state per new language:** find data (Step 0) → fine-tune the CTC → build the KenLM → (once
+NAR is validated) train the small NAR adapter. The shared Llama brain is never retrained; only the
+per-language CTC + adapter are. CTC+KenLM is always the floor, so a language is never worse than
+that baseline.
 
 ## What the project may NOT contain
 
