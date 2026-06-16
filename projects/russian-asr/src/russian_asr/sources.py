@@ -20,20 +20,22 @@ FLEURS_CONFIG = "ru_ru"
 #: their own (most-updated) Common Voice pipeline; fill the MDC id from that when ready.
 COMMONVOICE: dict[str, str] = {}
 
-#: HF-hosted clean corpora — pulled via huggingface_source (auto-detect column, 16 kHz mono FLAC,
-#: forced to split=train so their own splits don't enter the FLEURS benchmark partition).
-#: name -> (repo, text_column|None). ~490 h of clean Russian (the easy one-liners).
+#: HF-native clean corpora — pulled via huggingface_source (auto-detect column, 16 kHz mono FLAC,
+#: forced to split=train). Only datasets with NO purer upstream source live here (the bond005
+#: reposts are deliberately NOT used — we take canonical releases for provenance).
+#: name -> (repo, text_column|None).
 HUGGINGFACE: dict[str, tuple[str, str | None]] = {
-    "rulibrispeech": ("bond005/rulibrispeech", None),          # RuLS ~98 h, audiobooks (PD)
-    "sova_rudevices": ("bond005/sova_rudevices", None),        # ~101 h, manual labels
-    "golos_crowd": ("bond005/sberdevices_golos_10h_crowd", None),       # Golos crowd subset
-    "golos_farfield": ("bond005/sberdevices_golos_100h_farfield", None),# Golos farfield ~100 h
-    "tonebooks": ("Vikhrmodels/ToneBooks", None),              # ~179 h audiobook (Tier-3)
+    "tonebooks": ("Vikhrmodels/ToneBooks", None),  # ~179 h audiobook, HF-native (no purer source)
 }
 
-#: Need adapters / non-HF sources (follow-up): full Golos 1,240 h (SberDevices/Golos or OpenSLR
-#: SLR114), M-AILABS ru (~47 h, caito.de), RUSLAN (~31 h, github), and the local raw corpora below.
-#: Local pre-labelled corpora (data/<name>, migrated to overflow) — need per-dataset adapters.
+#: PURE-SOURCE corpora needing a download+parse adapter (preferred over HF reposts for provenance):
+#:   golos      -> OpenSLR SLR114 (https://openslr.org/114/) — full ~1,240 h, the big one
+#:   rulibrispeech -> OpenSLR SLR96 (https://openslr.org/96/) — ~98 h audiobooks
+#:   m_ailabs   -> caito.de M-AILABS Russian (~47 h);  ruslan -> github ruslan-corpus (~31 h)
+PURE_SOURCES = ("golos_slr114", "rulibrispeech_slr96", "m_ailabs", "ruslan")
+
+#: LOCAL pre-labelled corpora already on disk (data/<name> -> /mnt/overflow) — own formats, each
+#: needs a manifest-parsing adapter. These ARE the pure source (user downloaded them).
 LOCAL_CORPORA = ("ru_open_stt", "sova_dataset", "TIMIT")
 
 #: No YouTube scrape yet — Russian has ample labelled data. Add channels here if/when wanted.
