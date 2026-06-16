@@ -10,12 +10,13 @@ FLAC conversion to ``process.resample_samples`` — the same division of labour 
 On-disk formats (verified 2026-06-15 against the real data under russian-asr/data/):
 
 ru_open_stt (snakers4/open_stt, the ``ru_open_stt_opus`` distribution)
-    Corpus root holds one ``<subset>.csv`` per extracted subset. Each CSV is headerless with three
-    columns: ``audio_path,txt_path,duration_seconds`` (e.g.
-    ``asr_calls_2_val/9/33/14bbb530d04d.wav,asr_calls_2_val/9/33/14bbb530d04d.txt,0.32``). Paths are
-    relative to the corpus root; the transcript is a sibling UTF-8 ``.txt`` (one Cyrillic line).
-    Audio is mono 16 kHz PCM ``.wav`` (some distributions ship ``.opus`` — ffmpeg reads either).
-    LICENSE: CC-BY-NC (non-commercial) — wire behind an opt-in, not the default export.
+    Each archive extracts to a ``<subset>/`` tree of ``<id>.opus`` clips, each beside its transcript
+    sibling ``<id>.txt`` (one Cyrillic line) — e.g. ``asr_public_stories_1/9/6c/83cfe2a22db1.opus``
+    + ``…/83cfe2a22db1.txt``. The sibling ``.txt`` is the canonical signal: walk the tree and pair
+    each audio clip (``.opus`` here, ``.wav`` in the PCM build) with its same-stem ``.txt``.
+    The optional ``<subset>.csv`` index (headerless ``audio,txt,duration``) is ignored — it cites
+    ``.wav`` even in the opus distribution, and most subsets ship no CSV; duration is recomputed at
+    resample time anyway. LICENSE: CC-BY-NC (non-commercial) — opt-in, not the default export.
 
 sova_dataset (sova-tts/sova-dataset; RuDevices / RuAudiobooks)
     A tree of ``.wav`` each paired with a same-stem sibling ``.txt`` holding the transcript. Some
@@ -45,7 +46,7 @@ if TYPE_CHECKING:
 
     from omni_curator.project import CuratorProject
 
-_MIN_OPEN_STT_COLS = 2  # audio,txt[,duration]
+_OPEN_STT_AUDIO = (".opus", ".wav")  # opus distribution ships .opus; PCM distribution .wav
 _TIMIT_TXT_PARTS = 3  # "start end <sentence...>"
 _DR_DEPTH = 1  # TIMIT path under the corpus root: <split>/DR*/<spkr>/<utt>
 
@@ -66,35 +67,30 @@ def _read_text_file(path: Path) -> str:
 
 
 def load_ru_open_stt(path: Path, *, language: str, source: str = "ru_open_stt") -> Iterator[Sample]:
-    """snakers4/open_stt -> ``Sample``s. Reads every ``<subset>.csv`` at the corpus root.
+    """snakers4/open_stt -> ``Sample``s: walk the tree, pairing each clip with its sibling .txt.
 
-    Each CSV row is ``audio_path,txt_path,duration`` (relative to ``path``); the transcript is the
-    sibling ``.txt``. Rows whose audio or transcript is missing are skipped (a partly-extracted
-    archive leaves CSV rows with no files yet).
+    Each ``<subset>/.../<id>.opus`` (or ``.wav``) sits beside its transcript ``<id>.txt``. Clips w/
+    no transcript, or not yet on disk (a partly-extracted archive), are skipped. The subset name
+    (first path component) is kept in ``meta`` for per-domain filtering later.
     """
-    for manifest in sorted(path.glob("*.csv")):
-        subset = manifest.stem
-        with manifest.open(encoding="utf-8") as handle:
-            for index, row in enumerate(csv.reader(handle)):
-                if len(row) < _MIN_OPEN_STT_COLS:
-                    continue
-                audio = path / row[0]
-                text = _read_text_file(path / row[1])
-                if not text or not audio.exists():
-                    continue
-                duration = float(row[2]) if len(row) > _MIN_OPEN_STT_COLS and row[2] else 0.0
-                yield Sample(
-                    id=f"{source}_{_slug(subset)}_{index}",
-                    source=source,
-                    language=language,
-                    text=text,
-                    audio_path=str(audio),
-                    duration=duration,
-                    sample_rate=0,  # set when process resamples
-                    split="train",
-                    citation="github.com/snakers4/open_stt",
-                    meta={"subset": subset},
-                )
+    for ext in _OPEN_STT_AUDIO:
+        for audio in sorted(path.rglob(f"*{ext}")):
+            text = _read_text_file(audio.with_suffix(".txt"))
+            if not text:
+                continue
+            rel = audio.relative_to(path)
+            yield Sample(
+                id=f"{source}_{_slug(str(rel.with_suffix('')))}",
+                source=source,
+                language=language,
+                text=text,
+                audio_path=str(audio),
+                duration=0.0,  # set when process resamples
+                sample_rate=0,
+                split="train",
+                citation="github.com/snakers4/open_stt",
+                meta={"subset": rel.parts[0] if rel.parts else None},
+            )
 
 
 # -- sova_dataset -------------------------------------------------------------------------------
