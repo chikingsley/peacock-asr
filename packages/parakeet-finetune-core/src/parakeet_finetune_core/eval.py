@@ -26,9 +26,12 @@ class EvalRow:
 
 
 def default_model_for_kind(project: ParakeetProject, kind: str) -> str | Path | None:
+    # prefer the promoted final eval model; fall back to the training base
     if kind == "ctc":
-        return project.default_ctc_model
-    return project.default_tdt_model or project.default_hybrid_model
+        return project.default_eval_ctc_model or project.default_ctc_model
+    return (
+        project.default_eval_tdt_model or project.default_tdt_model or project.default_hybrid_model
+    )
 
 
 def default_checkpoint_for_kind(project: ParakeetProject, kind: str) -> Path | None:

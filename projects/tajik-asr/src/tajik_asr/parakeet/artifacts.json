@@ -1,0 +1,18 @@
+{
+  "_comment": "Tracked pointer for canonical Tajik Parakeet artifacts. Files live under the gitignored data/parakeet (and the repo-level base_models/parakeet cache); this file records sha256 / provenance / planned HF target so they are reproducible. HF push is a follow-up; revision is filled once uploaded.",
+  "hf_repo": "peacockery/tajik-parakeet-tdt-110m",
+  "hf_revision": null,
+  "artifacts": {
+    "manifests/train_big.jsonl": {"sha256_16": "c3c3236790aaa817", "rows": 232824, "hours": 1197, "source": "gate1b_curator_manifest.py --max-wer 0.35 --max-dur 30 (curator.sqlite, split=train, tgk_Cyrl)"},
+    "manifests/dev_big.jsonl": {"sha256_16": "7396e9fcee20af1a", "rows": 357, "source": "curator.sqlite split=dev tgk_Cyrl"},
+    "manifests/test_big.jsonl": {"sha256_16": "060080e31ba5934e", "rows": 721, "source": "curator.sqlite split=test tgk_Cyrl (600 fleurs + 121 commonvoice)"},
+    "manifests/test_fleurs.jsonl": {"sha256_16": "10802469b3ded0ce", "rows": 600, "source": "curator.sqlite split=test source=fleurs tgk_Cyrl"},
+    "tokenizers/tokenizer_spe_bpe_v1024/tokenizer.model": {"sha256_16": "00610deafa89a8e2", "vocab": 1024, "type": "spe_bpe", "source": "process_asr_text_tokenizer.py on train_big_text (full 232k-transcript corpus, char-coverage 1.0)"},
+    "final/tajik-parakeet-tdt-110m_final.nemo": {"sha256_16": "92e672d08b730a1c", "wer_fleurs": 19.0, "wer_dev": 17.8, "rtfx": 568, "source": "tajik-parakeet-train-tdt (110M hybrid full FT, 100k steps, bf16)"}
+  },
+  "base_models": {
+    "_note": "repo-level shared cache base_models/parakeet/ (copied from upstream NeMo / farsi finetune_parakeet); not committed.",
+    "parakeet-tdt_ctc-110m-base-hybrid.nemo": {"role": "tdt+ctc training base"},
+    "ctc.nemo": {"role": "ctc training base"}
+  }
+}

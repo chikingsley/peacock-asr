@@ -36,5 +36,8 @@ wandb/
 # Processed features (large Arrow files)
 data/
 
+# Repo-level base/pretrained model cache (large .nemo/.pt weights, copied not symlinked)
+base_models/
+
 # Scratch / dry-run outputs
 scratch/

@@ -27,6 +27,9 @@ class ParakeetProject:
     default_tokenizer_dir: Path | None = None
     default_tdt_checkpoint: Path | None = None
     default_ctc_checkpoint: Path | None = None
+    # promoted final models for eval (stable .nemo), kept separate from the training base models
+    default_eval_ctc_model: str | Path | None = None
+    default_eval_tdt_model: str | Path | None = None
     default_eval_kind: str = "ctc"
     default_eval_normalizer: str | None = None
     default_eval_normalizer_language: str | None = None

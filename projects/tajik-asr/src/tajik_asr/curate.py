@@ -49,7 +49,7 @@ PROJECT = CuratorProject(
     },
     env_file=ROOT.parents[1] / ".env",  # monorepo-root .env (Scribe / MDC / HF keys)
     coverage_check=char_tokenizer_coverage(_PKG / "models" / "omniASR_tokenizer_written_v2.model"),
-    heldout_manifest=_PKG / "heldout_test_videos.json",
+    heldout_manifest=DATA / "heldout_test_videos.json",
     # The v2/v3 anti-drift recipe: lift FLEURS (true ~11.8 h) to ~12% of sampled batches.
     mixture_weights={"fleurs": 490.0},
 )
