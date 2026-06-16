@@ -67,6 +67,29 @@ eval: WER (TDT head vs CTC/ref) + RTFx  vs  omni CTC+KenLM baseline
 - **Gate 4 — eval + the payoff.** Best config: WER (TDT head) on FLEURS test (599) + conversational held-out (1,625) vs omni CTC (16.9) and CTC+KenLM (14.5); and **measure RTFx** the same way as the lm_decoding baseline (is it really ~thousands×?). Plus the #14728 regression checks (numbers/acronyms after bilingual fine-tune).
 - **Separate CTC track (not a "v3 fallback"):** if the TDT head won't train despite B–D, a **Parakeet-CTC** model (110M-hybrid's CTC head — proven on Farsi — and/or `parakeet-ctc-0.6b`) reuses all the gate-1/2 data+tokenizer work to still ship a fast CTC Tajik model. Frame as a parallel track, *not* a result of the v3-TDT experiment (v3 may be TDT-only).
 
+## Findings (gate log — dated, append-only)
+
+### The loss-init bug — CONFIRMED present in our NeMo 2.7.3 (by source inspection)
+
+In `nemo/collections/asr/models/rnnt_models.py`: the **constructor** correctly does `num_classes = num_classes_with_blank - 1; if multiblank/tdt: num_classes -= joint.num_extra_outputs` (line ~85-88), **but `change_vocabulary` omits it** — `RNNTLoss(num_classes = num_classes_with_blank - 1)` (line ~370). So fine-tuning a TDT model via `change_vocabulary` mis-sizes the loss by the duration-bin count. This is exactly issue #14140 / the unmerged PR #14155, **present in our version.** Fix (arm B) = mirror the constructor's TDT branch.
+
+### Gate 0b — v3 preflight (2026-06-16): three facts that shape everything
+
+Loaded `nvidia/parakeet-tdt-0.6b-v3` (`gate0b_v3_inspect.py`):
+
+- **v3 is `EncDecRNNTBPEModel` — pure TDT, NO aux CTC head** (`cfg.aux_ctc` is a dead key; no `ctc_decoder`). → the CTC fallback is genuinely a **separate model**, not inside v3.
+- **TDT joint:** `num_classes_with_blank=8198`, `num_extra_outputs=5` (durations [0,1,2,3,4]), real vocab 8192, **blank id 8192**. So stock `change_vocabulary` would build the loss with `num_classes=8197` instead of `8192` — off by exactly the 5 duration bins. The restore/loss-fix code must respect this layout.
+- **v3's 8,192 tokenizer is LOSSY on Tajik** — Tajik-specific Cyrillic (ӣ ҷ ӯ ҳ қ …) → `<unk>` (no byte-fallback; round-trip corrupted, e.g. `фаҷри`→`фа ⁇ ри`). v3 knows Ru/Uk Cyrillic, not Tajik's diacritic letters. **⇒ tokenizer extend/replace is a hard prerequisite for v3+Tajik (you can't train toward targets the tokenizer can't encode), not just an ablation lever.**
+
+### Gate 1 + 2 — data & tokenizer (2026-06-16): done
+
+- **Manifest:** omni rows store audio as encoded **FLAC bytes** (verified `fLaC` magic; decode = `audio_size` samples @16k), so the converter writes bytes straight to `.flac` (lossless, no re-encode) + JSONL (`gate1_build_manifest.py`). FLEURS-Tajik: **599 rows / 2.41 h → train 400 / dev 119** (only `split=test` exists in v3; real 180k train export is separate, to wire up for gate 3/4).
+- **Tokenizer:** fresh Tajik **BPE-1024**, char-coverage 1.0 (captures the Tajik letters v3 lacks — e.g. learned `▁ҷанубӣ`). `data/tok/tokenizer_spe_bpe_v1024/`.
+
+### Gate 0a — reproduce the stall (2026-06-16): bug confirmed by inspection; tiny-budget train run under-trained
+
+Stock `change_vocabulary` fine-tune of the 110M hybrid on FLEURS-Tajik (400 train / 400 steps / bs 8, transducer fused-loss to fit 12 GB), logging both heads. Result was **inconclusive as a clean visual**: TDT-head `val_wer` ≈ 2.07 (>100%, garbage insertions), **CTC-head `val_wer_ctc` stuck at exactly 1.00** (all-blank attractor) — i.e. *both* heads under-trained, not the published "CTC→0.1 while TDT stalls" differential. 400 rows × ~16 epochs is too little for even CTC to break out. **So the bug is established by source inspection (decisive); the *training* differential is the gate-3 A0-vs-B test at an adequate budget** (overfit the 400 rows harder, or wire the real train export). Harness works end-to-end (load → change_vocabulary → fused-loss transducer train on 12 GB).
+
 ## Risks / open questions
 
 - **TDT stagnation may be fundamental, not a tuning gap.** It's reproduced on v3 by others and the upstream fix didn't merge. If B–D don't break the stall, that's the (valuable, publishable) finding — and the fallback is CTC.

@@ -1,0 +1,4 @@
+data/
+*.nemo
+nemo_experiments/
+__pycache__/
