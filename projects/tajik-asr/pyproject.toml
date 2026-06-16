@@ -93,3 +93,10 @@ ignore = [
 # Cyrillic letters resembling Latin are intentional Tajik text.
 "src/tajik_omnilingual_asr/eval.py" = ["RUF002"]
 "src/tajik_omnilingual_asr/sources.py" = ["RUF001", "RUF002", "RUF003"]
+# Research/diagnostic scripts (gates), not library code. Relaxed by intent:
+# ANN001/ANN202 (annotating dynamic fairseq2 module args/closures adds noise, not safety),
+# INP001 (flat run-directly script dir, not an importable package),
+# N803 (ML matrix arg names like H), S101 (asserts are deliberate sanity gates),
+# PLR2004 (inline magic numbers are clearer than named consts in throwaway probes),
+# PLR0915/C901 (single-shot main() entry points run long by nature).
+"experiments/**" = ["ANN001", "ANN202", "INP001", "N803", "S101", "PLR2004", "PLR0915", "C901"]
