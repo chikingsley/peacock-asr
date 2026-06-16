@@ -5,9 +5,21 @@ this is the acquisition map. Canonical living index to re-check for new releases
 <https://github.com/alphacep/awesome-russian-speech> (Vosk team).
 
 ## Already in hand (local, under data/russian-asr → /mnt/overflow)
-- **ru_open_stt (OpenSTT)** — the ~20,000 h giant (CC-BY-NC, heterogeneous; filter hard by alignment).
-- **SOVA** — umbrella; confirm which parts (RuDevices 101 h manual / RuYouTube 17,451 h auto / RuAudiobooks 298 h manual). Prioritize the **manual** slices.
-- **TIMIT-Russian.** Plus FLEURS `ru_ru` (wired) and Common Voice `ru` (own pipeline, below).
+- **ru_open_stt (OpenSTT)** — the ~20,000 h giant. **License: CC-BY-NC** (non-commercial — poisons a
+  commercial release unless you negotiate with snakers4). Heterogeneous; filter hard by alignment.
+- **SOVA** — umbrella, **CC-BY-4.0** (commercial OK, attribute Virtual Assistant LLC). Confirm parts
+  (RuDevices 101 h manual / RuYouTube 17,451 h auto / RuAudiobooks 298 h manual). Prioritize **manual**.
+- ~~TIMIT-Russian~~ — **REMOVED. It is the original ENGLISH LDC TIMIT mislabeled as Russian** (verified
+  from its README/PROMPTS/SPKRINFO): wrong language AND LDC-restricted (no redistribute / no commercial
+  / no publishing models on it). Quarantined; do not use. Plus FLEURS `ru_ru` + Common Voice `ru`.
+
+## Licenses (verified 2026-06-15) — commercial-clean vs NC
+- **Commercial-safe + publishable:** SOVA (CC-BY-4.0), RuLS (Public Domain), ToneBooks (Apache-2.0),
+  M-AILABS ru (BSD-3), Golos (CC-BY-SA — ShareAlike attaches to a *published dataset export*, a trained
+  model is lower-risk; attribute Sber), FLEURS (CC-BY-4.0), Common Voice ru (CC0).
+- **Non-commercial (keep OUT of a commercial mix):** ru_open_stt (CC-BY-NC), RUSLAN (CC-BY-NC-SA),
+  ESpeech-podcasts (CC-BY-NC).
+- **Unusable:** the local TIMIT (LDC English, restricted).
 
 ## Tier 1 — get these first (big, transcribed, permissive)
 | Dataset | Where | Hours | Domain | License | Verdict |

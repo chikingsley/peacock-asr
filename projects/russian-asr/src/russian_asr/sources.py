@@ -35,8 +35,13 @@ HUGGINGFACE: dict[str, tuple[str, str | None]] = {
 PURE_SOURCES = ("golos_slr114", "rulibrispeech_slr96", "m_ailabs", "ruslan")
 
 #: LOCAL pre-labelled corpora already on disk (data/<name> -> /mnt/overflow) — own formats, each
-#: needs a manifest-parsing adapter. These ARE the pure source (user downloaded them).
-LOCAL_CORPORA = ("ru_open_stt", "sova_dataset", "TIMIT")
+#: needs a manifest-parsing adapter. LICENSE-tagged (verified 2026-06-15):
+#:   sova_dataset -> CC-BY-4.0 (commercial OK; attribute Virtual Assistant LLC)
+#:   ru_open_stt  -> CC-BY-NC  (NON-COMMERCIAL — poisons a commercial release; keep behind opt-in)
+#: REMOVED: the local "TIMIT" dir is the original ENGLISH LDC TIMIT mislabeled as Russian — wrong
+#: language AND LDC-restricted (no redistribution / no commercial / no publishing models on it).
+#: Quarantined at /mnt/overflow/.../russian-asr/data/TIMIT — do NOT ingest, train, or upload it.
+LOCAL_CORPORA = ("sova_dataset", "ru_open_stt")  # NC: ru_open_stt
 
 #: No YouTube scrape yet — Russian has ample labelled data. Add channels here if/when wanted.
 YOUTUBE_CHANNELS: tuple[Channel, ...] = ()
