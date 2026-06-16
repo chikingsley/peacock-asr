@@ -4,15 +4,15 @@ A non-autoregressive (NAR) LLM **editor** that fixes our frozen CTC's greedy dra
 
 ## Status & outstanding
 
-**Where we are (2026-06-15).** Feasibility gates 1–2 **passed**; gate 3 (learnability) shows the **copy** mechanism works *only with a tied head*, but the **edit** phase has not yet beaten the draft in a minimal overfit. The forward path is built and runs on real components. Branch `nar-editor-feasibility`.
+**Where we are (2026-06-15).** Feasibility gates 1–2 **passed**. Gate 3 (learnability): **copy** works *only with a tied head*; the **edit** phase does not beat the draft. The recipe-vs-conditioning diagnostic (gate 3b) is **done — verdict: conditioning.** With the copy anchor annealed out, pure CTC degenerates (WER → 534%), proving the single Linear projector's acoustic signal is too weak to drive corrections. **A full run as-is would fail; do not start one.** Branch `nar-editor-feasibility`.
 
 **Next, in priority order:**
 
-1. **Recipe-vs-conditioning diagnostic** (in progress) — re-run the 100-example overfit with the full recipe (copy warmup → CTC λ-ramp → cosine LR + grad clip). If edits still don't beat the draft, the bottleneck is *conditioning*, not optimisation.
-2. **Richer acoustic conditioning** — replace the single reused Linear projector with a multi-layer / Q-Former adapter over stacked CTC encoder layers (crib shapes from IBM's Apache-2.0 `modeling_granite_speech_nar.py`).
-3. **Staged real training** — overfit-100 (done) → FLEURS-small → full v3. Always with **tied head + copy warmup**. Precompute CTC drafts+features (frozen CTC → identical every epoch).
+1. **Richer acoustic conditioning (the blocker).** Replace the single reused Linear projector with a multi-layer / Q-Former adapter over stacked CTC encoder layers (crib shapes from IBM's Apache-2.0 `modeling_granite_speech_nar.py`). Keep a small λ throughout (IBM-style, do **not** anneal to 0 in production — the anneal was a diagnostic). Re-run the same overfit; **gate = edits beat the 18.84% draft.**
+2. **Only then, staged real training** — overfit-100 → FLEURS-small → full v3. Always **tied head + copy warmup**. Precompute CTC drafts+features (frozen CTC → identical every epoch).
+3. **Fallback if the omni editor still can't beat CTC+KenLM** — a clean small multilingual *bidirectionally-pretrained* LLM (the omni decoder is causal-pretrained; outputting its own input is off-distribution).
 
-**Open risks:** edit learnability, projector capacity, realised decode speed (faster than AR, *not* near-CTC).
+**Open risks:** projector capacity (now the #1, evidence-backed); whether a causal-pretrained decoder can edit at all; realised decode speed (faster than AR, *not* near-CTC).
 
 **Resolved (don't re-litigate):** tied embeddings = **required** (untied can't copy); vocab is **shared** (no re-tokenisation); audio wiring is **prefix**; the editor decoder is a **fixed 1.22B** (only the discarded audio encoder differs by size); bidirectional ≈ causal memory; draft-length bound is a non-issue.
 
@@ -97,7 +97,24 @@ Result ladder (train WER on the 100):
 - **Tie head → input embeddings:** untrained editor **36.85%**; **one** copy-only epoch → **18.84% = the draft, a perfect copy**. Residual-identity copy is near-free *once tied*.
 - **CTC edit phase** (lr 3e-4 and 1e-4, copy-warmup then +CTC): **does not beat the draft.** WER pins ≈ draft (19–21%), CTC loss floors ~2–3 (doesn't →0 / doesn't memorise), with transient out-of-script garbage on CTC onset. Learns to **copy**, not **correct**.
 
-**Read:** plumbing sound, copy works *with tying as a required recipe item*. Edit-beats-draft unshown in this minimal overfit — likely (1) conditioning too weak (single Linear projector), (2) recipe (the next diagnostic adds grad clip / LR schedule / gentle CTC onset), (3) data scale (100 rows proves copy, not a correction policy). Feasibility passed; **edit-beats-draft is the open question that defines the real training experiment.**
+**Read:** plumbing sound, copy works *with tying as a required recipe item*. Edit-beats-draft unshown in this minimal overfit — candidates were (1) conditioning too weak (single Linear projector), (2) recipe (abrupt CTC onset, no schedule), (3) data scale. The next sub-gate disambiguates.
+
+### Gate 3b — recipe-vs-conditioning diagnostic (2026-06-15): verdict = **conditioning**
+
+Re-ran the overfit with the full recipe **and** the key disambiguation fix (codex review): full-strength copy warmup, then ramp CTC weight 0→1 over 10 epochs while **annealing the copy regularizer `λ_eff = λ·(1−w_ctc) → 0`** — so a plateau-at-copy can't be blamed on a lingering copy anchor. (Also fixed a warmup bug where the copy phase had run at 2% strength, and added asserts: 0/100 CTC-infeasible rows, no ref contains the blank id.)
+
+Trajectory as the copy anchor anneals out and CTC takes over:
+
+| epoch | CTC weight | CTC loss | train WER | output |
+|---|---|---|---|---|
+| 1–12 (warmup) | 0 | — | **18.84%** | clean copy |
+| 15 | 0.30 | 22.2 | 109% | dropping chars |
+| 20 | 0.80 | 5.1 | 150% | mostly spaces |
+| 25 | 1.00 | 8.7 | **534%** | every char space-separated |
+
+**Pure CTC degenerates catastrophically.** As the anchor is removed, CTC loss falls while greedy WER *explodes* (insertions/blanks) — a classic degenerate CTC optimum. The crucial inference: **the copy regularizer was load-bearing** — it was holding the output *at* copy, not enabling corrections. Once unanchored, the single Linear projector's acoustic signal is **too weak to drive correct edits**, so CTC games the alignment instead. → **The bottleneck is acoustic conditioning, not the recipe.** (Contrast: IBM keeps a small λ throughout *and* uses a Q-Former projector — the anneal here was a diagnostic to expose the dependency, not the production recipe.)
+
+**Consequence:** a full training run as-is would **not** work — it would either plateau at copy (anchor on) or degenerate (anchor off). **Do not "jump in the water."** The required next step is **richer acoustic conditioning** (multi-layer / Q-Former over stacked CTC encoder layers, λ kept small throughout), then re-run this same overfit; only if edits beat the 18.84% draft does staged real training make sense.
 
 ## Corrections to the original spec
 
