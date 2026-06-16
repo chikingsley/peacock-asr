@@ -4,15 +4,15 @@ A non-autoregressive (NAR) LLM **editor** that fixes our frozen CTC's greedy dra
 
 ## Status & outstanding
 
-**Where we are (2026-06-15).** Gates 1–2 (feasibility) **passed**. Gate 3: copy works *only with a tied head*. Gate 3b: Linear projector + anchor annealed → pure CTC **collapses** (534%) → bottleneck is conditioning. Gate 4: IBM **Q-Former** projector → collapse gone, beats draft *marginally* (18.84% → 17.92%). Gate 4b: scaling the projector (2-layer, 2× downsample) → **no gain (18.93%, worse)** → **projector capacity is not the lever.** The overfit ladder has converged: copy works, conditioning matters, but corrections stay ≈copy regardless of projector. CTC never →0 on 100 rows ⇒ **the bottleneck is data.** Branch `nar-editor-feasibility`.
+**Where we are (2026-06-15).** The feasibility study is **complete, with a negative result.** Ladder: gates 1–2 feasibility **passed**; gate 3 copy works *only tied*; gate 3b Linear+anneal **collapses** (conditioning is the axis); gate 4 IBM **Q-Former** fixes the collapse and *marginally* beats the overfit draft; gate 4b more projector = no gain; **gate 5 (first held-out run): corrections do NOT generalise** — held-out stays at copy (16.57% vs 16.53% draft), and gate 4's overfit "beat" was **memorisation** (it vanished at 480 rows). **Bottom line: the editor robustly learns to copy the CTC draft but not to correct it.** Branch `nar-editor-feasibility`.
 
-**Next, in priority order:**
+**Decision point — three honest options:**
 
-1. **A real small-scale *training* run (not another overfit).** Use the gate-4 config (1-layer Q-Former, 5×, tied, copy-warmup) on FLEURS-small (hundreds–thousands of rows), **λ kept on** (no anneal — IBM-faithful, and the anneal hurt the bigger projector), with a **held-out** eval. Gate = held-out WER beats the draft by a useful margin (toward CTC+KenLM 14.5). This tests the data hypothesis — the actual open question.
-2. **If data helps → scale up** to full v3; always tied head + copy warmup + precomputed features.
-3. **Fallback if a properly-trained editor still can't beat CTC+KenLM (14.5)** — a clean small multilingual *bidirectionally-pretrained* LLM (the omni decoder is causal-pretrained; outputting its own input is off-distribution).
+1. **Stop here (recommended).** The accumulated evidence (no generalising correction at 100→480 rows; trend going the wrong way) plus the *feature-ceiling* explanation says this is likely a real limit, not a tuning gap. **CTC + KenLM already buys the WER win we wanted** (FLEURS 16.9→14.5, conv 37.6→31.7) at hundreds× realtime, with none of this complexity. That is the production answer.
+2. **One conclusive scale test, then decide.** Wire up the real **180k-row training export** (bigger job — v3's eval export only exposes test partitions) and run once. Only worth it if we want certainty; expected value is low given the trend.
+3. **Different architecture** — a *bidirectionally-pretrained* small multilingual LLM instead of the causal-pretrained omni decoder (outputting its own input is off-distribution for a next-token model). Bigger pivot; only if the editor idea is strategically important.
 
-**Open risks:** data scale (now the #1 — overfit can't settle it); whether a causal-pretrained decoder can edit well at all; realised decode speed (faster than AR, *not* near-CTC).
+**What we proved (kept regardless):** the NLE/omni editor is *buildable* and *runs* (gates 1–2), copy needs a tied head, and acoustic conditioning (Q-Former) is the axis that separates "collapses" from "stable." The open failure is **generalising correction**, most consistent with the editor's audio being the *same* features the CTC already used.
 
 **Resolved (don't re-litigate):** tied embeddings = **required** (untied can't copy); vocab is **shared** (no re-tokenisation); audio wiring is **prefix**; the editor decoder is a **fixed 1.22B** (only the discarded audio encoder differs by size); bidirectional ≈ causal memory; draft-length bound is a non-issue.
 
@@ -140,7 +140,20 @@ Same harness/recipe as gate 4, only the projector scaled up: **2 Q-Former layers
 - **But at full λ-anneal (λ→0) it degenerated *longer*** (epoch 25–30: 148% → 101%, recovered only by epoch 35 vs gate 4's epoch 25) — more capacity finds the degenerate no-anchor optimum more easily.
 - **Final: 18.93% — did NOT beat the draft** (CTC floor ~0.47), *worse* than gate 4's 17.92% / 0.29.
 
-**Verdict: more projector capacity/resolution is not the remaining lever.** Doubling Q-Former depth and halving the downsample produced no correction gain (slightly worse). Combined with gate 4, the overfit ladder has now answered what it can: **copy works (tie), conditioning matters (Q-Former ≫ Linear), but corrections stay ≈copy regardless of projector size.** The CTC floor (~0.3–0.5, never →0) on a memorisable 100-row set is the tell — the editor can't memorise the *corrections*. That points the remaining bottleneck at **data** (a correction policy needs ≫100 examples), with the λ-anneal-vs-kept question as a secondary knob (the anneal visibly hurt the bigger projector; IBM never anneals). **Next real experiment is a small-scale *training* run with held-out eval — not another overfit.**
+**Verdict: more projector capacity/resolution is not the remaining lever.** Doubling Q-Former depth and halving the downsample produced no correction gain (slightly worse). Combined with gate 4, the overfit ladder has now answered what it can: **copy works (tie), conditioning matters (Q-Former ≫ Linear), but corrections stay ≈copy regardless of projector size.** The CTC floor (~0.3–0.5, never →0) on a memorisable 100-row set is the tell. That points the remaining bottleneck at **data** — tested next.
+
+### Gate 5 — first train→held-out run (480 FLEURS train / 119 held-out) (2026-06-15): corrections do NOT generalise
+
+The first non-overfit run: gate-4 config (1-layer Q-Former, 5×, tied), trained on 480 FLEURS rows with a **held-out 119** the editor never sees. Held-out draft WER = **16.53%** (train draft 17.04%) — the editor must beat *that* to show generalising corrections. Ran both λ regimes:
+
+| run | λ | train WER (draft 17.04) | **held-out WER (draft 16.53)** |
+|---|---|---|---|
+| gate 5 | kept (IBM) | 17.06% | **16.57%** (= copy) |
+| gate 5b | annealed | 17.10% | **16.76%** (slightly worse than copy) |
+
+**Neither beats the draft — on train *or* held-out.** And the clincher: gate 4's 100-row train-beat (17.92 vs 18.84, −0.9) **vanished at 480 rows** (gate 5: 17.06 vs 17.04). That beat was **memorisation of the tiny overfit set, not a correction policy** — exactly what a held-out eval is for. With `keep-lam` it's pinned at copy (anchor holds it); with anneal it transiently collapses then returns to copy. Either way: **the editor robustly learns to *copy* the CTC draft and does not learn corrections that generalise** at reachable FLEURS scale (100–480 rows).
+
+**Most consistent explanation:** the *feature-ceiling* hypothesis — the editor's acoustic input is the *same* CTC encoder features that already produced the wrong draft, so there's little extra signal to correct from; the bidirectional LLM prior alone isn't enough. (Data scale isn't ruled out — 480 ≪ IBM's 70k h — but the trend is the wrong direction: more data made even the memorisation-beat disappear, and held-out never moved off copy.)
 
 ## Corrections to the original spec
 
