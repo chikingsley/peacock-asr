@@ -1,1 +1,0 @@
-"""Persian Omnilingual ASR helpers."""

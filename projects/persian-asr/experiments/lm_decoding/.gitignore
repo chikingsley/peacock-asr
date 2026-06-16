@@ -1,5 +1,0 @@
-# Generated: corpus + KenLM artifacts; rebuild with scripts/build_lm.py
-corpus.txt
-*.arpa
-*.bin
-*.log
