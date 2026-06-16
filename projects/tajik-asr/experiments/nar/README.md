@@ -4,15 +4,15 @@ A non-autoregressive (NAR) LLM **editor** that fixes our frozen CTC's greedy dra
 
 ## Status & outstanding
 
-**Where we are (2026-06-15).** Feasibility gates 1–2 **passed**. Gate 3 (learnability): **copy** works *only with a tied head*; the **edit** phase does not beat the draft. The recipe-vs-conditioning diagnostic (gate 3b) is **done — verdict: conditioning.** With the copy anchor annealed out, pure CTC degenerates (WER → 534%), proving the single Linear projector's acoustic signal is too weak to drive corrections. **A full run as-is would fail; do not start one.** Branch `nar-editor-feasibility`.
+**Where we are (2026-06-15).** Gates 1–2 (feasibility) **passed**. Gate 3: copy works *only with a tied head*. Gate 3b (diagnostic): with the Linear projector + anchor annealed out, pure CTC **collapses** (534%) → bottleneck is conditioning. Gate 4: swapping in IBM's **Q-Former** projector (same recipe) **eliminates the collapse and beats the draft (18.84% → 17.92%)** — *but only marginally* (~5% rel, CTC loss floors ~0.29), so it learns "copy + a few fixes," not a real correction policy. **Conditioning confirmed necessary; this config not yet sufficient.** Branch `nar-editor-feasibility`.
 
 **Next, in priority order:**
 
-1. **Richer acoustic conditioning (the blocker).** Replace the single reused Linear projector with a multi-layer / Q-Former adapter over stacked CTC encoder layers (crib shapes from IBM's Apache-2.0 `modeling_granite_speech_nar.py`). Keep a small λ throughout (IBM-style, do **not** anneal to 0 in production — the anneal was a diagnostic). Re-run the same overfit; **gate = edits beat the 18.84% draft.**
-2. **Only then, staged real training** — overfit-100 → FLEURS-small → full v3. Always **tied head + copy warmup**. Precompute CTC drafts+features (frozen CTC → identical every epoch).
-3. **Fallback if the omni editor still can't beat CTC+KenLM** — a clean small multilingual *bidirectionally-pretrained* LLM (the omni decoder is causal-pretrained; outputting its own input is off-distribution).
+1. **Scale the conditioning + IBM-faithful recipe (one run).** 2-layer Q-Former (IBM's NLE++), gentler downsample (5→2), maybe more encoder layers — **and keep λ small throughout** (do *not* anneal; the anneal was a diagnostic). Re-run the overfit; gate = a *convincing* beat (overfit WER well below draft, CTC→0), not the marginal 0.9 we have.
+2. **If that beats convincingly → more data.** A correction policy almost certainly needs ≫100 examples: overfit-100 → FLEURS-small (hundreds–thousands) → full v3. Always **tied head + copy warmup + precomputed features**.
+3. **Fallback if even a scaled, well-trained editor can't beat CTC+KenLM (14.5)** — a clean small multilingual *bidirectionally-pretrained* LLM (the omni decoder is causal-pretrained; outputting its own input is off-distribution).
 
-**Open risks:** projector capacity (now the #1, evidence-backed); whether a causal-pretrained decoder can edit at all; realised decode speed (faster than AR, *not* near-CTC).
+**Open risks:** correction strength (the editor copies more than it corrects); whether a causal-pretrained decoder can edit well at all; data scale; realised decode speed (faster than AR, *not* near-CTC).
 
 **Resolved (don't re-litigate):** tied embeddings = **required** (untied can't copy); vocab is **shared** (no re-tokenisation); audio wiring is **prefix**; the editor decoder is a **fixed 1.22B** (only the discarded audio encoder differs by size); bidirectional ≈ causal memory; draft-length bound is a non-issue.
 
@@ -114,7 +114,23 @@ Trajectory as the copy anchor anneals out and CTC takes over:
 
 **Pure CTC degenerates catastrophically.** As the anchor is removed, CTC loss falls while greedy WER *explodes* (insertions/blanks) — a classic degenerate CTC optimum. The crucial inference: **the copy regularizer was load-bearing** — it was holding the output *at* copy, not enabling corrections. Once unanchored, the single Linear projector's acoustic signal is **too weak to drive correct edits**, so CTC games the alignment instead. → **The bottleneck is acoustic conditioning, not the recipe.** (Contrast: IBM keeps a small λ throughout *and* uses a Q-Former projector — the anneal here was a diagnostic to expose the dependency, not the production recipe.)
 
-**Consequence:** a full training run as-is would **not** work — it would either plateau at copy (anchor on) or degenerate (anchor off). **Do not "jump in the water."** The required next step is **richer acoustic conditioning** (multi-layer / Q-Former over stacked CTC encoder layers, λ kept small throughout), then re-run this same overfit; only if edits beat the 18.84% draft does staged real training make sense.
+**Consequence:** a full training run as-is would **not** work — it would either plateau at copy (anchor on) or degenerate (anchor off). The required next step is **richer acoustic conditioning** (gate 4).
+
+### Gate 4 — richer conditioning, IBM Q-Former projector (2026-06-15): collapse fixed, beats draft marginally
+
+Swapped the single Linear projector for **IBM's actual NLE projector** (ported from `granite-speech-4.1-2b-nar`, Apache-2.0): per-layer LayerNorm over **4 stacked CTC encoder layers** → Linear → windowed mean-pool 5× downsample → 1-layer cross-attention **Q-Former** with learned queries. Everything else (lifted+tied decoder, LoRA, ε-interleave, CTC+copy loss, the *same* recipe incl. λ-anneal) is reused from gate 3 — so **gate 4 vs gate 3b is a clean A/B on the projector only**. Codex-reviewed (port faithful, A/B clean). Trainable: 50.4M Q-Former + 82.2M LoRA. Artifacts: `gate4_extract_features.py`, `gate4_conditioning.py`.
+
+Same recipe, same λ-anneal as gate 3b — but the Q-Former changes the outcome completely:
+
+| | gate 3b (Linear) | gate 4 (Q-Former) |
+|---|---|---|
+| CTC ramp onset (w≈0.3–0.8) | 109% → 150% | 87% → 100% (transient) |
+| w_ctc = 1.0 (anchor gone) | **534%** (collapse) | **recovers** → 31% → 27% → 18.8% |
+| final (epoch 80) | diverged | **17.92%** (CTC loss 4.3 → 0.29) |
+
+**The conditioning hypothesis is confirmed.** Where the Linear projector catastrophically degenerated once unanchored, the Q-Former — same recipe — **recovers and converges to clean, audio-driven output** and **beats the 18.84% draft → 17.92%**. The richer multi-layer features are what let CTC make sensible (not degenerate) use of the audio.
+
+**But the correction ability is weak.** The beat is only ~0.9 abs / ~5% rel, and CTC loss **floors at ~0.29 (not →0)** — so even on a memorizable 100-row *overfit* the editor learns "copy + a few fixes," not a real correction policy (for scale: KenLM already buys −2.4 WER on *held-out* FLEURS). So: **single Linear → collapse; 1-layer Q-Former → stable + marginal corrections; [still need] → strong corrections.** Conditioning was necessary and is now proven to help, but this config isn't yet sufficient. Next levers: **2-layer / less-downsampled Q-Former** (IBM's NLE++), **λ kept on** (the anneal was a diagnostic — IBM never anneals), and most likely **more data** (a correction policy probably needs ≫100 examples regardless of projector).
 
 ## Corrections to the original spec
 
