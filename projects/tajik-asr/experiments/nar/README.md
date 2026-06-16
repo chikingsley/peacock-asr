@@ -4,15 +4,15 @@ A non-autoregressive (NAR) LLM **editor** that fixes our frozen CTC's greedy dra
 
 ## Status & outstanding
 
-**Where we are (2026-06-15).** Gates 1–2 (feasibility) **passed**. Gate 3: copy works *only with a tied head*. Gate 3b (diagnostic): with the Linear projector + anchor annealed out, pure CTC **collapses** (534%) → bottleneck is conditioning. Gate 4: swapping in IBM's **Q-Former** projector (same recipe) **eliminates the collapse and beats the draft (18.84% → 17.92%)** — *but only marginally* (~5% rel, CTC loss floors ~0.29), so it learns "copy + a few fixes," not a real correction policy. **Conditioning confirmed necessary; this config not yet sufficient.** Branch `nar-editor-feasibility`.
+**Where we are (2026-06-15).** Gates 1–2 (feasibility) **passed**. Gate 3: copy works *only with a tied head*. Gate 3b: Linear projector + anchor annealed → pure CTC **collapses** (534%) → bottleneck is conditioning. Gate 4: IBM **Q-Former** projector → collapse gone, beats draft *marginally* (18.84% → 17.92%). Gate 4b: scaling the projector (2-layer, 2× downsample) → **no gain (18.93%, worse)** → **projector capacity is not the lever.** The overfit ladder has converged: copy works, conditioning matters, but corrections stay ≈copy regardless of projector. CTC never →0 on 100 rows ⇒ **the bottleneck is data.** Branch `nar-editor-feasibility`.
 
 **Next, in priority order:**
 
-1. **Scale the conditioning + IBM-faithful recipe (one run).** 2-layer Q-Former (IBM's NLE++), gentler downsample (5→2), maybe more encoder layers — **and keep λ small throughout** (do *not* anneal; the anneal was a diagnostic). Re-run the overfit; gate = a *convincing* beat (overfit WER well below draft, CTC→0), not the marginal 0.9 we have.
-2. **If that beats convincingly → more data.** A correction policy almost certainly needs ≫100 examples: overfit-100 → FLEURS-small (hundreds–thousands) → full v3. Always **tied head + copy warmup + precomputed features**.
-3. **Fallback if even a scaled, well-trained editor can't beat CTC+KenLM (14.5)** — a clean small multilingual *bidirectionally-pretrained* LLM (the omni decoder is causal-pretrained; outputting its own input is off-distribution).
+1. **A real small-scale *training* run (not another overfit).** Use the gate-4 config (1-layer Q-Former, 5×, tied, copy-warmup) on FLEURS-small (hundreds–thousands of rows), **λ kept on** (no anneal — IBM-faithful, and the anneal hurt the bigger projector), with a **held-out** eval. Gate = held-out WER beats the draft by a useful margin (toward CTC+KenLM 14.5). This tests the data hypothesis — the actual open question.
+2. **If data helps → scale up** to full v3; always tied head + copy warmup + precomputed features.
+3. **Fallback if a properly-trained editor still can't beat CTC+KenLM (14.5)** — a clean small multilingual *bidirectionally-pretrained* LLM (the omni decoder is causal-pretrained; outputting its own input is off-distribution).
 
-**Open risks:** correction strength (the editor copies more than it corrects); whether a causal-pretrained decoder can edit well at all; data scale; realised decode speed (faster than AR, *not* near-CTC).
+**Open risks:** data scale (now the #1 — overfit can't settle it); whether a causal-pretrained decoder can edit well at all; realised decode speed (faster than AR, *not* near-CTC).
 
 **Resolved (don't re-litigate):** tied embeddings = **required** (untied can't copy); vocab is **shared** (no re-tokenisation); audio wiring is **prefix**; the editor decoder is a **fixed 1.22B** (only the discarded audio encoder differs by size); bidirectional ≈ causal memory; draft-length bound is a non-issue.
 
@@ -130,7 +130,17 @@ Same recipe, same λ-anneal as gate 3b — but the Q-Former changes the outcome 
 
 **The conditioning hypothesis is confirmed.** Where the Linear projector catastrophically degenerated once unanchored, the Q-Former — same recipe — **recovers and converges to clean, audio-driven output** and **beats the 18.84% draft → 17.92%**. The richer multi-layer features are what let CTC make sensible (not degenerate) use of the audio.
 
-**But the correction ability is weak.** The beat is only ~0.9 abs / ~5% rel, and CTC loss **floors at ~0.29 (not →0)** — so even on a memorizable 100-row *overfit* the editor learns "copy + a few fixes," not a real correction policy (for scale: KenLM already buys −2.4 WER on *held-out* FLEURS). So: **single Linear → collapse; 1-layer Q-Former → stable + marginal corrections; [still need] → strong corrections.** Conditioning was necessary and is now proven to help, but this config isn't yet sufficient. Next levers: **2-layer / less-downsampled Q-Former** (IBM's NLE++), **λ kept on** (the anneal was a diagnostic — IBM never anneals), and most likely **more data** (a correction policy probably needs ≫100 examples regardless of projector).
+**But the correction ability is weak.** The beat is only ~0.9 abs / ~5% rel, and CTC loss **floors at ~0.29 (not →0)** — so even on a memorizable 100-row *overfit* the editor learns "copy + a few fixes," not a real correction policy (for scale: KenLM already buys −2.4 WER on *held-out* FLEURS). So: **single Linear → collapse; 1-layer Q-Former → stable + marginal corrections; [still need] → strong corrections.** Conditioning was necessary and is now proven to help, but this config isn't yet sufficient.
+
+### Gate 4b — scale the projector (2-layer Q-Former, 2× downsample) (2026-06-15): no gain — projector is not the lever
+
+Same harness/recipe as gate 4, only the projector scaled up: **2 Q-Former layers** (IBM's NLE++ depth) + **gentler 2× downsample** (block 16, vs gate 4's 1 layer / 5×) → 84M trainable. Clean A/B vs gate 4.
+
+- **CTC onset much smoother** (epoch 15: 21% vs gate 4's 87%) — the bigger/finer projector destabilises less while anchored.
+- **But at full λ-anneal (λ→0) it degenerated *longer*** (epoch 25–30: 148% → 101%, recovered only by epoch 35 vs gate 4's epoch 25) — more capacity finds the degenerate no-anchor optimum more easily.
+- **Final: 18.93% — did NOT beat the draft** (CTC floor ~0.47), *worse* than gate 4's 17.92% / 0.29.
+
+**Verdict: more projector capacity/resolution is not the remaining lever.** Doubling Q-Former depth and halving the downsample produced no correction gain (slightly worse). Combined with gate 4, the overfit ladder has now answered what it can: **copy works (tie), conditioning matters (Q-Former ≫ Linear), but corrections stay ≈copy regardless of projector size.** The CTC floor (~0.3–0.5, never →0) on a memorisable 100-row set is the tell — the editor can't memorise the *corrections*. That points the remaining bottleneck at **data** (a correction policy needs ≫100 examples), with the λ-anneal-vs-kept question as a secondary knob (the anneal visibly hurt the bigger projector; IBM never anneals). **Next real experiment is a small-scale *training* run with held-out eval — not another overfit.**
 
 ## Corrections to the original spec
 
