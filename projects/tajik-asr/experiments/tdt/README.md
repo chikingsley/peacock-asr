@@ -4,7 +4,9 @@ Fine-tune NVIDIA **Parakeet TDT-0.6B-v3** (FastConformer + Token-and-Duration Tr
 
 ## Status & outstanding
 
-**Where we are (2026-06-16).** Gates 0a/0b/1/2/3 run. **The community bug + our loss-init fix are validated at the mechanism level** (stock A0 → TDT garbage >100%; fix B → sane <100%). But the cheap **110M-English / 400-row testbed is too cold to show *competitive* learning** (CTC stalls too → data/base-limited, not the bug). Gate 0b also found v3's tokenizer is **lossy on Tajik** (extend/replace is mandatory). **Fork:** the only way to answer "can a fixed TDT reach competitive Tajik WER" is the **v3-centric build** — extend v3's tokenizer (arms C1/C2), wire the real 180k train export, train v3 (hours). That's the big run.
+**Where we are (2026-06-16).** Gates 0a/0b/1/2/3 + decode-trust check run. **The bug + loss-fix are validated END-TO-END** — after a hard overfit (train_loss 0.52) the TDT model `transcribe()`s Tajik **correctly** (5/6 exact). The earlier "stuck ~0.95" across all runs was **under-learning** (lr 1e-4 / too few steps / cold base), *not* a bug or fundamental limit. So **the TDT path works**; a real run (real 180k data, proper LR/steps, partial-unfreeze for 0.6B-on-12 GB) should learn Tajik.
+
+**Strategic caveat (CAPT goal).** The product is pronunciation training (Duolingo/Pimsleur-style); a core feature is **measuring pronunciation**. That is *not* lowest-WER open ASR — the learner reads a known prompt, so it's **forced alignment + phoneme-level scoring (GOP / mispronunciation detection)**. So before spending GPU-days on a big TDT-ASR run, weigh it against building the **pronunciation-assessment layer** (likely the higher-value next direction). The ASR work (CTC+KenLM, NAR, TDT) is substrate; CAPT scoring is the feature.
 
 **The bet:** v3's encoder already knows **Cyrillic acoustics** (it's trained on Russian/Ukrainian/Bulgarian — though *not* Tajik), so a Tajik fine-tune could **beat our omni CTC 300M (FLEURS 16.9) and approach CTC+KenLM (14.5)** at **~10× the decode speed** — *if* we can get the TDT head to actually train.
 
@@ -112,6 +114,12 @@ Tried to run the cheap v3 overfit gate (B-on-v3: fresh Tajik tokenizer + loss-fi
 - **Conclusion: across every TDT config the WER metric is untrustworthy** (TDT decode-after-`change_vocabulary` config and/or transducers needing far more steps/data than a tiny overfit). We cannot read "does it learn Tajik" off these WER numbers. The *loss* says the model trains; the *WER* says nothing reliable yet.
 
 **What's solid regardless:** the loss-init bug + fix are validated at the mechanism level (gate 3); the harness, manifest converter, Tajik tokenizer, and v3 inspection are done; and the 12 GB card forces partial-unfreeze (not full FT) for v3. **What's needed for a real answer:** (1) verify decoding on a *known/memorized* example (print hyp vs ref) so WER is trustworthy; (2) then a proper run — real 180k data, more steps, fp32-or-patched-decode, partial-unfreeze — not more tiny overfit probes.
+
+### Decode-trust check (2026-06-16): decode WORKS — the "stall" was UNDER-LEARNING, path validated
+
+Overfit 32 rows HARD (fp32, lr 1e-3, 1500 steps → **train_loss 0.52**), then `transcribe()` the same clips (`gate_decode_check.py`): **5/6 are exact Tajik transcriptions** (one wrong-but-real sentence). **The TDT pipeline is correct end-to-end** — `change_vocabulary` + loss-fix + greedy decode all produce correct Tajik when the model is actually trained to low loss.
+
+**This overturns the prior "stuck ~0.95" interpretation:** it was **under-learning** (lr 1e-4, too few steps, frozen/cold base), *not* a decode bug and *not* a fundamental failure. The loss-init fix (arm B) is now validated **end-to-end**, not just "sane length." → **The TDT path is alive**: with adequate LR/steps/data it learns Tajik. The cheap probes' low WER was an artifact of insufficient training — caught exactly by this decode-trust check. Next: a real run (real 180k data, proper LR/steps, partial-unfreeze for the 0.6B/12 GB limit) — but see the CAPT note in §Status before committing GPU-days, since pronunciation scoring (not lowest-WER ASR) may be the actual product target.
 
 ## Risks / open questions
 
