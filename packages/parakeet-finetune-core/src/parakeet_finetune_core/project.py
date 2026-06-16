@@ -72,7 +72,13 @@ class ParakeetProject:
         packaged = Path(__file__).resolve().parent / "nemo_recipes"
         if packaged.exists():
             return packaged
-        return self.root / "src" / "finetune_parakeet" / "nemo_recipes"
+        msg = (
+            "No NeMo recipe root resolved. Set `nemo_root` on the ParakeetProject "
+            "(e.g. data/shared/parakeet/nemo_recipes), or set "
+            f"{self.env_key}_NEMO_ROOT / PARAKEET_NEMO_ROOT. The cross-project "
+            "farsi-asr/src/finetune_parakeet fallback has been removed."
+        )
+        raise RuntimeError(msg)
 
     def configure_environment(self) -> None:
         """Set cache defaults under the language project root."""
