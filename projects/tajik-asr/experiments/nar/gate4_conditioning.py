@@ -179,6 +179,8 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--downsample", type=int, default=5, help="acoustic downsample (IBM=5)")
     ap.add_argument("--block-size", type=int, default=15, help="Q-Former window (block %% ds == 0)")
     ap.add_argument("--tie", action="store_true")
+    ap.add_argument("--keep-lam", action="store_true",
+                    help="keep copy-reg lam constant after warmup (IBM-faithful; default anneals)")
     return ap.parse_args()
 
 
@@ -238,7 +240,7 @@ def main() -> int:
     print(f"  epoch 0 (untrained): train WER {wer_of(train, eval_hyps(train)):.2f}%", flush=True)
     for ep in range(1, args.epochs + 1):
         w_ctc = 0.0 if ep <= args.warmup else min(1.0, (ep - args.warmup) / max(1, args.ramp))
-        lam_eff = args.lam * (1.0 - w_ctc)
+        lam_eff = args.lam if args.keep_lam else args.lam * (1.0 - w_ctc)
         tot_ctc = tot_cr = 0.0
         opt.zero_grad(set_to_none=True)
         for j, r in enumerate(train):
