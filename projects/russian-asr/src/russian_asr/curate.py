@@ -17,6 +17,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from omni_curator.coverage import char_tokenizer_coverage
+from omni_curator.ingest.openslr import openslr_source
 from omni_curator.project import CuratorProject, fleurs_source, huggingface_source
 from omni_curator.project import main as project_main
 
@@ -39,6 +40,9 @@ PROJECT = CuratorProject(
             name: huggingface_source(repo, text_column=col, force_split="train")
             for name, (repo, col) in sources.HUGGINGFACE.items()
         },
+        # Pure OpenSLR releases (license-clean: Golos CC-BY-SA, RuLS public domain).
+        "golos": openslr_source("114"),  # ~1,240 h crowd+farfield
+        "ruls": openslr_source("96"),    # ~98 h audiobooks
         # "commonvoice": commonvoice_source(sources.COMMONVOICE),  # wire when MDC id filled
     },
     env_file=ROOT.parents[1] / ".env",  # monorepo-root .env (Scribe / HF keys)
