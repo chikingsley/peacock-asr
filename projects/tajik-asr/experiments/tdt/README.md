@@ -4,7 +4,7 @@ Fine-tune NVIDIA **Parakeet TDT-0.6B-v3** (FastConformer + Token-and-Duration Tr
 
 ## Status & outstanding
 
-**Where we are (2026-06-16).** Planning only — nothing run. Prior art verified against primary sources (NeMo issues/discussions, source, HF card). Our Farsi `finetune_parakeet` package is largely reusable; one real gap (parquet→manifest). Branch TBD.
+**Where we are (2026-06-16).** Gates 0a/0b/1/2/3 run. **The community bug + our loss-init fix are validated at the mechanism level** (stock A0 → TDT garbage >100%; fix B → sane <100%). But the cheap **110M-English / 400-row testbed is too cold to show *competitive* learning** (CTC stalls too → data/base-limited, not the bug). Gate 0b also found v3's tokenizer is **lossy on Tajik** (extend/replace is mandatory). **Fork:** the only way to answer "can a fixed TDT reach competitive Tajik WER" is the **v3-centric build** — extend v3's tokenizer (arms C1/C2), wire the real 180k train export, train v3 (hours). That's the big run.
 
 **The bet:** v3's encoder already knows **Cyrillic acoustics** (it's trained on Russian/Ukrainian/Bulgarian — though *not* Tajik), so a Tajik fine-tune could **beat our omni CTC 300M (FLEURS 16.9) and approach CTC+KenLM (14.5)** at **~10× the decode speed** — *if* we can get the TDT head to actually train.
 
@@ -89,6 +89,19 @@ Loaded `nvidia/parakeet-tdt-0.6b-v3` (`gate0b_v3_inspect.py`):
 ### Gate 0a — reproduce the stall (2026-06-16): bug confirmed by inspection; tiny-budget train run under-trained
 
 Stock `change_vocabulary` fine-tune of the 110M hybrid on FLEURS-Tajik (400 train / 400 steps / bs 8, transducer fused-loss to fit 12 GB), logging both heads. Result was **inconclusive as a clean visual**: TDT-head `val_wer` ≈ 2.07 (>100%, garbage insertions), **CTC-head `val_wer_ctc` stuck at exactly 1.00** (all-blank attractor) — i.e. *both* heads under-trained, not the published "CTC→0.1 while TDT stalls" differential. 400 rows × ~16 epochs is too little for even CTC to break out. **So the bug is established by source inspection (decisive); the *training* differential is the gate-3 A0-vs-B test at an adequate budget** (overfit the 400 rows harder, or wire the real train export). Harness works end-to-end (load → change_vocabulary → fused-loss transducer train on 12 GB).
+
+### Gate 3 — A0 vs B, matched 2000 steps (2026-06-16): fix validated mechanically; testbed too weak for competitive
+
+110M-hybrid, 400 FLEURS-Tajik rows, identical 2000-step budget (`tdt_finetune.py --arm {A0,B}`):
+
+| arm | TDT-head `val_wer` | CTC-head `val_wer_ctc` |
+|---|---|---|
+| **A0** (stock — buggy loss) | **~1.04** (>100%, over-inserts) | ~0.99 |
+| **B** (loss-init fix: `num_classes` 1029→1024, −5 durations) | **~0.95** (<100%, sane length) | ~0.99 |
+
+**The loss-init fix works at the mechanism level:** it moves the TDT head from *broken* (>100% WER, garbage over-emission — confirmed at gate 0a as ~2.07) to *sane* (<100%, correct-length output). The community bug + our fix are real and validated.
+
+**But neither head learns Tajik content** (CTC also stuck ~0.99 in both arms). CTC stalling too — vs issue #14140 where CTC reached ~0.1 on 1800 h — proves this is **cold-start + tiny-data, not the bug**: the 110M is English-base (no Cyrillic acoustic prior) and 400 rows is far too little to learn a new script. **The 110M/400-row testbed validated the *fix* but cannot show *competitive* TDT training.** That requires the v3-centric build (next).
 
 ## Risks / open questions
 
