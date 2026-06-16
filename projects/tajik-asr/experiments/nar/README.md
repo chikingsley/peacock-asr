@@ -1,166 +1,115 @@
-# NAR editor on omni components — experiment spec
+# NAR editor on omni components — plan, findings & status
 
-> **Status: risky feasibility test, not a sure thing.** See `CRITIQUE.md` (two independent
-> source-verified reviews) — this spec was corrected against it. Honest framing of the question:
-> *can a lifted, bidirectionalised omni `llama_decoder` edit a 300M-CTC draft to ≤ CTC+KenLM (14.5),
-> clearly faster than the autoregressive LLM?* NOT "LLM accuracy at near-CTC speed" — one
-> bidirectional LLM pass beats AR decoding but will not match CTC+KenLM throughput.
+A non-autoregressive (NAR) LLM **editor** that fixes our frozen CTC's greedy draft in **one bidirectional forward pass** — IBM's **NLE** (Non-autoregressive LLM-based Editing, arXiv:2603.08397) reimplemented on Meta OmniASR parts. Goal: approach LLM accuracy at far-below-AR latency. This file is the single source of truth: **status/TODO** at the top, the **design**, then a dated **gate-by-gate findings log**, the **corrections** to the original spec, and **references**. Update the status block each session; append to the findings log as gates run.
 
-**Goal.** Bolt a *non-autoregressive* LLM editor onto our fine-tuned CTC: the editor fixes the CTC
-draft in **one parallel forward pass** (not word-by-word), trading one extra LLM pass for accuracy
-while staying far faster than autoregressive decoding. IBM's **NLE** (Non-autoregressive LLM-based
-Editing, arXiv:2603.08397) reimplemented on Meta omni parts. **Realistic target: ≤ CTC+KenLM 14.5
-on read; approaching the 10.9 AR number is a stretch goal, not the plan** (NLE *approximates* its AR
-teacher and even loses to it on the harder multilingual case).
+## Status & outstanding
 
-## Why (the numbers that motivate it)
+**Where we are (2026-06-15).** Feasibility gates 1–2 **passed**; gate 3 (learnability) shows the **copy** mechanism works *only with a tied head*, but the **edit** phase has not yet beaten the draft in a minimal overfit. The forward path is built and runs on real components. Branch `nar-editor-feasibility`.
 
-Zero-shot bench, 2026-06-14 (Meta omni models, never trained on our data):
+**Next, in priority order:**
 
-| | omni-LLM 300M (0-shot) | omni-LLM 1B (0-shot) | our FT CTC | our CTC+KenLM | ~RTFx |
-|---|---|---|---|---|---|
-| Tajik FLEURS | 12.6 | **10.9** | 16.9 | 14.5 | LLM ~6× / CTC ~hundreds× |
-| Tajik conversational | 42.4 | 38.3 | 37.6 | **31.7** | |
-| Farsi FLEURS | 15.8 | 14.3 | 8.5 | — | |
-| Georgian test | 28.8 | 25.9 | 20.7 | — | |
+1. **Recipe-vs-conditioning diagnostic** (in progress) — re-run the 100-example overfit with the full recipe (copy warmup → CTC λ-ramp → cosine LR + grad clip). If edits still don't beat the draft, the bottleneck is *conditioning*, not optimisation.
+2. **Richer acoustic conditioning** — replace the single reused Linear projector with a multi-layer / Q-Former adapter over stacked CTC encoder layers (crib shapes from IBM's Apache-2.0 `modeling_granite_speech_nar.py`).
+3. **Staged real training** — overfit-100 (done) → FLEURS-small → full v3. Always with **tied head + copy warmup**. Precompute CTC drafts+features (frozen CTC → identical every epoch).
 
-Read: on Tajik read speech the **zero-shot** LLM already beats our fine-tuned CTC *and* CTC+KenLM.
-The LLM ceiling is real and high — but autoregressive decoding is ~6× realtime vs CTC's hundreds×.
-NAR is the only path to that accuracy without the latency. Target quality: single-digit WER on
-read, sub-30 on conversational (the rest is a data lever, not architecture).
+**Open risks:** edit learnability, projector capacity, realised decode speed (faster than AR, *not* near-CTC).
 
-## Architecture — what we build
+**Resolved (don't re-litigate):** tied embeddings = **required** (untied can't copy); vocab is **shared** (no re-tokenisation); audio wiring is **prefix**; the editor decoder is a **fixed 1.22B** (only the discarded audio encoder differs by size); bidirectional ≈ causal memory; draft-length bound is a non-issue.
 
-```
-audio ─► [our fine-tuned omniASR-CTC]  ─► CTC draft (greedy)         ─┐  re-tokenize + interleave ε slots
+## Design — what we build & how
+
+```text
+audio ─► [our fine-tuned omniASR-CTC]  ─► CTC draft (greedy)         ─┐  interleave ε slots
               │  (FROZEN)                └► audio features ──► projector ─┤
               ▼                                                          ▼
         [omni Llama decoder, causal mask OFF, + LoRA]  ── one bidirectional pass ──► edit logits
-              │  (body FROZEN, LoRA trains)                                            │
+              │  (body FROZEN, LoRA + projector train)                                │
               ▼                                                                        ▼
         CTC-greedy over edit logits ───────────────────────────────────────────► transcript
 ```
 
-All three pieces are ours / already pretrained:
+Three pieces, all ours / pretrained:
 
-- **Draft + audio features:** our `omni_ctc_300m_v2_tajik_v3_step_20000` (frozen). Char-level
-  greedy draft, plus the encoder hidden states as the acoustic embeddings.
-- **Editor:** the **`llama_decoder`** lifted out of `Wav2Vec2LlamaModel` — a 12-layer
-  `StandardTransformerLMDecoder`, natively multilingual (omni's full speech-LLM scores 10.9 Tajik
-  0-shot, so the language is *in these weights* — though that score is the *whole* omni system, not
-  this lifted decoder + our CTC). Body frozen; train LoRA on attn+MLP. **De-causalising is a
-  distribution shift, not just a mask flip** — the decoder was trained for causal next-token; the
-  LoRA must absorb producing same-position edit logits with an untied head. Budget rank/warmup for it.
-- **Projector:** omni's `encoder_proj` is a single **Linear** (audio_dim·stacking → llama_dim),
-  trained on the *omni-LLM's* encoder features, not our CTC's. Initialise only if shape-compatible;
-  **expect to retrain.** Projector depth + which CTC layer(s) feed it is a **central ablation**, not
-  an afterthought (IBM used a Q-Former over stacked layers 4/8/12/16 — a Linear over final-layer
-  features is weaker).
+- **Draft + audio features:** our `omni_ctc_300m_v2_tajik_v3_step_20000` (frozen). Char-level greedy draft + the encoder hidden states (1024-d) as the acoustic embeddings.
+- **Editor:** the `llama_decoder` lifted from `Wav2Vec2LlamaModel` — a `TransformerLMDecoder`, natively multilingual (this is what sidesteps NLE's English-centric failure mode). **Fixed at 1.22B** in the v2 family. Body frozen; train LoRA (rank ~128, attn+MLP). Causal mask removed (`IdentityBias`) → bidirectional.
+- **Projector:** start from the pretrained `encoder_proj` — a Linear (4096,1024) that exactly matches our CTC's 1024-d encoder. Trains. *(Likely too weak alone — see findings; a multi-layer/Q-Former projector is the main upgrade lever.)*
 
-Trainable = projector + LoRA. **Do NOT inherit IBM's "14M / rank 128"** — those are for IBM's
-architecture (Granite decoder + Q-Former). Recompute the exact LoRA param count for our chosen rank
-over our decoder's attn+MLP, and report it **separately from activation memory**. **"Fits 12 GB" is
-unproven and is a GATE, not a footnote:** LoRA still backprops through the full bidirectional decoder
-activations over `audio_prefix + (2N+1)` positions with no train-time KV-cache savings. Measure one
-real train step before committing.
+**Input format (the NLE trick).** (1) CTC greedy draft → token ids `x₁…x_N` (already in Llama vocab — shared tokenizer). (2) Interleave insertion slots `ε` (reuse the EOS id): `x̃ = (ε, x₁, ε, …, ε, x_N, ε)`, `2N+1` positions. A K-token insertion perturbs only `2K-1` local positions. (3) Editor input = `[projected acoustic embeddings] ++ [embedded x̃]`, concatenated on the sequence axis; one bidirectional pass → logits at every position. (4) Edits are implicit: **copy** (residual identity + **tied** head — required), **replace** (different token), **delete** (predict ε), **insert** (fill an ε slot). (5) CTC-greedy decode (argmax, collapse repeats, drop ε) → transcript.
 
-## Input format (the NLE trick)
+**Training.** `L = w_ctc·L_CTC + λ·L_CR`. `L_CTC`: CTC over the `2N+1` logits vs the reference (blank = ε); DP marginalises alignments, so **no edit labels** are needed — plain (audio, text) pairs. `L_CR`: copy regularizer (CE toward each position's own input token). Recipe: **copy-only warmup**, then **ramp `w_ctc` 0→1**, AdamW with cosine LR + grad clip. Frozen: CTC, Llama body, embeddings, head. Trains: projector + LoRA.
 
-1. CTC greedy draft → token string `x₁…x_N` (re-tokenized into the Llama vocab).
-2. Interleave insertion slots `ε` (reuse the Llama EOS id): `x̃ = (ε, x₁, ε, x₂, …, ε, x_N, ε)` —
-   `N+1` slots. A K-token insertion only perturbs `2K-1` local positions (no sequence-wide shift).
-3. Editor input = `[projected acoustic embeddings] ++ [embedded x̃]`, concatenated on the sequence
-   axis. One **bidirectional** forward pass → logits at every interleaved position.
-4. Edits are implicit: **copy** (residual identity + the `L_CR` regulariser — NOT tied embeddings;
-   the omni decoder is **untied**, so the copy bias is weaker than IBM's and we mitigate with a copy
-   warmup / tuned λ / explicit copy gate, *not* by naively tying post-pretraining), **replace**
-   (different token), **delete** (predict `ε`), **insert** (fill an `ε` slot).
-5. CTC-greedy decode (argmax, collapse, drop ε) over the output logits → final transcript.
+**Measurement plan.** Compare four readouts on the same rows (FLEURS test + conversational held-out):
 
-**Draft-length bound (the sharpest risk):** a single pass can insert at most `N+1` tokens and the
-CTC loss runs over `2N+1` positions — if `ref_len > 2N+1` (draft dropped words, common on
-conversational), the loss is unreachable for that example. **Measure the `ref_len > 2N+1` rate on v3
-before training.** Mitigation if it bites: NLE supports **iterative re-feeding** (multi-pass), which
-extends the insertion budget at a speed cost.
-
-## Training
-
-- **Loss** `L = L_CTC + λ·L_CR`, λ=0.02.
-  - `L_CTC`: standard CTC loss between the `(2N+1)` output logits and the reference — DP
-    marginalizes all valid alignments, so **no labeled edit operations are ever needed** (this is
-    the trick that makes it trainable on plain (audio, text) pairs).
-  - `L_CR`: copying regularization — cross-entropy pushing each position to predict its own input
-    token (reinforces the copy bias).
-- **Frozen:** CTC encoder, Llama body. **Trains:** projector + LoRA.
-- **Data:** our existing Tajik export (`data/datasets/v3` or v4 when ready). Same (audio, text)
-  pairs the CTC trained on — no new labels.
-- **Budget (NLE base):** ~3 epochs, AdamW, peak lr ~3e-5, SpecAugment + noise. Local, days not
-  weeks at our data scale.
-
-## Measurement plan
-
-Compare **four** readouts on the *same* rows (FLEURS test + conversational held-out):
-
-| readout | WER | RTFx |
+| readout | WER (FLEURS / conv) | RTFx |
 |---|---|---|
-| greedy CTC (production) | baseline | fastest |
-| CTC + KenLM (proven −16% rel) | | ~hundreds× |
-| **NAR editor (this)** | target ≤ CTC+KenLM | one extra parallel LLM pass |
-| autoregressive omni-LLM (fine-tuned) | the ceiling | ~6× (the thing NAR beats on speed) |
+| greedy CTC (production) | 16.94 / 37.64 | fastest |
+| CTC + KenLM | 14.50 / 31.66 | ~hundreds× |
+| **NAR editor (this)** | target ≤ CTC+KenLM | one parallel LLM pass |
+| autoregressive omni-LLM | ceiling (~10.9 read, 0-shot) | ~6× |
 
-Success = NAR matches/beats CTC+KenLM on WER **and** stays ≫ 6× realtime (clearly faster than the
-autoregressive LLM). RTFx measured the same way as the lm_decoding experiment (decode-stage wall
-time / audio seconds).
+Success = NAR matches/beats CTC+KenLM on WER **and** stays clearly faster than the AR LLM (not "near-CTC speed" — that overclaims). "Single-digit read WER" is a **stretch goal**, not the target.
 
-## Settled (verified in our venv — do NOT re-litigate)
+## Verdict
 
-- **Embeddings untied** (`tied_embeddings=False`); **vocab shared by construction**
-  (`target_vocab_size == llama_config.vocab_size` = 10288, our Tajik CTC vocab — so with matching v2
-  variants the CTC draft ids **are** Llama ids; no re-tokenization round-trip); **audio fed as
-  prefix** (not cross-attn); **attention hardcoded `CausalAttentionBias()`** (bidirectional = patch
-  the vendored factory); **RoPE** positions (de-causalising is geometrically clean).
-- Residual narrow risks from the shared vocab: **EOS-as-ε double duty** (`add_eos`/loss handling),
-  the **CTC-blank convention**, and reference tokenisation/normalisation. Test these, not "vocab".
+**The idea is sound and worth building — but the original spec overclaimed.** The premise is real (NLE is published, with Apache-2.0 reference code), and the key move (omni decoder instead of Granite) directly targets NLE's one documented failure mode. Cross-checked by two independent passes (source/web verification + codex gpt-5.5 xhigh) that converged on everything below.
 
-## Feasibility gates — run BEFORE full training (cheap, fail-fast)
+## Findings (gate log — dated, append-only)
 
-1. **`ref_len ≤ 2N+1` coverage** on v3 (FLEURS + conversational separately).
-2. **One real train-step memory** at the target rank — does it fit 12 GB?
-3. **No-grad RTFx** of the forward path (is it actually faster than the AR LLM?).
-4. **Identity-copy check** — does an untrained pass at least *copy* the draft?
-5. **100-example overfit** — can it learn at all?
+### Verified from primary sources
 
-## Staged build
+**Paper + HF (checked against the arXiv PDF and the live repo):**
 
-1. Extract `llama_decoder` + `encoder_proj`; **run the 5 gates above.** Use the **300M decoder** as
-   the 12 GB feasibility model; 1B only after it works.
-2. **Forward path, no training:** frozen-CTC-draft → interleave → frozen Llama (mask patched off) →
-   CTC-decode. Verify it runs.
-3. **Train** projector + LoRA with `L_CTC + L_CR` on Tajik v3.
-4. **Eval** the four-way table + regression metrics below; ablate (LoRA rank, λ, projector
-   depth/source-layer, text-only vs audio-conditioned to prove the acoustic prefix helps).
-5. If it works: port to Farsi/Georgian; consider productizing.
+- arXiv:2603.08397 is real: *"NLE: Non-autoregressive LLM-based ASR by Transcript Editing"*, Dekel/Thomas/Fukada/Saon (IBM), 9 Mar 2026. The mechanics (ε slots, 2N+1 positions, bidirectional single pass, implicit copy/replace/delete/insert, `L_CTC + λ·L_CR` with λ=0.02, CTC latent-alignment so no edit labels, ε = EOS) all match. **Not** hallucinated.
+- `ibm-granite/granite-speech-4.1-2b-nar` exists, Apache-2.0, ships `modeling_granite_speech_nar.py` (50.7 kB) as the `trust_remote_code` inference reference. **No training code** is published (GitHub = notebooks only) — we write the loop.
+- **14M trainable = base NLE** (1-layer Q-Former + LoRA rank 128); **NLE++ is ~280M** (rank 160). Both are IBM's numbers for IBM's architecture (see Correction 4).
+- Multilingual weakness is in the paper: NLE **lost** to its AR baseline on multilingual CommonVoice (5.79 vs 5.18) — weak non-English CTC drafts + English-centric BPE. Exactly what the omni-decoder swap is meant to dodge.
 
-## Metrics — not just WER
+**OmniASR source (`omnilingual_asr/models/wav2vec2_llama/`, read in our venv):**
 
-Unchanged-token accuracy, S/D/I breakdown, and the **"made a correct draft token wrong" rate** (the
-failure mode that kills editors). Plus the four-way WER/RTFx table.
+- `Wav2Vec2LlamaModel` exposes `llama_decoder` (`StandardTransformerLMDecoder`) and `encoder_proj` — confirmed.
+- `encoder_proj` is a single **Linear** `(audio_dim → llama_dim)` (`factory.py:205`), not a Q-Former.
+- Audio is a **prefix** (concat on the sequence axis, `model.py concat_inputs`), not cross-attention.
+- Attention is **hardcoded causal** (`CausalAttentionBias()`, `factory.py:75`); bidirectional = swap to `IdentityBias` (a module-global monkeypatch, confirmed working).
+- Positional encoding is **RoPE** → dropping the causal mask is geometrically clean.
+- **Embeddings are NOT tied** (`text_frontend` vs `final_proj` separate; `tied_embeddings=False`, `factory.py:215-229`).
+- **Vocab is shared by construction**: `config.py:176-181` asserts CTC `target_vocab_size == llama vocab_size` (one omni tokenizer, 10288 = our Tajik CTC). Matching v2 variants → CTC draft ids **are** Llama ids.
+- **The editor decoder is FIXED** — "300m/1b/7b" sizes the *audio encoder*, not the decoder. All v2 arches inherit `_7b_llama_v2`'s `LLaMAConfig`: 12 layers / d=4096 / 8 heads / ffn 2816 / RoPE / vocab 10288 = **1.22B** (`config.py:256-280`). The editor discards the omni encoder, so there is exactly one editor to train (~1.22B frozen + LoRA). Only choice: which checkpoint's (identical-arch) decoder weights to lift.
 
-## Open risks (the genuinely unresolved ones)
+### Gate 1 — draft-length bound (2026-06-15): cleared
 
-Learnability (can de-causalised LoRA absorb the distribution shift?), **train-step memory** (the 12GB
-gate), **realised speed** (one bidirectional pass, not CTC throughput), **draft-length coverage**
-(`2N+1`), and **projector capacity** (Linear over CTC features vs IBM's Q-Former). Plus: no IBM
-training code (we write the loop — crib ε-interleaving / mask construction / CTC-collapse shapes from
-their Apache-2.0 `modeling_granite_speech_nar.py`); and conversational WER is **data-bound** (the v4
-lever), not something NAR alone fixes. **Fallback** if de-causalising the omni decoder won't learn: a
-clean small multilingual bidirectional LLM — but reuse omni first (shared tokenizer + speech path +
-Tajik evidence are too valuable to discard).
+NLE can only insert ≤ N+1 tokens; CTC over `2N+1` positions needs `2N+1 ≥ ref_len`. Greedy CTC over both splits, draft vs reference tokenized in the shared vocab (`gate1_draft_length.py`): **FLEURS 0/599 fail (0.00%); conversational 2/1625 (0.12%)**. Draft and reference lengths track almost perfectly (FLEURS p50 N=129 vs R=129; conv 301 vs 305 — length-faithful, not deleting); `R/(2N+1) ≈ 0.50` (ε-interleaving ~doubles capacity → large headroom). The 2 fails are pathological audio, dropped by the existing length filter. Side output: worst-case editor text length `2N+1 = 1447` (conv) / 687 (FLEURS).
+
+### Gate 2 — memory (2026-06-15): fits at batch 1–2
+
+Real forward + CTC backward + AdamW step on the actual 1.22B decoder (frozen, bf16) with real rank-128 LoRA (82.2M trainable, ~0.99 GB Adam) on the RTX 5070 (`gate2_memory_probe.py`). Peak VRAM: FLEURS worst (L=2187) **5.5 GB**; conversational worst (40 s @ 50 fps, L=3447) **6.9 GB** at batch 1; **11.0 GB** at batch 2 (fits 12.4 GB); batch 4 OOMs. → **train at batch 1–2 + gradient accumulation**. Frozen base 2.44 GB bf16; acoustic downsampling (IBM uses 5×) buys batch size.
+
+- **Prefix length measured** (`gate2b_audio_prefix_len.py`, pipeline tap): `T'` p50 680 / max 1844 (FLEURS), p50 1242 / **max 1995** (conversational) — pinned ~2000 by the 40 s cap.
+- **Bidirectional measured, not assumed** (`gate2c_bidirectional_confirm.py`): the de-causalised decoder (`IdentityBias` on all 12 layers) builds and runs forward+backward+step; peak **identical** to causal (6.90 vs 6.89 GB B1; 11.03 vs 11.03 B2).
+- **Scope caveats (non-blocking):** the probe sizes only the editor; the frozen CTC isn't resident → **precompute features** (frozen CTC → identical every epoch; cache pre-projection 768-d states, ~hundreds of GB at 1000 h; or recompute on-the-fly under `no_grad` for +~1.5–2 GB). Uses PyTorch SDPA's memory-efficient kernel, as real training does.
+
+### Gate 3 — learnability (2026-06-15): copy needs tying; edits not yet shown
+
+Built the real editor and overfit 100 FLEURS rows (draft WER 18.84%): lifted the pretrained omni-LLM-300M `llama_decoder` (109 tensors, zero missing/unexpected), de-causalised, reused `encoder_proj`, froze the body, trained projector + rank-128 LoRA with ε-interleaving + CTC-loss(blank=ε) + copy-reg. Artifacts: `gate3_extract_features.py`, `gate3_learnability_overfit.py`.
+
+Result ladder (train WER on the 100):
+
+- **Untied frozen head (omni default), λ=0.02:** stuck at **100%** — output collapses to blank/`"а"` repeats. *Copy is not learnable* — with `final_proj ≠ text_frontend` both frozen, rank-128 LoRA can't build the identity map (the decoder is a causal next-token predictor; outputting its own input is off-distribution).
+- **Tie head → input embeddings:** untrained editor **36.85%**; **one** copy-only epoch → **18.84% = the draft, a perfect copy**. Residual-identity copy is near-free *once tied*.
+- **CTC edit phase** (lr 3e-4 and 1e-4, copy-warmup then +CTC): **does not beat the draft.** WER pins ≈ draft (19–21%), CTC loss floors ~2–3 (doesn't →0 / doesn't memorise), with transient out-of-script garbage on CTC onset. Learns to **copy**, not **correct**.
+
+**Read:** plumbing sound, copy works *with tying as a required recipe item*. Edit-beats-draft unshown in this minimal overfit — likely (1) conditioning too weak (single Linear projector), (2) recipe (the next diagnostic adds grad clip / LR schedule / gentle CTC onset), (3) data scale (100 rows proves copy, not a correction policy). Feasibility passed; **edit-beats-draft is the open question that defines the real training experiment.**
+
+## Corrections to the original spec
+
+1. **Tied embeddings — required, not optional (MEASURED, gate 3).** The spec said "residual identity + tied embeddings make copying the default," but the omni decoder is **untied** (inherited from the pre-pivot Granite plan). Untied → can't copy (100%); tied → copy in 1 epoch. **Tie the output head to the input embeddings.**
+2. **Vocab mismatch is overstated.** Shared tokenizer is enforced; matching v2 variants → draft ids are Llama ids, no round-trip. Real residual risks: EOS-as-ε double duty, CTC-blank convention, normalisation.
+3. **"Single-digit WER on read" is too optimistic.** NLE approximates (and sometimes loses to) its AR teacher; ceiling is bounded by the 300M CTC features + the 16.9 draft. Target ≤ CTC+KenLM 14.5; single-digit is a stretch.
+4. **Param accounting is inherited, not recomputed.** rank-128 + 14M are both IBM's *base-NLE* numbers for IBM's architecture. Ours (measured, gate 2): rank-128 LoRA over q/k/v/o + gate/inner/output of 12 layers = **82.2M** (rank 64 = 41.1M).
+5. **"The 10.9 zero-shot is the decoder" is misleading.** That score is the *full* omni speech-LLM (its own encoder + projector + decoder). The lifted-decoder + our-CTC stack is a different system; 10.9 proves the language is in the family, not that this stack reaches it.
 
 ## References
 
-- IBM NLE paper: arXiv:2603.08397 (the recipe).
-- IBM inference reference (Apache-2.0): `ibm-granite/granite-speech-4.1-2b-nar` →
-  `modeling_granite_speech_nar.py`.
-- Omni model def: `omnilingual_asr/models/wav2vec2_llama/{model,config,factory}.py`.
-- Our CTC + KenLM baseline: `../lm_decoding/` and the EXPERIMENTS.md entry.
+- Paper (definitive method/loss/params): <https://arxiv.org/pdf/2603.08397>
+- Apache-2.0 inference reference — crib ε-interleaving, bidirectional-mask, and output-head / CTC-collapse shapes: <https://huggingface.co/ibm-granite/granite-speech-4.1-2b-nar/tree/main> (`modeling_granite_speech_nar.py`, `configuration_…`, `processing_…`)
+- Closest open **training** reference for NAR ASR correction: FastCorrect (Microsoft NeuralSpeech), <https://github.com/microsoft/NeuralSpeech>; Levenshtein Transformer (in fairseq) for the insert/delete framing. Do **not** inherit Granite's tying/tokenizer/EOS assumptions.
+- Our ground truth: `omnilingual_asr/models/wav2vec2_llama/{model,config,factory}.py` (vendored in `.venv`); `../lm_decoding/` + the top-level `EXPERIMENTS.md` for baselines.
