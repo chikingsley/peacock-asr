@@ -110,4 +110,4 @@ Persian. Do not invest further in this direction.
   the dead end, not the code. Run via `python -m ...archive.build_persian_augmentation`.
 - Dataset: `dataset_prep/artifacts/tajik_asr_combined_v1/` (+ its `dataset_summary.json`).
 - Model: `runs/omni-ctc-300m-tajik-asr-corpus-v1/` (card `omni_ctc_300m_v2_tajik_v1_step_4000`).
-- Eval tool: `tajik-eval-test` (`src/tajik_omnilingual_asr/eval/test_split.py`).
+- Eval tool: `tajik-eval-test` (`src/tajik_asr/eval/test_split.py`).

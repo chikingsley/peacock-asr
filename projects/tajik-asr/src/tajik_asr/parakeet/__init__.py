@@ -1,15 +1,13 @@
-"""Tajik Parakeet fine-tuning commands over :mod:`parakeet_finetune_core`."""
+"""Tajik Parakeet model family — project config over :mod:`parakeet_finetune_core`.
+
+Training commands live in `tajik_asr.parakeet.train`, evaluation in `tajik_asr.parakeet.eval`.
+"""
 
 from __future__ import annotations
 
 from parakeet_finetune_core import ParakeetProject
-from parakeet_finetune_core.ctc import train_ctc_main
-from parakeet_finetune_core.eval import eval_main
-from parakeet_finetune_core.nemo_recipe import train_nemo_recipe_main
-from parakeet_finetune_core.tdt import train_tdt_main
-from parakeet_finetune_core.tokenizer import train_tokenizer_main
 
-from tajik_omnilingual_asr import DATA, LANGUAGE, ROOT
+from tajik_asr import DATA, LANGUAGE, ROOT
 
 _PEACOCK = ROOT.parents[1]
 _FARSI_PARAKEET = _PEACOCK / "projects" / "farsi-asr" / "src" / "finetune_parakeet"
@@ -43,23 +41,3 @@ PROJECT = ParakeetProject(
     default_ctc_run_name="tajik-parakeet-ctc-110m",
     default_tdt_run_name="tajik-parakeet-tdt-110m",
 )
-
-
-def train_tokenizer(argv: list[str] | None = None) -> int:
-    return train_tokenizer_main(PROJECT, argv)
-
-
-def train_ctc(argv: list[str] | None = None) -> int:
-    return train_ctc_main(PROJECT, argv)
-
-
-def train_nemo_recipe(argv: list[str] | None = None) -> int:
-    return train_nemo_recipe_main(PROJECT, argv)
-
-
-def train_tdt(argv: list[str] | None = None) -> int:
-    return train_tdt_main(PROJECT, argv)
-
-
-def evaluate(argv: list[str] | None = None) -> int:
-    return eval_main(PROJECT, argv)

@@ -29,7 +29,7 @@ from omni_finetune_core.assets import (
 if TYPE_CHECKING:
     from fairseq2.runtime.dependency import DependencyContainer
 
-# This file lives at src/tajik_omnilingual_asr/fairseq2_assets.py, so the package
+# This file lives at src/tajik_asr/assets.py, so the package
 # directory holds models/ and dataset_prep/.
 _PKG = Path(__file__).resolve().parent
 _PROJECT = Path(__file__).resolve().parents[2]
@@ -101,4 +101,4 @@ CARDS = [
 
 
 def setup_fairseq2_extension(container: DependencyContainer) -> None:
-    register_cards(container, "tajik_omnilingual_asr", CARDS)
+    register_cards(container, "tajik_asr", CARDS)

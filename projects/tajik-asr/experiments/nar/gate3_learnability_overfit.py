@@ -33,8 +33,8 @@ if TYPE_CHECKING:
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-CKPT = ROOT / "src/tajik_omnilingual_asr/models/omniASR-LLM-300M-v2.pt"
-TOKENIZER = ROOT / "src/tajik_omnilingual_asr/models/omniASR_tokenizer_written_v2.model"
+CKPT = ROOT / "src/tajik_asr/models/omniASR-LLM-300M-v2.pt"
+TOKENIZER = ROOT / "src/tajik_asr/models/omniASR_tokenizer_written_v2.model"
 CACHE = HERE / "gate3_cache_fleurs.pt"
 EOS, VOCAB, DIM, ENC, NSPECIAL = 2, 10288, 4096, 1024, 1
 LORA_TARGETS = ("q_proj", "k_proj", "v_proj", "output_proj", "gate_proj", "inner_proj")

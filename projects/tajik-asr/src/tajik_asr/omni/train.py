@@ -11,7 +11,7 @@ from omni_curator.process import normalize
 from omni_finetune_core.presets import gpu_max_finetune
 from omni_finetune_core.project import FinetuneProject, TrainingPreset, train_main
 
-from tajik_omnilingual_asr import DATA, LANGUAGE, ROOT
+from tajik_asr import DATA, LANGUAGE, ROOT
 
 PROJECT = FinetuneProject(
     name="tajik",

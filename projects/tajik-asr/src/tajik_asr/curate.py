@@ -23,7 +23,7 @@ from omni_curator.project import (
 )
 from omni_curator.project import main as project_main
 
-from tajik_omnilingual_asr import DATA, DB, LANGUAGE, ROOT, SCRIPT, sources
+from tajik_asr import DATA, DB, LANGUAGE, ROOT, SCRIPT, sources
 
 _PKG = Path(__file__).resolve().parent
 

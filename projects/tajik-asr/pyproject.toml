@@ -43,19 +43,24 @@ override-dependencies = [
 ]
 
 [project.scripts]
-# The thin per-language standard (matches georgian-asr): curate (data) + train/eval (model).
-# Curation/normalization/export/tokenizer-audit all live in the shared packages now.
-tajik-curate = "tajik_omnilingual_asr.curate:main"
-tajik-train = "tajik_omnilingual_asr.train:main"
-tajik-eval = "tajik_omnilingual_asr.eval:main"
-tajik-parakeet-eval = "tajik_omnilingual_asr.parakeet:evaluate"
-tajik-parakeet-train-tokenizer = "tajik_omnilingual_asr.parakeet:train_tokenizer"
-tajik-parakeet-train-ctc = "tajik_omnilingual_asr.parakeet:train_ctc"
-tajik-parakeet-train-nemo = "tajik_omnilingual_asr.parakeet:train_nemo_recipe"
-tajik-parakeet-train-tdt = "tajik_omnilingual_asr.parakeet:train_tdt"
+# Per-language multi-model standard (docs/ASR_PROJECT_STANDARD.md): shared `curate` + per-family
+# `<lang>-<family>-<verb>`. Logic lives in the shared packages; this project is config only.
+tajik-curate = "tajik_asr.curate:main"
+# omni (OmniASR CTC) family
+tajik-omni-train = "tajik_asr.omni.train:main"
+tajik-omni-eval = "tajik_asr.omni.eval:main"
+# deprecated bare aliases (= omni) — kept for one transition, retire later
+tajik-train = "tajik_asr.omni.train:main"
+tajik-eval = "tajik_asr.omni.eval:main"
+# parakeet family
+tajik-parakeet-train-tokenizer = "tajik_asr.parakeet.train:train_tokenizer"
+tajik-parakeet-train-ctc = "tajik_asr.parakeet.train:train_ctc"
+tajik-parakeet-train-tdt = "tajik_asr.parakeet.train:train_tdt"
+tajik-parakeet-train-nemo = "tajik_asr.parakeet.train:train_nemo_recipe"
+tajik-parakeet-eval = "tajik_asr.parakeet.eval:evaluate"
 
 [project.entry-points."fairseq2.extension"]
-tajik_asr = "tajik_omnilingual_asr.assets:setup_fairseq2_extension"
+tajik_asr = "tajik_asr.assets:setup_fairseq2_extension"
 
 [build-system]
 requires = ["hatchling"]
@@ -67,7 +72,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/tajik_omnilingual_asr"]
+packages = ["src/tajik_asr"]
 
 [tool.ruff]
 line-length = 100
@@ -98,8 +103,8 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 # Cyrillic letters resembling Latin are intentional Tajik text.
-"src/tajik_omnilingual_asr/eval.py" = ["RUF002"]
-"src/tajik_omnilingual_asr/sources.py" = ["RUF001", "RUF002", "RUF003"]
+"src/tajik_asr/omni/eval.py" = ["RUF002"]
+"src/tajik_asr/sources.py" = ["RUF001", "RUF002", "RUF003", "E501"]  # long channel-list data lines
 # Research/diagnostic scripts (gates), not library code. Relaxed by intent:
 # ANN001/ANN202 (annotating dynamic fairseq2 module args/closures adds noise, not safety),
 # INP001 (flat run-directly script dir, not an importable package),

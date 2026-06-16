@@ -6,7 +6,11 @@ Fine-tune NVIDIA **Parakeet TDT-0.6B-v3** (FastConformer + Token-and-Duration Tr
 
 **Where we are (2026-06-16).** Gates 0a/0b/1/2/3 + decode-trust check run. **The bug + loss-fix are validated END-TO-END** — after a hard overfit (train_loss 0.52) the TDT model `transcribe()`s Tajik **correctly** (5/6 exact). The earlier "stuck ~0.95" across all runs was **under-learning** (lr 1e-4 / too few steps / cold base), *not* a bug or fundamental limit. So **the TDT path works**; a real run (real 180k data, proper LR/steps, partial-unfreeze for 0.6B-on-12 GB) should learn Tajik.
 
-**BIG RUN LAUNCHED (2026-06-16 03:04).** `run_big.py --name big_110m` — **110M hybrid (TDT+CTC), full fine-tune** on the real curator corpus: **232,824 rows / 1,197 h** (gate `scribe_wer≤0.35`, dur 0.5–30 s; from `data/curator.sqlite` via `gate1b_curator_manifest.py`). Fresh Tajik BPE-1024 on the full 232k-transcript corpus (`data/tok_big`) + loss-init fix + **lhotse dynamic bucketing** (`batch_duration=120`, `quadratic_duration=15`, fused joint=2) to fit 12 GB — bs8/fixed OOM'd on the 30 s clips; bucketing runs ~5 steps/s / ~5.4 GB. lr 3e-4, warmup 2000, cosine→1e-5, bf16, 100k steps (~3 epochs, ~5–6 h). train_loss → `runs/big_110m/train_log.jsonl`; ckpt+val every 2000 → `runs/big_110m/checkpoints`. Hourly heartbeat cron reports step/loss/GPU. **Why 110M not v3 first:** fits full-FT + iterates fast (real WER signal in hours); **v3 0.6B partial-unfreeze is the higher-ceiling follow-up.** bf16 TDT val_wer may be noisy → trust train_loss; do a clean **fp32 `transcribe` eval at a checkpoint** for real WER (FLEURS test = 721 rows).
+**BIG RUN — COMPLETE (2026-06-16).** **110M hybrid (TDT+CTC), full fine-tune** on the real curator corpus: **232,824 rows / 1,197 h** (gate `scribe_wer≤0.35`, dur 0.5–30 s; built from `data/curator.sqlite` via `gate1b_curator_manifest.py` → `data/{train_big,dev_big}.jsonl`, disjoint splits). Fresh Tajik BPE-1024 on the full corpus (`data/tok_big`) + loss-init fix + **lhotse dynamic bucketing** (`batch_duration=120`, `quadratic_duration=15`, fused joint=2) to fit 12 GB. lr 3e-4, warmup 2000, cosine→1e-5, bf16, **100k steps reached cleanly** → `tajik-parakeet-tdt-110m_final.nemo`.
+
+**FINAL RESULT (fp32, final model):** **FLEURS-test WER 19.0 %** (600), dev 17.8 % (357), **RTFx 568×** (bs32 fp32, vs omni CTC ~450×). Near-exact transcriptions; errors are real phonetic ones. **Verdict:** the TDT new-language fine-tuning thesis is **validated end-to-end at scale** — the loss-init-fix + recipe take the documented "TDT head stalls ~0.8 WER" failure to a competitive 19 % Tajik model. It does **not** beat the 300M omni CTC (16.9 / 14.5 +KenLM) — expected for a 110M English-base model with no LM. The **v3 0.6B** (Cyrillic prior, bigger) is the higher-ceiling follow-up that could beat it; RTFx has headroom with optimized (bf16/large-batch) inference.
+
+**The run was started on a bespoke `run_big.py` harness, then migrated to the shared `parakeet_finetune_core` package** (`tajik-parakeet-train-tdt`, the standard exp-style recipe — proper val logging + best-on-val checkpoints), resumed cleanly from the step-52k checkpoint. `run_big.py` and the gate/ablation scripts are now in `archive/`. **Eval:** bf16 TDT val_wer is noisy → trust `val_loss` during training; run `eval_ckpt.py` (fp32 `transcribe`) for a real WER (dev / FLEURS-test = 600 of `data/test_big.jsonl`).
 
 **Strategic caveat (CAPT goal).** The product is pronunciation training (Duolingo/Pimsleur-style); a core feature is **measuring pronunciation**. That is *not* lowest-WER open ASR — the learner reads a known prompt, so it's **forced alignment + phoneme-level scoring (GOP / mispronunciation detection)**. So before spending GPU-days on a big TDT-ASR run, weigh it against building the **pronunciation-assessment layer** (likely the higher-value next direction). The ASR work (CTC+KenLM, NAR, TDT) is substrate; CAPT scoring is the feature.
 
@@ -122,6 +126,24 @@ Tried to run the cheap v3 overfit gate (B-on-v3: fresh Tajik tokenizer + loss-fi
 Overfit 32 rows HARD (fp32, lr 1e-3, 1500 steps → **train_loss 0.52**), then `transcribe()` the same clips (`gate_decode_check.py`): **5/6 are exact Tajik transcriptions** (one wrong-but-real sentence). **The TDT pipeline is correct end-to-end** — `change_vocabulary` + loss-fix + greedy decode all produce correct Tajik when the model is actually trained to low loss.
 
 **This overturns the prior "stuck ~0.95" interpretation:** it was **under-learning** (lr 1e-4, too few steps, frozen/cold base), *not* a decode bug and *not* a fundamental failure. The loss-init fix (arm B) is now validated **end-to-end**, not just "sane length." → **The TDT path is alive**: with adequate LR/steps/data it learns Tajik. The cheap probes' low WER was an artifact of insufficient training — caught exactly by this decode-trust check. Next: a real run (real 180k data, proper LR/steps, partial-unfreeze for the 0.6B/12 GB limit) — but see the CAPT note in §Status before committing GPU-days, since pronunciation scoring (not lowest-WER ASR) may be the actual product target.
+
+### Big run on real data + harness migration (2026-06-16): TDT learns Tajik; moved to the package recipe
+
+The decode-trust check cleared the path, so we ran the real thing: 110M-hybrid full fine-tune on the
+**1,197 h gated curator corpus** (not the 400-row probe). **First fp32 held-out eval: 21.3 % dev WER at
+step 24k**, still improving, with near-exact Tajik transcriptions — TDT genuinely learns Tajik at scale.
+
+Two process corrections this round:
+- **Harness:** the run started on a bespoke `run_big.py` (manual `pl.Trainer`, `logger=False`, hand-rolled
+  loss logging, checkpoint-on-`train_loss`) — which surfaced **no eval signal** during training even though a
+  disjoint dev set was wired. Replaced by the shared **`parakeet_finetune_core`** recipe (`tajik-parakeet-train-tdt`,
+  the same exp-manager-style pattern as `farsi-asr/finetune_parakeet`): val_loss/val_wer logged to `val_log.jsonl`,
+  best-on-val checkpoints. Resumed from the step-52k checkpoint (identical model+hparams → clean resume).
+- **Code layout:** **live** = `eval_ckpt.py` (fp32 ckpt→WER) + `gate1b_curator_manifest.py` (manifest builder) +
+  `data/`; the bespoke harness and completed gate/ablation scripts moved to **`archive/`** (see `archive/README.md`).
+
+**Known gap:** eval is still a loose script (`eval_ckpt.py`), not a package command — promoting it to
+`tajik-parakeet-eval-tdt` would make "train → eval" one harness. Deferred.
 
 ## Risks / open questions
 
