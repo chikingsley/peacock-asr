@@ -179,7 +179,7 @@ def main() -> int:
     assert no_eos, "a ref contains the EOS/blank id"
     infeasible = sum(len(r["ref_ids"]) > 2 * len(r["draft_ids"]) + 1 for r in train)
     print(f"CTC-infeasible train rows (ref_len > 2N+1): {infeasible}/{len(train)}", flush=True)
-    assert infeasible == 0, "infeasible rows would be silently dropped by zero_infinity — filter first"
+    assert infeasible == 0, "infeasible rows get silently dropped by zero_infinity — filter first"
 
     def wer_of(rows: list[dict], hyps: list[str]) -> float:
         refs = [normalize(r["ref_text"], lang) for r in rows]
