@@ -2514,11 +2514,15 @@ name = "parakeet-finetune-core"
 version = "0.1.0"
 source = { editable = "../../packages/parakeet-finetune-core" }
 dependencies = [
+    { name = "jiwer" },
     { name = "omegaconf" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "omegaconf", specifier = ">=2.3" }]
+requires-dist = [
+    { name = "jiwer", specifier = ">=3.1,<4" },
+    { name = "omegaconf", specifier = ">=2.3" },
+]
 
 [package.metadata.requires-dev]
 dev = [

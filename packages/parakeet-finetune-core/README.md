@@ -10,6 +10,7 @@ package from a small project adapter:
 ```python
 from parakeet_finetune_core import ParakeetProject
 from parakeet_finetune_core.ctc import train_ctc_main
+from parakeet_finetune_core.eval import eval_main
 
 PROJECT = ParakeetProject(
     name="tajik",
@@ -22,12 +23,16 @@ PROJECT = ParakeetProject(
 
 def train_ctc(argv=None):
     return train_ctc_main(PROJECT, argv)
+
+def evaluate(argv=None):
+    return eval_main(PROJECT, argv)
 ```
 
 Run it as a project command:
 
 ```bash
 uv run --project projects/tajik-asr tajik-parakeet-train-ctc --max-steps 1000
+uv run --project projects/tajik-asr tajik-parakeet-eval --limit 80 --device cpu
 ```
 
 Do not launch project workflows through direct interpreters or helper-script paths. The reusable
@@ -44,12 +49,15 @@ Common in this package:
 - TDT loss-init fix for duration-bin outputs
 - fused TDT loss/WER setup
 - TDT run logging and checkpoint defaults
+- CTC and TDT/TDT+CTC checkpoint evaluation via NeMo `transcribe`
+- WER scoring with project-provided normalization
 
 Language-specific in each `<language>-asr` project:
 
 - model artifact paths or model IDs
 - train/dev/test NeMo manifests
 - tokenizer artifact path and name
+- default evaluation checkpoint and model kind
 - output run root
 - default CTC/TDT run names
 - text normalization and curation policy outside the Parakeet trainer

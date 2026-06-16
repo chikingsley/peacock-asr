@@ -25,6 +25,11 @@ class ParakeetProject:
     default_train_manifest: Path | None = None
     default_validation_manifest: Path | None = None
     default_tokenizer_dir: Path | None = None
+    default_tdt_checkpoint: Path | None = None
+    default_ctc_checkpoint: Path | None = None
+    default_eval_kind: str = "ctc"
+    default_eval_normalizer: str | None = None
+    default_eval_normalizer_language: str | None = None
     default_tokenizer_name: str | None = None
     default_ctc_run_name: str | None = None
     default_tdt_run_name: str | None = None

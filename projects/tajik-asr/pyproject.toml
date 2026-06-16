@@ -48,6 +48,7 @@ override-dependencies = [
 tajik-curate = "tajik_omnilingual_asr.curate:main"
 tajik-train = "tajik_omnilingual_asr.train:main"
 tajik-eval = "tajik_omnilingual_asr.eval:main"
+tajik-parakeet-eval = "tajik_omnilingual_asr.parakeet:evaluate"
 tajik-parakeet-train-tokenizer = "tajik_omnilingual_asr.parakeet:train_tokenizer"
 tajik-parakeet-train-ctc = "tajik_omnilingual_asr.parakeet:train_ctc"
 tajik-parakeet-train-nemo = "tajik_omnilingual_asr.parakeet:train_nemo_recipe"

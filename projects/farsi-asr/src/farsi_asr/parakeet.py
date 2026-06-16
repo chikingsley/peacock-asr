@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from parakeet_finetune_core import ParakeetProject
 from parakeet_finetune_core.ctc import train_ctc_main
+from parakeet_finetune_core.eval import eval_main
 from parakeet_finetune_core.nemo_recipe import train_nemo_recipe_main
 from parakeet_finetune_core.tokenizer import train_tokenizer_main
 
@@ -23,6 +24,7 @@ PROJECT = ParakeetProject(
     default_ctc_model=_LEGACY_PACKAGE / "models" / "ctc.nemo",
     default_tdt_model="nvidia/parakeet-tdt_ctc-110m",
     default_tokenizer_name="fa_spe_bpe_v1024",
+    default_eval_kind="ctc",
     default_ctc_run_name="parakeet-110m-ctc-persian",
     default_tdt_run_name="parakeet",
     env_prefix="PERSIAN",
@@ -39,3 +41,7 @@ def train_ctc(argv: list[str] | None = None) -> int:
 
 def train_nemo_recipe(argv: list[str] | None = None) -> int:
     return train_nemo_recipe_main(PROJECT, argv)
+
+
+def evaluate(argv: list[str] | None = None) -> int:
+    return eval_main(PROJECT, argv)

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from parakeet_finetune_core import ParakeetProject
 from parakeet_finetune_core.ctc import train_ctc_main
+from parakeet_finetune_core.eval import eval_main
 from parakeet_finetune_core.nemo_recipe import train_nemo_recipe_main
 from parakeet_finetune_core.tdt import train_tdt_main
 from parakeet_finetune_core.tokenizer import train_tokenizer_main
@@ -26,10 +27,19 @@ PROJECT = ParakeetProject(
     default_ctc_model=_FARSI_PARAKEET / "models" / "ctc.nemo",
     default_hybrid_model=_FARSI_PARAKEET / "models" / "parakeet-tdt_ctc-110m-base-hybrid.nemo",
     default_tdt_model=_FARSI_PARAKEET / "models" / "parakeet-tdt_ctc-110m-base-hybrid.nemo",
+    default_tdt_checkpoint=ROOT
+    / "runs"
+    / "parakeet"
+    / "tajik-parakeet-tdt-110m"
+    / "checkpoints"
+    / "last.ckpt",
     default_train_manifest=_TDT_EXPERIMENT / "data" / "train_big.jsonl",
     default_validation_manifest=_TDT_EXPERIMENT / "data" / "dev_big.jsonl",
     default_tokenizer_dir=_TDT_EXPERIMENT / "data" / "tok_big" / "tokenizer_spe_bpe_v1024",
     default_tokenizer_name="tgk_cyrl_spe_bpe_v1024",
+    default_eval_kind="tdt",
+    default_eval_normalizer="omni_curator.process:normalize",
+    default_eval_normalizer_language=LANGUAGE,
     default_ctc_run_name="tajik-parakeet-ctc-110m",
     default_tdt_run_name="tajik-parakeet-tdt-110m",
 )
@@ -49,3 +59,7 @@ def train_nemo_recipe(argv: list[str] | None = None) -> int:
 
 def train_tdt(argv: list[str] | None = None) -> int:
     return train_tdt_main(PROJECT, argv)
+
+
+def evaluate(argv: list[str] | None = None) -> int:
+    return eval_main(PROJECT, argv)

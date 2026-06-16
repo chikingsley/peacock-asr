@@ -82,6 +82,7 @@ farsi-scribe-build-curation-db = "farsi_asr_dataset.cli.build_scribe_curation_db
 farsi-scribe-curation = "farsi_asr_dataset.cli.scribe_curation:main"
 farsi-scribe-rerun-sqlite = "farsi_asr_dataset.cli.scribe_rerun_sqlite:main"
 farsi-scribe-script-equivalence = "farsi_asr_dataset.cli.scribe_script_equivalence:main"
+farsi-parakeet-eval = "farsi_asr.parakeet:evaluate"
 farsi-finetune-parakeet-ctc = "finetune_parakeet.cli.finetune_parakeet_ctc:main"
 farsi-finetune-parakeet = "finetune_parakeet.cli.finetune_parakeet:main"
 farsi-prepare-omni-curated = "farsi_asr_dataset.dataset_prep.curated:main"
