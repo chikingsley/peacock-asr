@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from omni_finetune_core.project import eval_main
 
-from dari_asr.train import PROJECT
+from dari_asr.omni.train import PROJECT
 
 
 def main(argv: list[str] | None = None) -> int:

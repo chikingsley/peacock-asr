@@ -31,8 +31,10 @@ override-dependencies = [
 
 [project.scripts]
 russian-curate = "russian_asr.curate:main"
-russian-train = "russian_asr.train:main"
-russian-eval = "russian_asr.eval:main"
+russian-omni-train = "russian_asr.omni.train:main"
+russian-train = "russian_asr.omni.train:main"
+russian-omni-eval = "russian_asr.omni.eval:main"
+russian-eval = "russian_asr.omni.eval:main"
 
 [project.entry-points."fairseq2.extension"]
 russian_asr = "russian_asr.assets:setup_fairseq2_extension"
@@ -61,5 +63,5 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "src/russian_asr/curate.py" = ["T201"]
-"src/russian_asr/train.py" = ["T201"]
-"src/russian_asr/eval.py" = ["T201"]
+"src/russian_asr/omni/train.py" = ["T201"]
+"src/russian_asr/omni/eval.py" = ["T201"]

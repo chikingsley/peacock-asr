@@ -31,8 +31,10 @@ override-dependencies = [
 
 [project.scripts]
 dari-curate = "dari_asr.curate:main"
-dari-train = "dari_asr.train:main"
-dari-eval = "dari_asr.eval:main"
+dari-omni-train = "dari_asr.omni.train:main"
+dari-train = "dari_asr.omni.train:main"
+dari-omni-eval = "dari_asr.omni.eval:main"
+dari-eval = "dari_asr.omni.eval:main"
 
 [project.entry-points."fairseq2.extension"]
 dari_asr = "dari_asr.assets:setup_fairseq2_extension"
@@ -60,6 +62,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+"src/dari_asr/sources.py" = ["E501"]  # long channel-list data lines
 "src/dari_asr/curate.py" = ["T201"]
-"src/dari_asr/train.py" = ["T201"]
-"src/dari_asr/eval.py" = ["T201"]
+"src/dari_asr/omni/train.py" = ["T201"]
+"src/dari_asr/omni/eval.py" = ["T201"]

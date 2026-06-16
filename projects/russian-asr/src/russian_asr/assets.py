@@ -43,7 +43,7 @@ CARDS = [
         data=_PARQUET,
         tokenizer_ref=TOKENIZER_NAME,
     ),
-    # Trained-checkpoint cards (omni_ctc_300m_v2_russian_v0_step_NNNNN) added after the first v0 run.
+    # Trained-checkpoint cards (omni_ctc_300m_v2_russian_v0_step_NNNNN) added after first v0 run.
 ]
 
 

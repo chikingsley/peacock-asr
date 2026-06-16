@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from omni_finetune_core.project import eval_main
 
-from georgian_asr.train import PROJECT
+from georgian_asr.omni.train import PROJECT
 
 
 def main(argv: list[str] | None = None) -> int:

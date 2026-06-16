@@ -31,9 +31,14 @@ override-dependencies = [
 ]
 
 [project.scripts]
+# Per-language multi-model standard (docs/ASR_PROJECT_STANDARD.md): shared curate + per-family verbs.
 georgian-curate = "georgian_asr.curate:main"
-georgian-train = "georgian_asr.train:main"
-georgian-eval = "georgian_asr.eval:main"
+# omni (OmniASR CTC) family
+georgian-omni-train = "georgian_asr.omni.train:main"
+georgian-omni-eval = "georgian_asr.omni.eval:main"
+# deprecated bare aliases (= omni) — kept for one transition, retire later
+georgian-train = "georgian_asr.omni.train:main"
+georgian-eval = "georgian_asr.omni.eval:main"
 
 [project.entry-points."fairseq2.extension"]
 georgian_asr = "georgian_asr.assets:setup_fairseq2_extension"
@@ -62,5 +67,5 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "src/georgian_asr/curate.py" = ["T201"]  # the curate CLI prints
-"src/georgian_asr/train.py" = ["T201"]  # the train CLI prints status
-"src/georgian_asr/eval.py" = ["T201"]   # the eval CLI prints the report
+"src/georgian_asr/omni/train.py" = ["T201"]  # the train CLI prints status
+"src/georgian_asr/omni/eval.py" = ["T201"]   # the eval CLI prints the report
