@@ -15,6 +15,7 @@ dependencies = [
   "numpy==2.4.6",
   "omni-curator[ingest,youtube,normalize]",
   "omni-finetune-core",
+  "parakeet-finetune-core",
   "omnilingual-asr==0.2.0",
   "onnxruntime==1.26.0",
   "pyarrow==24.0.0",
@@ -36,6 +37,7 @@ dependencies = [
 superwhisper-api = { path = "../../packages/superwhisper-api", editable = true }
 omni-curator = { path = "../../packages/omni-curator", editable = true }
 omni-finetune-core = { path = "../../packages/omni-finetune-core", editable = true }
+parakeet-finetune-core = { path = "../../packages/parakeet-finetune-core", editable = true }
 
 [tool.uv]
 # omnilingual-asr 0.2.0 pins fairseq2<=0.6.0, but omni-finetune-core's recipe (and the

@@ -1991,6 +1991,24 @@ wheels = [
 ]
 
 [[package]]
+name = "parakeet-finetune-core"
+version = "0.1.0"
+source = { editable = "../../packages/parakeet-finetune-core" }
+dependencies = [
+    { name = "omegaconf" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "omegaconf", specifier = ">=2.3" }]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=8" },
+    { name = "ruff", specifier = "==0.15.15" },
+    { name = "ty", specifier = "==0.0.40" },
+]
+
+[[package]]
 name = "parso"
 version = "0.8.7"
 source = { registry = "https://pypi.org/simple" }
@@ -3011,6 +3029,7 @@ dependencies = [
     { name = "omni-curator", extra = ["youtube"] },
     { name = "omni-finetune-core" },
     { name = "omnilingual-asr" },
+    { name = "parakeet-finetune-core" },
     { name = "pyarrow" },
     { name = "ruff" },
     { name = "soundfile" },
@@ -3038,6 +3057,7 @@ requires-dist = [
     { name = "omni-curator", extras = ["youtube"], editable = "../../packages/omni-curator" },
     { name = "omni-finetune-core", editable = "../../packages/omni-finetune-core" },
     { name = "omnilingual-asr", specifier = "==0.2.0" },
+    { name = "parakeet-finetune-core", editable = "../../packages/parakeet-finetune-core" },
     { name = "pyarrow", specifier = "==24.0.0" },
     { name = "ruff", specifier = "==0.15.15" },
     { name = "soundfile", specifier = "==0.13.1" },

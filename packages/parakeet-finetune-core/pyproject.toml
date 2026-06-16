@@ -1,0 +1,47 @@
+[project]
+name = "parakeet-finetune-core"
+version = "0.1.0"
+description = "Shared NeMo/Parakeet tokenizer, CTC, and TDT fine-tuning helpers for Peacock ASR projects."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "omegaconf>=2.3",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8",
+  "ruff==0.15.15",
+  "ty==0.0.40",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/parakeet_finetune_core"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  "D",
+  "COM812",
+  "ISC001",
+  "ANN401",
+  "TD002", "TD003", "FIX002",
+  "EM101", "EM102", "TRY003",
+  "PLR0913",
+  "PLC0415",
+  "T201",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "PLR2004", "ANN", "ARG001", "INP001"]
+
+[tool.ty.environment]
+python = ".venv"

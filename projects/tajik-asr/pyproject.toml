@@ -12,6 +12,7 @@ dependencies = [
   "numpy==2.4.6",
   "omni-curator[youtube]",
   "omni-finetune-core",
+  "parakeet-finetune-core",
   "omnilingual-asr==0.2.0",
   "pyarrow==24.0.0",
   "ruff==0.15.15",
@@ -28,6 +29,7 @@ dependencies = [
 superwhisper-api = { path = "../../packages/superwhisper-api", editable = true }
 omni-curator = { path = "../../packages/omni-curator", editable = true }
 omni-finetune-core = { path = "../../packages/omni-finetune-core", editable = true }
+parakeet-finetune-core = { path = "../../packages/parakeet-finetune-core", editable = true }
 
 [tool.uv]
 # omnilingual-asr 0.2.0 (latest) pins fairseq2<=0.6.0, but we run the latest fairseq2 0.8.1
@@ -46,6 +48,10 @@ override-dependencies = [
 tajik-curate = "tajik_omnilingual_asr.curate:main"
 tajik-train = "tajik_omnilingual_asr.train:main"
 tajik-eval = "tajik_omnilingual_asr.eval:main"
+tajik-parakeet-train-tokenizer = "tajik_omnilingual_asr.parakeet:train_tokenizer"
+tajik-parakeet-train-ctc = "tajik_omnilingual_asr.parakeet:train_ctc"
+tajik-parakeet-train-nemo = "tajik_omnilingual_asr.parakeet:train_nemo_recipe"
+tajik-parakeet-train-tdt = "tajik_omnilingual_asr.parakeet:train_tdt"
 
 [project.entry-points."fairseq2.extension"]
 tajik_asr = "tajik_omnilingual_asr.assets:setup_fairseq2_extension"
