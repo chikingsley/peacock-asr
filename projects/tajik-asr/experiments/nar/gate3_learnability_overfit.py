@@ -173,6 +173,14 @@ def main() -> int:
     data = torch.load(CACHE, weights_only=False)["rows"]
     train, heldout = data[: args.n_train], data[args.n_train:]
 
+    # blank == EOS == ε, so a ref must never contain id EOS, and ref_len must fit 2N+1
+    # (else CTC is impossible and zero_infinity silently drops the row from the gradient).
+    no_eos = all(EOS not in r["ref_ids"].tolist() for r in train + heldout)
+    assert no_eos, "a ref contains the EOS/blank id"
+    infeasible = sum(len(r["ref_ids"]) > 2 * len(r["draft_ids"]) + 1 for r in train)
+    print(f"CTC-infeasible train rows (ref_len > 2N+1): {infeasible}/{len(train)}", flush=True)
+    assert infeasible == 0, "infeasible rows would be silently dropped by zero_infinity — filter first"
+
     def wer_of(rows: list[dict], hyps: list[str]) -> float:
         refs = [normalize(r["ref_text"], lang) for r in rows]
         return compute_measures(refs, [normalize(h, lang) for h in hyps]).wer
@@ -213,10 +221,13 @@ def main() -> int:
         w_ctc = 0.0 if ep <= args.warmup else min(1.0, (ep - args.warmup) / max(1, args.ramp))
         tot_ctc = tot_cr = 0.0
         opt.zero_grad(set_to_none=True)
+        # copy-only warmup uses full-strength CR; after warmup the copy anchor anneals to 0
+        # as CTC ramps in (w_ctc 0->1) so a plateau-at-copy can't be blamed on a lingering anchor.
+        lam_eff = args.lam * (1.0 - w_ctc)
         for j, r in enumerate(train):
             logits, xt = editor_forward(r, dec, tf, fp, proj, dtype, device)
             ctc, cr = losses(logits, xt, r["ref_ids"], device)
-            loss = w_ctc * ctc + args.lam * cr
+            loss = cr if ep <= args.warmup else w_ctc * ctc + lam_eff * cr
             (loss / args.accum).backward()
             tot_ctc += ctc.item()
             tot_cr += cr.item()
