@@ -29,9 +29,14 @@ COMMONVOICE: dict[str, str] = {}
 #: name -> (repo, text_column|None).
 HUGGINGFACE: dict[str, tuple[str, str | None]] = {
     "tonebooks": ("Vikhrmodels/ToneBooks", None),       # ~179 h audiobook, Apache-2.0
-    "espeech_webinars": ("ESpeech/ESpeech-webinars2", None),  # ~800 h, Apache-2.0 (commercial OK)
-    "espeech_podcasts": ("ESpeech/ESpeech-podcasts", None),   # ~3,200 h, CC-BY-NC (personal only)
-    # ^ both ESpeech are pseudo-labelled — Scribe-verify before trusting; huge (~400 GB combined).
+    # The ESpeech org publishes 5 separate Russian ASR datasets (each its own repo + license). Take
+    # all of them: the 4 Apache ones are commercial-OK, podcasts is CC-BY-NC (personal). All are
+    # pseudo-labelled — Scribe-verify before trusting.
+    "espeech_webinars": ("ESpeech/ESpeech-webinars2", None),     # 74 GB, Apache-2.0
+    "espeech_buldjat": ("ESpeech/ESpeech-buldjat", None),        # 4.8 GB, Apache-2.0 (webdataset)
+    "espeech_upvote": ("ESpeech/ESpeech-upvote", None),          # 26 GB, Apache-2.0
+    "espeech_tuchniyzhab": ("ESpeech/ESpeech-tuchniyzhab", None),  # 27 GB, Apache-2.0
+    "espeech_podcasts": ("ESpeech/ESpeech-podcasts", None),      # 295 GB, CC-BY-NC (personal only)
 }
 
 #: PURE-SOURCE corpora needing a download+parse adapter (preferred over HF reposts for provenance):
@@ -46,6 +51,9 @@ LICENSES: dict[str, tuple[str, bool]] = {
     "fleurs": ("CC-BY-4.0", True),
     "tonebooks": ("Apache-2.0", True),
     "espeech_webinars": ("Apache-2.0", True),
+    "espeech_buldjat": ("Apache-2.0", True),
+    "espeech_upvote": ("Apache-2.0", True),
+    "espeech_tuchniyzhab": ("Apache-2.0", True),
     "espeech_podcasts": ("CC-BY-NC-4.0", False),
     "golos": ("CC-BY-SA-4.0", True),
     "ruls": ("PD", True),
