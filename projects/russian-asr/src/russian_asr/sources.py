@@ -25,7 +25,10 @@ COMMONVOICE: dict[str, str] = {}
 #: reposts are deliberately NOT used — we take canonical releases for provenance).
 #: name -> (repo, text_column|None).
 HUGGINGFACE: dict[str, tuple[str, str | None]] = {
-    "tonebooks": ("Vikhrmodels/ToneBooks", None),  # ~179 h audiobook, HF-native (no purer source)
+    "tonebooks": ("Vikhrmodels/ToneBooks", None),       # ~179 h audiobook, Apache-2.0
+    "espeech_webinars": ("ESpeech/ESpeech-webinars2", None),  # ~800 h, Apache-2.0 (commercial OK)
+    "espeech_podcasts": ("ESpeech/ESpeech-podcasts", None),   # ~3,200 h, CC-BY-NC (personal only)
+    # ^ both ESpeech are pseudo-labelled — Scribe-verify before trusting; huge (~400 GB combined).
 }
 
 #: PURE-SOURCE corpora needing a download+parse adapter (preferred over HF reposts for provenance):
