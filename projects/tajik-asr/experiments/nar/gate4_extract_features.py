@@ -18,7 +18,7 @@ import torch
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-TOKENIZER = ROOT / "src/tajik_asr/models/omniASR_tokenizer_written_v2.model"
+TOKENIZER = ROOT.parents[1] / "base_models/omni/omniASR_tokenizer_written_v2.model"
 DATASET_ROOT = ROOT / "data/datasets/v3/version=0"
 MODEL_CARD = "omni_ctc_300m_v2_tajik_v3_step_20000"
 LANG = "tgk_Cyrl"

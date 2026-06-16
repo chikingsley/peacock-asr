@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 _PKG = Path(__file__).resolve().parent
 _PROJECT = Path(__file__).resolve().parents[2]
 _MODELS = _PKG / "models"
+_OMNI_BASE = Path(__file__).resolve().parents[4] / "base_models" / "omni"
 _PARQUET = _PROJECT / "data" / "datasets" / "v0" / "version=0"
 
 TOKENIZER_NAME = "omni_asr_tokenizer_written_v2_local"
@@ -39,11 +40,11 @@ _FARSI_PROD = (
 CARDS = [
     TokenizerCard(
         name=TOKENIZER_NAME,
-        tokenizer=_MODELS / "omniASR_tokenizer_written_v2.model",
+        tokenizer=_OMNI_BASE / "omniASR_tokenizer_written_v2.model",
     ),
     ModelCard(
         name="omni_ctc_300m_v2_dari_base",
-        checkpoint=_MODELS / "omniASR-CTC-300M-v2.pt",
+        checkpoint=_OMNI_BASE / "omniASR-CTC-300M-v2.pt",
         tokenizer_ref=TOKENIZER_NAME,
     ),
     # Farsi production (omni_ctc_300m_v2_farsi_v4_step_41000) as the warm-start source.

@@ -35,7 +35,7 @@ from torch.nn import functional as F
 
 HERE = Path(__file__).resolve().parent
 CACHE = HERE / "gate4_cache_fleurs.pt"
-TOKENIZER = HERE.parents[1] / "src/tajik_asr/models/omniASR_tokenizer_written_v2.model"
+TOKENIZER = HERE.parents[3] / "base_models/omni/omniASR_tokenizer_written_v2.model"
 
 
 @dataclass

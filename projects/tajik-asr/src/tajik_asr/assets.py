@@ -34,6 +34,7 @@ if TYPE_CHECKING:
 _PKG = Path(__file__).resolve().parent
 _PROJECT = Path(__file__).resolve().parents[2]
 _MODELS = _PKG / "models"
+_OMNI_BASE = Path(__file__).resolve().parents[4] / "base_models" / "omni"
 # The legacy v0 parquet lives inside its source artifact (kept as the baseline-model
 # provenance; v1/v2 data was superseded, recorded in EXPERIMENTS.md, and deleted —
 # kept datasets live on the Peacockery HF org).
@@ -50,11 +51,11 @@ TOKENIZER_NAME = "omni_asr_tokenizer_written_v2_local"
 CARDS = [
     TokenizerCard(
         name=TOKENIZER_NAME,
-        tokenizer=_MODELS / "omniASR_tokenizer_written_v2.model",
+        tokenizer=_OMNI_BASE / "omniASR_tokenizer_written_v2.model",
     ),
     ModelCard(
         name="omni_ctc_300m_v2_base",
-        checkpoint=_MODELS / "omniASR-CTC-300M-v2.pt",
+        checkpoint=_OMNI_BASE / "omniASR-CTC-300M-v2.pt",
         tokenizer_ref=TOKENIZER_NAME,
     ),
     ModelCard(
