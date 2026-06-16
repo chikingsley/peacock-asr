@@ -18,10 +18,10 @@ the manifest's own directory) and ``text``. We read every ``manifest.jsonl`` (sk
 subset manifests) and resolve audio relative to each manifest.
 
 **SLR96 — RuLS (Russian LibriSpeech)** (https://openslr.org/96/). ~98 h of LibriVox audiobook read
-speech in classic LibriSpeech layout: ``ruls_data/{train,dev,test}/<speaker>/<chapter>/`` holding
-``.flac`` clips beside a ``<speaker>-<chapter>.trans.txt`` whose lines are ``<utt_id> <transcript>``
-(the audio is ``<utt_id>.flac`` in the same dir). We walk every ``*.trans.txt`` and take the split
-from the path component under ``ruls_data/``.
+speech. Extracts to ``{train,dev,test}/`` each holding a NeMo ``manifest.json`` (jsonl:
+``audio_filepath`` relative to the split dir, ``duration``, ``text`` + ``text_no_preprocessing``)
+beside an ``audio/<reader>/<book>/*.wav`` tree (16 kHz wav). We read each split's ``manifest.json``
+and take the split from the dir name.
 
 Both paths download to ``project.raw_dir`` and resample to 16 kHz mono FLAC under
 ``project.canonical_dir`` via :func:`omni_curator.process.resample_sample`.
@@ -150,45 +150,39 @@ def load_golos(
                 )
 
 
-def _ruls_split(trans: Path, root: Path) -> str:
-    """Split from the first path component under ``ruls_data/`` (train | dev | test)."""
-    try:
-        rel = trans.relative_to(root)
-    except ValueError:
-        return "train"
-    return rel.parts[0] if rel.parts else "train"
-
-
 def load_ruls(
     root: Path, *, language: str, source: str = "ruls"
 ) -> Iterator[Sample]:
-    """Read an extracted RuLS (Russian LibriSpeech) tree -> ``Sample``s (flac; process resamples).
+    """Read an extracted RuLS (Russian LibriSpeech) tree -> ``Sample``s (wav; process resamples).
 
-    Walks every ``*.trans.txt`` (LibriSpeech layout): each line is ``<utt_id> <transcript>`` and the
-    audio is ``<utt_id>.flac`` beside the transcript.
+    RuLS ships ``{train,dev,test}/manifest.json`` (NeMo jsonl: ``audio_filepath`` relative to the
+    split dir, ``duration``, normalized ``text`` + original ``text_no_preprocessing``). We prefer
+    the un-preprocessed text (the curator normalizes uniformly); split comes from the dir name.
     """
-    for trans in sorted(root.rglob("*.trans.txt")):
-        split = _ruls_split(trans, root)
-        with trans.open(encoding="utf-8") as handle:
+    for manifest in sorted(root.glob("*/manifest.json")):
+        split = manifest.parent.name  # train | dev | test
+        with manifest.open(encoding="utf-8") as handle:
             for raw in handle:
-                line = raw.rstrip("\n")
-                if " " not in line:
+                line = raw.strip()
+                if not line:
                     continue
-                utt_id, text = line.split(" ", 1)
-                text = text.strip()
-                clip = trans.parent / f"{utt_id}.flac"
-                if not text or not clip.exists():
+                row = json.loads(line)
+                rel = row.get("audio_filepath")
+                text = str(row.get("text_no_preprocessing") or row.get("text") or "").strip()
+                if not rel or not text:
+                    continue
+                clip = (manifest.parent / rel).resolve()
+                if not clip.exists():
                     continue
                 yield Sample(
-                    id=f"{source}_{split}_{utt_id}",
+                    id=f"{source}_{split}_{Path(rel).stem}",
                     source=source,
                     language=language,
                     text=text,
                     audio_path=str(clip),
-                    duration=0.0,  # set when process resamples the flac
+                    duration=float(row.get("duration") or 0.0),
                     sample_rate=0,
                     split=split,
-                    speaker_id=utt_id.split("-", 1)[0] if "-" in utt_id else None,
                     citation="openslr.org/96",
                 )
 
