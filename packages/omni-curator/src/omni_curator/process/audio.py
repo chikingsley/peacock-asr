@@ -31,14 +31,21 @@ def to_16k_flac(src: Path, dst: Path) -> None:
 def resample_sample(sample: Sample, out_dir: Path) -> Sample:
     """Resample a sample's audio to 16 kHz mono FLAC under ``out_dir``; return it updated.
 
-    Skips the ffmpeg pass if the output already exists, so a re-run resumes instead of redoing.
+    Skips the ffmpeg pass if the output already exists AND is a valid FLAC, so a re-run resumes.
+    A clip left truncated by a killed run is re-encoded rather than poisoning the whole resume.
     """
     import soundfile as sf
 
     dst = out_dir / f"{sample.id}.flac"
-    if not dst.exists():
+    info = None
+    if dst.exists():
+        try:
+            info = sf.info(str(dst))  # readable existing clip -> trust it (resume)
+        except sf.LibsndfileError:
+            info = None  # truncated/corrupt (killed mid-write) -> re-encode below
+    if info is None:
         to_16k_flac(Path(sample.audio_path), dst)
-    info = sf.info(str(dst))
+        info = sf.info(str(dst))
     return replace(
         sample,
         audio_path=str(dst),
