@@ -15,7 +15,7 @@ numbers show what deriving the target via ASR costs.
 read-aloud needs no ASR and runs fully locally. free-form needs Scribe (superwhisper-api) auth +
 network, so it is opt-in via ``--free-form``.
 
-    uv run python scripts/eval_two_paths.py --manifest runs/<name>/manifest.jsonl \
+    uv run capt-eval --manifest runs/<name>/manifest.jsonl \
         --out-dir runs/<name>/two_paths [--free-form]
 """
 from __future__ import annotations

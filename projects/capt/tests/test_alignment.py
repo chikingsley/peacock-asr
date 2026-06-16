@@ -1,4 +1,4 @@
-from capt.alignment import needleman_wunsch, summarize, summarize_by_word
+from capt.score.alignment import needleman_wunsch, summarize, summarize_by_word
 
 
 def test_per_counts_sub_del_ins() -> None:

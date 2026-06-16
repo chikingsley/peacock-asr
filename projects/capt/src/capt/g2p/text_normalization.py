@@ -8,8 +8,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-NEMO_CACHE_DIR = PROJECT_ROOT / ".nemo_text_processing"
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+NEMO_CACHE_DIR = PROJECT_ROOT / "artifacts" / "nemo_text_processing"
 NEMO_BACKEND = "nemo-text-processing"
 
 
@@ -277,30 +277,37 @@ def _russian_percent_penalty(original_text: str, candidate_lower: str) -> int:
 
 
 def _russian_thousands_penalty(original_text: str, candidate_lower: str) -> int:
-    original_lower = original_text.casefold()
+    score = sum(
+        _thousands_digit_penalty(int(match.group(1)), candidate_lower)
+        for match in FOUR_DIGIT_NUMBER_RE.finditer(original_text)
+    )
+    if re.search(r"\bиз\s+\d{4}\b", original_text.casefold()):
+        score += _iz_thousand_adjustment(candidate_lower)
+    return score
+
+
+def _thousands_digit_penalty(thousands_digit: int, candidate_lower: str) -> int:
     score = 0
-    for match in FOUR_DIGIT_NUMBER_RE.finditer(original_text):
-        thousands_digit = int(match.group(1))
-        if not re.search(r"\b(?:тысяча|тысячи|тысяч)\b", candidate_lower):
-            score += 80
-        if thousands_digit == 1 and re.search(r"\bтысяч\b", candidate_lower):
+    if not re.search(r"\b(?:тысяча|тысячи|тысяч)\b", candidate_lower):
+        score += 80
+    if thousands_digit == 1 and re.search(r"\bтысяч\b", candidate_lower):
+        score += 40 + _iz_thousand_adjustment(candidate_lower)
+    if thousands_digit in {2, 3, 4}:
+        if re.search(r"\b\w+ тысяч\b", candidate_lower):
             score += 40
-            if re.search(r"\bиз\s+(?:тысячи|одной тысячи)\b", candidate_lower):
-                score -= 10
-            if re.search(r"\bиз\s+(?:тысяча|одна тысяча)\b", candidate_lower):
-                score += 10
-        if thousands_digit in {2, 3, 4}:
-            if re.search(r"\b\w+ тысяч\b", candidate_lower):
-                score += 40
-            if re.search(r"\b(?:две|три|четыре) тысяча\b", candidate_lower):
-                score += 20
-            if re.search(r"\b(?:две|три|четыре) тысячи\b", candidate_lower):
-                score -= 10
-    if re.search(r"\bиз\s+\d{4}\b", original_lower):
-        if re.search(r"\bиз\s+(?:тысячи|одной тысячи)\b", candidate_lower):
+        if re.search(r"\b(?:две|три|четыре) тысяча\b", candidate_lower):
+            score += 20
+        if re.search(r"\b(?:две|три|четыре) тысячи\b", candidate_lower):
             score -= 10
-        if re.search(r"\bиз\s+(?:тысяча|одна тысяча)\b", candidate_lower):
-            score += 10
+    return score
+
+
+def _iz_thousand_adjustment(candidate_lower: str) -> int:
+    score = 0
+    if re.search(r"\bиз\s+(?:тысячи|одной тысячи)\b", candidate_lower):
+        score -= 10
+    if re.search(r"\bиз\s+(?:тысяча|одна тысяча)\b", candidate_lower):
+        score += 10
     return score
 
 

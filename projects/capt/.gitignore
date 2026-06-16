@@ -1,5 +1,5 @@
-.mfa/
-.nemo_text_processing/
+# Generated NeMo text-processing grammars (regenerated on first run):
+artifacts/nemo_text_processing/
 .venv/
 .venv-*/
 .ruff_cache/
@@ -12,3 +12,4 @@ runs/
 experiments/
 *.onnx
 *.npz
+*.pth

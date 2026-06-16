@@ -1,12 +1,21 @@
 from __future__ import annotations
 
 import os
-import subprocess
-import sys
 from dataclasses import dataclass
+from functools import cached_property
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from capt.normalization import split_phone_text
+import numpy as np
+import onnxruntime as ort
+import torch
+
+from capt.audio import load_audio_16k
+from capt.recognize._vendor_zipa import ctc_greedy_decode, get_fbank_extractor, load_tokens
+from capt.score.phones import split_phone_text
+
+if TYPE_CHECKING:
+    from lhotse.features.kaldi.extractors import Fbank
 
 
 @dataclass(frozen=True)
@@ -31,60 +40,58 @@ class PhoneRecognitionResult:
 
 
 class ZipaOnnxRecognizer:
+    """Universal IPA phone recognizer (ZIPA large CR-CTC), run in-process via onnxruntime.
+
+    The ONNX session, fbank extractor and token map are built lazily once and reused across clips.
+    """
+
     name = "zipa"
     model_id = "anyspeech/zipa-large-crctc-ns-800k"
 
     def __init__(
         self,
-        repo_dir: str | Path | None = None,
         model_path: str | Path | None = None,
         tokens_path: str | Path | None = None,
+        providers: list[str] | None = None,
     ) -> None:
-        root = Path(__file__).resolve().parents[2]
-        self.repo_dir = Path(repo_dir or os.getenv("ZIPA_REPO", root / "third_party" / "zipa"))
+        root = Path(__file__).resolve().parents[3]
         self.model_path = Path(model_path or os.getenv("ZIPA_ONNX", _default_zipa_model(root)))
         self.tokens_path = Path(
             tokens_path or os.getenv("ZIPA_TOKENS", self.model_path.parent / "tokens.txt")
         )
+        # default to CPU so eval never contends with a GPU training run; override via providers=
+        self.providers = providers or ["CPUExecutionProvider"]
 
-    def recognize(self, audio_path: str | Path) -> PhoneRecognitionResult:
-        resolved_audio_path = Path(audio_path).resolve()
-        script = self.repo_dir / "inference" / "inference.py"
-        if not script.exists():
-            raise RuntimeError(f"ZIPA inference script not found: {script}")
+    @cached_property
+    def _session(self) -> ort.InferenceSession:
         if not self.model_path.exists():
             raise RuntimeError(f"ZIPA ONNX model not found: {self.model_path}")
+        return ort.InferenceSession(str(self.model_path), providers=self.providers)
+
+    @cached_property
+    def _vocab(self) -> dict[int, str]:
         if not self.tokens_path.exists():
             raise RuntimeError(f"ZIPA tokens file not found: {self.tokens_path}")
+        return load_tokens(self.tokens_path)
 
-        proc = subprocess.run(
-            [
-                sys.executable,
-                str(script),
-                str(resolved_audio_path),
-                "--model-path",
-                str(self.model_path),
-                "--model-type",
-                "ctc",
-                "--tokens",
-                str(self.tokens_path),
-            ],
-            text=True,
-            capture_output=True,
-            check=False,
-            cwd=str(self.repo_dir),
-        )
-        if proc.returncode != 0:
-            raise RuntimeError(proc.stderr.strip() or proc.stdout.strip())
+    @cached_property
+    def _extractor(self) -> Fbank:
+        return get_fbank_extractor()
 
-        raw = _last_nonempty_line(proc.stdout)
-        tokens = split_phone_text(raw)
+    def recognize(self, audio_path: str | Path) -> PhoneRecognitionResult:
+        audio = load_audio_16k(audio_path)
+        audio_tensor = torch.from_numpy(audio).float().unsqueeze(0)
+        feature = self._extractor.extract_batch([audio_tensor], sampling_rate=16000)[0].unsqueeze(0)
+        feat_lens = np.array([feature.shape[1]], dtype=np.int64)
+        log_probs = self._session.run(None, {"x": feature.numpy(), "x_lens": feat_lens})[0][0]
+        phones = ctc_greedy_decode(log_probs, self._vocab)
+        raw = " ".join(phones)
         return PhoneRecognitionResult(
             name=self.name,
             model_id=self.model_id,
             raw_text=raw,
             raw_tokens=raw.split(),
-            normalized_tokens=tokens,
+            normalized_tokens=split_phone_text(raw),
         )
 
 
@@ -104,8 +111,3 @@ def _default_zipa_model(root: Path) -> str:
     if fp32.exists():
         return str(fp32)
     return str(artifact_dir / "model.fp16.onnx")
-
-
-def _last_nonempty_line(text: str) -> str:
-    lines = [line.strip() for line in text.splitlines() if line.strip()]
-    return lines[-1] if lines else ""

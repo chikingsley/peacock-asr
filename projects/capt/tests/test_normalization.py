@@ -1,8 +1,8 @@
 import pytest
 
-import capt.g2p as g2p_module
+import capt.g2p.routing as g2p_module
 from capt.g2p import TargetG2P
-from capt.normalization import normalize_phone_tokens, split_phone_text
+from capt.score.phones import normalize_phone_tokens, split_phone_text
 
 
 def test_split_spaced_phone_text() -> None:

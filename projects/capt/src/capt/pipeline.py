@@ -3,21 +3,21 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
-from capt.alignment import (
+from capt.g2p import G2PResult, TargetG2P
+from capt.recognize import (
+    PhoneRecognitionResult,
+    ZipaOnnxRecognizer,
+    safe_recognize,
+)
+from capt.score.alignment import (
     AlignmentOp,
     alignment_rows,
     needleman_wunsch,
     summarize,
 )
-from capt.feature_metrics import (
+from capt.score.features import (
     alignment_feature_distance,
     feature_edit_summary,
-)
-from capt.g2p import G2PResult, TargetG2P
-from capt.recognizers import (
-    PhoneRecognitionResult,
-    ZipaOnnxRecognizer,
-    safe_recognize,
 )
 
 if TYPE_CHECKING:

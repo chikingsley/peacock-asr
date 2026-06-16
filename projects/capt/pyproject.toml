@@ -11,6 +11,8 @@ dependencies = [
     "epitran>=1.25",
     "huggingface-hub>=0.34",
     "librosa>=0.11",
+    # ZIPA front-end: 80-bin Kaldi fbank (capt.recognize runs ZIPA in-process, not via subprocess).
+    "lhotse>=1.30",
     "nemo-text-processing>=1.1.0",
     "numpy>=2.0",
     "onnxruntime-gpu>=1.18; platform_system == 'Linux'",
@@ -27,13 +29,16 @@ dependencies = [
     "transformers>=4.55",
 ]
 
+[project.scripts]
+capt-eval = "capt.cli.eval:main"
+capt-manifest = "capt.cli.manifest:main"
+capt-g2p-ablation = "capt.cli.ablation:main"
+capt-fetch-zipa = "capt.cli.fetch:main"
+
 [tool.uv.sources]
 superwhisper-api = { path = "../../packages/superwhisper-api", editable = true }
 
 [project.optional-dependencies]
-zipa = [
-    "lhotse>=1.30",
-]
 dev = [
     "pytest>=8.0",
     "ruff>=0.15",
@@ -50,7 +55,7 @@ packages = ["src/capt"]
 line-length = 100
 target-version = "py312"
 src = ["src", "tests"]
-extend-exclude = ["artifacts", "third_party"]
+extend-exclude = ["artifacts", "experiments"]
 
 # "ruff max": enable everything, then turn off only the genuinely impractical or
 # formatter-conflicting rules. Matches omni-curator / omni-finetune-core / georgian-asr.
@@ -73,13 +78,11 @@ ignore = [
 # mirror real signatures (unused params are intentional); SLF001 because tests verify internal state.
 "tests/**/*.py" = ["S101", "PLR2004", "ARG001", "ARG002", "ARG005", "SLF001"]
 # Cyrillic letters resembling Latin are intentional Russian normalization data.
-# S603/S607: subprocess calls invoke known, trusted binaries (MFA, espeak-ng, sys.executable)
-# with fixed argument vectors; the only variable inputs are file paths and word lists.
-"src/capt/g2p.py" = ["RUF001", "S603", "S607"]
-# S603: ZIPA recognizer shells out to the bundled inference script via sys.executable.
-"src/capt/recognizers.py" = ["S603"]
-"src/capt/normalization.py" = ["RUF001"]
-"src/capt/text_normalization.py" = ["RUF001"]
+# S603/S607: subprocess calls invoke known, trusted binaries (espeak-ng) with fixed argument
+# vectors; the only variable inputs are file paths and word lists.
+"src/capt/g2p/routing.py" = ["RUF001", "S603", "S607"]
+"src/capt/score/phones.py" = ["RUF001"]
+"src/capt/g2p/text_normalization.py" = ["RUF001"]
 "tests/test_normalization.py" = ["RUF001", "S101", "PLR2004"]
 "tests/test_text_normalization.py" = ["RUF001", "S101", "PLR2004"]
 "tests/test_text_normalization_integration.py" = ["RUF001", "S101", "PLR2004"]

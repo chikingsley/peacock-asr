@@ -2,9 +2,9 @@ import re
 
 import pytest
 
-import capt.g2p as g2p_module
+import capt.g2p.routing as g2p_module
 from capt.g2p import TargetG2P
-from capt.text_normalization import normalize_written_text
+from capt.g2p.text_normalization import normalize_written_text
 
 
 @pytest.mark.integration

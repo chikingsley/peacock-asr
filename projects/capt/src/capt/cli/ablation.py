@@ -11,7 +11,7 @@ language finishes, so a long multi-language run is crash-resumable. ``--skip-rou
 languages already in the table, so re-running continues where it left off. This is the loop for
 finishing FLEURS — one big manifest, run once, resume if interrupted.
 
-    uv run --extra zipa python scripts/g2p_ablation.py --manifest <manifest> --skip-routed
+    uv run capt-g2p-ablation --manifest <manifest> --skip-routed
 """
 from __future__ import annotations
 

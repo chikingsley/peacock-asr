@@ -148,6 +148,7 @@ dependencies = [
     { name = "datasets" },
     { name = "epitran" },
     { name = "huggingface-hub" },
+    { name = "lhotse" },
     { name = "librosa" },
     { name = "nemo-text-processing" },
     { name = "numpy" },
@@ -168,9 +169,6 @@ dev = [
     { name = "pytest" },
     { name = "ruff" },
 ]
-zipa = [
-    { name = "lhotse" },
-]
 
 [package.metadata]
 requires-dist = [
@@ -178,7 +176,7 @@ requires-dist = [
     { name = "datasets", specifier = "<4" },
     { name = "epitran", specifier = ">=1.25" },
     { name = "huggingface-hub", specifier = ">=0.34" },
-    { name = "lhotse", marker = "extra == 'zipa'", specifier = ">=1.30" },
+    { name = "lhotse", specifier = ">=1.30" },
     { name = "librosa", specifier = ">=0.11" },
     { name = "nemo-text-processing", specifier = ">=1.1.0" },
     { name = "numpy", specifier = ">=2.0" },
@@ -195,7 +193,7 @@ requires-dist = [
     { name = "torchaudio", specifier = ">=2.8" },
     { name = "transformers", specifier = ">=4.55" },
 ]
-provides-extras = ["zipa", "dev"]
+provides-extras = ["dev"]
 
 [[package]]
 name = "cdifflib"

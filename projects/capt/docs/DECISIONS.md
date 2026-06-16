@@ -77,3 +77,29 @@ Q: best trainable G2P base for small per-language data in 2026; byT5 vs mT5 vs n
   beats random. `run_neural.py` is per-language → needs a joint variant for the GPU run.
 - Caveat: CharsiuG2P pretrained IPA is Wiktionary-style, not ZIPA broad-IPA; our ZIPA-distilled
   fine-tune targets teach the convention, pretrained init supplies priors (untested for ZIPA).
+
+## 2026-06-16 — Reorg to the wider-project standard
+
+Brought `capt` up to the layout the rest of peacock-asr uses (omni-curator-style domain subpackages,
+`[project.scripts]` CLIs, strict ruff, `artifacts/` for generated/large files). Changes:
+
+- **`src/capt/` folderized by funnel stage:** `g2p/` (routing.py + routing.json + text_normalization
+  + models/), `recognize/` (zipa.py + vendored `_vendor_zipa.py`), `score/` (alignment/features/phones),
+  `cli/`; `pipeline.py`/`audio.py`/`asr.py` stay top-level. `g2p_models/` → `g2p/models/`,
+  `g2p_routing.json` → `g2p/routing.json` (the 9 ZIPA-distilled gap FSTs are package data, loaded via
+  `__file__`).
+- **ZIPA vendored + run in-process:** only the CTC inference (fbank + greedy decode) is kept, copied
+  from the ZIPA repo (MIT, `recognize/ZIPA_LICENSE.txt`) into `recognize/_vendor_zipa.py`. The old
+  `subprocess` shell-out to a `third_party/zipa` clone is gone; the ONNX session is built once and
+  reused, defaulting to `CPUExecutionProvider` so eval never contends with a GPU training run. `lhotse`
+  moved from the `zipa` extra to a hard dependency. **`third_party/` deleted.**
+- **`scripts/` → `cli/` + entry points:** `capt-eval`, `capt-manifest`, `capt-g2p-ablation`,
+  `capt-fetch-zipa`. `bootstrap_zipa.sh` (a `.sh`, against repo rules) is replaced by the Python
+  `capt-fetch-zipa` (HF download only — inference is vendored). **`scripts/` deleted.**
+- **Artifacts:** NeMo text-processing grammar cache redirected to `artifacts/nemo_text_processing/`
+  (was a stray `.nemo_text_processing/` at the project root); stale `artifacts/p016_app.log` removed.
+- **Disk:** ~6.4 GB of regenerable `experiments/g2p_train/` scratch (FLEURS audio, intermediate model
+  checkpoints, raw ZIPA dumps/logs) deleted; scripts, result JSONs, RESULTS docs, lexicons kept (see
+  `experiments/g2p_train/README.md`).
+- **Lint:** the two remaining ruff complexity hotspots refactored out; `ruff check src tests` clean,
+  32 tests pass, vendored in-process ZIPA verified end-to-end on a clip.

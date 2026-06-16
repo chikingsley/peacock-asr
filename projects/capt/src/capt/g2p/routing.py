@@ -9,8 +9,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from capt.normalization import normalize_phone_tokens, split_phone_text
-from capt.text_normalization import WrittenTextNormalization, normalize_written_text
+from capt.g2p.text_normalization import WrittenTextNormalization, normalize_written_text
+from capt.score.phones import normalize_phone_tokens, split_phone_text
 
 _WORD_RE = re.compile(r"[^\W_]+(?:[-'][^\W_]+)?", re.UNICODE)
 _ROMAN_RE = re.compile(r"^[ivxlcdm]+$")
@@ -291,28 +291,27 @@ def _spoken_word_parts(
         normalized = re.sub(r"[-\u2010-\u2015]+", "-", word.casefold())
         if normalized in RU_ASR_WORD_REWRITES:
             return RU_ASR_WORD_REWRITES[normalized]
-        numeric_suffix_parts = _russian_numeric_suffix_parts(normalized)
-        if numeric_suffix_parts:
+        if numeric_suffix_parts := _russian_numeric_suffix_parts(normalized):
             return numeric_suffix_parts
-        if normalized.isdecimal():
-            next_normalized = next_word.casefold() if next_word else None
-            if next_normalized in RU_MONTH_GENITIVES:
-                ordinal_parts = _russian_ordinal_genitive_parts(int(normalized))
-                if ordinal_parts:
-                    return ordinal_parts
-            if next_normalized == "года":
-                year_parts = _russian_year_genitive_parts(int(normalized))
-                if year_parts:
-                    return year_parts
-            numeric_parts = _russian_cardinal_parts(int(normalized))
-            if numeric_parts:
-                return numeric_parts
-        roman_parts = _russian_roman_parts(normalized, previous_word, next_word)
-        if roman_parts:
+        if normalized.isdecimal() and (
+            decimal_parts := _russian_decimal_parts(int(normalized), next_word)
+        ):
+            return decimal_parts
+        if roman_parts := _russian_roman_parts(normalized, previous_word, next_word):
             return roman_parts
 
     parts = [part for part in re.split(r"[-\u2010-\u2015]+", word) if part]
     return parts or [word]
+
+
+def _russian_decimal_parts(value: int, next_word: str | None) -> list[str]:
+    """Spell a bare integer: ordinal before a month, year-genitive before 'года', else cardinal."""
+    next_normalized = next_word.casefold() if next_word else None
+    if next_normalized in RU_MONTH_GENITIVES and (parts := _russian_ordinal_genitive_parts(value)):
+        return parts
+    if next_normalized == "года" and (parts := _russian_year_genitive_parts(value)):
+        return parts
+    return _russian_cardinal_parts(value)
 
 
 def _russian_numeric_suffix_parts(word: str) -> list[str]:
@@ -654,7 +653,7 @@ def _charsiu_g2p(words: list[str], language: str) -> list[list[str]]:
 # FLEURS / language code -> trained Phonetisaurus FST. These ZIPA-distilled models cover the
 # "gap" languages that have no Epitran/CharsiuG2P/espeak voice (so the paper chain returns empty).
 # Stems are keyed by the full FLEURS config (ig_ng.fst); training lives in experiments/g2p_train.
-G2P_MODELS_DIR = Path(__file__).parent / "g2p_models"
+G2P_MODELS_DIR = Path(__file__).parent / "models"
 
 
 def _trained_model_path(language: str) -> Path:
@@ -685,8 +684,8 @@ _SINGLE_BACKENDS = {
 
 @lru_cache(maxsize=1)
 def _routing_table() -> dict[str, str]:
-    """Per-language best-G2P table produced by scripts/g2p_ablation.py (empty if not yet built)."""
-    path = Path(__file__).parent / "g2p_routing.json"
+    """Per-language best-G2P table built by the capt-g2p-ablation CLI (empty until built)."""
+    path = Path(__file__).parent / "routing.json"
     if not path.exists():
         return {}
     return json.loads(path.read_text(encoding="utf-8"))
