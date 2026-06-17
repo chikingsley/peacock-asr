@@ -17,6 +17,7 @@ trusting.
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import tarfile
 from pathlib import Path
@@ -31,9 +32,11 @@ if TYPE_CHECKING:
 
 
 def download_espeech(repo: str, dest: Path) -> Path:
-    """Download a repo's split-tar parts, concatenate, and extract into ``dest``; return the root.
+    """Download a repo's tar archive(s) and extract into ``dest``; return the root.
 
-    Idempotent: skips the (slow) download+extract if the extracted tree is already present.
+    Handles all ESpeech layouts: a single ``<name>.tar``, one split tar (``.tar.aa`` .. ``.ag``), or
+    several split tars in one repo (podcasts ships ``podcasts_1_…``, ``podcasts_2_…``). Idempotent:
+    skips the (slow) download+extract if already done.
     """
     dest.mkdir(parents=True, exist_ok=True)
     sentinel = dest / ".extracted.done"
@@ -41,23 +44,30 @@ def download_espeech(repo: str, dest: Path) -> Path:
         return dest
     parts_dir = dest / "_parts"
     parts_dir.mkdir(exist_ok=True)
-    # hf download pulls every split-tar part (resumable); --include keeps READMEs/images out.
-    subprocess.run(  # noqa: S603
+    subprocess.run(  # noqa: S603  # resumable; --include keeps READMEs/images out
         [  # noqa: S607
             "hf", "download", repo, "--repo-type", "dataset",
-            "--include", "*.tar.*", "--local-dir", str(parts_dir),
+            "--include", "*.tar*", "--local-dir", str(parts_dir),
         ],
         check=True,
     )
-    parts = sorted(parts_dir.rglob("*.tar.*"))
+    parts = sorted(parts_dir.rglob("*.tar*"))
     if not parts:
-        msg = f"no split-tar parts (*.tar.*) found for {repo} under {parts_dir}"
+        msg = f"no tar archive (*.tar*) found for {repo} under {parts_dir}"
         raise FileNotFoundError(msg)
-    # concatenate the parts in order, streaming straight into tar (no full-tar temp copy).
-    with subprocess.Popen(["cat", *map(str, parts)], stdout=subprocess.PIPE) as cat:  # noqa: S603,S607
-        with tarfile.open(fileobj=cat.stdout, mode="r|") as tar:
+    # group by archive base: a split part ``<base>.tar.aa`` joins ``<base>.tar``; a plain ``.tar``
+    # is its own group. Each group is one tar — concat its parts in order and stream into tar.
+    groups: dict[str, list[Path]] = {}
+    for p in parts:
+        base = p.name[:-3] if re.fullmatch(r".*\.tar\.[a-z]{2}", p.name) else p.name
+        groups.setdefault(base, []).append(p)
+    for _, gparts in sorted(groups.items()):
+        with subprocess.Popen(  # noqa: S603
+            ["cat", *map(str, sorted(gparts))],  # noqa: S607
+            stdout=subprocess.PIPE,
+        ) as cat, tarfile.open(fileobj=cat.stdout, mode="r|") as tar:
             tar.extractall(dest, filter="data")
-        cat.wait()
+            cat.wait()
     sentinel.touch()
     return dest
 
