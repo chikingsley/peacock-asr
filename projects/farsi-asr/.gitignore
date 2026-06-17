@@ -1,38 +1,46 @@
-# Heavy data, model, and run artifacts — regenerable, not source.
-data/
-runs/
-benchmarks/
-
-# Derived comparison store (rebuild with `persian-benchmark-compare`).
-*.sqlite
-*.sqlite-wal
-*.sqlite-shm
-
-# fairseq2 asset cache (downloaded model/tokenizer assets)
-.fairseq2-assets/
+# ─── Standard peacock-asr project ignores — keep in sync across projects ───
 
 # Python / tooling
 __pycache__/
 *.pyc
+*.egg-info/
 .venv/
+.venv-*/
 .ruff_cache/
 .pytest_cache/
-*.egg-info/
 
-# Vendored Omnilingual ASR training recipe (re-clone: github.com/facebookresearch/omnilingual-asr)
-src/finetune_omni/omni_recipe/
+# Machine-specific data: symlink to external storage (/mnt/overflow, /mnt/fast-ssd-2tb)
+# or a large local data dir. Anchored so it matches a real dir OR a symlink named `data`.
+/data
 
-# In-package model/tokenizer artifacts (organized here, ignored in place)
-src/finetune_parakeet/models/
-src/finetune_parakeet/tokenizer/
+# Run artifacts, scratch, logs
+runs/
+scratch/
+.smoke-scratch/
+*.log
 
-# In-package run artifacts (gitignored in place)
-src/finetune_omni/runs/
-src/finetune_parakeet/runs/
-
-# In-package datasets (gitignored in place)
-src/persian_asr_dataset/data/
-src/finetune_omni/data/
-
-# fairseq2 asset cache (regenerated; not source)
+# Caches (regenerated)
+.cache/
+.hf-cache/
 .fairseq2-cache/
+.fairseq2-assets/
+
+# Vendored upstream recipes / third-party (re-cloned, not source)
+vendor/
+**/omni_recipe/
+**/nemo_recipes/
+
+# Large binaries — trained weights never tracked (tokenizer .model files stay tracked)
+*.pt
+*.pth
+*.onnx
+*.npz
+*.safetensors
+
+# Derived SQLite stores
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# ─── farsi-asr-specific ───
+benchmarks/

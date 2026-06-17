@@ -1,15 +1,47 @@
-# Generated NeMo text-processing grammars (regenerated on first run):
-artifacts/nemo_text_processing/
+# ─── Standard peacock-asr project ignores — keep in sync across projects ───
+
+# Python / tooling
+__pycache__/
+*.pyc
+*.egg-info/
 .venv/
 .venv-*/
 .ruff_cache/
 .pytest_cache/
-__pycache__/
-*.pyc
-*.log
-# Regenerable data / scratch — not source:
+
+# Machine-specific data: symlink to external storage (/mnt/overflow, /mnt/fast-ssd-2tb)
+# or a large local data dir. Anchored so it matches a real dir OR a symlink named `data`.
+/data
+
+# Run artifacts, scratch, logs
 runs/
-experiments/
+scratch/
+.smoke-scratch/
+*.log
+
+# Caches (regenerated)
+.cache/
+.hf-cache/
+.fairseq2-cache/
+.fairseq2-assets/
+
+# Vendored upstream recipes / third-party (re-cloned, not source)
+vendor/
+**/omni_recipe/
+**/nemo_recipes/
+
+# Large binaries — trained weights never tracked (tokenizer .model files stay tracked)
+*.pt
+*.pth
 *.onnx
 *.npz
-*.pth
+*.safetensors
+
+# Derived SQLite stores
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# ─── capt-specific ───
+artifacts/nemo_text_processing/   # generated NeMo text-processing grammars (regenerated)
+experiments/                      # regenerable scratch experiments, not source

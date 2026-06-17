@@ -33,17 +33,10 @@ logs/*
 # wandb local artifacts
 wandb/
 
-# Processed features (large Arrow files)
+# Processed features (large Arrow files). Per-project `data` symlinks to external
+# storage are ignored by each project's own `.gitignore` (`/data`), which matches
+# symlinks too — the trailing-slash rule here only catches real directories.
 data/
-
-# Per-project data symlinks to machine-specific external storage (/mnt/overflow,
-# /mnt/fast-ssd-2tb). The `data/` rule above only matches real dirs, not these
-# symlinks, so list them explicitly. (tajik-asr/data is a real in-repo dir.)
-/projects/farsi-asr/data
-/projects/georgian-asr/data
-/projects/russian-asr/data
-/projects/dari-asr/data
-/projects/common-voice-scripted-speech-25-0/data
 
 # Repo-level base/pretrained model cache (large .nemo/.pt weights, copied not symlinked)
 base_models/

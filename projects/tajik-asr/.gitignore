@@ -1,13 +1,46 @@
-.fairseq2-cache/
-.hf-cache/
-runs/
+# ─── Standard peacock-asr project ignores — keep in sync across projects ───
+
+# Python / tooling
 __pycache__/
 *.pyc
+*.egg-info/
+.venv/
+.venv-*/
 .ruff_cache/
 .pytest_cache/
-.venv/
-.fairseq2-assets/
-# Large binaries — gitignored in place (model weights, source audio + sqlite, built parquet)
-src/tajik_asr/models/
-data/           # omni-curator create downloads + store (16 kHz FLAC, curator.sqlite)
+
+# Machine-specific data: symlink to external storage (/mnt/overflow, /mnt/fast-ssd-2tb)
+# or a large local data dir. Anchored so it matches a real dir OR a symlink named `data`.
+/data
+
+# Run artifacts, scratch, logs
+runs/
+scratch/
 .smoke-scratch/
+*.log
+
+# Caches (regenerated)
+.cache/
+.hf-cache/
+.fairseq2-cache/
+.fairseq2-assets/
+
+# Vendored upstream recipes / third-party (re-cloned, not source)
+vendor/
+**/omni_recipe/
+**/nemo_recipes/
+
+# Large binaries — trained weights never tracked (tokenizer .model files stay tracked)
+*.pt
+*.pth
+*.onnx
+*.npz
+*.safetensors
+
+# Derived SQLite stores
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# ─── tajik-asr-specific ───
+src/tajik_asr/models/   # in-place model weights / source audio / built parquet

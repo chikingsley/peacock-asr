@@ -1,13 +1,43 @@
-data/
-.venv/
+# ─── Standard peacock-asr project ignores — keep in sync across projects ───
+
+# Python / tooling
 __pycache__/
 *.pyc
+*.egg-info/
+.venv/
+.venv-*/
 .ruff_cache/
 .pytest_cache/
-*.egg-info/
-sync*.log
 
-# Vendored model weights — the 1.3 GB omni 300M CTC checkpoint (copied from tajik) and any
-# trained checkpoints. The tokenizer .model stays committed; *.pt is never committed.
-*.pt
+# Machine-specific data: symlink to external storage (/mnt/overflow, /mnt/fast-ssd-2tb)
+# or a large local data dir. Anchored so it matches a real dir OR a symlink named `data`.
+/data
+
+# Run artifacts, scratch, logs
 runs/
+scratch/
+.smoke-scratch/
+*.log
+
+# Caches (regenerated)
+.cache/
+.hf-cache/
+.fairseq2-cache/
+.fairseq2-assets/
+
+# Vendored upstream recipes / third-party (re-cloned, not source)
+vendor/
+**/omni_recipe/
+**/nemo_recipes/
+
+# Large binaries — trained weights never tracked (tokenizer .model files stay tracked)
+*.pt
+*.pth
+*.onnx
+*.npz
+*.safetensors
+
+# Derived SQLite stores
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
