@@ -1,34 +1,41 @@
-#!/usr/bin/env python3
 """Inspect Common Voice tar archives without extracting them."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import logging
 import tarfile
 from collections import Counter
 from pathlib import Path
 from typing import Any
 
-
 ROOT = Path(__file__).resolve().parents[3]
 PROJECT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = PROJECT / "manifests" / "datasets.jsonl"
-DEFAULT_ARCHIVES = ROOT / "data" / "common-voice-scripted-speech-25-0" / "raw" / "archives"
-DEFAULT_REPORT = ROOT / "data" / "common-voice-scripted-speech-25-0" / "reports" / "archive_inventory.json"
+DEFAULT_ARCHIVES = PROJECT / "data" / "raw" / "archives"
+DEFAULT_REPORT = PROJECT / "data" / "reports" / "archive_inventory.json"
+
+LOGGER = logging.getLogger("inspect_archives")
+
+
+def _configure_logging() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 def load_manifest(path: Path) -> list[dict[str, Any]]:
+    """Load MDC archive manifest rows from JSONL."""
     rows: list[dict[str, Any]] = []
     with path.open("r", encoding="utf-8") as handle:
-        for line in handle:
-            line = line.strip()
-            if line:
-                rows.append(json.loads(line))
+        for raw_line in handle:
+            stripped_line = raw_line.strip()
+            if stripped_line:
+                rows.append(json.loads(stripped_line))
     return rows
 
 
 def inspect_archive(path: Path, max_tsv_headers: int) -> dict[str, Any]:
+    """Inspect one archive and return member counts and TSV headers."""
     suffix_counts: Counter[str] = Counter()
     top_level: Counter[str] = Counter()
     tsv_headers: list[dict[str, str]] = []
@@ -67,6 +74,8 @@ def inspect_archive(path: Path, max_tsv_headers: int) -> dict[str, Any]:
 
 
 def main() -> None:
+    """Inspect locally downloaded archives and write an inventory report."""
+    _configure_logging()
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--archive-dir", type=Path, default=DEFAULT_ARCHIVES)
@@ -78,14 +87,17 @@ def main() -> None:
     for row in load_manifest(args.manifest):
         path = args.archive_dir / row["filename"]
         if not path.exists():
-            print(f"missing: {path}")
+            LOGGER.info("missing: %s", path)
             continue
-        print(f"inspecting: {path}")
+        LOGGER.info("inspecting: %s", path)
         reports.append({**row, **inspect_archive(path, args.max_tsv_headers)})
 
     args.report.parent.mkdir(parents=True, exist_ok=True)
-    args.report.write_text(json.dumps(reports, ensure_ascii=False, indent=2, sort_keys=True) + "\n")
-    print(f"wrote {args.report}")
+    args.report.write_text(
+        json.dumps(reports, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    LOGGER.info("wrote %s", args.report)
 
 
 if __name__ == "__main__":

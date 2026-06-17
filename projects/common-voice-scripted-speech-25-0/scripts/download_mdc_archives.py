@@ -23,10 +23,8 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[3]
 PROJECT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = PROJECT / "manifests" / "datasets.jsonl"
-DEFAULT_OUT = ROOT / "data" / "common-voice-scripted-speech-25-0" / "raw" / "archives"
-DEFAULT_REPORT = (
-    ROOT / "data" / "common-voice-scripted-speech-25-0" / "reports" / "downloads.jsonl"
-)
+DEFAULT_OUT = PROJECT / "data" / "raw" / "archives"
+DEFAULT_REPORT = PROJECT / "data" / "reports" / "downloads.jsonl"
 API_KEY_NAMES = ("MDC_API_KEY", "MOZILLA_DATA_COLLECTIVE_API_KEY")
 DOTENV_PATHS = (ROOT / ".env", PROJECT / ".env")
 

@@ -14,7 +14,7 @@ scripts/download_mdc_archives.py                 # download by MDC dataset ID
 scripts/inspect_archives.py                      # inspect tar members and TSV headers
 scripts/stage_hf_release.py                      # stage raw archives, README, and summary JSON
 ../../data/common-voice-scripted-speech-25-0/    # ignored raw downloads/reports
-../../data/hf-upload/common-voice-scripted-speech-25-0/
+../../data/common-voice-scripted-speech-25-0/hf-staging/
 ```
 
 ## Commands
@@ -51,7 +51,7 @@ Upload the staged folder:
 
 ```bash
 hf upload-large-folder Peacockery/common-voice-scripted-speech-25-0 \
-  data/hf-upload/common-voice-scripted-speech-25-0 \
+  data/common-voice-scripted-speech-25-0/hf-staging \
   --type dataset --num-workers 2
 ```
 
