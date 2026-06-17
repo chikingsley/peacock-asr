@@ -196,6 +196,18 @@ sets `relative_step=False` so the manual lr + cosine schedule are honored). So 0
 12 GB — not with AdamW. (Alternatives not needed: 8-bit AdamW would need bitsandbytes + NeMo wiring;
 partial-unfreeze is the fallback if Adafactor convergence disappoints.)
 
+### 0.6B v3 simple recipe — plateau at 110M level (2026-06-16): decoder cold-start ceiling
+
+Full-FT 0.6B v3 (Adafactor, fresh BPE-1024 + reinit decoder/joint, the simple recipe) ran to step ~64k/200k
+(~32%, val_loss flat ~29.3 for 30k steps, bf16 val_wer ~0.32). **fp32 FLEURS WER of the best (step-60k)
+checkpoint = 19.26%** (120-clip subset) — **dead level with the 110M's 19.0%.** A 5× bigger model with v3's
+ru/uk/bg Cyrillic acoustic prior plateaued at the *same* WER as the 110M English base. Verdict: the fresh
+decoder/joint reinit discards v3's token prior, so the bigger encoder isn't exploited — the **decoder
+cold-start ceiling**. This is the documented trigger to pivot to the **extend-tokenizer + restore-decoder/joint
+recipe** (see `extend_restore_recipe.md`, codex-approved), which preserves v3's decoder prior. (A cheaper
+prior check — the `rnnt_reduction` ablation — is also on the table but the plateau-at-110M smells like
+cold-start, not loss-scaling.)
+
 ## Risks / open questions
 
 - **TDT stagnation may be fundamental, not a tuning gap.** It's reproduced on v3 by others and the upstream fix didn't merge. If B–D don't break the stall, that's the (valuable, publishable) finding — and the fallback is CTC.

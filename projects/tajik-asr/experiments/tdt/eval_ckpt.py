@@ -18,14 +18,16 @@ from nemo.collections.asr.models import ASRModel
 
 HERE = Path(__file__).resolve().parent
 PEACOCK = HERE.parents[3]
-HYBRID = PEACOCK / "projects/farsi-asr/src/finetune_parakeet/models/parakeet-tdt_ctc-110m-base-hybrid.nemo"
-TOK = HERE / "data/tok_big/tokenizer_spe_bpe_v1024"
+HYBRID = PEACOCK / "base_models/parakeet/parakeet-tdt_ctc-110m-base-hybrid.nemo"
+TOK = HERE.parents[1] / "data/parakeet/tokenizers/tokenizer_spe_bpe_v1024"
 CKPT_DIR = HERE / "runs/big_110m/checkpoints"
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--ckpt", default=str(CKPT_DIR / "last.ckpt"))
+    ap.add_argument("--base", default=str(HYBRID), help="base .nemo for the --ckpt path (110m or v3 0.6b)")
+    ap.add_argument("--tokenizer-dir", default=str(TOK), help="tokenizer dir for change_vocabulary")
     ap.add_argument("--split", default="dev", choices=["dev", "test"])
     ap.add_argument("--manifest", default="", help="explicit manifest path (overrides --split)")
     ap.add_argument("--nemo", default="", help="restore a finished .nemo directly (skips base+ckpt)")
@@ -46,8 +48,8 @@ def main() -> int:
         model = ASRModel.restore_from(args.nemo, map_location=args.device)
         print(f"restored {Path(args.nemo).name}", flush=True)
     else:
-        model = ASRModel.restore_from(str(HYBRID), map_location=args.device)
-        model.change_vocabulary(new_tokenizer_dir=str(TOK), new_tokenizer_type="bpe")
+        model = ASRModel.restore_from(args.base, map_location=args.device)
+        model.change_vocabulary(new_tokenizer_dir=args.tokenizer_dir, new_tokenizer_type="bpe")
         state = torch.load(args.ckpt, map_location=args.device, weights_only=False)
         sd = state.get("state_dict", state)
         missing, unexpected = model.load_state_dict(sd, strict=False)

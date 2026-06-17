@@ -69,7 +69,7 @@ class JsonlValLogger:
             handle.write(json.dumps(record) + "\n")
 
 
-def apply_loss_init_fix(model: Any) -> int:
+def apply_loss_init_fix(model: Any, reduction_override: str | None = None) -> int:
     """Rebuild TDT RNNTLoss with duration-bin outputs excluded from ``num_classes``."""
     from nemo.collections.asr.losses.rnnt import RNNTLoss  # ty: ignore[unresolved-import]
 
@@ -77,10 +77,16 @@ def apply_loss_init_fix(model: Any) -> int:
     if model.joint.num_extra_outputs > 0:
         num_classes -= model.joint.num_extra_outputs
     loss_name, loss_kwargs = model.extract_rnnt_loss_cfg(model.cfg.get("loss", None))
+    # extract_rnnt_loss_cfg drops rnnt_reduction; v3 cfg uses mean_volume while RNNTLoss defaults
+    # to mean_batch. mean_volume normalizes by total tokens (~40x smaller loss/grads than
+    # mean_batch) so it needs a co-scaled lr; allow an explicit override so a run can pin the
+    # validated mean_batch+lr combo instead of silently flipping loss scale.
+    reduction = reduction_override or model.cfg.get("rnnt_reduction", "mean_batch")
     model.loss = RNNTLoss(
         num_classes=num_classes,
         loss_name=loss_name,
         loss_kwargs=loss_kwargs,
+        reduction=reduction,
     )
     return int(num_classes)
 
@@ -122,6 +128,59 @@ def freeze_encoder(model: Any, *, unfreeze_top: int = 0) -> str:
         f"encoder top {unfreeze_top}/{len(model.encoder.layers)} unfrozen "
         f"({trainable / 1e6:.0f}M trainable)"
     )
+
+
+def _change_vocabulary(model: Any, tokenizer_dir: Path, tokenizer_type: str) -> None:
+    model.change_vocabulary(
+        new_tokenizer_dir=str(Path(tokenizer_dir).resolve()),
+        new_tokenizer_type=tokenizer_type,
+    )
+
+
+def load_and_prepare_model(
+    asr_model_cls: Any,
+    model_name: str,
+    tokenizer_dir: Path,
+    args: argparse.Namespace,
+) -> Any:
+    """Load the base model, apply the chosen recipe, and configure the TDT loss."""
+    model_path = Path(model_name)
+    if model_path.exists():
+        model = asr_model_cls.restore_from(str(model_path))
+    else:
+        model = asr_model_cls.from_pretrained(model_name)
+    print(
+        f"loaded {type(model).__name__} num_extra_outputs={model.joint.num_extra_outputs}",
+        flush=True,
+    )
+    if args.recipe == "extend-restore":
+        from parakeet_finetune_core.extend_restore import (
+            restore_extended_decoder_joint,
+            snapshot_decoder_joint,
+        )
+
+        snapshot = snapshot_decoder_joint(model)
+        _change_vocabulary(model, tokenizer_dir, args.tokenizer_type)
+        info = restore_extended_decoder_joint(model, snapshot, old_vocab=args.old_vocab)
+        print(
+            f"extend-restore: old_vocab={info['old_vocab']} K={info['k']} "
+            f"new_blank={info['new_blank']} "
+            f"num_classes_with_blank={info['num_classes_with_blank']}",
+            flush=True,
+        )
+    else:
+        _change_vocabulary(model, tokenizer_dir, args.tokenizer_type)
+    num_classes = apply_loss_init_fix(model, args.reduction or None)
+    configure_fused_tdt_loss(model, args.fused_batch_size)
+    enable_eval_loss(model)
+    print(
+        f"RNNTLoss num_classes={num_classes}; fused_batch_size={args.fused_batch_size}; "
+        f"compute_eval_loss={model.compute_eval_loss}",
+        flush=True,
+    )
+    if args.freeze_encoder or args.unfreeze_top > 0:
+        print(freeze_encoder(model, unfreeze_top=args.unfreeze_top), flush=True)
+    return model
 
 
 def train_ds(manifest: Path, max_dur: float, batch_dur: float, num_workers: int) -> dict[str, Any]:
@@ -192,6 +251,7 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
     parser.add_argument("--max-steps", type=int, default=100_000)
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--optim", default="adamw", help="adamw | adafactor")
+    parser.add_argument("--reduction", default="", help="rnnt reduction override; empty=model cfg")
     parser.add_argument("--warmup", type=int, default=2000)
     parser.add_argument("--val-every", type=int, default=2000)
     parser.add_argument("--log-every", type=int, default=50)
@@ -201,6 +261,26 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
     parser.add_argument("--freeze-encoder", action="store_true")
     parser.add_argument("--unfreeze-top", type=int, default=0)
     parser.add_argument("--fused-batch-size", type=int, default=2)
+    parser.add_argument(
+        "--recipe",
+        choices=["simple", "extend-restore"],
+        default="simple",
+        help="simple: fresh tokenizer + reinit decoder/joint. "
+        "extend-restore: extend the base tokenizer and restore pretrained decoder/joint rows.",
+    )
+    parser.add_argument(
+        "--old-vocab",
+        type=int,
+        default=8192,
+        help="Base tokenizer size for extend-restore row mapping (v3 = 8192).",
+    )
+    parser.add_argument(
+        "--freeze-warmup-steps",
+        type=int,
+        default=0,
+        help="extend-restore: freeze encoder until this global step, then unfreeze "
+        "(all, or --unfreeze-top N). 0 disables the warmup callback.",
+    )
     parser.add_argument("--dry-run", action="store_true")
     return parser
 
@@ -240,29 +320,7 @@ def run(args: argparse.Namespace) -> None:
         pass
 
     ckpt_dir.mkdir(parents=True, exist_ok=True)
-    model_path = Path(model_name)
-    if model_path.exists():
-        model = ASRModel.restore_from(str(model_path))
-    else:
-        model = ASRModel.from_pretrained(model_name)
-    print(
-        f"loaded {type(model).__name__} num_extra_outputs={model.joint.num_extra_outputs}",
-        flush=True,
-    )
-    model.change_vocabulary(
-        new_tokenizer_dir=str(Path(tokenizer_dir).resolve()),
-        new_tokenizer_type=args.tokenizer_type,
-    )
-    num_classes = apply_loss_init_fix(model)
-    configure_fused_tdt_loss(model, args.fused_batch_size)
-    enable_eval_loss(model)
-    print(
-        f"RNNTLoss num_classes={num_classes}; fused_batch_size={args.fused_batch_size}; "
-        f"compute_eval_loss={model.compute_eval_loss}",
-        flush=True,
-    )
-    if args.freeze_encoder or args.unfreeze_top > 0:
-        print(freeze_encoder(model, unfreeze_top=args.unfreeze_top), flush=True)
+    model = load_and_prepare_model(ASRModel, model_name, tokenizer_dir, args)
 
     checkpoint_train = ModelCheckpoint(
         dirpath=str(ckpt_dir),
@@ -277,6 +335,23 @@ def run(args: argparse.Namespace) -> None:
     checkpoint_val = ModelCheckpoint(
         **validation_checkpoint_config(ckpt_dir),
     )
+    callbacks: list[Any] = [
+        checkpoint_train,
+        checkpoint_val,
+        TrainLogger(run_dir / "train_log.jsonl", args.log_every),
+        ValLogger(run_dir / "val_log.jsonl"),
+    ]
+    if args.recipe == "extend-restore" and args.freeze_warmup_steps > 0:
+        from parakeet_finetune_core.extend_restore import make_freeze_warmup_callback
+
+        callbacks.append(
+            make_freeze_warmup_callback(args.freeze_warmup_steps, args.unfreeze_top)
+        )
+        print(
+            f"freeze-warmup enabled: encoder frozen until step {args.freeze_warmup_steps} "
+            f"(unfreeze_top={args.unfreeze_top})",
+            flush=True,
+        )
     trainer = pl.Trainer(
         devices=1,
         accelerator="gpu",
@@ -289,12 +364,7 @@ def run(args: argparse.Namespace) -> None:
         enable_checkpointing=True,
         logger=False,
         enable_progress_bar=False,
-        callbacks=[
-            checkpoint_train,
-            checkpoint_val,
-            TrainLogger(run_dir / "train_log.jsonl", args.log_every),
-            ValLogger(run_dir / "val_log.jsonl"),
-        ],
+        callbacks=callbacks,
     )
     model.set_trainer(trainer)
     config = OmegaConf.create(
