@@ -29,14 +29,17 @@ COMMONVOICE: dict[str, str] = {}
 #: name -> (repo, text_column|None).
 HUGGINGFACE: dict[str, tuple[str, str | None]] = {
     "tonebooks": ("Vikhrmodels/ToneBooks", None),       # ~179 h audiobook, Apache-2.0
-    # The ESpeech org publishes 5 separate Russian ASR datasets (each its own repo + license). Take
-    # all of them: the 4 Apache ones are commercial-OK, podcasts is CC-BY-NC (personal). All are
-    # pseudo-labelled — Scribe-verify before trusting.
-    "espeech_webinars": ("ESpeech/ESpeech-webinars2", None),     # 74 GB, Apache-2.0
-    "espeech_buldjat": ("ESpeech/ESpeech-buldjat", None),        # 4.8 GB, Apache-2.0 (webdataset)
-    "espeech_upvote": ("ESpeech/ESpeech-upvote", None),          # 26 GB, Apache-2.0
-    "espeech_tuchniyzhab": ("ESpeech/ESpeech-tuchniyzhab", None),  # 27 GB, Apache-2.0
-    "espeech_podcasts": ("ESpeech/ESpeech-podcasts", None),      # 295 GB, CC-BY-NC (personal only)
+}
+
+#: ESpeech org's 5 Russian ASR datasets (each its own repo + license). They ship as split tars with
+#: per-recording <uuid>.json metadata — HF's generic loader can't pair audio<->text, so they use the
+#: dedicated espeech_source (download+extract+parse). Pseudo-labelled — Scribe-verify. name -> repo.
+ESPEECH: dict[str, str] = {
+    "espeech_webinars": "ESpeech/ESpeech-webinars2",      # 74 GB, Apache-2.0
+    "espeech_buldjat": "ESpeech/ESpeech-buldjat",         # 4.8 GB, Apache-2.0
+    "espeech_upvote": "ESpeech/ESpeech-upvote",           # 26 GB, Apache-2.0
+    "espeech_tuchniyzhab": "ESpeech/ESpeech-tuchniyzhab",  # 27 GB, Apache-2.0
+    "espeech_podcasts": "ESpeech/ESpeech-podcasts",       # 295 GB, CC-BY-NC (personal only)
 }
 
 #: PURE-SOURCE corpora needing a download+parse adapter (preferred over HF reposts for provenance):

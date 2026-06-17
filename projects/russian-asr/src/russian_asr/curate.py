@@ -17,6 +17,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from omni_curator.coverage import char_tokenizer_coverage
+from omni_curator.ingest.espeech import espeech_source
 from omni_curator.ingest.local_corpora import local_corpus_source
 from omni_curator.ingest.openslr import openslr_source
 from omni_curator.project import CuratorProject, fleurs_source, huggingface_source
@@ -42,6 +43,8 @@ PROJECT = CuratorProject(
             name: huggingface_source(repo, source=name, text_column=col, force_split="train")
             for name, (repo, col) in sources.HUGGINGFACE.items()
         },
+        # ESpeech split-tar datasets (download+extract+parse the per-recording <uuid>.json).
+        **{name: espeech_source(repo, source=name) for name, repo in sources.ESPEECH.items()},
         # Pure OpenSLR releases (Golos CC-BY-SA, RuLS public domain).
         "golos": openslr_source("114", source="golos"),  # ~1,240 h crowd+farfield
         "ruls": openslr_source("96", source="ruls"),     # ~98 h audiobooks
