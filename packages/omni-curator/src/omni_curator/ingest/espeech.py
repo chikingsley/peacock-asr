@@ -51,7 +51,11 @@ def download_espeech(repo: str, dest: Path) -> Path:
         ],
         check=True,
     )
-    parts = sorted(parts_dir.rglob("*.tar*"))
+    parts = sorted(  # exclude hf's .cache/*.metadata bookkeeping files (they also match *.tar*)
+        p
+        for p in parts_dir.rglob("*.tar*")
+        if ".cache" not in p.parts and not p.name.endswith(".metadata")
+    )
     if not parts:
         msg = f"no tar archive (*.tar*) found for {repo} under {parts_dir}"
         raise FileNotFoundError(msg)
