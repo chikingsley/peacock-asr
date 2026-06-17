@@ -27,6 +27,11 @@ Fine-tune NVIDIA **Parakeet TDT-0.6B-v3** (FastConformer + Token-and-Duration Tr
 | omni CTC 300M Tajik v3 (production) | 16.9 / **14.5** +KenLM | ~450× | multilingual base; current best |
 | our Parakeet CTC 110M (Farsi) | 17.3 | ~590× | English base, fine-tuned; ~1.3× faster than omni |
 | **Parakeet TDT 0.6B v2/v3 (NVIDIA, English/EU)** | ~6.3 avg | **~3,300×** | the speed prize — transducer + FastConformer |
+| our Parakeet TDT 110M Tajik (full-FT) | 19.0 | ~568× | English base; the validated baseline |
+| our Parakeet TDT 0.6B v3 — simple (fresh BPE) | 19.26 | — | decoder cold-start; ties the 110M |
+| our Parakeet TDT 0.6B v3 — extend/restore | 19.71 | 138× | preserves v3 decoder prior; still no win on FLEURS (see gate-log) |
+
+**Bottom line so far: all three of our Parakeet TDT fine-tunes cluster at ~19–20% FLEURS — none beats omni CTC (16.9).** FLEURS is clean read-aloud and out-of-domain for our ~92%-conversational YouTube corpus, and we never held out a conversational eval set, so the conversational question is still open. See the extend/restore gate-log entry for the full post-mortem.
 
 TDT is the architecture behind the "ridiculous RTFx" (≈3,300× batched, NVIDIA's #1 on the Open ASR leaderboard). Our CTCs are already fast (hundreds×) but TDT is ~6–10× faster *and* v3 is a stronger, multilingual 600M encoder. **Target: Tajik TDT that beats omni CTC on WER and runs at transducer speed.** (Realistic ceiling per prior art: match/beat CTC+KenLM; not a miracle.)
 
@@ -207,6 +212,48 @@ cold-start ceiling**. This is the documented trigger to pivot to the **extend-to
 recipe** (see `extend_restore_recipe.md`, codex-approved), which preserves v3's decoder prior. (A cheaper
 prior check — the `rnnt_reduction` ablation — is also on the table but the plateau-at-110M smells like
 cold-start, not loss-scaling.)
+
+### 0.6B v3 extend/restore recipe — COMPLETE (2026-06-17): no win on FLEURS, and the eval was the real lesson
+
+Ran the full extend-tokenizer + restore-decoder/joint recipe to **200k steps** (Adafactor, extended 8704-piece
+vocab, decoder/joint rows restored from v3, encoder frozen→step 2000, max-dur 12 / batch-dur 16 / fused 1 to fit
+the big-vocab RNNT-loss gradient in 12 GB; 0 OOM after the max-dur cap). Best checkpoint step-144709 (val_loss 15.636).
+
+**fp32 FLEURS-test WER (full 600 clips, cuda, RTFx 138×): 19.71%.** That is **not a win** — it's a hair *worse*
+than the simple v3 (19.26%) and the 110M (19.0%), and well off omni CTC (16.9 / 14.5 +KenLM). A 5× bigger model
+with v3's Cyrillic prior *and* the decoder prior preserved landed in the same ~19–20% cluster as everything else.
+
+**Two lessons, the second more important than the result:**
+
+1. **The val_loss "win" was an artifact — don't compare loss across tokenizers.** During the run val_loss fell
+   88.9→~15.6, which *looked* like it crushed the simple run's ~29.3 plateau. It didn't: the two runs use different
+   tokenizers (8704 extended vs BPE-1024), so the loss magnitudes are on different scales and are **not comparable**.
+   The only legitimate cross-run signal is WER on a fixed eval set. Going forward: report WER on a held-out set at
+   every checkpoint, not loss — loss is for within-run convergence only.
+
+2. **The experiment broke the eval contract, so it can't answer the real question.** The whole point of the corpus
+   was *conversational* ASR (≈215k pseudo-labeled YouTube segs, ~92% of train), but:
+   - There was **no held-out conversational dev/test**. `curator.sqlite` confirms it: `split` is `train=346,813`,
+     `dev=363`, `test=721` — and the dev/test are entirely read-aloud (Common Voice + FLEURS); **100% of YouTube is
+     in `train`**. So every number we tracked measured read-aloud, and FLEURS is clean broadcast read-speech —
+     out-of-domain for this model. 19.71% on FLEURS tells us little about the conversational target.
+   - The YouTube data is pseudo-labeled (gated `scribe_wer≤0.35`) and noisy — music/background leakage is visible
+     in the raw rows (e.g. `[موسیقی]` music tags, Perso-Arabic→Cyrillic transliteration artifacts). Noisy
+     conversational data is unlikely to move a *clean read-aloud* benchmark; clean gains likely need explicit
+     clean-speech sources (audiobook / news read-speech), not more YouTube.
+
+**Dataset structure (for the redo).** `curator.sqlite` = one flat `samples` table (347,897 rows): `id, source,
+language, text, audio_path, duration, sample_rate, split, speaker_id, citation, scribe_wer, scribe_cer, meta(JSON)`.
+Channel is captured as `source = youtube-<channel>`; **genre/category is NOT stored** (only the channel). Video id
++ segment are embedded in `id`/`audio_path` (`<channel>_<videoId>_seg####`), so video-disjoint splits are possible.
+It's trivially exportable by any split logic.
+
+**Path forward (proposed, not done):** tag the ~42 channels by category (news/podcast/film/quran/kids/…) — genre is
+per-channel today, crude but a fine start — then build **eSpeech-style train/dev/test splits per category, disjoint
+by video** (not a naive 3-way), retrain, and **measure WER on a real held-out conversational test** for all three
+models (110M, simple v3, extend v3). Only that comparison answers whether the big convo corpus + 0.6B actually helps
+in-domain. (Side note: omni CTC could likely be pushed toward NVIDIA's ~3000× RTFx in production the same way the TDT
+models were — speed isn't the blocker.)
 
 ## Risks / open questions
 
