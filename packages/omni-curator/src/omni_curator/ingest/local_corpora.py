@@ -71,26 +71,29 @@ def load_ru_open_stt(path: Path, *, language: str, source: str = "ru_open_stt") 
 
     Each ``<subset>/.../<id>.opus`` (or ``.wav``) sits beside its transcript ``<id>.txt``. Clips w/
     no transcript, or not yet on disk (a partly-extracted archive), are skipped. The subset name
-    (first path component) is kept in ``meta`` for per-domain filtering later.
+    (first path component) is kept in ``meta`` for per-domain filtering later. Walked lazily (no
+    ``sorted()``) so a multi-million-clip corpus never materializes its paths in memory.
     """
-    for ext in _OPEN_STT_AUDIO:
-        for audio in sorted(path.rglob(f"*{ext}")):
-            text = _read_text_file(audio.with_suffix(".txt"))
-            if not text:
-                continue
-            rel = audio.relative_to(path)
-            yield Sample(
-                id=f"{source}_{_slug(str(rel.with_suffix('')))}",
-                source=source,
-                language=language,
-                text=text,
-                audio_path=str(audio),
-                duration=0.0,  # set when process resamples
-                sample_rate=0,
-                split="train",
-                citation="github.com/snakers4/open_stt",
-                meta={"subset": rel.parts[0] if rel.parts else None},
-            )
+    audio_exts = set(_OPEN_STT_AUDIO)
+    for audio in path.rglob("*"):
+        if audio.suffix.lower() not in audio_exts or not audio.is_file():
+            continue
+        text = _read_text_file(audio.with_suffix(".txt"))
+        if not text:
+            continue
+        rel = audio.relative_to(path)
+        yield Sample(
+            id=f"{source}_{_slug(str(rel.with_suffix('')))}",
+            source=source,
+            language=language,
+            text=text,
+            audio_path=str(audio),
+            duration=0.0,  # set when process resamples
+            sample_rate=0,
+            split="train",
+            citation="github.com/snakers4/open_stt",
+            meta={"subset": rel.parts[0] if rel.parts else None},
+        )
 
 
 # -- sova_dataset -------------------------------------------------------------------------------
