@@ -76,18 +76,16 @@ def download_espeech(repo: str, dest: Path) -> Path:
     return dest
 
 
-def _segment_clip(meta: Path, uuid: str, seg: dict[str, object]) -> Path | None:
-    """Resolve a segment's mp3: ``file_name`` if given, else ``<uuid>_<int(index)>.mp3``."""
+def _segment_clip(meta: Path, uuid: str, position: int, seg: dict[str, object]) -> Path:
+    """Resolve a segment's mp3: ``file_name`` if given, else ``<uuid>_<position>.mp3``.
+
+    Clips are numbered by the segment's POSITION in the json array (0..N-1), NOT its ``index`` field
+    — ``index`` is an original-recording marker that can repeat within a recording.
+    """
     file_name = seg.get("file_name")
     if file_name:
         return meta.parent / Path(str(file_name)).name
-    index = seg.get("index")
-    if index is None:
-        return None
-    try:
-        return meta.parent / f"{uuid}_{int(str(index))}.mp3"
-    except ValueError:
-        return None
+    return meta.parent / f"{uuid}_{position}.mp3"
 
 
 def load_espeech(root: Path, *, language: str, source: str) -> Iterator[Sample]:
@@ -106,15 +104,15 @@ def load_espeech(root: Path, *, language: str, source: str) -> Iterator[Sample]:
             continue
         if not isinstance(segments, list):
             continue
-        for seg in segments:
+        for position, seg in enumerate(segments):
             if not isinstance(seg, dict):
                 continue
             text = str(seg.get("text") or "").strip()
-            clip = _segment_clip(meta, uuid, seg)
-            if not text or clip is None or not clip.exists():
+            clip = _segment_clip(meta, uuid, position, seg)
+            if not text or not clip.exists():
                 continue
             yield Sample(
-                id=f"{source}_{uuid}_{clip.stem.rsplit('_', 1)[-1]}",
+                id=f"{source}_{uuid}_{position}",  # position is unique per recording
                 source=source,
                 language=language,
                 text=text,
