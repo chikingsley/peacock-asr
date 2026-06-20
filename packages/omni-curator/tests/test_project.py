@@ -86,7 +86,8 @@ def test_heldout_none_is_empty_but_missing_path_fails_fast(project, tmp_path):
 def test_ingest_choices_derive_from_the_registry(project):
     parser = build_parser(project)
     args = parser.parse_args(["ingest", "fleurs"])
-    assert args.dataset == "fleurs"
+    assert args.dataset == ["fleurs"]  # nargs="*": one or more sources
+    assert parser.parse_args(["ingest", "fleurs", "fleurs"]).dataset == ["fleurs", "fleurs"]
     with pytest.raises(SystemExit):  # not registered on this project
         parser.parse_args(["ingest", "commonvoice"])
 
