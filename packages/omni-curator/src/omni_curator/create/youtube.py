@@ -8,6 +8,7 @@ YouTube's signature challenge — we use Deno (sandboxed). Needs the ``youtube``
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -42,6 +43,24 @@ class YoutubeAudio:
     audio_path: Path
     title: str
     url: str
+
+
+#: Containerized yt-dlp for VPN lanes: runs inside a gluetun container's network namespace so the
+#: download egresses through the VPN's clean IP instead of the host (which YouTube may bot-block).
+#: This image already ships ``deno`` (for the YouTube JS challenge), ``ffmpeg``, and ``python``, so
+#: the exact same deno-bundled yt-dlp args run unchanged inside it. The image's entrypoint *is*
+#: ``yt-dlp``, so the in-container argv is the bare ``--remote-components ...`` flags (no
+#: ``python -m yt_dlp`` prefix). ``deno`` lives at ``/usr/bin/deno`` in the image.
+YTDLP_LANE_IMAGE = "jauderho/yt-dlp:latest"
+_LANE_DENO = "/usr/bin/deno"
+
+
+def _ytdlp_yt_args() -> list[str]:
+    """The deno-bundled yt-dlp flags (no program prefix), for the in-container invocation."""
+    return [
+        "--remote-components", "ejs:github",
+        "--js-runtimes", f"deno:{_LANE_DENO}",
+    ]
 
 
 def _ytdlp_base() -> list[str]:
@@ -112,6 +131,34 @@ def list_channel_videos(channel_url: str, *, limit: int | None = None) -> list[s
     return [line.strip() for line in out.stdout.splitlines() if line.strip()]
 
 
+def _lane_docker_prefix(lane: str, out_dir: Path, cookies: Path | None) -> list[str]:
+    """``docker run`` prefix that runs yt-dlp inside gluetun container ``lane``'s netns.
+
+    The container borrows the VPN container's network namespace (``--network=container:<lane>``) so
+    the download egresses through the VPN's clean IP. The output dir and cookies are bind-mounted
+    at their **resolved real paths** (the project data dir is a symlink into ``/mnt/overflow``; only
+    the real target is mounted), and the yt-dlp flags are built against those same paths — so
+    ``--download-archive``, ``-o``, and ``--cookies`` resolve identically in and out of the
+    container, and files / the archive / ``<id>.flac`` naming land in the same place as a host run.
+    ``--user`` + a writable ``HOME`` (pointed at the mounted out_dir) make the output files
+    ``simon:simon`` on ``/mnt/overflow`` and give deno a place for its cache. Cookies are mounted
+    read-write because yt-dlp rewrites the jar on exit.
+    """
+    real_out = out_dir.resolve()
+    prefix = [
+        "docker", "run", "--rm",
+        f"--network=container:{lane}",
+        "--user", f"{os.getuid()}:{os.getgid()}",
+        "-e", f"HOME={real_out}",
+        "-v", f"{real_out}:{real_out}",
+    ]
+    if cookies is not None:
+        real_cookies = cookies.resolve()
+        prefix += ["-v", f"{real_cookies}:{real_cookies}"]
+    prefix.append(YTDLP_LANE_IMAGE)
+    return prefix
+
+
 def download_channel(
     channel_url: str,
     *,
@@ -119,6 +166,7 @@ def download_channel(
     limit: int | None = None,
     sleep: float = 1.0,
     cookies: Path | None = None,
+    lane: str | None = None,
 ) -> ChannelDownload:
     """Download a channel's videos as 16 kHz mono FLAC into ``out_dir`` (resumable, skip-existing).
 
@@ -128,13 +176,23 @@ def download_channel(
     between requests keeps YouTube from rate-limiting / bot-blocking the session (too many fast
     parallel requests trigger "Sign in to confirm you're not a bot"). ``cookies`` is an optional
     Netscape cookies.txt (e.g. exported from a logged-in browser) — yt-dlp's official fix for the
-    bot-check; passed via ``--cookies`` when supplied. Returns the file count and a header-only
-    duration tally so a caller can see how many hours landed.
+    bot-check; passed via ``--cookies`` when supplied. ``lane`` is an optional gluetun container
+    name (e.g. ``gluetun-lane1``): when given, yt-dlp runs inside that container's network namespace
+    so the download egresses through a clean VPN IP instead of the (possibly bot-blocked) host IP;
+    when absent, the download runs on the host exactly as before. Returns the file count and a
+    header-only duration tally so a caller can see how many hours landed.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
-    cmd = [
-        *_ytdlp_base(),
-        "--download-archive", str(out_dir / "downloaded.txt"),
+    # In a lane run only the *resolved* real paths are bind-mounted into the container (the project
+    # data dir is a symlink into /mnt/overflow), so build the file-path flags against those. A host
+    # run uses the paths as given — behaviorally identical, since the symlink resolves locally.
+    flag_dir = out_dir.resolve() if lane is not None else out_dir
+    flag_cookies = (
+        cookies.resolve() if (lane is not None and cookies is not None) else cookies
+    )
+    # yt-dlp flags, identical for host and lane runs; only the *program prefix* differs.
+    yt_flags = [
+        "--download-archive", str(flag_dir / "downloaded.txt"),
         "--ignore-errors",
         # Throttle so YouTube doesn't rate-limit / bot-block us — the two official sleep knobs:
         # --sleep-requests delays metadata extraction, --sleep-interval/--max delays each download.
@@ -142,13 +200,18 @@ def download_channel(
         "--sleep-interval", str(sleep), "--max-sleep-interval", str(round(sleep * 3, 1)),
         "--retries", "10", "--extractor-retries", "5",
         *_AUDIO_TO_16K_FLAC,
-        "-o", str(out_dir / "%(id)s.%(ext)s"),
+        "-o", str(flag_dir / "%(id)s.%(ext)s"),
     ]
-    if cookies is not None:
-        cmd += ["--cookies", str(cookies)]
+    if flag_cookies is not None:
+        yt_flags += ["--cookies", str(flag_cookies)]
     if limit is not None:
-        cmd += ["--playlist-end", str(limit)]
-    cmd.append(channel_url)
+        yt_flags += ["--playlist-end", str(limit)]
+    yt_flags.append(channel_url)
+
+    if lane is None:  # host run — unchanged behavior
+        cmd = [*_ytdlp_base(), *yt_flags]
+    else:  # VPN lane — same deno-bundled yt-dlp args, but inside the container's netns
+        cmd = [*_lane_docker_prefix(lane, out_dir, cookies), *_ytdlp_yt_args(), *yt_flags]
     # --ignore-errors makes yt-dlp continue past bad videos and can exit non-zero; don't treat
     # that as fatal — the per-file results on disk are the source of truth.
     subprocess.run(cmd, check=False)  # noqa: S603

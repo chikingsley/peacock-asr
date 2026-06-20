@@ -218,7 +218,15 @@ def cmd_download(project: CuratorProject, args: argparse.Namespace) -> int:
 
     from omni_curator.create.youtube import download_channel
 
-    cookies = project.cookies_path if project.cookies_path.exists() else None
+    cookies_override = Path(args.cookies) if getattr(args, "cookies", None) else None
+    cookies = cookies_override or (
+        project.cookies_path if project.cookies_path.exists() else None
+    )
+    if cookies is not None and not cookies.exists():
+        raise SystemExit(f"cookies file not found: {cookies}")
+    lane = getattr(args, "lane", None)
+    if lane:
+        print(f"   routing downloads through VPN lane {lane}")
     channels = project.selected_channels(args)
     total_hours = 0.0
     done = 0
@@ -231,7 +239,8 @@ def cmd_download(project: CuratorProject, args: argparse.Namespace) -> int:
                 break
         print(f"== {ch.slug} ({ch.tier}): {ch.url}")
         result = download_channel(
-            ch.url, out_dir=project.create_dir / ch.slug, limit=args.limit, cookies=cookies
+            ch.url, out_dir=project.create_dir / ch.slug, limit=args.limit,
+            cookies=cookies, lane=lane,
         )
         total_hours += result.hours
         done += 1
@@ -596,6 +605,12 @@ def _add_source_parsers(sub: argparse._SubParsersAction, project: CuratorProject
     _add_channel_args(p_dl, project)
     p_dl.add_argument("--disk-guard", type=int, metavar="GB",
                       help="stop before a channel if free space on the data fs drops below GB")
+    p_dl.add_argument("--lane", metavar="GLUETUN_CONTAINER",
+                      help="egress through a gluetun VPN container's clean IP (e.g. gluetun-lane1)"
+                           " instead of the host IP — for bot-blocked channels")
+    p_dl.add_argument("--cookies", metavar="PATH",
+                      help="Netscape cookies.txt to use (default: the project's youtube_cookies.txt"
+                           " when present)")
     p_dl.set_defaults(func=cmd_download)
 
     p_ck = sub.add_parser("cookies", help="refresh youtube_cookies.txt from the browser profile")
