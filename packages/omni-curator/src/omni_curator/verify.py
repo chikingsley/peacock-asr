@@ -32,13 +32,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 from omni_curator.benchmark import dominant_script, normalize, score_pair
-from omni_curator.create.transcribe import (
-    ScribeError,
-    default_key,
-    make_scribe_fns,
-    raise_for_scribe_error,
-    renew_scribe_key,
-)
+from omni_curator.create.transcribe import make_scribe_fns, raise_for_scribe_error
 
 #: Human-readable script names for the transliteration prompt, by FLORES script code.
 _SCRIPT_NAMES = {
@@ -60,7 +54,7 @@ _state = _ThreadState()
 
 def _text_client() -> SuperwhisperClient:
     if _state.client is None:
-        from superwhisper_api.text.client import SuperwhisperClient
+        from omni_curator.swservice import SuperwhisperClient
 
         _state.client = SuperwhisperClient()
     return _state.client
@@ -68,11 +62,10 @@ def _text_client() -> SuperwhisperClient:
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
 
-    from superwhisper_api.audio.transcribe import ProcessFn
-    from superwhisper_api.text.client import SuperwhisperClient
-
+    from omni_curator.create.transcribe import ScribeFn
     from omni_curator.sample import Sample
     from omni_curator.store import CuratorStore
+    from omni_curator.swservice import SuperwhisperClient
 
 
 @dataclass
@@ -144,20 +137,20 @@ def _pending(store: CuratorStore, *, key: str | None, force: bool) -> tuple[list
     return scoreable, unscoreable
 
 
-def _score_one(sample: Sample, scribe_fn: ProcessFn) -> dict[str, object]:
+def _score_one(sample: Sample, scribe_fn: ScribeFn) -> dict[str, object]:
     """Run one Scribe pass over a clip and score its label against the hypothesis.
 
     Returns the ``meta["scribe"]`` detail dict: ``wer``/``cer``, the word/char S/D/I/H breakdown,
     the Scribe ``hypothesis`` text, plus the ``reference`` label. Raises on a Scribe / audio error
-    (the superwhisper fn returns a ``Failure`` whose dict carries ``error`` but no ``transcript``) —
-    the caller turns the raised error into a counted failure rather than scoring an empty string.
+    (the service returns a result dict carrying ``error`` but no ``transcript``) — the caller turns
+    the raised error into a counted failure rather than scoring an empty string.
 
     A hypothesis in a different script than the label (Scribe rendering Tajik speech in
     Perso-Arabic) is transliterated to the label's script first — WER across scripts compares
     alphabets, not speech. The raw hypothesis is preserved as ``hypothesis_raw``.
     """
-    # The superwhisper process fn takes a Path, not a str.
-    result = scribe_fn(Path(sample.audio_path)).as_dict()
+    # The scribe fn takes a Path and returns the service result dict.
+    result = scribe_fn(Path(sample.audio_path))
     raise_for_scribe_error(result)
     if "transcript" not in result:
         raise RuntimeError("scribe returned no transcript")
@@ -197,7 +190,6 @@ def verify_store(
     workers: int = 100,
     force: bool = False,
     breaker_threshold: int = 50,
-    max_renewals: int = 3,
 ) -> VerifyStats:
     """Score every (un-scored) clip's label against a fresh Scribe pass; persist the full result.
 
@@ -210,15 +202,12 @@ def verify_store(
     ``scribe_language`` selects the Scribe language setting; ``None`` -> ``"auto"`` (detect /
     code-switch). NOTE: for languages Scribe can render in more than one script (Tajik -> Cyrillic
     vs Persian-Arabic), ``auto`` makes WER meaningless — force the Scribe ISO code that matches the
-    stored labels' script. ``key`` resolves via the default key chain when not passed.
+    stored labels' script. ``key`` filters the store to ``source == key`` when passed.
 
-    Failure policy (the run must be impossible to turn into a request spray):
-    - an auth error (dead key) triggers an in-run key renewal via the Superwhisper proxy, at most
-      ``max_renewals`` times. Every call is tagged with the key generation it ran under, so a
-      stale in-flight failure from before a renewal is just counted — only a failure of the
-      CURRENT key can trigger the next renewal or the abort;
-    - ``breaker_threshold`` consecutive non-auth failures abort the run (queued work cancelled).
-    An aborted run loses nothing: failed clips stay un-scored and the next run picks them up.
+    Failure policy: the deployed service owns ASR key rotation, so there is no in-run key
+    renewal here. ``breaker_threshold`` consecutive failures abort the run (queued work
+    cancelled). An aborted run loses nothing: failed clips stay un-scored and the next run
+    picks them up.
     """
     from tqdm import tqdm
 
@@ -229,17 +218,10 @@ def verify_store(
         return stats
 
     lang = scribe_language or "auto"
-    # Mutable holder: workers read fn+generation at call time, so a renewal applies to every
-    # task not yet started, and each failure carries the generation it actually ran under.
-    holder = _FnHolder(make_scribe_fns(key=default_key(), langs=(lang,), model=model)[lang])
+    scribe_fn = make_scribe_fns((lang,), model=model)[lang]
 
     def _score(sample: Sample) -> dict[str, object]:
-        fn, generation = holder.fn, holder.generation
-        try:
-            return _score_one(sample, fn)
-        except ScribeError as exc:
-            exc.generation = generation
-            raise
+        return _score_one(sample, scribe_fn)
 
     wers: list[float] = []
     cers: list[float] = []
@@ -247,8 +229,8 @@ def verify_store(
     queued = iter(pending)
     with ThreadPoolExecutor(max_workers=workers) as pool:
         # Bounded in-flight window: never more than 2x workers submitted ahead of the consumer.
-        # Submitting the whole pending list upfront would let fast failures (a 401 returns in
-        # ~100 ms) race far past the breaker before the consumer loop ever sees them.
+        # Submitting the whole pending list upfront would let fast failures race far past the
+        # breaker before the consumer loop ever sees them.
         futures = {pool.submit(_score, s): s for s in _take(queued, workers * 2)}
         progress = tqdm(total=len(pending), desc="scribe-verify", unit="clip")
         while futures:
@@ -259,16 +241,15 @@ def verify_store(
                 try:
                     detail = future.result()
                 except Exception as exc:  # noqa: BLE001 — counted; the breaker bounds the damage
-                    consecutive = _handle_failure(
-                        exc, sample, stats=stats, holder=holder, pool=pool, lang=lang,
-                        model=model, consecutive=consecutive,
-                        breaker_threshold=breaker_threshold, max_renewals=max_renewals,
-                        notify=progress.write,
-                    )
+                    stats.failed += 1
+                    stats.failures.append((sample.id, f"{type(exc).__name__}: {exc}"))
+                    consecutive += 1
+                    if consecutive >= breaker_threshold:
+                        _abort(pool, f"{consecutive} consecutive failures", stats, exc)
                     continue
                 consecutive = 0
                 _record_score(store, stats, sample, detail, wers, cers)
-            # Refill AFTER processing, so a renewal/abort decision never races extra submissions.
+            # Refill AFTER processing, so an abort decision never races extra submissions.
             for nxt in _take(queued, len(finished)):
                 futures[pool.submit(_score, nxt)] = nxt
         progress.close()
@@ -276,52 +257,6 @@ def verify_store(
     stats.wer = _distribution(wers)
     stats.cer = _distribution(cers)
     return stats
-
-
-@dataclass
-class _FnHolder:
-    """The live Scribe fn + its key generation; swapped in place on renewal."""
-
-    fn: ProcessFn
-    generation: int = 0
-
-
-def _handle_failure(
-    exc: Exception,
-    sample: Sample,
-    *,
-    stats: VerifyStats,
-    holder: _FnHolder,
-    pool: ThreadPoolExecutor,
-    lang: str,
-    model: str,
-    consecutive: int,
-    breaker_threshold: int,
-    max_renewals: int,
-    notify: Callable[[str], None],
-) -> int:
-    """Account one failed clip; renew the key / abort as policy demands.
-
-    Returns the updated consecutive-failure count. An auth failure from a PREVIOUS key
-    generation is a stale in-flight call — counted as failed, otherwise ignored. An auth
-    failure of the current generation renews (capped at ``max_renewals``) or aborts.
-    """
-    stats.failed += 1
-    stats.failures.append((sample.id, f"{type(exc).__name__}: {exc}"))
-    if isinstance(exc, ScribeError) and exc.auth:
-        if exc.generation < holder.generation:
-            return consecutive  # stale in-flight call from before the renewal
-        if stats.renewals >= max_renewals:
-            _abort(pool, f"key renewal exhausted ({stats.renewals}x)", stats, exc)
-        notify(f"auth failure — renewing key ({stats.renewals + 1})")
-        holder.fn = make_scribe_fns(key=renew_scribe_key(), langs=(lang,), model=model)[lang]
-        holder.generation += 1
-        stats.renewals += 1
-        return 0
-    consecutive += 1
-    if consecutive >= breaker_threshold:
-        _abort(pool, f"{consecutive} consecutive failures", stats, exc)
-    return consecutive
 
 
 def _take(source: Iterator[Sample], n: int) -> list[Sample]:

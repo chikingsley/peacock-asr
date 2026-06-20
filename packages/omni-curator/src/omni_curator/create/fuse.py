@@ -16,7 +16,7 @@ import re
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from superwhisper_api.text.client import SuperwhisperClient
+    from omni_curator.swservice import SuperwhisperClient
 
 DEFAULT_MODEL = "claude-sonnet-4-6"
 
@@ -48,7 +48,7 @@ _TRANSLITERATE_INSTRUCTION = (
 
 def default_client() -> SuperwhisperClient:
     """A SuperWhisper text client (free inference) for the LLM fusion steps."""
-    from superwhisper_api.text.client import SuperwhisperClient
+    from omni_curator.swservice import SuperwhisperClient
 
     return SuperwhisperClient()
 
@@ -82,9 +82,9 @@ def compile_down(
     body = "\n".join(f"[hypothesis {i + 1}] {v}" for i, v in enumerate(cleaned))
     prompt = (instruction or _COMPILE_INSTRUCTION).format(lang=language, script=script)
     response = client.generate(
-        model, [{"role": "user", "content": f"{prompt}\n\n{body}"}], max_tokens=max_tokens
+        [{"role": "user", "content": f"{prompt}\n\n{body}"}], model=model, max_tokens=max_tokens
     )
-    return extract_transcript(response.text)
+    return extract_transcript(response)
 
 
 def transliterate(
@@ -111,8 +111,10 @@ def transliterate(
     if client is None:
         client = default_client()
     prompt = _TRANSLITERATE_INSTRUCTION.format(lang=language, script=script, text=stripped)
-    response = client.generate(model, [{"role": "user", "content": prompt}], max_tokens=max_tokens)
-    result = extract_transcript(response.text)
+    response = client.generate(
+        [{"role": "user", "content": prompt}], model=model, max_tokens=max_tokens
+    )
+    result = extract_transcript(response)
     if not result.strip():
         msg = "transliteration returned no <transcript> content"
         raise RuntimeError(msg)

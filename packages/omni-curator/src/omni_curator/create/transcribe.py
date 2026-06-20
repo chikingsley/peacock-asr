@@ -1,19 +1,28 @@
 """Scribe ensemble: transcribe one clip several ways for the compile-down to fuse.
 
-Each clip is sent to ElevenLabs Scribe under several language settings (e.g. ``auto`` to
-code-switch, plus the target language to force it) and/or repeated runs, so cross-language
-differences and run-to-run variance are both visible to ``fuse.compile_down``.
+Each clip is sent to the deployed ASR service (ElevenLabs Scribe behind it) under several
+language settings (e.g. ``auto`` to code-switch, plus the target language to force it) and/or
+repeated runs, so cross-language differences and run-to-run variance are both visible to
+``fuse.compile_down``.
+
+The service owns ASR key rotation, so there is NO ElevenLabs key handling here: a "scribe fn"
+is just a bound :func:`omni_curator.swservice.transcribe_file` call (one language setting), and
+:class:`ScribeError` is raised when the service reports a failure for one clip.
 """
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import TYPE_CHECKING
+
+from omni_curator.swservice import transcribe_file
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
     from pathlib import Path
 
-    from superwhisper_api.audio.transcribe import ProcessFn
+#: A bound single-language transcription function: a clip path -> the service ``result`` dict.
+ScribeFn = Callable[["Path"], dict[str, object]]
 
 #: Default ensemble: a single auto-detect / code-switching pass. Callers usually add the
 #: target language code, e.g. ``("auto", "tgk")`` or ``("auto", "fr")``.
@@ -23,13 +32,11 @@ _AUTH_ERROR_MARKERS = ("401", "unauthorized", "403", "forbidden")
 
 
 class ScribeError(RuntimeError):
-    """A Scribe call returned an error result. ``auth=True`` flags a dead/unauthorized key.
+    """A Scribe call failed for one clip.
 
-    Callers MUST treat ``auth`` errors as run-level events, never per-clip noise: renew the
-    key (:func:`renew_scribe_key`) or abort. Retrying a dead key thousands of times is how
-    a key source gets burned. ``generation`` carries the key generation the failing call was
-    made with — consumers that renew mid-run use it to tell a stale in-flight failure (old
-    generation, already handled) from a failure of the current key.
+    The deployed service owns key rotation, so ``auth`` is informational only (it no longer
+    drives an in-process renewal): a job failure surfaces as a per-clip error that the caller
+    counts and skips. ``generation`` is retained for call-site compatibility.
     """
 
     def __init__(self, message: str, *, auth: bool = False, generation: int = 0) -> None:
@@ -47,51 +54,32 @@ def raise_for_scribe_error(result: Mapping[str, object]) -> None:
         raise ScribeError(msg, auth=any(m in lowered for m in _AUTH_ERROR_MARKERS))
 
 
-def default_key() -> str:
-    """Resolve the ElevenLabs key (env -> last self-minted key -> macOS cache -> Mac-mirror)."""
-    from superwhisper_api.auth import ensure_elevenlabs_key
-
-    return ensure_elevenlabs_key()
-
-
-def renew_scribe_key() -> str:
-    """Replace a dead batch key via the single-flight renewal in superwhisper-api.
-
-    Delegates to :func:`superwhisper_api.auth.renew_elevenlabs_batch_key` (one mint across
-    all threads; an explicit ``ELEVENLABS_API_KEY`` env override is respected by raising).
-    The minted key is persisted, so later :func:`default_key` calls — and rebuilt thread
-    fns — resolve to it without any env mutation. Raises if the proxy refuses — callers
-    must then abort, not keep calling with the dead key.
-
-    NOTE: superwhisper-api also renews transport-level (401 -> renew -> retry once), so
-    this is defense-in-depth for the curator's run-level breaker, not the first responder.
-    """
-    from superwhisper_api.auth import renew_elevenlabs_batch_key
-
-    return renew_elevenlabs_batch_key(default_key())
-
-
 def make_scribe_fns(
-    key: str,
     langs: tuple[str, ...] = DEFAULT_LANGS,
     *,
     model: str = "scribe-v2",
     diarize: bool = False,
-) -> dict[str, ProcessFn]:
-    """One bound transcription function per language setting (``auto``/``""`` -> auto-detect)."""
-    from superwhisper_api.audio.models import audio_model
-    from superwhisper_api.audio.transcribe import create_process_fn
+) -> dict[str, ScribeFn]:
+    """One bound transcription function per language setting (``auto``/``""`` -> auto-detect).
 
-    spec = audio_model(model)
-    return {
-        lang: create_process_fn(
-            spec, key, language=(None if lang in ("auto", "") else lang), diarize=diarize
-        )
-        for lang in langs
-    }
+    Each function transcribes a clip via the deployed ASR service and returns the job
+    ``result`` dict. The service owns key rotation, so no key is taken or threaded here.
+    """
+
+    def make_fn(lang: str) -> ScribeFn:
+        language = None if lang in ("auto", "") else lang
+
+        def fn(clip: Path) -> dict[str, object]:
+            return transcribe_file(
+                clip, asr_model=model, mode="single", language=language, diarize=diarize
+            )
+
+        return fn
+
+    return {lang: make_fn(lang) for lang in langs}
 
 
-def transcribe_clip(clip: Path, scribe_fns: Mapping[str, ProcessFn], *, runs: int = 1) -> list[str]:
+def transcribe_clip(clip: Path, scribe_fns: Mapping[str, ScribeFn], *, runs: int = 1) -> list[str]:
     """Run every ensemble function (``runs`` times each) over one clip; return the transcripts.
 
     Raises :class:`ScribeError` on an errored call (auth-classified) — an API failure must
@@ -100,7 +88,7 @@ def transcribe_clip(clip: Path, scribe_fns: Mapping[str, ProcessFn], *, runs: in
     variants: list[str] = []
     for fn in scribe_fns.values():
         for _ in range(runs):
-            result = fn(clip).as_dict()
+            result = fn(clip)
             raise_for_scribe_error(result)
             transcript = str(result.get("transcript") or "").strip()
             if transcript:

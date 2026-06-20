@@ -4,8 +4,8 @@ version = "0.1.0"
 description = "In-house ASR dataset curator: raw audio -> segment -> Scribe ensemble -> compile-down -> stitch -> polish -> transcript."
 requires-python = ">=3.12,<3.13"
 dependencies = [
-  # ElevenLabs Scribe + the free SuperWhisper text endpoint (compile-down / stitch / polish).
-  "superwhisper-api",
+  # ASR (Scribe) + the text endpoint (compile-down / stitch / polish) via the deployed
+  # superwhisper HTTP service — talked to over httpx from omni_curator.swservice.
   # Audio cutting/probing and the NeMo frame-VAD segmenter.
   "soundfile==0.13.1",
   "numpy==2.4.6",
@@ -51,9 +51,6 @@ dev = [
   "ruff==0.15.15",
   "ty==0.0.40",
 ]
-
-[tool.uv.sources]
-superwhisper-api = { path = "../superwhisper-api", editable = true }
 
 [build-system]
 requires = ["hatchling"]

@@ -1,8 +1,10 @@
-"""Verify breaker + key renewal: a dead key must never become a request spray.
+"""Verify breaker: a failing service must never become a request spray.
 
-Re-creates (as durable tests) the no-network simulations that validated the breaker
-(commits 584e2006, c5b4cedf): bounded calls on a dead key, in-run recovery when renewal
-fixes it, and the generic consecutive-failure abort.
+The deployed superwhisper service owns ASR key rotation, so the curator no longer renews
+ElevenLabs keys in-run (the old dead-key circuit-breaker is gone). What remains, and what these
+tests pin, is the generic consecutive-failure abort: a persistent failure (e.g. a service
+outage) trips ``breaker_threshold`` and aborts the run after FAR fewer calls than the full
+pool, and a label that normalizes to nothing never burns a call at all.
 """
 
 from __future__ import annotations
@@ -14,14 +16,6 @@ import pytest
 import omni_curator.verify as V
 from omni_curator.sample import Sample
 from omni_curator.store import CuratorStore
-
-
-class FakeResult:
-    def __init__(self, payload: dict):
-        self._payload = payload
-
-    def as_dict(self) -> dict:
-        return self._payload
 
 
 def _seed(tmp_path, name: str, n: int) -> CuratorStore:
@@ -36,45 +30,33 @@ def _seed(tmp_path, name: str, n: int) -> CuratorStore:
     return store
 
 
-def test_dead_key_aborts_with_bounded_calls(tmp_path):
-    """Renewal never helps -> abort after max_renewals, having called FAR fewer than all rows."""
-    calls = {"n": 0}
+def test_healthy_run_scores_everything(tmp_path):
+    """A service that always succeeds scores every pending clip, no aborts."""
 
-    def dead_fn(path):
-        calls["n"] += 1
-        return FakeResult({"error": "Client error '401 Unauthorized' for url x"})
+    def good_fn(path):
+        return {"transcript": "салом дӯстон"}
 
-    store = _seed(tmp_path, "dead.sqlite", 400)
-    with mock.patch.object(V, "make_scribe_fns", return_value={"auto": dead_fn}), \
-         mock.patch.object(V, "renew_scribe_key", return_value="sk_new"), \
-         mock.patch.object(V, "default_key", return_value="sk_old"), \
-         pytest.raises(RuntimeError, match="renewal exhausted"):
-        V.verify_store(store, workers=10, max_renewals=2)
-    assert calls["n"] < 400, f"sprayed {calls['n']} calls at a dead key"
+    store = _seed(tmp_path, "good.sqlite", 120)
+    with mock.patch.object(V, "make_scribe_fns", return_value={"auto": good_fn}):
+        stats = V.verify_store(store, workers=10)
+    assert stats.scored == 120
+    assert stats.failed == 0
     store.close()
 
 
-def test_renewal_recovers_mid_run(tmp_path):
-    """Key dies, renewal fixes it -> the run completes and everything gets scored."""
-    state = {"key": "dead"}
+def test_persistent_failure_aborts_with_bounded_calls(tmp_path):
+    """A failing service trips the consecutive-failure breaker after far fewer calls than rows."""
+    calls = {"n": 0}
 
-    def flaky_fn(path):
-        if state["key"] == "dead":
-            return FakeResult({"error": "401 Unauthorized"})
-        return FakeResult({"transcript": "салом дӯстон"})
+    def broken_fn(path):
+        calls["n"] += 1
+        return {"error": "503 Service Unavailable"}
 
-    def renew():
-        state["key"] = "fresh"
-        return "sk_new"
-
-    store = _seed(tmp_path, "flaky.sqlite", 120)
-    with mock.patch.object(V, "make_scribe_fns", return_value={"auto": flaky_fn}), \
-         mock.patch.object(V, "renew_scribe_key", renew), \
-         mock.patch.object(V, "default_key", return_value="sk_old"):
-        stats = V.verify_store(store, workers=10, max_renewals=3)
-    assert stats.renewals == 1
-    assert stats.scored > 0
-    assert stats.scored + stats.failed == 120  # every row accounted for
+    store = _seed(tmp_path, "broken.sqlite", 400)
+    with mock.patch.object(V, "make_scribe_fns", return_value={"auto": broken_fn}), \
+         pytest.raises(RuntimeError, match="consecutive failures"):
+        V.verify_store(store, workers=10, breaker_threshold=50)
+    assert calls["n"] < 400, f"sprayed {calls['n']} calls at a dead service"
     store.close()
 
 
@@ -83,11 +65,10 @@ def test_consecutive_nonauth_failures_trip_the_breaker(tmp_path):
 
     def broken_fn(path):
         calls["n"] += 1
-        return FakeResult({"error": "ffmpeg exploded"})
+        return {"error": "ffmpeg exploded"}
 
-    store = _seed(tmp_path, "broken.sqlite", 400)
+    store = _seed(tmp_path, "ffmpeg.sqlite", 400)
     with mock.patch.object(V, "make_scribe_fns", return_value={"auto": broken_fn}), \
-         mock.patch.object(V, "default_key", return_value="sk"), \
          pytest.raises(RuntimeError, match="consecutive failures"):
         V.verify_store(store, workers=10, breaker_threshold=50)
     assert calls["n"] < 400
@@ -100,7 +81,7 @@ def test_unscoreable_labels_skipped_without_any_call(tmp_path):
 
     def fn(path):
         calls["n"] += 1
-        return FakeResult({"transcript": "x"})
+        return {"transcript": "x"}
 
     store = CuratorStore(tmp_path / "junk.sqlite")
     store.upsert(
@@ -111,8 +92,7 @@ def test_unscoreable_labels_skipped_without_any_call(tmp_path):
                    audio_path="/nonexistent/j1.flac", duration=2.0, sample_rate=16_000),
         ]
     )
-    with mock.patch.object(V, "make_scribe_fns", return_value={"auto": fn}), \
-         mock.patch.object(V, "default_key", return_value="sk"):
+    with mock.patch.object(V, "make_scribe_fns", return_value={"auto": fn}):
         stats = V.verify_store(store, workers=2)
     assert calls["n"] == 0
     assert stats.unscoreable == 2
