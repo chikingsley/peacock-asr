@@ -34,9 +34,10 @@ def main() -> int:
 
     import torch
     from omni_curator.process import normalize
+    from omnilingual_asr.models.inference.pipeline import ASRInferencePipeline
+
     from omni_finetune_core.metrics import compute_measures
     from omni_finetune_core.project import _load_test
-    from omnilingual_asr.models.inference.pipeline import ASRInferencePipeline
 
     audio, refs, corpora, _ = _load_test(args.version_root, args.language, 0, 40.0)
     if args.limit:

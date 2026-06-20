@@ -86,6 +86,7 @@ runtime-evaluated-base-classes = ["pydantic.BaseModel"]
 # The per-language project CLI: prints are its output; torch/omnilingual_asr/presets import
 # lazily so `--help` and config-building stay instant.
 "src/omni_finetune_core/project.py" = ["T201", "PLC0415"]
+"src/omni_finetune_core/bench_llm.py" = ["T201", "PLC0415"]  # benchmark CLI: prints; lazy heavy imports
 "tests/**" = ["S101", "PLR2004", "ANN", "ARG001", "INP001", "N812", "RUF001", "RUF003"]
 
 [tool.ty.environment]

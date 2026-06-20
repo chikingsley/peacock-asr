@@ -21,7 +21,7 @@ import re
 import subprocess
 import tarfile
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 from omni_curator.sample import Sample
 
@@ -76,7 +76,7 @@ def download_espeech(repo: str, dest: Path) -> Path:
     return dest
 
 
-def _segment_clip(meta: Path, uuid: str, position: int, seg: dict[str, object]) -> Path:
+def _segment_clip(meta: Path, uuid: str, position: int, seg: dict[str, Any]) -> Path:
     """Resolve a segment's mp3: ``file_name`` if given, else ``<uuid>_<position>.mp3``.
 
     Clips are numbered by the segment's POSITION in the json array (0..N-1), NOT its ``index`` field
@@ -104,9 +104,10 @@ def load_espeech(root: Path, *, language: str, source: str) -> Iterator[Sample]:
             continue
         if not isinstance(segments, list):
             continue
-        for position, seg in enumerate(segments):
-            if not isinstance(seg, dict):
+        for position, item in enumerate(segments):
+            if not isinstance(item, dict):
                 continue
+            seg = cast("dict[str, Any]", item)  # json values are dynamic
             text = str(seg.get("text") or "").strip()
             clip = _segment_clip(meta, uuid, position, seg)
             if not text or not clip.exists():

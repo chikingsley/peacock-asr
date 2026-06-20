@@ -41,7 +41,7 @@ class JsonlLogger(pl.Callback):
         self.every = every
         self.t0 = time.time()
 
-    def on_train_batch_end(self, trainer, pl_module, *_a) -> None:  # noqa: ANN001
+    def on_train_batch_end(self, trainer, pl_module, *_a) -> None:
         step = trainer.global_step
         if step % self.every != 0:
             return
@@ -65,7 +65,7 @@ class ValLogger(pl.Callback):
     def __init__(self, path: Path) -> None:
         self.path = path
 
-    def on_validation_epoch_end(self, trainer, _pl) -> None:  # noqa: ANN001
+    def on_validation_epoch_end(self, trainer, _pl) -> None:
         m = trainer.callback_metrics
 
         def g(k: str) -> float:

@@ -66,3 +66,4 @@ ignore = [
 "src/russian_asr/curate.py" = ["T201"]
 "src/russian_asr/omni/train.py" = ["T201"]
 "src/russian_asr/omni/eval.py" = ["T201"]
+"tests/**" = ["S101", "INP001"]  # asserts + no __init__ are standard pytest idioms

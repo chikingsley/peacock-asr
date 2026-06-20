@@ -1,2 +1,6 @@
 [build-system]
 requires = ["setuptools", "wheel", "cmake>=3.10"]
+
+[tool.ruff]
+# Vendored third-party (KenLM by Kenneth Heafield) — not our code; not linted.
+exclude = ["python", "setup.py"]

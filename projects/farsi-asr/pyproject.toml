@@ -98,6 +98,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 # Arabic letters resembling Latin are intentional Persian text; long channel-list data lines.
 "src/farsi_asr/sources.py" = ["RUF001", "RUF002", "RUF003", "E501"]
+"tests/**" = ["S101", "INP001"]  # asserts + no __init__ are standard pytest idioms
 
 [dependency-groups]
 dev = [

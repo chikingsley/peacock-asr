@@ -95,7 +95,7 @@ def main() -> int:
     # float16: halves the buffer; the decoder gets float32 casts per chunk.
     captured: list[np.ndarray] = []
 
-    def apply_and_capture(batch):  # noqa: ANN001, ANN202
+    def apply_and_capture(batch):
         layout = BatchLayout(
             batch.source_seqs.shape,
             seq_lens=batch.source_seq_lens,

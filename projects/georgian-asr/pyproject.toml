@@ -70,3 +70,6 @@ ignore = [
 "src/georgian_asr/curate.py" = ["T201"]  # the curate CLI prints
 "src/georgian_asr/omni/train.py" = ["T201"]  # the train CLI prints status
 "src/georgian_asr/omni/eval.py" = ["T201"]   # the eval CLI prints the report
+# scratch decode/LM gate scripts: stdout is the interface; not importable packages.
+"experiments/**" = ["T201", "INP001", "ANN001", "ANN202", "PLR0915", "C901", "S101", "PLR2004"]
+"tests/**" = ["S101", "INP001"]  # asserts + no __init__ are standard pytest idioms

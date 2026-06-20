@@ -43,5 +43,7 @@ vendor/
 *.sqlite-shm
 
 # ─── capt-specific ───
-artifacts/nemo_text_processing/   # generated NeMo text-processing grammars (regenerated)
-experiments/                      # regenerable scratch experiments, not source
+# generated NeMo text-processing grammars (regenerated)
+artifacts/nemo_text_processing/
+# regenerable scratch experiments, not source
+experiments/

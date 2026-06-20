@@ -48,7 +48,7 @@ def ds(manifest: Path, bs: int, max_dur: float, *, shuffle: bool) -> dict:
             "min_duration": 0.1, "max_duration": max_dur}
 
 
-def apply_loss_init_fix(model) -> None:  # noqa: ANN001  — arm B: mirror the constructor's TDT branch
+def apply_loss_init_fix(model) -> None:
     nc = model.joint.num_classes_with_blank - 1
     if model.joint.num_extra_outputs > 0:
         nc -= model.joint.num_extra_outputs

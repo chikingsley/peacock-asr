@@ -104,10 +104,17 @@ ignore = [
 # Cyrillic letters resembling Latin are intentional Tajik text.
 "src/tajik_asr/omni/eval.py" = ["RUF002"]
 "src/tajik_asr/sources.py" = ["RUF001", "RUF002", "RUF003", "E501"]  # long channel-list data lines
+"tests/**" = ["S101", "INP001"]  # asserts + no __init__ are standard pytest idioms
 # Research/diagnostic scripts (gates), not library code. Relaxed by intent:
 # ANN001/ANN202 (annotating dynamic fairseq2 module args/closures adds noise, not safety),
 # INP001 (flat run-directly script dir, not an importable package),
 # N803 (ML matrix arg names like H), S101 (asserts are deliberate sanity gates),
 # PLR2004 (inline magic numbers are clearer than named consts in throwaway probes),
-# PLR0915/C901 (single-shot main() entry points run long by nature).
-"experiments/**" = ["ANN001", "ANN202", "INP001", "N803", "S101", "PLR2004", "PLR0915", "C901"]
+# PLR0915/C901 (single-shot main() entry points run long by nature),
+# RUF001/RUF003 (legit Tajik Cyrillic flagged as ambiguous — a false alarm here),
+# E501 + the rest (argparse help / f-string prints in throwaway gate scripts).
+"experiments/**" = [
+    "ANN001", "ANN002", "ANN202", "ARG002", "C901", "E501", "E741", "F841",
+    "INP001", "N803", "PLR0915", "PLR2004", "RUF001", "RUF003", "RUF005",
+    "S101", "SIM202",
+]
