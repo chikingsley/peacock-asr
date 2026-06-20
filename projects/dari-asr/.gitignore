@@ -41,3 +41,7 @@ vendor/
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
+
+# ─── dari-specific ───
+# Regenerable scratch experiments, not source (findings folded into docs/ + sources.py)
+experiments/

@@ -64,6 +64,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "src/dari_asr/sources.py" = ["E501"]  # long channel-list data lines
+"tests/*" = ["S101", "INP001"]  # pytest asserts; tests dir is not an importable package
 "src/dari_asr/curate.py" = ["T201"]
 "src/dari_asr/omni/train.py" = ["T201"]
 "src/dari_asr/omni/eval.py" = ["T201"]
