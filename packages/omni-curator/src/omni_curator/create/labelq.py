@@ -163,7 +163,12 @@ def run_labeler(
                     time.sleep(poll_s)
                     continue
                 empty = 0
-                outcome = _process_batch(pool, worker, clips, window=workers)
+                # Only this many more consecutive failures will trip the breaker; stop the batch
+                # there instead of draining (and charging an attempt to) all `batch` clips.
+                budget = max(1, breaker_threshold - breaker.consecutive)
+                outcome = _process_batch(
+                    pool, worker, clips, window=workers, fail_budget=budget
+                )
                 labeled += queue.complete_clips(token, outcome.done)
                 for msg, clip_ids in _group_errors(outcome.failures).items():
                     queue.fail_clips(token, clip_ids, msg)
@@ -192,16 +197,31 @@ def _process_batch(
     clips: list[QClip],
     *,
     window: int,
+    fail_budget: int,
 ) -> _BatchOutcome:
-    """Stream a claimed batch through the pool with a bounded submission window."""
+    """Stream a claimed batch through the pool with a bounded submission window.
+
+    Stops submitting new clips once ``fail_budget`` consecutive failures accrue (the run breaker is
+    about to trip) — a uniform outage then charges an attempt to only the in-flight clips, not the
+    whole batch. Clips never submitted stay claimed and are reclaimed after their lease, unburnt.
+    """
     todo: deque[QClip] = deque(clips)
     futures: dict[Future[tuple[QClip, tuple[str, str, str] | None, Exception | None]], QClip] = {}
     done: list[tuple[str, str, str]] = []
     failures: list[tuple[QClip, Exception]] = []
+    consecutive = 0  # consecutive failures within this batch; a success resets it
+    blind = 0  # clips submitted before the first success (service still unproven)
     while todo or futures:
-        while todo and len(futures) < window:
+        while todo and len(futures) < window and consecutive < fail_budget:
+            # Before any success, cap TOTAL submissions at the failure budget: a uniform outage
+            # then charges ~fail_budget clips, not the whole batch. One success ramps to the full
+            # window for throughput.
+            if not done and blind >= fail_budget:
+                break
             clip = todo.popleft()
             futures[pool.submit(worker, clip)] = clip
+            if not done:
+                blind += 1
         if not futures:
             break
         finished, _ = wait(futures, return_when=FIRST_COMPLETED)
@@ -210,8 +230,12 @@ def _process_batch(
             _, result, exc = future.result()
             if exc is None and result is not None:
                 done.append(result)
+                consecutive = 0
             elif exc is not None:
                 failures.append((clip, exc))
+                consecutive += 1
+        if consecutive >= fail_budget:
+            todo.clear()  # breaker about to trip: stop claiming more, just drain in-flight
     return _BatchOutcome(done, failures)
 
 
