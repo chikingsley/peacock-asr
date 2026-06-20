@@ -51,7 +51,8 @@ PROJECT = CuratorProject(
     coverage_check=char_tokenizer_coverage(
         ROOT.parents[1] / "base_models" / "omni" / "omniASR_tokenizer_written_v2.model"
     ),
-    heldout_manifest=DATA / "heldout_test_videos.json",
+    # Tracked in the repo (NOT under the gitignored data/ symlink) so a fresh checkout can export.
+    heldout_manifest=ROOT / "manifests" / "heldout_test_videos.json",
     # The v2/v3 anti-drift recipe: lift FLEURS (true ~11.8 h) to ~12% of sampled batches.
     mixture_weights={"fleurs": 490.0},
 )
