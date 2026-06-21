@@ -71,7 +71,7 @@ def make_scribe_fns(
 
         def fn(clip: Path) -> dict[str, object]:
             return transcribe_file(
-                clip, asr_model=model, mode="single", language=language, diarize=diarize
+                clip, asr_model=model, language=language, diarize=diarize
             )
 
         return fn
