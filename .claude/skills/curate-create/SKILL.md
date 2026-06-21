@@ -6,7 +6,7 @@ description: Use when generating transcripts for raw, untranscribed audio (YouTu
 # Curate: create labels for raw audio
 
 Generate labels for audio that has **no transcript**. Pipeline per clip:
-segment → Scribe ensemble → compile-down → (stitch) → polish.
+segment → Scribe ensemble → consensus → (stitch) → polish.
 
 Two paths differ only in how audio is cut and reassembled:
 

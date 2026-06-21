@@ -9,7 +9,7 @@ ALREADY have transcripts). One module per stage, in pipeline order:
 - :mod:`~omni_curator.create.vad`        — segment: the NeMo frame-VAD model.
 - :mod:`~omni_curator.create.segment`    — segment: claim a video -> VAD -> cut clips (CPU).
 - :mod:`~omni_curator.create.transcribe` — label: the Scribe ensemble (+ key renewal).
-- :mod:`~omni_curator.create.fuse`       — label: LLM compile-down / transliteration.
+- :mod:`~omni_curator.create.fuse`       — label: LLM consensus fuse / transliteration.
 - :mod:`~omni_curator.create.labelq`     — label: the dispatcher + HTTP worker pool (I/O).
 
 Harvest (folding labeled queue clips into per-channel ``CuratorStore``s) lives in the

@@ -1,6 +1,6 @@
 """Fuse: turn raw ASR variants into finished text via the free SuperWhisper LLM endpoint.
 
-- :func:`compile_down` — fuse one clip's ensemble variants into a consensus label (generative
+- :func:`consensus_fuse` — fuse one clip's ensemble variants into a consensus label (generative
   error correction). The default prompt targets a non-Latin language and forces ``{lang}`` into
   ``{script}`` (transliterating romanized/other-script hypotheses); pass ``instruction`` to
   override it for Latin or bilingual sources.
@@ -22,7 +22,7 @@ DEFAULT_MODEL = "claude-sonnet-4-6"
 
 TRANSCRIPT_TAG = re.compile(r"<transcript>(.*?)</transcript>", re.DOTALL)
 
-_COMPILE_INSTRUCTION = (
+_CONSENSUS_INSTRUCTION = (
     "You are doing ASR consensus fusion (generative error correction). Below are several "
     "transcripts of the SAME short audio segment, produced by speech-to-text under different "
     "language settings and/or repeated runs. Produce the single most accurate transcript.\n"
@@ -59,7 +59,7 @@ def extract_transcript(text: str) -> str:
     return (match.group(1) if match else text).strip()
 
 
-def compile_down(
+def consensus_fuse(
     variants: list[str],
     *,
     language: str,
@@ -80,7 +80,7 @@ def compile_down(
     if client is None:
         client = default_client()
     body = "\n".join(f"[hypothesis {i + 1}] {v}" for i, v in enumerate(cleaned))
-    prompt = (instruction or _COMPILE_INSTRUCTION).format(lang=language, script=script)
+    prompt = (instruction or _CONSENSUS_INSTRUCTION).format(lang=language, script=script)
     response = client.generate(
         [{"role": "user", "content": f"{prompt}\n\n{body}"}], model=model, max_tokens=max_tokens
     )

@@ -1,7 +1,7 @@
 """Label stage: the I/O consumer half of the split create pipeline.
 
 One process. A single dispatcher owns the queue DB; a thread pool of ``workers`` does only the
-network work (Scribe ensemble -> compile-down), so SQLite stays single-writer while Scribe runs at
+network work (Scribe ensemble -> consensus), so SQLite stays single-writer while Scribe runs at
 the target concurrency (~200-250, the service is I/O-bound). Each thread keeps its own
 ``SuperwhisperClient`` + Scribe functions (thread-local — the clients aren't assumed thread-safe).
 
@@ -67,15 +67,15 @@ def _client() -> SuperwhisperClient:
 def _label_clip(
     clip: QClip, *, langs: tuple[str, ...], runs: int, instruction: str | None
 ) -> tuple[str, str, str]:
-    """Label one clip (Scribe ensemble -> compile-down). Returns ``(clip_id, label, variants)``."""
+    """Label one clip (Scribe ensemble -> consensus). Returns ``(clip_id, label, variants)``."""
     from pathlib import Path
 
-    from omni_curator.create.fuse import compile_down
+    from omni_curator.create.fuse import consensus_fuse
     from omni_curator.create.transcribe import transcribe_clip
 
     variants = transcribe_clip(Path(clip.clip_path), _scribe_fns(langs), runs=runs)
     label = (
-        compile_down(
+        consensus_fuse(
             variants, language=clip.language, script=clip.script,
             client=_client(), instruction=instruction,
         )

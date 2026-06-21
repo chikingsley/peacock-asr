@@ -1,9 +1,9 @@
-"""Scribe ensemble: transcribe one clip several ways for the compile-down to fuse.
+"""Scribe ensemble: transcribe one clip several ways for the consensus fuse.
 
 Each clip is sent to the deployed ASR service (ElevenLabs Scribe behind it) under several
 language settings (e.g. ``auto`` to code-switch, plus the target language to force it) and/or
 repeated runs, so cross-language differences and run-to-run variance are both visible to
-``fuse.compile_down``.
+``fuse.consensus_fuse``.
 
 The service owns ASR key rotation, so there is NO ElevenLabs key handling here: a "scribe fn"
 is just a bound :func:`omni_curator.swservice.transcribe_file` call (one language setting), and

@@ -7,7 +7,7 @@ point the curator at "somewhere" — you point it at the target project's artifa
 ## The two ways data comes in
 
 - **`create/`** — raw audio with **no transcript** (YouTube, shows). We *generate* the labels:
-  segment → Scribe ensemble → compile-down → (stitch) → polish. Clean source → `chunks_path`;
+  segment → Scribe ensemble → consensus → (stitch) → polish. Clean source → `chunks_path`;
   messy/multi-speaker → `vad_path`.
 - **`ingest/`** — datasets that **already have transcripts**: `huggingface.py` (FLEURS, …) and
   `commonvoice.py` (Common Voice, from the **Mozilla Data Collective**).

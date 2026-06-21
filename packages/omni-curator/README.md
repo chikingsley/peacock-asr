@@ -5,12 +5,12 @@ In-house ASR dataset **curator** — turns raw audio into fine-tuning transcript
 Curator, built for the Omni-ASR toolchain.
 
 ```text
-audio ─► segment ─► Scribe ensemble ─► compile-down ─► (stitch) ─► polish ─► transcript
+audio ─► segment ─► Scribe ensemble ─► consensus ─► (stitch) ─► polish ─► transcript
 ```
 
 ## Two finalized paths
 
-Both share the per-clip core (cut → Scribe ensemble → compile-down, run over a thread pool).
+Both share the per-clip core (cut → Scribe ensemble → consensus, run over a thread pool).
 They differ in how the audio is cut and how the labels are reassembled:
 
 | path | segmenter | reassembly | use for |
@@ -36,7 +36,7 @@ from omni_curator import vad_path, chunks_path
 t = vad_path(Path("show.flac"), out_dir=Path("out"),
              language="Tajik", script="Cyrillic script (tgk_Cyrl)", langs=("auto", "tgk"))
 
-# Latin / bilingual target -> pass a custom compile-down instruction
+# Latin / bilingual target -> pass a custom consensus instruction
 t = chunks_path(Path("lesson.flac"), out_dir=Path("out"),
                 language="French", script="standard French orthography",
                 langs=("auto", "fr"), instruction=MY_FRENCH_INSTRUCTION)

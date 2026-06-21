@@ -1,10 +1,10 @@
 [project]
 name = "omni-curator"
 version = "0.1.0"
-description = "In-house ASR dataset curator: raw audio -> segment -> Scribe ensemble -> compile-down -> stitch -> polish -> transcript."
+description = "In-house ASR dataset curator: raw audio -> segment -> Scribe ensemble -> consensus -> stitch -> polish -> transcript."
 requires-python = ">=3.12,<3.13"
 dependencies = [
-  # ASR (Scribe) + the text endpoint (compile-down / stitch / polish) via the deployed
+  # ASR (Scribe) + the text endpoint (consensus / stitch / polish) via the deployed
   # superwhisper HTTP service — talked to over httpx from omni_curator.swservice.
   # Audio cutting/probing and the NeMo frame-VAD segmenter.
   "soundfile==0.13.1",

@@ -11,7 +11,7 @@ Today `label_to_store` → `vad_path`/`chunks_path` does, **per video, in one pr
 1. `segment_vad(audio)` — loads a NeMo frame-VAD model on CPU and runs it `batch_size=1`
    (`vad.py:100‑103`). **CPU-bound.**
 2. *then* `_label_spans(...)` — a `ThreadPoolExecutor(max_workers=workers)` doing, per span,
-   `cut_audio` (ffmpeg) → `transcribe_clip` (Scribe ensemble, HTTP) → `compile_down`
+   `cut_audio` (ffmpeg) → `transcribe_clip` (Scribe ensemble, HTTP) → `consensus_fuse`
    (SuperWhisper, HTTP) (`create/pipeline.py:155‑187`). **I/O-bound.**
 
 The two stages are **sequential inside one process**, and the unit of parallelism is the *channel*
@@ -140,7 +140,7 @@ just make a lock convoy.)
    locked_at=? WHERE clip_id IN (SELECT clip_id FROM clips WHERE status='pending'
    ORDER BY clip_id LIMIT :batch) RETURNING …`. `batch ≈ 1–2 × W_label`.
 2. Dispatch to the pool. Each thread uses a **thread-local `SuperwhisperClient` + Scribe fns** (not
-   the shared client of `pipeline.py:172`): `transcribe_clip` → `compile_down`. No DB in threads.
+   the shared client of `pipeline.py:172`): `transcribe_clip` → `consensus_fuse`. No DB in threads.
 3. Write results back in batched txns, **guarded by both status and `claim_token`**
    (`… WHERE clip_id=? AND status='labeling' AND claim_token=?`) so a late result from a
    *reclaimed* lease can't overwrite a retry: `status='done'`, `label`, `variants`, `done_at`.
@@ -174,7 +174,7 @@ packages/omni-curator/src/omni_curator/create/
 ```
 
 `pipeline.py`'s span-cut and Scribe halves are reused (segment uses the VAD+cut half; labelq uses the
-`transcribe_clip`/`compile_down` half). The fused `label_to_store` stays for back-compat and the
+`transcribe_clip`/`consensus_fuse` half). The fused `label_to_store` stays for back-compat and the
 running job; deprecated once the split is proven. Project wiring: `<lang>-curate
 enqueue|segment|labelq|harvest`. Georgian/Persian inherit it (logic is in the package).
 
