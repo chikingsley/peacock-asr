@@ -47,3 +47,6 @@ base_models/
 
 # Scratch / dry-run outputs
 scratch/
+
+# Auto-generated pipeline status snapshot (regenerate with tools/status.py)
+STATUS.md
