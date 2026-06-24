@@ -9,7 +9,7 @@
     { "name": "P016-russian-phone-compare", "path": "projects/P016-russian-phone-compare" },
     { "name": "omni-finetune-core", "path": "packages/omni-finetune-core" },
     { "name": "omni-curator", "path": "packages/omni-curator" },
-    { "name": "superwhisper-api", "path": "packages/superwhisper-api" },
+    { "name": "superwhisper-api", "path": "../superwhisper-api" },
     { "name": "↑ repo root", "path": "." }
   ],
   "settings": {
