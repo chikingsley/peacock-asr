@@ -6,43 +6,32 @@ fine-tuning, and Parakeet experiments.
 ## Setup
 
 ```bash
-cd /home/simon/github/peacock-asr/projects/persian-asr
+cd /home/simon/github/peacock-asr/projects/farsi-asr
 uv sync
 ```
 
 The active Python entry points are defined in `pyproject.toml`:
 
-- `persian-benchmark-asr`
-- `persian-benchmark-omni`
-- `persian-benchmark-sherpa-onnx`
-- `persian-build-candidate-manifests`
-- `persian-dataset-run-nemo-curator`
-- `persian-export-nemo-manifest`
-- `persian-finetune-parakeet`
-- `persian-ingest`
-- `persian-prepare-omni-curated`
-- `persian-prepare-omni-fleurs`
-- `persian-prepare-omni-thomcles`
-- `persian-repair-neyshekar`
-- `persian-run-nemo-curator`
-- `persian-score-omni-manifest`
-- `persian-train-omni`
-- `persian-train-tokenizer`
+- `farsi-curate`
+- `farsi-omni-train`
+- `farsi-omni-eval`
+- `farsi-omni-eval-lm`
+- `farsi-parakeet-train-tokenizer`
+- `farsi-parakeet-train-ctc`
+- `farsi-parakeet-train-tdt`
+- `farsi-parakeet-train-nemo`
+- `farsi-parakeet-eval`
 
 ## Project Layout
 
 ```text
-src/persian_asr_dataset/           # dataset ledger, source ingest, NeMo Curator export/scoring
-src/finetune_omni/       # Omnilingual benchmarks, data prep, scoring, training
-src/finetune_parakeet/          # Parakeet tokenizer and fine-tune launch helpers
-vendor/omnilingual-asr/            # pinned Facebook/Meta Omnilingual ASR checkout
-vendor/nemo/                       # pinned NVIDIA NeMo checkout for ASR scripts
-vendor/mobius/                     # pinned FluidInference/Mobius checkout for CoreML tooling
+src/farsi_asr/          # project config and thin CLIs
+src/farsi_asr/omni/     # Omnilingual training/eval wrappers
+src/farsi_asr/parakeet/ # Parakeet tokenizer/train/eval wrappers
 ```
 
-The dataset-prep commands remain available because they are the reproducible recipe
-for rebuilding the Omnilingual parquet mirrors under `data/raw`. They are rebuild
-tools; normal curation uses the SQLite ledger and scorer commands.
+The shared curation and training logic lives in `packages/omni-curator`,
+`packages/omni-finetune-core`, and `packages/parakeet-finetune-core`.
 
 ## Current Prepared Data
 
@@ -62,39 +51,22 @@ tools; normal curation uses the SQLite ledger and scorer commands.
 
 ## Main Workflow
 
-1. Preserve raw source metadata in a SQLite curation ledger.
-2. Score/filter ledger rows with NeMo Curator and
-   `nvidia/stt_fa_fastconformer_hybrid_large`.
+1. Preserve source metadata through the shared curator source registry and stores.
+2. Score/filter rows with the project ASR gates and shared curator tooling.
 3. Export accepted rows into Omnilingual parquet for training.
 4. Benchmark each training run into its own folder under `benchmarks/`.
-5. Use Omni CTC scoring as an agreement/error-analysis signal after the NeMo pass.
+5. Use Omni CTC scoring as an agreement/error-analysis signal.
 
 Training uses the Python entry point:
 
 ```bash
-uv run persian-train-omni --preset fleurs-300m
-uv run persian-train-omni --preset thomcles-continue
+uv run farsi-omni-train --help
 ```
 
-Corpus ingestion writes source rows to the curation ledger:
+Corpus curation is routed through the shared curator CLI:
 
 ```bash
-uv run persian-ingest --source common_voice_25_0
-uv run persian-ingest --source fleurs_omni
-uv run persian-ingest --source thomcles_omni
-```
-
-NeMo manifest export materializes audio files and JSONL for Curator:
-
-```bash
-uv run persian-export-nemo-manifest --run-id nemo-fa-preview --limit 100
-```
-
-NeMo Curator scoring uses the FastConformer CTC head by default:
-
-```bash
-uv run persian-run-nemo-curator \
-  --manifest /home/simon/github/peacock-asr/projects/persian-asr/data/curation/nemo_runs/nemo-fa-preview/manifest/manifest.jsonl
+uv run farsi-curate --help
 ```
 
 ## Benchmarks

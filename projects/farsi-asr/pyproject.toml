@@ -10,13 +10,15 @@ dependencies = [
   "huggingface-hub==0.36.2",
   "jiwer==3.1.0",
   "librosa==0.11.0",
-  "nemo-curator==1.1.0",
   "nemo-toolkit[asr]>=2.7.3",
+  # pyctcdecode (KenLM beam decoding in farsi-omni-eval-lm) pins numpy<2 — a dormant repo whose
+  # pin predates numpy 2; force 2.x because fairseq2n needs it (matches tajik/georgian).
   "numpy==2.4.6",
+  "pyctcdecode>=0.5.0",
   "omni-curator[ingest,youtube,normalize]",
   "omni-finetune-core",
   "parakeet-finetune-core",
-  "omnilingual-asr==0.2.0",
+  "omnilingual-asr==0.2.0+peacock.1",
   "onnxruntime==1.26.0",
   "pyarrow==24.0.0",
   "rapidfuzz==3.14.5",
@@ -35,14 +37,15 @@ dependencies = [
 [tool.uv.sources]
 omni-curator = { path = "../../packages/omni-curator", editable = true }
 omni-finetune-core = { path = "../../packages/omni-finetune-core", editable = true }
+omnilingual-asr = { path = "../../../omnilingual-asr", editable = true }
 parakeet-finetune-core = { path = "../../packages/parakeet-finetune-core", editable = true }
 
 [tool.uv]
-# omnilingual-asr 0.2.0 pins fairseq2<=0.6.0, but omni-finetune-core's recipe (and the
-# Tajik project) run on fairseq2 0.8.1. Override forces 0.8.1 past that pin so the lock
-# resolves; the omnilingual-asr inference pipeline still works on it. hf-hub stays <1.0
-# because fairseq2 0.8.1 requires ~=0.32.
+# Peacock uses a local omnilingual-asr fork with fairseq2 0.8.1 metadata. Keep Omni CTC on
+# CPython 3.12 until fairseq2n publishes cp313 wheels or we own that native build.
 override-dependencies = [
+  # pyctcdecode (KenLM beam decoding) pins numpy<2 — a dormant repo; force 2.x (fairseq2n needs it).
+  "numpy==2.4.6",
   "fairseq2[arrow]==0.8.1",
   "huggingface-hub==0.36.2",
 ]
@@ -57,6 +60,7 @@ farsi-curate = "farsi_asr.curate:main"
 # omni (OmniASR CTC) family
 farsi-omni-train = "farsi_asr.omni.train:main"
 farsi-omni-eval = "farsi_asr.omni.eval:main"
+farsi-omni-eval-lm = "farsi_asr.omni.lm_eval:main"
 # deprecated bare aliases (= omni) — kept for one transition, retire later
 farsi-train = "farsi_asr.omni.train:main"
 farsi-eval = "farsi_asr.omni.eval:main"
@@ -99,6 +103,11 @@ ignore = [
 # Arabic letters resembling Latin are intentional Persian text; long channel-list data lines.
 "src/farsi_asr/sources.py" = ["RUF001", "RUF002", "RUF003", "E501"]
 "tests/**" = ["S101", "INP001"]  # asserts + no __init__ are standard pytest idioms
+# Research/decode scratch (not library code): import-in-fn, complexity, long lines, zip-strict.
+"experiments/**" = [
+    "PLC0415", "C901", "PLR0915", "E501", "B905", "T201", "INP001", "S101",
+    "ANN001", "ANN202", "PTH207",
+]
 
 [dependency-groups]
 dev = [

@@ -26,6 +26,20 @@ in chronological order. Factual only; numbers are grounded in repo files
   `docs/zwnj-normalization-decision-20260529.md`), so those numbers are comparable to each other but
   newer than the original training date.
 
+## Canonical benchmark provenance
+
+The six benchmark splits are canonical test sets, not the same thing as the Scribe-v4 training
+surface. In training docs, **Scribe** means verifier/filter unless explicitly stated otherwise.
+
+| Split | Test rows / hours | Source config | Label/reference provenance |
+|---|---:|---|---|
+| `common_voice_25` | 10,702 / 14.69h | `mozilla_data_collective/cv-corpus-25.0/fa` | Upstream Mozilla Common Voice native test split; CC0; community/human reference text. |
+| `fleurs` | 852 / 3.60h | `google/fleurs/fa_ir` | Upstream Google FLEURS native test split; CC-BY-4.0; official reference text. |
+| `mana_tts` | 3,989 / 5.35h | `MahtaFetrat/Mana-TTS` | Synthetic/TTS source; derived canonical split; metadata carries ASR match quality/CER fields used during cleanup. |
+| `neyshekar` | 1,331 / 2.05h | `Peacockery/neyshekar-v3-asr-aligned` | External Neyshekar corpus, carried locally as the repaired/aligned `data/raw/neyshekar_v3_asr_aligned` mirror; source references after alignment/repair, not Scribe/YouTube pseudo labels. |
+| `worldspeech` | 359 / 1.33h | `disco-eth/WorldSpeech/fa_ir` | External WorldSpeech source; native test plus derived dev; CC-BY-NC-4.0; metadata includes ASR/CER/DNSMOS fields. |
+| `youtube` | 13,899 / 33.35h | `pourmand1376/asr-farsi-youtube-chunked-10-seconds` | Legacy external chunked YouTube corpus; native split, source URLs retained, license unknown; separate from the new curated channel registry. |
+
 ## Summary table (six-split macro WER / headline)
 
 | Date (trained) | Experiment | Headline (macro WER, key splits) | Verdict |
@@ -187,6 +201,73 @@ in chronological order. Factual only; numbers are grounded in repo files
 - **Verdict:** **Dead end (no meaningful gain).** Mixed sub-0.2-point deltas vs the v4 baseline —
   marginally better on FLEURS/neyshekar/youtube, marginally worse on CV/worldspeech. Within noise;
   the v4 baseline remains the model of record.
+
+## 2026-06-22 — KenLM fused CTC beam eval (`omni_ctc_300m_farsi_hf`, decode-only)
+
+- **Goal:** Promote the LM decode experiment from loose scratch script to repeatable project command
+  and check whether fixed KenLM fusion helps the current HF re-eval card.
+- **Command:** `uv run --project projects/farsi-asr farsi-omni-eval-lm --benchmark <split> --alpha 0.3 --beta 0.0 --device cuda`
+- **Setup:** Model card `omni_ctc_300m_farsi_hf`, checkpoint
+  `data/benchmarks/model/model.pt` sha prefix `c5e0cff9d6a2`; KenLM
+  `experiments/lm_decoding/lm4.bin`; corpus unigrams 78,971; tokenizer
+  `omniASR_tokenizer_written_v2`. The promoted command verifies tokenizer identity, infers blank
+  index 0, and aborts if active multi-character tokenizer pieces would corrupt `pyctcdecode`.
+- **Logs:** `experiments/lm_decoding/official_fixed_a0.3_b0.0/*.log`; every full run ended with
+  `LM_RUN_DONE`.
+
+| Split | Rows | Greedy WER/CER | Beam WER/CER | Beam+KenLM WER/CER | WER delta vs greedy |
+|---|---:|---:|---:|---:|---:|
+| `common_voice_25` | 10,702 | 22.69 / 5.88 | 22.48 / 5.83 | **13.34 / 3.77** | -9.35 |
+| `fleurs` | 852 | 12.30 / 3.16 | 12.32 / 3.16 | **10.66 / 2.85** | -1.64 |
+| `mana_tts` | 3,989 | 14.26 / 3.38 | 14.14 / 3.37 | **13.44 / 3.27** | -0.82 |
+| `neyshekar` | 1,331 | 14.21 / 3.15 | 14.14 / 3.13 | **11.68 / 2.61** | -2.53 |
+| `worldspeech` | 359 | 33.54 / 18.55 | 33.47 / 18.58 | **31.95 / 18.27** | -1.59 |
+| `youtube` | 13,899 | 23.02 / 10.34 | 22.84 / 10.25 | **19.60 / 9.66** | -3.42 |
+
+- **Macro six-split result:** greedy 20.00 WER / 7.41 CER; plain beam 19.90 / 7.39; beam+KenLM
+  16.78 / 6.74.
+- **C1Tech comparison run:** 2,101 rows; greedy 18.46 / 5.64; plain beam 18.50 / 5.73; beam+KenLM
+  17.09 / 5.47. This matches the prior scratch result and confirms the promoted command is
+  reproducing the old C1Tech baseline.
+- **Verdict:** Keep `alpha=0.3 beta=0.0` as the current fixed KenLM setting for this card. Plain
+  beam alone is nearly neutral; the LM carries the improvement, especially on Common Voice and
+  YouTube. This is an inference/decoding result only and does not replace the fine-tuned model
+  result of record above.
+
+---
+
+## 2026-06-24 — Normalizer regression found + eval ref-fix; FLEURS recovered
+
+Auditing the promoted `farsi-omni-eval-lm` against the C1Tech benchmark surfaced two
+**measurement** bugs, neither of which is a model problem:
+
+1. **Normalizer regression.** The standardization migration (`50fd3be6`, `0a7eb1bb`) replaced the
+   proven NVIDIA fastconformer normalizer (`maybe_normalize` — ZWNJ → space, the surface every Omni
+   CTC v2 model trained on) with a freshly-written hazm normalizer that **strips** ZWNJ, gluing
+   morphemes (`می‌خوام` → `میخوام`). That contradicts `docs/zwnj-normalization-decision-20260529.md`
+   (ZWNJ → space) and changes word boundaries, inflating WER. Recovered the original from git
+   (`1354ecc9`) and ported it back into `omni_curator.process.normalize.normalize_persian`, pinned
+   to the upstream NVIDIA revision + README sha.
+2. **Eval scored references raw.** `print_score` normalized the hypothesis but not the reference,
+   so a raw FLEURS transcription (ZWNJ/punctuation intact) was compared against a normalized
+   hypothesis. Fixed: reference and hypothesis now pass through the same normalizer (decision rule 2).
+
+**FLEURS recovered** (300-row, fixed surface): greedy **16.51% → 8.46%** WER / 2.34% CER, matching
+the recorded `scribe-v4` FLEURS of 8.69% — the earlier 16.51% was purely the two eval bugs, not a
+model regression. KenLM still helps, more clearly on the clean surface: **8.46 → 6.91%** WER
+(−1.55 pts, −18% rel), α=0.3 / β=0.0; plain beam is neutral (8.40%).
+
+**C1Tech corrected.** On the true (train-consistent) surface, C1Tech greedy is **20.46%** — the
+18.46% in the KenLM section above is the superseded hazm surface (a coincidentally lower surface,
+not the one the model learned). The LM gain (~1.4 pts) carries over to the corrected surface.
+
+**num2words:** confirmed *not* part of the trained surface — the NVIDIA normalizer keeps digits as
+digits, so expanding numbers would diverge from what v4 learned. Deferred to a deliberate retrain.
+
+**Forcing layer.** Added `packages/omni-curator/tests/test_normalize.py`: pinned input→output cases
+per language + an invariant that no `Cf` (ZWNJ/bidi/BOM) character survives normalization. A
+refactor that changes normalization behavior now fails loudly instead of silently shifting every
+WER number — which is exactly how this regressed in the first place.
 
 ---
 

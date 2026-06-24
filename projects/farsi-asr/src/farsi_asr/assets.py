@@ -40,6 +40,14 @@ CARDS = [
         ),
         tokenizer_ref=TOKENIZER_NAME,
     ),
+    # Re-eval card: the shipped HF weights (Peacockery/omni-ctc-300m-farsi), pulled into the
+    # gitignored data cache (original run checkpoints are off-disk). The run script logs the file
+    # sha for identity. Proper HF-revision pinning belongs in core — deferred standard work.
+    ModelCard(
+        name="omni_ctc_300m_farsi_hf",
+        checkpoint=_PROJECT / "data/benchmarks/model/model.pt",
+        tokenizer_ref=TOKENIZER_NAME,
+    ),
 ]
 
 

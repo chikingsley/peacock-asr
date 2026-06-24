@@ -44,7 +44,7 @@ Keep the package (it's tight). Honor "finetune-parakeet / no underscores" via th
 
 ## Vendor
 
-- Drop `vendor/omnilingual-asr` from disk (unused in src; PyPI `omnilingual-asr==0.2.0` is the real dep).
+- Drop `vendor/omnilingual-asr` from disk (unused in src). Current Peacock dependency policy uses the sibling editable fork at `/home/simon/github/omnilingual-asr`, not the PyPI `omnilingual-asr==0.2.0` wheel.
 - Keep `vendor/nemo` out of git (already gitignored); make `DEFAULT_NEMO_ROOT` env-overridable (`PERSIAN_NEMO_ROOT`); add `docs/vendor.md` with provenance.
 
 ## Safe ordered migration (verify after each step: `ruff check src`, imports resolve, touched `--help` runs; commit each)

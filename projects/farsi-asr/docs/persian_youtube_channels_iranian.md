@@ -92,6 +92,7 @@ _ch("qaraati_quran", "channel/UC5ilho5Q-YSIn3dn1FTcWNw", "clean", "درسهای�
 ```
 
 ## Risks
+
 - **Geo-restriction:** most domestic outlets (ISNA, Khabar Online, Entekhab, Etemad, IRNA, Hammihan,
   Fars, Didban) and Iranian platforms (Maktabkhooneh, FaraDars, Taaghche, IranSeda) may be geo-fenced
   from non-Iran IPs — test with the cookie/VPN setup before bulk pull.

@@ -19,7 +19,7 @@ Official uv references:
 
 ## Scribe / ElevenLabs
 
-- For Scribe work, use the shared `../superwhisper-api` project through the configured uv source dependency, for example `uv run superwhisper-audio ...`.
+- For Scribe work, use the shared sibling `/home/simon/github/superwhisper-api` project through the configured uv source dependency, for example `uv run superwhisper-audio ...`.
 - Preserve raw ElevenLabs STT responses when endpoint confidence, word timings, logprobs, language probability, or entity metadata are part of the analysis.
 
 Official ElevenLabs references:
