@@ -43,9 +43,11 @@ _ch("afghan_comedy", "@AfghanComedyOfficial", "noisy", "Dari comedy skits; scrip
 ```
 
 ## Deny-list (do NOT add — Pashto-dominant)
+
 `@lemartelevision` (LemarTV), Shamshad TV (~85% Pashto), Zhwandoon.
 
 ## Risks
+
 - **Pashto interleave (biggest):** TOLOnews, Ariana, Amu, Afghanistan International (post-2023),
   Azadi, and field vlogs carry Pashto on the same channel — language-filter, don't ingest blind.
   Prefer the language-split feeds (`@RTADari`, `@voaafghanistandari`, `@tolonewstalkshows`).

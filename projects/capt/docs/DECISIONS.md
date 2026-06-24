@@ -84,7 +84,7 @@ Brought `capt` up to the layout the rest of peacock-asr uses (omni-curator-style
 `[project.scripts]` CLIs, strict ruff, `artifacts/` for generated/large files). Changes:
 
 - **`src/capt/` folderized by funnel stage:** `g2p/` (routing.py + routing.json + text_normalization
-  + models/), `recognize/` (zipa.py + vendored `_vendor_zipa.py`), `score/` (alignment/features/phones),
+  - models/), `recognize/` (zipa.py + vendored `_vendor_zipa.py`), `score/` (alignment/features/phones),
   `cli/`; `pipeline.py`/`audio.py`/`asr.py` stay top-level. `g2p_models/` → `g2p/models/`,
   `g2p_routing.json` → `g2p/routing.json` (the 9 ZIPA-distilled gap FSTs are package data, loaded via
   `__file__`).

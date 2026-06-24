@@ -5,11 +5,13 @@ Deploy ONLY if the simple v3 run (fresh BPE-1024 + reinit decoder/joint + Adafac
 Community recipe provenance: NeMo discussion #14728 (see README §problem+recipe).
 
 ## Why
+
 The simple recipe keeps v3's encoder (Cyrillic prior) but **discards v3's decoder/joint** (its token
 prior). This recipe preserves the decoder/joint by extending the tokenizer (keep v3 IDs 0..8191, append
 Tajik) and restoring the pretrained weight rows — only the new Tajik rows stay random.
 
 ## Spec (codex-converged)
+
 1. **Reduction fix (applies to BOTH recipes):** rebuild `RNNTLoss(..., reduction=model.cfg.get("rnnt_reduction","mean_batch"))`.
    `extract_rnnt_loss_cfg` drops `rnnt_reduction`; v3 cfg = `mean_volume`, RNNTLoss defaults `mean_batch`.
    **Caveat (ours):** changing reduction changes loss scale → lr must be co-tuned; treat as an ablation,
@@ -28,6 +30,7 @@ Tajik) and restoring the pretrained weight rows — only the new Tajik rows stay
    unfreezes at `global_step>=N` (all if `--unfreeze-top 0`, else top-N). Separate from permanent `--freeze-encoder`.
 
 ## Dip-a-toe gates (ALL must pass before any long run)
+
 - **Tokenizer gate:** IDs 0..8191 identical old/new; 12 singletons encode w/o `<unk>`; Tajik train/dev
   round-trip; a shared-Cyrillic sample yields identical old/new ID sequence.
 - **Shape gate:** `num_classes_with_blank == 8198+K`; blank `8192+K`; durations `8193+K..8197+K`.
@@ -37,5 +40,6 @@ Tajik) and restoring the pretrained weight rows — only the new Tajik rows stay
 - **Overfit-32 gate:** fp32 tiny run; loss collapses + >=5/6 fixed clips decode exact (WER alone insufficient).
 
 ## Worth-it bar
+
 Skip entirely if the simple v3 run lands near/below omni 16.9. Extend-restore adds tokenizer surgery +
 row-mapping risk + a larger output layer, and still leaves all *truly Tajik-specific* rows random.

@@ -4,6 +4,7 @@ Dependencies
 Boost >= 1.42.0 is required.  
 
 For Ubuntu,
+
 ```bash
 sudo apt-get install libboost1.48-all-dev
 ```
@@ -19,8 +20,7 @@ cd boost_1_52_0
 sudo ./b2 install
 ```
 
-Local install options (in a user-space prefix directory) are also possible. See http://www.boost.org/doc/libs/1_52_0/doc/html/bbv2/installation.html.
-
+Local install options (in a user-space prefix directory) are also possible. See <http://www.boost.org/doc/libs/1_52_0/doc/html/bbv2/installation.html>.
 
 Building
 ========
@@ -28,15 +28,18 @@ Building
 ```bash
 bjam
 ```
-Your distribution might package bjam and boost-build separately from Boost.  Both are required.   
+
+Your distribution might package bjam and boost-build separately from Boost.  Both are required.
 
 Usage
 =====
 
 Run
+
 ```bash
-$ bin/lmplz
+bin/lmplz
 ```
+
 to see command line arguments
 
 Running

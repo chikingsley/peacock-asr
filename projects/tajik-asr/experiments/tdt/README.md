@@ -139,6 +139,7 @@ The decode-trust check cleared the path, so we ran the real thing: 110M-hybrid f
 step 24k**, still improving, with near-exact Tajik transcriptions — TDT genuinely learns Tajik at scale.
 
 Two process corrections this round:
+
 - **Harness:** the run started on a bespoke `run_big.py` (manual `pl.Trainer`, `logger=False`, hand-rolled
   loss logging, checkpoint-on-`train_loss`) — which surfaced **no eval signal** during training even though a
   disjoint dev set was wired. Replaced by the shared **`parakeet_finetune_core`** recipe (`tajik-parakeet-train-tdt`,
@@ -172,6 +173,7 @@ Tested it on FLEURS-test (600), fp32, **same WER methodology** as `eval_ckpt.py`
 | **beam + KenLM α=0.5 β=0.0** (best of sweep) | **16.64** | 7.03 |
 
 **Read:**
+
 - **CTC greedy (24.1 %) is worse than the TDT-head greedy (19.0 %)** on this model — the TDT head is
   the stronger readout for greedy decoding here (and far faster).
 - **CTC + KenLM (16.64 %) beats the TDT-head greedy by 2.4 WER** and lands right at the *omni CTC 300M
@@ -245,7 +247,8 @@ with v3's Cyrillic prior *and* the decoder prior preserved landed in the same ~1
 **Dataset structure (for the redo).** `curator.sqlite` = one flat `samples` table (347,897 rows): `id, source,
 language, text, audio_path, duration, sample_rate, split, speaker_id, citation, scribe_wer, scribe_cer, meta(JSON)`.
 Channel is captured as `source = youtube-<channel>`; **genre/category is NOT stored** (only the channel). Video id
-+ segment are embedded in `id`/`audio_path` (`<channel>_<videoId>_seg####`), so video-disjoint splits are possible.
+
+- segment are embedded in `id`/`audio_path` (`<channel>_<videoId>_seg####`), so video-disjoint splits are possible.
 It's trivially exportable by any split logic.
 
 **Path forward (proposed, not done):** tag the ~42 channels by category (news/podcast/film/quran/kids/…) — genre is
