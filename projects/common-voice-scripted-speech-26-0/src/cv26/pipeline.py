@@ -18,8 +18,8 @@ from typing import TYPE_CHECKING
 
 from cv26 import config
 from cv26.convert import convert_archive
+from cv26.hub.upload import ensure_repo, hf_api, upload_shards, verify_remote
 from cv26.manifest import ManifestRow, load_manifest, select_rows
-from cv26.upload import ensure_repo, hf_api, upload_shards, verify_remote
 
 if TYPE_CHECKING:
     from collections.abc import Iterable

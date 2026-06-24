@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
     from huggingface_hub import HfApi
 
-LOGGER = logging.getLogger("cv26.upload")
+LOGGER = logging.getLogger("cv26.hub.upload")
 
 
 def hf_api(token: str) -> HfApi:

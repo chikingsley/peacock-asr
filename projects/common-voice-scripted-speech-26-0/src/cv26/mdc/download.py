@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
     from cv26.manifest import ManifestRow
 
-LOGGER = logging.getLogger("cv26.download")
+LOGGER = logging.getLogger("cv26.mdc.download")
 
 CHUNK_SIZE = config.CHUNK_SIZE
 DEFAULT_WORKERS = 2

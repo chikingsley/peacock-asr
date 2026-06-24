@@ -20,7 +20,7 @@ from cv26.manifest import ManifestRow, append_rows, load_manifest
 if TYPE_CHECKING:
     from pathlib import Path
 
-LOGGER = logging.getLogger("cv26.queue")
+LOGGER = logging.getLogger("cv26.mdc.queue")
 
 CC0 = "CC0-1.0"
 CC0_URL = "https://spdx.org/licenses/CC0-1.0.html"

@@ -8,17 +8,18 @@ import pytest
 
 from cv26 import cli
 
-SUBCOMMANDS = ["download", "process", "queue", "card"]
+SUBCOMMANDS = ["download", "process", "queue", "card", "status"]
 MODULES = [
     "config",
     "manifest",
-    "download",
     "convert",
-    "upload",
     "pipeline",
-    "queue",
-    "card",
+    "status",
     "cli",
+    "mdc.download",
+    "mdc.queue",
+    "hub.upload",
+    "hub.hf_card",
 ]
 
 

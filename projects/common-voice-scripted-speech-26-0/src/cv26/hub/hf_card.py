@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
     from cv26.manifest import ManifestRow
 
-LOGGER = logging.getLogger("cv26.card")
+LOGGER = logging.getLogger("cv26.hub.hf_card")
 
 LICENSE_TEXT = """SPDX-License-Identifier: CC0-1.0
 

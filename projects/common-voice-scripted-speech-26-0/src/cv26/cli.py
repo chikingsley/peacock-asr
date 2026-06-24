@@ -1,4 +1,4 @@
-"""``cv26`` command line: download | process | queue | card.
+"""``cv26`` command line: download | process | queue | card | status.
 
 ``process`` is the steady-state loop (convert -> upload -> verify -> delete). ``download`` fetches
 archives from the manifest. The two run concurrently in ``--watch`` mode: the downloader lands
@@ -13,8 +13,11 @@ import sys
 import time
 from pathlib import Path
 
-from cv26 import card, config
-from cv26.download import (
+from cv26 import config, status
+from cv26.hub import hf_card
+from cv26.hub.upload import hf_api, upload_file
+from cv26.manifest import load_manifest, select_rows
+from cv26.mdc.download import (
     DEFAULT_MAX_SLEEP_SECONDS,
     DEFAULT_RETRIES,
     DEFAULT_WORKERS,
@@ -25,10 +28,8 @@ from cv26.download import (
     pending_rows,
     run_batch,
 )
-from cv26.manifest import load_manifest, select_rows
+from cv26.mdc.queue import add_from_text
 from cv26.pipeline import RunConfig, load_state, run
-from cv26.queue import add_from_text
-from cv26.upload import hf_api, upload_file
 
 _GB = 1024**3
 # Don't re-download datasets already fully handled — their archives were uploaded then deleted.
@@ -110,8 +111,12 @@ def _cmd_queue(args: argparse.Namespace) -> None:
         _cmd_card(argparse.Namespace(repo_id=args.repo_id, upload=True))
 
 
+def _cmd_status(_: argparse.Namespace) -> None:
+    status.report()
+
+
 def _cmd_card(args: argparse.Namespace) -> None:
-    readme, license_path = card.write_card()
+    readme, license_path = hf_card.write_card()
     if not args.upload:
         return
     api = hf_api(config.require_hf_token())
@@ -161,6 +166,9 @@ def build_parser() -> argparse.ArgumentParser:
     card_cmd.add_argument("--repo-id", default=config.REPO_ID)
     card_cmd.add_argument("--upload", action="store_true", help="push README/LICENSE/manifest")
     card_cmd.set_defaults(func=_cmd_card)
+
+    status_cmd = sub.add_parser("status", help="progress per collection + which need MDC terms")
+    status_cmd.set_defaults(func=_cmd_status)
 
     return parser
 

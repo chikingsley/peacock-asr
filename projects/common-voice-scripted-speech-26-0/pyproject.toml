@@ -63,8 +63,9 @@ ignore = [
 convention = "pep257"
 
 [tool.ruff.lint.per-file-ignores]
-# The CLI's whole job is stdout: the dry-run listing prints rows for the user.
+# These print to stdout by design (CLI dry-run listing; the status report).
 "src/cv26/cli.py" = ["T201"]
+"src/cv26/status.py" = ["T201"]
 # pytest asserts are the idiom (S101); a tests dir is run, not imported, so it needs no __init__
 # (INP001); inline literals in assertions are clearer than named constants (PLR2004).
 "tests/**" = ["S101", "INP001", "PLR2004"]
