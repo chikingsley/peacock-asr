@@ -200,25 +200,29 @@ async function readDisks(): Promise<void> {
 }
 
 // Download lanes: which langs have a yt-dlp container actively running.
-// Lane container names carry the lang (best-effort); if lanes run but names
-// don't encode any lang, light up all youtube langs so the stage still shows
-// activity.
+// Container NAMES are docker-random (don't encode the lang), so we identify the
+// lang from each container's bind-mount path, which is .../<lang>-asr/data/create/...
+// Only the lang(s) actually downloading light up — no fallback-to-all.
 async function readDownloadLanes(): Promise<void> {
-  const out = await runText(
-    ["docker", "ps", "--filter", `ancestor=${YTDLP_IMAGE}`, "--format", "{{.Names}}"],
+  const ids = await runText(
+    ["docker", "ps", "--filter", `ancestor=${YTDLP_IMAGE}`, "--format", "{{.ID}}"],
     4000,
   );
-  const names = out ? out.split("\n").map((n) => n.toLowerCase()) : [];
-  const anyRunning = names.length > 0;
-  const namesEncodeLang = names.some((n) => LANGS.some((l) => n.includes(l)));
-  for (const lang of LANGS) {
-    const s = cache.get(lang)!;
-    if (VERIFY_ONLY.has(lang)) {
-      s.downloadActive = false;
-      continue;
+  const idList = ids ? ids.split("\n").filter(Boolean) : [];
+  const activeLangs = new Set<string>();
+  if (idList.length > 0) {
+    const mounts = await runText(
+      ["docker", "inspect", ...idList, "--format", "{{range .Mounts}}{{.Source}} {{end}}"],
+      4000,
+    );
+    for (const line of mounts ? mounts.toLowerCase().split("\n") : []) {
+      for (const lang of LANGS) {
+        if (line.includes(`${lang}-asr`)) activeLangs.add(lang);
+      }
     }
-    const matched = names.some((n) => n.includes(lang));
-    s.downloadActive = matched || (anyRunning && !namesEncodeLang);
+  }
+  for (const lang of LANGS) {
+    cache.get(lang)!.downloadActive = !VERIFY_ONLY.has(lang) && activeLangs.has(lang);
   }
 }
 

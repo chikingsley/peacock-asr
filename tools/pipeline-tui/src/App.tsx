@@ -164,7 +164,7 @@ function NarrowRow({ s }: { s: LangStats }) {
   const segP = pct(s.videosSegmented, s.videosTotal);
   const lblP = pct(s.clipsDone, clipTotal);
   const verP = pct(s.samplesScored, s.samplesTotal);
-  const dl = s.downloadActive ? "⬇●" : "⬇○";
+  const dl = s.downloadActive ? `⬇●${num(s.flacCount)}` : "⬇○";
 
   return (
     <box style={{ flexDirection: "row" }}>
