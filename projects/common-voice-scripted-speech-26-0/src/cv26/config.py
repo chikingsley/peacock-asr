@@ -25,8 +25,8 @@ REPORTS = DATA / "reports"
 DOWNLOAD_REPORT = REPORTS / "downloads.jsonl"
 PROCESSING_STATE = PARQUET_ROOT / "processing-state.jsonl"
 
-# Target Hub dataset (private; Common Voice Scripted Speech 26.0).
-REPO_ID = "Peacockery/common-voice-scripted-speech-26-0"
+# Target Hub dataset (public; Common Voice Scripted Speech 26.0).
+REPO_ID = "Peacockery/common-voice-scripted-speech-26"
 
 _DOTENV_PATHS = (ROOT / ".env", PROJECT / ".env")
 MDC_API_KEY_NAMES = ("MDC_API_KEY", "MOZILLA_DATA_COLLECTIVE_API_KEY")

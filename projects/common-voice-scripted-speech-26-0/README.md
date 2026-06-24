@@ -1,7 +1,7 @@
 # Common Voice Scripted Speech → Hugging Face
 
 `cv26` mirrors Mozilla Data Collective (MDC) Common Voice Scripted Speech 26.0 archives into the
-private dataset [`Peacockery/common-voice-scripted-speech-26-0`](https://huggingface.co/datasets/Peacockery/common-voice-scripted-speech-26-0)
+public dataset [`Peacockery/common-voice-scripted-speech-26`](https://huggingface.co/datasets/Peacockery/common-voice-scripted-speech-26)
 as appendable parquet shards.
 
 It is one space-bounded pipeline: **download an archive → convert it to parquet → upload the
