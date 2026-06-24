@@ -16,7 +16,7 @@ import re
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from omni_curator.swservice import SuperwhisperClient
+    from omni_curator.scribe.swservice import SuperwhisperClient
 
 DEFAULT_MODEL = "claude-sonnet-4-6"
 
@@ -48,7 +48,7 @@ _TRANSLITERATE_INSTRUCTION = (
 
 def default_client() -> SuperwhisperClient:
     """A SuperWhisper text client (free inference) for the LLM fusion steps."""
-    from omni_curator.swservice import SuperwhisperClient
+    from omni_curator.scribe.swservice import SuperwhisperClient
 
     return SuperwhisperClient()
 

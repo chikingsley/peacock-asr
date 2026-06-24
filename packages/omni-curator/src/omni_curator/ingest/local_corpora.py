@@ -38,7 +38,8 @@ import csv
 import json
 from typing import TYPE_CHECKING
 
-from omni_curator.sample import Sample
+from omni_curator.data.sample import Sample
+from omni_curator.ingest._util import slug as _slug
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
@@ -49,11 +50,6 @@ if TYPE_CHECKING:
 _OPEN_STT_AUDIO = (".opus", ".wav")  # opus distribution ships .opus; PCM distribution .wav
 _TIMIT_TXT_PARTS = 3  # "start end <sentence...>"
 _DR_DEPTH = 1  # TIMIT path under the corpus root: <split>/DR*/<spkr>/<utt>
-
-
-def _slug(value: str) -> str:
-    """Filesystem path / id fragment -> a safe underscore-joined id token."""
-    return "".join(char if char.isalnum() else "_" for char in value).strip("_")
 
 
 def _read_text_file(path: Path) -> str:

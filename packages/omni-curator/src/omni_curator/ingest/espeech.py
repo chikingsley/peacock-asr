@@ -23,7 +23,7 @@ import tarfile
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
-from omni_curator.sample import Sample
+from omni_curator.data.sample import Sample
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator

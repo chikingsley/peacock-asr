@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from omni_curator.coverage import char_tokenizer_coverage
+from omni_curator.audit.coverage import char_tokenizer_coverage
 from omni_curator.ingest.espeech import espeech_source
 from omni_curator.ingest.local_corpora import local_corpus_source
 from omni_curator.ingest.openslr import openslr_source

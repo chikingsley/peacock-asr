@@ -10,9 +10,9 @@ from NeMo Curator's audio quality-assessment docs (25.09), and the right tier de
   so the same Scribe WER means something looser — wider bounds.
 
 WER here is the store-level Scribe-verification score (``Sample.scribe_wer`` from
-:mod:`omni_curator.verify`): the stored label scored against a fresh Scribe transcription. A tier
+:mod:`audit.verify`): the stored label scored against a fresh Scribe transcription. A tier
 is a *max* WER — keep clips at or below it. ``Selection.max_scribe_wer`` in
-:mod:`omni_curator.export` is where one of these gets applied.
+:mod:`omni_curator.data.export` is where one of these gets applied.
 
 Sources:
 - WER filtering: https://docs.nvidia.com/nemo/curator/curate-audio/process-data/quality-assessment/wer-filtering
@@ -68,7 +68,7 @@ def is_descriptor_only(text: str) -> bool:
     Scribe labels non-speech with descriptors ('[outro jingle]', '[музыка]', '♪', '...'); a
     fresh Scribe pass produces the same descriptor, so such a label scores WER ~0 and a WER
     gate KEEPS it (~23k clips / 28 h of the tajik pool). There is nothing to train on —
-    :class:`omni_curator.export.Selection` drops these at export.
+    :class:`omni_curator.data.export.Selection` drops these at export.
     """
     without_segments = _DESCRIPTOR_SEGMENTS.sub(" ", text)
     return not _NON_LETTERS.sub("", without_segments)

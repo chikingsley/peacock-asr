@@ -6,7 +6,7 @@ repeated runs, so cross-language differences and run-to-run variance are both vi
 ``fuse.consensus_fuse``.
 
 The service owns ASR key rotation, so there is NO ElevenLabs key handling here: a "scribe fn"
-is just a bound :func:`omni_curator.swservice.transcribe_file` call (one language setting), and
+is just a bound :func:`scribe.swservice.transcribe_file` call (one language setting), and
 :class:`ScribeError` is raised when the service reports a failure for one clip.
 """
 
@@ -15,7 +15,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from omni_curator.swservice import transcribe_file
+from omni_curator.scribe.swservice import transcribe_file
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

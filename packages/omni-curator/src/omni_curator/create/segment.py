@@ -8,17 +8,17 @@ they back off when the pending-clip high-watermark is hit so a stalled labeler c
 segmenter cut the entire corpus to disk.
 
 The Scribe/label half lives in :mod:`omni_curator.create.labelq`; both share the queue
-(:mod:`omni_curator.create.queue`). See ``docs/PIPELINE_SPLIT.md``.
+(:mod:`omni_curator.create.queue`). See ``docs/archive/PIPELINE_SPLIT.md``.
 """
 
 from __future__ import annotations
 
-import subprocess
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from omni_curator.create.queue import QClip, QueueStore, QVideo
+from omni_curator.process.audio import to_16k_flac
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -26,15 +26,7 @@ if TYPE_CHECKING:
 
 def cut_audio(source: Path, output: Path, start: float, end: float) -> None:
     """Cut ``[start, end)`` from ``source`` to a 16 kHz mono FLAC at ``output`` (via ffmpeg)."""
-    output.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.run(  # noqa: S603
-        [  # noqa: S607
-            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-            "-ss", f"{start:.3f}", "-to", f"{end:.3f}", "-i", str(source),
-            "-ar", "16000", "-ac", "1", "-c:a", "flac", str(output),
-        ],
-        check=True,
-    )
+    to_16k_flac(source, output, start=start, end=end)
 
 
 def _cut_clips(
@@ -85,12 +77,27 @@ def segment_worker(
     poll_s: float = 5.0,
     idle_exit: bool = True,
     vad_kwargs: dict[str, Any] | None = None,
+    device: str | None = None,
+    cpu_threads: int = 1,
 ) -> int:
     """Resident-model loop: claim -> VAD -> cut -> enqueue till the queue drains. Returns videos."""
+    import os
+
+    # Cap intra-op threads BEFORE torch imports — `torch.set_num_threads` alone does NOT bound the
+    # MKL/OMP/OpenBLAS pools (they size to all cores at import), so N parallel workers otherwise
+    # oversubscribe the box and thrash. Set the env vars first; we want workers*threads ~= cores.
+    n = str(max(1, cpu_threads))
+    for var in (
+        "OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS", "NUMEXPR_NUM_THREADS",
+    ):
+        os.environ[var] = n
+    import torch
+
+    torch.set_num_threads(max(1, cpu_threads))
     from omni_curator.create.vad import load_vad_model, segment_vad_with
 
     queue = QueueStore(queue_path)
-    model = load_vad_model()
+    model = load_vad_model(device=device)
     done = 0
     try:
         while True:
@@ -108,10 +115,18 @@ def segment_worker(
                                          **(vad_kwargs or {}))
                 clips = _cut_clips(video, spans, clips_root=clips_root, language=language,
                                    script=script)
-                queue.complete_video(video.video_id, clips)
+                queue.complete_video(video.video_id, clips, claim_token=video.claim_token)
                 done += 1
+            except torch.cuda.OutOfMemoryError:
+                # A GPU OOM is the worker's fault, not the video's — don't fail/retire the clip.
+                # Re-raise so this worker exits non-zero (caught by run_segmenters); the video's
+                # lease lapses and another worker re-claims it. Swallowing it would silently fail
+                # every video on a too-crowded GPU.
+                raise
             except Exception as exc:  # noqa: BLE001 — one bad video must never abort the worker
-                queue.fail_video(video.video_id, f"{type(exc).__name__}: {exc}")
+                queue.fail_video(
+                    video.video_id, f"{type(exc).__name__}: {exc}", claim_token=video.claim_token
+                )
     finally:
         queue.close()
     return done
@@ -120,7 +135,8 @@ def segment_worker(
 def run_segmenters(
     queue_path: Path,
     *,
-    procs: int,
+    gpu_procs: int,
+    cpu_procs: int,
     clips_root: Path,
     language: str,
     script: str,
@@ -128,15 +144,28 @@ def run_segmenters(
     pending_hwm: int = 50_000,
     vad_kwargs: dict[str, Any] | None = None,
 ) -> None:
-    """Spawn ``procs`` resident-model segment workers and wait for them to drain the queue.
+    """Drain the queue with ``gpu_procs`` GPU-VAD + ``cpu_procs`` CPU-VAD workers, concurrently.
 
-    Uses the ``spawn`` start method — forking after torch/NeMo is imported can deadlock.
+    Running the GPU and the cores together segments far faster than either alone. Uses the
+    ``spawn`` start method — forking after torch/NeMo is imported can deadlock.
     """
-    if procs <= 1:
-        segment_worker(
-            queue_path, clips_root=clips_root, language=language, script=script,
-            worker_id="seg-0", max_dur=max_dur, pending_hwm=pending_hwm, vad_kwargs=vad_kwargs,
-        )
+    import os
+
+    # GPU workers do VAD on the card (1 CPU thread is plenty); CPU workers split the remaining cores
+    # so total intra-op threads ~= core count instead of cores-squared.
+    ncpu = os.cpu_count() or 4
+    cpu_threads = max(1, (ncpu - gpu_procs) // cpu_procs) if cpu_procs else 1
+    specs = [("cuda", i, 1) for i in range(gpu_procs)]
+    specs += [("cpu", i, cpu_threads) for i in range(cpu_procs)]
+    if not specs:
+        return
+    common: dict[str, Any] = {
+        "clips_root": clips_root, "language": language, "script": script,
+        "max_dur": max_dur, "pending_hwm": pending_hwm, "vad_kwargs": vad_kwargs,
+    }
+    if len(specs) == 1:
+        dev, _, th = specs[0]
+        segment_worker(queue_path, worker_id=f"seg-{dev}-0", device=dev, cpu_threads=th, **common)
         return
 
     import multiprocessing as mp
@@ -146,15 +175,15 @@ def run_segmenters(
         ctx.Process(
             target=segment_worker,
             args=(queue_path,),
-            kwargs={
-                "clips_root": clips_root, "language": language, "script": script,
-                "worker_id": f"seg-{i}", "max_dur": max_dur, "pending_hwm": pending_hwm,
-                "vad_kwargs": vad_kwargs,
-            },
+            kwargs={**common, "worker_id": f"seg-{dev}-{i}", "device": dev, "cpu_threads": th},
         )
-        for i in range(procs)
+        for dev, i, th in specs
     ]
     for w in workers:
         w.start()
     for w in workers:
         w.join()
+    failed = [w.exitcode for w in workers if w.exitcode]
+    if failed:  # a worker that died (e.g. CUDA OOM) must not look like a successful drain
+        msg = f"{len(failed)}/{len(workers)} segment workers exited non-zero (exit codes {failed})"
+        raise RuntimeError(msg)

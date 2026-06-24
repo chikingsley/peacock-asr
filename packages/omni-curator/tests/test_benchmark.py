@@ -6,7 +6,7 @@ from typing import cast
 
 import pytest
 
-from omni_curator.benchmark import dominant_script, normalize, score_pair
+from omni_curator.audit.benchmark import dominant_script, normalize, score_pair
 
 
 def test_normalize_folds_case_punctuation_whitespace():

@@ -7,13 +7,20 @@ YouTube's signature challenge — we use Deno (sandboxed). Needs the ``youtube``
 
 from __future__ import annotations
 
-import json
 import os
 import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+#: yt-dlp's exit code when it stops because ``--max-downloads`` was reached (more of the channel
+#: remains). Any other code means the playlist was exhausted or a fatal error ended the run.
+_YTDLP_MAX_DOWNLOADS_RC = 101
 
 
 @dataclass(frozen=True)
@@ -35,14 +42,6 @@ def channel(slug: str, ident: str, tier: str, note: str) -> Channel:
     else:
         url = f"https://www.youtube.com/channel/{ident}"
     return Channel(slug, url, tier, note)
-
-
-@dataclass
-class YoutubeAudio:
-    video_id: str
-    audio_path: Path
-    title: str
-    url: str
 
 
 #: Containerized yt-dlp for VPN lanes: runs inside a gluetun container's network namespace so the
@@ -78,30 +77,6 @@ _AUDIO_TO_16K_FLAC = [
     "--extract-audio", "--audio-format", "flac", "--audio-quality", "0",
     "--postprocessor-args", "ffmpeg:-ar 16000 -ac 1",
 ]
-
-
-def download_audio(url: str, *, out_dir: Path) -> YoutubeAudio:
-    """Download a YouTube video's audio as 16 kHz mono FLAC at ``out_dir/<id>.flac``."""
-    out_dir.mkdir(parents=True, exist_ok=True)
-    probe = subprocess.run(  # noqa: S603
-        [*_ytdlp_base(), "--skip-download", "--dump-single-json", url],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    info = json.loads(probe.stdout)
-    video_id = str(info["id"])
-    audio_path = out_dir / f"{video_id}.flac"
-    subprocess.run(  # noqa: S603
-        [
-            *_ytdlp_base(), "--no-playlist", *_AUDIO_TO_16K_FLAC,
-            "-o", str(out_dir / "%(id)s.%(ext)s"), url,
-        ],
-        check=True,
-    )
-    if not audio_path.exists():
-        raise FileNotFoundError(audio_path)
-    return YoutubeAudio(video_id, audio_path, str(info.get("title") or ""), url)
 
 
 @dataclass
@@ -159,6 +134,23 @@ def _lane_docker_prefix(lane: str, out_dir: Path, cookies: Path | None) -> list[
     return prefix
 
 
+def _download_blocked(
+    out_dir: Path, *, min_free_gb: float | None, abort: Callable[[], bool] | None
+) -> str | None:
+    """Why download must stop before the next batch (hard-halt / disk floor), else ``None``.
+
+    The factory's backpressure floor and hard-halt flow through here: a per-batch re-check is what
+    lets a download abort *mid-channel* instead of only between channels.
+    """
+    if abort is not None and abort():
+        return "hard-halt signal"
+    if min_free_gb is not None:
+        free_gb = shutil.disk_usage(out_dir).free / 1e9
+        if free_gb < min_free_gb:
+            return f"disk floor: {free_gb:.0f} GB free < {min_free_gb:.0f} GB"
+    return None
+
+
 def download_channel(
     channel_url: str,
     *,
@@ -167,6 +159,9 @@ def download_channel(
     sleep: float = 1.0,
     cookies: Path | None = None,
     lane: str | None = None,
+    min_free_gb: float | None = None,
+    abort: Callable[[], bool] | None = None,
+    batch: int = 25,
 ) -> ChannelDownload:
     """Download a channel's videos as 16 kHz mono FLAC into ``out_dir`` (resumable, skip-existing).
 
@@ -181,6 +176,12 @@ def download_channel(
     so the download egresses through a clean VPN IP instead of the (possibly bot-blocked) host IP;
     when absent, the download runs on the host exactly as before. Returns the file count and a
     header-only duration tally so a caller can see how many hours landed.
+
+    ``min_free_gb`` and ``abort`` make the pull abortable *mid-channel* (the factory's backpressure
+    floor / hard-halt): when either is set the channel is fetched in ``batch``-sized chunks
+    (``--max-downloads``) with the guard re-checked between chunks, so the download stops within a
+    chunk of crossing the floor instead of running the whole channel. With neither set the behavior
+    is exactly the prior single yt-dlp pass.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     # In a lane run only the *resolved* real paths are bind-mounted into the container (the project
@@ -193,6 +194,7 @@ def download_channel(
     # yt-dlp flags, identical for host and lane runs; only the *program prefix* differs.
     yt_flags = [
         "--download-archive", str(flag_dir / "downloaded.txt"),
+        "--lazy-playlist",  # download as the channel is listed, not after — files land immediately
         "--ignore-errors",
         # Throttle so YouTube doesn't rate-limit / bot-block us — the two official sleep knobs:
         # --sleep-requests delays metadata extraction, --sleep-interval/--max delays each download.
@@ -206,15 +208,27 @@ def download_channel(
         yt_flags += ["--cookies", str(flag_cookies)]
     if limit is not None:
         yt_flags += ["--playlist-end", str(limit)]
-    yt_flags.append(channel_url)
 
-    if lane is None:  # host run — unchanged behavior
-        cmd = [*_ytdlp_base(), *yt_flags]
-    else:  # VPN lane — same deno-bundled yt-dlp args, but inside the container's netns
-        cmd = [*_lane_docker_prefix(lane, out_dir, cookies), *_ytdlp_yt_args(), *yt_flags]
-    # --ignore-errors makes yt-dlp continue past bad videos and can exit non-zero; don't treat
-    # that as fatal — the per-file results on disk are the source of truth.
-    subprocess.run(cmd, check=False)  # noqa: S603
+    guarded = min_free_gb is not None or abort is not None
+    while True:
+        if _download_blocked(out_dir, min_free_gb=min_free_gb, abort=abort) is not None:
+            break
+        batch_flags = [*yt_flags]
+        if guarded:  # cap the chunk so the guard is re-checked; --download-archive resumes past it
+            batch_flags += ["--max-downloads", str(batch)]
+        batch_flags.append(channel_url)
+        if lane is None:  # host run — unchanged behavior
+            cmd = [*_ytdlp_base(), *batch_flags]
+        else:  # VPN lane — same deno-bundled yt-dlp args, but inside the container's netns
+            cmd = [*_lane_docker_prefix(lane, out_dir, cookies), *_ytdlp_yt_args(), *batch_flags]
+        # --ignore-errors makes yt-dlp continue past bad videos and can exit non-zero; don't treat
+        # that as fatal — the per-file results on disk are the source of truth.
+        rc = subprocess.run(cmd, check=False).returncode  # noqa: S603
+        # Unguarded: a single pass (legacy behavior). Guarded: keep going only while yt-dlp stopped
+        # at the --max-downloads cap (101 -> more of the channel remains); any other exit means the
+        # channel is drained (or failed), so stop.
+        if not guarded or rc != _YTDLP_MAX_DOWNLOADS_RC:
+            break
 
     import soundfile as sf
 

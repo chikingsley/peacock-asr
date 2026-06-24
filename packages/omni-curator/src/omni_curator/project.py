@@ -28,14 +28,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from omni_curator.quality import OMNI_MAX_DURATION_S
+from omni_curator.audit.quality import OMNI_MAX_DURATION_S
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping, Sequence
 
     from omni_curator.create.youtube import Channel
-    from omni_curator.sample import Sample
-    from omni_curator.store import CuratorStore
+    from omni_curator.data.sample import Sample
+    from omni_curator.data.store import CuratorStore
 
     #: An ingest source: pulls already-labeled samples for a project (FLEURS, Common Voice, any
     #: HF dataset, a bespoke corpus loader). Registered per-project in ``CuratorProject.ingests``;
@@ -55,7 +55,7 @@ class CuratorProject:
 
     ``ingests`` maps source name -> loader (see :data:`IngestFn`; :func:`fleurs_source` and
     :func:`commonvoice_source` are the ready-made factories). ``coverage_check`` is the export
-    coverage gate, injected (build one with :func:`omni_curator.coverage.char_tokenizer_coverage`);
+    coverage gate, injected (build one with :func:`audit.coverage.char_tokenizer_coverage`);
     ``None`` disables the gate. ``heldout_manifest`` is the frozen held-out test-video manifest
     (``None`` = no carve; a configured-but-missing path fails fast). ``mixture_weights`` is the
     default sampling-weight recipe for the weighted mixture TSV.
@@ -188,7 +188,7 @@ def _store_batched(store: CuratorStore, samples: Iterable[Sample]) -> int:
 
 def _labeled_video_ids(project: CuratorProject, slug: str) -> set[str]:
     """Video ids already labeled in a channel's store (``<slug>_<stem>``) — incremental skip."""
-    from omni_curator.store import CuratorStore
+    from omni_curator.data.store import CuratorStore
 
     db = project.channels_dir / slug / "store.sqlite"
     if not db.exists():
@@ -241,6 +241,9 @@ def cmd_download(project: CuratorProject, args: argparse.Namespace) -> int:
         result = download_channel(
             ch.url, out_dir=project.create_dir / ch.slug, limit=args.limit,
             cookies=cookies, lane=lane,
+            # the per-channel guard above only stops *between* channels; passing it here makes the
+            # same floor abort *mid-channel* too (P4) — the factory sets --disk-guard to its floor
+            min_free_gb=args.disk_guard or None,
         )
         total_hours += result.hours
         done += 1
@@ -294,9 +297,15 @@ def cmd_segment(project: CuratorProject, args: argparse.Namespace) -> int:
     """Segment stage: resident-model VAD producers cut queued videos into clips (CPU-bound)."""
     from omni_curator.create.queue import QueueStore
     from omni_curator.create.segment import run_segmenters
+    from omni_curator.create.vad import resolve_devices
 
+    # --procs is the deprecated alias: N GPU workers (what older scripts/invocations pass).
+    gpu_req = args.procs if args.procs is not None else args.gpu_procs
+    cpu_req = 0 if args.procs is not None else args.cpu_procs
+    gpu_procs, cpu_procs = resolve_devices(gpu_req, cpu_req)
+    print(f"segment: {gpu_procs} GPU + {cpu_procs} CPU VAD workers")
     run_segmenters(
-        project.queue_path, procs=args.procs, clips_root=project.clips_dir,
+        project.queue_path, gpu_procs=gpu_procs, cpu_procs=cpu_procs, clips_root=project.clips_dir,
         language=project.language, script=project.script,
         max_dur=args.max_duration, pending_hwm=args.hwm,
     )
@@ -311,8 +320,11 @@ def cmd_labelq(project: CuratorProject, args: argparse.Namespace) -> int:
     project.load_env()
     from omni_curator.create.labelq import run_labeler
 
+    default_window = project.data / ".scribe_window.labelq"
+    window_file = Path(args.window_file) if args.window_file else default_window
     labeled = run_labeler(
         project.queue_path, workers=args.workers, batch=args.batch, runs=args.runs,
+        window_file=window_file, pool_max=args.pool_max,
         idle_rounds=args.idle_rounds,
         on_progress=lambda n: print(f"  labeled {n}", flush=True) if n % 1000 == 0 else None,
         on_event=lambda msg: print(msg, flush=True),
@@ -321,11 +333,33 @@ def cmd_labelq(project: CuratorProject, args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_archive(project: CuratorProject, args: argparse.Namespace) -> int:
+    """Move (or delete) segmented videos' source FLACs off the working drive to reclaim space."""
+    from omni_curator.create.archive import archive_source_audio
+
+    archive_root = Path(args.archive_root) / project.name if args.archive_root else None
+    stats = archive_source_audio(
+        project.queue_path,
+        archive_root=archive_root,
+        delete=args.delete,
+        only_if_free_gb=args.only_if_free_gb,
+        on_event=lambda m: print(m, flush=True),
+    )
+    verb = "deleted" if args.delete else "moved"
+    print(
+        f"archive: {verb} {stats.archived} source FLACs, freed "
+        f"{stats.bytes_freed / 1_000_000_000:.1f} GB, {stats.missing} already gone"
+    )
+    for vid, msg in stats.errors[:10]:
+        print(f"  ERROR {vid}: {msg[:120]}")
+    return 1 if stats.errors else 0
+
+
 def cmd_harvest(project: CuratorProject, args: argparse.Namespace) -> int:
     """Fold labeled queue clips into the per-channel stores (idempotent insert-if-absent)."""
     from omni_curator.create.queue import QueueStore
-    from omni_curator.sample import Sample
-    from omni_curator.store import CuratorStore
+    from omni_curator.data.sample import Sample
+    from omni_curator.data.store import CuratorStore
 
     queue = QueueStore(project.queue_path)
     stores: dict[str, CuratorStore] = {}
@@ -361,15 +395,21 @@ def cmd_harvest(project: CuratorProject, args: argparse.Namespace) -> int:
 
 
 def cmd_merge(project: CuratorProject, args: argparse.Namespace) -> int:  # noqa: ARG001
-    """Merge the per-channel stores into the master store."""
-    from omni_curator.store import CuratorStore
+    """Merge the per-channel stores into the master store.
+
+    Insert-if-absent (NOT upsert): a re-merge must never clobber a row the master already holds —
+    in particular its ``scribe_wer``/``scribe_cer`` from a prior ``verify`` pass. Re-running merge
+    after verify with ``upsert`` would replace those rows with the un-scored channel-store copies
+    and silently wipe the scores.
+    """
+    from omni_curator.data.store import CuratorStore
 
     master = CuratorStore(project.db)
     merged = 0
     for sub in sorted(project.channels_dir.glob("*/store.sqlite")):
         src = CuratorStore(sub)
         samples = list(src.iter_samples())
-        merged += master.upsert(samples)
+        merged += master.insert_if_absent(samples)
         src.close()
         print(f"  +{len(samples):>6} from {sub.parent.name}")
     print(
@@ -462,7 +502,7 @@ def cmd_ingest(project: CuratorProject, args: argparse.Namespace) -> int:
     project.load_env()
     # HF-backed sources cache under the project's data dir, not ~/.cache (matches download/create).
     os.environ.setdefault("HF_HOME", str(project.raw_dir / "hf-cache"))
-    from omni_curator.store import CuratorStore
+    from omni_curator.data.store import CuratorStore
 
     datasets = sorted(project.ingests) if args.all else args.dataset
     if not datasets:
@@ -494,13 +534,15 @@ def cmd_ingest(project: CuratorProject, args: argparse.Namespace) -> int:
 def cmd_verify(project: CuratorProject, args: argparse.Namespace) -> int:
     """Scribe-score every un-scored clip in the store (idempotent); print the spread."""
     project.load_env()
-    from omni_curator.store import CuratorStore
-    from omni_curator.verify import scribe_summary, verify_store
+    from omni_curator.audit.verify import scribe_summary, verify_store
+    from omni_curator.data.store import CuratorStore
 
     store = CuratorStore(project.db)
+    default_window = project.data / ".scribe_window.verify"
+    window_file = Path(args.window_file) if args.window_file else default_window
     stats = verify_store(
         store, key=args.source, scribe_language=args.scribe_language,
-        workers=args.workers, force=args.force,
+        workers=args.workers, window_file=window_file, pool_max=args.pool_max, force=args.force,
     )
     renew_note = f", key renewals {stats.renewals}" if stats.renewals else ""
     print(f"scored {stats.scored}, skipped {stats.skipped}, failed {stats.failed}{renew_note}")
@@ -517,8 +559,8 @@ def cmd_verify(project: CuratorProject, args: argparse.Namespace) -> int:
 def cmd_rescore(project: CuratorProject, args: argparse.Namespace) -> int:
     """Re-score verified rows whose hypothesis was rendered in the wrong script (no Scribe)."""
     project.load_env()
-    from omni_curator.store import CuratorStore
-    from omni_curator.verify import rescore_cross_script, scribe_summary
+    from omni_curator.audit.verify import rescore_cross_script, scribe_summary
+    from omni_curator.data.store import CuratorStore
 
     store = CuratorStore(project.db)
     stats = rescore_cross_script(
@@ -554,8 +596,8 @@ def _parse_weights(project: CuratorProject, values: list[str] | None) -> dict[st
 
 def cmd_export(project: CuratorProject, args: argparse.Namespace) -> int:
     """Materialize a dataset ablation: store -> omni-parquet under ``datasets/<name>``."""
-    from omni_curator.export import Selection, export_dataset
-    from omni_curator.store import CuratorStore
+    from omni_curator.data.export import Selection, export_dataset
+    from omni_curator.data.store import CuratorStore
 
     heldout = frozenset() if args.no_heldout else project.heldout_videos()
     weights = {} if args.no_mixture_weights else _parse_weights(project, args.mixture_weight)
@@ -624,8 +666,13 @@ def _add_create_parsers(sub: argparse._SubParsersAction, project: CuratorProject
     p_eq.add_argument("--all", action="store_true", help="ignore the already-labeled skip")
     p_eq.set_defaults(func=cmd_enqueue)
 
-    p_sg = sub.add_parser("segment", help="VAD-segment queued videos into clips (CPU)")
-    p_sg.add_argument("--procs", type=int, default=6, help="resident-model segment processes")
+    p_sg = sub.add_parser("segment", help="VAD-segment queued videos into clips (GPU+CPU)")
+    p_sg.add_argument("--gpu-procs", type=int, default=2,
+                      help="VAD workers on the GPU (models share it; ~3 fit in 12 GB)")
+    p_sg.add_argument("--cpu-procs", type=int, default=8,
+                      help="VAD workers on the CPU cores, run alongside the GPU for max throughput")
+    p_sg.add_argument("--procs", type=int, default=None,
+                      help="deprecated: N GPU workers (use --gpu-procs/--cpu-procs)")
     p_sg.add_argument("--max-duration", type=float, default=30.0, help="hard cap per VAD span (s)")
     p_sg.add_argument("--hwm", type=int, default=50_000, help="pending-clip backpressure ceiling")
     p_sg.set_defaults(func=cmd_segment)
@@ -635,11 +682,24 @@ def _add_create_parsers(sub: argparse._SubParsersAction, project: CuratorProject
     p_lq.add_argument("--batch", type=int, default=None, help="clips per claim (default 2x worker)")
     p_lq.add_argument("--runs", type=int, default=1, help="Scribe ensemble runs per clip")
     p_lq.add_argument("--idle-rounds", type=int, default=3, help="empty polls before exit")
+    p_lq.add_argument("--pool-max", type=int, default=350,
+                      help="thread-pool ceiling; the live window throttles concurrency below it")
+    p_lq.add_argument("--window-file", default=None,
+                      help="live concurrency window file (default data/.scribe_window.<stage>)")
     p_lq.set_defaults(func=cmd_labelq)
 
     p_hv = sub.add_parser("harvest", help="fold labeled clips into per-channel stores")
     p_hv.add_argument("--batch", type=int, default=2000)
     p_hv.set_defaults(func=cmd_harvest)
+
+    p_ar = sub.add_parser("archive", help="move segmented videos' source FLACs off the work drive")
+    p_ar.add_argument("--archive-root",
+                      help="move sources to ROOT/<lang>/<channel>/ (required unless --delete)")
+    p_ar.add_argument("--delete", action="store_true",
+                      help="DELETE sources instead of moving (loses the ability to re-segment)")
+    p_ar.add_argument("--only-if-free-gb", type=float, default=None,
+                      help="only run when the working drive has fewer than N GB free")
+    p_ar.set_defaults(func=cmd_archive)
 
 
 def _add_store_parsers(sub: argparse._SubParsersAction, project: CuratorProject) -> None:
@@ -656,6 +716,10 @@ def _add_store_parsers(sub: argparse._SubParsersAction, project: CuratorProject)
     p_vf.add_argument("--source", help="restrict to one source (e.g. fleurs)")
     p_vf.add_argument("--scribe-language", help="Scribe language (default auto)")
     p_vf.add_argument("--workers", type=int, default=100)
+    p_vf.add_argument("--pool-max", type=int, default=350,
+                      help="thread-pool ceiling; the live window throttles concurrency below it")
+    p_vf.add_argument("--window-file", default=None,
+                      help="live concurrency window file (default data/.scribe_window.<stage>)")
     p_vf.add_argument("--force", action="store_true", help="re-score already-scored clips")
     p_vf.set_defaults(func=cmd_verify)
 

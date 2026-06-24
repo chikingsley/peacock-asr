@@ -12,7 +12,7 @@ Idles when the queue is empty so it keeps draining as the segmenter feeds it.
 Failure policy: the deployed service owns ASR key rotation, so there is no in-process key
 renewal here. A per-clip error requeues the clip (attempts-capped, via ``fail_clips``); a long
 streak of consecutive failed clips aborts the run so a service outage can't become a request
-spray. See ``docs/PIPELINE_SPLIT.md``.
+spray. See ``docs/archive/PIPELINE_SPLIT.md``.
 """
 
 from __future__ import annotations
@@ -25,8 +25,11 @@ from concurrent.futures import FIRST_COMPLETED, Future, ThreadPoolExecutor, wait
 from typing import TYPE_CHECKING, NamedTuple
 from uuid import uuid4
 
+import httpx
+
 from omni_curator.create.queue import QueueStore
 from omni_curator.create.transcribe import DEFAULT_LANGS
+from omni_curator.scribe.concurrency import read_window
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -34,7 +37,7 @@ if TYPE_CHECKING:
 
     from omni_curator.create.queue import QClip
     from omni_curator.create.transcribe import ScribeFn
-    from omni_curator.swservice import SuperwhisperClient
+    from omni_curator.scribe.swservice import SuperwhisperClient
 
 
 class _ThreadState(threading.local):
@@ -58,7 +61,7 @@ def _scribe_fns(langs: tuple[str, ...]) -> dict[str, ScribeFn]:
 
 def _client() -> SuperwhisperClient:
     if _state.client is None:
-        from omni_curator.swservice import SuperwhisperClient
+        from omni_curator.scribe.swservice import SuperwhisperClient
 
         _state.client = SuperwhisperClient()
     return _state.client
@@ -86,36 +89,89 @@ def _label_clip(
 
 
 class _Breaker:
-    """Failure accounting for the dispatcher — aborts before failures become a request spray.
+    """Failure accounting for the dispatcher — rides through blips, aborts a persistent outage.
 
-    Tracks consecutive failed clips (reset by any success). ``record`` raises ``RuntimeError``
-    when a long failure streak means the run must stop (e.g. the service is down). The service
-    owns ASR key rotation, so there is no key-renewal path here.
+    Tracks consecutive failed clips (reset by any success). When the streak hits ``threshold`` (a
+    service blip — intermittent 500/502), ``record`` backs off (exponential, capped) and retries
+    instead of aborting, so the run rides through. But if the streak keeps tripping the threshold
+    across ``max_pauses`` consecutive pauses with NO success in between, the service is genuinely
+    down and ``record`` aborts (raises) rather than spinning forever. Any success resets the streak,
+    the backoff, and the pause count. The service owns ASR key rotation.
     """
 
-    def __init__(self, threshold: int) -> None:
+    def __init__(
+        self,
+        threshold: int,
+        *,
+        notify: Callable[[str], None] | None = None,
+        max_pauses: int = 5,
+        base_backoff: float = 15.0,
+    ) -> None:
         self.threshold = threshold
         self.consecutive = 0
         self.errors: Counter[str] = Counter()
+        self._notify = notify or (lambda _m: None)
+        self._backoff = 0.0
+        self._max_pauses = max_pauses
+        self._base_backoff = base_backoff
+        self._pauses = 0
 
     def record(
         self, done: int, errs: list[tuple[QClip, Exception]], labeled: int
-    ) -> None:
-        """Account one batch outcome; abort the run on a long consecutive-failure streak."""
+    ) -> bool:
+        """Account one batch; back off on a streak (returns True), abort a persistent outage."""
         if done:
             self.consecutive = 0
+            self._backoff = 0.0
+            self._pauses = 0  # progress resumed -> the outage passed
         self.consecutive += len(errs)
         for _, exc in errs:
             self.errors[f"{type(exc).__name__}: {exc}"[:160]] += 1
         if self.consecutive >= self.threshold:
-            self._abort(f"{self.consecutive} consecutive failures", labeled)
+            self._pause(labeled)
+            return True
+        return False
 
-    def _abort(self, reason: str, labeled: int) -> None:
+    def _pause(self, labeled: int) -> None:
+        """Transient outage: back off and retry; abort once it persists across ``max_pauses``."""
+        if self._pauses >= self._max_pauses:
+            self._abort(labeled)
+        self._pauses += 1
+        self._backoff = min(self._backoff * 2 if self._backoff else self._base_backoff, 120.0)
+        self._notify(
+            f"labelq: {self.consecutive} consecutive failures "
+            f"(pause {self._pauses}/{self._max_pauses}, labeled {labeled}); "
+            f"backing off {self._backoff:.0f}s then retrying -- top: {self.errors.most_common(3)}"
+        )
+        time.sleep(self._backoff)
+        self.consecutive = 0  # reset; failed clips already requeued for retry
+
+    def _abort(self, labeled: int) -> None:
         msg = (
-            f"labelq aborted: {reason}; labeled {labeled}; "
+            f"labelq aborted: service down across {self._pauses} backoff pauses "
+            f"({self.consecutive} consecutive failures); labeled {labeled}; "
             f"top failures: {self.errors.most_common(3)}"
         )
         raise RuntimeError(msg)
+
+
+def _commit_outcome(queue: QueueStore, token: str, outcome: _BatchOutcome) -> int:
+    """Persist one batch outcome under ``token``; return the number completed.
+
+    Completes labeled clips; releases (un-charges) clips claimed-but-never-attempted; and splits
+    failures by error type — transient service/transport errors are released (retried on recovery,
+    no attempt burned), clip-specific faults (missing/corrupt audio) are failed so a genuinely bad
+    clip is still retired at the attempt cap. Call this BEFORE the breaker may abort the run.
+    """
+    done = queue.complete_clips(token, outcome.done)
+    if outcome.unprocessed:
+        queue.release_clips(token, [c.clip_id for c in outcome.unprocessed])
+    retry_ids, real_failures = _split_failures(outcome.failures)
+    if retry_ids:
+        queue.release_clips(token, retry_ids)
+    for msg, clip_ids in _group_errors(real_failures).items():
+        queue.fail_clips(token, clip_ids, msg)
+    return done
 
 
 def run_labeler(
@@ -123,6 +179,8 @@ def run_labeler(
     *,
     workers: int = 200,
     batch: int | None = None,
+    window_file: Path | None = None,
+    pool_max: int | None = None,
     langs: tuple[str, ...] = DEFAULT_LANGS,
     runs: int = 1,
     instruction: str | None = None,
@@ -130,6 +188,7 @@ def run_labeler(
     poll_s: float = 5.0,
     idle_rounds: int = 3,
     breaker_threshold: int = 50,
+    max_pauses: int = 5,
     on_progress: Callable[[int], None] | None = None,
     on_event: Callable[[str], None] | None = None,
 ) -> int:
@@ -144,18 +203,22 @@ def run_labeler(
     ``on_event`` receives operator messages (the final failure summary).
     """
     queue = QueueStore(queue_path)
-    batch = batch or workers * 2
+    pool_max = max(pool_max or workers, workers)  # pool ceiling; the window throttles below it
     labeled = 0
     empty = 0
-    breaker = _Breaker(breaker_threshold)
     notify = on_event or (lambda _msg: None)
+    breaker = _Breaker(breaker_threshold, notify=notify, max_pauses=max_pauses)
     worker = _make_worker(langs, runs, instruction)
     try:
-        with ThreadPoolExecutor(max_workers=workers) as pool:
+        with ThreadPoolExecutor(max_workers=pool_max) as pool:
             while True:
+                # Re-read the live window each round (GNU-parallel --jobs style): edit the file
+                # and concurrency retunes on the next batch. `batch` (if set) pins the claim size.
+                window = read_window(window_file, default=workers, cap=pool_max)
+                claim_n = batch or window * 2
                 queue.reclaim_stale_clips(lease_s)
                 token = uuid4().hex
-                clips = queue.claim_clips(batch, token, lease_s=lease_s)
+                clips = queue.claim_clips(claim_n, token, lease_s=lease_s)
                 if not clips:
                     empty += 1
                     if empty >= idle_rounds:
@@ -167,11 +230,12 @@ def run_labeler(
                 # there instead of draining (and charging an attempt to) all `batch` clips.
                 budget = max(1, breaker_threshold - breaker.consecutive)
                 outcome = _process_batch(
-                    pool, worker, clips, window=workers, fail_budget=budget
+                    pool, worker, clips,
+                    window_file=window_file, default_window=workers, pool_max=pool_max,
+                    fail_budget=budget,
                 )
-                labeled += queue.complete_clips(token, outcome.done)
-                for msg, clip_ids in _group_errors(outcome.failures).items():
-                    queue.fail_clips(token, clip_ids, msg)
+                # Commit the batch BEFORE breaker.record (which may raise to abort the run).
+                labeled += _commit_outcome(queue, token, outcome)
                 breaker.record(len(outcome.done), outcome.failures, labeled)
                 if on_progress:
                     on_progress(labeled)
@@ -188,7 +252,8 @@ class _BatchOutcome(NamedTuple):
     """One claimed batch, fully accounted: every clip is in exactly one bucket."""
 
     done: list[tuple[str, str, str]]  # labeled (clip_id, label, variants) -> complete_clips
-    failures: list[tuple[QClip, Exception]]  # failures -> fail_clips (attempt charged)
+    failures: list[tuple[QClip, Exception]]  # failures -> fail_clips, or release on an outage round
+    unprocessed: list[QClip]  # claimed but never submitted (breaker tripped) -> release (un-charge)
 
 
 def _process_batch(
@@ -196,22 +261,28 @@ def _process_batch(
     worker: Callable[[QClip], tuple[QClip, tuple[str, str, str] | None, Exception | None]],
     clips: list[QClip],
     *,
-    window: int,
+    window_file: Path | None,
+    default_window: int,
+    pool_max: int,
     fail_budget: int,
 ) -> _BatchOutcome:
-    """Stream a claimed batch through the pool with a bounded submission window.
+    """Stream a claimed batch through the pool, honoring the live window each submit.
 
-    Stops submitting new clips once ``fail_budget`` consecutive failures accrue (the run breaker is
-    about to trip) — a uniform outage then charges an attempt to only the in-flight clips, not the
-    whole batch. Clips never submitted stay claimed and are reclaimed after their lease, unburnt.
+    Re-reads the window file every iteration (GNU-parallel --jobs style), so lowering it mid-batch
+    stops new submissions until in-flight drains back under target. Stops submitting once
+    ``fail_budget`` consecutive failures accrue (the run breaker is about to trip): a uniform outage
+    then charges an attempt to only the in-flight clips, and the leftover claimed clips are returned
+    as ``unprocessed`` so the caller can release them (un-charge) rather than burn an attempt.
     """
     todo: deque[QClip] = deque(clips)
     futures: dict[Future[tuple[QClip, tuple[str, str, str] | None, Exception | None]], QClip] = {}
     done: list[tuple[str, str, str]] = []
     failures: list[tuple[QClip, Exception]] = []
+    unprocessed: list[QClip] = []
     consecutive = 0  # consecutive failures within this batch; a success resets it
     blind = 0  # clips submitted before the first success (service still unproven)
     while todo or futures:
+        window = read_window(window_file, default=default_window, cap=pool_max)
         while todo and len(futures) < window and consecutive < fail_budget:
             # Before any success, cap TOTAL submissions at the failure budget: a uniform outage
             # then charges ~fail_budget clips, not the whole batch. One success ramps to the full
@@ -234,9 +305,10 @@ def _process_batch(
             elif exc is not None:
                 failures.append((clip, exc))
                 consecutive += 1
-        if consecutive >= fail_budget:
-            todo.clear()  # breaker about to trip: stop claiming more, just drain in-flight
-    return _BatchOutcome(done, failures)
+        if consecutive >= fail_budget and todo:
+            unprocessed.extend(todo)  # breaker about to trip: stop claiming; release the leftovers
+            todo.clear()
+    return _BatchOutcome(done, failures, unprocessed)
 
 
 def _group_errors(errs: list[tuple[QClip, Exception]]) -> dict[str, list[str]]:
@@ -245,6 +317,47 @@ def _group_errors(errs: list[tuple[QClip, Exception]]) -> dict[str, list[str]]:
     for clip, exc in errs:
         by_msg.setdefault(f"{type(exc).__name__}: {exc}", []).append(clip.clip_id)
     return by_msg
+
+
+#: Substrings marking a failure as a transient service/transport problem (HTTP 5xx, gateway,
+#: timeout, rate-limit, auth, mid-flight disconnects) rather than a fault in the clip itself.
+_RETRYABLE_MARKERS = (
+    "500", "502", "503", "504", "bad gateway", "service unavailable", "internal server error",
+    "gateway timeout", "timeout", "timed out", "connection", "temporarily", "429", "rate limit",
+    "401", "unauthorized", "403", "forbidden", "disconnect", "server disconnected",
+    "remote end closed", "connection reset", "broken pipe", "eof occurred",
+)
+#: Exception types that always mean a transport problem (the clip is fine, retry later).
+_TRANSIENT_EXC = (ConnectionError, TimeoutError, httpx.TransportError, httpx.TimeoutException)
+_SERVER_ERROR_MIN = 500  # HTTP status >= this is server-side -> retryable
+_RETRYABLE_CLIENT_CODES = (401, 403, 408, 429)  # auth + request-timeout + rate-limit -> retryable
+
+
+def _is_retryable(exc: Exception) -> bool:
+    """True if a clip failure is a service/transport problem -> release for a later retry (no
+    attempt charged); False if it is clip-specific (missing/corrupt audio) -> fail so a genuinely
+    bad clip is retired at the attempt cap. Unknown errors default to NOT retryable, so a bad clip
+    can never loop forever being released — only known-transient errors get the free retry.
+    """
+    if isinstance(exc, _TRANSIENT_EXC):
+        return True  # transport problem (connect/read/disconnect/protocol) -> the clip is fine
+    if isinstance(exc, httpx.HTTPStatusError):
+        code = exc.response.status_code
+        return code >= _SERVER_ERROR_MIN or code in _RETRYABLE_CLIENT_CODES
+    if isinstance(exc, (FileNotFoundError, IsADirectoryError, PermissionError)):
+        return False  # the audio file/path is the problem, not the service
+    return any(marker in str(exc).lower() for marker in _RETRYABLE_MARKERS)
+
+
+def _split_failures(
+    failures: list[tuple[QClip, Exception]],
+) -> tuple[list[str], list[tuple[QClip, Exception]]]:
+    """Partition failures into (retryable clip ids -> release, clip-specific failures -> fail)."""
+    retry_ids: list[str] = []
+    real: list[tuple[QClip, Exception]] = []
+    for clip, exc in failures:
+        (retry_ids.append(clip.clip_id) if _is_retryable(exc) else real.append((clip, exc)))
+    return retry_ids, real
 
 
 def _make_worker(

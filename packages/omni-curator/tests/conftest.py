@@ -6,7 +6,7 @@ import dataclasses
 
 import pytest
 
-from omni_curator.sample import Sample
+from omni_curator.data.sample import Sample
 
 _BASE = Sample(
     id="chan_vid001_0000",

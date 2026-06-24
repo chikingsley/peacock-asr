@@ -6,9 +6,10 @@ tokenizer fully covers. Normalization here does three things, in roughly this or
 - **shared base** (every language): ``unicodedata.normalize("NFKC", ...)``, strip stray
   control/format/symbol characters (ZWNJ, soft hyphen, ``♡``, ``™`` …), collapse whitespace;
 - **number expansion**: replace clear digit runs with the language's spoken number words
-  (Georgian via ``num2geotext``, Persian via ``num2words(lang="fa")``);
+  (Georgian via ``num2geotext``; Persian deliberately keeps digits as digits — see below);
 - **language-specific cleanup**: the official toolkit for that language
-  (``anbani`` for Georgian script folding, ``hazm`` for Persian, ``tajiknlp`` for Tajik).
+  (``anbani`` for Georgian script folding, the NVIDIA fastconformer script for Persian,
+  ``tajiknlp`` for Tajik).
 
 Dispatch is a registry ``{language_code: callable}``. An unknown language gets the shared base
 only — it is *not* pretended to be fully normalized; opting a language in means adding it to the
@@ -20,6 +21,7 @@ clear message), via the ``normalize`` optional-dependencies extra.
 from __future__ import annotations
 
 import re
+import string
 import unicodedata
 from typing import TYPE_CHECKING
 
@@ -126,35 +128,64 @@ def normalize_georgian(text: str) -> str:
 
 
 # --------------------------------------------------------------------------------------------
-# Persian (fas_Arab): hazm + num2words(lang="fa")
+# Persian (fas_Arab): NVIDIA stt_fa_fastconformer_hybrid_large script + ZWNJ -> space
 # --------------------------------------------------------------------------------------------
 
-_HAZM_NORMALIZER = None
+# ``normalize_persian`` is the NVIDIA model-card normalization script, pinned to the upstream
+# revision below, with the local ZWNJ decision layered on: format chars (ZWNJ/ZWJ/bidi/BOM, Cf)
+# and stray symbols (So) map to a *space* — not removed — so morphemes stay separate word units
+# and the Omni char tokenizer never sees an unrepresentable glyph. This is the surface the Omni
+# CTC v2 Persian models were trained and scored on; do not swap it without re-exporting +
+# retraining. See projects/farsi-asr/docs/zwnj-normalization-decision-20260529.md.
+# Refresh upstream: hf download nvidia/stt_fa_fastconformer_hybrid_large README.md --revision <rev>
+_FAS_SOURCE_REPO = "nvidia/stt_fa_fastconformer_hybrid_large"
+_FAS_SOURCE_REVISION = "249cf5bf70dda7220a60ddeeecff2f6aad8e1784"
+_FAS_SOURCE_README_SHA256 = "f98ae540031ed90105b887ad3529f412a17ecfd452a5341d904fb4733913ce7e"
 
+#: Utterances containing any of these are discarded upstream ("empty results were discarded"):
+#: Latin letters + a few rare Arabic forms that signal non-Persian / transliterated content.
+_FAS_SKIP = frozenset([*string.ascii_letters, "=", "ā", "š", "ة"])
 
-def _persian_to_words(value: int) -> str:
-    from num2words import num2words
+#: Punctuation, diacritics and tokenizer-incompatible symbols removed outright (no spoken content).
+_FAS_DISCARD = (
+    "(خنده)",  # "(laughter)"
+    "!", '"', "#", "&", "'", "(", ")", ",", "-", ".", ":", ";",
+    "–", "“", "”", "…", "؟", "،", "؛", "ـ",
+    "ً", "ٌ", "َ", "ُ", "ِ", "ّ", "ْ", "ٔ",  # harakat / tanwin
+    "«", "»",
+    "٪", "×", "÷", "�",  # symbols with no Omni piece
+)
 
-    return num2words(value, lang="fa")
+#: Arabic letter variants folded to their canonical Persian forms (the tokenizer's surface).
+_FAS_REPLACEMENTS = {
+    "أ": "ا", "ۀ": "ە", "ك": "ک", "ي": "ی", "ى": "ی", "ﯽ": "ی",
+    "ﻮ": "و", "ے": "ی", "ﺒ": "ب", "ﻢ": "ﻡ", "٬": " ", "ە": "ه",
+    "ٱ": "ا",  # ARABIC LETTER ALEF WASLA -> ALEF
+}
+
+_FAS_MAP_TO_SPACE = frozenset({"Cf", "So"})
 
 
 def normalize_persian(text: str) -> str:
-    """Normalize Persian: hazm orthographic normalization, then expand integers to Persian words.
+    """Normalize Persian via the NVIDIA fastconformer script, ZWNJ -> space.
 
-    ``hazm`` fixes Persian orthography (correct Arabic/Persian letter forms, spacing, ZWNJ) but
-    converts ASCII digits to Persian digits rather than words; we then replace the (now Persian
-    or ASCII) digit runs with ``num2words(lang="fa")`` spoken words. ``int()``/``\\d`` are
-    Unicode-aware, so Persian-Indic digits are handled.
+    Returns ``""`` for utterances containing banned characters (Latin letters, a few Arabic
+    forms) — the upstream "empty results were discarded" rule; callers skip empty results.
+    Numbers are intentionally left as digits: that is the surface the Omni CTC v2 models trained
+    on, so reference and hypothesis match. (Expanding digits to spoken words is a deliberate
+    future normalizer *version*, gated on re-exporting + retraining — not an eval-time change.)
     """
-    global _HAZM_NORMALIZER  # noqa: PLW0603 — cache the expensive hazm Normalizer once
-    import hazm
-
-    if _HAZM_NORMALIZER is None:
-        _HAZM_NORMALIZER = hazm.Normalizer()
-    text = base_normalize(text)
-    text = _HAZM_NORMALIZER.normalize(text)
-    text = _replace_number_runs(text, _persian_to_words)
-    return _WHITESPACE_RE.sub(" ", text).strip()
+    if set(text) & _FAS_SKIP:
+        return ""
+    text = " ".join(word for word in text.split() if not word.startswith("#"))  # drop hashtags
+    for lhs, rhs in _FAS_REPLACEMENTS.items():
+        text = text.replace(lhs, rhs)
+    for tok in _FAS_DISCARD:
+        text = text.replace(tok, "")
+    text = "".join(" " if unicodedata.category(ch) in _FAS_MAP_TO_SPACE else ch for ch in text)
+    text = unicodedata.normalize("NFKC", text)
+    text = text.replace("ء", "")  # bare hamza not merged into a letter by NFKC
+    return " ".join(token for token in text.split() if token)
 
 
 # --------------------------------------------------------------------------------------------

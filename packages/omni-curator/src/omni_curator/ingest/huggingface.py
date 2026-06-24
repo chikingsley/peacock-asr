@@ -6,7 +6,8 @@ import io
 from itertools import chain
 from typing import TYPE_CHECKING, cast
 
-from omni_curator.sample import Sample
+from omni_curator.data.sample import Sample
+from omni_curator.ingest._util import slug as _slug
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -56,10 +57,6 @@ def _text_column_from_example(example: dict[str, object]) -> str:
         if candidate in example:
             return candidate
     raise ValueError("could not detect HF text column; pass text_column=")
-
-
-def _slug(value: str) -> str:
-    return "".join(char if char.isalnum() else "_" for char in value).strip("_")
 
 
 def _load_split(

@@ -4,7 +4,7 @@ The store is the master pool, so verification is a *uniform store-level step*: E
 or created) gets ONE Scribe pass and one full-jiwer score against its stored label. The two headline
 rates land in the ``scribe_wer``/``scribe_cer`` columns (fast SQL filtering on export); the whole
 jiwer breakdown (word/char S/D/I/H) and the Scribe hypothesis go in ``meta["scribe"]``. Export then
-filters on those scores (:class:`omni_curator.export.Selection`'s ``max_scribe_wer``/
+filters on those scores (:class:`omni_curator.data.export.Selection`'s ``max_scribe_wer``/
 ``max_scribe_cer``) — the Persian-style "scribe curation", made standard.
 
 This is the *checking* pass, NOT the label-generating ensemble: a single Scribe pass (one reference)
@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import statistics
 import threading
+import time
 from collections import Counter
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from dataclasses import dataclass, field
@@ -31,8 +32,9 @@ from itertools import islice
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
-from omni_curator.benchmark import dominant_script, normalize, score_pair
+from omni_curator.audit.benchmark import dominant_script, normalize, score_pair
 from omni_curator.create.transcribe import make_scribe_fns, raise_for_scribe_error
+from omni_curator.scribe.concurrency import read_window
 
 #: Human-readable script names for the transliteration prompt, by FLORES script code.
 _SCRIPT_NAMES = {
@@ -54,7 +56,7 @@ _state = _ThreadState()
 
 def _text_client() -> SuperwhisperClient:
     if _state.client is None:
-        from omni_curator.swservice import SuperwhisperClient
+        from omni_curator.scribe.swservice import SuperwhisperClient
 
         _state.client = SuperwhisperClient()
     return _state.client
@@ -62,10 +64,12 @@ def _text_client() -> SuperwhisperClient:
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
 
+    from tqdm import tqdm
+
     from omni_curator.create.transcribe import ScribeFn
-    from omni_curator.sample import Sample
-    from omni_curator.store import CuratorStore
-    from omni_curator.swservice import SuperwhisperClient
+    from omni_curator.data.sample import Sample
+    from omni_curator.data.store import CuratorStore
+    from omni_curator.scribe.swservice import SuperwhisperClient
 
 
 @dataclass
@@ -122,19 +126,21 @@ def _pending(store: CuratorStore, *, key: str | None, force: bool) -> tuple[list
 
     Returns ``(scoreable, unscoreable)``. A label that normalizes to nothing (``.``, ``...``,
     ``♪`` — Scribe's silence/music markers) can never be scored (jiwer rejects an empty
-    reference), so those rows are dropped here BEFORE any Scribe call is spent on them; they
-    stay ``scribe_wer IS NULL`` and the export junk filter is what removes them from training.
+    reference), so those rows are dropped here BEFORE any Scribe call is spent on them and
+    PERSISTED with ``scribe_status='unscoreable'`` — so neither a later verify run nor the
+    factory's verify predicate keeps re-scanning a row that can never be scored.
     """
-    samples = store.iter_samples(source=key) if key is not None else store.iter_samples()
-    chosen = samples if force else (s for s in samples if s.scribe_wer is None)
+    chosen = store.iter_samples(source=key) if force else store.iter_scoreable_unscored(source=key)
     scoreable: list[Sample] = []
-    unscoreable = 0
+    unscoreable_ids: list[str] = []
     for sample in chosen:
         if normalize(sample.text):
             scoreable.append(sample)
         else:
-            unscoreable += 1
-    return scoreable, unscoreable
+            unscoreable_ids.append(sample.id)
+    if not force:
+        store.mark_unscoreable(unscoreable_ids)
+    return scoreable, len(unscoreable_ids)
 
 
 def _score_one(sample: Sample, scribe_fn: ScribeFn) -> dict[str, object]:
@@ -188,8 +194,12 @@ def verify_store(
     scribe_language: str | None = None,
     model: str = "scribe-v2",
     workers: int = 100,
+    window_file: Path | None = None,
+    pool_max: int | None = None,
     force: bool = False,
     breaker_threshold: int = 50,
+    pause_s: float = 30.0,
+    max_pauses: int = 5,
 ) -> VerifyStats:
     """Score every (un-scored) clip's label against a fresh Scribe pass; persist the full result.
 
@@ -226,32 +236,61 @@ def verify_store(
     wers: list[float] = []
     cers: list[float] = []
     consecutive = 0
+    pauses = 0  # consecutive backoff pauses with no success since -> trips the abort if it climbs
+    proven = False  # a success since the last pause -> ramp to full window; else stay capped
     queued = iter(pending)
-    with ThreadPoolExecutor(max_workers=workers) as pool:
-        # Bounded in-flight window: never more than 2x workers submitted ahead of the consumer.
-        # Submitting the whole pending list upfront would let fast failures race far past the
-        # breaker before the consumer loop ever sees them.
-        futures = {pool.submit(_score, s): s for s in _take(queued, workers * 2)}
+    pool_max = max(pool_max or workers, workers)  # pool ceiling; the live window throttles below it
+    with ThreadPoolExecutor(max_workers=pool_max) as pool:
+        # In-flight window == actual Scribe concurrency, re-read live each round (GNU-parallel
+        # --jobs style): raise the file's number -> submit more; lower it -> submit none until
+        # in-flight drains back under target. The pool is sized to pool_max so the window can grow.
+        window = read_window(window_file, default=workers, cap=pool_max)
+        # Before any success the service is unproven: cap in-flight at the breaker threshold, so a
+        # dead service trips the breaker after ~threshold calls instead of a full (up to pool_max)
+        # window's worth. One success ramps to the full window for throughput.
+        # epoch is bumped on each pause; only current-epoch failures trip the breaker, so the
+        # pre-pause in-flight wave drains without burning the post-pause pause budget.
+        epoch = 0
+        target = min(window, breaker_threshold)
+        futures = {pool.submit(_score, s): (s, epoch) for s in _take(queued, target)}
         progress = tqdm(total=len(pending), desc="scribe-verify", unit="clip")
         while futures:
             finished, _ = wait(futures, return_when=FIRST_COMPLETED)
             for future in finished:
-                sample = futures.pop(future)
+                sample, submitted_epoch = futures.pop(future)
                 progress.update(1)
                 try:
                     detail = future.result()
                 except Exception as exc:  # noqa: BLE001 — counted; the breaker bounds the damage
                     stats.failed += 1
                     stats.failures.append((sample.id, f"{type(exc).__name__}: {exc}"))
+                    if submitted_epoch != epoch:
+                        continue  # a pre-pause wave failure: recorded, but it must not re-trip
                     consecutive += 1
                     if consecutive >= breaker_threshold:
-                        _abort(pool, f"{consecutive} consecutive failures", stats, exc)
+                        consecutive, pauses = _pause_or_abort(
+                            pool, consecutive=consecutive, pauses=pauses,
+                            threshold=breaker_threshold, max_pauses=max_pauses,
+                            pause_s=pause_s, stats=stats, exc=exc, progress=progress,
+                        )
+                        proven = False  # re-arm the cap: re-prove the service before ramping back
+                        epoch += 1  # in-flight futures now "old"; their fails won't re-trip
                     continue
-                consecutive = 0
                 _record_score(store, stats, sample, detail, wers, cers)
-            # Refill AFTER processing, so an abort decision never races extra submissions.
-            for nxt in _take(queued, len(finished)):
-                futures[pool.submit(_score, nxt)] = nxt
+                if submitted_epoch == epoch:
+                    # only a CURRENT-epoch success proves the service is alive right now; a stale
+                    # pre-pause success must not reset the streak or reopen the window mid-outage
+                    consecutive = 0
+                    pauses = 0
+                    proven = True
+            # Refill AFTER processing, up to the live window (re-read so edits take effect now).
+            # Stay capped at the breaker threshold until a success proves the service (at the start
+            # and after each pause), so an outage can't fire a full window into a dead service and
+            # burn through max_pauses in one already-submitted wave.
+            window = read_window(window_file, default=workers, cap=pool_max)
+            target = window if proven else min(window, breaker_threshold)
+            for nxt in _take(queued, max(0, target - len(futures))):
+                futures[pool.submit(_score, nxt)] = (nxt, epoch)
         progress.close()
 
     stats.wer = _distribution(wers)
@@ -291,6 +330,35 @@ def _abort(pool: ThreadPoolExecutor, reason: str, stats: VerifyStats, exc: Excep
     raise RuntimeError(msg)
 
 
+def _pause_or_abort(
+    pool: ThreadPoolExecutor,
+    *,
+    consecutive: int,
+    pauses: int,
+    threshold: int,
+    max_pauses: int,
+    pause_s: float,
+    stats: VerifyStats,
+    exc: Exception,
+    progress: tqdm,
+) -> tuple[int, int]:
+    """Long failure streak -> back off and retry (transient blip), or abort once the service stays
+    down across ``max_pauses`` pauses. Returns the new ``(consecutive, pauses)``; the caller resets
+    ``pauses`` to 0 on the next success, so only an *uninterrupted* outage trips the abort.
+    """
+    if consecutive < threshold:
+        return consecutive, pauses
+    if pauses >= max_pauses:
+        _abort(pool, f"{consecutive} consecutive failures across {pauses} pauses", stats, exc)
+    pauses += 1
+    progress.write(
+        f"scribe: {consecutive} consecutive failures (pause {pauses}/{max_pauses}) "
+        f"-- backing off {pause_s:.0f}s then retrying (last: {type(exc).__name__})"
+    )
+    time.sleep(pause_s)
+    return 0, pauses
+
+
 def _cross_script_candidates(store: CuratorStore, *, key: str | None) -> list[tuple[Sample, str]]:
     """Scored rows whose saved hypothesis is in a different script than the label.
 
@@ -321,6 +389,8 @@ def rescore_cross_script(
     key: str | None = None,
     workers: int = 50,
     breaker_threshold: int = 50,
+    pause_s: float = 30.0,
+    max_pauses: int = 5,
     on_progress: Callable[[int], None] | None = None,
 ) -> VerifyStats:
     """Re-score already-verified rows whose stored hypothesis is in a different script.
@@ -341,32 +411,48 @@ def rescore_cross_script(
     wers: list[float] = []
     cers: list[float] = []
     consecutive = 0
+    pauses = 0
+    proven = False
+    epoch = 0  # same outage handling as verify_store: cap unproven, ignore pre-pause-wave failures
     queued = iter(candidates)
     with ThreadPoolExecutor(max_workers=workers) as pool:
+        target = min(workers, breaker_threshold)  # blind cap until a success proves the service
         futures = {
-            pool.submit(_score_hypothesis, s, h): s for s, h in islice(queued, workers * 2)
+            pool.submit(_score_hypothesis, s, h): (s, epoch) for s, h in islice(queued, target)
         }
         progress = tqdm(total=len(candidates), desc="rescore-script", unit="clip")
         while futures:
             finished, _ = wait(futures, return_when=FIRST_COMPLETED)
             for future in finished:
-                sample = futures.pop(future)
+                sample, submitted_epoch = futures.pop(future)
                 progress.update(1)
                 try:
                     detail = future.result()
                 except Exception as exc:  # noqa: BLE001 — counted; the breaker bounds the damage
                     stats.failed += 1
                     stats.failures.append((sample.id, f"{type(exc).__name__}: {exc}"))
+                    if submitted_epoch != epoch:
+                        continue  # pre-pause wave failure: recorded, must not re-trip
                     consecutive += 1
                     if consecutive >= breaker_threshold:
-                        _abort(pool, f"{consecutive} consecutive failures", stats, exc)
+                        consecutive, pauses = _pause_or_abort(
+                            pool, consecutive=consecutive, pauses=pauses,
+                            threshold=breaker_threshold, max_pauses=max_pauses,
+                            pause_s=pause_s, stats=stats, exc=exc, progress=progress,
+                        )
+                        proven = False
+                        epoch += 1
                     continue
-                consecutive = 0
                 _record_score(store, stats, sample, detail, wers, cers)
+                if submitted_epoch == epoch:
+                    consecutive = 0
+                    pauses = 0
+                    proven = True
                 if on_progress:
                     on_progress(stats.scored)
-            for nxt, hyp in islice(queued, len(finished)):
-                futures[pool.submit(_score_hypothesis, nxt, hyp)] = nxt
+            target = workers if proven else min(workers, breaker_threshold)
+            for nxt, hyp in islice(queued, max(0, target - len(futures))):
+                futures[pool.submit(_score_hypothesis, nxt, hyp)] = (nxt, epoch)
         progress.close()
 
     stats.wer = _distribution(wers)

@@ -71,24 +71,77 @@ def boolean_windows(
     return [w for w in merged if w.duration >= min_duration_seconds]
 
 
-def _load_model(model_path: Path | str | None) -> Any:
+def _load_model(model_path: Path | str | None, *, device: str) -> Any:
     import torch
     from nemo.collections.asr.parts.utils.vad_utils import EncDecFrameClassificationModel
 
-    cpu = torch.device("cpu")
+    # Loaded onto the caller's device. The segmenter runs a mix of GPU and CPU workers (NeMo's
+    # high-level ``model.transcribe`` follows the model's device), so the GPU AND the cores work.
+    dev = torch.device(device)
     path = model_path or os.environ.get(VAD_MODEL_ENV)
+    cls = EncDecFrameClassificationModel
     if path:
-        return EncDecFrameClassificationModel.restore_from(str(path), map_location=cpu)
-    return EncDecFrameClassificationModel.from_pretrained(NEMO_VAD_MODEL_NAME, map_location=cpu)
+        model = cls.restore_from(str(path), map_location=dev)
+    else:
+        model = cls.from_pretrained(NEMO_VAD_MODEL_NAME, map_location=dev)
+    return model.to(dev)
 
 
-def load_vad_model(model_path: Path | str | None = None) -> Any:
-    """Load the NeMo frame-VAD model once, ready for reuse across many files.
+#: Rough resident-VAD GPU footprint per worker (CUDA context + model + activations), for deciding
+#: how many GPU workers the free VRAM can hold before spilling the rest to CPU.
+_VAD_GPU_GB_PER_WORKER = 3.0
 
-    The split (segment) pipeline keeps one model resident per process; :func:`segment_vad` is the
-    convenience that loads + runs in a single call (one-off use).
+
+def resolve_devices(gpu_procs: int, cpu_procs: int) -> tuple[int, int]:
+    """Resolve requested (gpu, cpu) worker counts against the GPU's *current* free memory.
+
+    Honors the user's rule "don't pile onto a busy GPU": if there's no CUDA device, or another
+    process already holds the VRAM, the GPU workers that won't fit are moved to the CPU instead —
+    so the run still uses all the compute it can without OOM-ing the card.
     """
-    model = _load_model(model_path)
+    if gpu_procs <= 0:
+        return 0, cpu_procs
+    free_gb = _gpu_free_gb()
+    if free_gb is None:  # no GPU visible -> everything to CPU
+        return 0, cpu_procs + gpu_procs
+    affordable = int(free_gb // _VAD_GPU_GB_PER_WORKER)
+    if affordable < gpu_procs:
+        return max(0, affordable), cpu_procs + (gpu_procs - affordable)
+    return gpu_procs, cpu_procs
+
+
+def _gpu_free_gb() -> float | None:
+    """Free VRAM (GB) via ``nvidia-smi`` — NVML, so it does NOT open a CUDA context in this parent
+    process (which would waste VRAM and, pre-spawn, risk leaking state into workers). ``None`` if
+    no GPU / nvidia-smi is present.
+    """
+    import subprocess
+
+    try:
+        out = subprocess.run(
+            ["nvidia-smi", "--query-gpu=memory.free", "--format=csv,noheader,nounits"],  # noqa: S607
+            capture_output=True, text=True, check=True, timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    line = out.stdout.strip().splitlines()
+    try:
+        return int(line[0]) / 1024 if line else None
+    except ValueError:
+        return None
+
+
+def load_vad_model(model_path: Path | str | None = None, *, device: str | None = None) -> Any:
+    """Load the NeMo frame-VAD model once on ``device`` (``"cuda"``/``"cpu"``; auto if ``None``).
+
+    The split (segment) pipeline keeps one model resident per process and runs it across many files
+    via :func:`segment_vad_with`.
+    """
+    if device is None:
+        import torch
+
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = _load_model(model_path, device=device)
     model.eval()
     return model
 
@@ -110,7 +163,9 @@ def segment_vad_with(
 
     with torch.no_grad():
         logits = model.transcribe([str(audio)], batch_size=1, logprobs=True)[0]
-    probs = torch.softmax(torch.from_numpy(np.asarray(logits)), dim=-1).numpy()
+    # transcribe() may hand back a CUDA tensor when the model is on GPU -> bring it to CPU/numpy.
+    arr = logits.detach().cpu().numpy() if torch.is_tensor(logits) else np.asarray(logits)
+    probs = torch.softmax(torch.from_numpy(arr), dim=-1).numpy()
     speech = probs[:, speech_class_index]
     windows = boolean_windows(
         [float(p) >= threshold for p in speech],
@@ -120,27 +175,3 @@ def segment_vad_with(
         hard_max_seconds=max_dur,
     )
     return [(w.start, w.end) for w in windows]
-
-
-def segment_vad(
-    audio: Path,
-    *,
-    threshold: float = 0.5,
-    min_dur: float = 1.0,
-    merge_gap: float = 1.5,
-    max_dur: float = 30.0,
-    frame_seconds: float = 0.02,
-    speech_class_index: int = 1,
-    model_path: Path | str | None = None,
-) -> list[tuple[float, float]]:
-    """Speech windows from the NeMo frame-VAD (speech-bounded, language-blind, no overlap)."""
-    return segment_vad_with(
-        load_vad_model(model_path),
-        audio,
-        threshold=threshold,
-        min_dur=min_dur,
-        merge_gap=merge_gap,
-        max_dur=max_dur,
-        frame_seconds=frame_seconds,
-        speech_class_index=speech_class_index,
-    )

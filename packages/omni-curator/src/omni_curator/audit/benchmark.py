@@ -12,14 +12,10 @@ import re
 def normalize(text: str) -> str:
     """The one scoring normalization: lowercase, punctuation -> space, collapse whitespace.
 
-    Shared by :func:`wer_cer` and the store-level Scribe verification (``omni_curator.verify``) so
+    Shared by :func:`wer_cer` and the store-level Scribe verification (``audit.verify``) so
     every comparison uses the same yardstick.
     """
     return " ".join(re.sub(r"[^\w\s]", " ", text.lower()).split())
-
-
-#: Backwards-compatible private alias for the normalizer.
-_norm = normalize
 
 
 def wer_cer(reference: list[str], hypothesis: list[str]) -> tuple[float, float]:

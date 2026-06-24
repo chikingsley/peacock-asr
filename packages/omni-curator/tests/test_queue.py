@@ -46,10 +46,32 @@ def test_video_claim_complete_cycle(queue):
     assert video.video_id == "chan_v000"
     assert queue.claim_video("seg-1") is None  # claimed -> nothing pending
 
-    queue.complete_video(video.video_id, _clips(video.video_id, 4))
+    queue.complete_video(video.video_id, _clips(video.video_id, 4), claim_token=video.claim_token)
     counts = queue.status_counts()
     assert counts["videos"] == {"segmented": 1}
     assert counts["clips"] == {"pending": 4}
+
+
+def test_video_completion_requires_matching_token(queue):
+    """A stale segmenter whose video was reclaimed must not double-complete or flip the row."""
+    queue.enqueue_videos(_videos(1))
+    first = queue.claim_video("seg-0")
+    assert first is not None
+    second = queue.claim_video("seg-1", stale_after_s=0.0)  # lease stale -> reclaimed, fresh token
+    assert second is not None
+    assert second.claim_token != first.claim_token
+
+    # the original worker returns late: its stale token writes nothing
+    queue.complete_video(first.video_id, _clips(first.video_id, 3), claim_token=first.claim_token)
+    assert queue.status_counts()["videos"] == {"segmenting": 1}  # still owned by second
+    assert queue.status_counts().get("clips", {}) == {}
+
+    # the current owner completes successfully
+    queue.complete_video(
+        second.video_id, _clips(second.video_id, 2), claim_token=second.claim_token
+    )
+    assert queue.status_counts()["videos"] == {"segmented": 1}
+    assert queue.status_counts()["clips"] == {"pending": 2}
 
 
 def test_clip_writeback_requires_matching_token(queue):

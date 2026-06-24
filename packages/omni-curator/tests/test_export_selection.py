@@ -12,8 +12,8 @@ from __future__ import annotations
 
 import pytest
 
-from omni_curator.export import Selection, write_weighted_distribution
-from omni_curator.quality import is_descriptor_only
+from omni_curator.audit.quality import is_descriptor_only
+from omni_curator.data.export import Selection, write_weighted_distribution
 
 
 def test_wer_gate_applies_to_train_only(make_sample):

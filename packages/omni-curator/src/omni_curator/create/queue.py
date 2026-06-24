@@ -12,16 +12,19 @@ the network (Scribe). This queue splits the two stages so each runs flat out:
 The queue DB (``data/queue.sqlite``) is transient work-state, deliberately separate from the
 canonical store. Concurrency safety: WAL mode, ``BEGIN IMMEDIATE`` for the (rare) claim writes, a
 lease (``locked_at``) for crash recovery, and a per-claim ``claim_token`` so a result from a
-reclaimed lease can never overwrite the retry that replaced it. See ``docs/PIPELINE_SPLIT.md``.
+reclaimed lease can never overwrite the retry that replaced it.
+See ``docs/archive/PIPELINE_SPLIT.md``.
 """
 
 from __future__ import annotations
 
-import sqlite3
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
+from uuid import uuid4
+
+from omni_curator.data.store import connect_wal
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -39,6 +42,7 @@ CREATE TABLE IF NOT EXISTS videos (
     attempts   INTEGER NOT NULL DEFAULT 0,
     locked_by  TEXT,
     locked_at  REAL,
+    claim_token TEXT,
     last_error TEXT,
     updated_at REAL
 );
@@ -80,6 +84,7 @@ class QVideo:
     path: str
     tier: str
     citation: str | None
+    claim_token: str | None = None  # set by claim_video; guards complete_video/fail_video
 
 
 @dataclass(frozen=True)
@@ -119,15 +124,17 @@ class QueueStore:
     """SQLite-backed segment/label work queue. One instance per process (own connection)."""
 
     def __init__(self, db_path: Path, *, busy_timeout_ms: int = 60_000) -> None:
-        db_path.parent.mkdir(parents=True, exist_ok=True)
         self.path = db_path
-        self._conn = sqlite3.connect(db_path, timeout=busy_timeout_ms / 1000)
-        self._conn.row_factory = sqlite3.Row
-        self._conn.isolation_level = None  # explicit BEGIN/COMMIT (see _tx)
-        self._conn.execute("PRAGMA journal_mode=WAL")
-        self._conn.execute("PRAGMA synchronous=NORMAL")
-        self._conn.execute(f"PRAGMA busy_timeout={busy_timeout_ms}")
-        self._conn.executescript(_SCHEMA)
+        self._conn = connect_wal(
+            db_path, _SCHEMA, busy_timeout_ms=busy_timeout_ms, manual_tx=True
+        )
+        self._migrate()
+
+    def _migrate(self) -> None:
+        """Add columns a pre-existing queue predates (idempotent; CREATE TABLE never alters)."""
+        have = {row["name"] for row in self._conn.execute("PRAGMA table_info(videos)")}
+        if "claim_token" not in have:
+            self._conn.execute("ALTER TABLE videos ADD COLUMN claim_token TEXT")
 
     def close(self) -> None:
         self._conn.close()
@@ -168,47 +175,67 @@ class QueueStore:
             ).fetchone()
             if row is None:
                 return None
+            token = uuid4().hex
             self._conn.execute(
-                "UPDATE videos SET status='segmenting', locked_by=?, locked_at=?, "
+                "UPDATE videos SET status='segmenting', locked_by=?, locked_at=?, claim_token=?, "
                 "attempts=attempts+1, updated_at=? WHERE video_id=?",
-                (worker_id, now, now, row["video_id"]),
+                (worker_id, now, token, now, row["video_id"]),
             )
-        return QVideo(row["video_id"], row["channel"], row["path"], row["tier"], row["citation"])
+        return QVideo(
+            row["video_id"], row["channel"], row["path"], row["tier"], row["citation"],
+            claim_token=token,
+        )
 
-    def complete_video(self, video_id: str, clips: list[QClip]) -> None:
-        """Enqueue a segmented video's clips and mark it done — one txn (no half-cut clip view)."""
+    def complete_video(
+        self, video_id: str, clips: list[QClip], *, claim_token: str | None = None
+    ) -> None:
+        """Enqueue a segmented video's clips and mark it done — one txn (no half-cut clip view).
+
+        Guarded by ``claim_token``: if the video was reclaimed (a fresh token) the marking matches
+        zero rows and the clips are NOT enqueued, so a stale segmenter can't double-process.
+        """
         now = time.time()
         cols = (
             "clip_id, video_id, channel, clip_index, clip_path, "
             "start, end, language, script, citation, updated_at"
         )
         with self._tx():
-            self._conn.executemany(
-                f"INSERT OR IGNORE INTO clips ({cols}) VALUES (?,?,?,?,?,?,?,?,?,?,?)",  # noqa: S608 — fixed column list
-                [
-                    (c.clip_id, c.video_id, c.channel, c.clip_index, c.clip_path, c.start, c.end,
-                     c.language, c.script, c.citation, now)
-                    for c in clips
-                ],
-            )
-            self._conn.execute(
+            cur = self._conn.execute(
                 "UPDATE videos SET status='segmented', n_clips=?, locked_by=NULL, locked_at=NULL, "
-                "updated_at=? WHERE video_id=?",
-                (len(clips), now, video_id),
+                "claim_token=NULL, updated_at=? WHERE video_id=? AND claim_token IS ?",
+                (len(clips), now, video_id, claim_token),
             )
+            if cur.rowcount:  # only enqueue clips if WE still own the video
+                self._conn.executemany(
+                    f"INSERT OR IGNORE INTO clips ({cols}) VALUES (?,?,?,?,?,?,?,?,?,?,?)",  # noqa: S608 — fixed column list
+                    [
+                        (c.clip_id, c.video_id, c.channel, c.clip_index, c.clip_path,
+                         c.start, c.end, c.language, c.script, c.citation, now)
+                        for c in clips
+                    ],
+                )
 
-    def fail_video(self, video_id: str, error: str, *, max_attempts: int = 3) -> None:
-        """Record a segmentation failure; requeue until ``max_attempts``, then mark failed."""
+    def fail_video(
+        self, video_id: str, error: str, *, claim_token: str | None = None, max_attempts: int = 3
+    ) -> None:
+        """Record a segmentation failure; requeue until ``max_attempts``, then mark failed.
+
+        Guarded by ``claim_token``: a stale segmenter (its row already reclaimed) does nothing, so
+        its late failure can't flip a successfully-reclaimed/segmented row back to pending/failed.
+        """
         now = time.time()
         with self._tx():
             row = self._conn.execute(
-                "SELECT attempts FROM videos WHERE video_id=?", (video_id,)
+                "SELECT attempts FROM videos WHERE video_id=? AND claim_token IS ?",
+                (video_id, claim_token),
             ).fetchone()
-            status = "failed" if row and row["attempts"] >= max_attempts else "pending"
+            if row is None:
+                return  # reclaimed by another worker; our stale failure must not touch its row
+            status = "failed" if row["attempts"] >= max_attempts else "pending"
             self._conn.execute(
                 "UPDATE videos SET status=?, last_error=?, locked_by=NULL, locked_at=NULL, "
-                "updated_at=? WHERE video_id=?",
-                (status, error[:500], now, video_id),
+                "claim_token=NULL, updated_at=? WHERE video_id=? AND claim_token IS ?",
+                (status, error[:500], now, video_id, claim_token),
             )
 
     def pending_clip_count(self) -> int:

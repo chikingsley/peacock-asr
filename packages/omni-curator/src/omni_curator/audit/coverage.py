@@ -1,6 +1,6 @@
 """Tokenizer-coverage adapter for the export gate — the explicit fairseq2 bridge.
 
-:func:`omni_curator.export.export_dataset` takes ``coverage_check`` as an *injected* callable so
+:func:`data.export.export_dataset` takes ``coverage_check`` as an *injected* callable so
 the curator never depends on the consuming project's tokenizer stack. This module is the one
 sanctioned bridge: it builds that callable from a char-tokenizer model file, importing fairseq2 +
 omni-finetune-core only when the check actually runs (they live in the project venv, not in this

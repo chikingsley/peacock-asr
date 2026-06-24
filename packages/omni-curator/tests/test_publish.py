@@ -5,8 +5,8 @@ from __future__ import annotations
 import pyarrow.parquet as pq
 import pytest
 
-from omni_curator.publish import export_hf_audio_dataset
-from omni_curator.store import CuratorStore
+from omni_curator.data.publish import export_hf_audio_dataset
+from omni_curator.data.store import CuratorStore
 
 
 @pytest.fixture

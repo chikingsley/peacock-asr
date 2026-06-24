@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from omni_curator.coverage import char_tokenizer_coverage
+from omni_curator.audit.coverage import char_tokenizer_coverage
 from omni_curator.project import CuratorProject, commonvoice_source, fleurs_source
 from omni_curator.project import main as project_main
 

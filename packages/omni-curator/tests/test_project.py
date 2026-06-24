@@ -14,7 +14,7 @@ from omni_curator.project import (
 
 ALL_COMMANDS = {
     "list", "download", "cookies",
-    "enqueue", "segment", "labelq", "harvest",
+    "enqueue", "segment", "labelq", "harvest", "archive",
     "merge", "ingest", "verify", "rescore", "export",
 }
 

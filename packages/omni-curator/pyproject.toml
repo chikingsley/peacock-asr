@@ -2,7 +2,7 @@
 name = "omni-curator"
 version = "0.1.0"
 description = "In-house ASR dataset curator: raw audio -> segment -> Scribe ensemble -> consensus -> stitch -> polish -> transcript."
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.12,<3.14"
 dependencies = [
   # ASR (Scribe) + the text endpoint (consensus / stitch / polish) via the deployed
   # superwhisper HTTP service — talked to over httpx from omni_curator.swservice.
@@ -47,9 +47,13 @@ normalize = [
 
 [dependency-groups]
 dev = [
+  "ai-slop-detector>=3.8.6",
+  "aislop>=0.12.1",
+  "dslop>=0.2.2",
   "pytest>=8",
   "ruff==0.15.15",
   "ty==0.0.40",
+  "vulture>=2.16",
 ]
 
 [build-system]
@@ -90,6 +94,11 @@ ignore = [
 "src/omni_curator/project.py" = ["T201"]  # the per-language project CLI prints
 # KenLM build CLI: prints progress; runs local lmplz/build_binary from packages/kenlm/build.
 "src/omni_curator/build_lm.py" = ["T201", "S603"]
+# The Scribe budget balancer: a small cross-project CLI that prints + shells out to `ps`.
+"src/omni_curator/scribe/balance.py" = ["T201", "S603", "S607"]
 # The language gate is inherently bilingual Cyrillic vocabulary: "ambiguous character" lints
 # (а vs a, etc.) are exactly wrong here, and a space-joined word string beats a 90-item list.
 "src/omni_curator/process/language.py" = ["RUF001", "RUF003", "SIM905"]
+# Persian/Arabic letter tables (fold variants, discard punctuation) are intentional non-Latin
+# literals; "ambiguous character" lints (ا vs l, × vs x) are exactly wrong on this content.
+"src/omni_curator/process/normalize.py" = ["RUF001", "RUF002", "RUF003"]

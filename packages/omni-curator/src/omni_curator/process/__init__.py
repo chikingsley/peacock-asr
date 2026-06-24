@@ -6,7 +6,7 @@ Three stages applied to ``Sample``s after ingest/create, before training:
 - **language** — content-language gate (:mod:`omni_curator.process.language`), applied at export.
 
 Tokenizer-coverage is checked at export time by the consuming project (it owns the fairseq2
-tokenizer); see ``omni_curator.export``.
+tokenizer); see ``omni_curator.data.export``.
 """
 
 from __future__ import annotations

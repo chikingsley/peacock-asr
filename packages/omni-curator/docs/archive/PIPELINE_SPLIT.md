@@ -1,3 +1,5 @@
+> **SUPERSEDED** — this split design is implemented (`create/{queue,segment,labelq}.py`, CLI `enqueue|segment|labelq|harvest`). Kept for history; the `pipeline.py`/`align.py`/`chunks.py` files it references no longer exist.
+
 # Design: decouple segmentation from labeling (producer / consumer queue)
 
 Status: **v3 — converged after two Codex 5.5 xhigh review rounds. Ready to implement.** Not yet

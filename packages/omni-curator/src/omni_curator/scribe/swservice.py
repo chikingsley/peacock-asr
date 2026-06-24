@@ -7,8 +7,8 @@ ElevenLabs key rotation, and no local ASR worker here — the service owns all o
 
 Two surfaces:
 
-- :class:`SuperwhisperClient` — text/LLM generation (``generate`` / ``generate_json``),
-  mirroring jobkit's client so the fuse / verify / labelq call sites keep their shape.
+- :class:`SuperwhisperClient` — text/LLM generation (``generate``), used by the fuse /
+  verify / labelq call sites.
 - :func:`transcribe_file` — post one audio file to the synchronous ASR endpoint and
   return the result dict inline (read ``result["transcript"]`` and, when ``detail`` is
   requested, ``result["words"]`` / ``result["turns"]``).
@@ -20,7 +20,6 @@ Config comes from the environment (or the nearest ``.env`` walking up from this 
 
 from __future__ import annotations
 
-import json
 import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Self
@@ -35,26 +34,6 @@ MODEL_ID = "claude-sonnet-4-6"
 _GENERATE_PATH = "/v1/text/generate"
 _TRANSCRIBE_PATH = "/v1/transcriptions"
 _TIMEOUT = 120.0
-
-
-def parse_json_text(text: str) -> object:
-    """Parse the first JSON value in a model response.
-
-    Tolerates ```json fences, prose before the value ("Here is the JSON: {..."), and
-    trailing text after it (the "Extra data" failure mode) — models add all three in
-    practice.
-    """
-    stripped = text.strip()
-    if stripped.startswith("```"):
-        lines = stripped.splitlines()
-        if lines and lines[0].startswith("```"):
-            lines = lines[1:]
-        if lines and lines[-1].strip() == "```":
-            lines = lines[:-1]
-        stripped = "\n".join(lines).strip()
-    starts = [i for i in (stripped.find("{"), stripped.find("[")) if i != -1]
-    value, _end = json.JSONDecoder().raw_decode(stripped, min(starts) if starts else 0)
-    return value
 
 
 def _load_env_file(start: Path) -> dict[str, str]:
@@ -121,7 +100,7 @@ class SuperwhisperClient:
         """Return the model's text for a chat ``messages`` list.
 
         ``system`` is an optional system prompt; ``response_format`` is passed through to the
-        service (it does not enforce schemas, so :meth:`generate_json` still parses the text).
+        service (which does not enforce schemas — the caller parses the returned text itself).
         """
         payload: dict[str, object] = {
             "model": model or self._model,
@@ -135,26 +114,6 @@ class SuperwhisperClient:
         response = self._client.post(_GENERATE_PATH, json=payload)
         response.raise_for_status()
         return str(response.json()["text"])
-
-    def generate_json(
-        self,
-        messages: list[dict[str, str]],
-        *,
-        max_tokens: int = 1024,
-        model: str | None = None,
-        system: str | None = None,
-        response_format: dict[str, object] | None = None,
-    ) -> object:
-        """Return the model's response parsed as JSON (the service does not enforce schemas)."""
-        return parse_json_text(
-            self.generate(
-                messages,
-                max_tokens=max_tokens,
-                model=model,
-                system=system,
-                response_format=response_format,
-            )
-        )
 
     def close(self) -> None:
         """Close the underlying HTTP client."""

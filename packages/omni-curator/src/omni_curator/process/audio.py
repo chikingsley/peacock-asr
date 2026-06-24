@@ -14,15 +14,27 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
 
-    from omni_curator.sample import Sample
+    from omni_curator.data.sample import Sample
 
 
-def to_16k_flac(src: Path, dst: Path) -> None:
-    """Convert any audio (mp3/wav/flac/...) at any rate to 16 kHz mono FLAC via ffmpeg."""
+def to_16k_flac(
+    src: Path, dst: Path, *, start: float | None = None, end: float | None = None
+) -> None:
+    """Convert any audio to 16 kHz mono FLAC via ffmpeg; optionally cut ``[start, end)``.
+
+    ``start``/``end`` (seconds) are input-seek args placed before ``-i`` (fast seek), so the same
+    encoder path serves both a full-file resample and a clip cut.
+    """
     dst.parent.mkdir(parents=True, exist_ok=True)
+    seek: list[str] = []
+    if start is not None:
+        seek += ["-ss", f"{start:.3f}"]
+    if end is not None:
+        seek += ["-to", f"{end:.3f}"]
     subprocess.run(  # noqa: S603
         [  # noqa: S607
-            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(src),
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+            *seek, "-i", str(src),
             "-ar", "16000", "-ac", "1", "-c:a", "flac", str(dst),
         ],
         check=True,
