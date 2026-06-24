@@ -13,6 +13,10 @@ build/
 .pytest_cache/
 .cache/
 
+# Node / bun (tools/pipeline-tui)
+node_modules/
+*.tsbuildinfo
+
 # Environment
 .env
 
