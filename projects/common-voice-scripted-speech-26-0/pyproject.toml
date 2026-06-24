@@ -1,0 +1,70 @@
+[project]
+name = "cv26"
+version = "0.1.0"
+description = "Mirror Mozilla Data Collective Common Voice archives to a Hugging Face parquet dataset."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+  "huggingface-hub==1.20.1",
+  "pyarrow==24.0.0",
+]
+
+[dependency-groups]
+dev = [
+  "pytest==9.1.1",
+  "ruff==0.15.18",
+  "ty==0.0.52",
+  "vulture==2.16",
+]
+
+[project.scripts]
+cv26 = "cv26.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cv26"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src"]
+
+[tool.ty.environment]
+python = ".venv"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  # Ruff's documented formatter-conflict rules — the formatter owns whitespace/quotes/commas, so
+  # linting them fights `ruff format`. See https://docs.astral.sh/ruff/formatter/.
+  "W191", "E111", "E114", "E117", "D206", "D300",
+  "Q000", "Q001", "Q002", "Q003", "Q004",
+  "COM812", "COM819", "ISC001", "ISC002",
+  # E501 (line-too-long) is deliberately KEPT on — we enforce the 100-col cap.
+  # D203 is resolved by the pydocstyle convention below (pep257 selects D211, not D203).
+  # --- project-specific ---
+  # `import huggingface_hub` is deliberately lazy (inside functions) so the download/convert
+  # path never imports the Hub client — keep PLC0415 off rather than hoisting it.
+  "PLC0415",
+  # Exception messages are written inline at the `raise` site (f-strings / literals); the
+  # assign-to-`msg`-first dance these rules demand adds noise without adding clarity.
+  "EM101", "EM102", "TRY003",
+  # The parquet record builder takes one positional per output field — clearer than a context object.
+  "PLR0913",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.ruff.lint.per-file-ignores]
+# The CLI's whole job is stdout: the dry-run listing prints rows for the user.
+"src/cv26/cli.py" = ["T201"]
+# pytest asserts are the idiom (S101); a tests dir is run, not imported, so it needs no __init__
+# (INP001); inline literals in assertions are clearer than named constants (PLR2004).
+"tests/**" = ["S101", "INP001", "PLR2004"]

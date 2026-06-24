@@ -1,0 +1,3379 @@
+{
+  "source_file": "/home/simon/.codex/attachments/225d017f-cd0e-46ba-904e-63b70b25b4dc/pasted-text.txt",
+  "generated_from": "Mozilla Data Collective pasted dataset table",
+  "lists": {
+    "common_voice_scripted_speech_26_0": {
+      "count": 294,
+      "languages": [
+        {
+          "language": "Abaza",
+          "locale": "abq",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "308.47 MB",
+          "source_line": 31
+        },
+        {
+          "language": "Abkhaz",
+          "locale": "ab",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "4.77 GB",
+          "source_line": 32
+        },
+        {
+          "language": "Adamawa Fulfulde",
+          "locale": "fub",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "250.63 MB",
+          "source_line": 33
+        },
+        {
+          "language": "Adja",
+          "locale": "ajg",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "252.66 MB",
+          "source_line": 34
+        },
+        {
+          "language": "Adyghe",
+          "locale": "ady",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.82 GB",
+          "source_line": 35
+        },
+        {
+          "language": "Afaan Oromo",
+          "locale": "om",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "527.38 MB",
+          "source_line": 36
+        },
+        {
+          "language": "Afrikaans",
+          "locale": "af",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "34.47 MB",
+          "source_line": 37
+        },
+        {
+          "language": "Albanian",
+          "locale": "sq",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "189.55 MB",
+          "source_line": 38
+        },
+        {
+          "language": "Alsatian",
+          "locale": "gsw",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "34.88 MB",
+          "source_line": 39
+        },
+        {
+          "language": "Amharic",
+          "locale": "am",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "59.14 MB",
+          "source_line": 40
+        },
+        {
+          "language": "Arabic",
+          "locale": "ar",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "3.28 GB",
+          "source_line": 41
+        },
+        {
+          "language": "Aragonese",
+          "locale": "an",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "358.11 MB",
+          "source_line": 42
+        },
+        {
+          "language": "Armenian",
+          "locale": "hy-AM",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.23 GB",
+          "source_line": 43
+        },
+        {
+          "language": "Aromanian",
+          "locale": "rup",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "6.93 MB",
+          "source_line": 44
+        },
+        {
+          "language": "Asheninka Perene",
+          "locale": "prq",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "187.45 MB",
+          "source_line": 45
+        },
+        {
+          "language": "Asheninka South Ucayali",
+          "locale": "cpy",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "200.91 MB",
+          "source_line": 46
+        },
+        {
+          "language": "Assamese",
+          "locale": "as",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "160.40 MB",
+          "source_line": 47
+        },
+        {
+          "language": "Asturian",
+          "locale": "ast",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "41.19 MB",
+          "source_line": 48
+        },
+        {
+          "language": "Atayal",
+          "locale": "tay",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "250.94 MB",
+          "source_line": 49
+        },
+        {
+          "language": "Azerbaijani",
+          "locale": "az",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "37.48 MB",
+          "source_line": 50
+        },
+        {
+          "language": "Baatonum",
+          "locale": "bba",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "271.06 MB",
+          "source_line": 51
+        },
+        {
+          "language": "Bafia",
+          "locale": "ksf",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "342.58 MB",
+          "source_line": 52
+        },
+        {
+          "language": "Bafut",
+          "locale": "bfd",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "219.40 MB",
+          "source_line": 53
+        },
+        {
+          "language": "Bakoko",
+          "locale": "bkh",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "249.57 MB",
+          "source_line": 54
+        },
+        {
+          "language": "Balti",
+          "locale": "bft",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "347.02 MB",
+          "source_line": 55
+        },
+        {
+          "language": "Bamun",
+          "locale": "bax",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "231.95 MB",
+          "source_line": 56
+        },
+        {
+          "language": "Bamvele",
+          "locale": "beb",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "219.91 MB",
+          "source_line": 57
+        },
+        {
+          "language": "Bankon",
+          "locale": "abb",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "227.18 MB",
+          "source_line": 58
+        },
+        {
+          "language": "Baoule",
+          "locale": "bci",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "285.17 MB",
+          "source_line": 59
+        },
+        {
+          "language": "Basaa",
+          "locale": "bas",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "242.71 MB",
+          "source_line": 60
+        },
+        {
+          "language": "Bashkir",
+          "locale": "ba",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "5.10 GB",
+          "source_line": 61
+        },
+        {
+          "language": "Basque",
+          "locale": "eu",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "14.49 GB",
+          "source_line": 62
+        },
+        {
+          "language": "Batanga",
+          "locale": "bnm",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "321.23 MB",
+          "source_line": 63
+        },
+        {
+          "language": "Bateri",
+          "locale": "btv",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "205.82 MB",
+          "source_line": 64
+        },
+        {
+          "language": "Belarusian",
+          "locale": "be",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "36.25 GB",
+          "source_line": 65
+        },
+        {
+          "language": "Bengali",
+          "locale": "bn",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "24.84 GB",
+          "source_line": 66
+        },
+        {
+          "language": "Borgu Fulfulde",
+          "locale": "fue",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "210.86 MB",
+          "source_line": 67
+        },
+        {
+          "language": "Brahui",
+          "locale": "brh",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "198.07 MB",
+          "source_line": 68
+        },
+        {
+          "language": "Breton",
+          "locale": "br",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "853.55 MB",
+          "source_line": 69
+        },
+        {
+          "language": "Brushaski",
+          "locale": "bsk",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "218.67 MB",
+          "source_line": 70
+        },
+        {
+          "language": "Bulgarian",
+          "locale": "bg",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "441.02 MB",
+          "source_line": 71
+        },
+        {
+          "language": "Bulu",
+          "locale": "bum",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "200.83 MB",
+          "source_line": 72
+        },
+        {
+          "language": "Bunun",
+          "locale": "bnn",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "235.71 MB",
+          "source_line": 73
+        },
+        {
+          "language": "Cameroon Pidgin",
+          "locale": "wes",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "200.01 MB",
+          "source_line": 74
+        },
+        {
+          "language": "Cantonese",
+          "locale": "yue",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "5.99 GB",
+          "source_line": 75
+        },
+        {
+          "language": "Catalan",
+          "locale": "ca",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "79.21 GB",
+          "source_line": 76
+        },
+        {
+          "language": "Central Alaskan Yup’ik",
+          "locale": "esu",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "136.32 MB",
+          "source_line": 77
+        },
+        {
+          "language": "Central Kurdish",
+          "locale": "ckb",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "3.62 GB",
+          "source_line": 78
+        },
+        {
+          "language": "Central Puebla Nahuatl",
+          "locale": "ncx",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "231.91 MB",
+          "source_line": 79
+        },
+        {
+          "language": "Central Tarahumara",
+          "locale": "tar",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "201.24 MB",
+          "source_line": 80
+        },
+        {
+          "language": "Chinese (China)",
+          "locale": "zh-CN",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "21.39 GB",
+          "source_line": 81
+        },
+        {
+          "language": "Chinese (Hong Kong)",
+          "locale": "zh-HK",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "3.43 GB",
+          "source_line": 82
+        },
+        {
+          "language": "Chinese (Taiwan)",
+          "locale": "zh-TW",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "2.95 GB",
+          "source_line": 83
+        },
+        {
+          "language": "Chokwe",
+          "locale": "cjk",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "263.01 MB",
+          "source_line": 84
+        },
+        {
+          "language": "Chuvash",
+          "locale": "cv",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "668.04 MB",
+          "source_line": 85
+        },
+        {
+          "language": "Copainalá Zoque",
+          "locale": "zoc",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "204.06 MB",
+          "source_line": 86
+        },
+        {
+          "language": "Cornish",
+          "locale": "kw",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "260.25 MB",
+          "source_line": 87
+        },
+        {
+          "language": "Croatian",
+          "locale": "hr",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "890.21 KB",
+          "source_line": 88
+        },
+        {
+          "language": "Czech",
+          "locale": "cs",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "5.57 GB",
+          "source_line": 89
+        },
+        {
+          "language": "Dagbani",
+          "locale": "dag",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "526.86 MB",
+          "source_line": 90
+        },
+        {
+          "language": "Dameli",
+          "locale": "dml",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "220.08 MB",
+          "source_line": 91
+        },
+        {
+          "language": "Danish",
+          "locale": "da",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "323.76 MB",
+          "source_line": 92
+        },
+        {
+          "language": "Dargwa",
+          "locale": "dar",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "399.48 MB",
+          "source_line": 93
+        },
+        {
+          "language": "Dawoodi",
+          "locale": "dmk",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "206.91 MB",
+          "source_line": 94
+        },
+        {
+          "language": "Dhatki",
+          "locale": "mki",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "187.83 MB",
+          "source_line": 95
+        },
+        {
+          "language": "Dhivehi",
+          "locale": "dv",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.32 GB",
+          "source_line": 96
+        },
+        {
+          "language": "Dholuo",
+          "locale": "luo",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "2.08 GB",
+          "source_line": 97
+        },
+        {
+          "language": "Dioula",
+          "locale": "dyu",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "10.30 MB",
+          "source_line": 98
+        },
+        {
+          "language": "Duala",
+          "locale": "dua",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "278.85 MB",
+          "source_line": 99
+        },
+        {
+          "language": "Dutch",
+          "locale": "nl",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "3.17 GB",
+          "source_line": 100
+        },
+        {
+          "language": "Eastern Balochi",
+          "locale": "bgp",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "259.69 MB",
+          "source_line": 101
+        },
+        {
+          "language": "Ebrie",
+          "locale": "ebr",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "44.76 MB",
+          "source_line": 102
+        },
+        {
+          "language": "Ekoti",
+          "locale": "eko",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "168.33 MB",
+          "source_line": 103
+        },
+        {
+          "language": "English",
+          "locale": "en",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "88.14 GB",
+          "source_line": 104
+        },
+        {
+          "language": "Erzya",
+          "locale": "myv",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "65.17 MB",
+          "source_line": 105
+        },
+        {
+          "language": "Esperanto",
+          "locale": "eo",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "39.16 GB",
+          "source_line": 106
+        },
+        {
+          "language": "Estonian",
+          "locale": "et",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.50 GB",
+          "source_line": 107
+        },
+        {
+          "language": "Eton",
+          "locale": "eto",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "192.77 MB",
+          "source_line": 108
+        },
+        {
+          "language": "Ewondo",
+          "locale": "ewo",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "281.58 MB",
+          "source_line": 109
+        },
+        {
+          "language": "Fang",
+          "locale": "fan",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "198.88 MB",
+          "source_line": 110
+        },
+        {
+          "language": "Fe’efe’e",
+          "locale": "fmp",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "241.32 MB",
+          "source_line": 111
+        },
+        {
+          "language": "Finnish",
+          "locale": "fi",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "473.61 MB",
+          "source_line": 112
+        },
+        {
+          "language": "French",
+          "locale": "fr",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "28.51 GB",
+          "source_line": 113
+        },
+        {
+          "language": "Frisian",
+          "locale": "fy-NL",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "4.34 GB",
+          "source_line": 114
+        },
+        {
+          "language": "Galician",
+          "locale": "gl",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "7.86 GB",
+          "source_line": 115
+        },
+        {
+          "language": "Gawarbaiti",
+          "locale": "gwt",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "249.85 MB",
+          "source_line": 116
+        },
+        {
+          "language": "Gawri",
+          "locale": "gwc",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "310.03 MB",
+          "source_line": 117
+        },
+        {
+          "language": "Georgian",
+          "locale": "ka",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "9.71 GB",
+          "source_line": 118
+        },
+        {
+          "language": "German",
+          "locale": "de",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "34.77 GB",
+          "source_line": 119
+        },
+        {
+          "language": "Ghomala",
+          "locale": "bbj",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "255.71 MB",
+          "source_line": 120
+        },
+        {
+          "language": "Goaria",
+          "locale": "gig",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "202.95 MB",
+          "source_line": 121
+        },
+        {
+          "language": "Greek",
+          "locale": "el",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "771.37 MB",
+          "source_line": 122
+        },
+        {
+          "language": "Guarani",
+          "locale": "gn",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "652.43 MB",
+          "source_line": 123
+        },
+        {
+          "language": "Guidar",
+          "locale": "gid",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "202.78 MB",
+          "source_line": 124
+        },
+        {
+          "language": "Guiziga",
+          "locale": "giz",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "206.34 MB",
+          "source_line": 125
+        },
+        {
+          "language": "Gujari",
+          "locale": "gju",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "210.21 MB",
+          "source_line": 126
+        },
+        {
+          "language": "Gurgula",
+          "locale": "ggg",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "247.64 MB",
+          "source_line": 127
+        },
+        {
+          "language": "Haitian",
+          "locale": "ht",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.04 MB",
+          "source_line": 128
+        },
+        {
+          "language": "Hakha Chin",
+          "locale": "cnh",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "160.48 MB",
+          "source_line": 129
+        },
+        {
+          "language": "Hausa",
+          "locale": "ha",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "254.53 MB",
+          "source_line": 130
+        },
+        {
+          "language": "Hazargi",
+          "locale": "haz",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "175.19 MB",
+          "source_line": 131
+        },
+        {
+          "language": "Hebrew",
+          "locale": "he",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "139.65 MB",
+          "source_line": 132
+        },
+        {
+          "language": "Hill Mari",
+          "locale": "mrj",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "715.68 MB",
+          "source_line": 133
+        },
+        {
+          "language": "Hindi",
+          "locale": "hi",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "545.20 MB",
+          "source_line": 134
+        },
+        {
+          "language": "Huarijio",
+          "locale": "var",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "236.19 MB",
+          "source_line": 135
+        },
+        {
+          "language": "Huautla Mazatec",
+          "locale": "mau",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "197.90 MB",
+          "source_line": 136
+        },
+        {
+          "language": "Hungarian",
+          "locale": "hu",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "3.58 GB",
+          "source_line": 137
+        },
+        {
+          "language": "Ibibio",
+          "locale": "ibb",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "362.12 MB",
+          "source_line": 138
+        },
+        {
+          "language": "Icelandic",
+          "locale": "is",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "15.27 MB",
+          "source_line": 139
+        },
+        {
+          "language": "Igbo",
+          "locale": "ig",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "377.96 MB",
+          "source_line": 140
+        },
+        {
+          "language": "Indonesian",
+          "locale": "id",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.42 GB",
+          "source_line": 141
+        },
+        {
+          "language": "Indus Kohistani",
+          "locale": "mvy",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "448.96 MB",
+          "source_line": 142
+        },
+        {
+          "language": "Interlingua",
+          "locale": "ia",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "402.31 MB",
+          "source_line": 143
+        },
+        {
+          "language": "Irish",
+          "locale": "ga-IE",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "362.82 MB",
+          "source_line": 144
+        },
+        {
+          "language": "IsiNdebele (South)",
+          "locale": "nr",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "869.57 KB",
+          "source_line": 145
+        },
+        {
+          "language": "Italian",
+          "locale": "it",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "9.79 GB",
+          "source_line": 146
+        },
+        {
+          "language": "Iñupiaq",
+          "locale": "ipk",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "146.36 MB",
+          "source_line": 147
+        },
+        {
+          "language": "Japanese",
+          "locale": "ja",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "14.35 GB",
+          "source_line": 148
+        },
+        {
+          "language": "Jaqaru",
+          "locale": "jqr",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "204.53 MB",
+          "source_line": 149
+        },
+        {
+          "language": "Kabardian",
+          "locale": "kbd",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "5.73 GB",
+          "source_line": 150
+        },
+        {
+          "language": "Kabyle",
+          "locale": "kab",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "17.43 GB",
+          "source_line": 151
+        },
+        {
+          "language": "Kachhi",
+          "locale": "gjk",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "219.03 MB",
+          "source_line": 152
+        },
+        {
+          "language": "Kalasha",
+          "locale": "kls",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "199.79 MB",
+          "source_line": 153
+        },
+        {
+          "language": "Kalenjin",
+          "locale": "kln",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.61 GB",
+          "source_line": 154
+        },
+        {
+          "language": "Kalkoti",
+          "locale": "xka",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "189.92 MB",
+          "source_line": 155
+        },
+        {
+          "language": "Kateviri",
+          "locale": "bsh",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "202.62 MB",
+          "source_line": 156
+        },
+        {
+          "language": "Kazakh",
+          "locale": "kk",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "78.51 MB",
+          "source_line": 157
+        },
+        {
+          "language": "Khakas",
+          "locale": "kjh",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "2.30 MB",
+          "source_line": 158
+        },
+        {
+          "language": "Khetrani",
+          "locale": "xhe",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "196.18 MB",
+          "source_line": 159
+        },
+        {
+          "language": "Khmer",
+          "locale": "km",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "19.20 MB",
+          "source_line": 160
+        },
+        {
+          "language": "Khowar",
+          "locale": "khw",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "376.02 MB",
+          "source_line": 161
+        },
+        {
+          "language": "Kichwa",
+          "locale": "qvi",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "250.63 MB",
+          "source_line": 162
+        },
+        {
+          "language": "Kidaw'ida",
+          "locale": "dav",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.01 GB",
+          "source_line": 163
+        },
+        {
+          "language": "Kihemba",
+          "locale": "hem",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "199.58 MB",
+          "source_line": 164
+        },
+        {
+          "language": "Kinyarwanda",
+          "locale": "rw",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "57.18 GB",
+          "source_line": 165
+        },
+        {
+          "language": "Kirombo",
+          "locale": "rof",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "221.23 MB",
+          "source_line": 166
+        },
+        {
+          "language": "Kohistani Shina",
+          "locale": "plk",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "330.88 MB",
+          "source_line": 167
+        },
+        {
+          "language": "Kom",
+          "locale": "bkm",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "237.37 MB",
+          "source_line": 168
+        },
+        {
+          "language": "Korean",
+          "locale": "ko",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "208.26 MB",
+          "source_line": 169
+        },
+        {
+          "language": "Kotokoli",
+          "locale": "kdh",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "173.71 MB",
+          "source_line": 170
+        },
+        {
+          "language": "Kunabembe",
+          "locale": "mgg",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "220.51 MB",
+          "source_line": 171
+        },
+        {
+          "language": "Kurmanji Kurdish",
+          "locale": "kmr",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.92 GB",
+          "source_line": 172
+        },
+        {
+          "language": "Kwasio",
+          "locale": "nmg",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "207.25 MB",
+          "source_line": 173
+        },
+        {
+          "language": "Kyrgyz",
+          "locale": "ky",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.04 GB",
+          "source_line": 174
+        },
+        {
+          "language": "Lao",
+          "locale": "lo",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "8.93 MB",
+          "source_line": 175
+        },
+        {
+          "language": "Lassi",
+          "locale": "lss",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "175.60 MB",
+          "source_line": 176
+        },
+        {
+          "language": "Latgalian",
+          "locale": "ltg",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "669.96 MB",
+          "source_line": 177
+        },
+        {
+          "language": "Latvian",
+          "locale": "lv",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "5.90 GB",
+          "source_line": 178
+        },
+        {
+          "language": "Laz",
+          "locale": "lzz",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "990.43 MB",
+          "source_line": 179
+        },
+        {
+          "language": "Ligurian",
+          "locale": "lij",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "108.40 MB",
+          "source_line": 180
+        },
+        {
+          "language": "Lithuanian",
+          "locale": "lt",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "754.41 MB",
+          "source_line": 181
+        },
+        {
+          "language": "Loarki",
+          "locale": "lrk",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "229.19 MB",
+          "source_line": 182
+        },
+        {
+          "language": "Loja Highland Kichwa",
+          "locale": "qvj",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "221.76 MB",
+          "source_line": 183
+        },
+        {
+          "language": "Losso",
+          "locale": "nmz",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "205.93 MB",
+          "source_line": 184
+        },
+        {
+          "language": "Luganda",
+          "locale": "lg",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "11.06 GB",
+          "source_line": 185
+        },
+        {
+          "language": "Macedonian",
+          "locale": "mk",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.02 GB",
+          "source_line": 186
+        },
+        {
+          "language": "Mada",
+          "locale": "mxu",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "248.66 MB",
+          "source_line": 187
+        },
+        {
+          "language": "Malay",
+          "locale": "ms",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "73.77 MB",
+          "source_line": 188
+        },
+        {
+          "language": "Malayalam",
+          "locale": "ml",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "221.26 MB",
+          "source_line": 189
+        },
+        {
+          "language": "Maltese",
+          "locale": "mt",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "449.84 MB",
+          "source_line": 190
+        },
+        {
+          "language": "Manx",
+          "locale": "gv",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "214.49 MB",
+          "source_line": 191
+        },
+        {
+          "language": "Marathi",
+          "locale": "mr",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "561.54 MB",
+          "source_line": 192
+        },
+        {
+          "language": "Marwari",
+          "locale": "mve",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "204.27 MB",
+          "source_line": 193
+        },
+        {
+          "language": "Massa",
+          "locale": "mcn",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "217.69 MB",
+          "source_line": 194
+        },
+        {
+          "language": "Matses",
+          "locale": "mcf",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "175.99 MB",
+          "source_line": 195
+        },
+        {
+          "language": "Mbo",
+          "locale": "mbo",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "242.44 MB",
+          "source_line": 196
+        },
+        {
+          "language": "Mbum",
+          "locale": "mdd",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "197.59 MB",
+          "source_line": 197
+        },
+        {
+          "language": "Meadow Mari",
+          "locale": "mhr",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "5.73 GB",
+          "source_line": 198
+        },
+        {
+          "language": "Medumba",
+          "locale": "byv",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "264.18 MB",
+          "source_line": 199
+        },
+        {
+          "language": "Mengambo",
+          "locale": "bce",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "139.83 MB",
+          "source_line": 200
+        },
+        {
+          "language": "Mina",
+          "locale": "gej",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "216.32 MB",
+          "source_line": 201
+        },
+        {
+          "language": "Mingrelian",
+          "locale": "xmf",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "255.55 MB",
+          "source_line": 202
+        },
+        {
+          "language": "Mokpwe",
+          "locale": "bri",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "182.78 MB",
+          "source_line": 203
+        },
+        {
+          "language": "Moksha",
+          "locale": "mdf",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "10.55 MB",
+          "source_line": 204
+        },
+        {
+          "language": "Mongolian",
+          "locale": "mn",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "2.67 GB",
+          "source_line": 205
+        },
+        {
+          "language": "Moussey",
+          "locale": "mse",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "154.67 MB",
+          "source_line": 206
+        },
+        {
+          "language": "Mpiemo",
+          "locale": "mcx",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "207.19 MB",
+          "source_line": 207
+        },
+        {
+          "language": "Mundang",
+          "locale": "mua",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "184.76 MB",
+          "source_line": 208
+        },
+        {
+          "language": "Mungaka",
+          "locale": "mhk",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "219.98 MB",
+          "source_line": 209
+        },
+        {
+          "language": "Musgum",
+          "locale": "mug",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "113.45 MB",
+          "source_line": 210
+        },
+        {
+          "language": "Nepali",
+          "locale": "ne-NP",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "40.42 MB",
+          "source_line": 211
+        },
+        {
+          "language": "Ngiembon",
+          "locale": "nnh",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "384.67 MB",
+          "source_line": 212
+        },
+        {
+          "language": "Ngomba",
+          "locale": "jgo",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "216.95 MB",
+          "source_line": 213
+        },
+        {
+          "language": "Ngombale",
+          "locale": "nla",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "178.38 MB",
+          "source_line": 214
+        },
+        {
+          "language": "Nigerian Pidgin English",
+          "locale": "pcm",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "282.77 MB",
+          "source_line": 215
+        },
+        {
+          "language": "Northern Hindko",
+          "locale": "hno",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "206.29 MB",
+          "source_line": 216
+        },
+        {
+          "language": "Northern Sotho",
+          "locale": "nso",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "3.39 MB",
+          "source_line": 217
+        },
+        {
+          "language": "Northwest Gbaya",
+          "locale": "gya",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "206.37 MB",
+          "source_line": 218
+        },
+        {
+          "language": "Norwegian Bokmål",
+          "locale": "nb-NO",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "52.06 MB",
+          "source_line": 219
+        },
+        {
+          "language": "Norwegian Nynorsk",
+          "locale": "nn-NO",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "38.42 MB",
+          "source_line": 220
+        },
+        {
+          "language": "Nuasue",
+          "locale": "yav",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "202.24 MB",
+          "source_line": 221
+        },
+        {
+          "language": "Nyungwe",
+          "locale": "nyu",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "180.93 MB",
+          "source_line": 222
+        },
+        {
+          "language": "Nüpode Huitoto",
+          "locale": "hux",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "230.39 MB",
+          "source_line": 223
+        },
+        {
+          "language": "Oadki",
+          "locale": "odk",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "225.43 MB",
+          "source_line": 224
+        },
+        {
+          "language": "Occitan",
+          "locale": "oc",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "262.23 MB",
+          "source_line": 225
+        },
+        {
+          "language": "Odia",
+          "locale": "or",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "794.26 MB",
+          "source_line": 226
+        },
+        {
+          "language": "Orizaba Nahuatl",
+          "locale": "nlv",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "237.74 MB",
+          "source_line": 227
+        },
+        {
+          "language": "Ormuri",
+          "locale": "oru",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "711.34 MB",
+          "source_line": 228
+        },
+        {
+          "language": "Ossetian",
+          "locale": "os",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "29.84 MB",
+          "source_line": 229
+        },
+        {
+          "language": "Ouldémé",
+          "locale": "udl",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "195.18 MB",
+          "source_line": 230
+        },
+        {
+          "language": "Pahari-Pothwari",
+          "locale": "phr",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "276.61 MB",
+          "source_line": 231
+        },
+        {
+          "language": "Paiwan",
+          "locale": "pwn",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "281.76 MB",
+          "source_line": 232
+        },
+        {
+          "language": "Palula",
+          "locale": "phl",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "585.07 MB",
+          "source_line": 233
+        },
+        {
+          "language": "Parkari Koli",
+          "locale": "kvx",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "219.50 MB",
+          "source_line": 234
+        },
+        {
+          "language": "Pashto",
+          "locale": "ps",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "101.84 GB",
+          "source_line": 235
+        },
+        {
+          "language": "Persian",
+          "locale": "fa",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "10.45 GB",
+          "source_line": 236
+        },
+        {
+          "language": "Polish",
+          "locale": "pl",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "4.49 GB",
+          "source_line": 237
+        },
+        {
+          "language": "Portuguese",
+          "locale": "pt",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "4.83 GB",
+          "source_line": 238
+        },
+        {
+          "language": "Punjabi",
+          "locale": "pa-IN",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "104.82 MB",
+          "source_line": 239
+        },
+        {
+          "language": "Puno Quechua",
+          "locale": "qxp",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "689.37 MB",
+          "source_line": 240
+        },
+        {
+          "language": "Quechua Ambo-Pasco",
+          "locale": "qva",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "184.10 MB",
+          "source_line": 241
+        },
+        {
+          "language": "Quechua Arequipa-La Unión",
+          "locale": "qxu",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "250.24 MB",
+          "source_line": 242
+        },
+        {
+          "language": "Quechua Cajatambo",
+          "locale": "qvl",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "190.67 MB",
+          "source_line": 243
+        },
+        {
+          "language": "Quechua Chanka",
+          "locale": "quy",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "33.85 MB",
+          "source_line": 244
+        },
+        {
+          "language": "Quechua Chiquián",
+          "locale": "qxa",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "198.14 MB",
+          "source_line": 245
+        },
+        {
+          "language": "Quechua Corongo Ancash",
+          "locale": "qwa",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "209.90 MB",
+          "source_line": 246
+        },
+        {
+          "language": "Quechua Jauja Wanka",
+          "locale": "qxw",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "262.44 MB",
+          "source_line": 247
+        },
+        {
+          "language": "Quechua Pasco Santa Ana de Tusi",
+          "locale": "qxt",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "262.10 MB",
+          "source_line": 248
+        },
+        {
+          "language": "Quechua Santiago del Estero",
+          "locale": "qus",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "207.15 MB",
+          "source_line": 249
+        },
+        {
+          "language": "Quechua Sihuas Ancash",
+          "locale": "qws",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "201.43 MB",
+          "source_line": 250
+        },
+        {
+          "language": "Quechua Yanahuanca",
+          "locale": "qur",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "186.50 MB",
+          "source_line": 251
+        },
+        {
+          "language": "Quechua Yauyos",
+          "locale": "qux",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "249.38 MB",
+          "source_line": 252
+        },
+        {
+          "language": "Romanian",
+          "locale": "ro",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.08 GB",
+          "source_line": 253
+        },
+        {
+          "language": "Romansh Sursilvan",
+          "locale": "rm-sursilv",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "303.61 MB",
+          "source_line": 254
+        },
+        {
+          "language": "Romansh Vallader",
+          "locale": "rm-vallader",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "113.42 MB",
+          "source_line": 255
+        },
+        {
+          "language": "Rukai",
+          "locale": "dru",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "213.64 MB",
+          "source_line": 256
+        },
+        {
+          "language": "Russian",
+          "locale": "ru",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "6.58 GB",
+          "source_line": 257
+        },
+        {
+          "language": "Sakha",
+          "locale": "sah",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "510.25 MB",
+          "source_line": 258
+        },
+        {
+          "language": "Sakizaya",
+          "locale": "szy",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "280.80 MB",
+          "source_line": 259
+        },
+        {
+          "language": "Sansi",
+          "locale": "ssi",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "211.89 MB",
+          "source_line": 260
+        },
+        {
+          "language": "Santali (Ol Chiki)",
+          "locale": "sat",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "20.51 MB",
+          "source_line": 261
+        },
+        {
+          "language": "Saraiki",
+          "locale": "skr",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "133.49 MB",
+          "source_line": 262
+        },
+        {
+          "language": "Sardinian",
+          "locale": "sc",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "74.73 MB",
+          "source_line": 263
+        },
+        {
+          "language": "Seediq",
+          "locale": "trv",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "204.97 MB",
+          "source_line": 264
+        },
+        {
+          "language": "Serbian",
+          "locale": "sr",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "246.69 MB",
+          "source_line": 265
+        },
+        {
+          "language": "Seri",
+          "locale": "sei",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "209.16 MB",
+          "source_line": 266
+        },
+        {
+          "language": "Setswana",
+          "locale": "tn",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "86.09 MB",
+          "source_line": 267
+        },
+        {
+          "language": "Shina",
+          "locale": "scl",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "204.73 MB",
+          "source_line": 268
+        },
+        {
+          "language": "Sindhi",
+          "locale": "sd",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.04 GB",
+          "source_line": 269
+        },
+        {
+          "language": "Sindhi Bhil",
+          "locale": "sbn",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "216.51 MB",
+          "source_line": 270
+        },
+        {
+          "language": "Siswati",
+          "locale": "ss",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "5.85 MB",
+          "source_line": 272
+        },
+        {
+          "language": "Slovak",
+          "locale": "sk",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.13 GB",
+          "source_line": 273
+        },
+        {
+          "language": "Slovenian",
+          "locale": "sl",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "488.07 MB",
+          "source_line": 274
+        },
+        {
+          "language": "Sorbian, Lower",
+          "locale": "dsb",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "798.16 KB",
+          "source_line": 275
+        },
+        {
+          "language": "Sorbian, Upper",
+          "locale": "hsb",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "280.71 MB",
+          "source_line": 276
+        },
+        {
+          "language": "Southern Pastaza Quechua",
+          "locale": "qup",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "314.24 MB",
+          "source_line": 277
+        },
+        {
+          "language": "Southern Sotho",
+          "locale": "st",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "4.75 MB",
+          "source_line": 278
+        },
+        {
+          "language": "Spanish",
+          "locale": "es",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "48.30 GB",
+          "source_line": 279
+        },
+        {
+          "language": "Svan",
+          "locale": "sva",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "353.40 MB",
+          "source_line": 280
+        },
+        {
+          "language": "Swahili",
+          "locale": "sw",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "20.88 GB",
+          "source_line": 281
+        },
+        {
+          "language": "Swedish",
+          "locale": "sv-SE",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.19 GB",
+          "source_line": 282
+        },
+        {
+          "language": "Taiwanese (Minnan)",
+          "locale": "nan-tw",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "469.67 MB",
+          "source_line": 283
+        },
+        {
+          "language": "Tajik",
+          "locale": "tg",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "19.65 MB",
+          "source_line": 284
+        },
+        {
+          "language": "Tamazight",
+          "locale": "zgh",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "41.82 MB",
+          "source_line": 285
+        },
+        {
+          "language": "Tamil",
+          "locale": "ta",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "8.57 GB",
+          "source_line": 286
+        },
+        {
+          "language": "Tatar",
+          "locale": "tt",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "835.62 MB",
+          "source_line": 287
+        },
+        {
+          "language": "Telugu",
+          "locale": "te",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "62.43 MB",
+          "source_line": 288
+        },
+        {
+          "language": "Tepeuxila Cuicatec",
+          "locale": "cux",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "166.43 MB",
+          "source_line": 289
+        },
+        {
+          "language": "Teutila Cuicatec",
+          "locale": "cut",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "209.56 MB",
+          "source_line": 290
+        },
+        {
+          "language": "Thai",
+          "locale": "th",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "8.38 GB",
+          "source_line": 291
+        },
+        {
+          "language": "Tigre",
+          "locale": "tig",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "206.24 MB",
+          "source_line": 292
+        },
+        {
+          "language": "Tigrinya",
+          "locale": "ti",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "13.44 MB",
+          "source_line": 293
+        },
+        {
+          "language": "Tlingit",
+          "locale": "tli",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "202.42 MB",
+          "source_line": 294
+        },
+        {
+          "language": "Toki Pona",
+          "locale": "tok",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "471.44 MB",
+          "source_line": 295
+        },
+        {
+          "language": "Torwali",
+          "locale": "trw",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "374.55 MB",
+          "source_line": 296
+        },
+        {
+          "language": "Tshiluba",
+          "locale": "lua",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "206.52 MB",
+          "source_line": 297
+        },
+        {
+          "language": "Tshivenda",
+          "locale": "ve",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.33 MB",
+          "source_line": 298
+        },
+        {
+          "language": "Tuki",
+          "locale": "bag",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "214.67 MB",
+          "source_line": 299
+        },
+        {
+          "language": "Tunen",
+          "locale": "tvu",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "195.42 MB",
+          "source_line": 300
+        },
+        {
+          "language": "Tupuri",
+          "locale": "tui",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "221.90 MB",
+          "source_line": 301
+        },
+        {
+          "language": "Turkish",
+          "locale": "tr",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "2.78 GB",
+          "source_line": 302
+        },
+        {
+          "language": "Turkmen",
+          "locale": "tk",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "149.75 MB",
+          "source_line": 303
+        },
+        {
+          "language": "Tush",
+          "locale": "bbl",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "247.84 MB",
+          "source_line": 304
+        },
+        {
+          "language": "Twi",
+          "locale": "tw",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "24.64 MB",
+          "source_line": 305
+        },
+        {
+          "language": "Ukrainian",
+          "locale": "uk",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "2.61 GB",
+          "source_line": 306
+        },
+        {
+          "language": "Urdu",
+          "locale": "ur",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "5.79 GB",
+          "source_line": 307
+        },
+        {
+          "language": "Ushojo",
+          "locale": "ush",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "129.53 MB",
+          "source_line": 308
+        },
+        {
+          "language": "Uyghur",
+          "locale": "ug",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "9.69 GB",
+          "source_line": 309
+        },
+        {
+          "language": "Uzbek",
+          "locale": "uz",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "5.02 GB",
+          "source_line": 310
+        },
+        {
+          "language": "Vietnamese",
+          "locale": "vi",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "461.86 MB",
+          "source_line": 311
+        },
+        {
+          "language": "Votic",
+          "locale": "vot",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "7.81 MB",
+          "source_line": 312
+        },
+        {
+          "language": "Wadiyara Koli",
+          "locale": "kxp",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "221.10 MB",
+          "source_line": 313
+        },
+        {
+          "language": "Wakhi",
+          "locale": "wbl",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "306.16 MB",
+          "source_line": 314
+        },
+        {
+          "language": "Welsh",
+          "locale": "cy",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "3.89 GB",
+          "source_line": 315
+        },
+        {
+          "language": "Western Highland Purepecha",
+          "locale": "pua",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "216.40 MB",
+          "source_line": 316
+        },
+        {
+          "language": "Western Sierra Puebla Nahuatl",
+          "locale": "nhi",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "12.15 MB",
+          "source_line": 317
+        },
+        {
+          "language": "Xhosa",
+          "locale": "xh",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "2.11 MB",
+          "source_line": 318
+        },
+        {
+          "language": "Xitsonga",
+          "locale": "ts",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.01 MB",
+          "source_line": 319
+        },
+        {
+          "language": "Yadgha",
+          "locale": "ydg",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "230.33 MB",
+          "source_line": 320
+        },
+        {
+          "language": "Yaqui",
+          "locale": "yaq",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "231.92 MB",
+          "source_line": 321
+        },
+        {
+          "language": "Yiddish",
+          "locale": "yi",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "43.16 MB",
+          "source_line": 322
+        },
+        {
+          "language": "Yoruba",
+          "locale": "yo",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "165.43 MB",
+          "source_line": 323
+        },
+        {
+          "language": "Zaza",
+          "locale": "zza",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "54.88 MB",
+          "source_line": 324
+        },
+        {
+          "language": "Zulu",
+          "locale": "zu",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "7.59 MB",
+          "source_line": 325
+        }
+      ]
+    },
+    "common_voice_spontaneous_speech_4_0": {
+      "count": 78,
+      "languages": [
+        {
+          "language": "Adyghe",
+          "locale": "ady",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "109.58 MB",
+          "source_line": 326
+        },
+        {
+          "language": "Afaan Oromo",
+          "locale": "om",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "4.04 MB",
+          "source_line": 327
+        },
+        {
+          "language": "Alsatian",
+          "locale": "gsw",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "158.57 MB",
+          "source_line": 328
+        },
+        {
+          "language": "Amba",
+          "locale": "rwm",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "266.28 MB",
+          "source_line": 329
+        },
+        {
+          "language": "Amharic",
+          "locale": "am",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "179.28 KB",
+          "source_line": 330
+        },
+        {
+          "language": "Aragonese",
+          "locale": "an",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "37.80 MB",
+          "source_line": 331
+        },
+        {
+          "language": "Arvanitika",
+          "locale": "aat",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "46.85 MB",
+          "source_line": 332
+        },
+        {
+          "language": "Bahasa Malay",
+          "locale": "ms-MY",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "126.60 MB",
+          "source_line": 333
+        },
+        {
+          "language": "Basaa",
+          "locale": "bas",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "109.74 MB",
+          "source_line": 334
+        },
+        {
+          "language": "Bashkir",
+          "locale": "ba",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "5.10 MB",
+          "source_line": 335
+        },
+        {
+          "language": "Betawi",
+          "locale": "bew",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "214.46 MB",
+          "source_line": 336
+        },
+        {
+          "language": "Bodo",
+          "locale": "brx",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.30 MB",
+          "source_line": 337
+        },
+        {
+          "language": "Breton",
+          "locale": "br",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "21.43 MB",
+          "source_line": 338
+        },
+        {
+          "language": "Bukusu",
+          "locale": "bxk",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "261.94 MB",
+          "source_line": 339
+        },
+        {
+          "language": "Catalan",
+          "locale": "ca",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "14.52 MB",
+          "source_line": 340
+        },
+        {
+          "language": "Chiga",
+          "locale": "cgg",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "234.21 MB",
+          "source_line": 341
+        },
+        {
+          "language": "Croatian",
+          "locale": "hr",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "285.28 KB",
+          "source_line": 342
+        },
+        {
+          "language": "Cypriot Greek",
+          "locale": "el-CY",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "211.49 MB",
+          "source_line": 343
+        },
+        {
+          "language": "Danish",
+          "locale": "da",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "103.34 KB",
+          "source_line": 344
+        },
+        {
+          "language": "Dutch",
+          "locale": "nl",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "3.16 MB",
+          "source_line": 345
+        },
+        {
+          "language": "Eastern Min",
+          "locale": "cdo",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "191.79 MB",
+          "source_line": 346
+        },
+        {
+          "language": "English",
+          "locale": "en",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "497.82 MB",
+          "source_line": 347
+        },
+        {
+          "language": "Esperanto",
+          "locale": "eo",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "18.32 MB",
+          "source_line": 348
+        },
+        {
+          "language": "French",
+          "locale": "fr",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "42.30 MB",
+          "source_line": 349
+        },
+        {
+          "language": "Frisian",
+          "locale": "fy-NL",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "323.39 KB",
+          "source_line": 350
+        },
+        {
+          "language": "Galician",
+          "locale": "gl",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "100.66 MB",
+          "source_line": 351
+        },
+        {
+          "language": "Georgian",
+          "locale": "ka",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "28.62 MB",
+          "source_line": 352
+        },
+        {
+          "language": "German",
+          "locale": "de",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "33.36 MB",
+          "source_line": 353
+        },
+        {
+          "language": "Gheg Albanian",
+          "locale": "aln",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "202.32 MB",
+          "source_line": 354
+        },
+        {
+          "language": "Gorani",
+          "locale": "hac",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "225.34 MB",
+          "source_line": 355
+        },
+        {
+          "language": "Heng Hua",
+          "locale": "cpx",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "225.75 MB",
+          "source_line": 356
+        },
+        {
+          "language": "Irish",
+          "locale": "ga-IE",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "3.14 MB",
+          "source_line": 357
+        },
+        {
+          "language": "Javanese",
+          "locale": "jv",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "28.17 MB",
+          "source_line": 358
+        },
+        {
+          "language": "Kabardian",
+          "locale": "kbd",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "172.57 MB",
+          "source_line": 359
+        },
+        {
+          "language": "Kelabit",
+          "locale": "kzi",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "194.34 MB",
+          "source_line": 360
+        },
+        {
+          "language": "Kenyah",
+          "locale": "xkl",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "212.74 MB",
+          "source_line": 361
+        },
+        {
+          "language": "Kenyi",
+          "locale": "lke",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "254.44 MB",
+          "source_line": 362
+        },
+        {
+          "language": "Konzo",
+          "locale": "koo",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "280.77 MB",
+          "source_line": 363
+        },
+        {
+          "language": "Kuku",
+          "locale": "ukv",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "238.25 MB",
+          "source_line": 364
+        },
+        {
+          "language": "Lango",
+          "locale": "laj",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.31 MB",
+          "source_line": 365
+        },
+        {
+          "language": "Latvian",
+          "locale": "lv",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "12.03 MB",
+          "source_line": 366
+        },
+        {
+          "language": "Lendu",
+          "locale": "led",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "270.08 MB",
+          "source_line": 367
+        },
+        {
+          "language": "Ligurian",
+          "locale": "lij",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "48.36 MB",
+          "source_line": 368
+        },
+        {
+          "language": "Manx",
+          "locale": "gv",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "15.40 MB",
+          "source_line": 369
+        },
+        {
+          "language": "Melanau",
+          "locale": "mel",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "209.11 MB",
+          "source_line": 370
+        },
+        {
+          "language": "Michoacán Mazahua",
+          "locale": "mmc",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "226.41 MB",
+          "source_line": 371
+        },
+        {
+          "language": "Mixteco Yucuhiti",
+          "locale": "meh",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "202.35 MB",
+          "source_line": 372
+        },
+        {
+          "language": "Mon",
+          "locale": "mnw",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "386.12 KB",
+          "source_line": 373
+        },
+        {
+          "language": "Nubi",
+          "locale": "kcn",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "300.90 MB",
+          "source_line": 374
+        },
+        {
+          "language": "Papantla Totonac",
+          "locale": "top",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "206.19 MB",
+          "source_line": 375
+        },
+        {
+          "language": "Pashto",
+          "locale": "ps",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "223.81 MB",
+          "source_line": 376
+        },
+        {
+          "language": "Puno Quechua",
+          "locale": "qxp",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "700.53 MB",
+          "source_line": 377
+        },
+        {
+          "language": "Rakhine",
+          "locale": "rki",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "11.83 MB",
+          "source_line": 378
+        },
+        {
+          "language": "Russian",
+          "locale": "ru",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "70.57 MB",
+          "source_line": 379
+        },
+        {
+          "language": "Rutoro",
+          "locale": "ttj",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "274.05 MB",
+          "source_line": 380
+        },
+        {
+          "language": "Ruuli",
+          "locale": "ruc",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "365.90 MB",
+          "source_line": 381
+        },
+        {
+          "language": "Sabah Bisaya",
+          "locale": "bsy",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "221.30 MB",
+          "source_line": 382
+        },
+        {
+          "language": "Sabah Malay",
+          "locale": "msi",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "277.94 MB",
+          "source_line": 383
+        },
+        {
+          "language": "Sa’ban",
+          "locale": "snv",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "213.37 MB",
+          "source_line": 384
+        },
+        {
+          "language": "Scots",
+          "locale": "sco",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "228.47 MB",
+          "source_line": 385
+        },
+        {
+          "language": "Sena",
+          "locale": "seh",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "24.74 MB",
+          "source_line": 386
+        },
+        {
+          "language": "Serian Bidayuh",
+          "locale": "sdo",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "201.27 MB",
+          "source_line": 387
+        },
+        {
+          "language": "Shimaore",
+          "locale": "swb",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "9.22 MB",
+          "source_line": 388
+        },
+        {
+          "language": "Shona",
+          "locale": "sn",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.53 MB",
+          "source_line": 389
+        },
+        {
+          "language": "Sinhala",
+          "locale": "si",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "8.14 MB",
+          "source_line": 390
+        },
+        {
+          "language": "Spanish",
+          "locale": "es",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "27.59 MB",
+          "source_line": 391
+        },
+        {
+          "language": "Sundanese",
+          "locale": "su",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "12.80 MB",
+          "source_line": 392
+        },
+        {
+          "language": "Tashlhiyt",
+          "locale": "shi",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "55.07 MB",
+          "source_line": 393
+        },
+        {
+          "language": "Tatar",
+          "locale": "tt",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "4.58 MB",
+          "source_line": 394
+        },
+        {
+          "language": "Thai",
+          "locale": "th",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "1.58 MB",
+          "source_line": 395
+        },
+        {
+          "language": "Thur",
+          "locale": "lth",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "309.93 MB",
+          "source_line": 396
+        },
+        {
+          "language": "Toba Qom",
+          "locale": "tob",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "173.39 MB",
+          "source_line": 397
+        },
+        {
+          "language": "Tudaga",
+          "locale": "tuq",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "13.61 MB",
+          "source_line": 398
+        },
+        {
+          "language": "Turkish",
+          "locale": "tr",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "5.80 MB",
+          "source_line": 399
+        },
+        {
+          "language": "Ushojo",
+          "locale": "ush",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "103.21 MB",
+          "source_line": 400
+        },
+        {
+          "language": "Welsh",
+          "locale": "cy",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "4.40 MB",
+          "source_line": 401
+        },
+        {
+          "language": "Western Penan",
+          "locale": "pne",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "248.07 MB",
+          "source_line": 402
+        },
+        {
+          "language": "Wixárika",
+          "locale": "hch",
+          "license": "CC0-1.0",
+          "task": "ASR",
+          "format": "MP3",
+          "size": "199.53 MB",
+          "source_line": 403
+        }
+      ]
+    }
+  },
+  "source_row_counts": {
+    "common_voice_scripted_speech_26_0": 295,
+    "common_voice_spontaneous_speech_4_0": 78
+  },
+  "duplicate_source_rows": [
+    {
+      "dataset_type": "scripted_speech",
+      "language": "Sindhi Bhil",
+      "locale": "sbn",
+      "source_lines": [
+        270,
+        271
+      ]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  // Keep all default rules, but don't enforce a prose line length — the markdown follows the
+  // repo's 100-col code style, and MD013 defaults to 80.
+  "default": true,
+  "MD013": false
+}
