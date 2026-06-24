@@ -2,7 +2,7 @@
 name = "capt"
 version = "0.1.0"
 description = "Computer-assisted pronunciation training: no-training, multilingual pronunciation scoring (text -> G2P -> canonical IPA vs ZIPA phone recognizer, panphon PFER)."
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.13,<3.14"
 dependencies = [
     "accelerate>=1.0",
     "datasets<4",
@@ -22,8 +22,8 @@ dependencies = [
     # Trained-G2P (`trained` backend) for the no-G2P gap languages; ships OpenFST/OpenGrm binaries.
     "phonetisaurus>=0.3",
     "soundfile>=0.13",
-    # ElevenLabs Scribe v2 realtime ASR lane (asr.ScribeAsrTranscriber).
-    "superwhisper-api",
+    # ElevenLabs Scribe v2 realtime ASR lane via the Cloudflare relay (asr.ScribeAsrTranscriber).
+    "websockets>=15",
     "torch>=2.8",
     "torchaudio>=2.8",
     "transformers>=4.55",
@@ -34,9 +34,6 @@ capt-eval = "capt.cli.eval:main"
 capt-manifest = "capt.cli.manifest:main"
 capt-g2p-ablation = "capt.cli.ablation:main"
 capt-fetch-zipa = "capt.cli.fetch:main"
-
-[tool.uv.sources]
-superwhisper-api = { path = "../../../superwhisper-api/gmkserver-api", editable = true }
 
 [project.optional-dependencies]
 dev = [
@@ -53,7 +50,7 @@ packages = ["src/capt"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py312"
+target-version = "py313"
 src = ["src", "tests"]
 extend-exclude = ["artifacts", "experiments"]
 
