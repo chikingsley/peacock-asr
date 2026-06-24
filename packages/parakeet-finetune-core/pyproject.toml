@@ -2,7 +2,7 @@
 name = "parakeet-finetune-core"
 version = "0.1.0"
 description = "Shared NeMo/Parakeet tokenizer, CTC, and TDT fine-tuning helpers for Peacock ASR projects."
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.12,<3.14"
 dependencies = [
   "jiwer>=3.1,<4",
   "omegaconf>=2.3",

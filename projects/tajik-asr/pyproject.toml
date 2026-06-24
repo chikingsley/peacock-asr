@@ -13,7 +13,7 @@ dependencies = [
   "omni-curator[youtube]",
   "omni-finetune-core",
   "parakeet-finetune-core",
-  "omnilingual-asr==0.2.0",
+  "omnilingual-asr==0.2.0+peacock.1",
   "pyarrow==24.0.0",
   "ruff==0.15.15",
   "soundfile==0.13.1",
@@ -27,12 +27,12 @@ dependencies = [
 [tool.uv.sources]
 omni-curator = { path = "../../packages/omni-curator", editable = true }
 omni-finetune-core = { path = "../../packages/omni-finetune-core", editable = true }
+omnilingual-asr = { path = "../../../omnilingual-asr", editable = true }
 parakeet-finetune-core = { path = "../../packages/parakeet-finetune-core", editable = true }
 
 [tool.uv]
-# omnilingual-asr 0.2.0 (latest) pins fairseq2<=0.6.0, but we run the latest fairseq2 0.8.1
-# (the recipe works on it). Override forces fairseq2 0.8.1 past that pin so the lock resolves.
-# hf-hub is held <1.0 because fairseq2 0.8.1 requires ~=0.32 (1.x is impossible).
+# Peacock uses a local omnilingual-asr fork with fairseq2 0.8.1 metadata. Keep Omni CTC on
+# CPython 3.12 until fairseq2n publishes cp313 wheels or we own that native build.
 override-dependencies = [
   # pyctcdecode pins numpy<2 (dormant repo, pin predates numpy 2); fairseq2n needs 2.x.
   "numpy==2.4.6",

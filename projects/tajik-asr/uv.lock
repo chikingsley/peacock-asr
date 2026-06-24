@@ -1801,9 +1801,13 @@ provides-extras = ["ingest", "youtube", "normalize"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "ai-slop-detector", specifier = ">=3.8.6" },
+    { name = "aislop", specifier = ">=0.12.1" },
+    { name = "dslop", specifier = ">=0.2.2" },
     { name = "pytest", specifier = ">=8" },
     { name = "ruff", specifier = "==0.15.15" },
     { name = "ty", specifier = "==0.0.40" },
+    { name = "vulture", specifier = ">=2.16" },
 ]
 
 [[package]]
@@ -1832,7 +1836,7 @@ requires-dist = [
     { name = "jiwer", specifier = ">=3.1.0,<5" },
     { name = "librosa", specifier = "==0.11.0" },
     { name = "numpy", specifier = "==2.4.6" },
-    { name = "omnilingual-asr", specifier = "==0.2.0" },
+    { name = "omnilingual-asr", editable = "../../../omnilingual-asr" },
     { name = "pyarrow", specifier = "==24.0.0" },
     { name = "pydantic", specifier = ">=2.11" },
     { name = "pyyaml", specifier = ">=6.0" },
@@ -1850,8 +1854,7 @@ dev = [
 
 [[package]]
 name = "omnilingual-asr"
-version = "0.2.0"
-source = { registry = "https://pypi.org/simple" }
+source = { editable = "../../../omnilingual-asr" }
 dependencies = [
     { name = "fairseq2", extra = ["arrow"] },
     { name = "kenlm" },
@@ -1863,10 +1866,43 @@ dependencies = [
     { name = "torch" },
     { name = "torchaudio" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/58/ba/fa443fd8d842b5392e68c126c92fec3e4069f8151ba1909fa0a3fbc3ac44/omnilingual_asr-0.2.0.tar.gz", hash = "sha256:f3e28610570a987831fb6671623f4dad7a0d7d291aedd41b16242e256ae24cc6", size = 76284, upload-time = "2025-12-15T10:55:48.221Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/99/58/802325b5845bd9ae248e114c422e50eb3ecdf78beca5e397a09f6f9ddbf6/omnilingual_asr-0.2.0-py3-none-any.whl", hash = "sha256:6b8e811143603463c371c23464ff1946a52f876e6b6a62c5fb3deee6e39ab6d4", size = 85994, upload-time = "2025-12-15T10:55:46.731Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "black", marker = "extra == 'dev'", specifier = "~=25.1" },
+    { name = "datasets", marker = "extra == 'data'", specifier = "~=3.6.0" },
+    { name = "fairseq2", extras = ["arrow"], specifier = ">=0.8.1" },
+    { name = "fire", marker = "extra == 'data'" },
+    { name = "flake8", marker = "extra == 'dev'", specifier = "~=7.1" },
+    { name = "flake8-pyi", marker = "extra == 'dev'", specifier = "~=24.6" },
+    { name = "flake8-pyproject", marker = "extra == 'dev'", specifier = "~=1.2" },
+    { name = "isort", marker = "extra == 'dev'", specifier = "~=6.0" },
+    { name = "kenlm" },
+    { name = "librosa", marker = "extra == 'data'", specifier = ">=0.11.0" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = "~=1.15.0" },
+    { name = "numba" },
+    { name = "numpy" },
+    { name = "pandas" },
+    { name = "pandas-stubs", marker = "extra == 'dev'", specifier = "~=2.2.3" },
+    { name = "polars", specifier = ">=1.29.0" },
+    { name = "pyarrow", specifier = ">=20.0.0" },
+    { name = "pyarrow-stubs", marker = "extra == 'dev'", specifier = "~=20.0" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = "~=8.3" },
+    { name = "ray", marker = "extra == 'data'", specifier = ">=2.49.0" },
+    { name = "retrying", marker = "extra == 'data'" },
+    { name = "shellcheck-py", marker = "extra == 'dev'", specifier = "~=0.9" },
+    { name = "soundfile", marker = "extra == 'data'", specifier = ">=0.13.1" },
+    { name = "torch" },
+    { name = "torchaudio" },
+    { name = "transformers", marker = "extra == 'data'" },
+    { name = "types-editdistance", marker = "extra == 'dev'", specifier = "~=0.6" },
+    { name = "types-psutil", marker = "extra == 'dev'", specifier = "~=5.9" },
+    { name = "types-setuptools", marker = "extra == 'dev'", specifier = "~=75.8" },
+    { name = "types-tqdm", marker = "extra == 'dev'", specifier = "~=4.67.0" },
+    { name = "unidecode", marker = "extra == 'data'" },
+    { name = "uroman", marker = "extra == 'data'" },
 ]
+provides-extras = ["data", "dev"]
 
 [[package]]
 name = "onnx"
@@ -2927,7 +2963,7 @@ requires-dist = [
     { name = "numpy", specifier = "==2.4.6" },
     { name = "omni-curator", extras = ["youtube"], editable = "../../packages/omni-curator" },
     { name = "omni-finetune-core", editable = "../../packages/omni-finetune-core" },
-    { name = "omnilingual-asr", specifier = "==0.2.0" },
+    { name = "omnilingual-asr", editable = "../../../omnilingual-asr" },
     { name = "parakeet-finetune-core", editable = "../../packages/parakeet-finetune-core" },
     { name = "pyarrow", specifier = "==24.0.0" },
     { name = "ruff", specifier = "==0.15.15" },

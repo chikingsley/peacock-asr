@@ -6,7 +6,7 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
   # Meta's model/dataset/recipe-framework code — used as deps, not vendored.
   "fairseq2[arrow]==0.8.1",
-  "omnilingual-asr==0.2.0",
+  "omnilingual-asr==0.2.0+peacock.1",
   "huggingface-hub==0.36.2",
   "torchaudio==2.9.1",
   # Data / audio / metrics.
@@ -39,9 +39,12 @@ dev = [
   "ty==0.0.40",
 ]
 
+[tool.uv.sources]
+omnilingual-asr = { path = "../../../omnilingual-asr", editable = true }
+
 [tool.uv]
-# omnilingual-asr 0.2.0 pins fairseq2<=0.6.0, but the recipe runs on 0.8.1; hf-hub is held
-# <1.0 because fairseq2 0.8.1 requires ~=0.32. Same overrides as the language projects.
+# Peacock uses a local omnilingual-asr fork with fairseq2 0.8.1 metadata. Keep this stack
+# on CPython 3.12 until fairseq2n publishes cp313 wheels or we own that native build.
 override-dependencies = [
   "fairseq2[arrow]==0.8.1",
   "huggingface-hub==0.36.2",
