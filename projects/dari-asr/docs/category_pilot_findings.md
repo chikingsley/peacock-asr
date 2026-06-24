@@ -5,9 +5,8 @@ One-off enrichment pilot that fetched recent video titles per channel (`yt-dlp
 to measure (a) which channel handles are dead, (b) how leaky channel-level genre is,
 and (c) whether the human clean/noisy prior matches the LLM read. The pilot itself was
 scratch (regenerable from `sources.py`); its conclusions live here, and the dead-channel
-fixes already landed in `src/dari_asr/sources.py`. The taxonomy/prescan design it fed:
-`packages/omni-curator/docs/youtube_category_taxonomy_and_metadata_plan.md` and
-`youtube_prescan_validation_plan.md`.
+fixes already landed in `src/dari_asr/sources.py`. The taxonomy/prescan design it fed is now
+folded into the repo-root `TODO.md` ("YouTube source quality" section).
 
 ## Dead / empty handles (no videos resolved)
 
