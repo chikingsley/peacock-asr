@@ -12,6 +12,7 @@ const WORKER = fileURLToPath(new URL("./db-worker.ts", import.meta.url));
 const YTDLP_IMAGE = "jauderho/yt-dlp:latest";
 
 export const DISKS = [
+  { label: "main-ssd", mount: "/" },
   { label: "overflow", mount: "/mnt/overflow" },
   { label: "storage", mount: "/mnt/storage" },
   { label: "media", mount: "/mnt/media" },
