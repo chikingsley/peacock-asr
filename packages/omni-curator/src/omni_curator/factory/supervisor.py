@@ -46,6 +46,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from omni_curator.create.segment import DEFAULT_MIN_FREE_GB, DEFAULT_PENDING_HWM
 from omni_curator.factory import flock, predicates
 from omni_curator.scribe.balance import active_scribe_jobs, apply_budget
 
@@ -63,7 +64,7 @@ DEFAULT_CLIPS_ROOT = "/mnt/fast-ssd-2tb/peacock-clips"
 DEFAULT_CREATE_ROOT = "/mnt/fast-ssd-2tb/peacock-create"
 
 #: Default archive destination — sources drain here off the working drive (factory_plan §3).
-DEFAULT_ARCHIVE_ROOT = "/mnt/storage/peacock-archive"
+DEFAULT_ARCHIVE_ROOT = "/mnt/storage/peacock-asr-archive"
 
 #: Default repo root holding ``projects/<lang>-asr``.
 REPO_ROOT = Path("/home/simon/github/peacock-asr")
@@ -159,7 +160,8 @@ def stage_argv(project: Project, stage: str) -> list[str]:
             "--clips-root", str(project.clips_root),
             "--gpu-procs", "3",
             "--cpu-procs", "10",
-            "--hwm", "5000000",
+            "--hwm", str(DEFAULT_PENDING_HWM),
+            "--min-free-gb", str(DEFAULT_MIN_FREE_GB),
         ]
     if stage == "labelq":
         return base  # window file (data/.scribe_window.labelq) is the balancer's knob; defaults OK

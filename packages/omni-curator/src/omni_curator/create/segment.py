@@ -13,6 +13,7 @@ The Scribe/label half lives in :mod:`omni_curator.create.labelq`; both share the
 
 from __future__ import annotations
 
+import shutil
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -23,6 +24,70 @@ from omni_curator.process.audio import load_16k_mono, write_clip_16k
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+#: Default pending-clip backpressure ceiling. A finite cap (NOT the old ``5_000_000`` that never
+#: tripped): once this many clips are unlabeled the segmenter pauses so a stalled labeler can't let
+#: it cut the entire corpus to disk.
+DEFAULT_PENDING_HWM = 50_000
+
+#: Default free-space floor (GB) on the clips filesystem. The segmenter stops cutting when the disk
+#: holding the clips drops below this, so a behind/stalled labeler can never fill the disk.
+DEFAULT_MIN_FREE_GB = 50.0
+
+
+def _free_gb(path: Path) -> float:
+    """Free GB on the filesystem holding ``path`` (or its nearest existing parent)."""
+    probe = path
+    while not probe.exists():
+        probe = probe.parent
+    return shutil.disk_usage(probe).free / 1_000_000_000
+
+
+#: Where archived sources live: ``<root>/<lang>/<channel>/<file>`` (see ``create/archive.py``).
+DEFAULT_ARCHIVE_ROOT = Path("/mnt/storage/peacock-asr-archive")
+
+
+def resolve_source_path(
+    path: str | Path,
+    *,
+    channel: str,
+    archive_root: Path = DEFAULT_ARCHIVE_ROOT,
+) -> Path:
+    """Resolve a video's source FLAC, falling back to the storage archive if ``path`` is gone.
+
+    A re-segment runs against a queue whose ``video.path`` still points at the original work-drive
+    location (overflow or the SSD). 30k+ sources were since *archived* off overflow to
+    ``<archive_root>/<lang>/<channel>/<file>`` and the original deleted, so ``path`` is now gone.
+    This finds the source whether it's still on the working drive OR in the archive:
+
+    1. ``path`` itself, if it still exists (overflow / SSD — the common case).
+    2. The deterministic archive map ``.../create/<lang>/<channel>/<file>`` ->
+       ``<archive_root>/<lang>/<channel>/<file>`` when the create path carries the language.
+    3. A scan of the archive root for any ``<lang>/<channel>/<file.name>`` match (handles create
+       paths whose layout doesn't expose ``<lang>`` before ``create/``).
+
+    Returns the first hit. Falls back to the original ``path`` (so the caller's existing
+    file-not-found error still fires with the path the operator expects) if nothing is found.
+    """
+    src = Path(path)
+    if src.exists():
+        return src
+    name = src.name
+    # (2) deterministic .../create/<rest> -> <archive_root>/<rest>, where <rest> already starts with
+    # <lang> in this project's layout (.../<lang>/<channel>/<file>); <rest> = parts after "create".
+    parts = src.parts
+    if "create" in parts:
+        rest = parts[parts.index("create") + 1 :]
+        mapped = archive_root.joinpath(*rest)
+        if mapped.exists():
+            return mapped
+    # (3) scan the archive for <lang>/<channel>/<file.name>; lang dirs are the root's children
+    if archive_root.is_dir():
+        for lang_dir in archive_root.iterdir():
+            candidate = lang_dir / channel / name
+            if candidate.exists():
+                return candidate
+    return src
+
 
 def _cut_clips(
     video: QVideo,
@@ -31,15 +96,19 @@ def _cut_clips(
     clips_root: Path,
     language: str,
     script: str,
+    source: Path | None = None,
 ) -> list[QClip]:
     """Cut each span to ``clips_root/<channel>/<video_id>/seg_NNNN.flac`` (temp, atomic rename).
 
     The source is decoded once into a 16 kHz mono array; each span is sliced out of it in memory
     and written as FLAC -- no per-clip ffmpeg spawn, no O(N x file) redundant re-decoding.
+    ``source`` is the already-resolved source path (work drive or archive); resolved here if None.
     """
     out_dir = clips_root / video.channel / video.video_id
     out_dir.mkdir(parents=True, exist_ok=True)
-    audio = load_16k_mono(Path(video.path))  # one decode for the whole video
+    if source is None:
+        source = resolve_source_path(video.path, channel=video.channel)
+    audio = load_16k_mono(source)  # one decode for the whole video (working drive or archive)
     clips: list[QClip] = []
     for idx, (start, end) in enumerate(spans):
         final = out_dir / f"seg_{idx:04d}.flac"
@@ -71,7 +140,8 @@ def segment_worker(
     script: str,
     worker_id: str,
     max_dur: float = 30.0,
-    pending_hwm: int = 50_000,
+    pending_hwm: int = DEFAULT_PENDING_HWM,
+    min_free_gb: float = DEFAULT_MIN_FREE_GB,
     poll_s: float = 5.0,
     idle_exit: bool = True,
     vad_kwargs: dict[str, Any] | None = None,
@@ -99,7 +169,13 @@ def segment_worker(
     done = 0
     try:
         while True:
-            if queue.pending_clip_count() >= pending_hwm:  # backpressure: labeler is behind
+            # Two-sided backpressure: pause if the labeler is behind (pending-clip HWM) OR if the
+            # clips disk is running out of space. Either way, idle_exit must NOT fire — there is
+            # work, we're just throttled — so always poll-sleep and recheck, never break.
+            if queue.pending_clip_count() >= pending_hwm:  # labeler is behind
+                time.sleep(poll_s)
+                continue
+            if _free_gb(clips_root) < min_free_gb:  # clips disk almost full
                 time.sleep(poll_s)
                 continue
             video = queue.claim_video(worker_id)
@@ -109,10 +185,12 @@ def segment_worker(
                 time.sleep(poll_s)
                 continue
             try:
-                spans = segment_vad_with(model, Path(video.path), max_dur=max_dur,
-                                         **(vad_kwargs or {}))
+                # Resolve the source once (working drive OR the storage archive, for re-segments),
+                # then VAD + cut both read it — never re-derive the path.
+                source = resolve_source_path(video.path, channel=video.channel)
+                spans = segment_vad_with(model, source, max_dur=max_dur, **(vad_kwargs or {}))
                 clips = _cut_clips(video, spans, clips_root=clips_root, language=language,
-                                   script=script)
+                                   script=script, source=source)
                 queue.complete_video(video.video_id, clips, claim_token=video.claim_token)
                 done += 1
             except torch.cuda.OutOfMemoryError:
@@ -139,7 +217,8 @@ def run_segmenters(
     language: str,
     script: str,
     max_dur: float = 30.0,
-    pending_hwm: int = 50_000,
+    pending_hwm: int = DEFAULT_PENDING_HWM,
+    min_free_gb: float = DEFAULT_MIN_FREE_GB,
     vad_kwargs: dict[str, Any] | None = None,
 ) -> None:
     """Drain the queue with ``gpu_procs`` GPU-VAD + ``cpu_procs`` CPU-VAD workers, concurrently.
@@ -159,7 +238,8 @@ def run_segmenters(
         return
     common: dict[str, Any] = {
         "clips_root": clips_root, "language": language, "script": script,
-        "max_dur": max_dur, "pending_hwm": pending_hwm, "vad_kwargs": vad_kwargs,
+        "max_dur": max_dur, "pending_hwm": pending_hwm, "min_free_gb": min_free_gb,
+        "vad_kwargs": vad_kwargs,
     }
     if len(specs) == 1:
         dev, _, th = specs[0]
@@ -179,9 +259,35 @@ def run_segmenters(
     ]
     for w in workers:
         w.start()
-    for w in workers:
-        w.join()
+    try:
+        for w in workers:
+            w.join()
+    finally:
+        # The parent dying (signal, KeyboardInterrupt, an exception above) must NOT leave spawned
+        # VAD workers orphaned — they each hold a CUDA context + the resident model (audit: 3
+        # orphans pinning 11.5 GB of VRAM). Tear every still-alive child down so it releases the
+        # GPU: SIGTERM first (clean), escalate to SIGKILL for any that ignore it.
+        _terminate_workers(workers)
     failed = [w.exitcode for w in workers if w.exitcode]
     if failed:  # a worker that died (e.g. CUDA OOM) must not look like a successful drain
         msg = f"{len(failed)}/{len(workers)} segment workers exited non-zero (exit codes {failed})"
         raise RuntimeError(msg)
+
+
+def _terminate_workers(workers: Sequence[Any], *, grace_s: float = 10.0) -> None:
+    """SIGTERM then (after ``grace_s``) SIGKILL every still-alive worker so it releases its VRAM.
+
+    Idempotent: a worker that already exited (normal drain or its own crash) is skipped, so the
+    happy path is a no-op. Only the ones still running on an abort are reaped.
+    """
+    alive = [w for w in workers if w.is_alive()]
+    if not alive:
+        return
+    for w in alive:
+        w.terminate()  # SIGTERM
+    for w in alive:
+        w.join(timeout=grace_s)
+    for w in alive:
+        if w.is_alive():
+            w.kill()  # SIGKILL — it ignored SIGTERM
+            w.join(timeout=grace_s)

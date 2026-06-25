@@ -116,6 +116,62 @@ def test_release_does_not_charge_attempts_but_fail_does(queue):
     assert queue.status_counts()["clips"] == {"failed": 1}
 
 
+def test_claim_prefers_stale_segmenting_over_pending(queue):
+    """A lapsed-lease segmenting video must be reclaimed BEFORE fresh pending work (anti-starve)."""
+    # v000 claimed then left to go stale; v001 is fresh pending.
+    queue.enqueue_videos(_videos(2))
+    stale = queue.claim_video("seg-0")  # claims v000 (status -> segmenting)
+    assert stale is not None
+    assert stale.video_id == "chan_v000"
+
+    # Next claim with an already-expired stale window: the stale segmenting v000 must win over the
+    # pending v001, even though v001 is pending and would sort first under a naive ORDER BY status.
+    reclaimed = queue.claim_video("seg-1", stale_after_s=-1.0)
+    assert reclaimed is not None
+    assert reclaimed.video_id == "chan_v000"  # stale segmenting reclaimed first
+    assert reclaimed.claim_token != stale.claim_token
+
+    # With v000 freshly leased again (NOT yet stale under a real 30-min window), the only claimable
+    # left is the pending v001 — proving the reclaim didn't steal it from genuine pending work.
+    nxt = queue.claim_video("seg-2")
+    assert nxt is not None
+    assert nxt.video_id == "chan_v001"
+
+
+def test_resegment_resets_videos_and_clears_clips(queue):
+    """resegment sends segmented/failed videos back to pending and wipes clip rows (idempotent)."""
+    queue.enqueue_videos(_videos(2))
+    # v000 -> segmented (with clips); v001 -> failed.
+    queue.complete_video("chan_v000", _clips("chan_v000", 3))
+    f = queue.claim_video("seg-x")
+    assert f is not None
+    for _ in range(5):  # exhaust attempts -> failed
+        queue.fail_video(f.video_id, "boom", claim_token=f.claim_token, max_attempts=1)
+        f2 = queue.claim_video("seg-x", stale_after_s=0.0)
+        if f2 is None:
+            break
+        f = f2
+
+    preview = queue.resegment_preview()
+    assert preview["clips"] == 3
+    assert preview["videos"] >= 1  # at least the segmented one; failed too if it reached failed
+
+    paths = queue.all_clip_paths()
+    assert len(paths) == 3
+
+    result = queue.reset_for_resegment()
+    assert result["clips"] == 3
+    counts = queue.status_counts()
+    assert counts.get("clips", {}) == {}  # all clip rows gone
+    assert "segmented" not in counts["videos"]
+    assert "failed" not in counts["videos"]
+    assert counts["videos"]["pending"] == 2  # both back to pending
+
+    # Idempotent: a second reset on the clean queue is a no-op.
+    again = queue.reset_for_resegment()
+    assert again == {"videos": 0, "clips": 0}
+
+
 def test_harvest_marks_and_excludes(queue):
     queue.enqueue_videos(_videos(1))
     queue.complete_video("chan_v000", _clips("chan_v000", 2))

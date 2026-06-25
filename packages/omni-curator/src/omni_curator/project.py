@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from omni_curator.audit.quality import OMNI_MAX_DURATION_S
+from omni_curator.create.segment import DEFAULT_MIN_FREE_GB, DEFAULT_PENDING_HWM
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Mapping, Sequence
@@ -318,11 +319,54 @@ def cmd_segment(project: CuratorProject, args: argparse.Namespace) -> int:
     run_segmenters(
         project.queue_path, gpu_procs=gpu_procs, cpu_procs=cpu_procs, clips_root=clips_root,
         language=project.language, script=project.script,
-        max_dur=args.max_duration, pending_hwm=args.hwm,
+        max_dur=args.max_duration, pending_hwm=args.hwm, min_free_gb=args.min_free_gb,
     )
     queue = QueueStore(project.queue_path)
     print(f"segment done. queue: {queue.status_counts()}")
     queue.close()
+    return 0
+
+
+def cmd_resegment(project: CuratorProject, args: argparse.Namespace) -> int:
+    """Reset this language to re-segment from scratch with the fixed VAD.
+
+    Sends ``segmented``/``failed`` videos back to ``pending``, DELETES the queue's clip rows, and
+    (unless ``--keep-clip-files``) removes the now-orphan clip files on disk. Then ``segment``
+    re-cuts every video. Guarded: prints what it will touch and requires ``--yes`` to proceed,
+    so it can't wipe a queue by accident. Idempotent (a re-run with nothing to reset is a no-op).
+    """
+    from omni_curator.create.queue import QueueStore
+
+    queue = QueueStore(project.queue_path)
+    preview = queue.resegment_preview()
+    print(
+        f"resegment {project.name}: would reset {preview['videos']} videos -> pending and delete "
+        f"{preview['clips']} clip rows from {project.queue_path}"
+    )
+    if preview["videos"] == 0 and preview["clips"] == 0:
+        print("  nothing to reset (queue already clean)")
+        queue.close()
+        return 0
+    if not args.yes:
+        print("  refusing without --yes (dry preview only; pass --yes to actually reset)")
+        queue.close()
+        return 0
+    clip_paths = [] if args.keep_clip_files else queue.all_clip_paths()
+    result = queue.reset_for_resegment()
+    queue.close()
+    removed = errors = 0
+    if not args.keep_clip_files:
+        for path in clip_paths:
+            try:
+                Path(path).unlink(missing_ok=True)
+                removed += 1
+            except OSError:
+                errors += 1
+    print(
+        f"  reset {result['videos']} videos -> pending, deleted {result['clips']} clip rows; "
+        f"removed {removed} clip files ({errors} errors)"
+    )
+    print(f"  now run: {project.name}-curate segment   # re-cuts with the fixed VAD")
     return 0
 
 
@@ -690,11 +734,23 @@ def _add_create_parsers(sub: argparse._SubParsersAction, project: CuratorProject
     p_sg.add_argument("--procs", type=int, default=None,
                       help="deprecated: N GPU workers (use --gpu-procs/--cpu-procs)")
     p_sg.add_argument("--max-duration", type=float, default=30.0, help="hard cap per VAD span (s)")
-    p_sg.add_argument("--hwm", type=int, default=50_000, help="pending-clip backpressure ceiling")
+    p_sg.add_argument("--hwm", type=int, default=DEFAULT_PENDING_HWM,
+                      help="pending-clip backpressure ceiling (segment pauses above it)")
+    p_sg.add_argument("--min-free-gb", type=float, default=DEFAULT_MIN_FREE_GB,
+                      help="stop cutting when the clips disk drops below N GB free (backpressure)")
     p_sg.add_argument("--clips-root", default=None, metavar="DIR",
                       help="write clips here instead of data/clips (e.g. a fast SSD); clip paths "
                            "stay absolute so the labeler reads old + new clips transparently")
     p_sg.set_defaults(func=cmd_segment)
+
+    p_rsg = sub.add_parser(
+        "resegment", help="reset videos->pending + clear clips to re-cut with the fixed VAD"
+    )
+    p_rsg.add_argument("--yes", action="store_true",
+                       help="actually reset (without it, prints a dry preview and exits)")
+    p_rsg.add_argument("--keep-clip-files", action="store_true",
+                       help="clear clip ROWS only; leave the orphan clip FILES on disk")
+    p_rsg.set_defaults(func=cmd_resegment)
 
     p_lq = sub.add_parser("labelq", help="drain the clip queue with Scribe workers (I/O)")
     p_lq.add_argument("--workers", type=int, default=200, help="concurrent Scribe calls")

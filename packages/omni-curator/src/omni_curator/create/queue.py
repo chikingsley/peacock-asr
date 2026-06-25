@@ -165,12 +165,23 @@ class QueueStore:
     # -- segment stage -----------------------------------------------------------------------
 
     def claim_video(self, worker_id: str, *, stale_after_s: float = 1800.0) -> QVideo | None:
-        """Claim the next pending (or stale-segmenting) video under a lease. ``None`` if drained."""
+        """Claim the next video under a lease — stale-``segmenting`` FIRST, then ``pending``.
+
+        A stale ``segmenting`` row is one whose lease lapsed (its worker died / the parent was
+        killed): it must be reclaimed BEFORE fresh ``pending`` work, otherwise a long video that
+        lapsed is starved behind the never-emptying pending pile and is never retried. We sort
+        ``segmenting`` ahead of ``pending`` and break ties by ``locked_at`` (oldest lapse first).
+        ``None`` if nothing is claimable.
+        """
         now = time.time()
         with self._tx(immediate=True):
             row = self._conn.execute(
                 "SELECT * FROM videos WHERE status='pending' "
-                "OR (status='segmenting' AND locked_at < ?) ORDER BY status LIMIT 1",
+                "OR (status='segmenting' AND locked_at < ?) "
+                # status='segmenting' < 'pending' lexically, so plain status ASC already puts stale
+                # segmenting first; the explicit CASE makes that intent unambiguous and stable, and
+                # the locked_at tiebreak retries the longest-lapsed video first.
+                "ORDER BY CASE status WHEN 'segmenting' THEN 0 ELSE 1 END, locked_at LIMIT 1",
                 (now - stale_after_s,),
             ).fetchone()
             if row is None:
@@ -243,6 +254,46 @@ class QueueStore:
         return self._conn.execute(
             "SELECT count(*) FROM clips WHERE status IN ('pending', 'labeling')"
         ).fetchone()[0]
+
+    # -- re-segment --------------------------------------------------------------------------
+
+    def resegment_preview(self) -> dict[str, int]:
+        """Counts of what :meth:`reset_for_resegment` would touch (read-only, for confirmation).
+
+        ``{'videos': N videos that will go back to pending, 'clips': N clip rows that will be
+        deleted}`` — only ``segmented``/``failed`` videos and their clips are in scope.
+        """
+        videos = self._conn.execute(
+            "SELECT count(*) FROM videos WHERE status IN ('segmented', 'failed')"
+        ).fetchone()[0]
+        clips = self._conn.execute("SELECT count(*) FROM clips").fetchone()[0]
+        return {"videos": videos, "clips": clips}
+
+    def reset_for_resegment(self) -> dict[str, int]:
+        """Reset ``segmented``/``failed`` videos to ``pending`` and DELETE all clip rows.
+
+        Idempotent: re-running on an already-reset queue is a no-op (no segmented/failed rows, no
+        clips). Returns ``{'videos': reset, 'clips': deleted}``. The clip *files* are removed
+        separately by the caller (it holds the paths via :meth:`all_clip_paths`); this only clears
+        the queue's bookkeeping so :func:`segment` re-cuts every video from scratch.
+        """
+        now = time.time()
+        with self._tx(immediate=True):
+            cur = self._conn.execute(
+                "UPDATE videos SET status='pending', n_clips=NULL, locked_by=NULL, locked_at=NULL, "
+                "claim_token=NULL, last_error=NULL, attempts=0, updated_at=? "
+                "WHERE status IN ('segmented', 'failed')",
+                (now,),
+            )
+            videos = cur.rowcount
+            deleted = self._conn.execute("DELETE FROM clips").rowcount
+        return {"videos": videos, "clips": deleted}
+
+    def all_clip_paths(self) -> list[str]:
+        """Every clip's on-disk path — so the caller can delete orphaned files before a reset."""
+        return [
+            row["clip_path"] for row in self._conn.execute("SELECT clip_path FROM clips")
+        ]
 
     # -- label stage -------------------------------------------------------------------------
 
