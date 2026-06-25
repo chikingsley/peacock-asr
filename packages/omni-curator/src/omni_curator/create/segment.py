@@ -18,15 +18,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from omni_curator.create.queue import QClip, QueueStore, QVideo
-from omni_curator.process.audio import to_16k_flac
+from omni_curator.process.audio import load_16k_mono, write_clip_16k
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-
-
-def cut_audio(source: Path, output: Path, start: float, end: float) -> None:
-    """Cut ``[start, end)`` from ``source`` to a 16 kHz mono FLAC at ``output`` (via ffmpeg)."""
-    to_16k_flac(source, output, start=start, end=end)
 
 
 def _cut_clips(
@@ -37,16 +32,19 @@ def _cut_clips(
     language: str,
     script: str,
 ) -> list[QClip]:
-    """Cut each span to ``clips_root/<channel>/<video_id>/seg_NNNN.flac`` (temp, atomic rename)."""
+    """Cut each span to ``clips_root/<channel>/<video_id>/seg_NNNN.flac`` (temp, atomic rename).
+
+    The source is decoded once into a 16 kHz mono array; each span is sliced out of it in memory
+    and written as FLAC -- no per-clip ffmpeg spawn, no O(N x file) redundant re-decoding.
+    """
     out_dir = clips_root / video.channel / video.video_id
     out_dir.mkdir(parents=True, exist_ok=True)
-    src = Path(video.path)
+    audio = load_16k_mono(Path(video.path))  # one decode for the whole video
     clips: list[QClip] = []
     for idx, (start, end) in enumerate(spans):
         final = out_dir / f"seg_{idx:04d}.flac"
-        # Temp must keep the .flac suffix: ffmpeg infers the output format from the extension.
-        tmp = out_dir / f".seg_{idx:04d}.tmp.flac"
-        cut_audio(src, tmp, start, end)
+        tmp = out_dir / f".seg_{idx:04d}.tmp.flac"  # keep .flac so soundfile picks the format
+        write_clip_16k(audio, tmp, start, end)
         tmp.replace(final)  # atomic on the same filesystem -> no half-cut clip is ever visible
         clips.append(
             QClip(

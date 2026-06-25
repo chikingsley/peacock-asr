@@ -14,7 +14,11 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
 
+    import numpy as np
+
     from omni_curator.data.sample import Sample
+
+_TARGET_SR = 16_000  # the curator standard: 16 kHz mono
 
 
 def to_16k_flac(
@@ -39,6 +43,33 @@ def to_16k_flac(
         ],
         check=True,
     )
+
+
+def load_16k_mono(src: Path) -> np.ndarray:
+    """Decode ``src`` once into a contiguous 16 kHz mono float32 array held in memory.
+
+    The cutter slices every clip out of this single array by sample index, replacing the old
+    one-ffmpeg-per-clip path (N process spawns + O(N x file) redundant decoding) with one decode.
+    """
+    import numpy as np
+    import soundfile as sf
+    import soxr
+
+    data, sr = sf.read(str(src), dtype="float32", always_2d=False)
+    if data.ndim > 1:  # downmix to mono (channel mean, matching ffmpeg -ac 1)
+        data = data.mean(axis=1)
+    if sr != _TARGET_SR:
+        data = soxr.resample(data, sr, _TARGET_SR)
+    return np.ascontiguousarray(data, dtype=np.float32)
+
+
+def write_clip_16k(audio: np.ndarray, dst: Path, start: float, end: float) -> None:
+    """Write ``audio[start:end]`` (seconds, at 16 kHz) to ``dst`` as a 16-bit mono FLAC."""
+    import soundfile as sf
+
+    a = max(0, int(start * _TARGET_SR))
+    b = max(a, int(end * _TARGET_SR))
+    sf.write(str(dst), audio[a:b], _TARGET_SR, format="FLAC", subtype="PCM_16")
 
 
 def resample_sample(sample: Sample, out_dir: Path) -> Sample | None:
