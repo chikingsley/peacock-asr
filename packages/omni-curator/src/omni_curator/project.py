@@ -227,19 +227,23 @@ def cmd_download(project: CuratorProject, args: argparse.Namespace) -> int:
     lane = getattr(args, "lane", None)
     if lane:
         print(f"   routing downloads through VPN lane {lane}")
+    create_dir = (
+        Path(args.create_root) if getattr(args, "create_root", None) else project.create_dir
+    )
+    create_dir.mkdir(parents=True, exist_ok=True)
     channels = project.selected_channels(args)
     total_hours = 0.0
     done = 0
     for ch in channels:
         if args.disk_guard:
-            free_gb = shutil.disk_usage(project.create_dir).free / 1e9
+            free_gb = shutil.disk_usage(create_dir).free / 1e9
             if free_gb < args.disk_guard:
                 print(f"DISK GUARD: {free_gb:.0f} G free < {args.disk_guard} G"
                       f" — stopping before {ch.slug}")
                 break
         print(f"== {ch.slug} ({ch.tier}): {ch.url}")
         result = download_channel(
-            ch.url, out_dir=project.create_dir / ch.slug, limit=args.limit,
+            ch.url, out_dir=create_dir / ch.slug, limit=args.limit,
             cookies=cookies, lane=lane,
             # the per-channel guard above only stops *between* channels; passing it here makes the
             # same floor abort *mid-channel* too (P4) — the factory sets --disk-guard to its floor
@@ -248,9 +252,9 @@ def cmd_download(project: CuratorProject, args: argparse.Namespace) -> int:
         total_hours += result.hours
         done += 1
         print(f"   {result.flac_count} files, {result.hours:.2f} h"
-              f" -> {project.create_dir / ch.slug}")
+              f" -> {create_dir / ch.slug}")
     print(f"TOTAL: {total_hours:.2f} h across {done} channel(s)"
-          f" under {project.create_dir}")
+          f" under {create_dir}")
     return 0
 
 
@@ -275,9 +279,12 @@ def cmd_enqueue(project: CuratorProject, args: argparse.Namespace) -> int:
     """Seed the split-pipeline queue with not-yet-labeled channel videos (segment stage input)."""
     from omni_curator.create.queue import QueueStore, QVideo
 
+    create_dir = (
+        Path(args.create_root) if getattr(args, "create_root", None) else project.create_dir
+    )
     videos: list[QVideo] = []
     for ch in project.selected_channels(args):
-        flacs = sorted((project.create_dir / ch.slug).glob("*.flac"))
+        flacs = sorted((create_dir / ch.slug).glob("*.flac"))
         done = set() if args.all else _labeled_video_ids(project, ch.slug)
         for flac in flacs[: args.limit] if args.limit else flacs:
             video_id = f"{ch.slug}_{flac.stem}"
@@ -657,6 +664,9 @@ def _add_source_parsers(sub: argparse._SubParsersAction, project: CuratorProject
     p_dl.add_argument("--cookies", metavar="PATH",
                       help="Netscape cookies.txt to use (default: the project's youtube_cookies.txt"
                            " when present)")
+    p_dl.add_argument("--create-root", default=None, metavar="DIR",
+                      help="download into DIR instead of data/create (e.g. a fast SSD); pass the "
+                           "same --create-root to enqueue so segment picks the new sources up")
     p_dl.set_defaults(func=cmd_download)
 
     p_ck = sub.add_parser("cookies", help="refresh youtube_cookies.txt from the browser profile")
@@ -668,6 +678,8 @@ def _add_create_parsers(sub: argparse._SubParsersAction, project: CuratorProject
     p_eq = sub.add_parser("enqueue", help="seed the queue with not-yet-labeled videos")
     _add_channel_args(p_eq, project)
     p_eq.add_argument("--all", action="store_true", help="ignore the already-labeled skip")
+    p_eq.add_argument("--create-root", default=None, metavar="DIR",
+                      help="scan DIR instead of data/create for new sources (match download)")
     p_eq.set_defaults(func=cmd_enqueue)
 
     p_sg = sub.add_parser("segment", help="VAD-segment queued videos into clips (GPU+CPU)")
