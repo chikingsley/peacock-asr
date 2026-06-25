@@ -105,3 +105,103 @@ def test_segment_stale_segmenting_lease_is_claimable(tmp_path):
     future = time.time() + predicates.SEGMENT_STALE_AFTER_S + 1.0
     assert predicates.segment_backlog(qpath, now=future) == 1
     assert predicates.segment_needed(qpath, now=future) is True
+
+
+# -- v1 predicates: labelq / harvest / archive -------------------------------------------------
+
+
+def _segment_into_clips(qpath, video_id="chan_v1", n=2):
+    """Drive a video to 'segmented' with ``n`` pending clips enqueued."""
+    from omni_curator.create.queue import QClip
+
+    q = QueueStore(qpath)
+    q.enqueue_videos([QVideo(video_id, "chan", "/v1.flac", "noisy", None)])
+    claimed = q.claim_video("w1")
+    assert claimed is not None
+    clips = [
+        QClip(f"{video_id}_{i:04d}", video_id, "chan", i, f"/clips/{i}.flac",
+              i * 5.0, i * 5.0 + 5.0, "tgk_Cyrl", "Cyrillic", None)
+        for i in range(n)
+    ]
+    q.complete_video(video_id, clips, claim_token=claimed.claim_token)
+    return q
+
+
+def test_labelq_true_with_pending_clips(tmp_path):
+    qpath = tmp_path / "queue.sqlite"
+    _segment_into_clips(qpath, n=3).close()
+    assert predicates.labelq_backlog(qpath) == 3
+    assert predicates.labelq_needed(qpath) is True
+
+
+def test_labelq_false_with_no_queue(tmp_path):
+    assert predicates.labelq_needed(tmp_path / "missing.sqlite") is False
+
+
+def test_labelq_fresh_labeling_lease_not_claimable(tmp_path):
+    qpath = tmp_path / "queue.sqlite"
+    q = _segment_into_clips(qpath, n=2)
+    q.claim_clips(10, "tok")  # status='labeling', fresh lease
+    q.close()
+    assert predicates.labelq_needed(qpath) is False
+
+
+def test_labelq_stale_labeling_lease_is_claimable(tmp_path):
+    qpath = tmp_path / "queue.sqlite"
+    q = _segment_into_clips(qpath, n=2)
+    q.claim_clips(10, "tok")
+    q.close()
+    future = time.time() + predicates.LABELQ_STALE_AFTER_S + 1.0
+    assert predicates.labelq_backlog(qpath, now=future) == 2
+
+
+def test_harvest_true_for_done_unharvested(tmp_path):
+    qpath = tmp_path / "queue.sqlite"
+    q = _segment_into_clips(qpath, n=2)
+    q.claim_clips(10, "tok")
+    q.complete_clips("tok", [("chan_v1_0000", "a", ""), ("chan_v1_0001", "b", "")])
+    q.close()
+    assert predicates.harvest_backlog(qpath) == 2
+    assert predicates.harvest_needed(qpath) is True
+
+
+def test_harvest_false_after_harvested(tmp_path):
+    qpath = tmp_path / "queue.sqlite"
+    q = _segment_into_clips(qpath, n=1)
+    q.claim_clips(10, "tok")
+    q.complete_clips("tok", [("chan_v1_0000", "a", "")])
+    q.mark_harvested(["chan_v1_0000"])
+    q.close()
+    assert predicates.harvest_needed(qpath) is False
+
+
+def test_archive_true_when_segmented_source_exists(tmp_path):
+    src = tmp_path / "v1.flac"
+    src.touch()
+    qpath = tmp_path / "queue.sqlite"
+    q = QueueStore(qpath)
+    q.enqueue_videos([QVideo("chan_v1", "chan", str(src), "noisy", None)])
+    claimed = q.claim_video("w1")
+    assert claimed is not None
+    q.complete_video("chan_v1", [], claim_token=claimed.claim_token)
+    q.close()
+    assert predicates.archive_needed(qpath) is True
+
+
+def test_archive_false_when_source_missing(tmp_path):
+    qpath = tmp_path / "queue.sqlite"
+    q = QueueStore(qpath)
+    q.enqueue_videos([QVideo("chan_v1", "chan", "/gone/v1.flac", "noisy", None)])
+    claimed = q.claim_video("w1")
+    assert claimed is not None
+    q.complete_video("chan_v1", [], claim_token=claimed.claim_token)
+    q.close()
+    assert predicates.archive_needed(qpath) is False
+
+
+def test_archive_false_when_only_pending(tmp_path):
+    src = tmp_path / "v1.flac"
+    src.touch()
+    qpath = tmp_path / "queue.sqlite"
+    _enqueue(qpath, [QVideo("chan_v1", "chan", str(src), "noisy", None)])
+    assert predicates.archive_needed(qpath) is False  # not segmented yet

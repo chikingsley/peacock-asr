@@ -17,12 +17,9 @@ Counts are read through :class:`QueueStore` / its sqlite connection — not rein
 from __future__ import annotations
 
 import time
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 from omni_curator.create.queue import QueueStore
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 #: Mirrors ``QueueStore.claim_video(stale_after_s=1800.0)``: a ``segmenting`` row older than this is
 #: reclaimable, so it counts as claimable work for the segment predicate.
@@ -83,3 +80,70 @@ def segment_backlog(queue_path: Path, *, now: float | None = None) -> int:
 def segment_needed(queue_path: Path, *, now: float | None = None) -> bool:
     """``True`` if there is at least one claimable video to segment."""
     return segment_backlog(queue_path, now=now) > 0
+
+
+# -- v1 predicates ------------------------------------------------------------------------------
+
+#: Mirrors ``run_labeler``'s ``lease_s=900.0``: a ``labeling`` clip older than this is reclaimable,
+#: so it counts as claimable work for the labelq predicate (just like ``reclaim_stale_clips``).
+LABELQ_STALE_AFTER_S = 900.0
+
+
+def labelq_backlog(queue_path: Path, *, now: float | None = None) -> int:
+    """Count of claimable clips: ``pending`` plus stale-``labeling`` (mirrors ``claim_clips``)."""
+    if not queue_path.exists():
+        return 0
+    moment = time.time() if now is None else now
+    queue = QueueStore(queue_path)
+    try:
+        row = queue._conn.execute(  # noqa: SLF001
+            "SELECT count(*) AS n FROM clips WHERE status='pending' "
+            "OR (status='labeling' AND locked_at < ?)",
+            (moment - LABELQ_STALE_AFTER_S,),
+        ).fetchone()
+    finally:
+        queue.close()
+    return int(row["n"])
+
+
+def labelq_needed(queue_path: Path, *, now: float | None = None) -> bool:
+    """``True`` if there is at least one claimable clip to label."""
+    return labelq_backlog(queue_path, now=now) > 0
+
+
+def harvest_backlog(queue_path: Path) -> int:
+    """Count of ``status='done' AND harvested_at IS NULL`` clips — harvestable right now."""
+    if not queue_path.exists():
+        return 0
+    queue = QueueStore(queue_path)
+    try:
+        row = queue._conn.execute(  # noqa: SLF001
+            "SELECT count(*) AS n FROM clips WHERE status='done' AND harvested_at IS NULL"
+        ).fetchone()
+    finally:
+        queue.close()
+    return int(row["n"])
+
+
+def harvest_needed(queue_path: Path) -> bool:
+    """``True`` if there are done-but-unharvested clips to fold into the channel stores."""
+    return harvest_backlog(queue_path) > 0
+
+
+def archive_needed(queue_path: Path) -> bool:
+    """``True`` if a ``status='segmented'`` video still has its source FLAC on disk.
+
+    Archive drains a processed video's now-redundant source off the working drive. The predicate is
+    "at least one segmented video whose ``path`` still exists" — so a drained queue (every source
+    already moved) makes it false and archive isn't relaunched. Read-only, beside a live writer.
+    """
+    if not queue_path.exists():
+        return False
+    queue = QueueStore(queue_path)
+    try:
+        rows = queue._conn.execute(  # noqa: SLF001
+            "SELECT path FROM videos WHERE status='segmented'"
+        ).fetchall()
+    finally:
+        queue.close()
+    return any(Path(r["path"]).exists() for r in rows)

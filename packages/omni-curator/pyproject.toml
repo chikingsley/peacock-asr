@@ -91,6 +91,10 @@ ignore = [
 # annotations; no __init__.py by design (pytest rootdir discovery).
 "tests/**" = ["S101", "PLR2004", "ANN", "ARG001", "INP001", "N812", "RUF001", "RUF002", "RUF003"]
 "**/test_*.py" = ["S101", "PLR2004"]  # asserts + magic values are fine in tests
+# The factory tests drive real flock(1)/sleep subprocesses (the lock primitive can only be proven
+# by holding a lock from another process) and use placeholder claim tokens: subprocess + hardcoded
+# "token"/compound-assert lints are exactly wrong here.
+"tests/test_factory_supervisor.py" = ["S105", "S603", "S607", "SIM105", "PT018"]
 "src/omni_curator/project.py" = ["T201"]  # the per-language project CLI prints
 # The factory CLI echoes its launch/exit log to stdout as well as to factory.log.
 "src/omni_curator/factory/__main__.py" = ["T201"]
