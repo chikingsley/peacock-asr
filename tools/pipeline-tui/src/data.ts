@@ -217,7 +217,14 @@ async function readDownloadLanes(): Promise<void> {
     );
     for (const line of mounts ? mounts.toLowerCase().split("\n") : []) {
       for (const lang of LANGS) {
-        if (line.includes(`${lang}-asr`)) activeLangs.add(lang);
+        // match the project dir (.../<lang>-asr/...) OR the SSD roots (.../peacock-{create,clips}/<lang>/...)
+        if (
+          line.includes(`${lang}-asr`) ||
+          line.includes(`peacock-create/${lang}`) ||
+          line.includes(`peacock-clips/${lang}`)
+        ) {
+          activeLangs.add(lang);
+        }
       }
     }
   }
