@@ -303,9 +303,13 @@ def cmd_segment(project: CuratorProject, args: argparse.Namespace) -> int:
     gpu_req = args.procs if args.procs is not None else args.gpu_procs
     cpu_req = 0 if args.procs is not None else args.cpu_procs
     gpu_procs, cpu_procs = resolve_devices(gpu_req, cpu_req)
-    print(f"segment: {gpu_procs} GPU + {cpu_procs} CPU VAD workers")
+    # --clips-root lets clips land on a fast disk (e.g. an SSD) while sources stay put; clip_path is
+    # stored absolute, so the labeler reads new (SSD) and old (overflow) clips transparently.
+    clips_root = Path(args.clips_root) if args.clips_root else project.clips_dir
+    clips_root.mkdir(parents=True, exist_ok=True)
+    print(f"segment: {gpu_procs} GPU + {cpu_procs} CPU VAD workers -> clips at {clips_root}")
     run_segmenters(
-        project.queue_path, gpu_procs=gpu_procs, cpu_procs=cpu_procs, clips_root=project.clips_dir,
+        project.queue_path, gpu_procs=gpu_procs, cpu_procs=cpu_procs, clips_root=clips_root,
         language=project.language, script=project.script,
         max_dur=args.max_duration, pending_hwm=args.hwm,
     )
@@ -675,6 +679,9 @@ def _add_create_parsers(sub: argparse._SubParsersAction, project: CuratorProject
                       help="deprecated: N GPU workers (use --gpu-procs/--cpu-procs)")
     p_sg.add_argument("--max-duration", type=float, default=30.0, help="hard cap per VAD span (s)")
     p_sg.add_argument("--hwm", type=int, default=50_000, help="pending-clip backpressure ceiling")
+    p_sg.add_argument("--clips-root", default=None, metavar="DIR",
+                      help="write clips here instead of data/clips (e.g. a fast SSD); clip paths "
+                           "stay absolute so the labeler reads old + new clips transparently")
     p_sg.set_defaults(func=cmd_segment)
 
     p_lq = sub.add_parser("labelq", help="drain the clip queue with Scribe workers (I/O)")
