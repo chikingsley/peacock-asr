@@ -161,8 +161,14 @@ def segment_vad_with(
     import numpy as np
     import torch
 
+    from omni_curator.process.audio import load_16k_mono
+
+    # NeMo frame-VAD needs MONO — a stereo file silently errors and the video fails. Load (and
+    # downmix) to a 16 kHz mono array and hand transcribe the array, not the path, so stereo
+    # sources segment cleanly instead of being dropped.
+    samples = load_16k_mono(audio)
     with torch.no_grad():
-        logits = model.transcribe([str(audio)], batch_size=1, logprobs=True)[0]
+        logits = model.transcribe([samples], batch_size=1, logprobs=True)[0]
     # transcribe() may hand back a CUDA tensor when the model is on GPU -> bring it to CPU/numpy.
     arr = logits.detach().cpu().numpy() if torch.is_tensor(logits) else np.asarray(logits)
     probs = torch.softmax(torch.from_numpy(arr), dim=-1).numpy()
