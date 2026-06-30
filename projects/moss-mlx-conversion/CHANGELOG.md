@@ -104,3 +104,10 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   count, and feed the CoreML audio encoder. The Swift mel max/mean diff versus
   the saved fixture tensor is `0.003906` / `0.000515`; 5-token output matches
   exactly and 52-token normalized WER/CER remains `0.0`.
+- Added a production-shaped 30-second padded CoreML audio encoder package.
+  `moss_audio_encoder_adapter_30s_padded.mlpackage` accepts `[128, 3000]`
+  mel input plus real seqlens, masks invalid audio tokens, validates against
+  the fixture prefix with CoreML-vs-BF16 max/mean diff `0.003738` / `0.000462`,
+  and runs from Swift with `--audio --audio-max-frames 3000`. The `cpu-gpu`
+  Swift run matches the 52-token fixture IDs/text exactly; default `.all`
+  dispatch currently fails the padded audio package on ANE.

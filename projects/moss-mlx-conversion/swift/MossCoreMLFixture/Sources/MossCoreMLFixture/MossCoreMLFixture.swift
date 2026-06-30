@@ -54,11 +54,13 @@ struct Options {
     var packagesDir = URL(fileURLWithPath: "coreml/build")
     var fixture = URL(fileURLWithPath: "artifacts/coreml/moss_swift_fixture.json")
     var audio: URL?
+    var audioMaxFrames: Int?
     var output: URL?
     var tokenPackage = "compiled/moss_token_embedding.mlmodelc"
     var audioPackage = "compiled_audio/moss_audio_encoder_adapter_fixture.mlmodelc"
     var decoderPackage = "compiled_stateful/moss_decoder_stateful_fused.mlmodelc"
     var tokenizer = URL(fileURLWithPath: "artifacts/coreml/moss_tokenizer.json")
+    var computeUnits = MLComputeUnits.all
     var tokenMaxSeqLen = 512
     var maxNewTokens = 5
 }
@@ -206,6 +208,11 @@ func parseOptions(_ arguments: [String]) throws -> Options {
             options.fixture = URL(fileURLWithPath: try value())
         case "--audio":
             options.audio = URL(fileURLWithPath: try value())
+        case "--audio-max-frames":
+            guard let parsed = Int(try value()) else {
+                throw RunnerError.invalidArgument("invalid --audio-max-frames")
+            }
+            options.audioMaxFrames = parsed
         case "--output":
             options.output = URL(fileURLWithPath: try value())
         case "--token-package":
@@ -216,6 +223,8 @@ func parseOptions(_ arguments: [String]) throws -> Options {
             options.decoderPackage = try value()
         case "--tokenizer":
             options.tokenizer = URL(fileURLWithPath: try value())
+        case "--compute-units":
+            options.computeUnits = try parseComputeUnits(try value())
         case "--token-max-seq-len":
             guard let parsed = Int(try value()) else {
                 throw RunnerError.invalidArgument("invalid --token-max-seq-len")
@@ -230,10 +239,11 @@ func parseOptions(_ arguments: [String]) throws -> Options {
             print(
                 """
                 Usage: moss-coreml-fixture [--packages-dir DIR] [--fixture JSON] [--output JSON]
-                                           [--audio WAV]
+                                           [--audio WAV] [--audio-max-frames N]
                                            [--token-package NAME] [--audio-package NAME]
                                            [--decoder-package NAME] [--token-max-seq-len N]
                                            [--max-new-tokens N] [--tokenizer JSON]
+                                           [--compute-units all|cpu-only|cpu-gpu|cpu-ane]
                 """
             )
             Darwin.exit(0)
@@ -243,6 +253,21 @@ func parseOptions(_ arguments: [String]) throws -> Options {
         index += 1
     }
     return options
+}
+
+func parseComputeUnits(_ value: String) throws -> MLComputeUnits {
+    switch value {
+    case "all":
+        return .all
+    case "cpu-only":
+        return .cpuOnly
+    case "cpu-gpu":
+        return .cpuAndGPU
+    case "cpu-ane":
+        return .cpuAndNeuralEngine
+    default:
+        throw RunnerError.invalidArgument("invalid --compute-units \(value)")
+    }
 }
 
 func loadFixture(_ url: URL) throws -> Fixture {
@@ -267,10 +292,12 @@ func resolvePrompt(_ fixture: Fixture, audioTokenCountOverride: Int? = nil) thro
         let audioInputMask = [Bool](repeating: false, count: prefixIds.count)
             + [Bool](repeating: true, count: audioTokenCount)
             + [Bool](repeating: false, count: suffixIds.count)
-        guard inputIds.count == fixture.promptLen else {
-            throw RunnerError.invalidArgument(
-                "compact prompt length \(inputIds.count) != fixture prompt_len \(fixture.promptLen)"
-            )
+        if audioTokenCountOverride == nil {
+            guard inputIds.count == fixture.promptLen else {
+                throw RunnerError.invalidArgument(
+                    "compact prompt length \(inputIds.count) != fixture prompt_len \(fixture.promptLen)"
+                )
+            }
         }
         let source = audioTokenCountOverride == nil ? "compact" : "compact_audio"
         return Prompt(inputIds: inputIds, audioInputMask: audioInputMask, source: source)
@@ -319,16 +346,19 @@ func resolveAudioFeatures(
     let start = DispatchTime.now().uptimeNanoseconds
     let samples = try MossAudioFile.loadMono16k(url: audioURL)
     let frontend = try WhisperLogMelFrontend()
-    let features = try frontend.compute(samples: samples, source: audioURL.path)
-    let seconds = Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000.0
-    guard features.shape == fixture.audioDataShape else {
-        throw RunnerError.invalidArgument(
-            "Swift audio shape \(features.shape) != fixture/CoreML shape \(fixture.audioDataShape)"
-        )
+    var features = try frontend.compute(samples: samples, source: audioURL.path)
+    if let audioMaxFrames = options.audioMaxFrames {
+        features = try padAudioFeatures(features, frames: audioMaxFrames)
     }
+    let seconds = Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000.0
     return (
         features: features,
-        diff: compareAudioFeatures(features.data, fixture.audioData),
+        diff: compareAudioFeaturesPrefix(
+            features.data,
+            leftShape: features.shape,
+            fixture.audioData,
+            rightShape: fixture.audioDataShape
+        ),
         seconds: seconds
     )
 }
@@ -541,7 +571,7 @@ struct MossCoreMLFixture {
         let tokenizer = try QwenByteLevelTokenizer(tokenizerJSON: options.tokenizer)
 
         let configuration = MLModelConfiguration()
-        configuration.computeUnits = .all
+        configuration.computeUnits = options.computeUnits
         let tokenModel = try MLModel(
             contentsOf: options.packagesDir.appendingPathComponent(options.tokenPackage),
             configuration: configuration

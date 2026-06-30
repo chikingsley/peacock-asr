@@ -73,8 +73,8 @@ Default shape contract:
 
 | Component | Role |
 | --- | --- |
-| `moss_mel_frontend` | Host-side 16 kHz Whisper log-mel frontend. Python and fixture-level Swift path are proven; dynamic/general audio remains later work. |
-| `moss_audio_encoder_adapter.mlpackage` | Qwen3-Omni audio encoder plus MOSS gated adapter. |
+| `moss_mel_frontend` | Host-side 16 kHz Whisper log-mel frontend. Python and Swift paths are proven for the LibriSpeech fixture; long-audio chunking remains later work. |
+| `moss_audio_encoder_adapter.mlpackage` | Qwen3-Omni audio encoder plus MOSS gated adapter. The current production-shaped probe accepts a padded 30-second `[128, 3000]` mel window and masks invalid audio tokens. |
 | `moss_token_embedding.mlpackage` | Qwen token embedding table. |
 | `moss_decoder_prefill.mlpackage` | Fixed-length prefill over merged token/audio embeddings. |
 | `moss_decoder_step_cache_external.mlpackage` | One-token decode with host-managed KV cache and logits. |
@@ -123,6 +123,11 @@ stateful decoder proof:
   WAV, emits `[128, 1484]` mel features, matches the saved PyTorch/Whisper mel
   with max/mean abs diff `0.003906` / `0.000515`, and feeds the CoreML audio
   encoder path without serialized fixture mel.
+- Added a 30-second padded audio encoder package. It accepts fixed
+  `[128, 3000]` mel input, keeps real `audio_data_seqlens`, masks invalid
+  encoder attention keys, returns fixed `[390, 2048]` audio embeddings, and
+  allows the Swift `--audio` path to use the production max-audio contract for
+  clips that fit in one 30-second window.
 - Compiled each package with `xcrun coremlcompiler compile`.
 - Copied retained `.mlpackage`, `.mlmodelc`, and JSON manifests back to local
   ignored `artifacts/coreml/`.
@@ -144,6 +149,9 @@ Results:
 | Swift tokenizer-enabled fixture | JSON fixture, compiled `.mlmodelc`, `MLState`, Qwen ByteLevel tokenizer JSON | 5-token decoded text matches exactly; 52-token raw WER/CER `0.0278` / `0.00442`; normalized WER/CER `0.0` |
 | Swift compact prompt fixture | compact JSON fixture without serialized `input_ids` / `audio_input_mask` | `prompt_source=compact`; 5-token output matches exactly; 52-token output has the same comma-only normalized-WER-zero drift; total times `16.17s` and `22.74s` |
 | Swift audio frontend fixture | source WAV, Swift Whisper log-mel, compact prompt, compiled `.mlmodelc`, `MLState` | `prompt_source=compact_audio`; mel max/mean diff `0.003906` / `0.000515`; 5-token output matches exactly; 52-token normalized WER/CER `0.0`; total times `18.02s` and `25.22s` |
+| `moss_audio_encoder_adapter_30s_padded` | padded mel `[128, 3000]`, real seqlens `[1484]` | output `[390, 2048]`; prefix `[193, 2048]` vs BF16 max/mean diff `0.003738` / `0.000462`; Torch padded-prefix diff `0.000190` / `0.00000645` |
+| Swift padded-audio 5-token greedy | source WAV + Swift mel padded to `[128, 3000]` + compact prompt + CoreML path, `--compute-units cpu-gpu` | generated IDs/text exactly match; total time `4.21s`, including `0.15s` audio frontend, `2.82s` audio encoder+adapter, `0.73s` decoder prefill, and `0.37s` decoder decode calls |
+| Swift padded-audio 52-token greedy | same padded-audio path, `--compute-units cpu-gpu` | generated IDs/text exactly match; raw/normalized WER/CER all `0.0`; total time `7.07s`, including `0.14s` audio frontend, `1.30s` audio encoder+adapter, `0.75s` decoder prefill, and `4.70s` decoder decode calls |
 
 Important caveat: these are still fixture-level proof components. The padded
 external-cache step proves the planned 768-token cache shape. The stateful fused
@@ -152,9 +160,17 @@ The integrated runner proves the Python/CoreML runtime contract, but neither is
 yet a FluidAudio manager, model-store entry, tokenizer bridge, or benchmarked
 end-to-end CoreML ASR runtime. The Swift runner proves the `MLModel`/`MLState`
 path, generated-token detokenization, fixed prompt construction, and
-fixture-level WAV-to-mel frontend, but still uses a static fixture-shaped audio
-CoreML package rather than dynamic/general audio shapes, model store, or
-FluidAudio manager API.
+WAV-to-mel frontend. The 30-second padded audio package removes the old
+`[128, 1484]` audio-package fixture shape, but this is still a private fixture
+runner rather than a model-store-backed FluidAudio manager or long-audio
+chunking runtime.
+
+Compute-unit caveat: the 30-second padded audio package failed with default
+`.all` dispatch on `home-mac` because CoreML routed it to ANE and reported an
+ANE inference error. The same package succeeds with `--compute-units cpu-gpu`.
+That workaround also made the current fixture runs much faster, but compute
+placement still needs profiling per component before treating it as a final
+runtime policy.
 
 Current retained package sizes:
 
@@ -162,6 +178,7 @@ Current retained package sizes:
 | --- | ---: | ---: |
 | `moss_token_embedding` | 594M | 594M |
 | `moss_audio_encoder_adapter_fixture` | 1.4G | 1.4G |
+| `moss_audio_encoder_adapter_30s_padded` | 1.4G | 1.4G |
 | `moss_decoder_prefill_fixture` | 3.3G | 3.3G |
 | `moss_decoder_step_fixture` | 3.3G | 3.3G |
 | `moss_decoder_step_padded_fixture` | 3.3G | 3.3G |
@@ -176,7 +193,8 @@ Current retained package sizes:
 - CoreML per-token call overhead can dominate even when the graph is correct;
   the stateful fused decoder removes cache tensor marshaling but still calls
   CoreML once per generated token.
-- Static masks and cache lengths may decide whether ANE dispatch happens.
+- Static masks, audio padding, cache lengths, and CoreML compute-unit placement
+  may decide whether ANE dispatch succeeds.
 - The current Swift audio frontend is correct enough for the fixture, but it is
   a private runner implementation with a 400-point table DFT. A production
   FluidAudio path should decide whether to reuse/extend existing FluidAudio

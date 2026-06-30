@@ -74,6 +74,20 @@ def feat_extract_output_length(length: int) -> int:
     return ((feat_lengths - 1) // 2 + 1 - 1) // 2 + 1 + (length // 100) * 13
 
 
+def feat_extract_output_length_tensor(length: torch.Tensor) -> torch.Tensor:
+    input_lengths_leave = torch.remainder(length, 100)
+    feat_lengths = torch.div(input_lengths_leave - 1, 2, rounding_mode="floor") + 1
+    return (
+        torch.div(
+            torch.div(feat_lengths - 1, 2, rounding_mode="floor"),
+            2,
+            rounding_mode="floor",
+        )
+        + 1
+        + torch.div(length, 100, rounding_mode="floor") * 13
+    )
+
+
 def static_chunk_lengths(*, frames: int, chunk_size: int) -> list[int]:
     full_chunks, remainder = divmod(frames, chunk_size)
     lengths = [chunk_size] * full_chunks
@@ -129,7 +143,12 @@ class StaticFixtureAudioEncoderAdapter(nn.Module):
             start += length
         return torch.stack(chunks, dim=0)
 
-    def _static_attention(self, attention: nn.Module, hidden_states: torch.Tensor) -> torch.Tensor:
+    def _static_attention(
+        self,
+        attention: nn.Module,
+        hidden_states: torch.Tensor,
+        valid_key_mask: torch.Tensor | None = None,
+    ) -> torch.Tensor:
         seq_length = self.audio_seq_len
         query_states = attention.q_proj(hidden_states).reshape(
             seq_length,
@@ -162,6 +181,9 @@ class StaticFixtureAudioEncoderAdapter(nn.Module):
 
         attn_weights = torch.matmul(query_states, key_states.transpose(2, 3))
         attn_weights = attn_weights * float(attention.scaling)
+        if valid_key_mask is not None:
+            invalid_key_mask = torch.logical_not(valid_key_mask).reshape(1, 1, 1, seq_length)
+            attn_weights = attn_weights.masked_fill(invalid_key_mask, -1e9)
         attn_weights = functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(
             query_states.dtype
         )
@@ -170,10 +192,15 @@ class StaticFixtureAudioEncoderAdapter(nn.Module):
         attn_output = attn_output.reshape(seq_length, -1).contiguous()
         return attention.out_proj(attn_output)
 
-    def _static_encoder_layer(self, layer: nn.Module, hidden_states: torch.Tensor) -> torch.Tensor:
+    def _static_encoder_layer(
+        self,
+        layer: nn.Module,
+        hidden_states: torch.Tensor,
+        valid_key_mask: torch.Tensor | None = None,
+    ) -> torch.Tensor:
         residual = hidden_states
         hidden_states = layer.self_attn_layer_norm(hidden_states)
-        hidden_states = self._static_attention(layer.self_attn, hidden_states)
+        hidden_states = self._static_attention(layer.self_attn, hidden_states, valid_key_mask)
         hidden_states = residual + hidden_states
 
         residual = hidden_states
@@ -222,6 +249,56 @@ class StaticFixtureAudioEncoderAdapter(nn.Module):
         return self.audio_adapter(hidden_states)
 
 
+class StaticPaddedAudioEncoderAdapter(StaticFixtureAudioEncoderAdapter):
+    def forward(
+        self,
+        audio_data: torch.Tensor,
+        audio_data_seqlens: torch.Tensor,
+    ) -> torch.Tensor:
+        padded_feature = self._fixed_chunks(audio_data).unsqueeze(1)
+        padded_embed = functional.gelu(self.audio_model.conv2d1(padded_feature))
+        padded_embed = functional.gelu(self.audio_model.conv2d2(padded_embed))
+        padded_embed = functional.gelu(self.audio_model.conv2d3(padded_embed))
+        padded_embed = self.audio_model.conv_out(
+            padded_embed.permute(0, 3, 1, 2)
+            .contiguous()
+            .view(self.num_chunks, self.max_valid_len, self.conv_out_features)
+        )
+        positional_embedding = (
+            self.audio_model.positional_embedding.positional_embedding[: self.max_valid_len, :]
+            .unsqueeze(0)
+            .to(padded_embed.dtype)
+        )
+        padded_embed = padded_embed + positional_embedding
+        hidden_states = torch.cat(
+            [padded_embed[idx, :valid_len, :] for idx, valid_len in enumerate(self.valid_lens)],
+            dim=0,
+        )
+
+        audio_token_count = feat_extract_output_length_tensor(
+            audio_data_seqlens.to(torch.long)
+        ).reshape(())
+        valid_key_mask = torch.arange(
+            self.audio_seq_len,
+            device=hidden_states.device,
+            dtype=torch.long,
+        ) < audio_token_count
+
+        for encoder_layer in self.audio_model.layers:
+            hidden_states = self._static_encoder_layer(
+                encoder_layer,
+                hidden_states,
+                valid_key_mask,
+            )
+
+        hidden_states = self.audio_model.ln_post(hidden_states)
+        hidden_states = self.audio_model.proj1(hidden_states)
+        hidden_states = self.audio_model.act(hidden_states)
+        hidden_states = self.audio_model.proj2(hidden_states)
+        adapted = self.audio_adapter(hidden_states)
+        return adapted * valid_key_mask.to(dtype=adapted.dtype).unsqueeze(-1)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Export MOSS audio encoder+adapter to CoreML.")
     parser.add_argument("--source-weights", type=Path, default=DEFAULT_SOURCE_WEIGHTS)
@@ -230,6 +307,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--reference-tensors", type=Path, default=DEFAULT_REFERENCE_TENSORS)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--package-name", default="moss_audio_encoder_adapter_fixture.mlpackage")
+    parser.add_argument(
+        "--frames",
+        type=int,
+        default=None,
+        help="Static mel-frame width for padded exports. Defaults to fixture length.",
+    )
     parser.add_argument("--extract-only", action="store_true")
     parser.add_argument("--torch-check-only", action="store_true")
     parser.add_argument("--validate-predict", action="store_true")
@@ -237,7 +320,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--trace-dtype", choices=["fp32", "fp16"], default="fp32")
     parser.add_argument(
         "--wrapper",
-        choices=["static-fixture", "dynamic"],
+        choices=["static-fixture", "static-padded", "dynamic"],
         default="static-fixture",
     )
     parser.add_argument(
@@ -331,6 +414,12 @@ def build_module(
             audio_model=audio_model,
             audio_adapter=audio_adapter,
         )
+    elif wrapper == "static-padded":
+        module = StaticPaddedAudioEncoderAdapter(
+            audio_model=audio_model,
+            audio_adapter=audio_adapter,
+            frames=frames,
+        )
     else:
         module = StaticFixtureAudioEncoderAdapter(
             audio_model=audio_model,
@@ -363,6 +452,27 @@ def diff_stats(actual: np.ndarray, expected: np.ndarray) -> dict[str, Any]:
     }
 
 
+def diff_stats_prefix(actual: np.ndarray, expected: np.ndarray) -> dict[str, Any]:
+    if actual.shape == expected.shape:
+        return diff_stats(actual, expected)
+    if actual.ndim != expected.ndim or actual.shape[0] < expected.shape[0]:
+        raise ValueError(f"cannot prefix-compare shapes {actual.shape} and {expected.shape}")
+    prefix_actual = actual[: expected.shape[0], ...]
+    stats = diff_stats(prefix_actual, expected)
+    stats["actual_full_shape"] = list(actual.shape)
+    stats["compared_prefix_shape"] = list(prefix_actual.shape)
+    return stats
+
+
+def pad_audio_data(audio_data: torch.Tensor, frames: int) -> torch.Tensor:
+    current_frames = int(audio_data.shape[-1])
+    if current_frames == frames:
+        return audio_data
+    if current_frames > frames:
+        return audio_data[..., :frames]
+    return functional.pad(audio_data, (0, frames - current_frames))
+
+
 def export_audio_encoder_adapter(
     *,
     weights: Path,
@@ -373,6 +483,7 @@ def export_audio_encoder_adapter(
     trace_dtype_name: str,
     compute_precision_name: str,
     wrapper: str,
+    frames: int | None,
     validate_predict: bool,
     overwrite: bool,
 ) -> dict[str, Any]:
@@ -380,15 +491,23 @@ def export_audio_encoder_adapter(
 
     dtype = torch_dtype(trace_dtype_name)
     audio_data, seqlens, expected_audio_embeds = load_fixture_inputs(reference_tensors, dtype=dtype)
+    trace_frames = int(audio_data.shape[-1]) if frames is None else frames
+    if trace_frames < int(audio_data.shape[-1]):
+        raise ValueError(
+            f"--frames {trace_frames} is shorter than fixture length {int(audio_data.shape[-1])}"
+        )
+    trace_audio_data = (
+        pad_audio_data(audio_data, trace_frames) if wrapper == "static-padded" else audio_data
+    )
     module = build_module(
         config_path=config,
         weights_path=weights,
         dtype=dtype,
-        frames=int(audio_data.shape[-1]),
+        frames=trace_frames,
         wrapper=wrapper,
     )
     with torch.no_grad():
-        torch_output = module(audio_data, seqlens).detach().cpu().float().numpy()
+        torch_output = module(trace_audio_data, seqlens).detach().cpu().float().numpy()
 
     output_dir.mkdir(parents=True, exist_ok=True)
     package_path = output_dir / package_name
@@ -398,13 +517,13 @@ def export_audio_encoder_adapter(
         shutil.rmtree(package_path)
 
     with torch.no_grad():
-        traced = torch.jit.trace(module, (audio_data, seqlens), strict=False)
+        traced = torch.jit.trace(module, (trace_audio_data, seqlens), strict=False)
 
     mlmodel = ct.convert(
         traced,
         convert_to="mlprogram",
         inputs=[
-            ct.TensorType(name="audio_data", shape=audio_data.shape, dtype=np.float32),
+            ct.TensorType(name="audio_data", shape=trace_audio_data.shape, dtype=np.float32),
             ct.TensorType(name="audio_data_seqlens", shape=seqlens.shape, dtype=np.int32),
         ],
         outputs=[ct.TensorType(name="audio_embeddings")],
@@ -417,7 +536,7 @@ def export_audio_encoder_adapter(
     if validate_predict:
         prediction = mlmodel.predict(
             {
-                "audio_data": audio_data.detach().cpu().float().numpy(),
+                "audio_data": trace_audio_data.detach().cpu().float().numpy(),
                 "audio_data_seqlens": seqlens.detach().cpu().numpy().astype(np.int32),
             }
         )
@@ -428,7 +547,7 @@ def export_audio_encoder_adapter(
         coreml_validation = {
             "output_key": output_key,
             "vs_torch": diff_stats(coreml_output, torch_output),
-            "vs_reference_bf16": diff_stats(coreml_output, expected_audio_embeds),
+            "vs_reference_bf16": diff_stats_prefix(coreml_output, expected_audio_embeds),
         }
 
     return {
@@ -439,9 +558,9 @@ def export_audio_encoder_adapter(
         "trace_dtype": trace_dtype_name,
         "compute_precision": compute_precision_name,
         "wrapper": wrapper,
-        "audio_data_shape": list(audio_data.shape),
+        "audio_data_shape": list(trace_audio_data.shape),
         "audio_data_seqlens": seqlens.detach().cpu().tolist(),
-        "torch_vs_reference_bf16": diff_stats(torch_output, expected_audio_embeds),
+        "torch_vs_reference_bf16": diff_stats_prefix(torch_output, expected_audio_embeds),
         "coreml_validation": coreml_validation,
     }
 
@@ -453,27 +572,36 @@ def check_torch_audio_encoder_adapter(
     reference_tensors: Path,
     trace_dtype_name: str,
     wrapper: str,
+    frames: int | None,
 ) -> dict[str, Any]:
     dtype = torch_dtype(trace_dtype_name)
     audio_data, seqlens, expected_audio_embeds = load_fixture_inputs(reference_tensors, dtype=dtype)
+    trace_frames = int(audio_data.shape[-1]) if frames is None else frames
+    if trace_frames < int(audio_data.shape[-1]):
+        raise ValueError(
+            f"--frames {trace_frames} is shorter than fixture length {int(audio_data.shape[-1])}"
+        )
+    trace_audio_data = (
+        pad_audio_data(audio_data, trace_frames) if wrapper == "static-padded" else audio_data
+    )
     module = build_module(
         config_path=config,
         weights_path=weights,
         dtype=dtype,
-        frames=int(audio_data.shape[-1]),
+        frames=trace_frames,
         wrapper=wrapper,
     )
     with torch.no_grad():
-        torch_output = module(audio_data, seqlens).detach().cpu().float().numpy()
+        torch_output = module(trace_audio_data, seqlens).detach().cpu().float().numpy()
     return {
         "weights": str(weights),
         "config": str(config),
         "reference_tensors": str(reference_tensors),
         "trace_dtype": trace_dtype_name,
         "wrapper": wrapper,
-        "audio_data_shape": list(audio_data.shape),
+        "audio_data_shape": list(trace_audio_data.shape),
         "audio_data_seqlens": seqlens.detach().cpu().tolist(),
-        "torch_vs_reference_bf16": diff_stats(torch_output, expected_audio_embeds),
+        "torch_vs_reference_bf16": diff_stats_prefix(torch_output, expected_audio_embeds),
     }
 
 
@@ -495,6 +623,7 @@ def main() -> None:
             reference_tensors=args.reference_tensors.resolve(),
             trace_dtype_name=args.trace_dtype,
             wrapper=args.wrapper,
+            frames=args.frames,
         )
         print(json.dumps(manifest, indent=2, sort_keys=True))
         return
@@ -508,6 +637,7 @@ def main() -> None:
         trace_dtype_name=args.trace_dtype,
         compute_precision_name=args.compute_precision,
         wrapper=args.wrapper,
+        frames=args.frames,
         validate_predict=args.validate_predict,
         overwrite=args.overwrite,
     )

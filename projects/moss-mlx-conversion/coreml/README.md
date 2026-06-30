@@ -59,6 +59,23 @@ uv run --project projects/moss-mlx-conversion/coreml --locked \
   --overwrite
 ```
 
+The production-shaped audio encoder probe pads the mel input to the 30-second
+contract `[128, 3000]`, keeps the real `audio_data_seqlens`, masks invalid
+audio-token positions inside the encoder attention, and returns the fixed
+maximum `[390, 2048]` audio-embedding tensor:
+
+```bash
+uv run --project projects/moss-mlx-conversion/coreml --locked \
+  projects/moss-mlx-conversion/coreml/export_audio_encoder_adapter.py \
+  --wrapper static-padded \
+  --frames 3000 \
+  --trace-dtype fp32 \
+  --compute-precision float16 \
+  --validate-predict \
+  --overwrite \
+  --package-name moss_audio_encoder_adapter_30s_padded.mlpackage
+```
+
 ```bash
 uv run --project projects/moss-mlx-conversion/coreml --locked \
   projects/moss-mlx-conversion/coreml/export_decoder_prefill.py \
@@ -240,6 +257,24 @@ swift run --package-path swift/MossCoreMLFixture -c release moss-coreml-fixture 
   --output coreml/build/moss_swift_coreml_audio_frontend_52tok.json
 ```
 
+Run the same WAV through the 30-second padded audio package:
+
+```bash
+xcrun coremlcompiler compile \
+  coreml/build/moss_audio_encoder_adapter_30s_padded.mlpackage \
+  coreml/build/compiled_audio_30s
+
+swift run --package-path swift/MossCoreMLFixture -c release moss-coreml-fixture \
+  --packages-dir coreml/build \
+  --fixture artifacts/coreml/moss_swift_fixture_compact.json \
+  --audio artifacts/cache/fixtures/librosa-libri1-16k.wav \
+  --audio-max-frames 3000 \
+  --audio-package compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc \
+  --compute-units cpu-gpu \
+  --max-new-tokens 52 \
+  --output coreml/build/moss_swift_coreml_audio_30s_padded_cpu_gpu_52tok.json
+```
+
 Swift result on `home-mac`:
 
 - The 5-token greedy run exactly matched `[4197, 1059, 4158, 6177, 323]` and
@@ -262,7 +297,15 @@ Swift result on `home-mac`:
   `0.000515`. The 5-token output is exact. The 52-token output keeps
   normalized WER/CER `0.0`, with raw WER/CER `0.0556` / `0.00885` from
   punctuation-only drift.
-- Still missing for a real FluidAudio backend: arbitrary audio file/chunk
-  handling beyond the static `[128, 1484]` package shape, model store/download
-  layout, a FluidAudio-style `ASR/MOSS` manager, and a benchmark harness that
-  does not rely on fixture JSON.
+- The 30-second padded audio package validates against the fixture prefix with
+  CoreML-vs-BF16 max/mean diff `0.003738` / `0.000462`. Through Swift with
+  `--compute-units cpu-gpu`, the 5-token and 52-token runs match the expected
+  generated IDs/text exactly. The 52-token run measured 7.07s total: 0.14s
+  audio frontend, 1.30s audio encoder+adapter, 0.75s decoder prefill, and
+  4.70s decoder decode calls.
+- The same padded audio package failed under default `.all` compute-unit
+  dispatch with an ANE inference error. Use `--compute-units cpu-gpu` for this
+  package until compute placement is profiled more carefully.
+- Still missing for a real FluidAudio backend: model store/download layout, a
+  FluidAudio-style `ASR/MOSS` manager, a non-fixture benchmark harness, and
+  long-audio chunking beyond the single 30-second static window.

@@ -86,6 +86,11 @@ Current short version:
   Swift, reports mel max/mean diff `0.003906` / `0.000515` against the saved
   fixture tensor, matches the 5-token output exactly, and keeps normalized
   WER/CER `0.0` on the 52-token run.
+- The first production-shaped CoreML audio package now accepts padded
+  30-second mel input `[128, 3000]` with real seqlens and masked invalid audio
+  tokens. The Swift `--audio --audio-max-frames 3000` path matches the fixture
+  52-token generated IDs/text exactly under `--compute-units cpu-gpu`; default
+  `.all` dispatch currently fails this audio package on ANE.
 - No public upload/branch/PR action has been taken.
 
 ## Layout

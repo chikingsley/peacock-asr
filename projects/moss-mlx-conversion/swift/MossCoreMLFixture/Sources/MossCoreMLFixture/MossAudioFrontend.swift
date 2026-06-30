@@ -41,6 +41,51 @@ func compareAudioFeatures(_ left: [Float], _ right: [Float]) -> AudioFeatureDiff
     )
 }
 
+func compareAudioFeaturesPrefix(
+    _ left: [Float],
+    leftShape: [Int],
+    _ right: [Float],
+    rightShape: [Int]
+) -> AudioFeatureDiff? {
+    if leftShape == rightShape {
+        return compareAudioFeatures(left, right)
+    }
+    guard leftShape.count == 2,
+          rightShape.count == 2,
+          leftShape[0] == rightShape[0],
+          leftShape[1] >= rightShape[1],
+          left.count == leftShape[0] * leftShape[1],
+          right.count == rightShape[0] * rightShape[1]
+    else {
+        return nil
+    }
+
+    let melBins = rightShape[0]
+    let leftFrames = leftShape[1]
+    let rightFrames = rightShape[1]
+    var maxAbs: Float = 0
+    var sum: Float = 0
+    var comparedValues = 0
+    for melIndex in 0..<melBins {
+        let leftOffset = melIndex * leftFrames
+        let rightOffset = melIndex * rightFrames
+        for frameIndex in 0..<rightFrames {
+            let diff = abs(left[leftOffset + frameIndex] - right[rightOffset + frameIndex])
+            maxAbs = max(maxAbs, diff)
+            sum += diff
+            comparedValues += 1
+        }
+    }
+    guard comparedValues > 0 else {
+        return nil
+    }
+    return AudioFeatureDiff(
+        comparedValues: comparedValues,
+        maxAbs: maxAbs,
+        meanAbs: sum / Float(comparedValues)
+    )
+}
+
 func mossAudioTokenCount(melFrames: Int) -> Int {
     func floorDiv(_ value: Int, _ divisor: Int) -> Int {
         if value >= 0 {
@@ -53,6 +98,37 @@ func mossAudioTokenCount(melFrames: Int) -> Int {
     let featureLength = floorDiv(remainingFrames - 1, 2) + 1
     let localLength = floorDiv(floorDiv(featureLength - 1, 2), 2) + 1
     return localLength + (melFrames / 100) * 13
+}
+
+func padAudioFeatures(_ features: MossAudioFeatures, frames: Int) throws -> MossAudioFeatures {
+    guard features.shape.count == 2 else {
+        throw RunnerError.invalidArgument("audio features must have rank 2")
+    }
+    let melBins = features.shape[0]
+    let currentFrames = features.shape[1]
+    guard frames >= currentFrames else {
+        throw RunnerError.invalidArgument(
+            "audio max frames \(frames) is shorter than computed frames \(currentFrames)"
+        )
+    }
+    guard frames != currentFrames else {
+        return features
+    }
+
+    var padded = [Float](repeating: 0, count: melBins * frames)
+    for melIndex in 0..<melBins {
+        let sourceOffset = melIndex * currentFrames
+        let targetOffset = melIndex * frames
+        for frameIndex in 0..<currentFrames {
+            padded[targetOffset + frameIndex] = features.data[sourceOffset + frameIndex]
+        }
+    }
+    return MossAudioFeatures(
+        source: features.source,
+        shape: [melBins, frames],
+        data: padded,
+        seqlens: features.seqlens
+    )
 }
 
 enum MossAudioFile {
