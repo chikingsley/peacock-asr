@@ -4,7 +4,7 @@ Researched 2026-06-15. Audio + Russian transcripts for fine-tuning. Russian is h
 this is the acquisition map. Canonical living index to re-check for new releases:
 <https://github.com/alphacep/awesome-russian-speech> (Vosk team).
 
-## Already in hand (local, under data/russian-asr → /mnt/overflow)
+## Already in hand (local, under `data` → `/mnt/workerssd-2t/peacock-asr/russian-asr`)
 
 - **ru_open_stt (OpenSTT)** — the ~20,000 h giant. **License: CC-BY-NC** (non-commercial — poisons a
   commercial release unless you negotiate with snakers4). Heterogeneous; filter hard by alignment.

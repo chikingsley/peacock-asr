@@ -83,5 +83,5 @@ and are kept briefly for review; `CHANGELOG.md` is the historical record.
 ## Reference
 
 - Current curation/factory plan: `packages/omni-curator/docs/CURATION_FACTORY.md`.
-- Live per-language pipeline state is generated on demand by `packages/omni-curator/status.py`;
+- Live per-language pipeline state is printed on demand by `packages/omni-curator/status.py`;
   root `STATUS.md` is intentionally ignored and not a source of truth.

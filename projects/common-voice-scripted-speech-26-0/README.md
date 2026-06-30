@@ -44,7 +44,8 @@ State is tracked append-only, so every command is safe to restart:
 ```text
 manifests/datasets.jsonl   # one MDC dataset per line (dataset_id, locale, language, filename, license, …)
 src/cv26/                  # download · convert · upload · pipeline · queue · card · config · manifest · cli
-data -> /mnt/overflow/…    # gitignored: raw/archives/, hf-parquet/, reports/
+data -> /mnt/tiny-2t/peacock-asr/common-voice-scripted-speech-26-0
+                           # gitignored: raw/archives/, hf-parquet/, reports/
 ```
 
 ## Output schema

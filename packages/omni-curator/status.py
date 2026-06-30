@@ -10,16 +10,16 @@ which pipeline steps are done vs pending per project. Never hand-maintained, nev
 Pipeline: download -> enqueue -> segment -> labelq -> harvest -> merge -> ingest -> verify -> export
 
 Run:   uv run --project packages/omni-curator packages/omni-curator/status.py
-       uv run --project packages/omni-curator packages/omni-curator/status.py --md
+       uv run --project packages/omni-curator packages/omni-curator/status.py --output scratch/status.md
 """
 from __future__ import annotations
 
+import argparse
 import sqlite3
-import sys
 from datetime import datetime
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 PROJECTS = ROOT / "projects"
 
 
@@ -137,12 +137,30 @@ def render(rows: list[dict]) -> str:
     return "\n".join(L)
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Render the omni-curator pipeline status board.")
+    parser.add_argument(
+        "--output",
+        type=Path,
+        help="Optional markdown output path. By default, status is printed only.",
+    )
+    parser.add_argument(
+        "--write-root-status",
+        action="store_true",
+        help="Compatibility escape hatch: write the ignored root STATUS.md snapshot.",
+    )
+    parser.add_argument("--quiet", action="store_true", help="Do not print status to stdout.")
+    parser.add_argument("--md", action="store_true", help=argparse.SUPPRESS)
+    args = parser.parse_args(argv)
+
     projs = sorted(p for p in PROJECTS.iterdir() if p.is_dir() and p.name.endswith("-asr"))
     rows = [scan(p) for p in projs]
     out = render(rows)
-    (ROOT / "STATUS.md").write_text(out + "\n", encoding="utf-8")
-    if "--md" not in sys.argv:
+    output = ROOT / "STATUS.md" if args.write_root_status else args.output
+    if output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(out + "\n", encoding="utf-8")
+    if not args.quiet:
         print(out)
     return 0
 

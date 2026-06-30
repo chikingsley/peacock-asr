@@ -77,7 +77,7 @@ class ParakeetProject:
             return packaged
         msg = (
             "No NeMo recipe root resolved. Set `nemo_root` on the ParakeetProject "
-            "(e.g. data/shared/parakeet/nemo_recipes), or set "
+            "(e.g. base_models/parakeet/nemo_recipes), or set "
             f"{self.env_key}_NEMO_ROOT / PARAKEET_NEMO_ROOT. The cross-project "
             "farsi-asr/src/finetune_parakeet fallback has been removed."
         )
