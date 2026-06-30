@@ -99,17 +99,20 @@ Examples:
 
 ## 2026-06-30 Farsi Refresh
 
-Massive is responsive again for metadata-scale checks, but the Farsi legacy archive is still live
-payload and must not be deleted.
+Massive is responsive again for metadata-scale checks. The Farsi legacy-only files have been copied
+into the canonical archive, but the legacy folder must not be deleted until same-name conflicts are
+resolved.
 
 Archive state:
 
-- `/mnt/massive-22t/peacock-asr-archive/farsi/iran_international`: `45G`, `2,188` files,
-  `2,185` FLACs.
+- `/mnt/massive-22t/peacock-asr-archive/farsi/iran_international`: `2,456` files, `2,452`
+  FLACs.
 - `/mnt/massive-22t/peacock-asr-archive/farsi/iran_international_legacy`: `8.4G`, `431`
   files, `430` FLACs, and `archive_manifest.jsonl`.
-- Filename comparison between legacy and current archive found `163` common FLAC names, `267`
-  legacy-only FLACs, and `16` common-name size mismatches.
+- The non-destructive merge copied `268` regular files from legacy into canonical
+  `iran_international`: `267` legacy-only FLACs plus `archive_manifest.jsonl`.
+- Filename comparison now finds `0` legacy-only FLAC names, `430` common FLAC names, and `16`
+  common-name size mismatches.
 - No rsync/temp leftovers were found under the Farsi archive.
 
 Farsi source and queue state:
@@ -121,9 +124,9 @@ Farsi source and queue state:
 - Queue paths are `11,452` project-create refs and `109` canonical Massive archive refs.
 - `11,133` queued paths exist at their recorded path; `428` project-create paths are missing at
   their recorded path.
-- All `428` missing recorded paths exist in `farsi/iran_international_legacy`; only `161` also
-  exist in canonical `farsi/iran_international`, leaving `267` queue sources that the current
-  canonical archive resolver will not find.
+- All `428` missing recorded paths now exist in canonical `farsi/iran_international` and in
+  `farsi/iran_international_legacy`; the current archive resolver can find them through canonical
+  Massive fallback.
 - Local FLACs not present in the queue: `664` total, split as `@AvasBookClub=220` and
   `iran_international=444`.
 - Farsi queue metadata is still pre-refresh: `tier=noisy` for all rows, `category=uncategorized`
@@ -137,23 +140,17 @@ Operational conclusion:
 - Reading from Massive is acceptable for a small fallback set or pilot. It is not a good default
   for high-concurrency full-corpus segmentation: the current segmenter reads/decode each source
   twice, and Massive is an exFAT HDD.
-- Before a full Farsi segment run, either non-destructively merge the `267` legacy-only FLACs into
-  canonical `farsi/iran_international` or explicitly teach the source resolver about the temporary
-  legacy folder. Prefer the merge/audit path so production code does not depend on a legacy name.
-- After the merge, run a checksum/size audit for the `16` common-name mismatches before deleting
-  `iran_international_legacy`.
+- Before deleting `iran_international_legacy`, run a checksum/size audit for the `16` common-name
+  mismatches and decide whether canonical or legacy should win for each.
 - Decide whether the `664` local unqueued FLACs should be enqueued now or parked for a later Farsi
   vNext batch.
 
 ## Current Blockers
 
-1. Farsi archive dedup is unfinished.
-   - Massive is now responsive for shallow scans, but `farsi/iran_international_legacy` still holds
-     `430` FLACs.
-   - `267` legacy-only FLACs still need a non-destructive merge into canonical
-     `farsi/iran_international`.
+1. Farsi archive conflict audit is unfinished.
+   - The `267` legacy-only FLACs were merged into canonical `farsi/iran_international`.
    - `16` common-name size mismatches need checksum review before legacy deletion.
-   - The legacy files are preserved under the `farsi` bucket until that audit completes.
+   - The legacy folder is preserved under the `farsi` bucket until that audit completes.
 2. The queue paths are mixed between project-local source caches and archive refs.
    - This is workable only if the segmenter source resolver is verified before a full run.
 3. Category metadata is still `uncategorized` in the current queue rows.
@@ -169,8 +166,7 @@ Operational conclusion:
    - Classify folders as queued, downloaded-not-queued, archive-only, stale cache, or intentionally
      parked.
    - Preserve yt-dlp `downloaded.txt` and `*.info.json` sidecars.
-   - For Farsi specifically, resolve the `267` legacy-only queued sources and classify the `664`
-     local unqueued FLACs before a full segment run.
+   - For Farsi specifically, classify the `664` local unqueued FLACs before a full segment run.
 
 2. Freeze old segmentation output.
    - Confirm `clips=0` stays true or explicitly archive/delete old clips after verification.
@@ -207,7 +203,7 @@ Operational conclusion:
 
 ## Deferred Cleanup
 
-Massive is responsive enough for shallow scans. Finish the non-destructive Farsi merge:
+Massive is responsive enough for shallow scans. The non-destructive Farsi merge has run:
 
 ```bash
 rsync -a --ignore-existing \
@@ -215,4 +211,5 @@ rsync -a --ignore-existing \
   /mnt/massive-22t/peacock-asr-archive/farsi/iran_international/
 ```
 
-Then run a checksum duplicate audit before deleting `iran_international_legacy`.
+Run a checksum/size audit on the `16` same-name mismatches before deleting
+`iran_international_legacy`.
