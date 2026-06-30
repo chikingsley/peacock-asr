@@ -111,6 +111,9 @@ stateful decoder proof:
 - Added an integrated Python/CoreML fixture runner that wires token embedding,
   audio encoder+adapter, host audio-mask merge, Qwen3 RoPE/masks, and the
   stateful decoder in one process.
+- Added a private Swift/CoreML fixture runner that loads compiled `.mlmodelc`
+  bundles, uses `MLState`, and greedy-decodes the fixture from exported mel and
+  token IDs.
 - Compiled each package with `xcrun coremlcompiler compile`.
 - Copied retained `.mlpackage`, `.mlmodelc`, and JSON manifests back to local
   ignored `artifacts/coreml/`.
@@ -127,13 +130,17 @@ Results:
 | `moss_decoder_stateful_fused` | prefill `[1, 203, 2048]`, then token `4197` with the same CoreML state | prefill top-1 `4197`; step top-1 `1059`; 56 state tensors; CoreML vs static step logits max/mean diff `0.038696` / `0.015730` |
 | `run_stateful_fixture_pipeline` component path | CoreML token/audio packages, host merge, stateful decoder | prefill top-1 `4197`; step top-1 `1059`; merged prompt max/mean diff vs saved reference `0.002686` / `0.000337`; total fixture time `21.32s` |
 | `run_stateful_fixture_pipeline` reference-merged isolation | saved merged embeds, stateful decoder | prefill top-1 `4197`; step top-1 `1059`; decoder input diff vs saved reference `0.0`; total fixture time `22.15s` |
+| Swift `moss-coreml-fixture` 5-token greedy | JSON fixture, compiled `.mlmodelc`, `MLState` | generated IDs exactly match `[4197, 1059, 4158, 6177, 323]`; total fixture time `18.17s` |
+| Swift `moss-coreml-fixture` 52-token greedy | JSON fixture, compiled `.mlmodelc`, `MLState` | first 10 IDs match; comma-only drift after `smokestack`; normalized WER/CER `0.0`; total fixture time `23.53s` |
 
 Important caveat: these are still fixture-level proof components. The padded
 external-cache step proves the planned 768-token cache shape. The stateful fused
 decoder proves CoreML State API prediction for `prefill -> one decode step`.
 The integrated runner proves the Python/CoreML runtime contract, but neither is
-yet a FluidAudio Swift manager, model-store entry, tokenizer bridge, or
-benchmarked end-to-end CoreML ASR runtime.
+yet a FluidAudio manager, model-store entry, tokenizer bridge, or benchmarked
+end-to-end CoreML ASR runtime. The Swift runner proves the `MLModel`/`MLState`
+path but still uses exported fixture mel/token IDs rather than a real audio
+frontend and tokenizer.
 
 Current retained package sizes:
 

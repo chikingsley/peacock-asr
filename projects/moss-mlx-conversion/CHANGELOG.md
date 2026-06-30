@@ -84,3 +84,8 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   and stateful decoder in one Python/CoreML process. The component path and
   reference-merged isolation path both rank `4197` then `1059`; retained JSON
   reports are copied back under `artifacts/coreml/`.
+- Added a private Swift `moss-coreml-fixture` package plus
+  `export_swift_fixture.py`. The Swift runner loads compiled `.mlmodelc`
+  bundles with `MLModel`, reuses `MLState`, and greedy-decodes from the fixture
+  mel/token IDs. The first 5 generated IDs match exactly; the 52-token run has
+  a comma-only drift after token 10 and normalized WER/CER `0.0`.

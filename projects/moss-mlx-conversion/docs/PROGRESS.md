@@ -552,6 +552,10 @@ Generated artifacts:
 - `artifacts/coreml/moss_decoder_stateful_fused_1layer.json`
 - `artifacts/coreml/moss_coreml_stateful_fixture_pipeline.json`
 - `artifacts/coreml/moss_coreml_stateful_fixture_pipeline_reference_merged.json`
+- `artifacts/coreml/moss_swift_fixture.json`
+- `artifacts/coreml/moss_swift_coreml_fixture_5tok.json`
+- `artifacts/coreml/moss_swift_coreml_fixture_52tok.json`
+- `artifacts/coreml/moss_swift_coreml_fixture_60tok.json`
 
 Current default contract:
 
@@ -597,6 +601,8 @@ Fixture component probes completed on `home-mac`:
 | `moss_decoder_stateful_fused` | prefill `[1, 203, 2048]`, then token `4197` with same CoreML state | prefill top-1 `4197`; step top-1 `1059`; 56 CoreML state tensors `[1, 8, 768, 128]`; CoreML vs static step logits max/mean diff `0.038696` / `0.015730` |
 | `run_stateful_fixture_pipeline` component path | CoreML token IDs + CoreML mel/audio + host merge + stateful decoder | merged prompt max/mean diff vs saved BF16 reference `0.002686` / `0.000337`; prefill top-1 `4197`; step top-1 `1059`; total fixture time `21.32s`, with `20.61s` decoder prefill and `0.226s` first decode step |
 | `run_stateful_fixture_pipeline` reference-merged isolation | saved merged embeds + stateful decoder | decoder input diff vs saved reference `0.0`; prefill top-1 `4197`; step top-1 `1059`; total fixture time `22.15s`, with `21.45s` decoder prefill and `0.143s` first decode step |
+| Swift `moss-coreml-fixture` 5-token greedy | JSON fixture mel/token IDs + compiled `.mlmodelc` bundles + `MLState` | generated IDs exactly match `[4197, 1059, 4158, 6177, 323]`; total fixture time `18.17s`, with `16.96s` decoder prefill and `0.809s` decoder decode calls |
+| Swift `moss-coreml-fixture` 52-token greedy | same Swift/CoreML path | first 10 IDs match, then CoreML inserts comma token `11` after `smokestack`; decoded normalized WER/CER are `0.0`; total fixture time `23.53s`, with `16.80s` decoder prefill and `6.33s` decoder decode calls |
 
 Retained full-component package sizes:
 
@@ -630,6 +636,15 @@ Notes:
   diffs compare against the local custom static decoder path. Do not mix those
   two numeric gates; use the runner primarily for component-wiring and token
   rank validation.
+- The Swift fixture runner proves the same component/state contract through
+  Swift `MLModel` and `MLState`, using compiled `.mlmodelc` bundles. It still
+  consumes a pre-exported fixture JSON and does not implement the Qwen tokenizer,
+  Swift mel frontend, detokenization, model download/store, or a FluidAudio
+  `ASR/MOSS` manager.
+- The Swift 52-token greedy drift is punctuation-only on the decoded fixture:
+  expected text has `smokestack the inverashiel`; Swift emitted
+  `smokestack, the inverashiel`. After lowercase/punctuation normalization,
+  WER and CER are both `0.0`.
 - The packages and compiled models are retained locally under ignored
   `artifacts/coreml/`.
 - A working Mac copy exists at
@@ -692,20 +707,20 @@ The private conversion now has two completed tracks:
    manifests.
 2. CoreML/Mobius fixture track: token embedding, audio encoder+adapter,
    prefill, append-cache step, padded external-cache step, fused stateful
-   decoder, and integrated Python/CoreML fixture runner all validate and are
-   retained locally.
+   decoder, integrated Python/CoreML fixture runner, and private Swift
+   `MLState` greedy fixture runner all validate and are retained locally.
 
 The next real work is a Swift/CoreML runtime decision:
 
 1. If MOSS remains a teacher/reference, use the MLX/PyTorch artifacts to build
    batch teacher transcription and quality gates.
-2. If pursuing FluidAudio-level runtime, create a private Swift `ASR/MOSS`
-   manager that loads token embedding, audio encoder+adapter, and
-   `moss_decoder_stateful_fused.mlmodelc`; reproduces MOSS prompt/audio-mask
-   embedding insertion; generates Qwen3 RoPE tensors; resets/passes CoreML
-   state; and greedy-decodes until stop tokens.
-3. Run a single LibriSpeech fixture through that Swift runtime and require the
-   first two generated tokens `[4197, 1059]` before any WER benchmark.
+2. If pursuing FluidAudio-level runtime, the remaining missing pieces are the
+   Qwen tokenizer bridge, Swift detokenizer, real Swift mel frontend, model
+   store/download layout, and an `ASR/MOSS` manager API around the proven
+   Swift fixture core.
+3. Run a single real audio file through that Swift runtime and require the
+   first 5 generated tokens plus normalized transcript parity before any WER
+   benchmark.
 4. Then run the existing 20-row clean-test eval and profile compute placement.
    Only after that should quantized CoreML or artifact publication be scoped.
 5. Keep all work private. Public branch, PR, push, and Hugging Face upload

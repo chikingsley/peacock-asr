@@ -132,6 +132,14 @@ uv run --project projects/moss-mlx-conversion/coreml --locked \
   --output projects/moss-mlx-conversion/coreml/build/moss_coreml_stateful_fixture_pipeline_reference_merged.json
 ```
 
+Export the Swift-readable fixture JSON:
+
+```bash
+uv run --project projects/moss-mlx-conversion/coreml --locked \
+  projects/moss-mlx-conversion/coreml/export_swift_fixture.py \
+  --output projects/moss-mlx-conversion/artifacts/coreml/moss_swift_fixture.json
+```
+
 Compile on macOS with:
 
 ```bash
@@ -162,3 +170,45 @@ Integrated fixture result on `home-mac`:
 - The runner's raw `prefill_logits_vs_reference` compares against the saved HF
   reference logits, not the exporter manifest's custom static-decoder parity
   target. Treat the runner as a runtime-contract proof first.
+
+## Swift Fixture Runner
+
+The private Swift package lives at `swift/MossCoreMLFixture`. It is a fixture
+runner, not a FluidAudio source tree patch.
+
+Build on macOS:
+
+```bash
+swift build --package-path swift/MossCoreMLFixture -c release
+```
+
+Run the 5-token greedy fixture against compiled `.mlmodelc` bundles:
+
+```bash
+swift run --package-path swift/MossCoreMLFixture -c release moss-coreml-fixture \
+  --packages-dir coreml/build \
+  --fixture artifacts/coreml/moss_swift_fixture.json \
+  --output coreml/build/moss_swift_coreml_fixture_5tok.json
+```
+
+Run the saved 52-token fixture:
+
+```bash
+swift run --package-path swift/MossCoreMLFixture -c release moss-coreml-fixture \
+  --packages-dir coreml/build \
+  --fixture artifacts/coreml/moss_swift_fixture.json \
+  --max-new-tokens 52 \
+  --output coreml/build/moss_swift_coreml_fixture_52tok.json
+```
+
+Swift result on `home-mac`:
+
+- The 5-token greedy run exactly matched `[4197, 1059, 4158, 6177, 323]`.
+- The 52-token run matched the first 10 IDs, then inserted a comma token after
+  `smokestack`; decoded normalized WER/CER are both `0.0`.
+- The 52-token run measured 23.53s total: 16.80s decoder prefill, 6.33s
+  decoder decode calls, 0.24s decode token embeddings, 0.11s audio
+  encoder+adapter.
+- The runner still uses fixture mel/token IDs and has no Qwen tokenizer bridge,
+  text detokenizer, Swift mel frontend, or FluidAudio manager/model-store
+  integration.
