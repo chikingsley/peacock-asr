@@ -401,12 +401,13 @@ Generated manifests:
 
 No public branch, PR, push, or Hugging Face upload has been done.
 
-## Mac Cleanup
+## Mac Working Copy
 
-The Mac working copy at `/Users/simonpeacocks/GitHub/moss-mlx-conversion` was
-removed after stopping the benchmarks and copying the useful artifacts back to
-this Linux project. The separate FluidAudio checkout at
-`/Users/simonpeacocks/GitHub/FluidAudio` was left untouched.
+The Mac working copy at `/Users/simonpeacocks/GitHub/moss-mlx-conversion` is
+the active Apple Silicon/CoreML workbench. Retained artifacts are copied back
+to this Linux project under ignored `artifacts/coreml/`. The separate
+FluidAudio checkout at `/Users/simonpeacocks/GitHub/FluidAudio` was left
+untouched.
 
 Retained local weight files:
 
@@ -508,22 +509,35 @@ This track is now scoped privately under the local MOSS conversion project:
 - CLI:
   `moss-coreml-plan`
 
-The first concrete artifact is a Mobius-style conversion contract, not a
-converted CoreML model. It can be regenerated with:
+The first concrete artifact was a Mobius-style conversion contract. It can be
+regenerated with:
 
 ```bash
 uv run --project projects/moss-mlx-conversion --locked moss-coreml-plan \
   --output projects/moss-mlx-conversion/artifacts/coreml/moss-coreml-plan.json
 ```
 
-Generated artifact:
+Generated artifacts:
 
 - `artifacts/coreml/moss-coreml-plan.json`
 - `artifacts/coreml/moss-token-embedding-fp16.safetensors`
 - `artifacts/coreml/moss-token-embedding-fp16.json`
+- `artifacts/coreml/moss-audio-encoder-adapter-bf16.safetensors`
+- `artifacts/coreml/moss-audio-encoder-adapter-bf16.json`
+- `artifacts/coreml/moss-qwen3-decoder-bf16.safetensors`
+- `artifacts/coreml/moss-qwen3-decoder-bf16.json`
 - `artifacts/coreml/moss_token_embedding.mlpackage/`
 - `artifacts/coreml/moss_token_embedding.mlmodelc/`
 - `artifacts/coreml/moss_token_embedding.json`
+- `artifacts/coreml/moss_audio_encoder_adapter_fixture.mlpackage/`
+- `artifacts/coreml/moss_audio_encoder_adapter_fixture.mlmodelc/`
+- `artifacts/coreml/moss_audio_encoder_adapter_fixture.json`
+- `artifacts/coreml/moss_decoder_prefill_fixture.mlpackage/`
+- `artifacts/coreml/moss_decoder_prefill_fixture.mlmodelc/`
+- `artifacts/coreml/moss_decoder_prefill_fixture.json`
+- `artifacts/coreml/moss_decoder_step_fixture.mlpackage/`
+- `artifacts/coreml/moss_decoder_step_fixture.mlmodelc/`
+- `artifacts/coreml/moss_decoder_step_fixture.json`
 
 Current default contract:
 
@@ -556,32 +570,33 @@ Mobius relation:
   wrappers for its audio encoder, audio-mask embedding injection, and Qwen3
   decoder cache contract.
 
-First component probe completed on `home-mac`:
+Fixture component probes completed on `home-mac`:
 
-```bash
-uv run --project coreml --locked coreml/export_token_embedding.py \
-  --weights artifacts/coreml/moss-token-embedding-fp16.safetensors \
-  --validate-predict \
-  --overwrite
-```
+| Component | Fixture input | CoreML validation |
+| --- | --- | --- |
+| `moss_token_embedding` | token IDs `[1, 512]` | max/mean diff vs PyTorch `0.0` / `0.0` |
+| `moss_audio_encoder_adapter_fixture` | mel `[128, 1484]` | output `[193, 2048]`; max/mean diff vs PyTorch `0.002675` / `0.000354` |
+| `moss_decoder_prefill_fixture` | merged embeds `[1, 203, 2048]` | top-1 token `4197`; max/mean diff vs PyTorch `0.048508` / `0.017621` |
+| `moss_decoder_step_fixture` | token `4197`, KV `[28, 1, 8, 203, 128]` | top-1 token `1059`; max/mean diff vs PyTorch `0.040039` / `0.015691` |
 
-Result:
+Retained full-component package sizes:
 
-| Check | Value |
-| --- | --- |
-| Component | `moss_token_embedding.mlpackage` |
-| Input shape | `[1, 512]` |
-| Weight shape | `[151936, 2048]` |
-| Output shape | `[1, 512, 2048]` |
-| CoreML vs PyTorch max abs diff | `0.0` |
-| CoreML vs PyTorch mean abs diff | `0.0` |
-| Compile check | `xcrun coremlcompiler compile` passed |
+| Component | `.mlpackage` | `.mlmodelc` |
+| --- | ---: | ---: |
+| `moss_token_embedding` | 594M | 594M |
+| `moss_audio_encoder_adapter_fixture` | 1.4G | 1.4G |
+| `moss_decoder_prefill_fixture` | 3.3G | 3.3G |
+| `moss_decoder_step_fixture` | 3.3G | 3.3G |
 
 Notes:
 
 - CoreMLTools warned that Torch 2.12.1 is newer than its tested Torch version.
-  The embedding conversion, prediction, and compile check still passed.
-- The package and compiled model are retained locally under ignored
+  The conversions, CoreML predictions, and compile checks still passed.
+- The audio encoder and decoder exporters use fixed LibriSpeech fixture shapes.
+- The decoder step proves a cache-external transition from `past_len=203` to
+  `204`, but it is not yet the production padded-cache loop for the planned
+  768-token cache window.
+- The packages and compiled models are retained locally under ignored
   `artifacts/coreml/`.
 - A working Mac copy exists at
   `/Users/simonpeacocks/GitHub/moss-mlx-conversion` with the CoreML uv

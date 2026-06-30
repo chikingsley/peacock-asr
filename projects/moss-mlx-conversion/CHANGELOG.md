@@ -58,3 +58,15 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   token embedding tensor, exported `moss_token_embedding.mlpackage`, validated
   CoreML prediction against PyTorch with `max_abs_diff=0.0`, compiled it to
   `.mlmodelc`, and copied the generated artifacts back locally.
+- Exported and compiled `moss_audio_encoder_adapter_fixture.mlpackage` with a
+  static LibriSpeech fixture wrapper. CoreML vs PyTorch audio embedding drift:
+  max abs diff 0.002675, mean abs diff 0.000354.
+- Exported and compiled the full 28-layer
+  `moss_decoder_prefill_fixture.mlpackage` for merged prompt/audio embeddings.
+  CoreML preserves the reference first generated token `4197`; CoreML vs
+  PyTorch logits drift: max abs diff 0.048508, mean abs diff 0.017621.
+- Exported and compiled the full 28-layer
+  `moss_decoder_step_fixture.mlpackage` with stacked external KV cache tensors.
+  Feeding token `4197` ranks `1059` first, matching the next saved reference
+  token; CoreML vs PyTorch logits drift: max abs diff 0.040039, mean abs diff
+  0.015691.

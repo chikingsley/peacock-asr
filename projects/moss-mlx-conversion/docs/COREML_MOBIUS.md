@@ -93,31 +93,48 @@ Default shape contract:
 7. Profile compiled models with `coreml-cli`.
 8. Try quantization only after BF16/F32 CoreML parity is stable.
 
-## Completed Probe
+## Completed Component Probes
 
-The first real component probe is complete:
+The private fixture-level component probes are complete through one-token
+decode:
 
-- Extracted `model.embed_tokens.weight` to
-  `artifacts/coreml/moss-token-embedding-fp16.safetensors`.
-- Exported `moss_token_embedding.mlpackage` on `home-mac`.
-- Validated CoreML prediction against PyTorch for input shape `[1, 512]`.
-- Compiled the package with `xcrun coremlcompiler compile`.
-- Copied both `.mlpackage` and `.mlmodelc` back to local ignored artifacts.
+- Extracted `model.embed_tokens.weight`,
+  `model.audio_model`/`model.audio_adapter`, and `model.language_model` weights
+  into smaller CoreML workbench safetensors files.
+- Exported and validated token embedding, audio encoder+adapter, decoder
+  prefill, and decoder one-token step packages on `home-mac`.
+- Compiled each package with `xcrun coremlcompiler compile`.
+- Copied retained `.mlpackage`, `.mlmodelc`, and JSON manifests back to local
+  ignored `artifacts/coreml/`.
 
-Result:
+Results:
 
-| Item | Value |
-| --- | --- |
-| Weight shape | `[151936, 2048]` |
-| Output shape | `[1, 512, 2048]` |
-| Max abs diff | `0.0` |
-| Mean abs diff | `0.0` |
+| Component | Fixture input | Key validation |
+| --- | --- | --- |
+| `moss_token_embedding` | token IDs `[1, 512]` | CoreML vs PyTorch max/mean diff `0.0` / `0.0` |
+| `moss_audio_encoder_adapter_fixture` | mel `[128, 1484]` | CoreML vs PyTorch max/mean diff `0.002675` / `0.000354` |
+| `moss_decoder_prefill_fixture` | merged embeds `[1, 203, 2048]` | top-1 token `4197`; CoreML vs PyTorch max/mean diff `0.048508` / `0.017621` |
+| `moss_decoder_step_fixture` | token `4197`, KV `[28, 1, 8, 203, 128]` | top-1 token `1059`; CoreML vs PyTorch max/mean diff `0.040039` / `0.015691` |
+
+Important caveat: the prefill and step exports are fixture-static proof
+components. The step graph proves external-cache math and CoreML conversion for
+one fixed past length (`203 -> 204`), but it is not yet a general padded-cache
+generation loop over the planned 768-token cache window.
+
+Current retained package sizes:
+
+| Component | `.mlpackage` | `.mlmodelc` |
+| --- | ---: | ---: |
+| `moss_token_embedding` | 594M | 594M |
+| `moss_audio_encoder_adapter_fixture` | 1.4G | 1.4G |
+| `moss_decoder_prefill_fixture` | 3.3G | 3.3G |
+| `moss_decoder_step_fixture` | 3.3G | 3.3G |
 
 ## Expected Hard Parts
 
 - RoPE layout and position IDs must match MOSS/Qwen3 exactly.
-- Decoder prefill must accept merged embeddings, because audio insertion happens
-  before the Qwen decoder.
+- The production decoder step still needs padded-cache position handling rather
+  than the current fixed fixture past length.
 - CoreML per-token call overhead can dominate even when the graph is correct.
 - Static masks and cache lengths may decide whether ANE dispatch happens.
 - MOSS can be correct and still much slower than Parakeet/TDT-style ASR.

@@ -31,9 +31,9 @@ Current short version:
 - `moss-mlx-smoke` passed on Apple Silicon for the LibriSpeech fixture. It
   loaded the converted weights, built audio prompt embeddings, matched the first
   5 generated token IDs, and matched the PyTorch reference transcript exactly.
-- The temporary Mac working copy at
-  `/Users/simonpeacocks/GitHub/moss-mlx-conversion` was removed after the
-  useful artifacts were copied back here.
+- The Mac working copy at `/Users/simonpeacocks/GitHub/moss-mlx-conversion`
+  is the active Apple Silicon/CoreML workbench; retained outputs are copied
+  back under ignored local `artifacts/coreml/`.
 - `moss-streaming-eval` streams LibriSpeech rows and audio assets from
   Hugging Face without writing audio files, then reports WER/CER with `jiwer`.
   The paired 100-row clean-test baseline ran at 1.80% WER / 1.61 RTFx on MLX
@@ -56,11 +56,10 @@ Current short version:
   contract under `artifacts/coreml/`, including component boundaries, fixed
   prefill/cache shapes, and parity gates. This is planning/export groundwork,
   not a CoreML model yet.
-- First CoreML probe is complete: `moss_token_embedding.mlpackage` was exported
-  on `home-mac`, CoreML prediction matched PyTorch exactly for the 512-token
-  test input, `coremlcompiler` produced `moss_token_embedding.mlmodelc`, and
-  the generated artifacts were copied back under ignored local
-  `artifacts/coreml/`.
+- Private CoreML fixture exports now cover token embedding, audio
+  encoder+adapter, full decoder prefill, and a full one-token cache-external
+  decoder step. All exported packages validated against PyTorch fixture
+  tensors on `home-mac` and compiled with `xcrun coremlcompiler`.
 - No public upload/branch/PR action has been taken.
 
 ## Layout

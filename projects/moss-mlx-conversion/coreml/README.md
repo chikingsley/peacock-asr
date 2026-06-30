@@ -17,14 +17,15 @@ The generated JSON is the source of truth for the first CoreML export pass:
 - MOSS-specific deltas from Qwen3-ASR and Cohere
 - parity gates before benchmark work
 
-Actual `.mlpackage` export scripts should land here once the PyTorch wrapper
-signatures are ready and the run is moved to macOS/CoreML.
+The current export scripts are fixture-first probes. They intentionally validate
+one known LibriSpeech fixture before generalizing shapes or building a runtime
+loop.
 
-## First Component Probe
+## Component Probes
 
-The first real CoreML probe is the token embedding component. It proves
-CoreMLTools, `.mlpackage` writing, and CoreML prediction on a MOSS tensor before
-touching the decoder.
+The first probe is the token embedding component. It proves CoreMLTools,
+`.mlpackage` writing, and CoreML prediction on a MOSS tensor before touching the
+decoder.
 
 Extract a smaller embedding-only safetensors file from the local BF16 MLX
 artifact:
@@ -45,3 +46,44 @@ uv run --project projects/moss-mlx-conversion/coreml \
   --validate-predict \
   --overwrite
 ```
+
+The later probes use the saved PyTorch BF16 fixture tensors:
+
+```bash
+uv run --project projects/moss-mlx-conversion/coreml --locked \
+  projects/moss-mlx-conversion/coreml/export_audio_encoder_adapter.py \
+  --trace-dtype fp32 \
+  --compute-precision float16 \
+  --wrapper static-fixture \
+  --validate-predict \
+  --overwrite
+```
+
+```bash
+uv run --project projects/moss-mlx-conversion/coreml --locked \
+  projects/moss-mlx-conversion/coreml/export_decoder_prefill.py \
+  --num-layers 28 \
+  --trace-dtype fp32 \
+  --compute-precision float16 \
+  --validate-predict \
+  --overwrite
+```
+
+```bash
+uv run --project projects/moss-mlx-conversion/coreml --locked \
+  projects/moss-mlx-conversion/coreml/export_decoder_step.py \
+  --num-layers 28 \
+  --trace-dtype fp32 \
+  --compute-precision float16 \
+  --validate-predict \
+  --overwrite
+```
+
+Compile on macOS with:
+
+```bash
+xcrun coremlcompiler compile <package.mlpackage> <output-dir>
+```
+
+The decoder step currently proves a fixed fixture cache transition
+`past_len=203 -> 204`; it is not yet the production padded-cache loop.
