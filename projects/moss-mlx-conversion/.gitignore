@@ -1,5 +1,7 @@
 /artifacts/
 /.venv/
+/coreml/.venv/
+/coreml/build/
 /.cache/
 /.ruff_cache/
 /.pytest_cache/

@@ -38,8 +38,14 @@ moss-convert = "moss_mlx_conversion.conversion.convert:main"
 moss-inspect-weights = "moss_mlx_conversion.conversion.weights:main"
 moss-reference = "moss_mlx_conversion.reference.reference:main"
 moss-processor-parity = "moss_mlx_conversion.reference.processor_parity:main"
+moss-pytorch-streaming-eval = "moss_mlx_conversion.reference.streaming_eval:main"
 moss-mlx-smoke = "moss_mlx_conversion.runtime.transcribe:main"
 moss-streaming-eval = "moss_mlx_conversion.runtime.streaming_eval:main"
+moss-compare-evals = "moss_mlx_conversion.runtime.compare_evals:main"
+moss-transcribe = "moss_mlx_conversion.backend.moss_transcribe:main"
+moss-quantize = "moss_mlx_conversion.conversion.quantize:main"
+moss-package-manifest = "moss_mlx_conversion.conversion.package:main"
+moss-coreml-plan = "moss_mlx_conversion.coreml.plan:main"
 
 [project.optional-dependencies]
 mac = [
@@ -62,6 +68,9 @@ dev = [
 minversion = "9.0"
 testpaths = ["tests"]
 strict = true
+markers = [
+  "real_weights: requires Apple Silicon MLX plus converted MOSS weights",
+]
 
 [tool.ruff]
 line-length = 100

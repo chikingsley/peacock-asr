@@ -17,6 +17,7 @@ from moss_mlx_conversion.model.moss import MossMLXModel
 from moss_mlx_conversion.paths import MLX_DIR
 from moss_mlx_conversion.processor import MossProcessor
 from moss_mlx_conversion.runtime.audio import load_waveform
+from moss_mlx_conversion.runtime.quantization import apply_configured_quantization
 
 
 @dataclass(frozen=True)
@@ -27,6 +28,8 @@ class TranscriptionResult:
     audio_placeholder_count: int
     elapsed_sec: float
     generation_elapsed_sec: float
+    timings: dict[str, float]
+    generation_mode: str
 
     @property
     def generated_token_count(self) -> int:
@@ -44,6 +47,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-new-tokens", type=int, default=128)
     parser.add_argument("--prefill-step-size", type=int, default=512)
     parser.add_argument(
+        "--generation-mode",
+        choices=["fast-greedy", "mlx-lm"],
+        default="mlx-lm",
+        help="Use a greedy path that skips logprobs, or mlx-lm's generic generate_step.",
+    )
+    parser.add_argument(
         "--report",
         type=Path,
         default=Path("artifacts/mlx-smoke/smoke-report.json"),
@@ -54,9 +63,12 @@ def parse_args() -> argparse.Namespace:
 
 def load_converted_model(model_dir: Path) -> tuple[MossMLXModel, MossModelConfig]:
     require_mlx()
-    config = MossModelConfig.from_json(model_dir / "config.json")
+    config_path = model_dir / "config.json"
+    config_data = json.loads(config_path.read_text(encoding="utf-8"))
+    config = MossModelConfig.from_moss_dict(config_data)
     model = MossMLXModel(config)
     weights = mx.load(str(model_dir / "weights.safetensors"))
+    apply_configured_quantization(model=model, config=config_data, weights=weights)
     model.load_weights(list(weights.items()), strict=True)
     model.eval()
     mx.eval(model.parameters())
@@ -81,20 +93,37 @@ def _to_mx_inputs(batch: dict[str, Any]) -> dict[str, Any]:
 def build_prompt_embeddings(
     model: MossMLXModel,
     batch: dict[str, Any],
-) -> tuple[Any, Any]:
+) -> tuple[Any, Any, dict[str, float]]:
+    started = time.perf_counter()
     mlx_inputs = _to_mx_inputs(batch)
+    input_conversion_elapsed_sec = time.perf_counter() - started
+
+    audio_started = time.perf_counter()
     audio_embeds = model.get_audio_features(
         mlx_inputs["audio_data"],
         mlx_inputs["audio_data_seqlens"],
     )
     mx.eval(audio_embeds)
+    audio_features_elapsed_sec = time.perf_counter() - audio_started
+
+    merge_started = time.perf_counter()
     inputs_embeds = model.build_inputs_embeds(
         mlx_inputs["input_ids"],
         audio_embeds,
         mlx_inputs["audio_input_mask"],
     )
     mx.eval(inputs_embeds)
-    return mlx_inputs["input_ids"][0], inputs_embeds[0]
+    embedding_merge_elapsed_sec = time.perf_counter() - merge_started
+
+    return (
+        mlx_inputs["input_ids"][0],
+        inputs_embeds[0],
+        {
+            "mlx_input_conversion_elapsed_sec": input_conversion_elapsed_sec,
+            "audio_features_elapsed_sec": audio_features_elapsed_sec,
+            "embedding_merge_elapsed_sec": embedding_merge_elapsed_sec,
+        },
+    )
 
 
 def load_reference(reference_report: Path | None) -> dict[str, Any] | None:
@@ -112,38 +141,167 @@ def transcribe_waveform(
     waveform: Any,
     max_new_tokens: int,
     prefill_step_size: int,
+    generation_mode: str = "mlx-lm",
 ) -> TranscriptionResult:
     started = time.perf_counter()
+    processor_started = time.perf_counter()
     batch = cast("dict[str, Any]", dict(processor(audio=waveform, return_tensors="pt")))
-    prompt, input_embeddings = build_prompt_embeddings(model, batch)
+    processor_elapsed_sec = time.perf_counter() - processor_started
+    prompt, input_embeddings, timings = build_prompt_embeddings(model, batch)
 
-    generate_module: Any = import_module("mlx_lm.generate")
-    generate_step = generate_module.generate_step
-
-    generated_ids: list[int] = []
     eos_token_ids = {config.end_token_id, tokenizer.eos_token_id}
     generation_started = time.perf_counter()
+    if generation_mode == "fast-greedy":
+        generated_ids = generate_greedy_ids(
+            prompt=prompt,
+            input_embeddings=input_embeddings,
+            model=model,
+            max_tokens=max_new_tokens,
+            prefill_step_size=prefill_step_size,
+            eos_token_ids=eos_token_ids,
+        )
+    else:
+        generated_ids = generate_mlx_lm_ids(
+            prompt=prompt,
+            input_embeddings=input_embeddings,
+            model=model,
+            max_tokens=max_new_tokens,
+            prefill_step_size=prefill_step_size,
+            eos_token_ids=eos_token_ids,
+        )
+
+    transcript = tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
+    generation_elapsed_sec = time.perf_counter() - generation_started
+    elapsed_sec = time.perf_counter() - started
+    timings = {
+        "processor_elapsed_sec": processor_elapsed_sec,
+        **timings,
+        "generation_elapsed_sec": generation_elapsed_sec,
+        "transcribe_elapsed_sec": elapsed_sec,
+    }
+    return TranscriptionResult(
+        transcript=transcript,
+        generated_ids=generated_ids,
+        prompt_length=int(batch["input_ids"].shape[1]),
+        audio_placeholder_count=int(batch["audio_input_mask"].sum().item()),
+        elapsed_sec=elapsed_sec,
+        generation_elapsed_sec=generation_elapsed_sec,
+        timings=timings,
+        generation_mode=generation_mode,
+    )
+
+
+def generate_mlx_lm_ids(
+    *,
+    prompt: Any,
+    input_embeddings: Any,
+    model: MossMLXModel,
+    max_tokens: int,
+    prefill_step_size: int,
+    eos_token_ids: set[int | None],
+) -> list[int]:
+    generate_module: Any = import_module("mlx_lm.generate")
+    generate_step = generate_module.generate_step
+    generated_ids: list[int] = []
     for token, _logprobs in generate_step(
         prompt=prompt,
         input_embeddings=input_embeddings,
         model=model,
-        max_tokens=max_new_tokens,
+        max_tokens=max_tokens,
         prefill_step_size=prefill_step_size,
     ):
         token_id = int(token)
         if token_id in eos_token_ids:
             break
         generated_ids.append(token_id)
+    return generated_ids
 
-    transcript = tokenizer.decode(generated_ids, skip_special_tokens=True).strip()
-    return TranscriptionResult(
-        transcript=transcript,
-        generated_ids=generated_ids,
-        prompt_length=int(batch["input_ids"].shape[1]),
-        audio_placeholder_count=int(batch["audio_input_mask"].sum().item()),
-        elapsed_sec=time.perf_counter() - started,
-        generation_elapsed_sec=time.perf_counter() - generation_started,
+
+def generate_greedy_ids(
+    *,
+    prompt: Any,
+    input_embeddings: Any,
+    model: MossMLXModel,
+    max_tokens: int,
+    prefill_step_size: int,
+    eos_token_ids: set[int | None],
+) -> list[int]:
+    generate_module: Any = import_module("mlx_lm.generate")
+    cache_module: Any = import_module("mlx_lm.models.cache")
+    generation_stream = generate_module.generation_stream
+    prompt_cache = cache_module.make_prompt_cache(model)
+
+    def model_call(input_tokens: Any, embeddings: Any | None) -> Any:
+        if embeddings is not None:
+            return model(input_tokens, cache=prompt_cache, input_embeddings=embeddings)
+        return model(input_tokens, cache=prompt_cache)
+
+    def step(input_tokens: Any, embeddings: Any | None = None) -> Any:
+        with mx.stream(generation_stream):
+            logits = model_call(
+                input_tokens=input_tokens[None],
+                embeddings=embeddings[None] if embeddings is not None else None,
+            )
+            return mx.argmax(logits[:, -1, :], axis=-1)
+
+    prompt, input_embeddings = prefill_prompt_cache(
+        prompt=prompt,
+        input_embeddings=input_embeddings,
+        prompt_cache=prompt_cache,
+        generation_stream=generation_stream,
+        prefill_step_size=prefill_step_size,
+        model_call=model_call,
     )
+    with mx.stream(generation_stream):
+        y = step(prompt, input_embeddings)
+
+    mx.async_eval(y)
+    generated_ids: list[int] = []
+    n = 0
+    while True:
+        if n != max_tokens:
+            next_y = step(y)
+            mx.async_eval(next_y)
+        if n == 0:
+            mx.eval(y)
+        if n == max_tokens:
+            break
+        token_id = int(y.item())
+        if token_id in eos_token_ids:
+            break
+        generated_ids.append(token_id)
+        if n % 256 == 0:
+            mx.clear_cache()
+        y = next_y
+        n += 1
+    return generated_ids
+
+
+def prefill_prompt_cache(
+    *,
+    prompt: Any,
+    input_embeddings: Any,
+    prompt_cache: list[Any],
+    generation_stream: Any,
+    prefill_step_size: int,
+    model_call: Any,
+) -> tuple[Any, Any]:
+    with mx.stream(generation_stream):
+        total_prompt_tokens = len(input_embeddings)
+        processed = 0
+        while total_prompt_tokens - processed > 1:
+            remaining = (total_prompt_tokens - processed) - 1
+            n_to_process = min(prefill_step_size, remaining)
+            model_call(
+                prompt[:n_to_process][None],
+                input_embeddings[:n_to_process][None],
+            )
+            mx.eval([cache.state for cache in prompt_cache])
+            processed += n_to_process
+            prompt = prompt[n_to_process:]
+            input_embeddings = input_embeddings[n_to_process:]
+            mx.clear_cache()
+    return prompt, input_embeddings
 
 
 def main() -> None:
@@ -174,6 +332,7 @@ def main() -> None:
         waveform=waveform,
         max_new_tokens=args.max_new_tokens,
         prefill_step_size=args.prefill_step_size,
+        generation_mode=args.generation_mode,
     )
     reference = load_reference(args.reference_report)
     reference_generation = None if reference is None else reference.get("generation", {})
@@ -184,6 +343,7 @@ def main() -> None:
         "audio_placeholder_count": result.audio_placeholder_count,
         "max_new_tokens": args.max_new_tokens,
         "generated_token_count": result.generated_token_count,
+        "generation_mode": result.generation_mode,
         "first_5_new_ids": result.generated_ids[:5],
         "transcript": result.transcript,
         "elapsed_sec": time.perf_counter() - started,

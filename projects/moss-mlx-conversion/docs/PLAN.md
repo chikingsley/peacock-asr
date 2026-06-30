@@ -228,8 +228,17 @@ projects/moss-mlx-conversion/
     runtime/
       __init__.py
       audio.py
+      eval.py
+      quantization.py
       streaming_eval.py
       transcribe.py
+    backend/
+      __init__.py
+      moss_transcribe.py
+      serving.py
+    coreml/
+      __init__.py
+      plan.py
     model/
       __init__.py
       moss.py
@@ -246,8 +255,10 @@ the original flat-file sketch:
 
 ```text
 reference/   upstream PyTorch/HF snapshot, processor parity, tensor dumps
-conversion/  safetensor inspection and BF16 MLX weight conversion
-runtime/     MLX smoke transcription and streamed HF evaluation
+conversion/  safetensor inspection, BF16 conversion, quantize/package CLIs
+runtime/     MLX smoke transcription, quantized loading, streamed HF evaluation
+backend/     local STTOutput/backend shape for later mlx-audio integration
+coreml/      private Mobius/CoreML planning and export-contract tooling
 model/       MLX model modules: audio encoder, adapter, MOSS wrapper
 docs/        plan and live progress/results
 ```
@@ -545,12 +556,26 @@ Recommended `mobius` path:
 models/stt/moss-transcribe-preview-2b/coreml/
 ```
 
+Current private local workbench:
+
+```text
+projects/moss-mlx-conversion/coreml/
+projects/moss-mlx-conversion/src/moss_mlx_conversion/coreml/
+```
+
+Current command:
+
+```bash
+uv run --project projects/moss-mlx-conversion --locked moss-coreml-plan \
+  --output projects/moss-mlx-conversion/artifacts/coreml/moss-coreml-plan.json
+```
+
 CoreML component split:
 
 - `moss_audio_encoder_adapter.mlpackage`
-- `moss_embedding.mlpackage` if FluidAudio wants explicit token embedding
+- `moss_token_embedding.mlpackage`
 - `moss_decoder_prefill.mlpackage`
-- `moss_decoder_cache_external.mlpackage`
+- `moss_decoder_step_cache_external.mlpackage`
 - optional static-shape v2 decoder if ANE dispatch needs it
 
 Things to copy from Fluid's existing work:
@@ -569,6 +594,26 @@ CoreML-specific risk list:
 - ANE dispatch has to be verified; `.all` can silently fall back.
 - MOSS audio encoder is larger/different than Qwen3-ASR 0.6B, so do not assume
   the same performance envelope.
+
+Default private CoreML shape contract:
+
+- 30 second audio cap for the first pass.
+- 3000 max mel frames at 16 kHz / 160-hop.
+- 390 MOSS audio placeholder tokens from the local processor length formula.
+- 10 fixed chat-template tokens around the audio span.
+- 512-token fixed prefill, leaving 112 tokens of margin at 30 seconds.
+- 256-token decode budget.
+- 768-token padded KV cache length.
+- Per-layer FP16 KV cache shape `[1, 8, 768, 128]`, about 84 MiB total across
+  28 layers.
+
+First CoreML validation gates:
+
+- Audio encoder plus adapter tensor parity.
+- Token embedding plus host-side audio-mask scatter parity.
+- Decoder prefill hidden state and cache parity.
+- One-token decode logits and first 5 generated token IDs.
+- Existing 20-row streamed LibriSpeech clean smoke eval before quantization.
 
 ## First Real Work Chunk
 

@@ -30,6 +30,27 @@ Last updated: 2026-06-30
   `artifacts/mlx-smoke/libri1-smoke-report.json`
 - Apple Silicon streamed LibriSpeech eval:
   `artifacts/evals/librispeech-test-clean-streaming-20/summary.json`
+- Paired 100-row MLX/PyTorch eval:
+  `artifacts/evals/librispeech-test-clean-mlx-100/summary.json`
+  `artifacts/evals/librispeech-test-clean-pytorch-100/summary.json`
+  `artifacts/evals/librispeech-test-clean-mlx-vs-pytorch-100/summary.json`
+- Quantized MLX artifacts:
+  `artifacts/mlx/MOSS-Transcribe-preview-2B-text-decoder-8bit-g64/`
+  `artifacts/mlx/MOSS-Transcribe-preview-2B-text-decoder-4bit-g64/`
+  `artifacts/mlx/MOSS-Transcribe-preview-2B-all-8bit-g64/`
+  `artifacts/mlx/MOSS-Transcribe-preview-2B-all-4bit-g64/`
+  Complete local `weights.safetensors` files are retained for BF16, the best
+  `text-decoder-4bit-g64` candidate, and the smallest `all-4bit-g64`
+  candidate. The 8-bit candidate directories retain configs, reports,
+  manifests, and eval summaries, but their multi-GB weight files were not kept
+  after cleanup because they were weaker/noisier candidates and are
+  reproducible from BF16 on Apple Silicon if needed.
+- Private package manifests:
+  `artifacts/packages/MOSS-Transcribe-preview-2B-bf16-manifest.json`
+  `artifacts/packages/MOSS-Transcribe-preview-2B-text-decoder-8bit-g64-manifest.json`
+  `artifacts/packages/MOSS-Transcribe-preview-2B-text-decoder-4bit-g64-manifest.json`
+  `artifacts/packages/MOSS-Transcribe-preview-2B-all-8bit-g64-manifest.json`
+  `artifacts/packages/MOSS-Transcribe-preview-2B-all-4bit-g64-manifest.json`
 
 ## Document Policy
 
@@ -99,6 +120,12 @@ Local gates now passing:
 - `uv run --locked pytest -q`
 - `uv run --locked moss-convert --help`
 - `uv run --locked moss-mlx-smoke --help`
+- `uv run --locked moss-pytorch-streaming-eval --help`
+- `uv run --locked moss-compare-evals --help`
+- `uv run --locked moss-transcribe --help`
+- `uv run --locked moss-quantize --help`
+- `uv run --locked moss-package-manifest --help`
+- `uv run --locked moss-coreml-plan --help`
 - Forbidden-command scan returns no matches.
 
 Linux negative MLX smoke result:
@@ -111,7 +138,8 @@ Apple Silicon MLX smoke result:
 
 - Host: `home-mac`
 - Platform: macOS `26.5.1`, `Darwin arm64`
-- Mac project path: `/Users/simonpeacocks/GitHub/moss-mlx-conversion`
+- Mac project path used during validation:
+  `/Users/simonpeacocks/GitHub/moss-mlx-conversion`
 - Remote `uv`: `uv 0.11.24`
 - `moss-mlx-smoke` loaded the BF16 converted artifact and generated the
   LibriSpeech fixture end to end.
@@ -135,12 +163,43 @@ Mac gates passing under `--extra mac`:
 - `uv run --extra mac --locked ruff check src tests`
 - `uv run --extra mac --locked ty check src tests`
 - `uv run --extra mac --locked -m pytest -q`
+- `MOSS_MLX_RUN_REAL_WEIGHTS=1 uv run --extra mac --locked -m pytest -q tests/test_real_weights.py -m real_weights`
+  - Result: 2 passed, 1 skipped. Covers real converted-weight load and
+    LibriSpeech fixture transcription.
+- `MOSS_MLX_RUN_REAL_WEIGHTS=1 MOSS_MLX_RUN_STREAMING=1 uv run --extra mac --locked -m pytest -q tests/test_real_weights.py::test_real_streamed_one_row_eval`
+  - Result: 1 passed. Covers real streamed HF row/audio fetch plus MLX
+    transcription.
+
+## Backend Shape
+
+The local runtime now has an `mlx-audio`-style shape without depending on
+`mlx-audio` internals:
+
+- `MossTranscribeBackend.from_pretrained(model_dir)`
+- `MossTranscribeBackend.generate(audio, language="English")`
+- `STTOutput(text, segments, language, total_time, prompt_tokens,
+  generation_tokens, timings, raw)`
+- `MossSerialAdapter` for a serial serving/broker path.
+
+CLI smoke:
+
+```bash
+uv run --extra mac --locked moss-transcribe \
+  --model-dir artifacts/mlx/MOSS-Transcribe-preview-2B-bf16 \
+  --audio artifacts/cache/fixtures/librosa-libri1-16k.wav
+```
+
+This is intentionally still a local package shape, not an upstream
+`mlx-audio` branch or PR.
 
 ## Streaming LibriSpeech Eval
 
 `moss-streaming-eval` uses the Hugging Face Dataset Viewer rows API for
 metadata and signed audio asset URLs, then decodes streamed audio bytes in
 memory with `soundfile`. It does not materialize per-utterance audio files.
+`moss-pytorch-streaming-eval` uses the same row/audio/normalization path against
+the upstream PyTorch model, so MLX and PyTorch can be compared on identical row
+IDs.
 
 Default target:
 
@@ -150,8 +209,10 @@ Default target:
 - Offset: 0
 - Limit: 20
 - Metrics: `jiwer` WER/CER after lowercase and punctuation normalization
+- Speed reporting: RTFx is primary (`audio_duration / elapsed`, bigger is
+  better); RTF is also recorded for compatibility.
 
-Command used on the Mac:
+Original 20-row command used on the Mac:
 
 ```bash
 uv run --extra mac --locked moss-streaming-eval \
@@ -170,7 +231,7 @@ Result:
 - Per-sample processing elapsed: 106.97 seconds
 - Wall elapsed: 110.76 seconds
 - RTF: 0.6503141830406948
-- Speed multiple: 1.5377182692283724
+- RTFx: 1.5377182692283724
 
 Artifacts:
 
@@ -178,6 +239,354 @@ Artifacts:
   `artifacts/evals/librispeech-test-clean-streaming-20/summary.json`
 - Per-row predictions:
   `artifacts/evals/librispeech-test-clean-streaming-20/predictions.jsonl`
+
+## Paired 100-Row Baseline
+
+Commands used:
+
+```bash
+uv run --extra mac --locked moss-streaming-eval \
+  --limit 100 \
+  --page-size 20 \
+  --output-dir artifacts/evals/librispeech-test-clean-mlx-100
+```
+
+```bash
+uv run --locked moss-pytorch-streaming-eval \
+  --revision c98175cb20e48bd9be4e95f6c85f2af18899f780 \
+  --local-files-only \
+  --limit 100 \
+  --page-size 20 \
+  --output-dir artifacts/evals/librispeech-test-clean-pytorch-100
+```
+
+```bash
+uv run --locked moss-compare-evals \
+  --left artifacts/evals/librispeech-test-clean-mlx-100/predictions.jsonl \
+  --right artifacts/evals/librispeech-test-clean-pytorch-100/predictions.jsonl \
+  --left-name mlx-bf16 \
+  --right-name pytorch-bf16 \
+  --output-dir artifacts/evals/librispeech-test-clean-mlx-vs-pytorch-100
+```
+
+| Backend | Rows | WER | CER | Audio sec | Sample sec | Wall sec | RTFx | RTF |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| MLX BF16, Apple Silicon | 100 | 0.017970401691331923 | 0.005121510343442459 | 670.565 | 416.083 | 423.465 | 1.6116 | 0.6205 |
+| PyTorch BF16, RTX 5070 | 100 | 0.0200845665961945 | 0.00612572805784294 | 670.565 | 35.233 | 51.615 | 19.0323 | 0.0525 |
+
+MLX/PyTorch comparison:
+
+- Compared rows: 100
+- Exact hypothesis matches: 85
+- Normalized hypothesis matches: 97
+- First 5 generated IDs match: 92
+- Equal per-row WER: 97
+- MLX lower per-row WER: 3
+- PyTorch lower per-row WER: 0
+
+Conclusion: the BF16 MLX path does not show a quality regression on this
+100-row subset. The few normalized text differences favor MLX by WER, mostly in
+spelling/wording edge cases such as `sixteenth` vs `sixteen, one`.
+
+Profiling from the 100-row MLX run:
+
+- Total transcription time: 388.04 seconds inside `transcribe_waveform`
+- Generation time: 332.10 seconds
+- Audio feature/encoder/adapter time: 52.56 seconds
+- Processor time: 1.79 seconds
+- Embedding merge time: 1.54 seconds
+
+Speed conclusion: generation is the main Apple Silicon bottleneck. The audio
+tower is the secondary bottleneck. Processor and embedding merge are not worth
+optimizing first.
+
+## Speed Probe
+
+An experimental `--generation-mode fast-greedy` path was added to skip the
+generic MLX-LM per-token log-probability calculation. It preserved 20-row
+quality but did not beat the default MLX-LM generation path on the same rows:
+
+| Generation mode | Rows | WER | CER | RTFx | Generation sec |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `fast-greedy` | 20 | 0.01580135440180587 | 0.004177109440267335 | 1.8325 | 74.86 |
+| `mlx-lm` | 20 | 0.01580135440180587 | 0.004177109440267335 | 1.8611 | 74.38 |
+
+Default remains `mlx-lm`. The next speed levers are batching/serving shape,
+prompt/cache reuse where applicable, MLX-Audio backend integration, and later
+text-decoder quantization. Quantization should remain behind BF16 validation.
+
+## Quantization Results
+
+Quantization follows the MLX-LM/MLX-Audio prior-art contract:
+
+- Apply `nn.quantize` / `mlx_lm.utils.quantize_model` after loading BF16
+  weights.
+- Persist `quantization` and `quantization_config` in `config.json`.
+- Rebuild quantized module structure before `load_weights` by checking
+  `*.scales` tensors in the saved artifact.
+- Use scoped predicates so the text decoder, audio tower, adapter, or all
+  quantizable modules can be tested independently.
+
+Commands used on the Mac:
+
+```bash
+uv run --extra mac --locked moss-quantize \
+  --bits 4 \
+  --group-size 64 \
+  --scope text-decoder \
+  --output-dir artifacts/mlx/MOSS-Transcribe-preview-2B-text-decoder-4bit-g64 \
+  --overwrite
+```
+
+All four quantized artifacts loaded and produced fixture transcripts through
+`moss-mlx-smoke`. The text-decoder 4-bit and all-module 4-bit smokes preserved
+the first 5 generated IDs; exact transcript match differs only by punctuation
+or small wording on the fixture.
+
+| Artifact | Scope | Bits | Weight bytes | Package bytes |
+| --- | --- | ---: | ---: | ---: |
+| BF16 | none | 16 | 4,837,667,584 | 4,854,176,440 |
+| text-decoder-8bit-g64 | text decoder | 8 | 3,516,602,520 | 3,533,059,256 |
+| text-decoder-4bit-g64 | text decoder | 4 | 2,811,958,960 | 2,828,415,698 |
+| all-8bit-g64 | all quantizable modules | 8 | 2,574,711,976 | 2,591,214,120 |
+| all-4bit-g64 | all quantizable modules | 4 | 1,367,701,071 | 1,384,203,216 |
+
+20-row clean-test benchmark, first LibriSpeech rows:
+
+| Backend | Rows | WER | CER | RTFx | Sample sec | Generation sec | Audio feature sec |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| BF16 `mlx-lm` | 20 | 0.01580135440180587 | 0.004177109440267335 | 1.8611 | 88.38 | 74.38 | 10.83 |
+| text-decoder-8bit-g64 | 20 | 0.01580135440180587 | 0.004177109440267335 | 1.2069 | 136.29 | 111.54 | 21.90 |
+| text-decoder-4bit-g64 | 20 | 0.013544018058690745 | 0.0029239766081871343 | 2.4793 | 66.34 | 50.78 | 12.53 |
+| all-8bit-g64 | 20 | 0.01580135440180587 | 0.004177109440267335 | 2.3850 | 68.97 | 58.09 | 7.64 |
+| all-4bit-g64 | 20 | 0.01580135440180587 | 0.004177109440267335 | 1.8047 | 91.14 | 74.27 | 13.89 |
+
+The text-decoder 8-bit run is noisy: the first run before the backend label
+fix measured 1.9949 RTFx, while the labeled rerun measured 1.2069 RTFx after a
+long sequence of Mac jobs. Do not treat that variant's speed as final without
+a fresh repeated benchmark.
+
+BF16-vs-quant comparison on the same 20 rows:
+
+| Variant | Exact matches | Normalized matches | First 5 ID matches | Equal WER | BF16 lower WER | Quant lower WER |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| text-decoder-4bit-g64 | 13/20 | 19/20 | 18/20 | 19/20 | 0 | 1 |
+| all-8bit-g64 | 19/20 | 20/20 | 20/20 | 20/20 | 0 | 0 |
+| all-4bit-g64 | 11/20 | 20/20 | 18/20 | 20/20 | 0 | 0 |
+
+Current quantization read:
+
+- Best speed/quality candidate: `text-decoder-4bit-g64`.
+- Best broad quantization candidate: `all-8bit-g64`; it reduces audio feature
+  time and package size while matching BF16 WER on this slice.
+- Not recommended yet: `all-4bit-g64`; it is smallest, but not faster than the
+  better candidates and changes exact punctuation/wording more often.
+- Next validation gate for any quantized artifact is a 100-row or full
+  clean-test pass, preferably repeated after a cool Mac runtime window because
+  the 20-row speed numbers show thermal/runtime variance.
+
+## Private Package Manifests
+
+`moss-package-manifest` writes local metadata only. It hashes files, embeds the
+config, includes conversion/quantization reports when present, links eval
+summaries, and records `"public_actions": "none"`.
+
+Generated manifests:
+
+- `artifacts/packages/MOSS-Transcribe-preview-2B-bf16-manifest.json`
+- `artifacts/packages/MOSS-Transcribe-preview-2B-text-decoder-8bit-g64-manifest.json`
+- `artifacts/packages/MOSS-Transcribe-preview-2B-text-decoder-4bit-g64-manifest.json`
+- `artifacts/packages/MOSS-Transcribe-preview-2B-all-8bit-g64-manifest.json`
+- `artifacts/packages/MOSS-Transcribe-preview-2B-all-4bit-g64-manifest.json`
+
+No public branch, PR, push, or Hugging Face upload has been done.
+
+## Mac Cleanup
+
+The Mac working copy at `/Users/simonpeacocks/GitHub/moss-mlx-conversion` was
+removed after stopping the benchmarks and copying the useful artifacts back to
+this Linux project. The separate FluidAudio checkout at
+`/Users/simonpeacocks/GitHub/FluidAudio` was left untouched.
+
+Retained local weight files:
+
+| Artifact | Local weight bytes |
+| --- | ---: |
+| BF16 | 4,837,764,136 |
+| text-decoder-4bit-g64 | 2,811,958,960 |
+| all-4bit-g64 | 1,367,701,071 |
+
+The stopped benchmark logs, Parakeet full result, BF16 partial, and text4
+concurrent partial are present under `artifacts/logs/` and `artifacts/evals/`.
+
+## Stopped Full Benchmark Probe
+
+The full LibriSpeech `test-clean` benchmark matrix was started on the Mac and
+then intentionally stopped on 2026-06-30 after the architecture/speed read
+showed MOSS is better treated as a teacher/reference model than as a
+FluidAudio-speed serving backend.
+
+Completed baseline:
+
+| Backend | Rows | WER | CER | Overall RTFx | Total audio sec | Processing sec |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| FluidAudio Parakeet TDT v3 | 2620 | 0.026338755621196294 | 0.010256972670352282 | 39.612813665714469 | 19452.480625 | 491.065361 |
+
+Stopped MOSS partials:
+
+| Backend | Completed rows | WER | CER | RTFx | Wall sec | Notes |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| MLX BF16 | 200 / 2620 | 0.01569995638901003 | 0.00492282019190655 | 1.133674799085734 | 1384.935804 | Slowed by concurrent text4 probe after row ~150. |
+| text-decoder-4bit-g64 | 25 / 2620 | 0.01904761904761905 | 0.0056120659417748155 | 0.8532106051131099 | 230.813908 | Concurrent probe only; not a clean standalone speed number. |
+
+Artifacts:
+
+- `artifacts/evals/fluid-parakeet-v3-librispeech-test-clean-full/results.json`
+- `artifacts/evals/librispeech-test-clean-mlx-bf16-full/partial-summary.json`
+- `artifacts/evals/librispeech-test-clean-mlx-text-decoder-4bit-g64-full-concurrent/partial-summary.json`
+
+Architectural read:
+
+- MOSS is a speech-conditioned decoder-only Qwen stack, not a CTC/TDT
+  acoustic-decoder model.
+- The local timing profile shows generation dominates: on the 100-row BF16
+  run, generation took 332.10 seconds versus 52.56 seconds for audio
+  features/encoder/adapter.
+- Quantization can reduce cost, but it does not change the basic
+  token-by-token LLM decoding path.
+- Practical role: use MOSS as an open-weights teacher/reference for quality,
+  distillation, or data generation. Do not expect FluidAudio/Parakeet-class
+  throughput without a much deeper architecture change or CoreML/ANE-specific
+  decoder effort.
+
+## FluidAudio/CoreML Notes
+
+Current MOSS artifact type:
+
+- The artifacts in `artifacts/mlx/` are MLX-layout safetensors packages.
+- They are not CoreML models and are not native FluidAudio backends.
+- The local `MossTranscribeBackend` mirrors an `mlx-audio`-style Python STT
+  contract, not a Swift/CoreML/ANE runtime.
+
+What FluidAudio does for supported models:
+
+- Parakeet TDT uses a purpose-built ASR architecture: audio encoder plus a
+  small TDT predictor/joint path that can skip audio frames by predicting token
+  durations.
+- Cohere Transcribe is encoder-decoder with a 48-layer Conformer encoder and
+  an 8-layer transformer decoder. FluidAudio's documented CoreML port uses an
+  INT8 encoder and a static-shape ANE-resident decoder/cache path so decode can
+  stay on the Neural Engine.
+- SenseVoice/Paraformer-style models are non-autoregressive or CTC-like enough
+  that much of the transcript path can run in parallel, then use host-side
+  decoding/detokenization.
+
+How MOSS differs:
+
+- MOSS injects audio embeddings into a Qwen3-1.7B-style decoder prompt and then
+  generates transcript text autoregressively.
+- A FluidAudio/CoreML port would likely need multiple `.mlpackage` pieces:
+  audio frontend/encoder/adapter, decoder prefill, cache-external decoder step,
+  and LM-head/tied embedding handling.
+- The likely hard part is not conversion alone; it is designing static shapes,
+  KV-cache IO, attention masks, and compute-unit placement so the Qwen decoder
+  actually dispatches efficiently.
+- A serious CoreML experiment should be scoped as a separate track, starting
+  with a single short fixture and parity checkpoints before attempting
+  benchmark work.
+
+## Private CoreML/Mobius Workbench
+
+This track is now scoped privately under the local MOSS conversion project:
+
+- Workbench notes:
+  `coreml/README.md`
+- Detailed design:
+  `docs/COREML_MOBIUS.md`
+- Package module:
+  `src/moss_mlx_conversion/coreml/`
+- CLI:
+  `moss-coreml-plan`
+
+The first concrete artifact is a Mobius-style conversion contract, not a
+converted CoreML model. It can be regenerated with:
+
+```bash
+uv run --project projects/moss-mlx-conversion --locked moss-coreml-plan \
+  --output projects/moss-mlx-conversion/artifacts/coreml/moss-coreml-plan.json
+```
+
+Generated artifact:
+
+- `artifacts/coreml/moss-coreml-plan.json`
+- `artifacts/coreml/moss-token-embedding-fp16.safetensors`
+- `artifacts/coreml/moss-token-embedding-fp16.json`
+- `artifacts/coreml/moss_token_embedding.mlpackage/`
+- `artifacts/coreml/moss_token_embedding.mlmodelc/`
+- `artifacts/coreml/moss_token_embedding.json`
+
+Current default contract:
+
+| Item | Value |
+| --- | ---: |
+| Max audio seconds | 30 |
+| Max mel frames | 3000 |
+| Max MOSS audio tokens | 390 |
+| Fixed prompt overhead tokens | 10 |
+| Fixed prefill sequence length | 512 |
+| Decode budget | 256 |
+| Padded KV cache length | 768 |
+| Per-layer KV cache shape | `[1, 8, 768, 128]` |
+| Total FP16 KV cache | 84.0 MiB |
+
+Planned pieces:
+
+- Host mel frontend.
+- `moss_audio_encoder_adapter.mlpackage`.
+- `moss_token_embedding.mlpackage`.
+- `moss_decoder_prefill.mlpackage`.
+- `moss_decoder_step_cache_external.mlpackage`.
+
+Mobius relation:
+
+- Use Qwen3-ASR CoreML work for component split, prefill/step separation,
+  RoPE precision checks, and cache padding warnings.
+- Use Cohere Transcribe CoreML work for the cache-external decoder direction.
+- Do not treat Mobius as a generic MOSS converter; MOSS still needs dedicated
+  wrappers for its audio encoder, audio-mask embedding injection, and Qwen3
+  decoder cache contract.
+
+First component probe completed on `home-mac`:
+
+```bash
+uv run --project coreml --locked coreml/export_token_embedding.py \
+  --weights artifacts/coreml/moss-token-embedding-fp16.safetensors \
+  --validate-predict \
+  --overwrite
+```
+
+Result:
+
+| Check | Value |
+| --- | --- |
+| Component | `moss_token_embedding.mlpackage` |
+| Input shape | `[1, 512]` |
+| Weight shape | `[151936, 2048]` |
+| Output shape | `[1, 512, 2048]` |
+| CoreML vs PyTorch max abs diff | `0.0` |
+| CoreML vs PyTorch mean abs diff | `0.0` |
+| Compile check | `xcrun coremlcompiler compile` passed |
+
+Notes:
+
+- CoreMLTools warned that Torch 2.12.1 is newer than its tested Torch version.
+  The embedding conversion, prediction, and compile check still passed.
+- The package and compiled model are retained locally under ignored
+  `artifacts/coreml/`.
+- A working Mac copy exists at
+  `/Users/simonpeacocks/GitHub/moss-mlx-conversion` with the CoreML uv
+  environment and generated component artifacts. Local `artifacts/coreml/`
+  remains the canonical copy for retained outputs.
 
 ## Reproduction Commands
 
@@ -222,17 +631,19 @@ uv run --project projects/moss-mlx-conversion --extra mac --locked moss-mlx-smok
 
 ## Next Chunk
 
-The next full-stride chunk is broader validation and upstream shaping:
+The minimum full conversion is proven: PyTorch reference, processor parity,
+BF16 MLX weights, strict MLX load, Apple Silicon transcript parity, gated
+real-weight tests, backend shape, quantized candidates, and private local
+manifests.
 
-1. Expand the streaming eval beyond the first 20 rows and add optional PyTorch
-   side-by-side reference scoring for the same row IDs.
-2. Move the local backend shape toward an `mlx-audio` package under
-   `mlx_audio/stt/models/moss_transcribe/`.
-3. Add gated real-weight tests that skip unless the converted artifact exists.
-4. Publish or stage a BF16 MLX repo only after the 20-file validation table is
-   acceptable.
-5. Start 8-bit text-decoder quantization only after BF16 quality is measured.
+Next work should focus on deciding whether to use MOSS as a teacher or pursue a
+separate CoreML experiment:
 
-The minimum full conversion is now proven: PyTorch reference, processor parity,
-BF16 MLX weights, strict MLX load, and one end-to-end Apple Silicon transcript
-matching the PyTorch reference.
+1. Treat the MLX conversion as complete enough for local reference use.
+2. If using MOSS as a teacher, build a batch teacher-transcription pipeline and
+   quality gates rather than spending more time on serving-speed benchmarks.
+3. If pursuing CoreML, start a new scoped track with parity-first conversion of
+   one short fixture: audio encoder/adapter, decoder prefill, cache-external
+   decode step, and fixed-shape attention/KV inputs.
+4. Keep all work private. Public branch, PR, push, and Hugging Face upload
+   remain out of scope until explicitly requested.

@@ -1,40 +1,43 @@
 from __future__ import annotations
 
 import argparse
-import io
 import json
-import re
 import time
-from collections.abc import Iterator
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import httpx
-import jiwer
-import librosa
-import numpy as np
-import soundfile as sf
 from tqdm import tqdm
 from transformers import AutoTokenizer
 
-from moss_mlx_conversion.dump import ensure_dir, write_json
+from moss_mlx_conversion.dump import ensure_dir
 from moss_mlx_conversion.mlx_compat import mx
 from moss_mlx_conversion.paths import ARTIFACTS_DIR, MLX_DIR
 from moss_mlx_conversion.processor import MossProcessor
+from moss_mlx_conversion.runtime.eval import (
+    StreamingExample,
+    decode_audio_bytes,
+    iter_hf_rows,
+    realtime_metrics,
+    sample_metrics,
+    stream_audio_bytes,
+    write_eval_summary,
+)
 from moss_mlx_conversion.runtime.transcribe import load_converted_model, transcribe_waveform
 
-ROWS_ENDPOINT = "https://datasets-server.huggingface.co/rows"
-NON_WORD_RE = re.compile(r"[^a-z0-9 ]+")
-SPACE_RE = re.compile(r"\s+")
 
-
-@dataclass(frozen=True)
-class StreamingExample:
-    row_idx: int
-    example_id: str
-    reference: str
-    audio_url: str
+def backend_name(model_dir: Path) -> str:
+    config_path = model_dir / "config.json"
+    if not config_path.exists():
+        return "mlx"
+    config_data = json.loads(config_path.read_text(encoding="utf-8"))
+    quantization = config_data.get("quantization")
+    if not isinstance(quantization, dict):
+        return "mlx-bf16"
+    bits = quantization.get("bits", "unknown")
+    group_size = quantization.get("group_size", "unknown")
+    scope = quantization.get("scope", "all")
+    return f"mlx-{scope}-{bits}bit-g{group_size}"
 
 
 def parse_args() -> argparse.Namespace:
@@ -57,7 +60,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--id-column", default="id")
     parser.add_argument("--max-new-tokens", type=int, default=256)
     parser.add_argument("--prefill-step-size", type=int, default=512)
+    parser.add_argument(
+        "--generation-mode",
+        choices=["fast-greedy", "mlx-lm"],
+        default="mlx-lm",
+    )
     parser.add_argument("--timeout-sec", type=float, default=120.0)
+    parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--quiet", action="store_true")
+    parser.add_argument(
+        "--summary-every",
+        type=int,
+        default=50,
+        help="Write partial-summary.json after this many newly processed rows. Use 0 to disable.",
+    )
     parser.add_argument(
         "--output-dir",
         type=Path,
@@ -66,103 +82,25 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def normalize_for_wer(text: str) -> str:
-    lowered = text.lower()
-    no_punctuation = NON_WORD_RE.sub(" ", lowered)
-    return SPACE_RE.sub(" ", no_punctuation).strip()
+def load_existing_reports(jsonl_path: Path) -> list[dict[str, Any]]:
+    if not jsonl_path.exists():
+        return []
+    reports: list[dict[str, Any]] = []
+    with jsonl_path.open("r", encoding="utf-8") as jsonl:
+        for line in jsonl:
+            stripped = line.strip()
+            if stripped:
+                reports.append(json.loads(stripped))
+    return reports
 
 
-def extract_audio_url(row: dict[str, Any], audio_column: str) -> str:
-    audio_value = row[audio_column]
-    if not isinstance(audio_value, list):
-        raise TypeError(f"Expected audio cell to be a list, got {type(audio_value).__name__}")
-    for entry in audio_value:
-        if isinstance(entry, dict) and entry.get("src"):
-            return str(entry["src"])
-    raise ValueError(f"No audio src found in {audio_column}")
-
-
-def iter_hf_rows(
-    client: httpx.Client,
-    *,
-    dataset: str,
-    config: str,
-    split: str,
-    offset: int,
-    limit: int,
-    page_size: int,
-    text_column: str,
-    audio_column: str,
-    id_column: str,
-) -> Iterator[StreamingExample]:
-    emitted = 0
-    current_offset = offset
-    while emitted < limit:
-        length = min(page_size, limit - emitted)
-        response = client.get(
-            ROWS_ENDPOINT,
-            params={
-                "dataset": dataset,
-                "config": config,
-                "split": split,
-                "offset": current_offset,
-                "length": length,
-            },
-        )
-        response.raise_for_status()
-        rows = response.json().get("rows", [])
-        if not rows:
-            break
-
-        for item in rows:
-            row = item["row"]
-            yield StreamingExample(
-                row_idx=int(item["row_idx"]),
-                example_id=str(row.get(id_column, item["row_idx"])),
-                reference=str(row[text_column]),
-                audio_url=extract_audio_url(row, audio_column),
-            )
-            emitted += 1
-            if emitted >= limit:
-                break
-        current_offset += len(rows)
-
-
-def stream_audio_bytes(client: httpx.Client, url: str) -> bytes:
-    chunks = bytearray()
-    with client.stream("GET", url) as response:
-        response.raise_for_status()
-        for chunk in response.iter_bytes():
-            chunks.extend(chunk)
-    return bytes(chunks)
-
-
-def decode_audio_bytes(content: bytes, *, sample_rate: int) -> tuple[np.ndarray, int]:
-    waveform, source_sample_rate = sf.read(
-        io.BytesIO(content),
-        dtype="float32",
-        always_2d=False,
+def normalized_pairs(
+    sample_reports: list[dict[str, Any]],
+) -> tuple[list[str], list[str]]:
+    return (
+        [str(report["reference_normalized"]) for report in sample_reports],
+        [str(report["hypothesis_normalized"]) for report in sample_reports],
     )
-    if waveform.ndim == 2:
-        waveform = waveform.mean(axis=1)
-    if int(source_sample_rate) != sample_rate:
-        waveform = librosa.resample(
-            np.asarray(waveform, dtype=np.float32),
-            orig_sr=int(source_sample_rate),
-            target_sr=sample_rate,
-        )
-    return np.asarray(waveform, dtype=np.float32), int(source_sample_rate)
-
-
-def sample_metrics(reference: str, hypothesis: str) -> dict[str, float | str]:
-    normalized_reference = normalize_for_wer(reference)
-    normalized_hypothesis = normalize_for_wer(hypothesis)
-    return {
-        "reference_normalized": normalized_reference,
-        "hypothesis_normalized": normalized_hypothesis,
-        "wer": float(jiwer.wer(normalized_reference, normalized_hypothesis)),
-        "cer": float(jiwer.cer(normalized_reference, normalized_hypothesis)),
-    }
 
 
 def main() -> None:
@@ -170,6 +108,7 @@ def main() -> None:
     output_dir = ensure_dir(args.output_dir)
     jsonl_path = output_dir / "predictions.jsonl"
     summary_path = output_dir / "summary.json"
+    partial_summary_path = output_dir / "partial-summary.json"
     started = time.perf_counter()
 
     model_dir = args.model_dir.resolve()
@@ -181,9 +120,10 @@ def main() -> None:
         enable_time_marker=False,
     )
 
-    normalized_references: list[str] = []
-    normalized_hypotheses: list[str] = []
-    sample_reports: list[dict[str, Any]] = []
+    sample_reports = load_existing_reports(jsonl_path) if args.resume else []
+    seen_row_indices = {int(report["row_idx"]) for report in sample_reports}
+    seen_ids = {str(report["id"]) for report in sample_reports}
+    rows_written_this_run = 0
 
     client = httpx.Client(timeout=httpx.Timeout(args.timeout_sec))
     try:
@@ -199,8 +139,11 @@ def main() -> None:
             audio_column=args.audio_column,
             id_column=args.id_column,
         )
-        with jsonl_path.open("w", encoding="utf-8") as jsonl:
+        jsonl_mode = "a" if args.resume else "w"
+        with jsonl_path.open(jsonl_mode, encoding="utf-8") as jsonl:
             for example in tqdm(examples, total=args.limit, desc="streaming eval"):
+                if example.row_idx in seen_row_indices or example.example_id in seen_ids:
+                    continue
                 report = evaluate_one(
                     client=client,
                     example=example,
@@ -210,30 +153,63 @@ def main() -> None:
                     tokenizer=tokenizer,
                     max_new_tokens=args.max_new_tokens,
                     prefill_step_size=args.prefill_step_size,
+                    generation_mode=args.generation_mode,
                 )
-                normalized_references.append(str(report["reference_normalized"]))
-                normalized_hypotheses.append(str(report["hypothesis_normalized"]))
                 sample_reports.append(report)
                 jsonl.write(json.dumps(report, sort_keys=True) + "\n")
                 jsonl.flush()
-                print(
-                    f"{example.row_idx} {example.example_id}: "
-                    f"wer={float(report['wer']):.3f} "
-                    f"rtf={float(report['rtf']):.2f} "
-                    f"hyp={report['hypothesis']}"
-                )
+                rows_written_this_run += 1
+                if not args.quiet:
+                    print_sample(report)
+                if args.summary_every and rows_written_this_run % args.summary_every == 0:
+                    write_current_summary(
+                        partial_summary_path,
+                        args=args,
+                        model_dir=model_dir,
+                        jsonl_path=jsonl_path,
+                        sample_reports=sample_reports,
+                        started=started,
+                    )
     finally:
         client.close()
 
-    write_summary(
+    summary = write_current_summary(
         summary_path,
         args=args,
         model_dir=model_dir,
         jsonl_path=jsonl_path,
         sample_reports=sample_reports,
+        started=started,
+    )
+    print(json.dumps(summary, indent=2, sort_keys=True))
+    print(f"streaming eval summary: {summary_path}")
+
+
+def write_current_summary(
+    summary_path: Path,
+    *,
+    args: argparse.Namespace,
+    model_dir: Path,
+    jsonl_path: Path,
+    sample_reports: list[dict[str, Any]],
+    started: float,
+) -> dict[str, Any]:
+    normalized_references, normalized_hypotheses = normalized_pairs(sample_reports)
+    return write_eval_summary(
+        summary_path,
+        backend=backend_name(model_dir),
+        dataset=args.dataset,
+        config=args.config,
+        split=args.split,
+        offset=args.offset,
+        limit=args.limit,
+        model_ref=str(model_dir),
+        jsonl_path=jsonl_path,
+        sample_reports=sample_reports,
         normalized_references=normalized_references,
         normalized_hypotheses=normalized_hypotheses,
         wall_elapsed_sec=time.perf_counter() - started,
+        extra={"resumable": True},
     )
 
 
@@ -247,6 +223,7 @@ def evaluate_one(
     tokenizer: Any,
     max_new_tokens: int,
     prefill_step_size: int,
+    generation_mode: str,
 ) -> dict[str, Any]:
     sample_started = time.perf_counter()
     audio_bytes = stream_audio_bytes(client, example.audio_url)
@@ -260,6 +237,7 @@ def evaluate_one(
         waveform=waveform,
         max_new_tokens=max_new_tokens,
         prefill_step_size=prefill_step_size,
+        generation_mode=generation_mode,
     )
     mx.clear_cache()
 
@@ -276,14 +254,14 @@ def evaluate_one(
         "cer": metrics["cer"],
         "audio_duration_sec": audio_duration_sec,
         "elapsed_sec": elapsed_sec,
-        "rtf": elapsed_sec / audio_duration_sec if audio_duration_sec else None,
-        "speed_x": audio_duration_sec / elapsed_sec if elapsed_sec else None,
+        **realtime_metrics(audio_duration_sec, elapsed_sec),
         "source_sample_rate": source_sample_rate,
         "audio_bytes": len(audio_bytes),
         "prompt_length": result.prompt_length,
         "audio_placeholder_count": result.audio_placeholder_count,
         "generated_token_count": result.generated_token_count,
-        "generation_elapsed_sec": result.generation_elapsed_sec,
+        "generation_mode": result.generation_mode,
+        **result.timings,
         "generated_tokens_per_sec": result.generated_token_count / result.generation_elapsed_sec
         if result.generation_elapsed_sec
         else None,
@@ -291,46 +269,13 @@ def evaluate_one(
     }
 
 
-def write_summary(
-    summary_path: Path,
-    *,
-    args: argparse.Namespace,
-    model_dir: Path,
-    jsonl_path: Path,
-    sample_reports: list[dict[str, Any]],
-    normalized_references: list[str],
-    normalized_hypotheses: list[str],
-    wall_elapsed_sec: float,
-) -> None:
-    total_audio_sec = sum(float(report["audio_duration_sec"]) for report in sample_reports)
-    total_sample_elapsed_sec = sum(float(report["elapsed_sec"]) for report in sample_reports)
-    summary = {
-        "dataset": args.dataset,
-        "config": args.config,
-        "split": args.split,
-        "offset": args.offset,
-        "limit": args.limit,
-        "completed": len(sample_reports),
-        "model_dir": str(model_dir),
-        "jsonl_path": str(jsonl_path),
-        "wer": float(jiwer.wer(normalized_references, normalized_hypotheses))
-        if sample_reports
-        else None,
-        "cer": float(jiwer.cer(normalized_references, normalized_hypotheses))
-        if sample_reports
-        else None,
-        "mean_sample_wer": float(np.mean([report["wer"] for report in sample_reports]))
-        if sample_reports
-        else None,
-        "total_audio_sec": total_audio_sec,
-        "total_sample_elapsed_sec": total_sample_elapsed_sec,
-        "rtf": total_sample_elapsed_sec / total_audio_sec if total_audio_sec else None,
-        "speed_x": total_audio_sec / total_sample_elapsed_sec if total_sample_elapsed_sec else None,
-        "wall_elapsed_sec": wall_elapsed_sec,
-    }
-    write_json(summary_path, summary)
-    print(json.dumps(summary, indent=2, sort_keys=True))
-    print(f"streaming eval summary: {summary_path}")
+def print_sample(report: dict[str, Any]) -> None:
+    print(
+        f"{report['row_idx']} {report['id']}: "
+        f"wer={float(report['wer']):.3f} "
+        f"rtfx={float(report['rtfx']):.2f} "
+        f"hyp={report['hypothesis']}"
+    )
 
 
 if __name__ == "__main__":

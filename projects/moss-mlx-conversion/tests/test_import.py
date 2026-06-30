@@ -1,8 +1,13 @@
+from typing import cast
+
 from moss_mlx_conversion import DEFAULT_MODEL_ID
+from moss_mlx_conversion.backend import MossTranscribeBackend, STTOutput
+from moss_mlx_conversion.backend.serving import MossSerialAdapter, TranscriptionRequest
 from moss_mlx_conversion.config import MossModelConfig
 from moss_mlx_conversion.conversion.convert import convert_tensor
 from moss_mlx_conversion.conversion.weights import map_source_key
-from moss_mlx_conversion.runtime.streaming_eval import normalize_for_wer
+from moss_mlx_conversion.runtime.eval import normalize_for_wer
+from moss_mlx_conversion.runtime.quantization import applies_to_scope
 
 
 def test_default_model_id() -> None:
@@ -54,3 +59,27 @@ def test_normalize_for_wer_removes_case_and_punctuation() -> None:
     assert normalize_for_wer("With her white paint, and her scarlet smokestack.") == (
         "with her white paint and her scarlet smokestack"
     )
+
+
+def test_backend_output_contract() -> None:
+    output = STTOutput(text="hello", prompt_tokens=3, generation_tokens=2)
+    assert output.text == "hello"
+    assert output.segments == []
+    assert output.language == "English"
+
+
+def test_serving_adapter_is_serial() -> None:
+    adapter = MossSerialAdapter(backend=cast("MossTranscribeBackend", object()))
+    request = TranscriptionRequest(audio="audio.wav")
+    assert adapter.supports_batch(request) is False
+    assert adapter.max_batch_size == 1
+
+
+def test_backend_factory_exists_without_loading_weights() -> None:
+    assert callable(MossTranscribeBackend.from_pretrained)
+
+
+def test_quantization_scope_predicates() -> None:
+    assert applies_to_scope("model.layers.0.self_attn.q_proj", "text-decoder")
+    assert not applies_to_scope("audio_model.layers.0.fc1", "text-decoder")
+    assert applies_to_scope("audio_adapter.gate_proj", "text-and-adapter")
