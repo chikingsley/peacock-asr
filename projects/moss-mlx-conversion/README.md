@@ -73,8 +73,9 @@ Current short version:
   21.32s, with 20.61s in decoder prefill and 0.226s in the first decode step.
 - A private Swift/CoreML fixture runner now loads the compiled `.mlmodelc`
   bundles with `MLModel`, reuses `MLState`, and greedy-decodes the fixture.
-  The first 5 generated IDs match exactly; the 52-token run has a comma-only
-  drift after token 10 and normalized WER/CER `0.0`.
+  It also loads the Qwen ByteLevel tokenizer JSON and decodes generated IDs.
+  The first 5 generated IDs and text match exactly; the 52-token run has a
+  comma-only drift after token 10 and normalized WER/CER `0.0`.
 - No public upload/branch/PR action has been taken.
 
 ## Layout

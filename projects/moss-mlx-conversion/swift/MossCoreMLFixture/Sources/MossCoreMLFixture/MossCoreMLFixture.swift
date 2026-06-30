@@ -35,6 +35,7 @@ struct Options {
     var tokenPackage = "compiled/moss_token_embedding.mlmodelc"
     var audioPackage = "compiled_audio/moss_audio_encoder_adapter_fixture.mlmodelc"
     var decoderPackage = "compiled_stateful/moss_decoder_stateful_fused.mlmodelc"
+    var tokenizer = URL(fileURLWithPath: "artifacts/coreml/moss_tokenizer.json")
     var tokenMaxSeqLen = 512
     var maxNewTokens = 5
 }
@@ -88,6 +89,14 @@ struct Result: Encodable {
     let expectedGeneratedIds: [Int]
     let generatedPrefixMatchCount: Int
     let generatedPrefixMatchesExpected: Bool
+    let generatedText: String
+    let expectedText: String
+    let normalizedGeneratedText: String
+    let normalizedExpectedText: String
+    let rawWer: Double
+    let rawCer: Double
+    let normalizedWer: Double
+    let normalizedCer: Double
     let prefillTopK: [TopKEntry]
     let stepTopK: [TopKEntry]
     let prefillTop1MatchesFirstToken: Bool
@@ -106,6 +115,14 @@ struct Result: Encodable {
         case expectedGeneratedIds = "expected_generated_ids"
         case generatedPrefixMatchCount = "generated_prefix_match_count"
         case generatedPrefixMatchesExpected = "generated_prefix_matches_expected"
+        case generatedText = "generated_text"
+        case expectedText = "expected_text"
+        case normalizedGeneratedText = "normalized_generated_text"
+        case normalizedExpectedText = "normalized_expected_text"
+        case rawWer = "raw_wer"
+        case rawCer = "raw_cer"
+        case normalizedWer = "normalized_wer"
+        case normalizedCer = "normalized_cer"
         case prefillTopK = "prefill_topk"
         case stepTopK = "step_topk"
         case prefillTop1MatchesFirstToken = "prefill_top1_matches_first_token"
@@ -159,6 +176,8 @@ func parseOptions(_ arguments: [String]) throws -> Options {
             options.audioPackage = try value()
         case "--decoder-package":
             options.decoderPackage = try value()
+        case "--tokenizer":
+            options.tokenizer = URL(fileURLWithPath: try value())
         case "--token-max-seq-len":
             guard let parsed = Int(try value()) else {
                 throw RunnerError.invalidArgument("invalid --token-max-seq-len")
@@ -175,7 +194,7 @@ func parseOptions(_ arguments: [String]) throws -> Options {
                 Usage: moss-coreml-fixture [--packages-dir DIR] [--fixture JSON] [--output JSON]
                                            [--token-package NAME] [--audio-package NAME]
                                            [--decoder-package NAME] [--token-max-seq-len N]
-                                           [--max-new-tokens N]
+                                           [--max-new-tokens N] [--tokenizer JSON]
                 """
             )
             Darwin.exit(0)
@@ -376,6 +395,7 @@ struct MossCoreMLFixture {
         let firstToken = Int(fixture.generatedIds[0])
         let secondToken = Int(fixture.generatedIds[1])
         let audioTokenCount = fixture.audioInputMask.filter { $0 }.count
+        let tokenizer = try QwenByteLevelTokenizer(tokenizerJSON: options.tokenizer)
 
         let configuration = MLModelConfiguration()
         configuration.computeUnits = .all
@@ -505,6 +525,10 @@ struct MossCoreMLFixture {
             generatedPrefixMatchCount += 1
         }
         let generatedPrefixMatchesExpected = generatedPrefixMatchCount == expectedGeneratedIds.count
+        let generatedText = tokenizer.decode(generatedIds)
+        let expectedText = tokenizer.decode(expectedGeneratedIds)
+        let normalizedGeneratedText = normalizedTranscript(generatedText)
+        let normalizedExpectedText = normalizedTranscript(expectedText)
 
         let result = Result(
             fixture: options.fixture.path,
@@ -518,6 +542,20 @@ struct MossCoreMLFixture {
             expectedGeneratedIds: expectedGeneratedIds,
             generatedPrefixMatchCount: generatedPrefixMatchCount,
             generatedPrefixMatchesExpected: generatedPrefixMatchesExpected,
+            generatedText: generatedText,
+            expectedText: expectedText,
+            normalizedGeneratedText: normalizedGeneratedText,
+            normalizedExpectedText: normalizedExpectedText,
+            rawWer: wordErrorRate(reference: expectedText, hypothesis: generatedText),
+            rawCer: characterErrorRate(reference: expectedText, hypothesis: generatedText),
+            normalizedWer: wordErrorRate(
+                reference: normalizedExpectedText,
+                hypothesis: normalizedGeneratedText
+            ),
+            normalizedCer: characterErrorRate(
+                reference: normalizedExpectedText,
+                hypothesis: normalizedGeneratedText
+            ),
             prefillTopK: prefillTopK,
             stepTopK: firstStepTopK,
             prefillTop1MatchesFirstToken: prefillTopK.first?.index == firstToken,

@@ -114,6 +114,8 @@ stateful decoder proof:
 - Added a private Swift/CoreML fixture runner that loads compiled `.mlmodelc`
   bundles, uses `MLState`, and greedy-decodes the fixture from exported mel and
   token IDs.
+- Added a Swift Qwen ByteLevel tokenizer decoder for generated IDs and fixture
+  transcript scoring.
 - Compiled each package with `xcrun coremlcompiler compile`.
 - Copied retained `.mlpackage`, `.mlmodelc`, and JSON manifests back to local
   ignored `artifacts/coreml/`.
@@ -132,6 +134,7 @@ Results:
 | `run_stateful_fixture_pipeline` reference-merged isolation | saved merged embeds, stateful decoder | prefill top-1 `4197`; step top-1 `1059`; decoder input diff vs saved reference `0.0`; total fixture time `22.15s` |
 | Swift `moss-coreml-fixture` 5-token greedy | JSON fixture, compiled `.mlmodelc`, `MLState` | generated IDs exactly match `[4197, 1059, 4158, 6177, 323]`; total fixture time `18.17s` |
 | Swift `moss-coreml-fixture` 52-token greedy | JSON fixture, compiled `.mlmodelc`, `MLState` | first 10 IDs match; comma-only drift after `smokestack`; normalized WER/CER `0.0`; total fixture time `23.53s` |
+| Swift tokenizer-enabled fixture | JSON fixture, compiled `.mlmodelc`, `MLState`, Qwen ByteLevel tokenizer JSON | 5-token decoded text matches exactly; 52-token raw WER/CER `0.0278` / `0.00442`; normalized WER/CER `0.0` |
 
 Important caveat: these are still fixture-level proof components. The padded
 external-cache step proves the planned 768-token cache shape. The stateful fused
@@ -139,8 +142,8 @@ decoder proves CoreML State API prediction for `prefill -> one decode step`.
 The integrated runner proves the Python/CoreML runtime contract, but neither is
 yet a FluidAudio manager, model-store entry, tokenizer bridge, or benchmarked
 end-to-end CoreML ASR runtime. The Swift runner proves the `MLModel`/`MLState`
-path but still uses exported fixture mel/token IDs rather than a real audio
-frontend and tokenizer.
+path and generated-token detokenization, but still uses exported fixture
+mel/token IDs rather than a real audio frontend and prompt tokenizer encoder.
 
 Current retained package sizes:
 

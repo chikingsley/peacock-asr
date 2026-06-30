@@ -140,6 +140,13 @@ uv run --project projects/moss-mlx-conversion/coreml --locked \
   --output projects/moss-mlx-conversion/artifacts/coreml/moss_swift_fixture.json
 ```
 
+Stage the tokenizer next to the CoreML fixture artifacts:
+
+```bash
+cp projects/moss-mlx-conversion/artifacts/mlx/MOSS-Transcribe-preview-2B-bf16/tokenizer.json \
+  projects/moss-mlx-conversion/artifacts/coreml/moss_tokenizer.json
+```
+
 Compile on macOS with:
 
 ```bash
@@ -203,12 +210,13 @@ swift run --package-path swift/MossCoreMLFixture -c release moss-coreml-fixture 
 
 Swift result on `home-mac`:
 
-- The 5-token greedy run exactly matched `[4197, 1059, 4158, 6177, 323]`.
+- The 5-token greedy run exactly matched `[4197, 1059, 4158, 6177, 323]` and
+  decoded to `with her white paint and`.
 - The 52-token run matched the first 10 IDs, then inserted a comma token after
-  `smokestack`; decoded normalized WER/CER are both `0.0`.
-- The 52-token run measured 23.53s total: 16.80s decoder prefill, 6.33s
-  decoder decode calls, 0.24s decode token embeddings, 0.11s audio
-  encoder+adapter.
-- The runner still uses fixture mel/token IDs and has no Qwen tokenizer bridge,
-  text detokenizer, Swift mel frontend, or FluidAudio manager/model-store
-  integration.
+  `smokestack`; Swift decoded raw WER/CER are `0.0278` / `0.00442`, and
+  normalized WER/CER are both `0.0`.
+- The tokenizer-enabled 52-token run measured 24.95s total: 16.88s decoder
+  prefill, 7.63s decoder decode calls, 0.27s decode token embeddings, 0.13s
+  audio encoder+adapter.
+- The runner still uses fixture mel/token IDs and has no prompt tokenizer
+  encoder, Swift mel frontend, or FluidAudio manager/model-store integration.

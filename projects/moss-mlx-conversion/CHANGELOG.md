@@ -89,3 +89,7 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   bundles with `MLModel`, reuses `MLState`, and greedy-decodes from the fixture
   mel/token IDs. The first 5 generated IDs match exactly; the 52-token run has
   a comma-only drift after token 10 and normalized WER/CER `0.0`.
+- Added a Swift Qwen ByteLevel tokenizer decoder to `moss-coreml-fixture`.
+  Tokenizer-enabled reports now include decoded text plus raw and normalized
+  WER/CER; the 5-token text matches exactly and the 52-token drift remains
+  punctuation-only.
