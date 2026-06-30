@@ -26,8 +26,7 @@ Package name is always `<lang>_asr` (no `_omnilingual_`).
 <lang>-parakeet-train-tokenizer  -train-ctc  -train-tdt  -train-nemo   <lang>-parakeet-eval
 ```
 
-During a transition, keep bare `<lang>-train`/`<lang>-eval` as **deprecated aliases** of the omni
-commands; retire them in a later deliberate pass.
+Bare `<lang>-train`/`<lang>-eval` aliases are retired. Use the explicit family commands above.
 
 ## data / artifacts
 
@@ -36,8 +35,8 @@ data/                          # gitignored (local cache; reproducibility lives 
   curator.sqlite  datasets/vN/  cache/      # shared curation store + omni export
   omni/final/                                # promoted omni checkpoints
   parakeet/manifests/  parakeet/tokenizers/  parakeet/final/
-  shared/parakeet/base/          # ONE repo-level base-model cache (env-overridable), not per-project, not wheel data
-  shared/parakeet/nemo_recipes/  # ONE repo-level recipe checkout (env-overridable)
+base_models/parakeet/            # ONE repo-level base-model/recipe cache, gitignored
+  ctc.nemo  parakeet-tdt_ctc-110m-base-hybrid.nemo  nemo_recipes/
 runs/ omni/<run>/  parakeet/<run>/           # live training output (ephemeral)
 ```
 
@@ -54,9 +53,9 @@ runs/ omni/<run>/  parakeet/<run>/           # live training output (ephemeral)
 
 ## Shared-core requirements (`parakeet-finetune-core`)
 
-- Require an explicit `nemo_root` (default `data/shared/parakeet/nemo_recipes`, env `PARAKEET_NEMO_ROOT`);
-  **no `farsi-asr/src/finetune_parakeet` fallback.**
-- `base_model_root` defaulting to `data/shared/parakeet/base/`.
+- Require an explicit `nemo_root` from the repo-level `base_models/parakeet/nemo_recipes`
+  cache or env `PARAKEET_NEMO_ROOT`; **no `farsi-asr/src/finetune_parakeet` fallback.**
+- Base model paths come from the repo-level `base_models/parakeet/` cache.
 - Eval defaults to the stable final `.nemo`, not a `runs/.../last.ckpt`.
 - Recipes are NOT packaged into the wheel (vendored NeMo tree is too heavy/churny) — they live in the
   shared repo-level dir above.

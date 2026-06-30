@@ -9,8 +9,8 @@ which pipeline steps are done vs pending per project. Never hand-maintained, nev
 
 Pipeline: download -> enqueue -> segment -> labelq -> harvest -> merge -> ingest -> verify -> export
 
-Run:   uv run tools/status.py          (prints + writes STATUS.md)
-       uv run tools/status.py --md     (write STATUS.md only, no stdout)
+Run:   uv run --project packages/omni-curator packages/omni-curator/status.py
+       uv run --project packages/omni-curator packages/omni-curator/status.py --md
 """
 from __future__ import annotations
 

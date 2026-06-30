@@ -1,36 +1,75 @@
 # TODO — peacock-asr
 
-Active work only, grouped by area. Completed items are in `CHANGELOG.md`.
+Active work is unchecked. Checked items below were closed or verified in the 2026-06-25 cleanup
+and are kept briefly for review; `CHANGELOG.md` is the historical record.
 
 ## Curator pipeline
 
-- [ ] Tajik v4 scale run: finish download → enqueue → segment → labelq → harvest → merge → verify → export v4 (`--max-wer 0.35`) → train (3–5 epochs / best-WER ckpt) → eval all models on v4 test + KenLM α=0.5/β=0. Dedup `tv_tajikistan`/`tvt_tojikiston`; gate-fix +1,563 clips already in store.
-- [ ] Dari v0: refresh cookies → download remaining channels → stage Pimsleur Dari → create pipeline → export v0 → train cold-base vs Farsi-warm (`--regime warm_restart --lr 2e-6`), compare. Optional: Pashto language gate for bilingual channels.
-- [ ] Georgian v1: wire the 28 researched channels (`docs/georgian_youtube_channels.md`) into `sources.py` → enqueue downloaded channels → first YouTube scrape → KenLM-fused eval.
-- [ ] YouTube source quality: channel prescan gate (resolve handles, kill 404s, lane-routed, `data/prescan.sqlite`); category taxonomy (17-genre `category` alongside `tier`, capture title/desc/upload_date, flow to `samples`); category-stratified video-disjoint train/dev/test splits.
+- [ ] Pre-resegmentation data audit: finish reconciling `data/create` channel folders against
+  `queue.sqlite`, classify downloaded-not-queued/archive-only/stale-cache material, and use
+  `docs/data-state-audit-2026-06-28.md` as the current handoff before replacing the segmenter.
+- [ ] Tajik v4 scale run: finish download → enqueue → segment → labelq → harvest → merge → verify → export v4 (`--max-wer 0.35`) → train (3–5 epochs / best-WER ckpt) → eval all models on v4 test + KenLM α=0.5/β=0. Dedup `tv_tajikistan`/`tvt_tojikiston`.
+- [ ] Dari v0 remaining work: refresh cookies, download remaining wired channels, stage Pimsleur Dari audio into the create root, run enqueue → segment → labelq → harvest → merge → verify → export v0, then train cold-base vs Farsi-warm (`--regime warm_restart --lr 2e-6`). Optional: Pashto language gate for bilingual channels.
+- [x] Georgian v1 source registry: wired the non-duplicate 2026-06-13 researched channels from `projects/georgian-asr/docs/georgian_youtube_channels.md` into `sources.py`; left `@interpressnews` out because `yt-dlp` still returns 404, and skipped the duplicate audiobook channel already present as `audiobooks_geo_ka`.
+- [ ] Georgian v1 run work: download/enqueue the expanded channel registry, segment → labelq → harvest → merge → verify → export v1, then run KenLM-fused eval.
+- [x] Georgian source cleanup: deleted the unresolved `@interpressnews` paste-block/risk note from
+  the research doc after live `yt-dlp` returned 404.
+- [x] YouTube channel prescan DB: added `prescan`, resolved channel handles through the registry,
+  records lane/status/count/error in project-local `data/prescan.sqlite`, and exits non-zero on
+  failed channel checks.
+- [x] YouTube metadata model: added channel `category`, persisted `tier`/`category` plus bounded
+  yt-dlp title/description/upload metadata through queue videos, clips, harvested store rows, and
+  export row `metadata` JSON.
+- [x] YouTube split policy: implemented the 17-genre taxonomy and opt-in category-stratified,
+  video-disjoint dev/test assignment for exports.
 
 ## Factory
 
-- [ ] Build the polling supervisor (P1–P4 prereqs done): auto-(re)launch segment/archive/labelq per DB state, per-(project,stage) flock single-writer, auto-restart on death.
-- [ ] Clip-tiering decision so overflow can't fill (factory §4; ties to Storage).
+- [ ] P0 factory production readiness remaining work: rerun live fault tests for child cleanup/orphan
+  GPU workers under a real segment worker.
+- [x] Replace the hardcoded global segment cap with real scheduling predicates: pending clip HWM,
+  min free GB, active locks, worker lifecycle, and clip-file ownership.
+- [x] Segment output ownership: segment workers cut into claim-token staging dirs and publish files
+  only through token-guarded `complete_video()`.
+- [x] Scribe API status visibility: the balancer splits one global budget across live `labelq` and
+  `verify` jobs, and dry-run reports the assignment without writing window files.
+- [x] Factory config surface: roots, workers, HWM, min free GB, archive root, and Scribe budget can
+  come from one flat TOML config with CLI overrides.
+- [x] Documentation cleanup: `CURATION_FACTORY.md` is the plan, `CHANGELOG.md` is history, `TODO.md` is backlog; deleted superseded factory/throughput/curating/split docs, collapsed `QUALITY.md` into the canonical plan, and updated `NEW_LANGUAGE.md`.
 
 ## Data lifecycle / HuggingFace
 
 - [ ] Export final YouTube datasets → push/append to HF → delete local clips (the only durable overflow relief; segmenting nets ~0).
-- [ ] `tajik-asr-youtube` community exporter (store → HF audio dataset, no WER gate, rich schema) + upload. Card drafted (`docs/hf-cards/ds-tajik-youtube.md`). (verify on HF)
-- [ ] Finish in-flight uploads — models `omni-ctc-300m-tajik` (v3 step_20000), `omni-ctc-300m-persian` (scribe-v4-rewarm step_7000), `parakeet-ctc-109m-persian`; datasets `georgian-asr-corpus-v0`, `persian-asr-corpus-v4`, `tajik-asr-corpus-v3`. (verify on HF)
-- [ ] Delete superseded persian model repos after uploads land (`omni-ctc-300m-v2-fleurs-fa-ir`, `...-thomcles-continue`); decide local deletion of persian scribe-v4 60G + tajik v3 71G parquets once HF copy is canonical. (verify on HF)
+- [ ] Replace the retired ad hoc HF uploader with a shared release workflow in the maintained
+  packages: explicit staging root, append-only release state, one chosen upload method, remote
+  sibling/checksum verification, CHANGELOG record, and local deletion only after proof.
+- [x] `tajik-asr-youtube` community dataset upload verified on HF API: public, ungated, and has siblings.
+- [x] Former in-flight uploads verified on HF API: `tajik-asr-corpus-v3`, `georgian-asr-corpus-v0`, `farsi-asr-corpus-v4`, `omni-ctc-300m-tajik`, `omni-ctc-300m-farsi`, and `parakeet-ctc-109m-farsi` are public/ungated.
+- [ ] Remote/destructive cleanup: verify exact current repo names, then delete superseded Persian/Farsi model repos (`omni-ctc-300m-v2-fleurs-fa-ir`, `...-thomcles-continue` if still present); decide local deletion of Farsi scribe-v4 60G + Tajik v3 71G parquets only after HF copy is canonical.
 
 ## Storage
 
-- [ ] Decide: bigger overflow drive vs deliberate tiering — 1.8T overflow can't hold all live data; media holds symlinked spillover.
-- [ ] Transparent re-segment-from-archive: segment reads `/mnt/storage` archive via path/symlink, not manual path-surgery.
+- [x] Storage tiering policy: current snapshot is `/mnt/tiny-2t` 51%, `/mnt/workerssd-2t` 64%,
+  `/mnt/massive-22t` 54%, and `/` 35% in the 2026-06-28 audit; workers SSD has Russian
+  canonical audio 1.2T, Russian SQLite 8.4G, and active clip cache.
+  `CURATION_FACTORY.md` now defines tier ownership, minimum free-space floors, and source audio
+  defaults to each project's `data/create` unless an operator explicitly overrides it.
+- [x] Transparent re-segment-from-archive: segment resolves missing create-root sources under `/mnt/massive-22t/peacock-asr-archive`; covered by `packages/omni-curator/tests/test_segment.py`.
+- [ ] Russian SSD pressure: move or publish `/mnt/workerssd-2t/peacock-asr/russian-asr/canonical_audio` before treating the workers SSD as general factory scratch.
 
 ## Cleanup / typing
 
-- [ ] Delete deprecated shims: bare `<lang>-train`/`-eval` aliases (pyproject), `segment --procs` alias, `ScribeError.generation` field; update tests/docs to current surface.
-- [ ] Source-provenance + fine-tune-policy typed models (origin/authority/tool, transform history, license gate; recipe/head/metric/eval contracts as Pydantic + validation tests).
-- [ ] omni-curator carry-overs: HF `streaming=True` shutdown crash (default non-streaming if it bites); omni-parquet schema duplication between `export.py` and `parquet.py`/`mixture.py` (own in one place or compat test); mechanical fixes (eval `--limit` reads whole parquet — use `ParquetFile.iter_batches`; recipe `__main__` runs argparse on import; stale docs); language-gate heuristic lossiness (trusted-source mode / stopword signal).
+- [x] Delete deprecated shims: removed bare `<lang>-train`/`-eval` aliases from project pyprojects, removed `segment --procs`, removed `ScribeError.generation`, and updated tests/docs to the explicit `*-omni-*` surface.
+- [x] HF ingest shutdown guard: default HF/FLEURS ingest to non-streaming and keep an explicit `streaming=` knob for sources that need it.
+- [x] Eval limit loading: main omni eval, `omni-bench-llm`, and Farsi KenLM eval use batch/early-stop loading instead of reading full parquet shards for `--limit`.
+- [x] Recipe wrapper hygiene: `omni_finetune_core.train.run_recipe()` restores `sys.argv` after `runpy.run_module`.
+- [x] Parquet schema duplication: added a Farsi smoke compatibility test proving curator export's
+  training columns match the fine-tune reader schema.
+- [x] Source-provenance typed models: added origin/authority/tool, transform history, and typed
+  license gate objects with round-trip tests.
+- [x] Fine-tune-policy typed models: recipe/head/metric/eval contracts as Pydantic + validation tests.
+- [x] Language-gate trusted-source mode: trusted sources or provenance authorities can bypass the
+  heuristic language gate where justified.
 
 ## Training
 
@@ -43,5 +82,6 @@ Active work only, grouped by area. Completed items are in `CHANGELOG.md`.
 
 ## Reference
 
-- Factory design: `packages/omni-curator/docs/factory_plan.md`. New-language recipe + per-language data flow: `packages/omni-curator/docs/NEW_LANGUAGE.md`.
-- Live per-language pipeline state is the auto-generated `STATUS.md` (`tools/status.py`) — not tracked here.
+- Current curation/factory plan: `packages/omni-curator/docs/CURATION_FACTORY.md`.
+- Live per-language pipeline state is generated on demand by `packages/omni-curator/status.py`;
+  root `STATUS.md` is intentionally ignored and not a source of truth.
