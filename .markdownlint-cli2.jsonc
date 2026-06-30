@@ -18,8 +18,6 @@
     "**/third_party/**",
     "**/archive/**", // archived/superseded experiment trees
     "**/archived/**",
-    "docs/research/**", // imported research-paper library (converted PDFs) + archived strategy notes
-    "docs/markdown/**", // imported paper markdown
     "**/modelcard_template.md"
   ]
 }
