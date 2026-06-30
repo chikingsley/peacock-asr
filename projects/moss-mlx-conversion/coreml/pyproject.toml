@@ -20,7 +20,9 @@ build-backend = "hatchling.build"
 only-include = [
     "export_audio_encoder_adapter.py",
     "export_decoder_prefill.py",
+    "export_decoder_stateful.py",
     "export_decoder_step.py",
+    "run_stateful_fixture_pipeline.py",
     "export_token_embedding.py",
     "README.md",
 ]

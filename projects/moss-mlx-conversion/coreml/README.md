@@ -110,6 +110,28 @@ uv run --project projects/moss-mlx-conversion/coreml --locked \
   --package-name moss_decoder_stateful_fused.mlpackage
 ```
 
+Run the integrated CoreML fixture pipeline after all three runtime packages
+exist:
+
+```bash
+uv run --project projects/moss-mlx-conversion/coreml --locked \
+  projects/moss-mlx-conversion/coreml/run_stateful_fixture_pipeline.py \
+  --packages-dir projects/moss-mlx-conversion/coreml/build \
+  --merged-source coreml-components \
+  --output projects/moss-mlx-conversion/coreml/build/moss_coreml_stateful_fixture_pipeline.json
+```
+
+The isolation mode feeds the decoder the saved reference merged embeddings
+while still measuring the token/audio component boundary:
+
+```bash
+uv run --project projects/moss-mlx-conversion/coreml --locked \
+  projects/moss-mlx-conversion/coreml/run_stateful_fixture_pipeline.py \
+  --packages-dir projects/moss-mlx-conversion/coreml/build \
+  --merged-source reference \
+  --output projects/moss-mlx-conversion/coreml/build/moss_coreml_stateful_fixture_pipeline_reference_merged.json
+```
+
 Compile on macOS with:
 
 ```bash
@@ -126,3 +148,17 @@ The retained decoder artifacts now cover three stages:
   tied LM head projection, and 56 CoreML State API KV tensors. It validates
   `prefill -> one decode step` with a single CoreML state object, but it still
   needs a Swift runtime loop before it is a FluidAudio backend.
+
+Integrated fixture result on `home-mac`:
+
+- Component path: CoreML token embeddings + CoreML audio embeddings merged by
+  `audio_input_mask`, then stateful decoder. Top-1 tokens match `4197` then
+  `1059`.
+- Reference-merged isolation path: exact saved merged embeddings into the same
+  stateful decoder. Top-1 tokens also match `4197` then `1059`.
+- Component audio embeddings differ from the saved BF16 reference by max/mean
+  `0.002686` / `0.000354`; the full merged prompt differs by max/mean
+  `0.002686` / `0.000337`.
+- The runner's raw `prefill_logits_vs_reference` compares against the saved HF
+  reference logits, not the exporter manifest's custom static-decoder parity
+  target. Treat the runner as a runtime-contract proof first.

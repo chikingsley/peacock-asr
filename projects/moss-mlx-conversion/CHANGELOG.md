@@ -79,3 +79,8 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   `moss_decoder_stateful_fused.mlpackage` validates a two-call
   `prefill -> decode` fixture with one CoreML state object, ranking `4197`
   then `1059`, compiles to `.mlmodelc`, and is retained locally.
+- Added `run_stateful_fixture_pipeline.py`, which wires the exported token
+  embedding, audio encoder+adapter, host audio-mask merge, Qwen3 RoPE/masks,
+  and stateful decoder in one Python/CoreML process. The component path and
+  reference-merged isolation path both rank `4197` then `1059`; retained JSON
+  reports are copied back under `artifacts/coreml/`.

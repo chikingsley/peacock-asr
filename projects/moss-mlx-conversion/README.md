@@ -66,6 +66,11 @@ Current short version:
   one CoreML model handles prompt prefill and the next decode call with the
   same internal state, ranking fixture tokens `4197` then `1059`. It is not
   yet a FluidAudio Swift backend or benchmarked end-to-end runtime.
+- `run_stateful_fixture_pipeline.py` now wires the exported token embedding,
+  audio encoder+adapter, audio-mask merge, Qwen3 RoPE/masks, and stateful
+  decoder in one CoreML process on `home-mac`. The component-merged fixture
+  ranks `4197` then `1059`; total measured time for the one fixture was
+  21.32s, with 20.61s in decoder prefill and 0.226s in the first decode step.
 - No public upload/branch/PR action has been taken.
 
 ## Layout
