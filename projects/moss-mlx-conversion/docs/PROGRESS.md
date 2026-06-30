@@ -562,6 +562,8 @@ Generated artifacts:
 - `artifacts/coreml/moss_swift_coreml_fixture_52tok_tokenizer.json`
 - `artifacts/coreml/moss_swift_coreml_fixture_compact_5tok.json`
 - `artifacts/coreml/moss_swift_coreml_fixture_compact_52tok.json`
+- `artifacts/coreml/moss_swift_coreml_audio_frontend_5tok.json`
+- `artifacts/coreml/moss_swift_coreml_audio_frontend_52tok.json`
 
 Current default contract:
 
@@ -579,7 +581,9 @@ Current default contract:
 
 Planned pieces:
 
-- Host mel frontend.
+- Host mel frontend. The fixture-level Swift Whisper frontend is now proven for
+  the static `[128, 1484]` package shape; dynamic/general audio lengths remain
+  future work.
 - `moss_audio_encoder_adapter.mlpackage`.
 - `moss_token_embedding.mlpackage`.
 - `moss_decoder_prefill.mlpackage`.
@@ -613,6 +617,8 @@ Fixture component probes completed on `home-mac`:
 | Swift tokenizer-enabled 52-token greedy | same Swift/CoreML path plus Qwen ByteLevel tokenizer JSON | generated text inserts only the comma after `smokestack`; raw WER/CER `0.0278` / `0.00442`; normalized WER/CER `0.0`; total fixture time `24.95s`, with `16.88s` decoder prefill and `7.63s` decoder decode calls |
 | Swift compact prompt 5-token greedy | compact fixture without serialized `input_ids` / `audio_input_mask` | `prompt_source=compact`; generated IDs and decoded text exactly match; total fixture time `16.17s`, with `15.19s` decoder prefill and `0.47s` decoder decode calls |
 | Swift compact prompt 52-token greedy | same compact prompt-builder path | `prompt_source=compact`; first 10 IDs match; generated text inserts only the comma after `smokestack`; raw WER/CER `0.0278` / `0.00442`; normalized WER/CER `0.0`; total fixture time `22.74s`, with `16.32s` decoder prefill and `5.96s` decoder decode calls |
+| Swift audio frontend 5-token greedy | source WAV + Swift Whisper log-mel + compact prompt + CoreML path | `prompt_source=compact_audio`; mel shape `[128, 1484]`; mel max/mean diff vs saved PyTorch/Whisper fixture `0.003906` / `0.000515`; generated IDs/text exactly match; total fixture time `18.02s`, including `0.147s` audio frontend and `17.11s` decoder prefill |
+| Swift audio frontend 52-token greedy | same WAV-to-CoreML path | `prompt_source=compact_audio`; first 10 IDs match; generated text inserts comma after `smokestack` and ends with period instead of comma; raw WER/CER `0.0556` / `0.00885`; normalized WER/CER `0.0`; total fixture time `25.22s`, including `0.140s` audio frontend and `20.10s` decoder prefill |
 
 Retained full-component package sizes:
 
@@ -650,13 +656,15 @@ Notes:
   Swift `MLModel` and `MLState`, using compiled `.mlmodelc` bundles. It now
   builds the fixed English MOSS prompt from compact template fields:
   `[151644, 872, 198, 151669] + audio_placeholder_count * 0 + [151670,
-  151645, 198, 151644, 77091, 198]`. It still consumes fixture mel data and
-  does not implement a Swift mel frontend, model download/store, or a
-  FluidAudio `ASR/MOSS` manager.
+  151645, 198, 151644, 77091, 198]`. With `--audio`, it reads a WAV through a
+  Swift Whisper log-mel frontend and no longer consumes fixture mel data for
+  that path. It still uses the fixture-shaped static audio CoreML package and
+  does not implement model download/store or a FluidAudio `ASR/MOSS` manager.
 - The Swift fixture runner now has a Qwen ByteLevel tokenizer decode bridge for
   generated token IDs, including skipped special tokens such as `<|im_end|>`.
   It is a decoder/detokenizer path plus fixed prompt builder; arbitrary prompt
-  tokenizer encoding and time-marker variants remain future runtime work.
+  tokenizer encoding, dynamic audio shapes, and time-marker variants remain
+  future runtime work.
 - The Swift 52-token greedy drift is punctuation-only on the decoded fixture:
   expected text has `smokestack the inverashiel`; Swift emitted
   `smokestack, the inverashiel`. After lowercase/punctuation normalization,
@@ -731,9 +739,10 @@ The next real work is a Swift/CoreML runtime decision:
 1. If MOSS remains a teacher/reference, use the MLX/PyTorch artifacts to build
    batch teacher transcription and quality gates.
 2. If pursuing FluidAudio-level runtime, the remaining missing pieces are
-   real Swift mel frontend, model store/download layout, an `ASR/MOSS` manager
-   API around the proven Swift fixture core, and optional general prompt
-   tokenizer/template support beyond the fixed English no-time-marker path.
+   dynamic/general audio package shapes, model store/download layout, an
+   `ASR/MOSS` manager API around the proven Swift fixture core, and optional
+   general prompt tokenizer/template support beyond the fixed English
+   no-time-marker path.
 3. Run a single real audio file through that Swift runtime and require the
    first 5 generated tokens plus normalized transcript parity before any WER
    benchmark.

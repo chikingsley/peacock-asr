@@ -73,7 +73,7 @@ Default shape contract:
 
 | Component | Role |
 | --- | --- |
-| `moss_mel_frontend` | Host-side 16 kHz Whisper log-mel frontend. Python first, Swift later. |
+| `moss_mel_frontend` | Host-side 16 kHz Whisper log-mel frontend. Python and fixture-level Swift path are proven; dynamic/general audio remains later work. |
 | `moss_audio_encoder_adapter.mlpackage` | Qwen3-Omni audio encoder plus MOSS gated adapter. |
 | `moss_token_embedding.mlpackage` | Qwen token embedding table. |
 | `moss_decoder_prefill.mlpackage` | Fixed-length prefill over merged token/audio embeddings. |
@@ -119,6 +119,10 @@ stateful decoder proof:
 - Added a compact Swift prompt builder for the fixed English no-time-marker
   MOSS template: `[151644, 872, 198, 151669] + audio placeholders +
   [151670, 151645, 198, 151644, 77091, 198]`.
+- Added a fixture-level Swift Whisper log-mel frontend. It reads the LibriSpeech
+  WAV, emits `[128, 1484]` mel features, matches the saved PyTorch/Whisper mel
+  with max/mean abs diff `0.003906` / `0.000515`, and feeds the CoreML audio
+  encoder path without serialized fixture mel.
 - Compiled each package with `xcrun coremlcompiler compile`.
 - Copied retained `.mlpackage`, `.mlmodelc`, and JSON manifests back to local
   ignored `artifacts/coreml/`.
@@ -139,6 +143,7 @@ Results:
 | Swift `moss-coreml-fixture` 52-token greedy | JSON fixture, compiled `.mlmodelc`, `MLState` | first 10 IDs match; comma-only drift after `smokestack`; normalized WER/CER `0.0`; total fixture time `23.53s` |
 | Swift tokenizer-enabled fixture | JSON fixture, compiled `.mlmodelc`, `MLState`, Qwen ByteLevel tokenizer JSON | 5-token decoded text matches exactly; 52-token raw WER/CER `0.0278` / `0.00442`; normalized WER/CER `0.0` |
 | Swift compact prompt fixture | compact JSON fixture without serialized `input_ids` / `audio_input_mask` | `prompt_source=compact`; 5-token output matches exactly; 52-token output has the same comma-only normalized-WER-zero drift; total times `16.17s` and `22.74s` |
+| Swift audio frontend fixture | source WAV, Swift Whisper log-mel, compact prompt, compiled `.mlmodelc`, `MLState` | `prompt_source=compact_audio`; mel max/mean diff `0.003906` / `0.000515`; 5-token output matches exactly; 52-token normalized WER/CER `0.0`; total times `18.02s` and `25.22s` |
 
 Important caveat: these are still fixture-level proof components. The padded
 external-cache step proves the planned 768-token cache shape. The stateful fused
@@ -146,9 +151,10 @@ decoder proves CoreML State API prediction for `prefill -> one decode step`.
 The integrated runner proves the Python/CoreML runtime contract, but neither is
 yet a FluidAudio manager, model-store entry, tokenizer bridge, or benchmarked
 end-to-end CoreML ASR runtime. The Swift runner proves the `MLModel`/`MLState`
-path, generated-token detokenization, and fixed prompt construction, but still
-uses exported fixture mel data rather than a real audio frontend, model store,
-or FluidAudio manager API.
+path, generated-token detokenization, fixed prompt construction, and
+fixture-level WAV-to-mel frontend, but still uses a static fixture-shaped audio
+CoreML package rather than dynamic/general audio shapes, model store, or
+FluidAudio manager API.
 
 Current retained package sizes:
 
@@ -171,6 +177,10 @@ Current retained package sizes:
   the stateful fused decoder removes cache tensor marshaling but still calls
   CoreML once per generated token.
 - Static masks and cache lengths may decide whether ANE dispatch happens.
+- The current Swift audio frontend is correct enough for the fixture, but it is
+  a private runner implementation with a 400-point table DFT. A production
+  FluidAudio path should decide whether to reuse/extend existing FluidAudio
+  frontend utilities or keep a MOSS-specific Whisper frontend.
 - MOSS can be correct and still much slower than Parakeet/TDT-style ASR.
 - Current FluidAudio `main` was inspected as a reference clone and does not
   contain a merged Qwen3-ASR Swift manager; MOSS would need a new

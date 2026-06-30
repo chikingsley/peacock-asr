@@ -98,3 +98,9 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   Swift can run without serialized `input_ids` / `audio_input_mask`. Compact
   5-token output matches exactly; compact 52-token output keeps the known
   comma-only drift with normalized WER/CER `0.0`.
+- Added a fixture-level Swift audio frontend path to `moss-coreml-fixture`.
+  The runner can read the LibriSpeech WAV, compute MOSS/Whisper log-mel
+  features in Swift, build the compact prompt from the computed audio-token
+  count, and feed the CoreML audio encoder. The Swift mel max/mean diff versus
+  the saved fixture tensor is `0.003906` / `0.000515`; 5-token output matches
+  exactly and 52-token normalized WER/CER remains `0.0`.

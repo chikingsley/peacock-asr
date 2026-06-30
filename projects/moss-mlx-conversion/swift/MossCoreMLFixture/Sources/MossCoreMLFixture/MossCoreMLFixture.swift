@@ -53,6 +53,7 @@ struct Prompt {
 struct Options {
     var packagesDir = URL(fileURLWithPath: "coreml/build")
     var fixture = URL(fileURLWithPath: "artifacts/coreml/moss_swift_fixture.json")
+    var audio: URL?
     var output: URL?
     var tokenPackage = "compiled/moss_token_embedding.mlmodelc"
     var audioPackage = "compiled_audio/moss_audio_encoder_adapter_fixture.mlmodelc"
@@ -68,6 +69,7 @@ struct TopKEntry: Encodable {
 }
 
 struct Timing: Encodable {
+    let audioFrontend: Double
     let tokenEmbeddingPrompt: Double
     let audioEncoderAdapter: Double
     let statefulDecoderPrefill: Double
@@ -75,11 +77,12 @@ struct Timing: Encodable {
     let statefulDecoderDecode: Double
 
     var total: Double {
-        tokenEmbeddingPrompt + audioEncoderAdapter + statefulDecoderPrefill
+        audioFrontend + tokenEmbeddingPrompt + audioEncoderAdapter + statefulDecoderPrefill
             + tokenEmbeddingDecode + statefulDecoderDecode
     }
 
     enum CodingKeys: String, CodingKey {
+        case audioFrontend = "audio_frontend"
         case tokenEmbeddingPrompt = "token_embedding_prompt"
         case audioEncoderAdapter = "audio_encoder_adapter"
         case statefulDecoderPrefill = "stateful_decoder_prefill"
@@ -90,6 +93,7 @@ struct Timing: Encodable {
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(audioFrontend, forKey: .audioFrontend)
         try container.encode(tokenEmbeddingPrompt, forKey: .tokenEmbeddingPrompt)
         try container.encode(audioEncoderAdapter, forKey: .audioEncoderAdapter)
         try container.encode(statefulDecoderPrefill, forKey: .statefulDecoderPrefill)
@@ -102,6 +106,10 @@ struct Timing: Encodable {
 struct Result: Encodable {
     let fixture: String
     let packagesDir: String
+    let audioSource: String
+    let audioDataShape: [Int]
+    let audioDataSeqlens: [Int32]
+    let audioFrontendDiff: AudioFeatureDiff?
     let promptSource: String
     let promptLen: Int
     let audioTokenCount: Int
@@ -129,6 +137,10 @@ struct Result: Encodable {
     enum CodingKeys: String, CodingKey {
         case fixture
         case packagesDir = "packages_dir"
+        case audioSource = "audio_source"
+        case audioDataShape = "audio_data_shape"
+        case audioDataSeqlens = "audio_data_seqlens"
+        case audioFrontendDiff = "audio_frontend_diff"
         case promptSource = "prompt_source"
         case promptLen = "prompt_len"
         case audioTokenCount = "audio_token_count"
@@ -192,6 +204,8 @@ func parseOptions(_ arguments: [String]) throws -> Options {
             options.packagesDir = URL(fileURLWithPath: try value())
         case "--fixture":
             options.fixture = URL(fileURLWithPath: try value())
+        case "--audio":
+            options.audio = URL(fileURLWithPath: try value())
         case "--output":
             options.output = URL(fileURLWithPath: try value())
         case "--token-package":
@@ -216,6 +230,7 @@ func parseOptions(_ arguments: [String]) throws -> Options {
             print(
                 """
                 Usage: moss-coreml-fixture [--packages-dir DIR] [--fixture JSON] [--output JSON]
+                                           [--audio WAV]
                                            [--token-package NAME] [--audio-package NAME]
                                            [--decoder-package NAME] [--token-max-seq-len N]
                                            [--max-new-tokens N] [--tokenizer JSON]
@@ -236,11 +251,12 @@ func loadFixture(_ url: URL) throws -> Fixture {
     return try decoder.decode(Fixture.self, from: data)
 }
 
-func resolvePrompt(_ fixture: Fixture) throws -> Prompt {
+func resolvePrompt(_ fixture: Fixture, audioTokenCountOverride: Int? = nil) throws -> Prompt {
     if let prefixIds = fixture.promptPrefixIds,
        let suffixIds = fixture.promptSuffixIds,
-       let audioTokenCount = fixture.audioTokenCount
+       let fixtureAudioTokenCount = fixture.audioTokenCount
     {
+        let audioTokenCount = audioTokenCountOverride ?? fixtureAudioTokenCount
         guard audioTokenCount >= 0 else {
             throw RunnerError.invalidArgument("audio_token_count must be non-negative")
         }
@@ -256,9 +272,15 @@ func resolvePrompt(_ fixture: Fixture) throws -> Prompt {
                 "compact prompt length \(inputIds.count) != fixture prompt_len \(fixture.promptLen)"
             )
         }
-        return Prompt(inputIds: inputIds, audioInputMask: audioInputMask, source: "compact")
+        let source = audioTokenCountOverride == nil ? "compact" : "compact_audio"
+        return Prompt(inputIds: inputIds, audioInputMask: audioInputMask, source: source)
     }
 
+    if audioTokenCountOverride != nil {
+        throw RunnerError.invalidArgument(
+            "audio override requires compact prompt_prefix_ids/prompt_suffix_ids fields"
+        )
+    }
     guard let inputIds = fixture.inputIds, let audioInputMask = fixture.audioInputMask else {
         throw RunnerError.invalidArgument(
             "fixture needs either compact prompt fields or input_ids/audio_input_mask"
@@ -275,6 +297,40 @@ func resolvePrompt(_ fixture: Fixture) throws -> Prompt {
         )
     }
     return Prompt(inputIds: inputIds, audioInputMask: audioInputMask, source: "serialized")
+}
+
+func resolveAudioFeatures(
+    fixture: Fixture,
+    options: Options
+) throws -> (features: MossAudioFeatures, diff: AudioFeatureDiff?, seconds: Double) {
+    guard let audioURL = options.audio else {
+        return (
+            features: MossAudioFeatures(
+                source: "fixture",
+                shape: fixture.audioDataShape,
+                data: fixture.audioData,
+                seqlens: fixture.audioDataSeqlens
+            ),
+            diff: nil,
+            seconds: 0
+        )
+    }
+
+    let start = DispatchTime.now().uptimeNanoseconds
+    let samples = try MossAudioFile.loadMono16k(url: audioURL)
+    let frontend = try WhisperLogMelFrontend()
+    let features = try frontend.compute(samples: samples, source: audioURL.path)
+    let seconds = Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000.0
+    guard features.shape == fixture.audioDataShape else {
+        throw RunnerError.invalidArgument(
+            "Swift audio shape \(features.shape) != fixture/CoreML shape \(fixture.audioDataShape)"
+        )
+    }
+    return (
+        features: features,
+        diff: compareAudioFeatures(features.data, fixture.audioData),
+        seconds: seconds
+    )
 }
 
 func makeFloatArray(shape: [Int], values: [Float]? = nil) throws -> MLMultiArray {
@@ -459,7 +515,22 @@ struct MossCoreMLFixture {
     static func main() async throws {
         let options = try parseOptions(CommandLine.arguments)
         let fixture = try loadFixture(options.fixture)
-        let prompt = try resolvePrompt(fixture)
+        let (audioFeatures, audioFrontendDiff, audioFrontendSeconds) = try resolveAudioFeatures(
+            fixture: fixture,
+            options: options
+        )
+        guard let audioFrameCount = audioFeatures.seqlens.first else {
+            throw RunnerError.invalidArgument("audio_data_seqlens is empty")
+        }
+        let audioTokenCountOverride: Int? = if options.audio == nil {
+            nil
+        } else {
+            mossAudioTokenCount(melFrames: Int(audioFrameCount))
+        }
+        let prompt = try resolvePrompt(
+            fixture,
+            audioTokenCountOverride: audioTokenCountOverride
+        )
         let maxNewTokens = min(options.maxNewTokens, fixture.generatedIds.count)
         guard maxNewTokens > 0 else {
             throw RunnerError.invalidArgument("--max-new-tokens must be positive")
@@ -498,10 +569,10 @@ struct MossCoreMLFixture {
 
         let audioInput = try MLDictionaryFeatureProvider(dictionary: [
             "audio_data": MLFeatureValue(
-                multiArray: try makeFloatArray(shape: fixture.audioDataShape, values: fixture.audioData)
+                multiArray: try makeFloatArray(shape: audioFeatures.shape, values: audioFeatures.data)
             ),
             "audio_data_seqlens": MLFeatureValue(
-                multiArray: try makeIntArray(shape: [1], values: fixture.audioDataSeqlens)
+                multiArray: try makeIntArray(shape: [1], values: audioFeatures.seqlens)
             ),
         ])
         let (audioOutput, audioSeconds) = try await timedPrediction(model: audioModel, input: audioInput)
@@ -606,6 +677,10 @@ struct MossCoreMLFixture {
         let result = Result(
             fixture: options.fixture.path,
             packagesDir: options.packagesDir.path,
+            audioSource: audioFeatures.source,
+            audioDataShape: audioFeatures.shape,
+            audioDataSeqlens: audioFeatures.seqlens,
+            audioFrontendDiff: audioFrontendDiff,
             promptSource: prompt.source,
             promptLen: prompt.promptLen,
             audioTokenCount: audioTokenCount,
@@ -635,6 +710,7 @@ struct MossCoreMLFixture {
             prefillTop1MatchesFirstToken: prefillTopK.first?.index == firstToken,
             stepTop1MatchesSecondToken: generatedIds.count > 1 && generatedIds[1] == secondToken,
             timingSeconds: Timing(
+                audioFrontend: audioFrontendSeconds,
                 tokenEmbeddingPrompt: tokenSeconds,
                 audioEncoderAdapter: audioSeconds,
                 statefulDecoderPrefill: prefillSeconds,

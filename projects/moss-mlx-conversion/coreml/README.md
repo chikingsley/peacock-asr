@@ -228,6 +228,18 @@ swift run --package-path swift/MossCoreMLFixture -c release moss-coreml-fixture 
   --output coreml/build/moss_swift_coreml_fixture_compact_52tok.json
 ```
 
+Run the fixture WAV through the Swift Whisper log-mel frontend, then the same
+CoreML path:
+
+```bash
+swift run --package-path swift/MossCoreMLFixture -c release moss-coreml-fixture \
+  --packages-dir coreml/build \
+  --fixture artifacts/coreml/moss_swift_fixture_compact.json \
+  --audio artifacts/cache/fixtures/librosa-libri1-16k.wav \
+  --max-new-tokens 52 \
+  --output coreml/build/moss_swift_coreml_audio_frontend_52tok.json
+```
+
 Swift result on `home-mac`:
 
 - The 5-token greedy run exactly matched `[4197, 1059, 4158, 6177, 323]` and
@@ -244,5 +256,13 @@ Swift result on `home-mac`:
   198]` instead of consuming serialized `input_ids` / `audio_input_mask`.
   Compact 5-token output is exact; compact 52-token output has the same
   comma-only normalized-WER-zero drift.
-- The runner still uses fixture mel/token IDs and has no prompt tokenizer
-  encoder, Swift mel frontend, or FluidAudio manager/model-store integration.
+- The Swift audio frontend path reports `prompt_source=compact_audio`, computes
+  `[128, 1484]` Whisper log-mel features from the source WAV, and matches the
+  saved PyTorch/Whisper fixture mel with max/mean abs diff `0.003906` /
+  `0.000515`. The 5-token output is exact. The 52-token output keeps
+  normalized WER/CER `0.0`, with raw WER/CER `0.0556` / `0.00885` from
+  punctuation-only drift.
+- Still missing for a real FluidAudio backend: arbitrary audio file/chunk
+  handling beyond the static `[128, 1484]` package shape, model store/download
+  layout, a FluidAudio-style `ASR/MOSS` manager, and a benchmark harness that
+  does not rely on fixture JSON.

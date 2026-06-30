@@ -81,6 +81,11 @@ Current short version:
   audio placeholder count. The compact path reports `prompt_source=compact`,
   matches the 5-token fixture exactly, and has the same normalized-WER-zero
   52-token punctuation drift.
+- The Swift runner now also has a fixture-level `--audio` path. It reads the
+  LibriSpeech WAV, computes MOSS/Whisper `[128, 1484]` log-mel features in
+  Swift, reports mel max/mean diff `0.003906` / `0.000515` against the saved
+  fixture tensor, matches the 5-token output exactly, and keeps normalized
+  WER/CER `0.0` on the 52-token run.
 - No public upload/branch/PR action has been taken.
 
 ## Layout
