@@ -8,6 +8,11 @@ and are kept briefly for review; `CHANGELOG.md` is the historical record.
 - [ ] Pre-resegmentation data audit: finish reconciling `data/create` channel folders against
   `queue.sqlite`, classify downloaded-not-queued/archive-only/stale-cache material, and use
   `docs/data-state-audit-2026-06-28.md` as the current handoff before replacing the segmenter.
+- [ ] Farsi resegment pilot prep: merge/audit the `267`
+  `farsi/iran_international_legacy`-only FLACs into canonical `farsi/iran_international`, resolve
+  the `16` common-name size mismatches, classify the `664` local unqueued FLACs
+  (`@AvasBookClub=220`, `iran_international=444`), refresh queue metadata/categories, then run a
+  small `iran_international` pilot with clips on `/mnt/workerssd-2t/peacock-clips/farsi`.
 - [ ] Tajik v4 scale run: finish download → enqueue → segment → labelq → harvest → merge → verify → export v4 (`--max-wer 0.35`) → train (3–5 epochs / best-WER ckpt) → eval all models on v4 test + KenLM α=0.5/β=0. Dedup `tv_tajikistan`/`tvt_tojikiston`.
 - [ ] Dari v0 remaining work: refresh cookies, download remaining wired channels, stage Pimsleur Dari audio into the create root, run enqueue → segment → labelq → harvest → merge → verify → export v0, then train cold-base vs Farsi-warm (`--regime warm_restart --lr 2e-6`). Optional: Pashto language gate for bilingual channels.
 - [x] Georgian v1 source registry: wired the non-duplicate 2026-06-13 researched channels from `projects/georgian-asr/docs/georgian_youtube_channels.md` into `sources.py`; left `@interpressnews` out because `yt-dlp` still returns 404, and skipped the duplicate audiobook channel already present as `audiobooks_geo_ka`.
