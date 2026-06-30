@@ -1,0 +1,99 @@
+[build-system]
+requires = ["uv_build>=0.11.24,<0.12"]
+build-backend = "uv_build"
+
+[project]
+name = "moss-mlx-conversion"
+version = "0.1.0"
+description = "Reference, parity, and MLX conversion tooling for OpenMOSS MOSS-Transcribe-preview-2B."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "hf-xet>=1.2.0",
+    "httpx>=0.28.1",
+    "huggingface-hub==0.36.2",
+    "jiwer>=3.1.0",
+    "librosa==0.11.0",
+    "numpy==2.4.6",
+    "safetensors>=0.7.0",
+    "soundfile==0.13.1",
+    "torch==2.9.1",
+    "tqdm>=4.67.3",
+    "transformers==4.57.1",
+]
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cu128", marker = "sys_platform == 'linux' and platform_machine == 'x86_64'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[project.scripts]
+moss-download-reference = "moss_mlx_conversion.reference.download:main"
+moss-convert = "moss_mlx_conversion.conversion.convert:main"
+moss-inspect-weights = "moss_mlx_conversion.conversion.weights:main"
+moss-reference = "moss_mlx_conversion.reference.reference:main"
+moss-processor-parity = "moss_mlx_conversion.reference.processor_parity:main"
+moss-mlx-smoke = "moss_mlx_conversion.runtime.transcribe:main"
+moss-streaming-eval = "moss_mlx_conversion.runtime.streaming_eval:main"
+
+[project.optional-dependencies]
+mac = [
+    "mlx>=0.31.2 ; platform_machine == 'arm64' and sys_platform == 'darwin'",
+    "mlx-lm>=0.29.1 ; platform_machine == 'arm64' and sys_platform == 'darwin'",
+]
+
+[tool.uv.build-backend]
+module-name = "moss_mlx_conversion"
+module-root = "src"
+
+[dependency-groups]
+dev = [
+  "pytest>=9.1.1",
+  "ruff>=0.15.20",
+  "ty>=0.0.55",
+]
+
+[tool.pytest.ini_options]
+minversion = "9.0"
+testpaths = ["tests"]
+strict = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  "W191", "E111", "E114", "E117", "D203", "D206", "D213", "D300",
+  "Q000", "Q001", "Q002", "Q003", "Q004", "COM812", "COM819", "ISC002",
+  "D",
+  "TRY003", "EM101", "EM102",
+  "ANN401",
+  "PLR0913",
+  "PLR2004",
+  "TC001", "TC002", "TC003",
+  "PLC0415",
+  "SLF001",
+  "T201",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+  "S101", "PLR2004", "INP001", "ARG001",
+  "D100", "D101", "D102", "D103", "D104", "D107",
+  "ANN001", "ANN002", "ANN003", "ANN201", "ANN202", "ANN204",
+  "TC001", "TC002", "TC003",
+]
+
+[tool.ty.environment]
+python = ".venv"
+
+[tool.ty.rules]
+unused-ignore-comment = "error"

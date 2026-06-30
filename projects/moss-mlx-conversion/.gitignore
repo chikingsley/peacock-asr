@@ -1,0 +1,11 @@
+/artifacts/
+/.venv/
+/.cache/
+/.ruff_cache/
+/.pytest_cache/
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.mlpackage/
+*.mlmodelc/

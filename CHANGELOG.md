@@ -2,6 +2,12 @@
 
 Historical record of completed work, terse. Active work is in `TODO.md`; live pipeline state is `STATUS.md`.
 
+## MOSS MLX conversion
+
+- Created `projects/moss-mlx-conversion`: pinned MOSS Transcribe 2B, captured PyTorch BF16
+  reference/parity artifacts, converted all 838 BF16 tensors to MLX layout, verified Apple Silicon
+  smoke parity, and added streamed LibriSpeech clean-test eval (20 rows: 1.58% WER, 0.65 RTF).
+
 ## Tajik
 
 - v2 trained + eval: best step_19500, FLEURS test WER 17.17 (base 19.74, v0 17.34). Recorded in EXPERIMENTS.md.
