@@ -19,10 +19,11 @@ The useful lessons are:
 
 - Split the model into host-manageable pieces rather than tracing the whole ASR
   pipeline as one opaque graph.
-- Use a fixed prefill graph for prompt/audio embeddings, then a one-token decode
-  graph for generation.
-- Treat host-managed KV cache as the default CoreML design until there is a
-  reason to require newer CoreML State APIs.
+- Use a fixed or variable-length prefill graph for prompt/audio embeddings, then
+  a one-token decode graph for generation.
+- Treat host-managed KV cache as a useful bridge, but the real Mobius
+  production direction is CoreML State API KV cache so decoder calls do not
+  marshal tens of MiB of cache tensors through Swift every token.
 - Keep Qwen-family decoder and LM-head precision conservative until parity
   proves lower precision is safe.
 - Profile compiled models with `coreml-cli`; successful `.mlpackage` conversion
@@ -77,6 +78,7 @@ Default shape contract:
 | `moss_token_embedding.mlpackage` | Qwen token embedding table. |
 | `moss_decoder_prefill.mlpackage` | Fixed-length prefill over merged token/audio embeddings. |
 | `moss_decoder_step_cache_external.mlpackage` | One-token decode with host-managed KV cache and logits. |
+| `moss_decoder_stateful_fused.mlpackage` | Mobius-style fused decoder with final norm/LM head and 56 CoreML State API KV tensors. |
 
 ## Build Sequence
 
@@ -87,22 +89,25 @@ Default shape contract:
    inputs and fixed shapes.
 4. Compare CoreML output to PyTorch fixture tensors before converting the next
    component.
-5. Wire prefill plus one-token decode and require the first 5 generated token
-   IDs to match the PyTorch/MLX fixture.
-6. Run the existing 20-row LibriSpeech clean smoke eval.
-7. Profile compiled models with `coreml-cli`.
-8. Try quantization only after BF16/F32 CoreML parity is stable.
+5. Generalize the one-token decode graph to a padded fixed cache window.
+6. Export a stateful fused decoder and require one CoreML state object to
+   survive `prefill -> decode` on the fixture.
+7. Build a Swift runtime loop only after the stateful package validates.
+8. Run the existing 20-row LibriSpeech clean smoke eval from Swift/CoreML.
+9. Profile compiled models with `coreml-cli` or FluidAudio's profiler tooling.
+10. Try quantization only after BF16/F32 CoreML parity is stable.
 
 ## Completed Component Probes
 
-The private fixture-level component probes are complete through one-token
-decode:
+The private fixture-level component probes are complete through a Mobius-style
+stateful decoder proof:
 
 - Extracted `model.embed_tokens.weight`,
   `model.audio_model`/`model.audio_adapter`, and `model.language_model` weights
   into smaller CoreML workbench safetensors files.
 - Exported and validated token embedding, audio encoder+adapter, decoder
-  prefill, and decoder one-token step packages on `home-mac`.
+  prefill, fixed append-cache decoder step, padded cache-external decoder step,
+  and fused stateful decoder packages on `home-mac`.
 - Compiled each package with `xcrun coremlcompiler compile`.
 - Copied retained `.mlpackage`, `.mlmodelc`, and JSON manifests back to local
   ignored `artifacts/coreml/`.
@@ -115,11 +120,14 @@ Results:
 | `moss_audio_encoder_adapter_fixture` | mel `[128, 1484]` | CoreML vs PyTorch max/mean diff `0.002675` / `0.000354` |
 | `moss_decoder_prefill_fixture` | merged embeds `[1, 203, 2048]` | top-1 token `4197`; CoreML vs PyTorch max/mean diff `0.048508` / `0.017621` |
 | `moss_decoder_step_fixture` | token `4197`, KV `[28, 1, 8, 203, 128]` | top-1 token `1059`; CoreML vs PyTorch max/mean diff `0.040039` / `0.015691` |
+| `moss_decoder_step_padded_fixture` | token `4197`, padded KV `[28, 1, 8, 768, 128]` | top-1 token `1059`; padded Torch path is exactly equal to append-cache Torch on valid slices; CoreML vs Torch logits max/mean diff `0.040039` / `0.015691` |
+| `moss_decoder_stateful_fused` | prefill `[1, 203, 2048]`, then token `4197` with the same CoreML state | prefill top-1 `4197`; step top-1 `1059`; 56 state tensors; CoreML vs static step logits max/mean diff `0.038696` / `0.015730` |
 
-Important caveat: the prefill and step exports are fixture-static proof
-components. The step graph proves external-cache math and CoreML conversion for
-one fixed past length (`203 -> 204`), but it is not yet a general padded-cache
-generation loop over the planned 768-token cache window.
+Important caveat: these are still fixture-level proof components. The padded
+external-cache step proves the planned 768-token cache shape. The stateful fused
+decoder proves CoreML State API prediction for `prefill -> one decode step`.
+Neither is yet a FluidAudio Swift manager, model-store entry, tokenizer bridge,
+or benchmarked end-to-end CoreML ASR runtime.
 
 Current retained package sizes:
 
@@ -129,12 +137,19 @@ Current retained package sizes:
 | `moss_audio_encoder_adapter_fixture` | 1.4G | 1.4G |
 | `moss_decoder_prefill_fixture` | 3.3G | 3.3G |
 | `moss_decoder_step_fixture` | 3.3G | 3.3G |
+| `moss_decoder_step_padded_fixture` | 3.3G | 3.3G |
+| `moss_decoder_stateful_fused` | 3.3G | 3.3G |
 
 ## Expected Hard Parts
 
 - RoPE layout and position IDs must match MOSS/Qwen3 exactly.
-- The production decoder step still needs padded-cache position handling rather
-  than the current fixed fixture past length.
-- CoreML per-token call overhead can dominate even when the graph is correct.
+- Swift must reproduce the prompt construction, audio mask insertion,
+  concatenated-half RoPE layout, causal masks, and state reset behavior exactly.
+- CoreML per-token call overhead can dominate even when the graph is correct;
+  the stateful fused decoder removes cache tensor marshaling but still calls
+  CoreML once per generated token.
 - Static masks and cache lengths may decide whether ANE dispatch happens.
 - MOSS can be correct and still much slower than Parakeet/TDT-style ASR.
+- Current FluidAudio `main` was inspected as a reference clone and does not
+  contain a merged Qwen3-ASR Swift manager; MOSS would need a new
+  `ASR/MOSS` manager rather than a small model-name addition.

@@ -538,6 +538,18 @@ Generated artifacts:
 - `artifacts/coreml/moss_decoder_step_fixture.mlpackage/`
 - `artifacts/coreml/moss_decoder_step_fixture.mlmodelc/`
 - `artifacts/coreml/moss_decoder_step_fixture.json`
+- `artifacts/coreml/moss_decoder_step_padded_fixture.mlpackage/`
+- `artifacts/coreml/moss_decoder_step_padded_fixture.mlmodelc/`
+- `artifacts/coreml/moss_decoder_step_padded_fixture.json`
+- `artifacts/coreml/moss_decoder_step_padded_1layer_fixture.mlpackage/`
+- `artifacts/coreml/moss_decoder_step_padded_1layer_fixture.mlmodelc/`
+- `artifacts/coreml/moss_decoder_step_padded_1layer_fixture.json`
+- `artifacts/coreml/moss_decoder_stateful_fused.mlpackage/`
+- `artifacts/coreml/moss_decoder_stateful_fused.mlmodelc/`
+- `artifacts/coreml/moss_decoder_stateful_fused.json`
+- `artifacts/coreml/moss_decoder_stateful_fused_1layer.mlpackage/`
+- `artifacts/coreml/moss_decoder_stateful_fused_1layer.mlmodelc/`
+- `artifacts/coreml/moss_decoder_stateful_fused_1layer.json`
 
 Current default contract:
 
@@ -560,6 +572,7 @@ Planned pieces:
 - `moss_token_embedding.mlpackage`.
 - `moss_decoder_prefill.mlpackage`.
 - `moss_decoder_step_cache_external.mlpackage`.
+- `moss_decoder_stateful_fused.mlpackage`.
 
 Mobius relation:
 
@@ -578,6 +591,8 @@ Fixture component probes completed on `home-mac`:
 | `moss_audio_encoder_adapter_fixture` | mel `[128, 1484]` | output `[193, 2048]`; max/mean diff vs PyTorch `0.002675` / `0.000354` |
 | `moss_decoder_prefill_fixture` | merged embeds `[1, 203, 2048]` | top-1 token `4197`; max/mean diff vs PyTorch `0.048508` / `0.017621` |
 | `moss_decoder_step_fixture` | token `4197`, KV `[28, 1, 8, 203, 128]` | top-1 token `1059`; max/mean diff vs PyTorch `0.040039` / `0.015691` |
+| `moss_decoder_step_padded_fixture` | token `4197`, padded KV `[28, 1, 8, 768, 128]` | top-1 token `1059`; padded Torch path matches append-cache Torch exactly on valid logits/cache slices; CoreML vs Torch logits max/mean diff `0.040039` / `0.015691` |
+| `moss_decoder_stateful_fused` | prefill `[1, 203, 2048]`, then token `4197` with same CoreML state | prefill top-1 `4197`; step top-1 `1059`; 56 CoreML state tensors `[1, 8, 768, 128]`; CoreML vs static step logits max/mean diff `0.038696` / `0.015730` |
 
 Retained full-component package sizes:
 
@@ -587,21 +602,31 @@ Retained full-component package sizes:
 | `moss_audio_encoder_adapter_fixture` | 1.4G | 1.4G |
 | `moss_decoder_prefill_fixture` | 3.3G | 3.3G |
 | `moss_decoder_step_fixture` | 3.3G | 3.3G |
+| `moss_decoder_step_padded_fixture` | 3.3G | 3.3G |
+| `moss_decoder_stateful_fused` | 3.3G | 3.3G |
 
 Notes:
 
 - CoreMLTools warned that Torch 2.12.1 is newer than its tested Torch version.
   The conversions, CoreML predictions, and compile checks still passed.
 - The audio encoder and decoder exporters use fixed LibriSpeech fixture shapes.
-- The decoder step proves a cache-external transition from `past_len=203` to
-  `204`, but it is not yet the production padded-cache loop for the planned
-  768-token cache window.
+- The fixed append-cache decoder step proves the original `past_len=203` to
+  `204` fixture transition.
+- The padded decoder step proves the planned 768-token external-cache window
+  with host-provided update mask, attention mask, and RoPE tensors.
+- The stateful fused decoder proves the Mobius-style CoreML State API path for
+  the fixture: one CoreML state object survives prefill and the first decode
+  step. It requires macOS 15+ and is still not a Swift/FluidAudio runtime.
 - The packages and compiled models are retained locally under ignored
   `artifacts/coreml/`.
 - A working Mac copy exists at
   `/Users/simonpeacocks/GitHub/moss-mlx-conversion` with the CoreML uv
   environment and generated component artifacts. Local `artifacts/coreml/`
   remains the canonical copy for retained outputs.
+- A reference-only FluidAudio clone at `/tmp/FluidAudio` was inspected at
+  `a95ec26`; current `main` does not contain a merged Qwen3-ASR Swift manager.
+  A MOSS backend would need a new `ASR/MOSS` manager/model store rather than a
+  small model-name addition.
 
 ## Reproduction Commands
 
@@ -646,19 +671,29 @@ uv run --project projects/moss-mlx-conversion --extra mac --locked moss-mlx-smok
 
 ## Next Chunk
 
-The minimum full conversion is proven: PyTorch reference, processor parity,
-BF16 MLX weights, strict MLX load, Apple Silicon transcript parity, gated
-real-weight tests, backend shape, quantized candidates, and private local
-manifests.
+The private conversion now has two completed tracks:
 
-Next work should focus on deciding whether to use MOSS as a teacher or pursue a
-separate CoreML experiment:
+1. MLX reference/runtime track: PyTorch reference, processor parity, BF16 MLX
+   weights, strict MLX load, Apple Silicon transcript parity, gated
+   real-weight tests, backend shape, quantized candidates, and private local
+   manifests.
+2. CoreML/Mobius fixture track: token embedding, audio encoder+adapter,
+   prefill, append-cache step, padded external-cache step, and fused stateful
+   decoder all export, validate, compile, and are retained locally.
 
-1. Treat the MLX conversion as complete enough for local reference use.
-2. If using MOSS as a teacher, build a batch teacher-transcription pipeline and
-   quality gates rather than spending more time on serving-speed benchmarks.
-3. If pursuing CoreML, start a new scoped track with parity-first conversion of
-   one short fixture: audio encoder/adapter, decoder prefill, cache-external
-   decode step, and fixed-shape attention/KV inputs.
-4. Keep all work private. Public branch, PR, push, and Hugging Face upload
+The next real work is not another Python export. It is a Swift/CoreML runtime
+decision:
+
+1. If MOSS remains a teacher/reference, use the MLX/PyTorch artifacts to build
+   batch teacher transcription and quality gates.
+2. If pursuing FluidAudio-level runtime, create a private Swift `ASR/MOSS`
+   manager that loads token embedding, audio encoder+adapter, and
+   `moss_decoder_stateful_fused.mlmodelc`; reproduces MOSS prompt/audio-mask
+   embedding insertion; generates Qwen3 RoPE tensors; resets/passes CoreML
+   state; and greedy-decodes until stop tokens.
+3. Run a single LibriSpeech fixture through that Swift runtime and require the
+   first two generated tokens `[4197, 1059]` before any WER benchmark.
+4. Then run the existing 20-row clean-test eval and profile compute placement.
+   Only after that should quantized CoreML or artifact publication be scoped.
+5. Keep all work private. Public branch, PR, push, and Hugging Face upload
    remain out of scope until explicitly requested.

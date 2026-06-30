@@ -276,6 +276,151 @@ class StaticQwen3DecoderStep(nn.Module):
         return logits, torch.stack(updated_keys), torch.stack(updated_values)
 
 
+class StaticQwen3PaddedDecoderStep(nn.Module):
+    def __init__(self, *, model: Qwen3Model, cache_len: int, num_layers: int) -> None:
+        super().__init__()
+        self.model = model
+        self.cache_len = cache_len
+        self.num_layers = num_layers
+        self.num_heads = int(model.config.num_attention_heads)
+        self.num_key_value_heads = int(model.config.num_key_value_heads)
+        self.num_key_value_groups = self.num_heads // self.num_key_value_heads
+        self.head_dim = int(model.config.head_dim)
+        self.hidden_size = int(model.config.hidden_size)
+
+    def _rotate_half(self, value: torch.Tensor) -> torch.Tensor:
+        half_dim = self.head_dim // 2
+        return torch.cat((-value[..., half_dim:], value[..., :half_dim]), dim=-1)
+
+    def _apply_rotary_pos_emb(
+        self,
+        query_states: torch.Tensor,
+        key_states: torch.Tensor,
+        cos: torch.Tensor,
+        sin: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        cos = cos.unsqueeze(1)
+        sin = sin.unsqueeze(1)
+        query_embed = (query_states * cos) + (self._rotate_half(query_states) * sin)
+        key_embed = (key_states * cos) + (self._rotate_half(key_states) * sin)
+        return query_embed, key_embed
+
+    def _static_attention(
+        self,
+        layer: nn.Module,
+        hidden_states: torch.Tensor,
+        past_key: torch.Tensor,
+        past_value: torch.Tensor,
+        cache_update_mask: torch.Tensor,
+        attention_mask: torch.Tensor,
+        cos: torch.Tensor,
+        sin: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        attention = layer.self_attn
+        query_states = attention.q_norm(
+            attention.q_proj(hidden_states).view(1, 1, self.num_heads, self.head_dim)
+        ).transpose(1, 2)
+        key_states = attention.k_norm(
+            attention.k_proj(hidden_states).view(1, 1, self.num_key_value_heads, self.head_dim)
+        ).transpose(1, 2)
+        value_states = attention.v_proj(hidden_states).view(
+            1,
+            1,
+            self.num_key_value_heads,
+            self.head_dim,
+        ).transpose(1, 2)
+
+        query_states, key_states = self._apply_rotary_pos_emb(
+            query_states,
+            key_states,
+            cos,
+            sin,
+        )
+        updated_key = (past_key * (1.0 - cache_update_mask)) + (key_states * cache_update_mask)
+        updated_value = (past_value * (1.0 - cache_update_mask)) + (
+            value_states * cache_update_mask
+        )
+        attention_keys = updated_key
+        attention_values = updated_value
+        if self.num_key_value_groups > 1:
+            attention_keys = attention_keys.repeat_interleave(self.num_key_value_groups, dim=1)
+            attention_values = attention_values.repeat_interleave(self.num_key_value_groups, dim=1)
+
+        attn_weights = torch.matmul(query_states, attention_keys.transpose(2, 3))
+        attn_weights = attn_weights * float(attention.scaling)
+        attn_weights = attn_weights + attention_mask.to(attn_weights.dtype)
+        attn_weights = functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(
+            query_states.dtype
+        )
+        attn_output = torch.matmul(attn_weights, attention_values)
+        attn_output = attn_output.transpose(1, 2).contiguous()
+        attn_output = attn_output.reshape(1, 1, self.hidden_size).contiguous()
+        return attention.o_proj(attn_output), updated_key, updated_value
+
+    def _static_layer(
+        self,
+        layer: nn.Module,
+        hidden_states: torch.Tensor,
+        past_key: torch.Tensor,
+        past_value: torch.Tensor,
+        cache_update_mask: torch.Tensor,
+        attention_mask: torch.Tensor,
+        cos: torch.Tensor,
+        sin: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        residual = hidden_states
+        hidden_states = layer.input_layernorm(hidden_states)
+        attn_output, updated_key, updated_value = self._static_attention(
+            layer,
+            hidden_states,
+            past_key,
+            past_value,
+            cache_update_mask,
+            attention_mask,
+            cos,
+            sin,
+        )
+        hidden_states = residual + attn_output
+
+        residual = hidden_states
+        hidden_states = layer.post_attention_layernorm(hidden_states)
+        hidden_states = layer.mlp(hidden_states)
+        return residual + hidden_states, updated_key, updated_value
+
+    def forward(
+        self,
+        inputs_embeds: torch.Tensor,
+        past_keys: torch.Tensor,
+        past_values: torch.Tensor,
+        cache_update_mask: torch.Tensor,
+        attention_mask: torch.Tensor,
+        cos: torch.Tensor,
+        sin: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        hidden_states = inputs_embeds
+        updated_keys = []
+        updated_values = []
+        for layer_idx, layer in enumerate(self.model.layers[: self.num_layers]):
+            hidden_states, key_states, value_states = self._static_layer(
+                layer,
+                hidden_states,
+                past_keys[layer_idx],
+                past_values[layer_idx],
+                cache_update_mask,
+                attention_mask,
+                cos,
+                sin,
+            )
+            updated_keys.append(key_states)
+            updated_values.append(value_states)
+        hidden_states = self.model.norm(hidden_states)
+        logits = torch.matmul(
+            hidden_states[:, -1, :],
+            self.model.embed_tokens.weight.transpose(0, 1),
+        )
+        return logits, torch.stack(updated_keys), torch.stack(updated_values)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Export MOSS Qwen3 one-token decoder step to CoreML."
@@ -291,6 +436,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--trace-dtype", choices=["fp32", "fp16"], default="fp32")
     parser.add_argument("--compute-precision", choices=["float16", "float32"], default="float16")
     parser.add_argument("--num-layers", type=int, default=28)
+    parser.add_argument("--cache-mode", choices=["append", "padded"], default="append")
+    parser.add_argument("--cache-len", type=int, default=768)
     return parser.parse_args()
 
 
@@ -410,6 +557,105 @@ def build_fixture(
     }
 
 
+def step_rope(
+    *,
+    model: Qwen3Model,
+    position: int,
+    dtype: torch.dtype,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    with torch.no_grad():
+        hidden = torch.zeros(1, 1, int(model.config.hidden_size), dtype=dtype)
+        position_ids = torch.tensor([[position]], dtype=torch.long)
+        cos, sin = model.rotary_emb(hidden, position_ids)
+    return cos.to(dtype=dtype), sin.to(dtype=dtype)
+
+
+def build_padded_fixture(
+    *,
+    model: Qwen3Model,
+    reference_tensors: Path,
+    dtype: torch.dtype,
+    num_layers: int,
+    cache_len: int,
+) -> dict[str, Any]:
+    fixture = build_fixture(
+        model=model,
+        reference_tensors=reference_tensors,
+        dtype=dtype,
+        num_layers=num_layers,
+    )
+    past_keys = fixture["past_keys"]
+    past_values = fixture["past_values"]
+    past_len = int(past_keys.shape[3])
+    if cache_len <= past_len:
+        raise ValueError(f"cache_len={cache_len} must be greater than past_len={past_len}")
+
+    padded_keys = torch.zeros(
+        num_layers,
+        1,
+        int(model.config.num_key_value_heads),
+        cache_len,
+        int(model.config.head_dim),
+        dtype=dtype,
+    )
+    padded_values = torch.zeros_like(padded_keys)
+    padded_keys[:, :, :, :past_len, :] = past_keys
+    padded_values[:, :, :, :past_len, :] = past_values
+
+    cache_update_mask = torch.zeros(1, 1, cache_len, 1, dtype=dtype)
+    cache_update_mask[:, :, past_len, :] = 1
+    attention_mask = torch.full((1, 1, 1, cache_len), -1e9, dtype=dtype)
+    attention_mask[:, :, :, : past_len + 1] = 0
+    cos, sin = step_rope(model=model, position=past_len, dtype=dtype)
+
+    padded_step = StaticQwen3PaddedDecoderStep(
+        model=model,
+        cache_len=cache_len,
+        num_layers=num_layers,
+    )
+    with torch.no_grad():
+        logits, updated_keys, updated_values = padded_step(
+            fixture["first_token_embeds"],
+            padded_keys,
+            padded_values,
+            cache_update_mask,
+            attention_mask,
+            cos,
+            sin,
+        )
+
+    return {
+        **fixture,
+        "cache_len": cache_len,
+        "past_len": past_len,
+        "padded_keys": padded_keys,
+        "padded_values": padded_values,
+        "cache_update_mask": cache_update_mask,
+        "attention_mask": attention_mask,
+        "cos": cos,
+        "sin": sin,
+        "padded_step_logits": logits.detach().cpu().float().numpy(),
+        "padded_updated_keys": updated_keys.detach().cpu().float().numpy(),
+        "padded_updated_values": updated_values.detach().cpu().float().numpy(),
+    }
+
+
+def valid_cache_diff_stats(
+    actual: np.ndarray,
+    expected: np.ndarray,
+    *,
+    valid_len: int,
+) -> dict[str, Any]:
+    return diff_stats(actual[:, :, :, :valid_len, :], expected)
+
+
+def future_cache_abs_max(actual: np.ndarray, *, valid_len: int) -> float:
+    future = actual[:, :, :, valid_len:, :]
+    if future.size == 0:
+        return 0.0
+    return float(np.abs(future.astype(np.float32)).max())
+
+
 def torch_check(
     *,
     weights: Path,
@@ -443,6 +689,71 @@ def torch_check(
         "step_logits_topk": step_topk,
         "step_top1_matches_expected_second_token": step_topk["indices"][0]
         == fixture["second_token_id"],
+    }
+
+
+def torch_check_padded(
+    *,
+    weights: Path,
+    config: Path,
+    reference_tensors: Path,
+    trace_dtype_name: str,
+    num_layers: int,
+    cache_len: int,
+) -> dict[str, Any]:
+    dtype = torch_dtype(trace_dtype_name)
+    model = build_model(config_path=config, weights_path=weights, dtype=dtype)
+    fixture = build_padded_fixture(
+        model=model,
+        reference_tensors=reference_tensors,
+        dtype=dtype,
+        num_layers=num_layers,
+        cache_len=cache_len,
+    )
+    step_topk = topk(fixture["padded_step_logits"])
+    valid_len = int(fixture["past_len"]) + 1
+    return {
+        "weights": str(weights),
+        "config": str(config),
+        "reference_tensors": str(reference_tensors),
+        "trace_dtype": trace_dtype_name,
+        "num_layers": num_layers,
+        "cache_mode": "padded",
+        "cache_len": cache_len,
+        "past_len": fixture["past_len"],
+        "valid_len_after_step": valid_len,
+        "padded_keys_shape": list(fixture["padded_keys"].shape),
+        "padded_values_shape": list(fixture["padded_values"].shape),
+        "updated_keys_shape": list(fixture["padded_updated_keys"].shape),
+        "updated_values_shape": list(fixture["padded_updated_values"].shape),
+        "first_token_id": fixture["first_token_id"],
+        "expected_second_token_id": fixture["second_token_id"],
+        "step_logits_shape": list(fixture["padded_step_logits"].shape),
+        "step_logits_topk": step_topk,
+        "step_top1_matches_expected_second_token": step_topk["indices"][0]
+        == fixture["second_token_id"],
+        "padded_vs_append_logits": diff_stats(
+            fixture["padded_step_logits"],
+            fixture["step_logits"],
+        ),
+        "padded_vs_append_valid_updated_keys": valid_cache_diff_stats(
+            fixture["padded_updated_keys"],
+            fixture["updated_keys"],
+            valid_len=valid_len,
+        ),
+        "padded_vs_append_valid_updated_values": valid_cache_diff_stats(
+            fixture["padded_updated_values"],
+            fixture["updated_values"],
+            valid_len=valid_len,
+        ),
+        "future_updated_keys_abs_max": future_cache_abs_max(
+            fixture["padded_updated_keys"],
+            valid_len=valid_len,
+        ),
+        "future_updated_values_abs_max": future_cache_abs_max(
+            fixture["padded_updated_values"],
+            valid_len=valid_len,
+        ),
     }
 
 
@@ -568,31 +879,231 @@ def export_decoder_step(
     }
 
 
+def export_padded_decoder_step(
+    *,
+    weights: Path,
+    config: Path,
+    reference_tensors: Path,
+    output_dir: Path,
+    package_name: str,
+    trace_dtype_name: str,
+    compute_precision_name: str,
+    num_layers: int,
+    cache_len: int,
+    validate_predict: bool,
+    overwrite: bool,
+) -> dict[str, Any]:
+    import coremltools as ct
+
+    dtype = torch_dtype(trace_dtype_name)
+    model = build_model(config_path=config, weights_path=weights, dtype=dtype)
+    fixture = build_padded_fixture(
+        model=model,
+        reference_tensors=reference_tensors,
+        dtype=dtype,
+        num_layers=num_layers,
+        cache_len=cache_len,
+    )
+    step_module = StaticQwen3PaddedDecoderStep(
+        model=model,
+        cache_len=cache_len,
+        num_layers=num_layers,
+    )
+    step_module.eval()
+
+    inputs = (
+        fixture["first_token_embeds"],
+        fixture["padded_keys"],
+        fixture["padded_values"],
+        fixture["cache_update_mask"],
+        fixture["attention_mask"],
+        fixture["cos"],
+        fixture["sin"],
+    )
+    with torch.no_grad():
+        torch_logits, torch_updated_keys, torch_updated_values = step_module(*inputs)
+        traced = torch.jit.trace(step_module, inputs, strict=False)
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    package_path = output_dir / package_name
+    if package_path.exists():
+        if not overwrite:
+            raise FileExistsError(f"{package_path} exists; pass --overwrite to replace it")
+        shutil.rmtree(package_path)
+
+    mlmodel = ct.convert(
+        traced,
+        convert_to="mlprogram",
+        inputs=[
+            ct.TensorType(
+                name="inputs_embeds",
+                shape=fixture["first_token_embeds"].shape,
+                dtype=np.float32,
+            ),
+            ct.TensorType(name="past_keys", shape=fixture["padded_keys"].shape, dtype=np.float32),
+            ct.TensorType(
+                name="past_values",
+                shape=fixture["padded_values"].shape,
+                dtype=np.float32,
+            ),
+            ct.TensorType(
+                name="cache_update_mask",
+                shape=fixture["cache_update_mask"].shape,
+                dtype=np.float32,
+            ),
+            ct.TensorType(
+                name="attention_mask",
+                shape=fixture["attention_mask"].shape,
+                dtype=np.float32,
+            ),
+            ct.TensorType(name="cos", shape=fixture["cos"].shape, dtype=np.float32),
+            ct.TensorType(name="sin", shape=fixture["sin"].shape, dtype=np.float32),
+        ],
+        outputs=[
+            ct.TensorType(name="logits"),
+            ct.TensorType(name="updated_keys"),
+            ct.TensorType(name="updated_values"),
+        ],
+        minimum_deployment_target=ct.target.macOS14,
+        compute_precision=coreml_compute_precision(compute_precision_name),
+    )
+    mlmodel.save(str(package_path))
+
+    valid_len = int(fixture["past_len"]) + 1
+    torch_logits_np = torch_logits.detach().cpu().float().numpy()
+    torch_updated_keys_np = torch_updated_keys.detach().cpu().float().numpy()
+    torch_updated_values_np = torch_updated_values.detach().cpu().float().numpy()
+
+    coreml_validation: dict[str, Any] | None = None
+    if validate_predict:
+        prediction = mlmodel.predict(
+            {
+                "inputs_embeds": fixture["first_token_embeds"].detach().cpu().float().numpy(),
+                "past_keys": fixture["padded_keys"].detach().cpu().float().numpy(),
+                "past_values": fixture["padded_values"].detach().cpu().float().numpy(),
+                "cache_update_mask": fixture["cache_update_mask"].detach().cpu().float().numpy(),
+                "attention_mask": fixture["attention_mask"].detach().cpu().float().numpy(),
+                "cos": fixture["cos"].detach().cpu().float().numpy(),
+                "sin": fixture["sin"].detach().cpu().float().numpy(),
+            }
+        )
+        coreml_logits = np.asarray(prediction["logits"])
+        coreml_validation = {
+            "vs_torch_logits": diff_stats(coreml_logits, torch_logits_np),
+            "coreml_topk": topk(coreml_logits),
+            "coreml_top1_matches_expected_second_token": topk(coreml_logits)["indices"][0]
+            == fixture["second_token_id"],
+        }
+        if "updated_keys" in prediction:
+            coreml_validation["vs_torch_updated_keys"] = diff_stats(
+                np.asarray(prediction["updated_keys"]),
+                torch_updated_keys_np,
+            )
+        if "updated_values" in prediction:
+            coreml_validation["vs_torch_updated_values"] = diff_stats(
+                np.asarray(prediction["updated_values"]),
+                torch_updated_values_np,
+            )
+
+    torch_topk = topk(torch_logits_np)
+    return {
+        "weights": str(weights),
+        "config": str(config),
+        "reference_tensors": str(reference_tensors),
+        "output_package": str(package_path),
+        "trace_dtype": trace_dtype_name,
+        "compute_precision": compute_precision_name,
+        "num_layers": num_layers,
+        "cache_mode": "padded",
+        "cache_len": cache_len,
+        "past_len": int(fixture["past_len"]),
+        "valid_len_after_step": valid_len,
+        "first_token_id": fixture["first_token_id"],
+        "expected_second_token_id": fixture["second_token_id"],
+        "past_keys_shape": list(fixture["padded_keys"].shape),
+        "past_values_shape": list(fixture["padded_values"].shape),
+        "updated_keys_shape": list(torch_updated_keys.shape),
+        "updated_values_shape": list(torch_updated_values.shape),
+        "torch_logits_shape": list(torch_logits.shape),
+        "torch_logits_topk": torch_topk,
+        "torch_top1_matches_expected_second_token": torch_topk["indices"][0]
+        == fixture["second_token_id"],
+        "padded_vs_append_logits": diff_stats(
+            torch_logits_np,
+            fixture["step_logits"],
+        ),
+        "padded_vs_append_valid_updated_keys": valid_cache_diff_stats(
+            torch_updated_keys_np,
+            fixture["updated_keys"],
+            valid_len=valid_len,
+        ),
+        "padded_vs_append_valid_updated_values": valid_cache_diff_stats(
+            torch_updated_values_np,
+            fixture["updated_values"],
+            valid_len=valid_len,
+        ),
+        "future_updated_keys_abs_max": future_cache_abs_max(
+            torch_updated_keys_np,
+            valid_len=valid_len,
+        ),
+        "future_updated_values_abs_max": future_cache_abs_max(
+            torch_updated_values_np,
+            valid_len=valid_len,
+        ),
+        "coreml_validation": coreml_validation,
+    }
+
+
 def main() -> None:
     args = parse_args()
     if args.torch_check_only:
-        manifest = torch_check(
-            weights=args.weights.resolve(),
-            config=args.config.resolve(),
-            reference_tensors=args.reference_tensors.resolve(),
-            trace_dtype_name=args.trace_dtype,
-            num_layers=args.num_layers,
-        )
+        if args.cache_mode == "padded":
+            manifest = torch_check_padded(
+                weights=args.weights.resolve(),
+                config=args.config.resolve(),
+                reference_tensors=args.reference_tensors.resolve(),
+                trace_dtype_name=args.trace_dtype,
+                num_layers=args.num_layers,
+                cache_len=args.cache_len,
+            )
+        else:
+            manifest = torch_check(
+                weights=args.weights.resolve(),
+                config=args.config.resolve(),
+                reference_tensors=args.reference_tensors.resolve(),
+                trace_dtype_name=args.trace_dtype,
+                num_layers=args.num_layers,
+            )
         print(json.dumps(manifest, indent=2, sort_keys=True))
         return
 
-    manifest = export_decoder_step(
-        weights=args.weights.resolve(),
-        config=args.config.resolve(),
-        reference_tensors=args.reference_tensors.resolve(),
-        output_dir=args.output_dir.resolve(),
-        package_name=args.package_name,
-        trace_dtype_name=args.trace_dtype,
-        compute_precision_name=args.compute_precision,
-        num_layers=args.num_layers,
-        validate_predict=args.validate_predict,
-        overwrite=args.overwrite,
-    )
+    if args.cache_mode == "padded":
+        manifest = export_padded_decoder_step(
+            weights=args.weights.resolve(),
+            config=args.config.resolve(),
+            reference_tensors=args.reference_tensors.resolve(),
+            output_dir=args.output_dir.resolve(),
+            package_name=args.package_name,
+            trace_dtype_name=args.trace_dtype,
+            compute_precision_name=args.compute_precision,
+            num_layers=args.num_layers,
+            cache_len=args.cache_len,
+            validate_predict=args.validate_predict,
+            overwrite=args.overwrite,
+        )
+    else:
+        manifest = export_decoder_step(
+            weights=args.weights.resolve(),
+            config=args.config.resolve(),
+            reference_tensors=args.reference_tensors.resolve(),
+            output_dir=args.output_dir.resolve(),
+            package_name=args.package_name,
+            trace_dtype_name=args.trace_dtype,
+            compute_precision_name=args.compute_precision,
+            num_layers=args.num_layers,
+            validate_predict=args.validate_predict,
+            overwrite=args.overwrite,
+        )
     manifest_path = Path(manifest["output_package"]).with_suffix(".json")
     write_json(manifest_path, manifest)
     print(json.dumps(manifest, indent=2, sort_keys=True))

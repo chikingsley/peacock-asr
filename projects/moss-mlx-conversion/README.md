@@ -57,9 +57,15 @@ Current short version:
   prefill/cache shapes, and parity gates. This is planning/export groundwork,
   not a CoreML model yet.
 - Private CoreML fixture exports now cover token embedding, audio
-  encoder+adapter, full decoder prefill, and a full one-token cache-external
-  decoder step. All exported packages validated against PyTorch fixture
-  tensors on `home-mac` and compiled with `xcrun coremlcompiler`.
+  encoder+adapter, full decoder prefill, fixed append-cache decoder step,
+  padded 768-slot cache-external decoder step, and a fused stateful decoder
+  with CoreML State API KV buffers. All exported packages validated against
+  PyTorch fixture tensors on `home-mac` and compiled with
+  `xcrun coremlcompiler`.
+- The fused stateful decoder is the current Mobius-style finish-line artifact:
+  one CoreML model handles prompt prefill and the next decode call with the
+  same internal state, ranking fixture tokens `4197` then `1059`. It is not
+  yet a FluidAudio Swift backend or benchmarked end-to-end runtime.
 - No public upload/branch/PR action has been taken.
 
 ## Layout

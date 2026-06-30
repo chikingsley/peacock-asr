@@ -79,11 +79,50 @@ uv run --project projects/moss-mlx-conversion/coreml --locked \
   --overwrite
 ```
 
+The production-shaped cache-external step uses the same exporter with a fixed
+768-token padded cache:
+
+```bash
+uv run --project projects/moss-mlx-conversion/coreml --locked \
+  projects/moss-mlx-conversion/coreml/export_decoder_step.py \
+  --cache-mode padded \
+  --cache-len 768 \
+  --num-layers 28 \
+  --trace-dtype fp32 \
+  --compute-precision float16 \
+  --validate-predict \
+  --overwrite \
+  --package-name moss_decoder_step_padded_fixture.mlpackage
+```
+
+The Mobius-style stateful fused decoder uses CoreML State API buffers and
+requires macOS 15+:
+
+```bash
+uv run --project projects/moss-mlx-conversion/coreml --locked \
+  projects/moss-mlx-conversion/coreml/export_decoder_stateful.py \
+  --cache-len 768 \
+  --num-layers 28 \
+  --trace-dtype fp32 \
+  --compute-precision float16 \
+  --validate-predict \
+  --overwrite \
+  --package-name moss_decoder_stateful_fused.mlpackage
+```
+
 Compile on macOS with:
 
 ```bash
 xcrun coremlcompiler compile <package.mlpackage> <output-dir>
 ```
 
-The decoder step currently proves a fixed fixture cache transition
-`past_len=203 -> 204`; it is not yet the production padded-cache loop.
+The retained decoder artifacts now cover three stages:
+
+- `moss_decoder_step_fixture`: fixed append-cache fixture transition
+  `past_len=203 -> 204`.
+- `moss_decoder_step_padded_fixture`: fixed 768-slot external-cache contract
+  with host-provided update mask, attention mask, and RoPE tensors.
+- `moss_decoder_stateful_fused`: one fused decoder package with final norm,
+  tied LM head projection, and 56 CoreML State API KV tensors. It validates
+  `prefill -> one decode step` with a single CoreML state object, but it still
+  needs a Swift runtime loop before it is a FluidAudio backend.

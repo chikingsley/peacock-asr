@@ -70,3 +70,12 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   Feeding token `4197` ranks `1059` first, matching the next saved reference
   token; CoreML vs PyTorch logits drift: max abs diff 0.040039, mean abs diff
   0.015691.
+- Added the padded 768-token external-cache decoder-step contract. The full
+  28-layer `moss_decoder_step_padded_fixture.mlpackage` validates token
+  `4197 -> 1059`, matches the append-cache Torch path exactly on valid
+  logits/cache slices, compiles to `.mlmodelc`, and is retained locally.
+- Added a Mobius-style fused stateful decoder exporter using 56 CoreML State
+  API KV tensors plus final norm/tied LM head projection. The full
+  `moss_decoder_stateful_fused.mlpackage` validates a two-call
+  `prefill -> decode` fixture with one CoreML state object, ranking `4197`
+  then `1059`, compiles to `.mlmodelc`, and is retained locally.
