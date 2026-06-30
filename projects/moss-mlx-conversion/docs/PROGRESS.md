@@ -582,6 +582,12 @@ Generated artifacts:
 - `artifacts/evals/librispeech-test-clean-swift-coreml-2/audio/*.wav`
 - `artifacts/evals/librispeech-test-clean-swift-coreml-2/reference/*.txt`
 - `artifacts/evals/librispeech-test-clean-swift-coreml-2/swift-json/*.json`
+- `artifacts/evals/librispeech-test-clean-swift-coreml-20/predictions.jsonl`
+- `artifacts/evals/librispeech-test-clean-swift-coreml-20/audio/*.wav`
+- `artifacts/evals/librispeech-test-clean-swift-coreml-20/reference/*.txt`
+- `artifacts/evals/librispeech-test-clean-swift-coreml-20/reference/*.json`
+- `artifacts/evals/librispeech-test-clean-swift-coreml-20/swift-json/*.json`
+- `artifacts/coreml/moss_swift_coreml_audio_30s_padded_cpu_gpu_librispeech_row3_prefill_only.json`
 
 Current default contract:
 
@@ -643,6 +649,7 @@ Fixture component probes completed on `home-mac`:
 | Swift 30s padded-audio fixture with reference-text scoring | same fixture WAV, `--reference-text-file artifacts/coreml/reference_text/libri1.txt`, `--compare-fixture-audio` | generated all 52 expected IDs/text exactly, stopped on EOS token `151645`, raw/normalized WER/CER all `0.0`; mel max/mean diff `0.003906` / `0.000515`; total time `8.43s` |
 | Swift 30s padded-audio non-fixture row | LibriSpeech clean-test row `6930-75918-0001`, 14.23s WAV, reference text file, `--max-new-tokens 160`, `--compute-units cpu-gpu` | prompt length 195; audio tokens 185; generated 47 tokens and stopped on EOS `151645`; normalized WER/CER `0.0`; raw WER/CER `1.0` / `0.8304` from case/punctuation; total time `8.25s`, including `0.139s` audio frontend, `1.34s` audio encoder+adapter, `0.770s` decoder prefill, and `5.77s` decoder decode calls |
 | `moss-swift-coreml-eval` two-row batch | LibriSpeech clean-test rows 1-2, streamed HF rows/audio materialized to WAV/reference files, process-per-row Swift runner | WER/CER `0.0`; total audio 19.25s; summed Swift model time 13.43s; RTFx 1.43; wall time 42.99s; timing totals: 2.62s audio encoder+adapter, 8.60s decoder decode, 1.63s decoder prefill |
+| attempted 20-row Swift/CoreML batch | LibriSpeech clean-test rows 0-19 requested through `moss-swift-coreml-eval` | rows 0-2 completed with WER/CER `0.0`; partial total audio 22.76s; partial summed Swift model time 14.32s; row 3 prompt length 313/audio tokens 303 prefill succeeds with top token `from`, but the first stateful decode step returns no finite logits under both `cpu-gpu` and `cpu-only` |
 
 Retained full-component package sizes:
 
@@ -706,6 +713,13 @@ Notes:
   summary. The current version launches a Swift process per row, so summary
   `rtfx` is based on summed Swift model timing, while `wall_elapsed_sec`
   includes Python fetch/write work plus process startup.
+- Swift top-k reporting now skips non-finite logits. This prevents JSON
+  encoding from crashing on `NaN`, and it exposed the real row 3 failure as
+  `decode step produced no logits`.
+- The current CoreML blocker is the stateful decoder for longer prompts. It is
+  proven at prompt lengths 56, 76, 195, and 203, but row 3's prompt length 313
+  prefilled successfully and then produced no finite logits on the first decode
+  step. The failure reproduced under both `cpu-gpu` and `cpu-only`.
 - The padded audio package failed with default `.all` compute-unit dispatch on
   `home-mac` because CoreML routed it to ANE and reported an ANE inference
   error. The same path succeeds with `--compute-units cpu-gpu`, which is the
@@ -795,11 +809,15 @@ The next real work is a Swift/CoreML runtime decision:
    Swift core, a batch benchmark harness, long-audio chunking beyond one
    30-second window, and optional general prompt tokenizer/template support
    beyond the fixed English no-time-marker path.
-3. Run the existing 20-row clean-test eval through `moss-swift-coreml-eval`.
-   If the process-per-row wall time is too noisy, make the Swift runner accept
-   a JSONL batch and keep the compiled models/state machinery alive across
-   rows.
-4. Profile compute placement and startup overhead. Only after that should
+3. Fix or work around the stateful decoder's no-finite-logits failure for
+   prompt length 313. The likely next probes are a longer-prompt CoreML export
+   trace/default shape, an external-cache Swift decoder path for row 3, or a
+   smaller bisect over prompt/audio-token length to find the failure threshold.
+4. After row 3 decodes, rerun the 20-row clean-test eval through
+   `moss-swift-coreml-eval`. If the process-per-row wall time is too noisy,
+   make the Swift runner accept a JSONL batch and keep the compiled
+   models/state machinery alive across rows.
+5. Profile compute placement and startup overhead. Only after that should
    quantized CoreML or artifact publication be scoped.
-5. Keep all work private. Public branch, PR, push, and Hugging Face upload
+6. Keep all work private. Public branch, PR, push, and Hugging Face upload
    remain out of scope until explicitly requested.

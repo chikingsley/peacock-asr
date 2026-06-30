@@ -121,3 +121,7 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   pairs, calls the Swift runner, and writes JSONL plus a summary. The initial
   two-row LibriSpeech clean-test batch scored WER/CER `0.0` with 1.43 RTFx on
   summed Swift model time.
+- Hardened Swift top-k reporting to ignore non-finite logits. The attempted
+  20-row Swift/CoreML gate completed rows 0-2 with WER/CER `0.0`, then exposed
+  the current decoder roadblock on row 3: prompt length 313 prefill succeeds,
+  but the first stateful decode step returns no finite logits.

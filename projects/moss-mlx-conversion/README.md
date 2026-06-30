@@ -99,6 +99,9 @@ Current short version:
   streamed Hugging Face rows by materializing short WAV/reference pairs and
   calling the Swift runner. The first two-row clean-test batch scored WER/CER
   `0.0` with 1.43 RTFx on summed Swift model time.
+- The 20-row Swift/CoreML gate exposed the current roadblock: rows 0-2
+  completed with WER/CER `0.0`, but row 3 has prompt length 313 and the first
+  stateful decode step produced no finite logits. Prefill for that row works.
 - No public upload/branch/PR action has been taken.
 
 ## Layout

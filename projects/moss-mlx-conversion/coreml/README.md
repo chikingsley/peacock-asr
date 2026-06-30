@@ -340,6 +340,12 @@ Swift result on `home-mac`:
   with WER/CER `0.0`, total audio 19.25s, summed Swift model time 13.43s, and
   RTFx 1.43. Wall time was 42.99s because the harness still launches a Swift
   process per row.
+- The attempted 20-row batch completed rows 0-2 with WER/CER `0.0`
+  (`22.76s` audio, `14.32s` summed Swift model time), then failed on row 3.
+  Row 3 prefill succeeds with prompt length 313 and first token `from`, but
+  the first stateful decode step returns no finite logits under both
+  `cpu-gpu` and `cpu-only`. This is the current CoreML decoder stability
+  boundary.
 - The same padded audio package failed under default `.all` compute-unit
   dispatch with an ANE inference error. Use `--compute-units cpu-gpu` for this
   package until compute placement is profiled more carefully.

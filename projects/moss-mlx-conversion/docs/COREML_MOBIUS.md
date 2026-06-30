@@ -138,6 +138,9 @@ stateful decoder proof:
 - Added `moss-swift-coreml-eval`, a repeatable batch harness that streams
   Hugging Face rows, writes short WAV/reference inputs, calls the Swift runner,
   and writes JSONL plus a corpus summary.
+- Hardened Swift top-k reporting to ignore non-finite logits. The 20-row gate
+  currently stops at row 3 because the stateful decoder's first decode step
+  returns no finite logits for prompt length 313, although prefill succeeds.
 - Compiled each package with `xcrun coremlcompiler compile`.
 - Copied retained `.mlpackage`, `.mlmodelc`, and JSON manifests back to local
   ignored `artifacts/coreml/`.
@@ -164,6 +167,7 @@ Results:
 | Swift padded-audio 52-token greedy | same padded-audio path, `--compute-units cpu-gpu` | generated IDs/text exactly match; raw/normalized WER/CER all `0.0`; total time `7.07s`, including `0.14s` audio frontend, `1.30s` audio encoder+adapter, `0.75s` decoder prefill, and `4.70s` decoder decode calls |
 | Swift padded-audio non-fixture row | LibriSpeech clean-test row `6930-75918-0001`, source WAV, reference text file, `--max-new-tokens 160`, EOS stop | prompt length 195; audio tokens 185; generated 47 tokens and stopped on `151645`; normalized WER/CER `0.0`; total time `8.25s`, including `0.14s` audio frontend, `1.34s` audio encoder+adapter, `0.77s` decoder prefill, and `5.77s` decoder decode calls |
 | `moss-swift-coreml-eval` two-row batch | LibriSpeech clean-test rows 1-2, per-row WAV/reference files, padded CoreML path | WER/CER `0.0`; total audio 19.25s; summed Swift model time 13.43s; RTFx 1.43; wall time 42.99s because each row launches a Swift process |
+| attempted 20-row Swift/CoreML batch | LibriSpeech clean-test rows 0-19 requested | rows 0-2 completed with WER/CER `0.0`; row 3 prefill succeeds at prompt length 313 and audio tokens 303, but the first stateful decode step returns no finite logits under `cpu-gpu` and `cpu-only` |
 
 Important caveat: these are still fixture-level proof components. The padded
 external-cache step proves the planned 768-token cache shape. The stateful fused
@@ -180,6 +184,13 @@ run a different <=30s WAV, but the runner still uses the fixture JSON as a
 compact config carrier for model constants and fixture-token sanity checks.
 The batch harness is also still process-per-row, so its wall time is not the
 final runtime shape.
+
+Current blocker: the stateful decoder package was validated at fixture prompt
+length 203 and works on shorter prompt lengths 56, 76, and 195. It prefilled
+row 3 at prompt length 313, but the first one-token decode call returned all
+non-finite logits. The next CoreML work should isolate whether this is a
+dynamic-state slice/cache-length bug, a stateful package tracing issue, or a
+need to fall back to a cache-external decoder for longer prompts.
 
 Compute-unit caveat: the 30-second padded audio package failed with default
 `.all` dispatch on `home-mac` because CoreML routed it to ANE and reported an

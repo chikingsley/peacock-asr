@@ -562,6 +562,9 @@ func topK(_ logits: MLMultiArray, count: Int = 5) -> [TopKEntry] {
         default:
             value = logits[index].floatValue
         }
+        if !value.isFinite {
+            continue
+        }
         winners.append(TopKEntry(index: index, value: value))
         winners.sort { $0.value > $1.value }
         if winners.count > count {
