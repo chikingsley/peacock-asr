@@ -293,6 +293,17 @@ swift run --package-path swift/MossCoreMLFixture -c release moss-coreml-fixture 
   --output coreml/build/moss_swift_coreml_audio_30s_padded_cpu_gpu_librispeech_row1.json
 ```
 
+Run a repeatable small batch from Hugging Face rows:
+
+```bash
+uv run --extra mac --locked moss-swift-coreml-eval \
+  --offset 1 \
+  --limit 2 \
+  --page-size 2 \
+  --max-new-tokens 160 \
+  --output-dir artifacts/evals/librispeech-test-clean-swift-coreml-2
+```
+
 Swift result on `home-mac`:
 
 - The 5-token greedy run exactly matched `[4197, 1059, 4158, 6177, 323]` and
@@ -325,6 +336,10 @@ Swift result on `home-mac`:
   non-fixture LibriSpeech clean-test row (`6930-75918-0001`, 14.23s) produced
   47 generated tokens, stopped on token `151645`, and matched the reference
   after normalization with WER/CER `0.0`. Total measured time was 8.25s.
+- The first `moss-swift-coreml-eval` batch on two clean-test rows completed
+  with WER/CER `0.0`, total audio 19.25s, summed Swift model time 13.43s, and
+  RTFx 1.43. Wall time was 42.99s because the harness still launches a Swift
+  process per row.
 - The same padded audio package failed under default `.all` compute-unit
   dispatch with an ANE inference error. Use `--compute-units cpu-gpu` for this
   package until compute placement is profiled more carefully.

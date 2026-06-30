@@ -116,3 +116,8 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   and makes fixture mel comparison opt-in with `--compare-fixture-audio`.
   The first non-fixture LibriSpeech clean-test row (`6930-75918-0001`) ran
   through the padded CoreML path with normalized WER/CER `0.0`.
+- Added `moss-swift-coreml-eval`, a repeatable Swift/CoreML batch eval harness
+  that streams Hugging Face row metadata/audio, writes short WAV/reference
+  pairs, calls the Swift runner, and writes JSONL plus a summary. The initial
+  two-row LibriSpeech clean-test batch scored WER/CER `0.0` with 1.43 RTFx on
+  summed Swift model time.

@@ -577,6 +577,11 @@ Generated artifacts:
 - `artifacts/coreml/nonfixture_librispeech_clean_row1/reference.txt`
 - `artifacts/coreml/nonfixture_librispeech_clean_row1/metadata.json`
 - `artifacts/coreml/moss_swift_coreml_audio_30s_padded_cpu_gpu_librispeech_row1.json`
+- `artifacts/evals/librispeech-test-clean-swift-coreml-2/summary.json`
+- `artifacts/evals/librispeech-test-clean-swift-coreml-2/predictions.jsonl`
+- `artifacts/evals/librispeech-test-clean-swift-coreml-2/audio/*.wav`
+- `artifacts/evals/librispeech-test-clean-swift-coreml-2/reference/*.txt`
+- `artifacts/evals/librispeech-test-clean-swift-coreml-2/swift-json/*.json`
 
 Current default contract:
 
@@ -637,6 +642,7 @@ Fixture component probes completed on `home-mac`:
 | Swift 30s padded-audio 52-token greedy | same padded-audio path, `--compute-units cpu-gpu` | generated IDs/text exactly match; raw/normalized WER/CER all `0.0`; total fixture time `7.07s`, including `0.138s` audio frontend, `1.30s` audio encoder+adapter, `0.748s` decoder prefill, and `4.70s` decoder decode calls |
 | Swift 30s padded-audio fixture with reference-text scoring | same fixture WAV, `--reference-text-file artifacts/coreml/reference_text/libri1.txt`, `--compare-fixture-audio` | generated all 52 expected IDs/text exactly, stopped on EOS token `151645`, raw/normalized WER/CER all `0.0`; mel max/mean diff `0.003906` / `0.000515`; total time `8.43s` |
 | Swift 30s padded-audio non-fixture row | LibriSpeech clean-test row `6930-75918-0001`, 14.23s WAV, reference text file, `--max-new-tokens 160`, `--compute-units cpu-gpu` | prompt length 195; audio tokens 185; generated 47 tokens and stopped on EOS `151645`; normalized WER/CER `0.0`; raw WER/CER `1.0` / `0.8304` from case/punctuation; total time `8.25s`, including `0.139s` audio frontend, `1.34s` audio encoder+adapter, `0.770s` decoder prefill, and `5.77s` decoder decode calls |
+| `moss-swift-coreml-eval` two-row batch | LibriSpeech clean-test rows 1-2, streamed HF rows/audio materialized to WAV/reference files, process-per-row Swift runner | WER/CER `0.0`; total audio 19.25s; summed Swift model time 13.43s; RTFx 1.43; wall time 42.99s; timing totals: 2.62s audio encoder+adapter, 8.60s decoder decode, 1.63s decoder prefill |
 
 Retained full-component package sizes:
 
@@ -694,6 +700,12 @@ Notes:
   This proves a different <=30s WAV can use the padded audio package, compact
   prompt construction, reference-text WER/CER scoring, and EOS stop. It still
   uses the compact fixture JSON as a model-constant/config carrier.
+- `moss-swift-coreml-eval` is now the repeatable batch harness for this private
+  path. It streams Hugging Face row metadata/audio, writes short WAV/reference
+  files, invokes the Swift runner, and emits per-row JSONL plus a corpus
+  summary. The current version launches a Swift process per row, so summary
+  `rtfx` is based on summed Swift model timing, while `wall_elapsed_sec`
+  includes Python fetch/write work plus process startup.
 - The padded audio package failed with default `.all` compute-unit dispatch on
   `home-mac` because CoreML routed it to ANE and reported an ANE inference
   error. The same path succeeds with `--compute-units cpu-gpu`, which is the
@@ -783,11 +795,11 @@ The next real work is a Swift/CoreML runtime decision:
    Swift core, a batch benchmark harness, long-audio chunking beyond one
    30-second window, and optional general prompt tokenizer/template support
    beyond the fixed English no-time-marker path.
-3. Build a real batch harness around the Swift runner for <=30s rows. It should
-   materialize or stream short WAV/reference pairs, call the padded CoreML
-   runtime, and write JSONL plus corpus WER/CER/RTFx.
-4. Run the existing 20-row clean-test eval through Swift/CoreML and profile
-   compute placement. Only after that should quantized CoreML or artifact
-   publication be scoped.
+3. Run the existing 20-row clean-test eval through `moss-swift-coreml-eval`.
+   If the process-per-row wall time is too noisy, make the Swift runner accept
+   a JSONL batch and keep the compiled models/state machinery alive across
+   rows.
+4. Profile compute placement and startup overhead. Only after that should
+   quantized CoreML or artifact publication be scoped.
 5. Keep all work private. Public branch, PR, push, and Hugging Face upload
    remain out of scope until explicitly requested.

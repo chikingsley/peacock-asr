@@ -46,6 +46,7 @@ moss-transcribe = "moss_mlx_conversion.backend.moss_transcribe:main"
 moss-quantize = "moss_mlx_conversion.conversion.quantize:main"
 moss-package-manifest = "moss_mlx_conversion.conversion.package:main"
 moss-coreml-plan = "moss_mlx_conversion.coreml.plan:main"
+moss-swift-coreml-eval = "moss_mlx_conversion.coreml.swift_eval:main"
 
 [project.optional-dependencies]
 mac = [

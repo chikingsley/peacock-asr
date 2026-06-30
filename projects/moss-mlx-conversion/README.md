@@ -95,6 +95,10 @@ Current short version:
   non-fixture LibriSpeech clean-test row (`6930-75918-0001`, 14.23s) ran
   through the padded audio path, generated 47 tokens, stopped on `151645`, and
   matched the reference after normalization with WER/CER `0.0`.
+- `moss-swift-coreml-eval` now runs a repeatable Swift/CoreML batch eval over
+  streamed Hugging Face rows by materializing short WAV/reference pairs and
+  calling the Swift runner. The first two-row clean-test batch scored WER/CER
+  `0.0` with 1.43 RTFx on summed Swift model time.
 - No public upload/branch/PR action has been taken.
 
 ## Layout
