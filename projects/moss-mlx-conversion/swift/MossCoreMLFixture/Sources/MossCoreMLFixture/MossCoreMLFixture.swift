@@ -7,8 +7,12 @@ struct Fixture: Decodable {
     let hiddenSize: Int
     let headDim: Int
     let ropeTheta: Double
-    let inputIds: [Int32]
-    let audioInputMask: [Bool]
+    let inputIds: [Int32]?
+    let audioInputMask: [Bool]?
+    let promptPrefixIds: [Int32]?
+    let promptSuffixIds: [Int32]?
+    let audioTokenCount: Int?
+    let audioPlaceholderId: Int32?
     let audioDataShape: [Int]
     let audioData: [Float]
     let audioDataSeqlens: [Int32]
@@ -21,10 +25,28 @@ struct Fixture: Decodable {
         case ropeTheta = "rope_theta"
         case inputIds = "input_ids"
         case audioInputMask = "audio_input_mask"
+        case promptPrefixIds = "prompt_prefix_ids"
+        case promptSuffixIds = "prompt_suffix_ids"
+        case audioTokenCount = "audio_token_count"
+        case audioPlaceholderId = "audio_placeholder_id"
         case audioDataShape = "audio_data_shape"
         case audioData = "audio_data"
         case audioDataSeqlens = "audio_data_seqlens"
         case generatedIds = "generated_ids"
+    }
+}
+
+struct Prompt {
+    let inputIds: [Int32]
+    let audioInputMask: [Bool]
+    let source: String
+
+    var promptLen: Int {
+        inputIds.count
+    }
+
+    var audioTokenCount: Int {
+        audioInputMask.filter { $0 }.count
     }
 }
 
@@ -80,6 +102,7 @@ struct Timing: Encodable {
 struct Result: Encodable {
     let fixture: String
     let packagesDir: String
+    let promptSource: String
     let promptLen: Int
     let audioTokenCount: Int
     let firstTokenId: Int
@@ -106,6 +129,7 @@ struct Result: Encodable {
     enum CodingKeys: String, CodingKey {
         case fixture
         case packagesDir = "packages_dir"
+        case promptSource = "prompt_source"
         case promptLen = "prompt_len"
         case audioTokenCount = "audio_token_count"
         case firstTokenId = "first_token_id"
@@ -212,6 +236,47 @@ func loadFixture(_ url: URL) throws -> Fixture {
     return try decoder.decode(Fixture.self, from: data)
 }
 
+func resolvePrompt(_ fixture: Fixture) throws -> Prompt {
+    if let prefixIds = fixture.promptPrefixIds,
+       let suffixIds = fixture.promptSuffixIds,
+       let audioTokenCount = fixture.audioTokenCount
+    {
+        guard audioTokenCount >= 0 else {
+            throw RunnerError.invalidArgument("audio_token_count must be non-negative")
+        }
+        let placeholderId = fixture.audioPlaceholderId ?? 0
+        let inputIds = prefixIds
+            + [Int32](repeating: placeholderId, count: audioTokenCount)
+            + suffixIds
+        let audioInputMask = [Bool](repeating: false, count: prefixIds.count)
+            + [Bool](repeating: true, count: audioTokenCount)
+            + [Bool](repeating: false, count: suffixIds.count)
+        guard inputIds.count == fixture.promptLen else {
+            throw RunnerError.invalidArgument(
+                "compact prompt length \(inputIds.count) != fixture prompt_len \(fixture.promptLen)"
+            )
+        }
+        return Prompt(inputIds: inputIds, audioInputMask: audioInputMask, source: "compact")
+    }
+
+    guard let inputIds = fixture.inputIds, let audioInputMask = fixture.audioInputMask else {
+        throw RunnerError.invalidArgument(
+            "fixture needs either compact prompt fields or input_ids/audio_input_mask"
+        )
+    }
+    guard inputIds.count == fixture.promptLen else {
+        throw RunnerError.invalidArgument(
+            "input_ids length \(inputIds.count) != fixture prompt_len \(fixture.promptLen)"
+        )
+    }
+    guard audioInputMask.count == fixture.promptLen else {
+        throw RunnerError.invalidArgument(
+            "audio_input_mask length \(audioInputMask.count) != fixture prompt_len \(fixture.promptLen)"
+        )
+    }
+    return Prompt(inputIds: inputIds, audioInputMask: audioInputMask, source: "serialized")
+}
+
 func makeFloatArray(shape: [Int], values: [Float]? = nil) throws -> MLMultiArray {
     let array = try MLMultiArray(shape: shape.map { NSNumber(value: $0) }, dataType: .float32)
     if let values {
@@ -288,12 +353,13 @@ func setFloat(_ array: MLMultiArray, _ indices: [Int], _ value: Float) {
 func buildMergedEmbeddings(
     tokenEmbeddings: MLMultiArray,
     audioEmbeddings: MLMultiArray,
-    fixture: Fixture
+    fixture: Fixture,
+    prompt: Prompt
 ) throws -> MLMultiArray {
-    let merged = try makeFloatArray(shape: [1, fixture.promptLen, fixture.hiddenSize])
+    let merged = try makeFloatArray(shape: [1, prompt.promptLen, fixture.hiddenSize])
     var audioIndex = 0
-    for position in 0..<fixture.promptLen {
-        let sourceIsAudio = fixture.audioInputMask[position]
+    for position in 0..<prompt.promptLen {
+        let sourceIsAudio = prompt.audioInputMask[position]
         for hidden in 0..<fixture.hiddenSize {
             let value: Float
             if sourceIsAudio {
@@ -306,6 +372,11 @@ func buildMergedEmbeddings(
         if sourceIsAudio {
             audioIndex += 1
         }
+    }
+    guard audioIndex == prompt.audioTokenCount else {
+        throw RunnerError.invalidArgument(
+            "merged \(audioIndex) audio embeddings but prompt expects \(prompt.audioTokenCount)"
+        )
     }
     return merged
 }
@@ -388,13 +459,14 @@ struct MossCoreMLFixture {
     static func main() async throws {
         let options = try parseOptions(CommandLine.arguments)
         let fixture = try loadFixture(options.fixture)
+        let prompt = try resolvePrompt(fixture)
         let maxNewTokens = min(options.maxNewTokens, fixture.generatedIds.count)
         guard maxNewTokens > 0 else {
             throw RunnerError.invalidArgument("--max-new-tokens must be positive")
         }
         let firstToken = Int(fixture.generatedIds[0])
         let secondToken = Int(fixture.generatedIds[1])
-        let audioTokenCount = fixture.audioInputMask.filter { $0 }.count
+        let audioTokenCount = prompt.audioTokenCount
         let tokenizer = try QwenByteLevelTokenizer(tokenizerJSON: options.tokenizer)
 
         let configuration = MLModelConfiguration()
@@ -418,7 +490,7 @@ struct MossCoreMLFixture {
 
         let tokenInput = try MLDictionaryFeatureProvider(dictionary: [
             "input_ids": MLFeatureValue(
-                multiArray: try paddedIds(fixture.inputIds, maxSeqLen: options.tokenMaxSeqLen)
+                multiArray: try paddedIds(prompt.inputIds, maxSeqLen: options.tokenMaxSeqLen)
             )
         ])
         let (tokenOutput, tokenSeconds) = try await timedPrediction(model: tokenModel, input: tokenInput)
@@ -437,15 +509,16 @@ struct MossCoreMLFixture {
         let mergedEmbeddings = try buildMergedEmbeddings(
             tokenEmbeddings: tokenEmbeddings,
             audioEmbeddings: audioEmbeddings,
-            fixture: fixture
+            fixture: fixture,
+            prompt: prompt
         )
         let (prefillCos, prefillSin) = try buildRope(
-            length: fixture.promptLen,
+            length: prompt.promptLen,
             start: 0,
             headDim: fixture.headDim,
             ropeTheta: fixture.ropeTheta
         )
-        let prefillMask = try buildCausalMask(length: fixture.promptLen)
+        let prefillMask = try buildCausalMask(length: prompt.promptLen)
         let prefillInput = try MLDictionaryFeatureProvider(dictionary: [
             "inputs_embeds": MLFeatureValue(multiArray: mergedEmbeddings),
             "cos": MLFeatureValue(multiArray: prefillCos),
@@ -488,7 +561,7 @@ struct MossCoreMLFixture {
                 )
             }
 
-            let stepPosition = fixture.promptLen + stepIndex
+            let stepPosition = prompt.promptLen + stepIndex
             let (stepCos, stepSin) = try buildRope(
                 length: 1,
                 start: stepPosition,
@@ -533,7 +606,8 @@ struct MossCoreMLFixture {
         let result = Result(
             fixture: options.fixture.path,
             packagesDir: options.packagesDir.path,
-            promptLen: fixture.promptLen,
+            promptSource: prompt.source,
+            promptLen: prompt.promptLen,
             audioTokenCount: audioTokenCount,
             firstTokenId: firstToken,
             secondTokenId: secondToken,

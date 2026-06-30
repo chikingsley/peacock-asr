@@ -27,6 +27,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--reference-tensors", type=Path, default=DEFAULT_REFERENCE_TENSORS)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument(
+        "--compact-only",
+        action="store_true",
+        help="Omit full input_ids/audio_input_mask and keep only prompt template fields.",
+    )
     return parser.parse_args()
 
 
@@ -43,6 +48,33 @@ def flatten_float32(array: np.ndarray) -> list[float]:
     return [float(value) for value in array.astype(np.float32).reshape(-1)]
 
 
+def split_prompt(input_ids: np.ndarray, audio_input_mask: np.ndarray) -> dict[str, Any]:
+    flat_input_ids = input_ids.reshape(-1).astype(np.int32)
+    flat_audio_mask = audio_input_mask.reshape(-1).astype(bool)
+    audio_positions = np.flatnonzero(flat_audio_mask)
+    if audio_positions.size == 0:
+        raise ValueError("audio_input_mask has no audio positions")
+
+    first_audio = int(audio_positions[0])
+    last_audio = int(audio_positions[-1])
+    expected = np.arange(first_audio, last_audio + 1)
+    if not np.array_equal(audio_positions, expected):
+        raise ValueError("audio_input_mask is not one contiguous audio block")
+
+    audio_token_count = int(audio_positions.size)
+    audio_ids = flat_input_ids[first_audio : last_audio + 1]
+    audio_placeholder_values = np.unique(audio_ids)
+    if audio_placeholder_values.size != 1:
+        raise ValueError("audio block does not use a single placeholder token ID")
+
+    return {
+        "prompt_prefix_ids": flat_input_ids[:first_audio].tolist(),
+        "prompt_suffix_ids": flat_input_ids[last_audio + 1 :].tolist(),
+        "audio_token_count": audio_token_count,
+        "audio_placeholder_id": int(audio_placeholder_values[0]),
+    }
+
+
 def main() -> None:
     args = parse_args()
     output = args.output.resolve()
@@ -54,6 +86,7 @@ def main() -> None:
     audio_data = tensors["audio_data"].astype(np.float32)
     audio_data_seqlens = tensors["audio_data_seqlens"].astype(np.int32)
     generated_ids = tensors["generated_ids"].astype(np.int32)
+    prompt_payload = split_prompt(input_ids, audio_input_mask)
     payload: dict[str, Any] = {
         "config": str(args.config.resolve()),
         "reference_tensors": str(args.reference_tensors.resolve()),
@@ -61,13 +94,15 @@ def main() -> None:
         "hidden_size": int(language_config["hidden_size"]),
         "head_dim": int(language_config["head_dim"]),
         "rope_theta": float(language_config["rope_theta"]),
-        "input_ids": input_ids.reshape(-1).tolist(),
-        "audio_input_mask": audio_input_mask.reshape(-1).tolist(),
+        **prompt_payload,
         "audio_data_shape": list(audio_data.shape),
         "audio_data": flatten_float32(audio_data),
         "audio_data_seqlens": audio_data_seqlens.reshape(-1).tolist(),
         "generated_ids": generated_ids.reshape(-1).tolist(),
     }
+    if not args.compact_only:
+        payload["input_ids"] = input_ids.reshape(-1).tolist()
+        payload["audio_input_mask"] = audio_input_mask.reshape(-1).tolist()
     write_json(output, payload)
     print(json.dumps({"output": str(output), "bytes": output.stat().st_size}))
 

@@ -93,3 +93,8 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   Tokenizer-enabled reports now include decoded text plus raw and normalized
   WER/CER; the 5-token text matches exactly and the 52-token drift remains
   punctuation-only.
+- Added a compact Swift fixture prompt builder. The exporter now records MOSS
+  prompt prefix/suffix IDs, audio placeholder ID, and audio token count, and
+  Swift can run without serialized `input_ids` / `audio_input_mask`. Compact
+  5-token output matches exactly; compact 52-token output keeps the known
+  comma-only drift with normalized WER/CER `0.0`.

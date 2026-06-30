@@ -76,6 +76,11 @@ Current short version:
   It also loads the Qwen ByteLevel tokenizer JSON and decodes generated IDs.
   The first 5 generated IDs and text match exactly; the 52-token run has a
   comma-only drift after token 10 and normalized WER/CER `0.0`.
+- The Swift runner now supports a compact prompt fixture and constructs the
+  fixed English MOSS prompt locally from prefix/suffix token constants plus the
+  audio placeholder count. The compact path reports `prompt_source=compact`,
+  matches the 5-token fixture exactly, and has the same normalized-WER-zero
+  52-token punctuation drift.
 - No public upload/branch/PR action has been taken.
 
 ## Layout

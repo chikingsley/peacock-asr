@@ -116,6 +116,9 @@ stateful decoder proof:
   token IDs.
 - Added a Swift Qwen ByteLevel tokenizer decoder for generated IDs and fixture
   transcript scoring.
+- Added a compact Swift prompt builder for the fixed English no-time-marker
+  MOSS template: `[151644, 872, 198, 151669] + audio placeholders +
+  [151670, 151645, 198, 151644, 77091, 198]`.
 - Compiled each package with `xcrun coremlcompiler compile`.
 - Copied retained `.mlpackage`, `.mlmodelc`, and JSON manifests back to local
   ignored `artifacts/coreml/`.
@@ -135,6 +138,7 @@ Results:
 | Swift `moss-coreml-fixture` 5-token greedy | JSON fixture, compiled `.mlmodelc`, `MLState` | generated IDs exactly match `[4197, 1059, 4158, 6177, 323]`; total fixture time `18.17s` |
 | Swift `moss-coreml-fixture` 52-token greedy | JSON fixture, compiled `.mlmodelc`, `MLState` | first 10 IDs match; comma-only drift after `smokestack`; normalized WER/CER `0.0`; total fixture time `23.53s` |
 | Swift tokenizer-enabled fixture | JSON fixture, compiled `.mlmodelc`, `MLState`, Qwen ByteLevel tokenizer JSON | 5-token decoded text matches exactly; 52-token raw WER/CER `0.0278` / `0.00442`; normalized WER/CER `0.0` |
+| Swift compact prompt fixture | compact JSON fixture without serialized `input_ids` / `audio_input_mask` | `prompt_source=compact`; 5-token output matches exactly; 52-token output has the same comma-only normalized-WER-zero drift; total times `16.17s` and `22.74s` |
 
 Important caveat: these are still fixture-level proof components. The padded
 external-cache step proves the planned 768-token cache shape. The stateful fused
@@ -142,8 +146,9 @@ decoder proves CoreML State API prediction for `prefill -> one decode step`.
 The integrated runner proves the Python/CoreML runtime contract, but neither is
 yet a FluidAudio manager, model-store entry, tokenizer bridge, or benchmarked
 end-to-end CoreML ASR runtime. The Swift runner proves the `MLModel`/`MLState`
-path and generated-token detokenization, but still uses exported fixture
-mel/token IDs rather than a real audio frontend and prompt tokenizer encoder.
+path, generated-token detokenization, and fixed prompt construction, but still
+uses exported fixture mel data rather than a real audio frontend, model store,
+or FluidAudio manager API.
 
 Current retained package sizes:
 
@@ -159,8 +164,9 @@ Current retained package sizes:
 ## Expected Hard Parts
 
 - RoPE layout and position IDs must match MOSS/Qwen3 exactly.
-- Swift must reproduce the prompt construction, audio mask insertion,
-  concatenated-half RoPE layout, causal masks, and state reset behavior exactly.
+- Swift must reproduce audio mask insertion, concatenated-half RoPE layout,
+  causal masks, state reset behavior, and any future prompt/time-marker
+  variants exactly.
 - CoreML per-token call overhead can dominate even when the graph is correct;
   the stateful fused decoder removes cache tensor marshaling but still calls
   CoreML once per generated token.

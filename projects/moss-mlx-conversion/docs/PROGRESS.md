@@ -553,12 +553,15 @@ Generated artifacts:
 - `artifacts/coreml/moss_coreml_stateful_fixture_pipeline.json`
 - `artifacts/coreml/moss_coreml_stateful_fixture_pipeline_reference_merged.json`
 - `artifacts/coreml/moss_swift_fixture.json`
+- `artifacts/coreml/moss_swift_fixture_compact.json`
 - `artifacts/coreml/moss_swift_coreml_fixture_5tok.json`
 - `artifacts/coreml/moss_swift_coreml_fixture_52tok.json`
 - `artifacts/coreml/moss_swift_coreml_fixture_60tok.json`
 - `artifacts/coreml/moss_tokenizer.json`
 - `artifacts/coreml/moss_swift_coreml_fixture_5tok_tokenizer.json`
 - `artifacts/coreml/moss_swift_coreml_fixture_52tok_tokenizer.json`
+- `artifacts/coreml/moss_swift_coreml_fixture_compact_5tok.json`
+- `artifacts/coreml/moss_swift_coreml_fixture_compact_52tok.json`
 
 Current default contract:
 
@@ -608,6 +611,8 @@ Fixture component probes completed on `home-mac`:
 | Swift `moss-coreml-fixture` 52-token greedy | same Swift/CoreML path | first 10 IDs match, then CoreML inserts comma token `11` after `smokestack`; decoded normalized WER/CER are `0.0`; total fixture time `23.53s`, with `16.80s` decoder prefill and `6.33s` decoder decode calls |
 | Swift tokenizer-enabled 5-token greedy | same Swift/CoreML path plus Qwen ByteLevel tokenizer JSON | generated IDs and decoded text exactly match; text `with her white paint and`; raw/normalized WER/CER `0.0` |
 | Swift tokenizer-enabled 52-token greedy | same Swift/CoreML path plus Qwen ByteLevel tokenizer JSON | generated text inserts only the comma after `smokestack`; raw WER/CER `0.0278` / `0.00442`; normalized WER/CER `0.0`; total fixture time `24.95s`, with `16.88s` decoder prefill and `7.63s` decoder decode calls |
+| Swift compact prompt 5-token greedy | compact fixture without serialized `input_ids` / `audio_input_mask` | `prompt_source=compact`; generated IDs and decoded text exactly match; total fixture time `16.17s`, with `15.19s` decoder prefill and `0.47s` decoder decode calls |
+| Swift compact prompt 52-token greedy | same compact prompt-builder path | `prompt_source=compact`; first 10 IDs match; generated text inserts only the comma after `smokestack`; raw WER/CER `0.0278` / `0.00442`; normalized WER/CER `0.0`; total fixture time `22.74s`, with `16.32s` decoder prefill and `5.96s` decoder decode calls |
 
 Retained full-component package sizes:
 
@@ -642,14 +647,16 @@ Notes:
   two numeric gates; use the runner primarily for component-wiring and token
   rank validation.
 - The Swift fixture runner proves the same component/state contract through
-  Swift `MLModel` and `MLState`, using compiled `.mlmodelc` bundles. It still
-  consumes a pre-exported fixture JSON and does not implement prompt token
-  encoding, Swift mel frontend, model download/store, or a FluidAudio
-  `ASR/MOSS` manager.
+  Swift `MLModel` and `MLState`, using compiled `.mlmodelc` bundles. It now
+  builds the fixed English MOSS prompt from compact template fields:
+  `[151644, 872, 198, 151669] + audio_placeholder_count * 0 + [151670,
+  151645, 198, 151644, 77091, 198]`. It still consumes fixture mel data and
+  does not implement a Swift mel frontend, model download/store, or a
+  FluidAudio `ASR/MOSS` manager.
 - The Swift fixture runner now has a Qwen ByteLevel tokenizer decode bridge for
   generated token IDs, including skipped special tokens such as `<|im_end|>`.
-  It is a decoder/detokenizer path only; prompt construction still comes from
-  the exported fixture token IDs.
+  It is a decoder/detokenizer path plus fixed prompt builder; arbitrary prompt
+  tokenizer encoding and time-marker variants remain future runtime work.
 - The Swift 52-token greedy drift is punctuation-only on the decoded fixture:
   expected text has `smokestack the inverashiel`; Swift emitted
   `smokestack, the inverashiel`. After lowercase/punctuation normalization,
@@ -724,8 +731,9 @@ The next real work is a Swift/CoreML runtime decision:
 1. If MOSS remains a teacher/reference, use the MLX/PyTorch artifacts to build
    batch teacher transcription and quality gates.
 2. If pursuing FluidAudio-level runtime, the remaining missing pieces are
-   prompt-token encoding, real Swift mel frontend, model store/download layout,
-   and an `ASR/MOSS` manager API around the proven Swift fixture core.
+   real Swift mel frontend, model store/download layout, an `ASR/MOSS` manager
+   API around the proven Swift fixture core, and optional general prompt
+   tokenizer/template support beyond the fixed English no-time-marker path.
 3. Run a single real audio file through that Swift runtime and require the
    first 5 generated tokens plus normalized transcript parity before any WER
    benchmark.

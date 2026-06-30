@@ -140,6 +140,16 @@ uv run --project projects/moss-mlx-conversion/coreml --locked \
   --output projects/moss-mlx-conversion/artifacts/coreml/moss_swift_fixture.json
 ```
 
+Export a compact fixture that omits the full prompt arrays and keeps only the
+MOSS template prefix/suffix plus audio placeholder count:
+
+```bash
+uv run --project projects/moss-mlx-conversion/coreml --locked \
+  projects/moss-mlx-conversion/coreml/export_swift_fixture.py \
+  --compact-only \
+  --output projects/moss-mlx-conversion/artifacts/coreml/moss_swift_fixture_compact.json
+```
+
 Stage the tokenizer next to the CoreML fixture artifacts:
 
 ```bash
@@ -208,6 +218,16 @@ swift run --package-path swift/MossCoreMLFixture -c release moss-coreml-fixture 
   --output coreml/build/moss_swift_coreml_fixture_52tok.json
 ```
 
+Run the compact prompt-builder fixture:
+
+```bash
+swift run --package-path swift/MossCoreMLFixture -c release moss-coreml-fixture \
+  --packages-dir coreml/build \
+  --fixture artifacts/coreml/moss_swift_fixture_compact.json \
+  --max-new-tokens 52 \
+  --output coreml/build/moss_swift_coreml_fixture_compact_52tok.json
+```
+
 Swift result on `home-mac`:
 
 - The 5-token greedy run exactly matched `[4197, 1059, 4158, 6177, 323]` and
@@ -218,5 +238,11 @@ Swift result on `home-mac`:
 - The tokenizer-enabled 52-token run measured 24.95s total: 16.88s decoder
   prefill, 7.63s decoder decode calls, 0.27s decode token embeddings, 0.13s
   audio encoder+adapter.
+- The compact fixture path reports `prompt_source=compact`, proving Swift is
+  building the fixed MOSS prompt from `[151644, 872, 198, 151669]`,
+  193 audio placeholder tokens, and `[151670, 151645, 198, 151644, 77091,
+  198]` instead of consuming serialized `input_ids` / `audio_input_mask`.
+  Compact 5-token output is exact; compact 52-token output has the same
+  comma-only normalized-WER-zero drift.
 - The runner still uses fixture mel/token IDs and has no prompt tokenizer
   encoder, Swift mel frontend, or FluidAudio manager/model-store integration.
