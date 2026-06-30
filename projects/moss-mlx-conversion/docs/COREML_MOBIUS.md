@@ -128,6 +128,13 @@ stateful decoder proof:
   encoder attention keys, returns fixed `[390, 2048]` audio embeddings, and
   allows the Swift `--audio` path to use the production max-audio contract for
   clips that fit in one 30-second window.
+- Added reference-text scoring and EOS stop to the Swift runner. Fixture mel
+  comparison is now explicit via `--compare-fixture-audio`, so non-fixture
+  audio reports are not compared to the saved LibriSpeech fixture mel.
+- Ran the first non-fixture LibriSpeech clean-test row through Swift/CoreML.
+  The row `6930-75918-0001` is 14.23s, produces 185 MOSS audio tokens and
+  prompt length 195, stops on EOS token `151645`, and matches the reference
+  after normalization.
 - Compiled each package with `xcrun coremlcompiler compile`.
 - Copied retained `.mlpackage`, `.mlmodelc`, and JSON manifests back to local
   ignored `artifacts/coreml/`.
@@ -152,6 +159,7 @@ Results:
 | `moss_audio_encoder_adapter_30s_padded` | padded mel `[128, 3000]`, real seqlens `[1484]` | output `[390, 2048]`; prefix `[193, 2048]` vs BF16 max/mean diff `0.003738` / `0.000462`; Torch padded-prefix diff `0.000190` / `0.00000645` |
 | Swift padded-audio 5-token greedy | source WAV + Swift mel padded to `[128, 3000]` + compact prompt + CoreML path, `--compute-units cpu-gpu` | generated IDs/text exactly match; total time `4.21s`, including `0.15s` audio frontend, `2.82s` audio encoder+adapter, `0.73s` decoder prefill, and `0.37s` decoder decode calls |
 | Swift padded-audio 52-token greedy | same padded-audio path, `--compute-units cpu-gpu` | generated IDs/text exactly match; raw/normalized WER/CER all `0.0`; total time `7.07s`, including `0.14s` audio frontend, `1.30s` audio encoder+adapter, `0.75s` decoder prefill, and `4.70s` decoder decode calls |
+| Swift padded-audio non-fixture row | LibriSpeech clean-test row `6930-75918-0001`, source WAV, reference text file, `--max-new-tokens 160`, EOS stop | prompt length 195; audio tokens 185; generated 47 tokens and stopped on `151645`; normalized WER/CER `0.0`; total time `8.25s`, including `0.14s` audio frontend, `1.34s` audio encoder+adapter, `0.77s` decoder prefill, and `5.77s` decoder decode calls |
 
 Important caveat: these are still fixture-level proof components. The padded
 external-cache step proves the planned 768-token cache shape. The stateful fused
@@ -163,7 +171,9 @@ path, generated-token detokenization, fixed prompt construction, and
 WAV-to-mel frontend. The 30-second padded audio package removes the old
 `[128, 1484]` audio-package fixture shape, but this is still a private fixture
 runner rather than a model-store-backed FluidAudio manager or long-audio
-chunking runtime.
+chunking runtime. The non-fixture row proves the audio/prompt/scoring path can
+run a different <=30s WAV, but the runner still uses the fixture JSON as a
+compact config carrier for model constants and fixture-token sanity checks.
 
 Compute-unit caveat: the 30-second padded audio package failed with default
 `.all` dispatch on `home-mac` because CoreML routed it to ANE and reported an

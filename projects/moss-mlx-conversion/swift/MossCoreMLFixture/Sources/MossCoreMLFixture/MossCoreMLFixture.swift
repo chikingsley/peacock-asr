@@ -55,14 +55,18 @@ struct Options {
     var fixture = URL(fileURLWithPath: "artifacts/coreml/moss_swift_fixture.json")
     var audio: URL?
     var audioMaxFrames: Int?
+    var compareFixtureAudio = false
     var output: URL?
     var tokenPackage = "compiled/moss_token_embedding.mlmodelc"
     var audioPackage = "compiled_audio/moss_audio_encoder_adapter_fixture.mlmodelc"
     var decoderPackage = "compiled_stateful/moss_decoder_stateful_fused.mlmodelc"
     var tokenizer = URL(fileURLWithPath: "artifacts/coreml/moss_tokenizer.json")
+    var referenceText: String?
+    var referenceTextFile: URL?
     var computeUnits = MLComputeUnits.all
     var tokenMaxSeqLen = 512
     var maxNewTokens = 5
+    var eosTokenId = 151645
 }
 
 struct TopKEntry: Encodable {
@@ -118,12 +122,14 @@ struct Result: Encodable {
     let firstTokenId: Int
     let secondTokenId: Int
     let maxNewTokens: Int
+    let stoppedOnEos: Bool
     let generatedIds: [Int]
     let expectedGeneratedIds: [Int]
     let generatedPrefixMatchCount: Int
     let generatedPrefixMatchesExpected: Bool
     let generatedText: String
     let expectedText: String
+    let expectedTextSource: String
     let normalizedGeneratedText: String
     let normalizedExpectedText: String
     let rawWer: Double
@@ -149,12 +155,14 @@ struct Result: Encodable {
         case firstTokenId = "first_token_id"
         case secondTokenId = "second_token_id"
         case maxNewTokens = "max_new_tokens"
+        case stoppedOnEos = "stopped_on_eos"
         case generatedIds = "generated_ids"
         case expectedGeneratedIds = "expected_generated_ids"
         case generatedPrefixMatchCount = "generated_prefix_match_count"
         case generatedPrefixMatchesExpected = "generated_prefix_matches_expected"
         case generatedText = "generated_text"
         case expectedText = "expected_text"
+        case expectedTextSource = "expected_text_source"
         case normalizedGeneratedText = "normalized_generated_text"
         case normalizedExpectedText = "normalized_expected_text"
         case rawWer = "raw_wer"
@@ -213,6 +221,8 @@ func parseOptions(_ arguments: [String]) throws -> Options {
                 throw RunnerError.invalidArgument("invalid --audio-max-frames")
             }
             options.audioMaxFrames = parsed
+        case "--compare-fixture-audio":
+            options.compareFixtureAudio = true
         case "--output":
             options.output = URL(fileURLWithPath: try value())
         case "--token-package":
@@ -223,6 +233,10 @@ func parseOptions(_ arguments: [String]) throws -> Options {
             options.decoderPackage = try value()
         case "--tokenizer":
             options.tokenizer = URL(fileURLWithPath: try value())
+        case "--reference-text":
+            options.referenceText = try value()
+        case "--reference-text-file":
+            options.referenceTextFile = URL(fileURLWithPath: try value())
         case "--compute-units":
             options.computeUnits = try parseComputeUnits(try value())
         case "--token-max-seq-len":
@@ -235,14 +249,22 @@ func parseOptions(_ arguments: [String]) throws -> Options {
                 throw RunnerError.invalidArgument("invalid --max-new-tokens")
             }
             options.maxNewTokens = parsed
+        case "--eos-token-id":
+            guard let parsed = Int(try value()) else {
+                throw RunnerError.invalidArgument("invalid --eos-token-id")
+            }
+            options.eosTokenId = parsed
         case "--help", "-h":
             print(
                 """
                 Usage: moss-coreml-fixture [--packages-dir DIR] [--fixture JSON] [--output JSON]
                                            [--audio WAV] [--audio-max-frames N]
+                                           [--compare-fixture-audio]
                                            [--token-package NAME] [--audio-package NAME]
                                            [--decoder-package NAME] [--token-max-seq-len N]
                                            [--max-new-tokens N] [--tokenizer JSON]
+                                           [--reference-text TEXT | --reference-text-file FILE]
+                                           [--eos-token-id ID]
                                            [--compute-units all|cpu-only|cpu-gpu|cpu-ane]
                 """
             )
@@ -251,6 +273,11 @@ func parseOptions(_ arguments: [String]) throws -> Options {
             throw RunnerError.invalidArgument("unknown argument \(argument)")
         }
         index += 1
+    }
+    if options.referenceText != nil, options.referenceTextFile != nil {
+        throw RunnerError.invalidArgument(
+            "pass only one of --reference-text or --reference-text-file"
+        )
     }
     return options
 }
@@ -326,6 +353,22 @@ func resolvePrompt(_ fixture: Fixture, audioTokenCountOverride: Int? = nil) thro
     return Prompt(inputIds: inputIds, audioInputMask: audioInputMask, source: "serialized")
 }
 
+func resolveExpectedText(
+    options: Options,
+    tokenizer: QwenByteLevelTokenizer,
+    expectedGeneratedIds: [Int]
+) throws -> (text: String, source: String) {
+    if let referenceText = options.referenceText {
+        return (referenceText, "reference_text")
+    }
+    if let referenceTextFile = options.referenceTextFile {
+        let text = try String(contentsOf: referenceTextFile, encoding: .utf8)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return (text, "reference_text_file")
+    }
+    return (tokenizer.decode(expectedGeneratedIds), "fixture_tokens")
+}
+
 func resolveAudioFeatures(
     fixture: Fixture,
     options: Options
@@ -351,14 +394,20 @@ func resolveAudioFeatures(
         features = try padAudioFeatures(features, frames: audioMaxFrames)
     }
     let seconds = Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000.0
-    return (
-        features: features,
-        diff: compareAudioFeaturesPrefix(
+    let diff: AudioFeatureDiff?
+    if options.compareFixtureAudio {
+        diff = compareAudioFeaturesPrefix(
             features.data,
             leftShape: features.shape,
             fixture.audioData,
             rightShape: fixture.audioDataShape
-        ),
+        )
+    } else {
+        diff = nil
+    }
+    return (
+        features: features,
+        diff: diff,
         seconds: seconds
     )
 }
@@ -561,7 +610,7 @@ struct MossCoreMLFixture {
             fixture,
             audioTokenCountOverride: audioTokenCountOverride
         )
-        let maxNewTokens = min(options.maxNewTokens, fixture.generatedIds.count)
+        let maxNewTokens = options.maxNewTokens
         guard maxNewTokens > 0 else {
             throw RunnerError.invalidArgument("--max-new-tokens must be positive")
         }
@@ -637,11 +686,12 @@ struct MossCoreMLFixture {
         }
 
         var generatedIds = [firstGenerated]
+        var stoppedOnEos = firstGenerated == options.eosTokenId
         var firstStepTopK: [TopKEntry] = []
         var currentToken = Int32(firstGenerated)
         var decodeTokenSeconds = 0.0
         var decodeStepSeconds = 0.0
-        for stepIndex in 0..<max(0, maxNewTokens - 1) {
+        for stepIndex in 0..<max(0, maxNewTokens - 1) where !stoppedOnEos {
             let tokenInput = try MLDictionaryFeatureProvider(dictionary: [
                 "input_ids": MLFeatureValue(
                     multiArray: try paddedIds([currentToken], maxSeqLen: options.tokenMaxSeqLen)
@@ -690,6 +740,9 @@ struct MossCoreMLFixture {
                 throw RunnerError.invalidArgument("decode step produced no logits")
             }
             generatedIds.append(nextToken)
+            if nextToken == options.eosTokenId {
+                stoppedOnEos = true
+            }
             currentToken = Int32(nextToken)
         }
         let expectedGeneratedIds = fixture.generatedIds.prefix(maxNewTokens).map { Int($0) }
@@ -700,7 +753,12 @@ struct MossCoreMLFixture {
         }
         let generatedPrefixMatchesExpected = generatedPrefixMatchCount == expectedGeneratedIds.count
         let generatedText = tokenizer.decode(generatedIds)
-        let expectedText = tokenizer.decode(expectedGeneratedIds)
+        let expected = try resolveExpectedText(
+            options: options,
+            tokenizer: tokenizer,
+            expectedGeneratedIds: expectedGeneratedIds
+        )
+        let expectedText = expected.text
         let normalizedGeneratedText = normalizedTranscript(generatedText)
         let normalizedExpectedText = normalizedTranscript(expectedText)
 
@@ -717,12 +775,14 @@ struct MossCoreMLFixture {
             firstTokenId: firstToken,
             secondTokenId: secondToken,
             maxNewTokens: maxNewTokens,
+            stoppedOnEos: stoppedOnEos,
             generatedIds: generatedIds,
             expectedGeneratedIds: expectedGeneratedIds,
             generatedPrefixMatchCount: generatedPrefixMatchCount,
             generatedPrefixMatchesExpected: generatedPrefixMatchesExpected,
             generatedText: generatedText,
             expectedText: expectedText,
+            expectedTextSource: expected.source,
             normalizedGeneratedText: normalizedGeneratedText,
             normalizedExpectedText: normalizedExpectedText,
             rawWer: wordErrorRate(reference: expectedText, hypothesis: generatedText),

@@ -111,3 +111,8 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   and runs from Swift with `--audio --audio-max-frames 3000`. The `cpu-gpu`
   Swift run matches the 52-token fixture IDs/text exactly; default `.all`
   dispatch currently fails the padded audio package on ANE.
+- Extended the Swift/CoreML runner beyond fixture-token scoring. It now accepts
+  `--reference-text` / `--reference-text-file`, stops on EOS token `151645`,
+  and makes fixture mel comparison opt-in with `--compare-fixture-audio`.
+  The first non-fixture LibriSpeech clean-test row (`6930-75918-0001`) ran
+  through the padded CoreML path with normalized WER/CER `0.0`.

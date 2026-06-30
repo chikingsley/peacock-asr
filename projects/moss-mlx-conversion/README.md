@@ -91,6 +91,10 @@ Current short version:
   tokens. The Swift `--audio --audio-max-frames 3000` path matches the fixture
   52-token generated IDs/text exactly under `--compute-units cpu-gpu`; default
   `.all` dispatch currently fails this audio package on ANE.
+- The Swift/CoreML runner now has reference-text scoring and EOS stop. A
+  non-fixture LibriSpeech clean-test row (`6930-75918-0001`, 14.23s) ran
+  through the padded audio path, generated 47 tokens, stopped on `151645`, and
+  matched the reference after normalization with WER/CER `0.0`.
 - No public upload/branch/PR action has been taken.
 
 ## Layout

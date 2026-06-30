@@ -253,6 +253,7 @@ swift run --package-path swift/MossCoreMLFixture -c release moss-coreml-fixture 
   --packages-dir coreml/build \
   --fixture artifacts/coreml/moss_swift_fixture_compact.json \
   --audio artifacts/cache/fixtures/librosa-libri1-16k.wav \
+  --compare-fixture-audio \
   --max-new-tokens 52 \
   --output coreml/build/moss_swift_coreml_audio_frontend_52tok.json
 ```
@@ -269,10 +270,27 @@ swift run --package-path swift/MossCoreMLFixture -c release moss-coreml-fixture 
   --fixture artifacts/coreml/moss_swift_fixture_compact.json \
   --audio artifacts/cache/fixtures/librosa-libri1-16k.wav \
   --audio-max-frames 3000 \
+  --compare-fixture-audio \
   --audio-package compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc \
   --compute-units cpu-gpu \
   --max-new-tokens 52 \
   --output coreml/build/moss_swift_coreml_audio_30s_padded_cpu_gpu_52tok.json
+```
+
+Run a non-fixture LibriSpeech clean-test row through the same padded path with
+reference-text scoring and EOS stop:
+
+```bash
+swift run --package-path swift/MossCoreMLFixture -c release moss-coreml-fixture \
+  --packages-dir coreml/build \
+  --fixture artifacts/coreml/moss_swift_fixture_compact.json \
+  --audio artifacts/coreml/nonfixture_librispeech_clean_row1/audio.wav \
+  --audio-max-frames 3000 \
+  --audio-package compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc \
+  --compute-units cpu-gpu \
+  --max-new-tokens 160 \
+  --reference-text-file artifacts/coreml/nonfixture_librispeech_clean_row1/reference.txt \
+  --output coreml/build/moss_swift_coreml_audio_30s_padded_cpu_gpu_librispeech_row1.json
 ```
 
 Swift result on `home-mac`:
@@ -303,6 +321,10 @@ Swift result on `home-mac`:
   generated IDs/text exactly. The 52-token run measured 7.07s total: 0.14s
   audio frontend, 1.30s audio encoder+adapter, 0.75s decoder prefill, and
   4.70s decoder decode calls.
+- The Swift runner now supports reference-text scoring and EOS stop. The first
+  non-fixture LibriSpeech clean-test row (`6930-75918-0001`, 14.23s) produced
+  47 generated tokens, stopped on token `151645`, and matched the reference
+  after normalization with WER/CER `0.0`. Total measured time was 8.25s.
 - The same padded audio package failed under default `.all` compute-unit
   dispatch with an ANE inference error. Use `--compute-units cpu-gpu` for this
   package until compute placement is profiled more carefully.

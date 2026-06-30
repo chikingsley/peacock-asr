@@ -569,6 +569,14 @@ Generated artifacts:
 - `artifacts/coreml/moss_swift_coreml_audio_frontend_52tok.json`
 - `artifacts/coreml/moss_swift_coreml_audio_30s_padded_cpu_gpu_5tok.json`
 - `artifacts/coreml/moss_swift_coreml_audio_30s_padded_cpu_gpu_52tok.json`
+- `artifacts/coreml/moss_swift_coreml_audio_30s_padded_cpu_gpu_5tok_resmoke.json`
+- `artifacts/coreml/moss_swift_coreml_audio_30s_padded_cpu_gpu_52tok_reference_text.json`
+- `artifacts/coreml/moss_swift_coreml_audio_30s_padded_cpu_gpu_52tok_reference_text_compare.json`
+- `artifacts/coreml/reference_text/libri1.txt`
+- `artifacts/coreml/nonfixture_librispeech_clean_row1/audio.wav`
+- `artifacts/coreml/nonfixture_librispeech_clean_row1/reference.txt`
+- `artifacts/coreml/nonfixture_librispeech_clean_row1/metadata.json`
+- `artifacts/coreml/moss_swift_coreml_audio_30s_padded_cpu_gpu_librispeech_row1.json`
 
 Current default contract:
 
@@ -627,6 +635,8 @@ Fixture component probes completed on `home-mac`:
 | Swift audio frontend 52-token greedy | same WAV-to-CoreML path | `prompt_source=compact_audio`; first 10 IDs match; generated text inserts comma after `smokestack` and ends with period instead of comma; raw WER/CER `0.0556` / `0.00885`; normalized WER/CER `0.0`; total fixture time `25.22s`, including `0.140s` audio frontend and `20.10s` decoder prefill |
 | Swift 30s padded-audio 5-token greedy | source WAV + Swift mel padded to `[128, 3000]` + compact prompt + CoreML path, `--compute-units cpu-gpu` | `prompt_source=compact_audio`; mel prefix max/mean diff `0.003906` / `0.000515`; generated IDs/text exactly match; total fixture time `4.21s`, including `0.149s` audio frontend, `2.82s` audio encoder+adapter, `0.729s` decoder prefill, and `0.375s` decoder decode calls |
 | Swift 30s padded-audio 52-token greedy | same padded-audio path, `--compute-units cpu-gpu` | generated IDs/text exactly match; raw/normalized WER/CER all `0.0`; total fixture time `7.07s`, including `0.138s` audio frontend, `1.30s` audio encoder+adapter, `0.748s` decoder prefill, and `4.70s` decoder decode calls |
+| Swift 30s padded-audio fixture with reference-text scoring | same fixture WAV, `--reference-text-file artifacts/coreml/reference_text/libri1.txt`, `--compare-fixture-audio` | generated all 52 expected IDs/text exactly, stopped on EOS token `151645`, raw/normalized WER/CER all `0.0`; mel max/mean diff `0.003906` / `0.000515`; total time `8.43s` |
+| Swift 30s padded-audio non-fixture row | LibriSpeech clean-test row `6930-75918-0001`, 14.23s WAV, reference text file, `--max-new-tokens 160`, `--compute-units cpu-gpu` | prompt length 195; audio tokens 185; generated 47 tokens and stopped on EOS `151645`; normalized WER/CER `0.0`; raw WER/CER `1.0` / `0.8304` from case/punctuation; total time `8.25s`, including `0.139s` audio frontend, `1.34s` audio encoder+adapter, `0.770s` decoder prefill, and `5.77s` decoder decode calls |
 
 Retained full-component package sizes:
 
@@ -676,6 +686,14 @@ Notes:
   CoreML audio package shape and keeps the real seqlen for prompt/audio-token
   count. It still does not implement model download/store or a FluidAudio
   `ASR/MOSS` manager.
+- The Swift runner now accepts external reference text for scoring and stops
+  generation on EOS token `151645`. Fixture mel comparison is opt-in with
+  `--compare-fixture-audio`; this avoids reporting meaningless mel diffs for
+  non-fixture audio.
+- A non-fixture LibriSpeech clean-test row has now run through Swift/CoreML.
+  This proves a different <=30s WAV can use the padded audio package, compact
+  prompt construction, reference-text WER/CER scoring, and EOS stop. It still
+  uses the compact fixture JSON as a model-constant/config carrier.
 - The padded audio package failed with default `.all` compute-unit dispatch on
   `home-mac` because CoreML routed it to ANE and reported an ANE inference
   error. The same path succeeds with `--compute-units cpu-gpu`, which is the
@@ -752,7 +770,9 @@ The private conversion now has two completed tracks:
 2. CoreML/Mobius fixture track: token embedding, audio encoder+adapter,
    prefill, append-cache step, padded external-cache step, fused stateful
    decoder, integrated Python/CoreML fixture runner, and private Swift
-   `MLState` greedy fixture runner all validate and are retained locally.
+   `MLState` greedy fixture runner all validate and are retained locally. The
+   Swift path now also has one non-fixture <=30s LibriSpeech probe with
+   reference-text scoring and EOS stop.
 
 The next real work is a Swift/CoreML runtime decision:
 
@@ -760,13 +780,14 @@ The next real work is a Swift/CoreML runtime decision:
    batch teacher transcription and quality gates.
 2. If pursuing FluidAudio-level runtime, the remaining missing pieces are
    model store/download layout, an `ASR/MOSS` manager API around the proven
-   Swift fixture core, non-fixture benchmark inputs/outputs, long-audio
-   chunking beyond one 30-second window, and optional general prompt
-   tokenizer/template support beyond the fixed English no-time-marker path.
-3. Run a single real audio file through that Swift runtime and require the
-   first 5 generated tokens plus normalized transcript parity before any WER
-   benchmark.
-4. Then run the existing 20-row clean-test eval and profile compute placement.
-   Only after that should quantized CoreML or artifact publication be scoped.
+   Swift core, a batch benchmark harness, long-audio chunking beyond one
+   30-second window, and optional general prompt tokenizer/template support
+   beyond the fixed English no-time-marker path.
+3. Build a real batch harness around the Swift runner for <=30s rows. It should
+   materialize or stream short WAV/reference pairs, call the padded CoreML
+   runtime, and write JSONL plus corpus WER/CER/RTFx.
+4. Run the existing 20-row clean-test eval through Swift/CoreML and profile
+   compute placement. Only after that should quantized CoreML or artifact
+   publication be scoped.
 5. Keep all work private. Public branch, PR, push, and Hugging Face upload
    remain out of scope until explicitly requested.
