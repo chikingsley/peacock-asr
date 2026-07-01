@@ -23,13 +23,26 @@ artifacts from this handoff without an explicit request.
   used `runtime/moss_runtime_manifest.json`, completed 20/20 rows, and produced
   identical row IDs, normalized hypotheses, prompt lengths, generated-token
   counts, WER, and CER versus the prior persistent batch.
+- Private FluidAudio scaffold patch:
+  `patches/fluid-audio-moss-private-scaffold.patch` adds
+  `Sources/FluidAudio/ASR/MOSS` plus `fluidaudiocli moss-transcribe`.
+  It was applied uncommitted to `/Users/simonpeacocks/GitHub/FluidAudio`,
+  built with `swift build -c release`, and smoke-tested on row
+  `6930-75918-0001`.
+- FluidAudio CLI smoke, same row and CoreML artifacts:
+  `fluidaudiocli moss-transcribe ... --cpu-gpu --repeat 2` produced the same
+  transcript on both runs, generated 47 tokens, stopped on EOS, and used prompt
+  length 195 / 185 audio tokens. Cold model load was 78.95s; repeated
+  transcribe processing times were 52.50s and 41.07s for 14.23s audio.
 
 ## Relevant FluidAudio Shape
 
-Read-only reference checkout inspected on `home-mac`:
+Reference checkout inspected and then modified privately on `home-mac`:
 
 - Path: `/Users/simonpeacocks/GitHub/FluidAudio`
 - Commit: `a95ec26 Validate downloaded model artifacts before caching (#740) (#741)`
+- Private state: uncommitted MOSS scaffold only; no branch, commit, push, PR, or
+  model publication.
 - Closest runtime precedent:
   `Sources/FluidAudio/ASR/Cohere/CoherePipeline.swift`
 - Closest model-name precedent:
@@ -52,7 +65,7 @@ addition:
 - `Sources/FluidAudio/ASR/MOSS/MossTokenizer.swift`
 - `Sources/FluidAudio/ASR/MOSS/MossMelFrontend.swift` or reuse shared Swift
   Whisper log-mel code if it is promoted to `Shared`.
-- `Sources/FluidAudioCLI/Commands/ASR/MossTranscribeCommand.swift`
+- `Sources/FluidAudioCLI/Commands/ASR/MOSS/MossTranscribeCommand.swift`
 - `Sources/FluidAudioCLI/Commands/ASR/MossBenchmark.swift`
 - `Documentation/ASR/MOSS.md`
 - `Documentation/Models.md` row
@@ -98,6 +111,12 @@ not make them runnable.
   313. The production path currently uses explicit cache tensors.
 - The explicit-cache path is correct but memory-bandwidth heavy because every
   generated token copies full padded KV arrays through CoreML.
+- The private FluidAudio scaffold proves the code can live inside FluidAudio
+  and reuse loaded models across calls, but the row-1 repeat smoke was only
+  0.27x then 0.35x RTFx by full manager processing time. This is much slower
+  than the private batch harness's summed model-time RTFx because it measures
+  full end-to-end manager work and still pays the same explicit-cache KV
+  movement each generated token.
 - A 512-token prefill bucket covers the first 20 clean-test rows. Full
   LibriSpeech needs either prompt-length buckets or a larger padded prefill.
 - The audio path is single-window only. Long audio needs FluidAudio-style
@@ -121,17 +140,18 @@ decoder makes the runtime fundamentally different from Parakeet.
 
 ## Next Concrete Step
 
-If we decide to actually modify FluidAudio, start with a private local branch in
-`/Users/simonpeacocks/GitHub/FluidAudio` and keep it unpushed:
+The first private FluidAudio scaffold exists as a patch and an uncommitted Mac
+checkout change. Keep it private and unpushed.
 
-1. Add `MossAsrConfig`, `MossModels`, and `MossPipeline` by lifting the proven
-   Swift runtime out of `MossCoreMLFixture`.
-2. Use `runtime/moss_runtime_manifest.json` as the first runtime manifest
-   contract and remove any dependency on fixture tensors.
-3. Add manual model loading first; only add Hugging Face download metadata after
-   the local model directory path works.
-4. Add a CLI `moss-transcribe` command that accepts `--model-dir` and one WAV.
-5. Add a `moss-benchmark` command for LibriSpeech rows, reusing the same
+1. Package the MOSS model directory into the shape the FluidAudio scaffold
+   expects, with tokenizer and runtime manifest beside the compiled model
+   folders or with config paths adjusted.
+2. Add a `moss-benchmark` command for LibriSpeech rows, reusing the same
    normalization/WER behavior as the private harness.
-6. Re-run the 20-row gate through FluidAudio CLI and require matching WER/CER
-   and a single-process wall profile.
+3. Re-run the 20-row gate through FluidAudio CLI and require matching WER/CER
+   plus a single-process wall profile.
+4. Add prompt-length buckets or a larger prefill package before full test-clean.
+5. Profile and reduce explicit-cache KV movement; this is the current
+   production-speed blocker.
+6. Add Hugging Face download/model-name metadata only after a private model
+   bundle exists.

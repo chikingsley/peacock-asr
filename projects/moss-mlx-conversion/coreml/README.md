@@ -415,6 +415,12 @@ Swift result on `home-mac`:
   prompt lengths, generated-token counts, WER, and CER; it measured RTFx 0.75
   and wall time 813.11s, so use it as a correctness/package gate rather than a
   performance comparison.
+- `patches/fluid-audio-moss-private-scaffold.patch` ports the same
+  external-cache path into a private FluidAudio `ASR/MOSS` scaffold with
+  manual model-dir loading and `fluidaudiocli moss-transcribe`. It builds on
+  `home-mac` and smokes row `6930-75918-0001` correctly with one loaded
+  manager, but the repeat run still measured only 0.27x then 0.35x RTFx by
+  full manager processing time.
 - The same padded audio package failed under default `.all` compute-unit
   dispatch with an ANE inference error. Use `--compute-units cpu-gpu` for this
   package until compute placement is profiled more carefully.

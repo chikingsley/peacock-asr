@@ -799,6 +799,17 @@ Notes:
   was inspected read-only at the same commit. `docs/FLUIDAUDIO_INTEGRATION.md`
   records the exact MOSS files, model bundle, and CLI steps needed for a
   private FluidAudio backend pass.
+- A private FluidAudio scaffold now exists as
+  `patches/fluid-audio-moss-private-scaffold.patch` and as uncommitted changes
+  in `/Users/simonpeacocks/GitHub/FluidAudio`. It adds
+  `Sources/FluidAudio/ASR/MOSS` and `fluidaudiocli moss-transcribe`, builds with
+  `swift build -c release`, and can run the manual model-dir MOSS artifacts.
+  On LibriSpeech row `6930-75918-0001`, `--repeat 2` produced the same expected
+  transcript twice with one loaded manager, generated 47 tokens, stopped on
+  EOS, and used prompt length 195 / 185 audio tokens. Cold model load was
+  78.95s; end-to-end per-call processing was 52.50s then 41.07s for 14.23s
+  audio (0.27x / 0.35x RTFx). This proves the FluidAudio code shape, not
+  production speed.
 
 ## Reproduction Commands
 
@@ -843,7 +854,7 @@ uv run --project projects/moss-mlx-conversion --extra mac --locked moss-mlx-smok
 
 ## Next Chunk
 
-The private conversion now has two completed tracks:
+The private conversion now has three completed tracks:
 
 1. MLX reference/runtime track: PyTorch reference, processor parity, BF16 MLX
    weights, strict MLX load, Apple Silicon transcript parity, gated
@@ -860,16 +871,20 @@ The private conversion now has two completed tracks:
    `--swift-batch` harness keeps the CoreML models loaded across rows and cuts
    20-row wall time roughly in half. The runner can now use the tracked
    fixture-free `runtime/moss_runtime_manifest.json` for runtime constants.
+3. FluidAudio scaffold track: a private patch ports the proven Swift/CoreML
+   external-cache loop into `Sources/FluidAudio/ASR/MOSS`, adds manual
+   model-dir loading, and exposes `fluidaudiocli moss-transcribe`. The command
+   builds and smokes row 1 correctly on `home-mac`, but it is not yet a
+   benchmarked, packaged, downloadable, long-audio FluidAudio backend.
 
 The next real work is a Swift/CoreML runtime decision:
 
 1. If MOSS remains a teacher/reference, use the MLX/PyTorch artifacts to build
    batch teacher transcription and quality gates.
 2. If pursuing FluidAudio-level runtime, the remaining missing pieces are
-   model store/download layout, an `ASR/MOSS` manager API around the proven
-   Swift core, long-audio chunking beyond one 30-second window, and optional
-   general prompt tokenizer/template support beyond the fixed English
-   no-time-marker path.
+   model bundle/store/download layout, a `moss-benchmark` command, long-audio
+   chunking beyond one 30-second window, and optional general prompt
+   tokenizer/template support beyond the fixed English no-time-marker path.
 3. Add prompt-length bucket handling for >512 prompts, or a larger padded
    prefill package, before treating the runtime as general for the full
    LibriSpeech clean set.

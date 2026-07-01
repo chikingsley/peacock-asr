@@ -1,0 +1,1473 @@
+diff --git a/Sources/FluidAudio/ASR/MOSS/MossAsrConfig.swift b/Sources/FluidAudio/ASR/MOSS/MossAsrConfig.swift
+new file mode 100644
+index 0000000..f7cabdf
+--- /dev/null
++++ b/Sources/FluidAudio/ASR/MOSS/MossAsrConfig.swift
+@@ -0,0 +1,105 @@
++@preconcurrency import CoreML
++import Foundation
++
++public enum MossAsrError: Error, LocalizedError, CustomStringConvertible {
++    case invalidArgument(String)
++    case missingFeature(String)
++    case modelNotFound(String)
++    case unavailable(String)
++
++    public var description: String {
++        switch self {
++        case .invalidArgument(let message):
++            message
++        case .missingFeature(let name):
++            "CoreML output is missing feature \(name)"
++        case .modelNotFound(let path):
++            "MOSS model artifact not found at \(path)"
++        case .unavailable(let message):
++            message
++        }
++    }
++
++    public var errorDescription: String? {
++        description
++    }
++}
++
++public struct MossAsrConfig: Sendable {
++    public var tokenPackagePath: String
++    public var audioPackagePath: String
++    public var prefillCachePackagePath: String
++    public var stepPackagePath: String
++    public var tokenizerPath: String
++    public var runtimeManifestPath: String
++    public var maxNewTokens: Int
++    public var eosTokenId: Int
++    public var tokenMaxSeqLen: Int
++    public var audioMaxFrames: Int
++    public var cacheLen: Int
++    public var prefillCacheSeqLen: Int
++    public var computeUnits: MLComputeUnits
++
++    public init(
++        tokenPackagePath: String = "compiled/moss_token_embedding.mlmodelc",
++        audioPackagePath: String = "compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc",
++        prefillCachePackagePath: String = "compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc",
++        stepPackagePath: String = "compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc",
++        tokenizerPath: String = "moss_tokenizer.json",
++        runtimeManifestPath: String = "moss_runtime_manifest.json",
++        maxNewTokens: Int = 160,
++        eosTokenId: Int = 151_645,
++        tokenMaxSeqLen: Int = 512,
++        audioMaxFrames: Int = 3_000,
++        cacheLen: Int = 768,
++        prefillCacheSeqLen: Int = 512,
++        computeUnits: MLComputeUnits = .cpuAndGPU
++    ) {
++        self.tokenPackagePath = tokenPackagePath
++        self.audioPackagePath = audioPackagePath
++        self.prefillCachePackagePath = prefillCachePackagePath
++        self.stepPackagePath = stepPackagePath
++        self.tokenizerPath = tokenizerPath
++        self.runtimeManifestPath = runtimeManifestPath
++        self.maxNewTokens = maxNewTokens
++        self.eosTokenId = eosTokenId
++        self.tokenMaxSeqLen = tokenMaxSeqLen
++        self.audioMaxFrames = audioMaxFrames
++        self.cacheLen = cacheLen
++        self.prefillCacheSeqLen = prefillCacheSeqLen
++        self.computeUnits = computeUnits
++    }
++
++    public static let `default` = MossAsrConfig()
++}
++
++struct MossRuntimeManifest: Decodable, Sendable {
++    let hiddenSize: Int
++    let headDim: Int
++    let ropeTheta: Double
++    let promptPrefixIds: [Int32]
++    let promptSuffixIds: [Int32]
++    let audioPlaceholderId: Int32
++
++    enum CodingKeys: String, CodingKey {
++        case hiddenSize = "hidden_size"
++        case headDim = "head_dim"
++        case ropeTheta = "rope_theta"
++        case promptPrefixIds = "prompt_prefix_ids"
++        case promptSuffixIds = "prompt_suffix_ids"
++        case audioPlaceholderId = "audio_placeholder_id"
++    }
++}
++
++struct MossPrompt {
++    let inputIds: [Int32]
++    let audioInputMask: [Bool]
++
++    var promptLen: Int {
++        inputIds.count
++    }
++
++    var audioTokenCount: Int {
++        audioInputMask.filter { $0 }.count
++    }
++}
+diff --git a/Sources/FluidAudio/ASR/MOSS/MossAudioFrontend.swift b/Sources/FluidAudio/ASR/MOSS/MossAudioFrontend.swift
+new file mode 100644
+index 0000000..e23ce07
+--- /dev/null
++++ b/Sources/FluidAudio/ASR/MOSS/MossAudioFrontend.swift
+@@ -0,0 +1,404 @@
++@preconcurrency import AVFoundation
++import Accelerate
++import Darwin
++import Foundation
++import os
++
++struct MossAudioFeatures {
++    let source: String
++    let shape: [Int]
++    let data: [Float]
++    let seqlens: [Int32]
++}
++
++struct AudioFeatureDiff: Encodable {
++    let comparedValues: Int
++    let maxAbs: Float
++    let meanAbs: Float
++
++    enum CodingKeys: String, CodingKey {
++        case comparedValues = "compared_values"
++        case maxAbs = "max_abs"
++        case meanAbs = "mean_abs"
++    }
++}
++
++func compareAudioFeatures(_ left: [Float], _ right: [Float]) -> AudioFeatureDiff? {
++    guard left.count == right.count, !left.isEmpty else {
++        return nil
++    }
++    var maxAbs: Float = 0
++    var sum: Float = 0
++    for (leftValue, rightValue) in zip(left, right) {
++        let diff = abs(leftValue - rightValue)
++        maxAbs = max(maxAbs, diff)
++        sum += diff
++    }
++    return AudioFeatureDiff(
++        comparedValues: left.count,
++        maxAbs: maxAbs,
++        meanAbs: sum / Float(left.count)
++    )
++}
++
++func compareAudioFeaturesPrefix(
++    _ left: [Float],
++    leftShape: [Int],
++    _ right: [Float],
++    rightShape: [Int]
++) -> AudioFeatureDiff? {
++    if leftShape == rightShape {
++        return compareAudioFeatures(left, right)
++    }
++    guard leftShape.count == 2,
++          rightShape.count == 2,
++          leftShape[0] == rightShape[0],
++          leftShape[1] >= rightShape[1],
++          left.count == leftShape[0] * leftShape[1],
++          right.count == rightShape[0] * rightShape[1]
++    else {
++        return nil
++    }
++
++    let melBins = rightShape[0]
++    let leftFrames = leftShape[1]
++    let rightFrames = rightShape[1]
++    var maxAbs: Float = 0
++    var sum: Float = 0
++    var comparedValues = 0
++    for melIndex in 0..<melBins {
++        let leftOffset = melIndex * leftFrames
++        let rightOffset = melIndex * rightFrames
++        for frameIndex in 0..<rightFrames {
++            let diff = abs(left[leftOffset + frameIndex] - right[rightOffset + frameIndex])
++            maxAbs = max(maxAbs, diff)
++            sum += diff
++            comparedValues += 1
++        }
++    }
++    guard comparedValues > 0 else {
++        return nil
++    }
++    return AudioFeatureDiff(
++        comparedValues: comparedValues,
++        maxAbs: maxAbs,
++        meanAbs: sum / Float(comparedValues)
++    )
++}
++
++func mossAudioTokenCount(melFrames: Int) -> Int {
++    func floorDiv(_ value: Int, _ divisor: Int) -> Int {
++        if value >= 0 {
++            return value / divisor
++        }
++        return -((-value + divisor - 1) / divisor)
++    }
++
++    let remainingFrames = melFrames % 100
++    let featureLength = floorDiv(remainingFrames - 1, 2) + 1
++    let localLength = floorDiv(floorDiv(featureLength - 1, 2), 2) + 1
++    return localLength + (melFrames / 100) * 13
++}
++
++func padAudioFeatures(_ features: MossAudioFeatures, frames: Int) throws -> MossAudioFeatures {
++    guard features.shape.count == 2 else {
++        throw MossAsrError.invalidArgument("audio features must have rank 2")
++    }
++    let melBins = features.shape[0]
++    let currentFrames = features.shape[1]
++    guard frames >= currentFrames else {
++        throw MossAsrError.invalidArgument(
++            "audio max frames \(frames) is shorter than computed frames \(currentFrames)"
++        )
++    }
++    guard frames != currentFrames else {
++        return features
++    }
++
++    var padded = [Float](repeating: 0, count: melBins * frames)
++    for melIndex in 0..<melBins {
++        let sourceOffset = melIndex * currentFrames
++        let targetOffset = melIndex * frames
++        for frameIndex in 0..<currentFrames {
++            padded[targetOffset + frameIndex] = features.data[sourceOffset + frameIndex]
++        }
++    }
++    return MossAudioFeatures(
++        source: features.source,
++        shape: [melBins, frames],
++        data: padded,
++        seqlens: features.seqlens
++    )
++}
++
++enum MossAudioFile {
++    static func loadMono16k(url: URL) throws -> [Float] {
++        let file = try AVAudioFile(forReading: url)
++        let inputFormat = file.processingFormat
++        guard let inputBuffer = AVAudioPCMBuffer(
++            pcmFormat: inputFormat,
++            frameCapacity: AVAudioFrameCount(file.length)
++        ) else {
++            throw MossAsrError.invalidArgument("could not allocate input audio buffer")
++        }
++        try file.read(into: inputBuffer)
++
++        guard let targetFormat = AVAudioFormat(
++            commonFormat: .pcmFormatFloat32,
++            sampleRate: 16_000,
++            channels: 1,
++            interleaved: false
++        ) else {
++            throw MossAsrError.invalidArgument("could not create 16 kHz mono target format")
++        }
++
++        if inputFormat.sampleRate == targetFormat.sampleRate,
++           inputFormat.channelCount == targetFormat.channelCount,
++           inputFormat.commonFormat == targetFormat.commonFormat,
++           inputFormat.isInterleaved == targetFormat.isInterleaved
++        {
++            return extractMonoFloat32(inputBuffer)
++        }
++
++        guard let converter = AVAudioConverter(from: inputFormat, to: targetFormat) else {
++            throw MossAsrError.invalidArgument("could not create audio converter")
++        }
++        converter.sampleRateConverterAlgorithm = AVSampleRateConverterAlgorithm_Mastering
++        converter.sampleRateConverterQuality = AVAudioQuality.max.rawValue
++
++        let ratio = targetFormat.sampleRate / inputFormat.sampleRate
++        let outputCapacity = AVAudioFrameCount(
++            (Double(inputBuffer.frameLength) * ratio).rounded(.up) + 4096
++        )
++        guard let outputBuffer = AVAudioPCMBuffer(
++            pcmFormat: targetFormat,
++            frameCapacity: outputCapacity
++        ) else {
++            throw MossAsrError.invalidArgument("could not allocate converted audio buffer")
++        }
++
++        let provided = OSAllocatedUnfairLock(initialState: false)
++        let inputBlock: AVAudioConverterInputBlock = { _, status in
++            let alreadyProvided = provided.withLock { state -> Bool in
++                if state {
++                    return true
++                }
++                state = true
++                return false
++            }
++            if alreadyProvided {
++                status.pointee = .endOfStream
++                return nil
++            }
++            status.pointee = .haveData
++            return inputBuffer
++        }
++
++        var error: NSError?
++        let status = converter.convert(to: outputBuffer, error: &error, withInputFrom: inputBlock)
++        if status == .error {
++            throw MossAsrError.invalidArgument(
++                "audio conversion failed: \(error?.localizedDescription ?? "unknown error")"
++            )
++        }
++        return extractMonoFloat32(outputBuffer)
++    }
++
++    private static func extractMonoFloat32(_ buffer: AVAudioPCMBuffer) -> [Float] {
++        guard let channelData = buffer.floatChannelData else {
++            return []
++        }
++        return Array(
++            UnsafeBufferPointer(start: channelData[0], count: Int(buffer.frameLength))
++        )
++    }
++}
++
++final class WhisperLogMelFrontend {
++    private let sampleRate = 16_000
++    private let nFFT = 400
++    private let hopLength = 160
++    private let nMels = 128
++    private let melFloor: Float = 1e-10
++    private let hannWindow: [Float]
++    private let melFilters: [[Float]]
++    private let dftCosTable: [Float]
++    private let dftSinTable: [Float]
++
++    init() throws {
++        self.hannWindow = Self.periodicHannWindow(length: nFFT)
++        self.melFilters = Self.slaneyMelFilter(
++            nFFT: nFFT,
++            nMels: nMels,
++            sampleRate: sampleRate,
++            fMin: 0,
++            fMax: 8_000
++        )
++        let tables = Self.makeDFTTables(nFFT: nFFT)
++        self.dftCosTable = tables.cos
++        self.dftSinTable = tables.sin
++    }
++
++    func compute(samples: [Float], source: String) throws -> MossAudioFeatures {
++        guard samples.count > nFFT else {
++            throw MossAsrError.invalidArgument("audio is too short for \(nFFT)-sample FFT")
++        }
++        let padded = try reflectPadded(samples, padding: nFFT / 2)
++        let fullFrameCount = 1 + (padded.count - nFFT) / hopLength
++        let frameCount = fullFrameCount - 1
++        guard frameCount > 0 else {
++            throw MossAsrError.invalidArgument("audio produced no mel frames")
++        }
++
++        var logMels = [Float](repeating: 0, count: nMels * frameCount)
++        var realIn = [Float](repeating: 0, count: nFFT)
++        var power = [Float](repeating: 0, count: nFFT / 2 + 1)
++
++        for frameIndex in 0..<frameCount {
++            let start = frameIndex * hopLength
++            for index in 0..<nFFT {
++                realIn[index] = padded[start + index] * hannWindow[index]
++            }
++
++            for bin in 0..<power.count {
++                var real: Float = 0
++                var imaginary: Float = 0
++                let tableOffset = bin * nFFT
++                for index in 0..<nFFT {
++                    let value = realIn[index]
++                    real += value * dftCosTable[tableOffset + index]
++                    imaginary -= value * dftSinTable[tableOffset + index]
++                }
++                power[bin] = real * real + imaginary * imaginary
++            }
++
++            for melIndex in 0..<nMels {
++                let filter = melFilters[melIndex]
++                var melEnergy: Float = 0
++                for bin in 0..<power.count {
++                    melEnergy += filter[bin] * power[bin]
++                }
++                let value = log10(max(melFloor, melEnergy))
++                logMels[melIndex * frameCount + frameIndex] = value
++            }
++        }
++
++        guard let maxLogMel = logMels.max() else {
++            throw MossAsrError.invalidArgument("mel computation produced no values")
++        }
++        let floor = maxLogMel - 8.0
++        for index in logMels.indices {
++            logMels[index] = (max(logMels[index], floor) + 4.0) / 4.0
++        }
++
++        return MossAudioFeatures(
++            source: source,
++            shape: [nMels, frameCount],
++            data: logMels,
++            seqlens: [Int32(frameCount)]
++        )
++    }
++
++    private func reflectPadded(_ samples: [Float], padding: Int) throws -> [Float] {
++        guard samples.count > padding else {
++            throw MossAsrError.invalidArgument("audio is too short for reflect padding")
++        }
++        var padded = [Float](repeating: 0, count: samples.count + 2 * padding)
++        for index in 0..<padding {
++            padded[index] = samples[padding - index]
++        }
++        for index in samples.indices {
++            padded[padding + index] = samples[index]
++        }
++        for index in 0..<padding {
++            padded[padding + samples.count + index] = samples[samples.count - 2 - index]
++        }
++        return padded
++    }
++
++    private static func periodicHannWindow(length: Int) -> [Float] {
++        (0..<length).map { index in
++            0.5 * (1.0 - cos(2.0 * Float.pi * Float(index) / Float(length)))
++        }
++    }
++
++    private static func makeDFTTables(nFFT: Int) -> (cos: [Float], sin: [Float]) {
++        let bins = nFFT / 2 + 1
++        var cosTable = [Float](repeating: 0, count: bins * nFFT)
++        var sinTable = [Float](repeating: 0, count: bins * nFFT)
++        for bin in 0..<bins {
++            let tableOffset = bin * nFFT
++            for index in 0..<nFFT {
++                let angle = 2.0 * Float.pi * Float(bin * index) / Float(nFFT)
++                cosTable[tableOffset + index] = cos(angle)
++                sinTable[tableOffset + index] = sin(angle)
++            }
++        }
++        return (cosTable, sinTable)
++    }
++
++    private static func slaneyMelFilter(
++        nFFT: Int,
++        nMels: Int,
++        sampleRate: Int,
++        fMin: Float,
++        fMax: Float
++    ) -> [[Float]] {
++        let nBins = nFFT / 2 + 1
++        let melMin = hzToMelSlaney(fMin)
++        let melMax = hzToMelSlaney(fMax)
++        let melStep = (melMax - melMin) / Float(nMels + 1)
++        let melPoints = (0..<(nMels + 2)).map { melMin + Float($0) * melStep }
++        let hzPoints = melPoints.map(melToHzSlaney)
++        let fftFrequencies = (0..<nBins).map {
++            Float($0) * Float(sampleRate) / Float(nFFT)
++        }
++
++        var filters = [[Float]](
++            repeating: [Float](repeating: 0, count: nBins),
++            count: nMels
++        )
++        for melIndex in 0..<nMels {
++            let lower = hzPoints[melIndex]
++            let center = hzPoints[melIndex + 1]
++            let upper = hzPoints[melIndex + 2]
++            let leftDenominator = max(center - lower, 1e-10)
++            let rightDenominator = max(upper - center, 1e-10)
++            let enorm = 2.0 / max(upper - lower, 1e-10)
++            for (bin, frequency) in fftFrequencies.enumerated() {
++                let weight: Float
++                if frequency < lower || frequency > upper {
++                    weight = 0
++                } else if frequency <= center {
++                    weight = (frequency - lower) / leftDenominator
++                } else {
++                    weight = (upper - frequency) / rightDenominator
++                }
++                filters[melIndex][bin] = weight * enorm
++            }
++        }
++        return filters
++    }
++
++    private static func hzToMelSlaney(_ hz: Float) -> Float {
++        let linearScale: Float = 200.0 / 3.0
++        let minLogHz: Float = 1_000.0
++        let minLogMel = minLogHz / linearScale
++        let logStep = Darwin.logf(6.4) / 27.0
++        if hz >= minLogHz {
++            return minLogMel + Darwin.logf(hz / minLogHz) / logStep
++        }
++        return hz / linearScale
++    }
++
++    private static func melToHzSlaney(_ mel: Float) -> Float {
++        let linearScale: Float = 200.0 / 3.0
++        let minLogHz: Float = 1_000.0
++        let minLogMel = minLogHz / linearScale
++        let logStep = Darwin.logf(6.4) / 27.0
++        if mel >= minLogMel {
++            return minLogHz * Darwin.expf(logStep * (mel - minLogMel))
++        }
++        return linearScale * mel
++    }
++}
+diff --git a/Sources/FluidAudio/ASR/MOSS/MossModels.swift b/Sources/FluidAudio/ASR/MOSS/MossModels.swift
+new file mode 100644
+index 0000000..fdee2a9
+--- /dev/null
++++ b/Sources/FluidAudio/ASR/MOSS/MossModels.swift
+@@ -0,0 +1,54 @@
++@preconcurrency import CoreML
++import Foundation
++
++@available(macOS 14, iOS 17, *)
++public struct MossModels: Sendable {
++    public let tokenModel: MLModel
++    public let audioModel: MLModel
++    public let prefillCacheModel: MLModel
++    public let stepModel: MLModel
++    public let modelDirectory: URL
++
++    let runtimeManifest: MossRuntimeManifest
++    let tokenizer: QwenByteLevelTokenizer
++
++    public static func load(
++        from modelDirectory: URL,
++        tokenizerURL: URL? = nil,
++        runtimeManifestURL: URL? = nil,
++        config: MossAsrConfig = .default
++    ) throws -> MossModels {
++        let mlConfig = MLModelConfiguration()
++        mlConfig.computeUnits = config.computeUnits
++
++        let tokenURL = modelDirectory.appendingPathComponent(config.tokenPackagePath)
++        let audioURL = modelDirectory.appendingPathComponent(config.audioPackagePath)
++        let prefillURL = modelDirectory.appendingPathComponent(config.prefillCachePackagePath)
++        let stepURL = modelDirectory.appendingPathComponent(config.stepPackagePath)
++        let resolvedTokenizerURL =
++            tokenizerURL ?? modelDirectory.appendingPathComponent(config.tokenizerPath)
++        let resolvedManifestURL =
++            runtimeManifestURL ?? modelDirectory.appendingPathComponent(config.runtimeManifestPath)
++
++        for url in [tokenURL, audioURL, prefillURL, stepURL, resolvedTokenizerURL, resolvedManifestURL] {
++            guard FileManager.default.fileExists(atPath: url.path) else {
++                throw MossAsrError.modelNotFound(url.path)
++            }
++        }
++
++        let manifest = try JSONDecoder().decode(
++            MossRuntimeManifest.self,
++            from: try Data(contentsOf: resolvedManifestURL)
++        )
++
++        return MossModels(
++            tokenModel: try MLModel(contentsOf: tokenURL, configuration: mlConfig),
++            audioModel: try MLModel(contentsOf: audioURL, configuration: mlConfig),
++            prefillCacheModel: try MLModel(contentsOf: prefillURL, configuration: mlConfig),
++            stepModel: try MLModel(contentsOf: stepURL, configuration: mlConfig),
++            modelDirectory: modelDirectory,
++            runtimeManifest: manifest,
++            tokenizer: try QwenByteLevelTokenizer(tokenizerJSON: resolvedTokenizerURL)
++        )
++    }
++}
+diff --git a/Sources/FluidAudio/ASR/MOSS/MossPipeline.swift b/Sources/FluidAudio/ASR/MOSS/MossPipeline.swift
+new file mode 100644
+index 0000000..141df72
+--- /dev/null
++++ b/Sources/FluidAudio/ASR/MOSS/MossPipeline.swift
+@@ -0,0 +1,557 @@
++@preconcurrency import CoreML
++import Darwin
++import Foundation
++
++public struct MossGenerationTiming: Codable, Sendable {
++    public let audioFrontend: Double
++    public let tokenEmbeddingPrompt: Double
++    public let audioEncoderAdapter: Double
++    public let decoderPrefill: Double
++    public let tokenEmbeddingDecode: Double
++    public let decoderDecode: Double
++
++    public var total: Double {
++        audioFrontend + tokenEmbeddingPrompt + audioEncoderAdapter + decoderPrefill
++            + tokenEmbeddingDecode + decoderDecode
++    }
++}
++
++public struct MossTranscriptionResult: Codable, Sendable {
++    public let text: String
++    public let normalizedText: String
++    public let tokenIds: [Int]
++    public let promptLength: Int
++    public let audioTokenCount: Int
++    public let audioDuration: Double
++    public let processingTime: Double
++    public let stoppedOnEos: Bool
++    public let timing: MossGenerationTiming
++
++    public var rtfx: Double {
++        audioDuration / max(processingTime, 1.0e-9)
++    }
++}
++
++@available(macOS 14, iOS 17, *)
++public actor MossAsrManager {
++    private let models: MossModels
++    private let config: MossAsrConfig
++
++    public init(models: MossModels, config: MossAsrConfig = .default) {
++        self.models = models
++        self.config = config
++    }
++
++    public static func load(
++        from modelDirectory: URL,
++        tokenizerURL: URL? = nil,
++        runtimeManifestURL: URL? = nil,
++        config: MossAsrConfig = .default
++    ) throws -> MossAsrManager {
++        let models = try MossModels.load(
++            from: modelDirectory,
++            tokenizerURL: tokenizerURL,
++            runtimeManifestURL: runtimeManifestURL,
++            config: config
++        )
++        return MossAsrManager(models: models, config: config)
++    }
++
++    public func transcribe(audioURL: URL) async throws -> ASRResult {
++        let samples = try MossAudioFile.loadMono16k(url: audioURL)
++        let result = try await transcribeSamples(samples, source: audioURL.path)
++        return ASRResult(
++            text: result.text,
++            confidence: 0,
++            duration: result.audioDuration,
++            processingTime: result.processingTime,
++            tokenTimings: nil,
++            performanceMetrics: nil
++        )
++    }
++
++    public func transcribe(audio: [Float]) async throws -> ASRResult {
++        let result = try await transcribeSamples(audio, source: "samples")
++        return ASRResult(
++            text: result.text,
++            confidence: 0,
++            duration: result.audioDuration,
++            processingTime: result.processingTime,
++            tokenTimings: nil,
++            performanceMetrics: nil
++        )
++    }
++
++    public func transcribeDetailed(audioURL: URL) async throws -> MossTranscriptionResult {
++        let samples = try MossAudioFile.loadMono16k(url: audioURL)
++        return try await transcribeSamples(samples, source: audioURL.path)
++    }
++
++    public func transcribeDetailed(audio: [Float]) async throws -> MossTranscriptionResult {
++        try await transcribeSamples(audio, source: "samples")
++    }
++
++    private func transcribeSamples(_ samples: [Float], source: String) async throws -> MossTranscriptionResult {
++        let rowStart = DispatchTime.now().uptimeNanoseconds
++        let audioDuration = Double(samples.count) / 16_000.0
++
++        let frontendStart = DispatchTime.now().uptimeNanoseconds
++        let frontend = try WhisperLogMelFrontend()
++        var audioFeatures = try frontend.compute(samples: samples, source: source)
++        audioFeatures = try padAudioFeatures(audioFeatures, frames: config.audioMaxFrames)
++        let audioFrontendSeconds = secondsSince(frontendStart)
++
++        guard let audioFrameCount = audioFeatures.seqlens.first else {
++            throw MossAsrError.invalidArgument("audio_data_seqlens is empty")
++        }
++        let audioTokenCount = mossAudioTokenCount(melFrames: Int(audioFrameCount))
++        let prompt = try buildPrompt(
++            manifest: models.runtimeManifest,
++            audioTokenCount: audioTokenCount
++        )
++        guard prompt.promptLen <= config.prefillCacheSeqLen else {
++            throw MossAsrError.invalidArgument(
++                "prompt length \(prompt.promptLen) exceeds prefill bucket \(config.prefillCacheSeqLen)"
++            )
++        }
++        guard config.maxNewTokens > 0 else {
++            throw MossAsrError.invalidArgument("maxNewTokens must be positive")
++        }
++
++        let tokenInput = try MLDictionaryFeatureProvider(dictionary: [
++            "input_ids": MLFeatureValue(
++                multiArray: try paddedIds(prompt.inputIds, maxSeqLen: config.tokenMaxSeqLen)
++            )
++        ])
++        let (tokenOutput, tokenSeconds) = try await timedPrediction(
++            model: models.tokenModel,
++            input: tokenInput
++        )
++        let tokenEmbeddings = try featureArray(tokenOutput, "token_embeddings")
++
++        let audioInput = try MLDictionaryFeatureProvider(dictionary: [
++            "audio_data": MLFeatureValue(
++                multiArray: try makeFloatArray(shape: audioFeatures.shape, values: audioFeatures.data)
++            ),
++            "audio_data_seqlens": MLFeatureValue(
++                multiArray: try makeIntArray(shape: [1], values: audioFeatures.seqlens)
++            ),
++        ])
++        let (audioOutput, audioSeconds) = try await timedPrediction(
++            model: models.audioModel,
++            input: audioInput
++        )
++        let audioEmbeddings = try featureArray(audioOutput, "audio_embeddings")
++        let mergedEmbeddings = try buildMergedEmbeddings(
++            tokenEmbeddings: tokenEmbeddings,
++            audioEmbeddings: audioEmbeddings,
++            manifest: models.runtimeManifest,
++            prompt: prompt
++        )
++
++        let prefillFeatures = try MLDictionaryFeatureProvider(dictionary: [
++            "inputs_embeds": MLFeatureValue(
++                multiArray: try padMergedEmbeddings(
++                    mergedEmbeddings,
++                    promptLen: prompt.promptLen,
++                    seqLen: config.prefillCacheSeqLen,
++                    hiddenSize: models.runtimeManifest.hiddenSize
++                )
++            ),
++            "last_token_mask": MLFeatureValue(
++                multiArray: try buildLastTokenMask(
++                    promptLen: prompt.promptLen,
++                    seqLen: config.prefillCacheSeqLen
++                )
++            ),
++        ])
++        let (prefillOutput, prefillSeconds) = try await timedPrediction(
++            model: models.prefillCacheModel,
++            input: prefillFeatures
++        )
++        let prefillTopK = try topK(featureArray(prefillOutput, "logits"))
++        guard let firstGenerated = prefillTopK.first?.index else {
++            throw MossAsrError.invalidArgument("prefill produced no finite logits")
++        }
++
++        var generatedIds = [firstGenerated]
++        var stoppedOnEos = firstGenerated == config.eosTokenId
++        var currentToken = Int32(firstGenerated)
++        var pastKeys = try padDecoderCache(
++            try featureArray(prefillOutput, "past_keys"),
++            cacheLen: config.cacheLen,
++            featureName: "past_keys"
++        )
++        var pastValues = try padDecoderCache(
++            try featureArray(prefillOutput, "past_values"),
++            cacheLen: config.cacheLen,
++            featureName: "past_values"
++        )
++
++        var decodeTokenSeconds = 0.0
++        var decodeStepSeconds = 0.0
++        for stepIndex in 0..<max(0, config.maxNewTokens - 1) where !stoppedOnEos {
++            let tokenInput = try MLDictionaryFeatureProvider(dictionary: [
++                "input_ids": MLFeatureValue(
++                    multiArray: try paddedIds([currentToken], maxSeqLen: config.tokenMaxSeqLen)
++                )
++            ])
++            let (tokenOutput, tokenDecodeSeconds) = try await timedPrediction(
++                model: models.tokenModel,
++                input: tokenInput
++            )
++            decodeTokenSeconds += tokenDecodeSeconds
++            let tokenEmbedding = try firstTokenEmbedding(
++                try featureArray(tokenOutput, "token_embeddings"),
++                hiddenSize: models.runtimeManifest.hiddenSize
++            )
++
++            let stepPosition = prompt.promptLen + stepIndex
++            let (stepCos, stepSin) = try buildRope(
++                length: 1,
++                start: stepPosition,
++                headDim: models.runtimeManifest.headDim,
++                ropeTheta: models.runtimeManifest.ropeTheta
++            )
++            let masks = try buildPaddedStepInputs(
++                cacheLen: config.cacheLen,
++                pastLen: stepPosition
++            )
++            let stepInput = try MLDictionaryFeatureProvider(dictionary: [
++                "inputs_embeds": MLFeatureValue(multiArray: tokenEmbedding),
++                "past_keys": MLFeatureValue(multiArray: pastKeys),
++                "past_values": MLFeatureValue(multiArray: pastValues),
++                "cache_update_mask": MLFeatureValue(multiArray: masks.cacheUpdateMask),
++                "attention_mask": MLFeatureValue(multiArray: masks.attentionMask),
++                "cos": MLFeatureValue(multiArray: stepCos),
++                "sin": MLFeatureValue(multiArray: stepSin),
++            ])
++            let (stepOutput, stepSeconds) = try await timedPrediction(
++                model: models.stepModel,
++                input: stepInput
++            )
++            decodeStepSeconds += stepSeconds
++            let stepTopK = try topK(featureArray(stepOutput, "logits"))
++            guard let nextToken = stepTopK.first?.index else {
++                throw MossAsrError.invalidArgument("decode step produced no finite logits")
++            }
++            generatedIds.append(nextToken)
++            if nextToken == config.eosTokenId {
++                stoppedOnEos = true
++            }
++            currentToken = Int32(nextToken)
++            pastKeys = try featureArray(stepOutput, "updated_keys")
++            pastValues = try featureArray(stepOutput, "updated_values")
++        }
++
++        let text = models.tokenizer.decode(generatedIds)
++        let timing = MossGenerationTiming(
++            audioFrontend: audioFrontendSeconds,
++            tokenEmbeddingPrompt: tokenSeconds,
++            audioEncoderAdapter: audioSeconds,
++            decoderPrefill: prefillSeconds,
++            tokenEmbeddingDecode: decodeTokenSeconds,
++            decoderDecode: decodeStepSeconds
++        )
++        return MossTranscriptionResult(
++            text: text,
++            normalizedText: normalizedTranscript(text),
++            tokenIds: generatedIds,
++            promptLength: prompt.promptLen,
++            audioTokenCount: prompt.audioTokenCount,
++            audioDuration: audioDuration,
++            processingTime: secondsSince(rowStart),
++            stoppedOnEos: stoppedOnEos,
++            timing: timing
++        )
++    }
++}
++
++private struct TopKEntry {
++    let index: Int
++    let value: Float
++}
++
++private func secondsSince(_ start: UInt64) -> Double {
++    Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000.0
++}
++
++private func buildPrompt(
++    manifest: MossRuntimeManifest,
++    audioTokenCount: Int
++) throws -> MossPrompt {
++    guard audioTokenCount >= 0 else {
++        throw MossAsrError.invalidArgument("audio token count must be non-negative")
++    }
++    let inputIds = manifest.promptPrefixIds
++        + [Int32](repeating: manifest.audioPlaceholderId, count: audioTokenCount)
++        + manifest.promptSuffixIds
++    let audioInputMask = [Bool](repeating: false, count: manifest.promptPrefixIds.count)
++        + [Bool](repeating: true, count: audioTokenCount)
++        + [Bool](repeating: false, count: manifest.promptSuffixIds.count)
++    return MossPrompt(inputIds: inputIds, audioInputMask: audioInputMask)
++}
++
++private func makeFloatArray(shape: [Int], values: [Float]? = nil) throws -> MLMultiArray {
++    let array = try MLMultiArray(shape: shape.map { NSNumber(value: $0) }, dataType: .float32)
++    let pointer = array.dataPointer.bindMemory(to: Float.self, capacity: array.count)
++    if let values {
++        guard values.count == array.count else {
++            throw MossAsrError.invalidArgument("value count \(values.count) != array count \(array.count)")
++        }
++        values.withUnsafeBufferPointer { source in
++            pointer.update(from: source.baseAddress!, count: values.count)
++        }
++    } else {
++        for index in 0..<array.count {
++            pointer[index] = 0
++        }
++    }
++    return array
++}
++
++private func makeIntArray(shape: [Int], values: [Int32]) throws -> MLMultiArray {
++    let array = try MLMultiArray(shape: shape.map { NSNumber(value: $0) }, dataType: .int32)
++    guard values.count == array.count else {
++        throw MossAsrError.invalidArgument("value count \(values.count) != array count \(array.count)")
++    }
++    let pointer = array.dataPointer.bindMemory(to: Int32.self, capacity: array.count)
++    values.withUnsafeBufferPointer { source in
++        pointer.update(from: source.baseAddress!, count: values.count)
++    }
++    return array
++}
++
++private func paddedIds(_ ids: [Int32], maxSeqLen: Int) throws -> MLMultiArray {
++    guard ids.count <= maxSeqLen else {
++        throw MossAsrError.invalidArgument("ids length \(ids.count) exceeds \(maxSeqLen)")
++    }
++    var padded = [Int32](repeating: 0, count: maxSeqLen)
++    for (index, value) in ids.enumerated() {
++        padded[index] = value
++    }
++    return try makeIntArray(shape: [1, maxSeqLen], values: padded)
++}
++
++private func featureArray(_ provider: MLFeatureProvider, _ name: String) throws -> MLMultiArray {
++    guard let array = provider.featureValue(for: name)?.multiArrayValue else {
++        throw MossAsrError.missingFeature(name)
++    }
++    return array
++}
++
++private func strides(_ array: MLMultiArray) -> [Int] {
++    array.strides.map(\.intValue)
++}
++
++private func offset(_ indices: [Int], strides: [Int]) -> Int {
++    zip(indices, strides).reduce(0) { partial, pair in
++        partial + pair.0 * pair.1
++    }
++}
++
++private func floatValue(_ array: MLMultiArray, _ indices: [Int]) -> Float {
++    let storageIndex = offset(indices, strides: strides(array))
++    switch array.dataType {
++    case .float32:
++        return array.dataPointer.bindMemory(to: Float.self, capacity: array.count)[storageIndex]
++    case .float16:
++        return Float(array.dataPointer.bindMemory(to: Float16.self, capacity: array.count)[storageIndex])
++    case .double:
++        return Float(array.dataPointer.bindMemory(to: Double.self, capacity: array.count)[storageIndex])
++    default:
++        return array[indices.map { NSNumber(value: $0) }].floatValue
++    }
++}
++
++private func setFloat(_ array: MLMultiArray, _ indices: [Int], _ value: Float) {
++    let storageIndex = offset(indices, strides: strides(array))
++    array.dataPointer.bindMemory(to: Float.self, capacity: array.count)[storageIndex] = value
++}
++
++private func shapeInts(_ array: MLMultiArray) -> [Int] {
++    array.shape.map(\.intValue)
++}
++
++private func padDecoderCache(_ cache: MLMultiArray, cacheLen: Int, featureName: String) throws -> MLMultiArray {
++    let shape = shapeInts(cache)
++    guard shape.count == 5 else {
++        throw MossAsrError.invalidArgument("\(featureName) must have rank 5, got \(shape)")
++    }
++    let pastLen = shape[3]
++    guard cacheLen >= pastLen else {
++        throw MossAsrError.invalidArgument(
++            "cache-len \(cacheLen) is shorter than \(featureName) prompt length \(pastLen)"
++        )
++    }
++    let padded = try makeFloatArray(
++        shape: [shape[0], shape[1], shape[2], cacheLen, shape[4]]
++    )
++    for layer in 0..<shape[0] {
++        for batch in 0..<shape[1] {
++            for head in 0..<shape[2] {
++                for position in 0..<pastLen {
++                    for dim in 0..<shape[4] {
++                        setFloat(
++                            padded,
++                            [layer, batch, head, position, dim],
++                            floatValue(cache, [layer, batch, head, position, dim])
++                        )
++                    }
++                }
++            }
++        }
++    }
++    return padded
++}
++
++private func buildPaddedStepInputs(cacheLen: Int, pastLen: Int) throws -> (
++    cacheUpdateMask: MLMultiArray, attentionMask: MLMultiArray
++) {
++    guard pastLen >= 0, pastLen < cacheLen else {
++        throw MossAsrError.invalidArgument("past length \(pastLen) is outside cache-len \(cacheLen)")
++    }
++    let cacheUpdateMask = try makeFloatArray(shape: [1, 1, cacheLen, 1])
++    setFloat(cacheUpdateMask, [0, 0, pastLen, 0], 1)
++
++    let attentionMask = try makeFloatArray(shape: [1, 1, 1, cacheLen])
++    for position in 0..<cacheLen {
++        setFloat(attentionMask, [0, 0, 0, position], position <= pastLen ? 0 : -1_000_000_000.0)
++    }
++    return (cacheUpdateMask, attentionMask)
++}
++
++private func buildMergedEmbeddings(
++    tokenEmbeddings: MLMultiArray,
++    audioEmbeddings: MLMultiArray,
++    manifest: MossRuntimeManifest,
++    prompt: MossPrompt
++) throws -> MLMultiArray {
++    let merged = try makeFloatArray(shape: [1, prompt.promptLen, manifest.hiddenSize])
++    var audioIndex = 0
++    for position in 0..<prompt.promptLen {
++        let sourceIsAudio = prompt.audioInputMask[position]
++        for hidden in 0..<manifest.hiddenSize {
++            let value: Float
++            if sourceIsAudio {
++                value = floatValue(audioEmbeddings, [audioIndex, hidden])
++            } else {
++                value = floatValue(tokenEmbeddings, [0, position, hidden])
++            }
++            setFloat(merged, [0, position, hidden], value)
++        }
++        if sourceIsAudio {
++            audioIndex += 1
++        }
++    }
++    guard audioIndex == prompt.audioTokenCount else {
++        throw MossAsrError.invalidArgument(
++            "merged \(audioIndex) audio embeddings but prompt expects \(prompt.audioTokenCount)"
++        )
++    }
++    return merged
++}
++
++private func padMergedEmbeddings(
++    _ mergedEmbeddings: MLMultiArray,
++    promptLen: Int,
++    seqLen: Int,
++    hiddenSize: Int
++) throws -> MLMultiArray {
++    guard seqLen >= promptLen else {
++        throw MossAsrError.invalidArgument(
++            "prefill cache seq len \(seqLen) is shorter than prompt length \(promptLen)"
++        )
++    }
++    let padded = try makeFloatArray(shape: [1, seqLen, hiddenSize])
++    for position in 0..<promptLen {
++        for hidden in 0..<hiddenSize {
++            setFloat(
++                padded,
++                [0, position, hidden],
++                floatValue(mergedEmbeddings, [0, position, hidden])
++            )
++        }
++    }
++    return padded
++}
++
++private func buildLastTokenMask(promptLen: Int, seqLen: Int) throws -> MLMultiArray {
++    guard promptLen >= 1, promptLen <= seqLen else {
++        throw MossAsrError.invalidArgument(
++            "prompt length \(promptLen) is outside prefill cache seq len \(seqLen)"
++        )
++    }
++    let mask = try makeFloatArray(shape: [1, seqLen, 1])
++    setFloat(mask, [0, promptLen - 1, 0], 1)
++    return mask
++}
++
++private func firstTokenEmbedding(_ tokenEmbeddings: MLMultiArray, hiddenSize: Int) throws -> MLMultiArray {
++    let tokenEmbedding = try makeFloatArray(shape: [1, 1, hiddenSize])
++    for hidden in 0..<hiddenSize {
++        setFloat(
++            tokenEmbedding,
++            [0, 0, hidden],
++            floatValue(tokenEmbeddings, [0, 0, hidden])
++        )
++    }
++    return tokenEmbedding
++}
++
++private func buildRope(length: Int, start: Int, headDim: Int, ropeTheta: Double) throws -> (
++    cos: MLMultiArray, sin: MLMultiArray
++) {
++    let cosArray = try makeFloatArray(shape: [1, length, headDim])
++    let sinArray = try makeFloatArray(shape: [1, length, headDim])
++    let half = headDim / 2
++    for localPosition in 0..<length {
++        let position = Double(start + localPosition)
++        for index in 0..<half {
++            let exponent = Double(2 * index) / Double(headDim)
++            let angle = position / pow(ropeTheta, exponent)
++            let cosine = Float(Darwin.cos(angle))
++            let sine = Float(Darwin.sin(angle))
++            setFloat(cosArray, [0, localPosition, index], cosine)
++            setFloat(cosArray, [0, localPosition, index + half], cosine)
++            setFloat(sinArray, [0, localPosition, index], sine)
++            setFloat(sinArray, [0, localPosition, index + half], sine)
++        }
++    }
++    return (cosArray, sinArray)
++}
++
++private func topK(_ logits: MLMultiArray, count: Int = 5) throws -> [TopKEntry] {
++    var winners: [TopKEntry] = []
++    for index in 0..<logits.count {
++        let value: Float
++        switch logits.dataType {
++        case .float32:
++            value = logits.dataPointer.bindMemory(to: Float.self, capacity: logits.count)[index]
++        case .float16:
++            value = Float(logits.dataPointer.bindMemory(to: Float16.self, capacity: logits.count)[index])
++        case .double:
++            value = Float(logits.dataPointer.bindMemory(to: Double.self, capacity: logits.count)[index])
++        default:
++            value = logits[index].floatValue
++        }
++        if !value.isFinite {
++            continue
++        }
++        winners.append(TopKEntry(index: index, value: value))
++        winners.sort { $0.value > $1.value }
++        if winners.count > count {
++            winners.removeLast()
++        }
++    }
++    return winners
++}
++
++private func timedPrediction(
++    model: MLModel,
++    input: MLFeatureProvider
++) async throws -> (MLFeatureProvider, Double) {
++    let start = DispatchTime.now().uptimeNanoseconds
++    let output = try await model.prediction(from: input)
++    return (output, secondsSince(start))
++}
+diff --git a/Sources/FluidAudio/ASR/MOSS/MossTokenizer.swift b/Sources/FluidAudio/ASR/MOSS/MossTokenizer.swift
+new file mode 100644
+index 0000000..a77c894
+--- /dev/null
++++ b/Sources/FluidAudio/ASR/MOSS/MossTokenizer.swift
+@@ -0,0 +1,149 @@
++import Foundation
++
++struct QwenByteLevelTokenizer: Sendable {
++    private struct TokenizerJSON: Decodable {
++        struct Model: Decodable {
++            let vocab: [String: Int]
++        }
++
++        struct AddedToken: Decodable {
++            let id: Int
++            let content: String
++            let special: Bool
++        }
++
++        let model: Model
++        let addedTokens: [AddedToken]
++
++        enum CodingKeys: String, CodingKey {
++            case model
++            case addedTokens = "added_tokens"
++        }
++    }
++
++    private struct Token: Sendable {
++        let content: String
++        let special: Bool
++    }
++
++    private let tokensById: [Int: Token]
++    private let byteByScalar: [UnicodeScalar: UInt8]
++
++    init(tokenizerJSON: URL) throws {
++        let data = try Data(contentsOf: tokenizerJSON)
++        let decoded = try JSONDecoder().decode(TokenizerJSON.self, from: data)
++        var tokens: [Int: Token] = [:]
++        for (content, id) in decoded.model.vocab {
++            tokens[id] = Token(content: content, special: false)
++        }
++        for addedToken in decoded.addedTokens {
++            tokens[addedToken.id] = Token(
++                content: addedToken.content,
++                special: addedToken.special
++            )
++        }
++        self.tokensById = tokens
++        self.byteByScalar = Self.makeByteDecoder()
++    }
++
++    func decode(_ ids: [Int], skipSpecialTokens: Bool = true) -> String {
++        var encoded = ""
++        for id in ids {
++            guard let token = tokensById[id] else { continue }
++            if skipSpecialTokens && token.special {
++                continue
++            }
++            encoded += token.content
++        }
++
++        var bytes: [UInt8] = []
++        bytes.reserveCapacity(encoded.unicodeScalars.count)
++        for scalar in encoded.unicodeScalars {
++            if let byte = byteByScalar[scalar] {
++                bytes.append(byte)
++            } else if scalar.value <= UInt8.max {
++                bytes.append(UInt8(scalar.value))
++            }
++        }
++        return String(decoding: bytes, as: UTF8.self)
++    }
++
++    private static func makeByteDecoder() -> [UnicodeScalar: UInt8] {
++        var bytes = Array(UInt8(ascii: "!")...UInt8(ascii: "~"))
++        bytes.append(contentsOf: UInt8(0xA1)...UInt8(0xAC))
++        bytes.append(contentsOf: UInt8(0xAE)...UInt8(0xFF))
++
++        var codePoints = bytes.map { Int($0) }
++        var extra = 0
++        for byte in UInt8.min...UInt8.max {
++            if !bytes.contains(byte) {
++                bytes.append(byte)
++                codePoints.append(256 + extra)
++                extra += 1
++            }
++        }
++
++        var result: [UnicodeScalar: UInt8] = [:]
++        for (byte, codePoint) in zip(bytes, codePoints) {
++            if let scalar = UnicodeScalar(codePoint) {
++                result[scalar] = byte
++            }
++        }
++        return result
++    }
++}
++
++func normalizedTranscript(_ text: String) -> String {
++    let lowered = text.lowercased()
++    let scalars = lowered.unicodeScalars.map { scalar -> Character in
++        if CharacterSet.alphanumerics.contains(scalar) || CharacterSet.whitespacesAndNewlines.contains(scalar) {
++            return Character(scalar)
++        }
++        return " "
++    }
++    return String(scalars)
++        .split(whereSeparator: { $0.isWhitespace })
++        .joined(separator: " ")
++}
++
++func editDistance<T: Equatable>(_ left: [T], _ right: [T]) -> Int {
++    if left.isEmpty { return right.count }
++    if right.isEmpty { return left.count }
++
++    var previous = Array(0...right.count)
++    var current = [Int](repeating: 0, count: right.count + 1)
++    for leftIndex in 1...left.count {
++        current[0] = leftIndex
++        for rightIndex in 1...right.count {
++            if left[leftIndex - 1] == right[rightIndex - 1] {
++                current[rightIndex] = previous[rightIndex - 1]
++            } else {
++                current[rightIndex] = min(
++                    previous[rightIndex] + 1,
++                    current[rightIndex - 1] + 1,
++                    previous[rightIndex - 1] + 1
++                )
++            }
++        }
++        swap(&previous, &current)
++    }
++    return previous[right.count]
++}
++
++func wordErrorRate(reference: String, hypothesis: String) -> Double {
++    let referenceWords = reference.split(separator: " ").map(String.init)
++    let hypothesisWords = hypothesis.split(separator: " ").map(String.init)
++    guard !referenceWords.isEmpty else {
++        return hypothesisWords.isEmpty ? 0.0 : 1.0
++    }
++    return Double(editDistance(referenceWords, hypothesisWords)) / Double(referenceWords.count)
++}
++
++func characterErrorRate(reference: String, hypothesis: String) -> Double {
++    let referenceCharacters = Array(reference)
++    let hypothesisCharacters = Array(hypothesis)
++    guard !referenceCharacters.isEmpty else {
++        return hypothesisCharacters.isEmpty ? 0.0 : 1.0
++    }
++    return Double(editDistance(referenceCharacters, hypothesisCharacters)) / Double(referenceCharacters.count)
++}
+diff --git a/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossTranscribeCommand.swift b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossTranscribeCommand.swift
+new file mode 100644
+index 0000000..3f0b0b7
+--- /dev/null
++++ b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossTranscribeCommand.swift
+@@ -0,0 +1,156 @@
++#if os(macOS)
++import CoreML
++import FluidAudio
++import Foundation
++
++enum MossTranscribeCommand {
++    static func run(arguments: [String]) async {
++        guard !arguments.isEmpty else {
++            printUsage()
++            exit(1)
++        }
++
++        let audioFile = arguments[0]
++        var modelDir: String?
++        var tokenizerPath: String?
++        var runtimeManifestPath: String?
++        var maxTokens = 160
++        var audioMaxFrames = 3_000
++        var computeUnits: MLComputeUnits = .cpuAndGPU
++        var repeatCount = 1
++
++        var i = 1
++        while i < arguments.count {
++            let arg = arguments[i]
++            switch arg {
++            case "--help", "-h":
++                printUsage()
++                exit(0)
++            case "--model-dir":
++                if i + 1 < arguments.count {
++                    modelDir = arguments[i + 1]
++                    i += 1
++                }
++            case "--tokenizer":
++                if i + 1 < arguments.count {
++                    tokenizerPath = arguments[i + 1]
++                    i += 1
++                }
++            case "--runtime-manifest":
++                if i + 1 < arguments.count {
++                    runtimeManifestPath = arguments[i + 1]
++                    i += 1
++                }
++            case "--max-tokens":
++                if i + 1 < arguments.count, let parsed = Int(arguments[i + 1]) {
++                    maxTokens = parsed
++                    i += 1
++                }
++            case "--audio-max-frames":
++                if i + 1 < arguments.count, let parsed = Int(arguments[i + 1]) {
++                    audioMaxFrames = parsed
++                    i += 1
++                }
++            case "--repeat":
++                if i + 1 < arguments.count, let parsed = Int(arguments[i + 1]) {
++                    repeatCount = max(1, parsed)
++                    i += 1
++                }
++            case "--cpu-only":
++                computeUnits = .cpuOnly
++            case "--cpu-gpu":
++                computeUnits = .cpuAndGPU
++            case "--all":
++                computeUnits = .all
++            default:
++                print("Ignoring unknown option: \(arg)")
++            }
++            i += 1
++        }
++
++        guard let modelDir else {
++            print("Missing --model-dir")
++            printUsage()
++            exit(1)
++        }
++
++        guard #available(macOS 14, iOS 17, *) else {
++            print("MOSS requires macOS 14 or later")
++            exit(1)
++        }
++
++        do {
++            let audioURL = URL(fileURLWithPath: audioFile)
++            let modelURL = URL(fileURLWithPath: modelDir)
++            let tokenizerURL = tokenizerPath.map { URL(fileURLWithPath: $0) }
++            let manifestURL = runtimeManifestPath.map { URL(fileURLWithPath: $0) }
++            let config = MossAsrConfig(
++                maxNewTokens: maxTokens,
++                audioMaxFrames: audioMaxFrames,
++                computeUnits: computeUnits
++            )
++
++            let loadStart = CFAbsoluteTimeGetCurrent()
++            let manager = try MossAsrManager.load(
++                from: modelURL,
++                tokenizerURL: tokenizerURL,
++                runtimeManifestURL: manifestURL,
++                config: config
++            )
++            let loadSeconds = CFAbsoluteTimeGetCurrent() - loadStart
++            for runIndex in 1...repeatCount {
++                let result = try await manager.transcribeDetailed(audioURL: audioURL)
++                print(result.text)
++                fputs(
++                    """
++
++                    MOSS CoreML run \(runIndex)/\(repeatCount)
++                      model load:     \(String(format: "%.3f", loadSeconds))s
++                      audio duration: \(String(format: "%.3f", result.audioDuration))s
++                      processing:     \(String(format: "%.3f", result.processingTime))s
++                      RTFx:           \(String(format: "%.2f", result.rtfx))x
++                      prompt tokens:  \(result.promptLength)
++                      audio tokens:   \(result.audioTokenCount)
++                      generated:      \(result.tokenIds.count)
++                      stopped EOS:    \(result.stoppedOnEos)
++
++                    """,
++                    stderr
++                )
++            }
++        } catch {
++            print("moss-transcribe failed: \(error)")
++            exit(1)
++        }
++    }
++
++    private static func printUsage() {
++        print(
++            """
++            MOSS Transcribe — private CoreML external-cache pipeline
++
++            Usage: fluidaudio moss-transcribe <audio_file> --model-dir <coreml_build_dir> [options]
++
++            Required:
++                --model-dir <path>              Directory containing the compiled MOSS CoreML packages.
++
++            Optional:
++                --tokenizer <path>              tokenizer JSON. Defaults to <model-dir>/moss_tokenizer.json.
++                --runtime-manifest <path>       runtime manifest JSON. Defaults to <model-dir>/moss_runtime_manifest.json.
++                --max-tokens <n>                Max generated tokens. Default: 160.
++                --audio-max-frames <n>          Static audio frames. Default: 3000.
++                --repeat <n>                    Repeat the same file with one loaded manager. Default: 1.
++                --cpu-only                      Force CPU.
++                --cpu-gpu                       CPU + GPU. Default and current known-good setting.
++                --all                           CoreML .all dispatch. The current padded audio package may fail on ANE.
++
++            Current expected package paths under --model-dir:
++                compiled/moss_token_embedding.mlmodelc
++                compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc
++                compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc
++                compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc
++            """
++        )
++    }
++}
++#endif
+diff --git a/Sources/FluidAudioCLI/FluidAudioCLI.swift b/Sources/FluidAudioCLI/FluidAudioCLI.swift
+index 2504661..7a8563e 100644
+--- a/Sources/FluidAudioCLI/FluidAudioCLI.swift
++++ b/Sources/FluidAudioCLI/FluidAudioCLI.swift
+@@ -98,0 +99,2 @@ struct FluidAudioCLI {
++        case "moss-transcribe":
++            await MossTranscribeCommand.run(arguments: Array(arguments.dropFirst(2)))
+@@ -143,0 +146 @@ struct FluidAudioCLI {
++                moss-transcribe         Transcribe using private MOSS CoreML artifacts (manual model-dir)
+@@ -171,0 +175,2 @@ struct FluidAudioCLI {
++                fluidaudio moss-transcribe audio.wav --model-dir /path/to/moss/coreml/build --cpu-gpu
++

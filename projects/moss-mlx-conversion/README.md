@@ -115,6 +115,12 @@ Current short version:
   runtime/moss_runtime_manifest.json`, a fixture-free config carrier for prompt
   template and model constants. The 20-row manifest batch produced identical
   normalized hypotheses and WER/CER to the prior compact-fixture batch.
+- A private FluidAudio scaffold patch now lives at
+  `patches/fluid-audio-moss-private-scaffold.patch`. Applied uncommitted on
+  `home-mac`, it builds with `swift build -c release` and adds
+  `fluidaudiocli moss-transcribe` for manual model-dir smoke tests. Row
+  `6930-75918-0001` produced the expected transcript twice with one loaded
+  manager, but end-to-end processing was still slow at 0.27x then 0.35x RTFx.
 - No public upload/branch/PR action has been taken.
 
 ## Layout
