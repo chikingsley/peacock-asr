@@ -121,6 +121,14 @@ Current short version:
   `fluidaudiocli moss-transcribe` and `moss-benchmark` for manual model-dir
   tests. The FluidAudio 20-row gate matched the prior WER/CER exactly
   (`0.0158` / `0.00418`), but full manager processing was only `0.23` RTFx.
+- Added a 512-slot padded decoder-step package
+  (`compiled_step_padded_512/moss_decoder_step_padded_512.mlmodelc`) and
+  FluidAudio CLI package/cache overrides. On the same first-20 clean rows,
+  using the 512 prefill plus 512 step bucket preserves WER `0.0158` / CER
+  `0.00418`, cuts full manager processing from 710.41s to 237.57s, and raises
+  full FluidAudio RTFx from `0.23` to `0.69`. This is the best private
+  FluidAudio-shaped baseline so far, but it is still single-window,
+  cache-bucketed, and not a packaged production backend.
 - No public upload/branch/PR action has been taken.
 
 ## Layout

@@ -164,6 +164,7 @@ Results:
 | `moss_decoder_prefill_fixture` | merged embeds `[1, 203, 2048]` | top-1 token `4197`; CoreML vs PyTorch max/mean diff `0.048508` / `0.017621` |
 | `moss_decoder_step_fixture` | token `4197`, KV `[28, 1, 8, 203, 128]` | top-1 token `1059`; CoreML vs PyTorch max/mean diff `0.040039` / `0.015691` |
 | `moss_decoder_step_padded_fixture` | token `4197`, padded KV `[28, 1, 8, 768, 128]` | top-1 token `1059`; padded Torch path is exactly equal to append-cache Torch on valid slices; CoreML vs Torch logits max/mean diff `0.040039` / `0.015691` |
+| `moss_decoder_step_padded_512` | token `4197`, padded KV `[28, 1, 8, 512, 128]` | top-1 token `1059`; padded Torch path is exactly equal to append-cache Torch on valid slices; compiled as `compiled_step_padded_512/moss_decoder_step_padded_512.mlmodelc` |
 | `moss_decoder_stateful_fused` | prefill `[1, 203, 2048]`, then token `4197` with the same CoreML state | prefill top-1 `4197`; step top-1 `1059`; 56 state tensors; CoreML vs static step logits max/mean diff `0.038696` / `0.015730` |
 | `moss_decoder_prefill_cache_195` | merged embeds `[1, 195, 2048]` | exports logits plus explicit KV tensors `[28, 1, 8, 195, 128]`; compiled as `compiled_prefill_cache_195/moss_decoder_prefill_cache_195.mlmodelc` |
 | `moss_decoder_prefill_cache_313` | merged embeds `[1, 313, 2048]` | exports logits plus explicit KV tensors `[28, 1, 8, 313, 128]`; compiled as `compiled_prefill_cache_313/moss_decoder_prefill_cache_313.mlmodelc` |
@@ -188,6 +189,8 @@ Results:
 | Swift padded-prefill 20-row batch | LibriSpeech clean-test rows 0-19, same shared 512-token prefill cache + padded step, `--prefill-cache-seq-len 512`, `--compute-units cpu-gpu` | completed 20/20; WER `0.0158`, CER `0.00418`; total audio `164.49s`; summed Swift model time `216.29s`; RTFx `0.76`; wall time `1382.60s` because the harness launches one Swift process per row; artifact `artifacts/evals/librispeech-test-clean-swift-coreml-external-cache-512-20/summary.json` |
 | Swift padded-prefill persistent 20-row batch | same rows/packages plus `moss-swift-coreml-eval --swift-batch` JSONL manifest mode | completed 20/20 with the same WER `0.0158` and CER `0.00418`; summed Swift model time `132.95s`; RTFx `1.24`; wall time `691.58s`; sum of per-row Swift walls `652.28s`; artifact `artifacts/evals/librispeech-test-clean-swift-coreml-external-cache-512-batch-20/summary.json` |
 | Swift runtime-manifest persistent 20-row batch | same rows/packages plus `--runtime-manifest runtime/moss_runtime_manifest.json` instead of compact fixture constants | completed 20/20 with identical row IDs, normalized hypotheses, prompt lengths, generated-token counts, WER `0.0158`, and CER `0.00418` versus the prior persistent batch; summed Swift model time `219.52s`; RTFx `0.75`; wall time `813.11s`; artifact `artifacts/evals/librispeech-test-clean-swift-coreml-runtime-manifest-cache-512-batch-20/summary.json` |
+| FluidAudio scaffold 20-row batch, 768 cache | private `fluidaudiocli moss-benchmark`, default `compiled_step_padded` 768-cache step | completed 20/20; WER `0.0158`, CER `0.00418`; full manager processing `710.41s`; RTFx `0.23`; artifact `artifacts/evals/fluid-audio-moss-benchmark-20/summary.json` |
+| FluidAudio scaffold 20-row batch, 512 cache | private `fluidaudiocli moss-benchmark`, `compiled_step_padded_512` and `--cache-len 512` | completed 20/20; WER `0.0158`, CER `0.00418`; full manager processing `237.57s`; host overhead `21.68s`; RTFx `0.69`; artifact `artifacts/evals/fluid-audio-moss-benchmark-cache512-20/summary.json` |
 
 Important caveat: these are still fixture-level proof components. The padded
 external-cache step proves the planned 768-token cache shape. The stateful fused
@@ -216,13 +219,20 @@ into `Sources/FluidAudio/ASR/MOSS` with manual model-dir loading and a
 20-row FluidAudio benchmark matches WER `0.0158` / CER `0.00418`, but only
 reaches 0.23 RTFx by full manager processing time.
 
+The matched 512-cache decoder-step package is the first meaningful FluidAudio
+runtime speed improvement. On the same 20 rows it avoids the 512-to-768 prefill
+cache padding copy, keeps WER/CER unchanged, and raises full manager RTFx to
+0.69. It is a bucketed short-row path, not a general full-test-clean solution.
+
 Current decoder read: the stateful decoder package was validated at fixture
 prompt length 203 and works on shorter prompt lengths 56, 76, and 195. It
 prefilled row 3 at prompt length 313, but the first one-token decode call
 returned all non-finite logits. The explicit-cache path works around that
 failure and produces correct transcripts on rows 1 and 3. The shared 512-token
 padded prefill removes the per-row prefill package blocker for prompts up to
-512 tokens, and the 20-row batch completed with aggregate WER `0.0158`. Four
+512 tokens, and the matched 512-step package removes the 768-cache padding
+overhead for rows whose prompt plus generated tokens fit in 512 slots. The
+20-row batch completed with aggregate WER `0.0158`. Four
 rows had nonzero normalized WER: row 4 (`opened for them` vs `opened before
 them`), row 15 possessive normalization, row 17 `Ralph` vs `Raoul`, and row 19
 `moon beams` vs `moonbeams`. It is still not the final runtime shape because

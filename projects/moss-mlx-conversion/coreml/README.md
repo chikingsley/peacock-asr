@@ -196,12 +196,14 @@ Compile on macOS with:
 xcrun coremlcompiler compile <package.mlpackage> <output-dir>
 ```
 
-The retained decoder artifacts now cover three stages:
+The retained decoder artifacts now cover four stages:
 
 - `moss_decoder_step_fixture`: fixed append-cache fixture transition
   `past_len=203 -> 204`.
 - `moss_decoder_step_padded_fixture`: fixed 768-slot external-cache contract
   with host-provided update mask, attention mask, and RoPE tensors.
+- `moss_decoder_step_padded_512`: matched 512-slot external-cache contract for
+  short prompts/decodes that fit the shared 512-token prefill bucket.
 - `moss_decoder_prefill_cache_<seq-len>`: exact or padded prefill that returns
   explicit KV tensors for the padded step decoder. The validated 512-token
   padded package uses `last_token_mask` to select the real prompt end.
@@ -421,6 +423,11 @@ Swift result on `home-mac`:
   `moss-benchmark`. It builds on `home-mac`; the FluidAudio 20-row gate matches
   WER `0.0158` / CER `0.00418`, but measures only 0.23 RTFx by full manager
   processing time.
+- The matched 512-cache decoder-step package can be selected with
+  `--step-package compiled_step_padded_512/moss_decoder_step_padded_512.mlmodelc`
+  and `--cache-len 512`. On the same 20 rows it preserves WER/CER and improves
+  full FluidAudio manager RTFx to 0.69 by avoiding the 512-to-768 prefill cache
+  padding copy. It is a bucketed short-row path, not the general runtime.
 - The same padded audio package failed under default `.all` compute-unit
   dispatch with an ANE inference error. Use `--compute-units cpu-gpu` for this
   package until compute placement is profiled more carefully.

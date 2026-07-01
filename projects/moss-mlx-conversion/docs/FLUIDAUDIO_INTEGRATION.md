@@ -40,6 +40,13 @@ artifacts from this handoff without an explicit request.
   rows with WER `0.0158`, CER `0.00418`, 164.49s audio, 710.41s full manager
   processing, and 0.23 RTFx. This matches the prior WER/CER exactly and proves
   the FluidAudio code shape, while confirming the speed blocker.
+- 512-cache FluidAudio benchmark:
+  `artifacts/evals/fluid-audio-moss-benchmark-cache512-20/summary.json`
+  completed the same 20/20 rows with WER `0.0158`, CER `0.00418`, 164.49s
+  audio, 237.57s full manager processing, 215.89s model timing, 21.68s host
+  overhead, and 0.69 RTFx. The improvement comes from pairing the 512-token
+  prefill package with a new 512-slot padded decoder step, avoiding the
+  512-to-768 prefill K/V padding copy for this short-row gate.
 
 ## Relevant FluidAudio Shape
 
@@ -72,7 +79,7 @@ addition:
 - `Sources/FluidAudio/ASR/MOSS/MossMelFrontend.swift` or reuse shared Swift
   Whisper log-mel code if it is promoted to `Shared`.
 - `Sources/FluidAudioCLI/Commands/ASR/MOSS/MossTranscribeCommand.swift`
-- `Sources/FluidAudioCLI/Commands/ASR/MossBenchmark.swift`
+- `Sources/FluidAudioCLI/Commands/ASR/MOSS/MossBenchmarkCommand.swift`
 - `Documentation/ASR/MOSS.md`
 - `Documentation/Models.md` row
 - `Sources/FluidAudio/ModelNames.swift` entries for the model repo and required
@@ -85,7 +92,9 @@ The current private bundle needs these files:
 - `moss_token_embedding.mlmodelc`
 - `moss_audio_encoder_adapter_30s_padded.mlmodelc`
 - `moss_decoder_prefill_cache_512.mlmodelc`
-- `moss_decoder_step_padded_fixture.mlmodelc`
+- `moss_decoder_step_padded_fixture.mlmodelc` for the 768-cache fallback.
+- `moss_decoder_step_padded_512.mlmodelc` for short prompts that fit a
+  512-token total prompt+decode window.
 - `moss_tokenizer.json`
 - `runtime/moss_runtime_manifest.json`, or the same fields embedded in a model
   bundle manifest: prompt prefix/suffix token IDs, placeholder ID, hidden size,
@@ -104,8 +113,9 @@ path:
 - Qwen chat-style prompt construction with audio placeholder replacement.
 - Token embedding, audio embedding, and host-side merged-embedding assembly.
 - Padded prefill with `last_token_mask`.
-- External-cache decode step that passes and updates full
-  `[28, 1, 8, 768, 128]` key/value tensors.
+- External-cache decode step that passes and updates full padded key/value
+  tensors. The private scaffold defaults to the 768-cache package, but the
+  512-cache package is faster when the prompt plus generated tokens fit.
 - Qwen ByteLevel tokenizer decode and special-token skipping.
 
 Adding `ModelNames.MOSS` without a manager would only download files; it would
@@ -118,13 +128,14 @@ not make them runnable.
 - The explicit-cache path is correct but memory-bandwidth heavy because every
   generated token copies full padded KV arrays through CoreML.
 - The private FluidAudio scaffold proves the code can live inside FluidAudio
-  and reuse loaded models across calls, but the 20-row benchmark is only 0.23x
-  RTFx by full manager processing time. This is much slower than the private
-  batch harness's summed model-time RTFx because it measures full end-to-end
-  manager work and still pays the same explicit-cache KV movement each
-  generated token.
+  and reuse loaded models across calls. The initial 768-cache benchmark was
+  only 0.23x RTFx by full manager processing time. The 512-cache benchmark
+  raises that gate to 0.69x RTFx, but this is still much slower than
+  FluidAudio's fast CTC/TDT-style ASR paths and still pays explicit-cache KV
+  movement each generated token.
 - A 512-token prefill bucket covers the first 20 clean-test rows. Full
-  LibriSpeech needs either prompt-length buckets or a larger padded prefill.
+  LibriSpeech needs prompt/decode-length buckets or a larger padded prefill and
+  step package.
 - The audio path is single-window only. Long audio needs FluidAudio-style
   chunking and stitching before it is a general user-facing ASR backend.
 - Use `cpu-gpu` for the current padded audio package. Default `.all` routed to
@@ -136,6 +147,8 @@ The current persistent MOSS path is useful as a quality/reference backend, not
 a Parakeet-speed backend:
 
 - MOSS private persistent batch, first 20 clean rows: WER `1.58%`, RTFx `1.24`.
+- MOSS private FluidAudio scaffold, first 20 clean rows with 512 cache: WER
+  `1.58%`, RTFx `0.69`.
 - FluidAudio Cohere docs report full LibriSpeech test-clean around WER `1.77%`,
   total-audio/compute RTFx `1.72`.
 - Local FluidAudio Parakeet v3 full test-clean result recorded in this project:
@@ -152,7 +165,8 @@ checkout change. Keep it private and unpushed.
 1. Package the MOSS model directory into the shape the FluidAudio scaffold
    expects, with tokenizer and runtime manifest beside the compiled model
    folders or with config paths adjusted.
-2. Add prompt-length buckets or a larger prefill package before full test-clean.
+2. Add prompt/decode-length buckets beyond the current 512 short-row bucket, or
+   a larger matched prefill+step bucket before full test-clean.
 3. Profile and reduce explicit-cache KV movement; this is the current
    production-speed blocker.
 4. Add long-audio chunking and stitching beyond the single 30-second window.

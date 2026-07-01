@@ -168,3 +168,10 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   gate completed with the same WER `0.0158` and CER `0.00418` as the private
   Swift runner, but full manager processing took 710.41s for 164.49s audio
   (0.23 RTFx), confirming runtime/KV movement is the next blocker.
+- Exported and compiled a short-clip 512-slot padded decoder step
+  (`moss_decoder_step_padded_512`) and added FluidAudio CLI overrides for token,
+  audio, prefill, step, and cache-length package paths. The 512-cache
+  FluidAudio 20-row gate completed with unchanged WER `0.0158` and CER
+  `0.00418`, while full manager processing dropped to 237.57s for 164.49s
+  audio (`0.69` RTFx). A direct-argmax decode cleanup was tested, preserved
+  WER/CER, and then reverted because it did not improve the full benchmark.

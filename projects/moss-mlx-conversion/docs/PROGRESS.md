@@ -649,6 +649,7 @@ Fixture component probes completed on `home-mac`:
 | `moss_decoder_prefill_fixture` | merged embeds `[1, 203, 2048]` | top-1 token `4197`; max/mean diff vs PyTorch `0.048508` / `0.017621` |
 | `moss_decoder_step_fixture` | token `4197`, KV `[28, 1, 8, 203, 128]` | top-1 token `1059`; max/mean diff vs PyTorch `0.040039` / `0.015691` |
 | `moss_decoder_step_padded_fixture` | token `4197`, padded KV `[28, 1, 8, 768, 128]` | top-1 token `1059`; padded Torch path matches append-cache Torch exactly on valid logits/cache slices; CoreML vs Torch logits max/mean diff `0.040039` / `0.015691` |
+| `moss_decoder_step_padded_512` | token `4197`, padded KV `[28, 1, 8, 512, 128]` | top-1 token `1059`; padded Torch path matches append-cache Torch exactly on valid logits/cache slices; exported and compiled on `home-mac` as `compiled_step_padded_512/moss_decoder_step_padded_512.mlmodelc`; retained manifest `artifacts/coreml/moss_decoder_step_padded_512.json` |
 | `moss_decoder_stateful_fused` | prefill `[1, 203, 2048]`, then token `4197` with same CoreML state | prefill top-1 `4197`; step top-1 `1059`; 56 CoreML state tensors `[1, 8, 768, 128]`; CoreML vs static step logits max/mean diff `0.038696` / `0.015730` |
 | `moss_decoder_prefill_cache_195` | merged embeds `[1, 195, 2048]` | exports logits plus explicit cache tensors `[28, 1, 8, 195, 128]`; compiled on `home-mac` as `compiled_prefill_cache_195/moss_decoder_prefill_cache_195.mlmodelc` |
 | `moss_decoder_prefill_cache_313` | merged embeds `[1, 313, 2048]` | exports logits plus explicit cache tensors `[28, 1, 8, 313, 128]`; compiled on `home-mac` as `compiled_prefill_cache_313/moss_decoder_prefill_cache_313.mlmodelc` |
@@ -676,6 +677,8 @@ Fixture component probes completed on `home-mac`:
 | Swift padded-prefill 20-row batch | LibriSpeech clean-test rows 0-19, shared `compiled_prefill_cache_512` + `compiled_step_padded`, `--prefill-cache-seq-len 512`, `--compute-units cpu-gpu` | completed 20/20; WER `0.0158`, CER `0.00418`; total audio `164.49s`; summed Swift model time `216.29s`; RTFx `0.76`; wall `1382.60s` because the harness launches one Swift process per row; max prompt length 313, max audio tokens 303; artifacts under `artifacts/evals/librispeech-test-clean-swift-coreml-external-cache-512-20/` |
 | Swift padded-prefill persistent 20-row batch | same rows/packages through `moss-swift-coreml-eval --swift-batch`, which writes a JSONL manifest and calls the Swift runner once | completed 20/20 with the same WER `0.0158` and CER `0.00418`; total audio `164.49s`; summed Swift model time `132.95s`; RTFx `1.24`; wall `691.58s`; sum of per-row Swift walls `652.28s`; artifacts under `artifacts/evals/librispeech-test-clean-swift-coreml-external-cache-512-batch-20/` |
 | Swift runtime-manifest persistent 20-row batch | same rows/packages plus `--runtime-manifest runtime/moss_runtime_manifest.json`, no compact fixture JSON runtime constants | completed 20/20 with identical row IDs, normalized hypotheses, prompt lengths, generated-token counts, WER `0.0158`, and CER `0.00418` versus the prior persistent batch; total audio `164.49s`; summed Swift model time `219.52s`; RTFx `0.75`; wall `813.11s`; artifact `artifacts/evals/librispeech-test-clean-swift-coreml-runtime-manifest-cache-512-batch-20/summary.json` |
+| FluidAudio scaffold 20-row batch, 768 cache | same rows/packages through private `fluidaudiocli moss-benchmark`, default `compiled_step_padded` 768-cache step | completed 20/20; WER `0.0158`, CER `0.00418`; total audio `164.49s`; full manager processing `710.41s`; RTFx `0.23`; artifact `artifacts/evals/fluid-audio-moss-benchmark-20/summary.json` |
+| FluidAudio scaffold 20-row batch, 512 cache | same rows through private `fluidaudiocli moss-benchmark`, `--step-package compiled_step_padded_512/moss_decoder_step_padded_512.mlmodelc --cache-len 512` | completed 20/20; WER `0.0158`, CER `0.00418`; total audio `164.49s`; full manager processing `237.57s`; model timing `215.89s`; host overhead `21.68s`; RTFx `0.69`; artifact `artifacts/evals/fluid-audio-moss-benchmark-cache512-20/summary.json` |
 
 Retained full-component package sizes:
 
@@ -687,6 +690,7 @@ Retained full-component package sizes:
 | `moss_decoder_prefill_fixture` | 3.3G | 3.3G |
 | `moss_decoder_step_fixture` | 3.3G | 3.3G |
 | `moss_decoder_step_padded_fixture` | 3.3G | 3.3G |
+| `moss_decoder_step_padded_512` | 3.2G | 3.2G |
 | `moss_decoder_stateful_fused` | 3.3G | 3.3G |
 | `moss_decoder_prefill_cache_195` | not retained on Mac after compile | 3.2G |
 | `moss_decoder_prefill_cache_313` | not retained on Mac after compile | 3.2G |
@@ -809,6 +813,13 @@ Notes:
   WER `0.0158`, CER `0.00418`, 164.49s audio, 710.41s full manager processing,
   and 0.23 RTFx. This proves the FluidAudio code shape and WER parity, not
   production speed.
+- A matched 512-cache decoder-step package now exists for short rows:
+  `compiled_step_padded_512/moss_decoder_step_padded_512.mlmodelc`. The private
+  FluidAudio CLI accepts package/cache overrides, and the same 20-row gate under
+  `artifacts/evals/fluid-audio-moss-benchmark-cache512-20/summary.json`
+  preserves WER `0.0158` / CER `0.00418` while improving full manager RTFx to
+  `0.69`. The gain comes from avoiding the 512-to-768 prefill cache padding
+  copy; decode is still autoregressive and not Parakeet-class speed.
 
 ## Reproduction Commands
 
@@ -874,8 +885,9 @@ The private conversion now has three completed tracks:
    external-cache loop into `Sources/FluidAudio/ASR/MOSS`, adds manual
    model-dir loading, and exposes `fluidaudiocli moss-transcribe` plus
    `moss-benchmark`. The full 20-row gate matches the prior WER/CER exactly,
-   but it is not yet a packaged, downloadable, long-audio, production-speed
-   FluidAudio backend.
+   and the matched 512-cache step improves full manager RTFx from `0.23` to
+   `0.69` on those rows. It is not yet a packaged, downloadable, long-audio,
+   production-speed FluidAudio backend.
 
 The next real work is a Swift/CoreML runtime decision:
 
@@ -885,9 +897,9 @@ The next real work is a Swift/CoreML runtime decision:
    model bundle/store/download layout, long-audio chunking beyond one
    30-second window, and optional general prompt tokenizer/template support
    beyond the fixed English no-time-marker path.
-3. Add prompt-length bucket handling for >512 prompts, or a larger padded
-   prefill package, before treating the runtime as general for the full
-   LibriSpeech clean set.
+3. Add prompt/decode-length bucket handling beyond the current 512 short-row
+   bucket, or larger matched prefill+step packages, before treating the runtime
+   as general for the full LibriSpeech clean set.
 4. Reduce runtime overhead before treating this as FluidAudio-ready: profile
    the cost of moving full padded KV arrays each decode token, then decide
    whether to revisit CoreML State API stability, bucket/cache shapes, or a

@@ -581,10 +581,10 @@ index 0000000..fdee2a9
 +}
 diff --git a/Sources/FluidAudio/ASR/MOSS/MossPipeline.swift b/Sources/FluidAudio/ASR/MOSS/MossPipeline.swift
 new file mode 100644
-index 0000000..141df72
+index 0000000..e49e442
 --- /dev/null
 +++ b/Sources/FluidAudio/ASR/MOSS/MossPipeline.swift
-@@ -0,0 +1,557 @@
+@@ -0,0 +1,612 @@
 +@preconcurrency import CoreML
 +import Darwin
 +import Foundation
@@ -971,9 +971,64 @@ index 0000000..141df72
 +            "cache-len \(cacheLen) is shorter than \(featureName) prompt length \(pastLen)"
 +        )
 +    }
++    if cacheLen == pastLen {
++        return cache
++    }
 +    let padded = try makeFloatArray(
 +        shape: [shape[0], shape[1], shape[2], cacheLen, shape[4]]
 +    )
++
++    let cacheStrides = strides(cache)
++    let paddedStrides = strides(padded)
++    if cache.dataType == .float32,
++        padded.dataType == .float32,
++        cacheStrides[4] == 1,
++        paddedStrides[4] == 1
++    {
++        let source = cache.dataPointer.bindMemory(to: Float.self, capacity: cache.count)
++        let target = padded.dataPointer.bindMemory(to: Float.self, capacity: padded.count)
++        let headDim = shape[4]
++
++        if cacheStrides[3] == headDim, paddedStrides[3] == headDim {
++            let blockCount = pastLen * headDim
++            for layer in 0..<shape[0] {
++                for batch in 0..<shape[1] {
++                    for head in 0..<shape[2] {
++                        let sourceOffset = offset([layer, batch, head, 0, 0], strides: cacheStrides)
++                        let targetOffset = offset([layer, batch, head, 0, 0], strides: paddedStrides)
++                        target.advanced(by: targetOffset).update(
++                            from: source.advanced(by: sourceOffset),
++                            count: blockCount
++                        )
++                    }
++                }
++            }
++            return padded
++        }
++
++        for layer in 0..<shape[0] {
++            for batch in 0..<shape[1] {
++                for head in 0..<shape[2] {
++                    for position in 0..<pastLen {
++                        let sourceOffset = offset(
++                            [layer, batch, head, position, 0],
++                            strides: cacheStrides
++                        )
++                        let targetOffset = offset(
++                            [layer, batch, head, position, 0],
++                            strides: paddedStrides
++                        )
++                        target.advanced(by: targetOffset).update(
++                            from: source.advanced(by: sourceOffset),
++                            count: headDim
++                        )
++                    }
++                }
++            }
++        }
++        return padded
++    }
++
 +    for layer in 0..<shape[0] {
 +        for batch in 0..<shape[1] {
 +            for head in 0..<shape[2] {
@@ -1299,10 +1354,10 @@ index 0000000..a77c894
 +}
 diff --git a/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossBenchmarkCommand.swift b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossBenchmarkCommand.swift
 new file mode 100644
-index 0000000..1e67c95
+index 0000000..176537f
 --- /dev/null
 +++ b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossBenchmarkCommand.swift
-@@ -0,0 +1,403 @@
+@@ -0,0 +1,527 @@
 +#if os(macOS)
 +import CoreML
 +import FluidAudio
@@ -1337,6 +1392,15 @@ index 0000000..1e67c95
 +        let audioDurationSec: Double
 +        let processingSec: Double
 +        let rtfx: Double
++        let audioFrontendSec: Double
++        let tokenEmbeddingPromptSec: Double
++        let audioEncoderAdapterSec: Double
++        let decoderPrefillSec: Double
++        let tokenEmbeddingDecodeSec: Double
++        let decoderDecodeSec: Double
++        let modelTimingSec: Double
++        let modelRtfx: Double
++        let hostOverheadSec: Double
 +        let promptLength: Int
 +        let audioTokenCount: Int
 +        let generatedTokenCount: Int
@@ -1356,6 +1420,15 @@ index 0000000..1e67c95
 +            case audioDurationSec = "audio_duration_sec"
 +            case processingSec = "processing_sec"
 +            case rtfx
++            case audioFrontendSec = "audio_frontend_sec"
++            case tokenEmbeddingPromptSec = "token_embedding_prompt_sec"
++            case audioEncoderAdapterSec = "audio_encoder_adapter_sec"
++            case decoderPrefillSec = "decoder_prefill_sec"
++            case tokenEmbeddingDecodeSec = "token_embedding_decode_sec"
++            case decoderDecodeSec = "decoder_decode_sec"
++            case modelTimingSec = "model_timing_sec"
++            case modelRtfx = "model_rtfx"
++            case hostOverheadSec = "host_overhead_sec"
 +            case promptLength = "prompt_length"
 +            case audioTokenCount = "audio_token_count"
 +            case generatedTokenCount = "generated_token_count"
@@ -1369,8 +1442,17 @@ index 0000000..1e67c95
 +        let cer: Double
 +        let totalAudioSec: Double
 +        let totalProcessingSec: Double
++        let totalModelSec: Double
++        let totalHostOverheadSec: Double
++        let totalAudioFrontendSec: Double
++        let totalTokenEmbeddingPromptSec: Double
++        let totalAudioEncoderAdapterSec: Double
++        let totalDecoderPrefillSec: Double
++        let totalTokenEmbeddingDecodeSec: Double
++        let totalDecoderDecodeSec: Double
 +        let wallElapsedSec: Double
 +        let rtfx: Double
++        let modelRtfx: Double
 +        let wallRtfx: Double
 +        let outputDir: String
 +
@@ -1380,8 +1462,17 @@ index 0000000..1e67c95
 +            case cer
 +            case totalAudioSec = "total_audio_sec"
 +            case totalProcessingSec = "total_processing_sec"
++            case totalModelSec = "total_model_sec"
++            case totalHostOverheadSec = "total_host_overhead_sec"
++            case totalAudioFrontendSec = "total_audio_frontend_sec"
++            case totalTokenEmbeddingPromptSec = "total_token_embedding_prompt_sec"
++            case totalAudioEncoderAdapterSec = "total_audio_encoder_adapter_sec"
++            case totalDecoderPrefillSec = "total_decoder_prefill_sec"
++            case totalTokenEmbeddingDecodeSec = "total_token_embedding_decode_sec"
++            case totalDecoderDecodeSec = "total_decoder_decode_sec"
 +            case wallElapsedSec = "wall_elapsed_sec"
 +            case rtfx
++            case modelRtfx = "model_rtfx"
 +            case wallRtfx = "wall_rtfx"
 +            case outputDir = "output_dir"
 +        }
@@ -1393,10 +1484,17 @@ index 0000000..1e67c95
 +        var modelDir: String?
 +        var tokenizerPath: String?
 +        var runtimeManifestPath: String?
++        var tokenPackagePath: String?
++        var audioPackagePath: String?
++        var prefillCachePackagePath: String?
++        var stepPackagePath: String?
 +        var outputDir = "moss_benchmark_results"
++        var offset = 0
 +        var limit: Int?
 +        var maxTokens = 160
 +        var audioMaxFrames = 3_000
++        var cacheLen = 768
++        var prefillCacheSeqLen = 512
 +        var computeUnits: MLComputeUnits = .cpuAndGPU
 +
 +        var i = 0
@@ -1431,9 +1529,44 @@ index 0000000..1e67c95
 +                    runtimeManifestPath = arguments[i + 1]
 +                    i += 1
 +                }
++            case "--token-package":
++                if i + 1 < arguments.count {
++                    tokenPackagePath = arguments[i + 1]
++                    i += 1
++                }
++            case "--audio-package":
++                if i + 1 < arguments.count {
++                    audioPackagePath = arguments[i + 1]
++                    i += 1
++                }
++            case "--prefill-cache-package":
++                if i + 1 < arguments.count {
++                    prefillCachePackagePath = arguments[i + 1]
++                    i += 1
++                }
++            case "--prefill-cache-seq-len":
++                if i + 1 < arguments.count, let parsed = Int(arguments[i + 1]) {
++                    prefillCacheSeqLen = parsed
++                    i += 1
++                }
++            case "--step-package":
++                if i + 1 < arguments.count {
++                    stepPackagePath = arguments[i + 1]
++                    i += 1
++                }
++            case "--cache-len":
++                if i + 1 < arguments.count, let parsed = Int(arguments[i + 1]) {
++                    cacheLen = parsed
++                    i += 1
++                }
 +            case "--output-dir":
 +                if i + 1 < arguments.count {
 +                    outputDir = arguments[i + 1]
++                    i += 1
++                }
++            case "--offset":
++                if i + 1 < arguments.count, let parsed = Int(arguments[i + 1]) {
++                    offset = parsed
 +                    i += 1
 +                }
 +            case "--limit":
@@ -1486,10 +1619,19 @@ index 0000000..1e67c95
 +            FileManager.default.createFile(atPath: predictionsURL.path, contents: nil)
 +
 +            let items = try loadManifest(manifestURL)
-+            let selected = Array(items.prefix(limit ?? items.count))
++            let selected = Array(items.dropFirst(max(offset, 0)).prefix(limit ?? items.count))
 +            let config = MossAsrConfig(
++                tokenPackagePath: tokenPackagePath ?? "compiled/moss_token_embedding.mlmodelc",
++                audioPackagePath: audioPackagePath
++                    ?? "compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc",
++                prefillCachePackagePath: prefillCachePackagePath
++                    ?? "compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc",
++                stepPackagePath: stepPackagePath
++                    ?? "compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc",
 +                maxNewTokens: maxTokens,
 +                audioMaxFrames: audioMaxFrames,
++                cacheLen: cacheLen,
++                prefillCacheSeqLen: prefillCacheSeqLen,
 +                computeUnits: computeUnits
 +            )
 +            let manager = try MossAsrManager.load(
@@ -1510,6 +1652,8 @@ index 0000000..1e67c95
 +                let result = try await manager.transcribeDetailed(audioURL: audioURL)
 +                let referenceNormalized = normalize(reference)
 +                let hypothesisNormalized = normalize(result.text)
++                let modelTiming = result.timing.total
++                let hostOverhead = result.processingTime - modelTiming
 +                let row = PredictionRow(
 +                    rowIdx: item.rowIdx,
 +                    id: item.id,
@@ -1524,6 +1668,15 @@ index 0000000..1e67c95
 +                    audioDurationSec: result.audioDuration,
 +                    processingSec: result.processingTime,
 +                    rtfx: result.rtfx,
++                    audioFrontendSec: result.timing.audioFrontend,
++                    tokenEmbeddingPromptSec: result.timing.tokenEmbeddingPrompt,
++                    audioEncoderAdapterSec: result.timing.audioEncoderAdapter,
++                    decoderPrefillSec: result.timing.decoderPrefill,
++                    tokenEmbeddingDecodeSec: result.timing.tokenEmbeddingDecode,
++                    decoderDecodeSec: result.timing.decoderDecode,
++                    modelTimingSec: modelTiming,
++                    modelRtfx: result.audioDuration / max(modelTiming, 1.0e-9),
++                    hostOverheadSec: hostOverhead,
 +                    promptLength: result.promptLength,
 +                    audioTokenCount: result.audioTokenCount,
 +                    generatedTokenCount: result.tokenIds.count,
@@ -1535,6 +1688,8 @@ index 0000000..1e67c95
 +                    "\(item.rowIdx ?? rows.count - 1) \(item.id ?? "<unknown>") "
 +                        + "WER=\(String(format: "%.4f", row.wer)) "
 +                        + "RTFx=\(String(format: "%.2f", row.rtfx)) "
++                        + "modelRTFx=\(String(format: "%.2f", row.modelRtfx)) "
++                        + "host=\(String(format: "%.2f", row.hostOverheadSec))s "
 +                        + row.hypothesis
 +                )
 +                fflush(stdout)
@@ -1542,6 +1697,8 @@ index 0000000..1e67c95
 +
 +            let totalAudio = rows.reduce(0) { $0 + $1.audioDurationSec }
 +            let totalProcessing = rows.reduce(0) { $0 + $1.processingSec }
++            let totalModel = rows.reduce(0) { $0 + $1.modelTimingSec }
++            let totalHostOverhead = rows.reduce(0) { $0 + $1.hostOverheadSec }
 +            let wall = CFAbsoluteTimeGetCurrent() - wallStart
 +            let summary = Summary(
 +                completed: rows.count,
@@ -1549,8 +1706,17 @@ index 0000000..1e67c95
 +                cer: corpusCharacterErrorRate(rows),
 +                totalAudioSec: totalAudio,
 +                totalProcessingSec: totalProcessing,
++                totalModelSec: totalModel,
++                totalHostOverheadSec: totalHostOverhead,
++                totalAudioFrontendSec: rows.reduce(0) { $0 + $1.audioFrontendSec },
++                totalTokenEmbeddingPromptSec: rows.reduce(0) { $0 + $1.tokenEmbeddingPromptSec },
++                totalAudioEncoderAdapterSec: rows.reduce(0) { $0 + $1.audioEncoderAdapterSec },
++                totalDecoderPrefillSec: rows.reduce(0) { $0 + $1.decoderPrefillSec },
++                totalTokenEmbeddingDecodeSec: rows.reduce(0) { $0 + $1.tokenEmbeddingDecodeSec },
++                totalDecoderDecodeSec: rows.reduce(0) { $0 + $1.decoderDecodeSec },
 +                wallElapsedSec: wall,
 +                rtfx: totalAudio / max(totalProcessing, 1.0e-9),
++                modelRtfx: totalAudio / max(totalModel, 1.0e-9),
 +                wallRtfx: totalAudio / max(wall, 1.0e-9),
 +                outputDir: outputURL.path
 +            )
@@ -1566,8 +1732,11 @@ index 0000000..1e67c95
 +                  CER:            \(String(format: "%.4f", summary.cer))
 +                  audio:          \(String(format: "%.2f", summary.totalAudioSec))s
 +                  processing:     \(String(format: "%.2f", summary.totalProcessingSec))s
++                  model timing:   \(String(format: "%.2f", summary.totalModelSec))s
++                  host overhead:  \(String(format: "%.2f", summary.totalHostOverheadSec))s
 +                  wall:           \(String(format: "%.2f", summary.wallElapsedSec))s
 +                  RTFx:           \(String(format: "%.2f", summary.rtfx))x
++                  model RTFx:     \(String(format: "%.2f", summary.modelRtfx))x
 +                  wall RTFx:      \(String(format: "%.2f", summary.wallRtfx))x
 +                  output:         \(summary.outputDir)
 +
@@ -1591,13 +1760,23 @@ index 0000000..1e67c95
 +                --base-dir <path>               Base directory for relative manifest paths.
 +                --tokenizer <path>              tokenizer JSON. Defaults to <model-dir>/moss_tokenizer.json.
 +                --runtime-manifest <path>       runtime manifest JSON. Defaults to <model-dir>/moss_runtime_manifest.json.
++                --token-package <path>          Token embedding package path relative to --model-dir.
++                --audio-package <path>          Audio encoder package path relative to --model-dir.
++                --prefill-cache-package <path>  Prefill cache package path relative to --model-dir.
++                --prefill-cache-seq-len <n>     Prefill cache sequence length. Default: 512.
++                --step-package <path>           Decoder step package path relative to --model-dir.
++                --cache-len <n>                 Decoder cache length. Default: 768.
 +                --output-dir <path>             Directory for predictions.jsonl + summary.json.
++                --offset <n>                    Skip the first n manifest rows.
 +                --limit <n>                     Limit rows.
 +                --max-tokens <n>                Max generated tokens. Default: 160.
 +                --audio-max-frames <n>          Static audio frames. Default: 3000.
 +                --cpu-only                      Force CPU.
 +                --cpu-gpu                       CPU + GPU. Default and current known-good setting.
 +                --all                           CoreML .all dispatch. The current padded audio package may fail on ANE.
++
++            Short-clip 512-cache step package:
++                --step-package compiled_step_padded_512/moss_decoder_step_padded_512.mlmodelc --cache-len 512
 +            """
 +        )
 +    }
@@ -1708,10 +1887,10 @@ index 0000000..1e67c95
 +#endif
 diff --git a/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossTranscribeCommand.swift b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossTranscribeCommand.swift
 new file mode 100644
-index 0000000..3f0b0b7
+index 0000000..b7296b3
 --- /dev/null
 +++ b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossTranscribeCommand.swift
-@@ -0,0 +1,156 @@
+@@ -0,0 +1,210 @@
 +#if os(macOS)
 +import CoreML
 +import FluidAudio
@@ -1728,6 +1907,12 @@ index 0000000..3f0b0b7
 +        var modelDir: String?
 +        var tokenizerPath: String?
 +        var runtimeManifestPath: String?
++        var tokenPackagePath: String?
++        var audioPackagePath: String?
++        var prefillCachePackagePath: String?
++        var stepPackagePath: String?
++        var cacheLen = 768
++        var prefillCacheSeqLen = 512
 +        var maxTokens = 160
 +        var audioMaxFrames = 3_000
 +        var computeUnits: MLComputeUnits = .cpuAndGPU
@@ -1753,6 +1938,36 @@ index 0000000..3f0b0b7
 +            case "--runtime-manifest":
 +                if i + 1 < arguments.count {
 +                    runtimeManifestPath = arguments[i + 1]
++                    i += 1
++                }
++            case "--token-package":
++                if i + 1 < arguments.count {
++                    tokenPackagePath = arguments[i + 1]
++                    i += 1
++                }
++            case "--audio-package":
++                if i + 1 < arguments.count {
++                    audioPackagePath = arguments[i + 1]
++                    i += 1
++                }
++            case "--prefill-cache-package":
++                if i + 1 < arguments.count {
++                    prefillCachePackagePath = arguments[i + 1]
++                    i += 1
++                }
++            case "--prefill-cache-seq-len":
++                if i + 1 < arguments.count, let parsed = Int(arguments[i + 1]) {
++                    prefillCacheSeqLen = parsed
++                    i += 1
++                }
++            case "--step-package":
++                if i + 1 < arguments.count {
++                    stepPackagePath = arguments[i + 1]
++                    i += 1
++                }
++            case "--cache-len":
++                if i + 1 < arguments.count, let parsed = Int(arguments[i + 1]) {
++                    cacheLen = parsed
 +                    i += 1
 +                }
 +            case "--max-tokens":
@@ -1799,8 +2014,17 @@ index 0000000..3f0b0b7
 +            let tokenizerURL = tokenizerPath.map { URL(fileURLWithPath: $0) }
 +            let manifestURL = runtimeManifestPath.map { URL(fileURLWithPath: $0) }
 +            let config = MossAsrConfig(
++                tokenPackagePath: tokenPackagePath ?? "compiled/moss_token_embedding.mlmodelc",
++                audioPackagePath: audioPackagePath
++                    ?? "compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc",
++                prefillCachePackagePath: prefillCachePackagePath
++                    ?? "compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc",
++                stepPackagePath: stepPackagePath
++                    ?? "compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc",
 +                maxNewTokens: maxTokens,
 +                audioMaxFrames: audioMaxFrames,
++                cacheLen: cacheLen,
++                prefillCacheSeqLen: prefillCacheSeqLen,
 +                computeUnits: computeUnits
 +            )
 +
@@ -1851,6 +2075,12 @@ index 0000000..3f0b0b7
 +            Optional:
 +                --tokenizer <path>              tokenizer JSON. Defaults to <model-dir>/moss_tokenizer.json.
 +                --runtime-manifest <path>       runtime manifest JSON. Defaults to <model-dir>/moss_runtime_manifest.json.
++                --token-package <path>          Token embedding package path relative to --model-dir.
++                --audio-package <path>          Audio encoder package path relative to --model-dir.
++                --prefill-cache-package <path>  Prefill cache package path relative to --model-dir.
++                --prefill-cache-seq-len <n>     Prefill cache sequence length. Default: 512.
++                --step-package <path>           Decoder step package path relative to --model-dir.
++                --cache-len <n>                 Decoder cache length. Default: 768.
 +                --max-tokens <n>                Max generated tokens. Default: 160.
 +                --audio-max-frames <n>          Static audio frames. Default: 3000.
 +                --repeat <n>                    Repeat the same file with one loaded manager. Default: 1.
@@ -1863,6 +2093,9 @@ index 0000000..3f0b0b7
 +                compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc
 +                compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc
 +                compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc
++
++            Short-clip 512-cache step package:
++                --step-package compiled_step_padded_512/moss_decoder_step_padded_512.mlmodelc --cache-len 512
 +            """
 +        )
 +    }
