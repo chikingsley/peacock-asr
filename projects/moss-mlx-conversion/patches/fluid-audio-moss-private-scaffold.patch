@@ -581,10 +581,10 @@ index 0000000..fdee2a9
 +}
 diff --git a/Sources/FluidAudio/ASR/MOSS/MossPipeline.swift b/Sources/FluidAudio/ASR/MOSS/MossPipeline.swift
 new file mode 100644
-index 0000000..e49e442
+index 0000000..4d68fd5
 --- /dev/null
 +++ b/Sources/FluidAudio/ASR/MOSS/MossPipeline.swift
-@@ -0,0 +1,612 @@
+@@ -0,0 +1,625 @@
 +@preconcurrency import CoreML
 +import Darwin
 +import Foundation
@@ -703,6 +703,19 @@ index 0000000..e49e442
 +        }
 +        guard config.maxNewTokens > 0 else {
 +            throw MossAsrError.invalidArgument("maxNewTokens must be positive")
++        }
++        guard config.prefillCacheSeqLen <= config.cacheLen else {
++            throw MossAsrError.invalidArgument(
++                "prefill bucket \(config.prefillCacheSeqLen) exceeds cache length \(config.cacheLen)"
++            )
++        }
++        let requiredCacheLen = prompt.promptLen + max(0, config.maxNewTokens - 1)
++        guard requiredCacheLen <= config.cacheLen else {
++            throw MossAsrError.invalidArgument(
++                "prompt length \(prompt.promptLen) plus max generated cache positions "
++                    + "\(max(0, config.maxNewTokens - 1)) requires cache length "
++                    + "\(requiredCacheLen), but cache length is \(config.cacheLen)"
++            )
 +        }
 +
 +        let tokenInput = try MLDictionaryFeatureProvider(dictionary: [
@@ -1354,10 +1367,10 @@ index 0000000..a77c894
 +}
 diff --git a/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossBenchmarkCommand.swift b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossBenchmarkCommand.swift
 new file mode 100644
-index 0000000..176537f
+index 0000000..fda5c05
 --- /dev/null
 +++ b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossBenchmarkCommand.swift
-@@ -0,0 +1,527 @@
+@@ -0,0 +1,547 @@
 +#if os(macOS)
 +import CoreML
 +import FluidAudio
@@ -1527,6 +1540,22 @@ index 0000000..176537f
 +            case "--runtime-manifest":
 +                if i + 1 < arguments.count {
 +                    runtimeManifestPath = arguments[i + 1]
++                    i += 1
++                }
++            case "--cache-preset":
++                if i + 1 < arguments.count {
++                    let preset = arguments[i + 1]
++                    guard MossCachePreset.apply(
++                        preset,
++                        prefillCachePackagePath: &prefillCachePackagePath,
++                        prefillCacheSeqLen: &prefillCacheSeqLen,
++                        stepPackagePath: &stepPackagePath,
++                        cacheLen: &cacheLen
++                    ) else {
++                        print("Unknown --cache-preset \(preset)")
++                        printUsage()
++                        exit(1)
++                    }
 +                    i += 1
 +                }
 +            case "--token-package":
@@ -1760,6 +1789,7 @@ index 0000000..176537f
 +                --base-dir <path>               Base directory for relative manifest paths.
 +                --tokenizer <path>              tokenizer JSON. Defaults to <model-dir>/moss_tokenizer.json.
 +                --runtime-manifest <path>       runtime manifest JSON. Defaults to <model-dir>/moss_runtime_manifest.json.
++                --cache-preset <name>           Cache package preset. See below.
 +                --token-package <path>          Token embedding package path relative to --model-dir.
 +                --audio-package <path>          Audio encoder package path relative to --model-dir.
 +                --prefill-cache-package <path>  Prefill cache package path relative to --model-dir.
@@ -1774,6 +1804,9 @@ index 0000000..176537f
 +                --cpu-only                      Force CPU.
 +                --cpu-gpu                       CPU + GPU. Default and current known-good setting.
 +                --all                           CoreML .all dispatch. The current padded audio package may fail on ANE.
++
++            Cache presets:
++            \(MossCachePreset.usage)
 +
 +            Short-clip 512-cache step package:
 +                --step-package compiled_step_padded_512/moss_decoder_step_padded_512.mlmodelc --cache-len 512
@@ -1885,12 +1918,58 @@ index 0000000..176537f
 +    }
 +}
 +#endif
+diff --git a/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossCachePreset.swift b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossCachePreset.swift
+new file mode 100644
+index 0000000..d55eb5b
+--- /dev/null
++++ b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossCachePreset.swift
+@@ -0,0 +1,40 @@
++#if os(macOS)
++enum MossCachePreset {
++    static func apply(
++        _ rawValue: String,
++        prefillCachePackagePath: inout String?,
++        prefillCacheSeqLen: inout Int,
++        stepPackagePath: inout String?,
++        cacheLen: inout Int
++    ) -> Bool {
++        switch rawValue {
++        case "short-512", "cache-512", "512":
++            prefillCachePackagePath = "compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc"
++            prefillCacheSeqLen = 512
++            stepPackagePath = "compiled_step_padded_512/moss_decoder_step_padded_512.mlmodelc"
++            cacheLen = 512
++            return true
++        case "compat-768", "cache-768", "768":
++            prefillCachePackagePath = "compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc"
++            prefillCacheSeqLen = 512
++            stepPackagePath = "compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc"
++            cacheLen = 768
++            return true
++        case "matched-768":
++            prefillCachePackagePath = "compiled_prefill_cache_768/moss_decoder_prefill_cache_768.mlmodelc"
++            prefillCacheSeqLen = 768
++            stepPackagePath = "compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc"
++            cacheLen = 768
++            return true
++        default:
++            return false
++        }
++    }
++
++    static let usage = """
++        short-512  512-token prefill plus 512-cache step. Fastest validated short-row path.
++        compat-768 512-token prefill plus 768-cache step. Default compatibility path.
++        matched-768 768-token prefill plus 768-cache step. Experimental; currently MPSGraph-blocked.
++        """
++}
++#endif
 diff --git a/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossTranscribeCommand.swift b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossTranscribeCommand.swift
 new file mode 100644
-index 0000000..b7296b3
+index 0000000..22529d2
 --- /dev/null
 +++ b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossTranscribeCommand.swift
-@@ -0,0 +1,210 @@
+@@ -0,0 +1,230 @@
 +#if os(macOS)
 +import CoreML
 +import FluidAudio
@@ -1938,6 +2017,22 @@ index 0000000..b7296b3
 +            case "--runtime-manifest":
 +                if i + 1 < arguments.count {
 +                    runtimeManifestPath = arguments[i + 1]
++                    i += 1
++                }
++            case "--cache-preset":
++                if i + 1 < arguments.count {
++                    let preset = arguments[i + 1]
++                    guard MossCachePreset.apply(
++                        preset,
++                        prefillCachePackagePath: &prefillCachePackagePath,
++                        prefillCacheSeqLen: &prefillCacheSeqLen,
++                        stepPackagePath: &stepPackagePath,
++                        cacheLen: &cacheLen
++                    ) else {
++                        print("Unknown --cache-preset \(preset)")
++                        printUsage()
++                        exit(1)
++                    }
 +                    i += 1
 +                }
 +            case "--token-package":
@@ -2077,6 +2172,7 @@ index 0000000..b7296b3
 +                --runtime-manifest <path>       runtime manifest JSON. Defaults to <model-dir>/moss_runtime_manifest.json.
 +                --token-package <path>          Token embedding package path relative to --model-dir.
 +                --audio-package <path>          Audio encoder package path relative to --model-dir.
++                --cache-preset <name>           Cache package preset. See below.
 +                --prefill-cache-package <path>  Prefill cache package path relative to --model-dir.
 +                --prefill-cache-seq-len <n>     Prefill cache sequence length. Default: 512.
 +                --step-package <path>           Decoder step package path relative to --model-dir.
@@ -2093,6 +2189,9 @@ index 0000000..b7296b3
 +                compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc
 +                compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc
 +                compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc
++
++            Cache presets:
++            \(MossCachePreset.usage)
 +
 +            Short-clip 512-cache step package:
 +                --step-package compiled_step_padded_512/moss_decoder_step_padded_512.mlmodelc --cache-len 512

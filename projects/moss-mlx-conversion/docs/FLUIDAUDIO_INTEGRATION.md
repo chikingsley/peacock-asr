@@ -47,6 +47,12 @@ artifacts from this handoff without an explicit request.
   overhead, and 0.69 RTFx. The improvement comes from pairing the 512-token
   prefill package with a new 512-slot padded decoder step, avoiding the
   512-to-768 prefill K/V padding copy for this short-row gate.
+- Cache-preset FluidAudio smoke:
+  `artifacts/evals/fluid-audio-moss-benchmark-cache-preset-short512-offset1-limit1/summary.json`
+  completed row `6930-75918-0001` through `--cache-preset short-512` with
+  WER/CER `0.0`, 14.23s audio, 45.87s processing, 44.02s model timing, and
+  0.31 RTFx. The paired overflow probe with `--max-tokens 400` failed before
+  decoder execution with `requires cache length 712, but cache length is 512`.
 
 ## Relevant FluidAudio Shape
 
@@ -103,6 +109,16 @@ The current private bundle needs these files:
   bundle manifest: prompt prefix/suffix token IDs, placeholder ID, hidden size,
   head dim, and RoPE theta. The CLI still passes EOS token, audio-frame limit,
   cache length, and prefill bucket length as runtime options.
+
+The private CLI currently exposes these cache shortcuts:
+
+- `--cache-preset short-512`: 512-token padded prefill plus 512-cache decoder
+  step. This is the fastest validated short-row path.
+- `--cache-preset compat-768`: 512-token padded prefill plus 768-cache decoder
+  step. This keeps the older compatibility path.
+- `--cache-preset matched-768`: 768-token padded prefill plus 768-cache decoder
+  step. This remains experimental because the current `cpu-gpu` CoreML runtime
+  crashes in MPSGraph before row output.
 
 The old `moss_swift_fixture_compact.json` remains acceptable for regression
 fixtures but is no longer the production-shaped runtime config contract.
@@ -173,8 +189,8 @@ checkout change. Keep it private and unpushed.
 1. Package the MOSS model directory into the shape the FluidAudio scaffold
    expects, with tokenizer and runtime manifest beside the compiled model
    folders or with config paths adjusted.
-2. Add prompt/decode-length buckets beyond the current 512 short-row bucket, or
-   a larger matched prefill+step bucket before full test-clean.
+2. Turn the cache presets into model-bundle metadata and add prompt/decode
+   bucket selection beyond the current manual `short-512` path.
 3. Profile and reduce explicit-cache KV movement; this is the current
    production-speed blocker.
 4. Add long-audio chunking and stitching beyond the single 30-second window.

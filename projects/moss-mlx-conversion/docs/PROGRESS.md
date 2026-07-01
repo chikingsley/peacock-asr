@@ -822,6 +822,14 @@ Notes:
   preserves WER `0.0158` / CER `0.00418` while improving full manager RTFx to
   `0.69`. The gain comes from avoiding the 512-to-768 prefill cache padding
   copy; decode is still autoregressive and not Parakeet-class speed.
+- The private FluidAudio CLI now also has cache presets: `short-512`,
+  `compat-768`, and `matched-768`. A rebuilt `swift build -c release` on
+  `home-mac` passed a one-row `--cache-preset short-512` smoke under
+  `artifacts/evals/fluid-audio-moss-benchmark-cache-preset-short512-offset1-limit1/summary.json`
+  with WER/CER `0.0`, 14.23s audio, 45.87s processing, 44.02s model timing,
+  and 0.31 RTFx. A deliberate `short-512 --max-tokens 400` overflow probe
+  rejected row 3 with `requires cache length 712, but cache length is 512`,
+  proving cache-capacity validation before decoder execution.
 - A matched 768-token padded prefill package was exported and compiled to test
   the general 768-cache bucket without host padding. Torch validation passed
   with zero diff against exact 313-token prefill on logits and valid K/V, but
@@ -895,7 +903,8 @@ The private conversion now has three completed tracks:
    model-dir loading, and exposes `fluidaudiocli moss-transcribe` plus
    `moss-benchmark`. The full 20-row gate matches the prior WER/CER exactly,
    and the matched 512-cache step improves full manager RTFx from `0.23` to
-   `0.69` on those rows. It is not yet a packaged, downloadable, long-audio,
+   `0.69` on those rows. The CLI now has named cache presets and a cache
+   capacity guard, but it is not yet a packaged, downloadable, long-audio,
    production-speed FluidAudio backend.
 
 The next real work is a Swift/CoreML runtime decision:
@@ -906,9 +915,9 @@ The next real work is a Swift/CoreML runtime decision:
    model bundle/store/download layout, long-audio chunking beyond one
    30-second window, and optional general prompt tokenizer/template support
    beyond the fixed English no-time-marker path.
-3. Add prompt/decode-length bucket handling beyond the current 512 short-row
-   bucket, or larger matched prefill+step packages, before treating the runtime
-   as general for the full LibriSpeech clean set.
+3. Move cache presets into bundle metadata and add prompt/decode-length bucket
+   handling beyond the current manual 512 short-row bucket before treating the
+   runtime as general for the full LibriSpeech clean set.
 4. Reduce runtime overhead before treating this as FluidAudio-ready: profile
    the cost of moving full padded KV arrays each decode token, then decide
    whether to revisit CoreML State API stability, bucket/cache shapes, or a

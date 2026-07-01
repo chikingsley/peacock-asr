@@ -427,9 +427,12 @@ Swift result on `home-mac`:
   processing time.
 - The matched 512-cache decoder-step package can be selected with
   `--step-package compiled_step_padded_512/moss_decoder_step_padded_512.mlmodelc`
-  and `--cache-len 512`. On the same 20 rows it preserves WER/CER and improves
-  full FluidAudio manager RTFx to 0.69 by avoiding the 512-to-768 prefill cache
-  padding copy. It is a bucketed short-row path, not the general runtime.
+  and `--cache-len 512`, or through the private FluidAudio CLI shortcut
+  `--cache-preset short-512`. On the same 20 rows it preserves WER/CER and
+  improves full FluidAudio manager RTFx to 0.69 by avoiding the 512-to-768
+  prefill cache padding copy. The shortcut also has an early cache-capacity
+  guard, proven by an over-budget row-3 probe. It is a bucketed short-row path,
+  not the general runtime.
 - The matched 768-token prefill package can compile and Torch-validates with
   zero diff at prompt length 313, but it is not an active runtime path:
   `cpu-gpu` FluidAudio execution crashes in MPSGraph before the first row, and
