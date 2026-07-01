@@ -131,6 +131,11 @@ Current short version:
   prompt length plus requested decode budget exceeds the selected cache. This
   is the best private FluidAudio-shaped baseline so far, but it is still
   single-window, cache-bucketed, and not a packaged production backend.
+- Added `runtime/moss_bundle_manifest.json` as the private bundle metadata
+  contract for package paths, tokenizer/runtime-manifest paths, and cache
+  presets. The Mac FluidAudio CLI now accepts `--bundle-manifest`; a one-row
+  `short-512` benchmark with no manual package/tokenizer/runtime flags produced
+  WER/CER `0.0` and 0.73 RTFx.
 - A matched 768-token prefill package was also exported and compiled, but the
   private FluidAudio `cpu-gpu` probe crashes in MPSGraph before row output; it
   is recorded as a CoreML runtime debugging item, not the active path.

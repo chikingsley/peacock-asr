@@ -519,6 +519,113 @@ index 0000000..e23ce07
 +        return linearScale * mel
 +    }
 +}
+diff --git a/Sources/FluidAudio/ASR/MOSS/MossBundleManifest.swift b/Sources/FluidAudio/ASR/MOSS/MossBundleManifest.swift
+new file mode 100644
+index 0000000..4d5c31a
+--- /dev/null
++++ b/Sources/FluidAudio/ASR/MOSS/MossBundleManifest.swift
+@@ -0,0 +1,101 @@
++import Foundation
++
++public struct MossBundleManifest: Decodable, Sendable {
++    public struct Artifacts: Decodable, Sendable {
++        public let tokenPackagePath: String?
++        public let audioPackagePath: String?
++        public let prefillCachePackagePath: String?
++        public let stepPackagePath: String?
++        public let tokenizerPath: String?
++        public let runtimeManifestPath: String?
++
++        enum CodingKeys: String, CodingKey {
++            case tokenPackagePath = "token_package_path"
++            case audioPackagePath = "audio_package_path"
++            case prefillCachePackagePath = "prefill_cache_package_path"
++            case stepPackagePath = "step_package_path"
++            case tokenizerPath = "tokenizer_path"
++            case runtimeManifestPath = "runtime_manifest_path"
++        }
++    }
++
++    public struct CachePreset: Decodable, Sendable {
++        public let name: String
++        public let aliases: [String]?
++        public let description: String?
++        public let status: String?
++        public let prefillCachePackagePath: String
++        public let prefillCacheSeqLen: Int
++        public let stepPackagePath: String
++        public let cacheLen: Int
++        public let maxTotalPositions: Int?
++
++        enum CodingKeys: String, CodingKey {
++            case name
++            case aliases
++            case description
++            case status
++            case prefillCachePackagePath = "prefill_cache_package_path"
++            case prefillCacheSeqLen = "prefill_cache_seq_len"
++            case stepPackagePath = "step_package_path"
++            case cacheLen = "cache_len"
++            case maxTotalPositions = "max_total_positions"
++        }
++
++        public func matches(_ rawValue: String) -> Bool {
++            name == rawValue || (aliases ?? []).contains(rawValue)
++        }
++    }
++
++    public static let defaultFileName = "moss_bundle_manifest.json"
++
++    public let version: Int
++    public let defaultCachePreset: String?
++    public let artifacts: Artifacts
++    public let cachePresets: [CachePreset]
++
++    enum CodingKeys: String, CodingKey {
++        case version
++        case defaultCachePreset = "default_cache_preset"
++        case artifacts
++        case cachePresets = "cache_presets"
++    }
++
++    public static func load(from url: URL) throws -> MossBundleManifest {
++        try JSONDecoder().decode(MossBundleManifest.self, from: try Data(contentsOf: url))
++    }
++
++    public func cachePreset(named rawValue: String) -> CachePreset? {
++        cachePresets.first { $0.matches(rawValue) }
++    }
++}
++
++public extension MossAsrConfig {
++    mutating func apply(artifacts: MossBundleManifest.Artifacts) {
++        if let value = artifacts.tokenPackagePath {
++            tokenPackagePath = value
++        }
++        if let value = artifacts.audioPackagePath {
++            audioPackagePath = value
++        }
++        if let value = artifacts.prefillCachePackagePath {
++            prefillCachePackagePath = value
++        }
++        if let value = artifacts.stepPackagePath {
++            stepPackagePath = value
++        }
++        if let value = artifacts.tokenizerPath {
++            tokenizerPath = value
++        }
++        if let value = artifacts.runtimeManifestPath {
++            runtimeManifestPath = value
++        }
++    }
++
++    mutating func apply(cachePreset: MossBundleManifest.CachePreset) {
++        prefillCachePackagePath = cachePreset.prefillCachePackagePath
++        prefillCacheSeqLen = cachePreset.prefillCacheSeqLen
++        stepPackagePath = cachePreset.stepPackagePath
++        cacheLen = cachePreset.cacheLen
++    }
++}
 diff --git a/Sources/FluidAudio/ASR/MOSS/MossModels.swift b/Sources/FluidAudio/ASR/MOSS/MossModels.swift
 new file mode 100644
 index 0000000..fdee2a9
@@ -1367,10 +1474,10 @@ index 0000000..a77c894
 +}
 diff --git a/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossBenchmarkCommand.swift b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossBenchmarkCommand.swift
 new file mode 100644
-index 0000000..fda5c05
+index 0000000..4815417
 --- /dev/null
 +++ b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossBenchmarkCommand.swift
-@@ -0,0 +1,547 @@
+@@ -0,0 +1,549 @@
 +#if os(macOS)
 +import CoreML
 +import FluidAudio
@@ -1495,19 +1602,21 @@ index 0000000..fda5c05
 +        var manifestPath: String?
 +        var baseDir: String?
 +        var modelDir: String?
++        var bundleManifestPath: String?
 +        var tokenizerPath: String?
 +        var runtimeManifestPath: String?
 +        var tokenPackagePath: String?
 +        var audioPackagePath: String?
 +        var prefillCachePackagePath: String?
 +        var stepPackagePath: String?
++        var cachePresetName: String?
 +        var outputDir = "moss_benchmark_results"
 +        var offset = 0
 +        var limit: Int?
 +        var maxTokens = 160
 +        var audioMaxFrames = 3_000
-+        var cacheLen = 768
-+        var prefillCacheSeqLen = 512
++        var cacheLen: Int?
++        var prefillCacheSeqLen: Int?
 +        var computeUnits: MLComputeUnits = .cpuAndGPU
 +
 +        var i = 0
@@ -1532,6 +1641,11 @@ index 0000000..fda5c05
 +                    modelDir = arguments[i + 1]
 +                    i += 1
 +                }
++            case "--bundle-manifest":
++                if i + 1 < arguments.count {
++                    bundleManifestPath = arguments[i + 1]
++                    i += 1
++                }
 +            case "--tokenizer":
 +                if i + 1 < arguments.count {
 +                    tokenizerPath = arguments[i + 1]
@@ -1544,18 +1658,7 @@ index 0000000..fda5c05
 +                }
 +            case "--cache-preset":
 +                if i + 1 < arguments.count {
-+                    let preset = arguments[i + 1]
-+                    guard MossCachePreset.apply(
-+                        preset,
-+                        prefillCachePackagePath: &prefillCachePackagePath,
-+                        prefillCacheSeqLen: &prefillCacheSeqLen,
-+                        stepPackagePath: &stepPackagePath,
-+                        cacheLen: &cacheLen
-+                    ) else {
-+                        print("Unknown --cache-preset \(preset)")
-+                        printUsage()
-+                        exit(1)
-+                    }
++                    cachePresetName = arguments[i + 1]
 +                    i += 1
 +                }
 +            case "--token-package":
@@ -1649,25 +1752,30 @@ index 0000000..fda5c05
 +
 +            let items = try loadManifest(manifestURL)
 +            let selected = Array(items.dropFirst(max(offset, 0)).prefix(limit ?? items.count))
-+            let config = MossAsrConfig(
-+                tokenPackagePath: tokenPackagePath ?? "compiled/moss_token_embedding.mlmodelc",
-+                audioPackagePath: audioPackagePath
-+                    ?? "compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc",
-+                prefillCachePackagePath: prefillCachePackagePath
-+                    ?? "compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc",
-+                stepPackagePath: stepPackagePath
-+                    ?? "compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc",
++            let modelURL = URL(fileURLWithPath: modelDir, isDirectory: true)
++            let resolved = try MossConfigResolver.resolve(
++                modelURL: modelURL,
++                bundleManifestPath: bundleManifestPath,
++                cachePresetName: cachePresetName,
++                tokenizerPath: tokenizerPath,
++                runtimeManifestPath: runtimeManifestPath,
++                overrides: MossPackageOverrides(
++                    tokenPackagePath: tokenPackagePath,
++                    audioPackagePath: audioPackagePath,
++                    prefillCachePackagePath: prefillCachePackagePath,
++                    stepPackagePath: stepPackagePath,
++                    cacheLen: cacheLen,
++                    prefillCacheSeqLen: prefillCacheSeqLen
++                ),
 +                maxNewTokens: maxTokens,
 +                audioMaxFrames: audioMaxFrames,
-+                cacheLen: cacheLen,
-+                prefillCacheSeqLen: prefillCacheSeqLen,
 +                computeUnits: computeUnits
 +            )
 +            let manager = try MossAsrManager.load(
-+                from: URL(fileURLWithPath: modelDir),
-+                tokenizerURL: tokenizerPath.map { URL(fileURLWithPath: $0) },
-+                runtimeManifestURL: runtimeManifestPath.map { URL(fileURLWithPath: $0) },
-+                config: config
++                from: modelURL,
++                tokenizerURL: resolved.tokenizerURL,
++                runtimeManifestURL: resolved.runtimeManifestURL,
++                config: resolved.config
 +            )
 +
 +            let wallStart = CFAbsoluteTimeGetCurrent()
@@ -1787,6 +1895,7 @@ index 0000000..fda5c05
 +
 +            Options:
 +                --base-dir <path>               Base directory for relative manifest paths.
++                --bundle-manifest <path>        Optional MOSS bundle manifest. Defaults to <model-dir>/moss_bundle_manifest.json if present.
 +                --tokenizer <path>              tokenizer JSON. Defaults to <model-dir>/moss_tokenizer.json.
 +                --runtime-manifest <path>       runtime manifest JSON. Defaults to <model-dir>/moss_runtime_manifest.json.
 +                --cache-preset <name>           Cache package preset. See below.
@@ -1964,12 +2073,142 @@ index 0000000..d55eb5b
 +        """
 +}
 +#endif
+diff --git a/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossConfigResolver.swift b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossConfigResolver.swift
+new file mode 100644
+index 0000000..c22828b
+--- /dev/null
++++ b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossConfigResolver.swift
+@@ -0,0 +1,124 @@
++#if os(macOS)
++import CoreML
++import FluidAudio
++import Foundation
++
++struct MossPackageOverrides {
++    var tokenPackagePath: String?
++    var audioPackagePath: String?
++    var prefillCachePackagePath: String?
++    var stepPackagePath: String?
++    var cacheLen: Int?
++    var prefillCacheSeqLen: Int?
++}
++
++enum MossConfigResolver {
++    static func resolve(
++        modelURL: URL,
++        bundleManifestPath: String?,
++        cachePresetName: String?,
++        tokenizerPath: String?,
++        runtimeManifestPath: String?,
++        overrides: MossPackageOverrides,
++        maxNewTokens: Int,
++        audioMaxFrames: Int,
++        computeUnits: MLComputeUnits
++    ) throws -> (
++        config: MossAsrConfig,
++        tokenizerURL: URL?,
++        runtimeManifestURL: URL?
++    ) {
++        var config = MossAsrConfig(
++            maxNewTokens: maxNewTokens,
++            audioMaxFrames: audioMaxFrames,
++            computeUnits: computeUnits
++        )
++        let bundleManifest = try loadBundleManifest(
++            explicitPath: bundleManifestPath,
++            modelURL: modelURL
++        )
++        if let bundleManifest {
++            config.apply(artifacts: bundleManifest.artifacts)
++            if let defaultPreset = bundleManifest.defaultCachePreset,
++               cachePresetName == nil,
++               let preset = bundleManifest.cachePreset(named: defaultPreset)
++            {
++                config.apply(cachePreset: preset)
++            }
++        }
++        if let cachePresetName {
++            if let preset = bundleManifest?.cachePreset(named: cachePresetName) {
++                config.apply(cachePreset: preset)
++            } else {
++                applyHardcodedPreset(cachePresetName, to: &config)
++            }
++        }
++        apply(overrides: overrides, to: &config)
++        return (
++            config,
++            tokenizerPath.map { URL(fileURLWithPath: $0) },
++            runtimeManifestPath.map { URL(fileURLWithPath: $0) }
++        )
++    }
++
++    private static func loadBundleManifest(
++        explicitPath: String?,
++        modelURL: URL
++    ) throws -> MossBundleManifest? {
++        if let explicitPath {
++            return try MossBundleManifest.load(from: URL(fileURLWithPath: explicitPath))
++        }
++        let defaultURL = modelURL.appendingPathComponent(MossBundleManifest.defaultFileName)
++        guard FileManager.default.fileExists(atPath: defaultURL.path) else {
++            return nil
++        }
++        return try MossBundleManifest.load(from: defaultURL)
++    }
++
++    private static func applyHardcodedPreset(_ name: String, to config: inout MossAsrConfig) {
++        var prefillCachePackagePath: String?
++        var prefillCacheSeqLen = config.prefillCacheSeqLen
++        var stepPackagePath: String?
++        var cacheLen = config.cacheLen
++        guard MossCachePreset.apply(
++            name,
++            prefillCachePackagePath: &prefillCachePackagePath,
++            prefillCacheSeqLen: &prefillCacheSeqLen,
++            stepPackagePath: &stepPackagePath,
++            cacheLen: &cacheLen
++        ) else {
++            print("Unknown --cache-preset \(name)")
++            exit(1)
++        }
++        if let prefillCachePackagePath {
++            config.prefillCachePackagePath = prefillCachePackagePath
++        }
++        if let stepPackagePath {
++            config.stepPackagePath = stepPackagePath
++        }
++        config.prefillCacheSeqLen = prefillCacheSeqLen
++        config.cacheLen = cacheLen
++    }
++
++    private static func apply(overrides: MossPackageOverrides, to config: inout MossAsrConfig) {
++        if let value = overrides.tokenPackagePath {
++            config.tokenPackagePath = value
++        }
++        if let value = overrides.audioPackagePath {
++            config.audioPackagePath = value
++        }
++        if let value = overrides.prefillCachePackagePath {
++            config.prefillCachePackagePath = value
++        }
++        if let value = overrides.stepPackagePath {
++            config.stepPackagePath = value
++        }
++        if let value = overrides.cacheLen {
++            config.cacheLen = value
++        }
++        if let value = overrides.prefillCacheSeqLen {
++            config.prefillCacheSeqLen = value
++        }
++    }
++}
++#endif
 diff --git a/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossTranscribeCommand.swift b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossTranscribeCommand.swift
 new file mode 100644
-index 0000000..22529d2
+index 0000000..2234328
 --- /dev/null
 +++ b/Sources/FluidAudioCLI/Commands/ASR/MOSS/MossTranscribeCommand.swift
-@@ -0,0 +1,230 @@
+@@ -0,0 +1,229 @@
 +#if os(macOS)
 +import CoreML
 +import FluidAudio
@@ -1984,14 +2223,16 @@ index 0000000..22529d2
 +
 +        let audioFile = arguments[0]
 +        var modelDir: String?
++        var bundleManifestPath: String?
 +        var tokenizerPath: String?
 +        var runtimeManifestPath: String?
 +        var tokenPackagePath: String?
 +        var audioPackagePath: String?
 +        var prefillCachePackagePath: String?
 +        var stepPackagePath: String?
-+        var cacheLen = 768
-+        var prefillCacheSeqLen = 512
++        var cachePresetName: String?
++        var cacheLen: Int?
++        var prefillCacheSeqLen: Int?
 +        var maxTokens = 160
 +        var audioMaxFrames = 3_000
 +        var computeUnits: MLComputeUnits = .cpuAndGPU
@@ -2009,6 +2250,11 @@ index 0000000..22529d2
 +                    modelDir = arguments[i + 1]
 +                    i += 1
 +                }
++            case "--bundle-manifest":
++                if i + 1 < arguments.count {
++                    bundleManifestPath = arguments[i + 1]
++                    i += 1
++                }
 +            case "--tokenizer":
 +                if i + 1 < arguments.count {
 +                    tokenizerPath = arguments[i + 1]
@@ -2021,18 +2267,7 @@ index 0000000..22529d2
 +                }
 +            case "--cache-preset":
 +                if i + 1 < arguments.count {
-+                    let preset = arguments[i + 1]
-+                    guard MossCachePreset.apply(
-+                        preset,
-+                        prefillCachePackagePath: &prefillCachePackagePath,
-+                        prefillCacheSeqLen: &prefillCacheSeqLen,
-+                        stepPackagePath: &stepPackagePath,
-+                        cacheLen: &cacheLen
-+                    ) else {
-+                        print("Unknown --cache-preset \(preset)")
-+                        printUsage()
-+                        exit(1)
-+                    }
++                    cachePresetName = arguments[i + 1]
 +                    i += 1
 +                }
 +            case "--token-package":
@@ -2105,30 +2340,32 @@ index 0000000..22529d2
 +
 +        do {
 +            let audioURL = URL(fileURLWithPath: audioFile)
-+            let modelURL = URL(fileURLWithPath: modelDir)
-+            let tokenizerURL = tokenizerPath.map { URL(fileURLWithPath: $0) }
-+            let manifestURL = runtimeManifestPath.map { URL(fileURLWithPath: $0) }
-+            let config = MossAsrConfig(
-+                tokenPackagePath: tokenPackagePath ?? "compiled/moss_token_embedding.mlmodelc",
-+                audioPackagePath: audioPackagePath
-+                    ?? "compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc",
-+                prefillCachePackagePath: prefillCachePackagePath
-+                    ?? "compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc",
-+                stepPackagePath: stepPackagePath
-+                    ?? "compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc",
++            let modelURL = URL(fileURLWithPath: modelDir, isDirectory: true)
++            let resolved = try MossConfigResolver.resolve(
++                modelURL: modelURL,
++                bundleManifestPath: bundleManifestPath,
++                cachePresetName: cachePresetName,
++                tokenizerPath: tokenizerPath,
++                runtimeManifestPath: runtimeManifestPath,
++                overrides: MossPackageOverrides(
++                    tokenPackagePath: tokenPackagePath,
++                    audioPackagePath: audioPackagePath,
++                    prefillCachePackagePath: prefillCachePackagePath,
++                    stepPackagePath: stepPackagePath,
++                    cacheLen: cacheLen,
++                    prefillCacheSeqLen: prefillCacheSeqLen
++                ),
 +                maxNewTokens: maxTokens,
 +                audioMaxFrames: audioMaxFrames,
-+                cacheLen: cacheLen,
-+                prefillCacheSeqLen: prefillCacheSeqLen,
 +                computeUnits: computeUnits
 +            )
 +
 +            let loadStart = CFAbsoluteTimeGetCurrent()
 +            let manager = try MossAsrManager.load(
 +                from: modelURL,
-+                tokenizerURL: tokenizerURL,
-+                runtimeManifestURL: manifestURL,
-+                config: config
++                tokenizerURL: resolved.tokenizerURL,
++                runtimeManifestURL: resolved.runtimeManifestURL,
++                config: resolved.config
 +            )
 +            let loadSeconds = CFAbsoluteTimeGetCurrent() - loadStart
 +            for runIndex in 1...repeatCount {
@@ -2168,6 +2405,7 @@ index 0000000..22529d2
 +                --model-dir <path>              Directory containing the compiled MOSS CoreML packages.
 +
 +            Optional:
++                --bundle-manifest <path>        Optional MOSS bundle manifest. Defaults to <model-dir>/moss_bundle_manifest.json if present.
 +                --tokenizer <path>              tokenizer JSON. Defaults to <model-dir>/moss_tokenizer.json.
 +                --runtime-manifest <path>       runtime manifest JSON. Defaults to <model-dir>/moss_runtime_manifest.json.
 +                --token-package <path>          Token embedding package path relative to --model-dir.

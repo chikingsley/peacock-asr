@@ -53,6 +53,14 @@ artifacts from this handoff without an explicit request.
   WER/CER `0.0`, 14.23s audio, 45.87s processing, 44.02s model timing, and
   0.31 RTFx. The paired overflow probe with `--max-tokens 400` failed before
   decoder execution with `requires cache length 712, but cache length is 512`.
+- Bundle-manifest FluidAudio smoke:
+  `runtime/moss_bundle_manifest.json` now carries package paths and cache
+  presets. The private Mac CLI run under
+  `artifacts/evals/fluid-audio-moss-benchmark-bundle-manifest-short512-offset1-limit1/summary.json`
+  used `--bundle-manifest ... --cache-preset short-512` with no manual package,
+  tokenizer, or runtime-manifest flags and completed row `6930-75918-0001`
+  with WER/CER `0.0`, 14.23s audio, 19.41s processing, 18.03s model timing,
+  and 0.73 RTFx.
 
 ## Relevant FluidAudio Shape
 
@@ -109,6 +117,10 @@ The current private bundle needs these files:
   bundle manifest: prompt prefix/suffix token IDs, placeholder ID, hidden size,
   head dim, and RoPE theta. The CLI still passes EOS token, audio-frame limit,
   cache length, and prefill bucket length as runtime options.
+- `runtime/moss_bundle_manifest.json`, currently passed with
+  `--bundle-manifest`, maps the compiled package paths, tokenizer path,
+  runtime manifest path, default cache preset, and named cache presets. Relative
+  paths are resolved against `--model-dir`.
 
 The private CLI currently exposes these cache shortcuts:
 
@@ -186,11 +198,11 @@ decoder makes the runtime fundamentally different from Parakeet.
 The first private FluidAudio scaffold exists as a patch and an uncommitted Mac
 checkout change. Keep it private and unpushed.
 
-1. Package the MOSS model directory into the shape the FluidAudio scaffold
-   expects, with tokenizer and runtime manifest beside the compiled model
-   folders or with config paths adjusted.
-2. Turn the cache presets into model-bundle metadata and add prompt/decode
-   bucket selection beyond the current manual `short-512` path.
+1. Move the current manifest-plus-artifact layout into a single local model
+   bundle directory that can be copied or later uploaded without `../../`
+   relative paths.
+2. Add automatic prompt/decode bucket selection beyond the current manual
+   `short-512` path.
 3. Profile and reduce explicit-cache KV movement; this is the current
    production-speed blocker.
 4. Add long-audio chunking and stitching beyond the single 30-second window.

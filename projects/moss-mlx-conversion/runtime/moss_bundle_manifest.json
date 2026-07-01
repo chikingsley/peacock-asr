@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "default_cache_preset": "compat-768",
+  "artifacts": {
+    "token_package_path": "compiled/moss_token_embedding.mlmodelc",
+    "audio_package_path": "compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc",
+    "prefill_cache_package_path": "compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc",
+    "step_package_path": "compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc",
+    "tokenizer_path": "../../artifacts/coreml/moss_tokenizer.json",
+    "runtime_manifest_path": "../../runtime/moss_runtime_manifest.json"
+  },
+  "cache_presets": [
+    {
+      "name": "short-512",
+      "aliases": [
+        "cache-512",
+        "512"
+      ],
+      "description": "512-token padded prefill plus 512-cache decoder step for short prompt+decode windows.",
+      "status": "validated-20-row-short-gate",
+      "prefill_cache_package_path": "compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc",
+      "prefill_cache_seq_len": 512,
+      "step_package_path": "compiled_step_padded_512/moss_decoder_step_padded_512.mlmodelc",
+      "cache_len": 512,
+      "max_total_positions": 512
+    },
+    {
+      "name": "compat-768",
+      "aliases": [
+        "cache-768",
+        "768"
+      ],
+      "description": "512-token padded prefill plus 768-cache decoder step compatibility path.",
+      "status": "validated-20-row-compat-gate",
+      "prefill_cache_package_path": "compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc",
+      "prefill_cache_seq_len": 512,
+      "step_package_path": "compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc",
+      "cache_len": 768,
+      "max_total_positions": 768
+    },
+    {
+      "name": "matched-768",
+      "description": "768-token padded prefill plus 768-cache decoder step. Torch-validates but currently fails in CoreML/MPSGraph cpu-gpu execution.",
+      "status": "experimental-mpsgraph-blocked",
+      "prefill_cache_package_path": "compiled_prefill_cache_768/moss_decoder_prefill_cache_768.mlmodelc",
+      "prefill_cache_seq_len": 768,
+      "step_package_path": "compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc",
+      "cache_len": 768,
+      "max_total_positions": 768
+    }
+  ]
+}

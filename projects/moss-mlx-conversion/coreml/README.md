@@ -433,6 +433,11 @@ Swift result on `home-mac`:
   prefill cache padding copy. The shortcut also has an early cache-capacity
   guard, proven by an over-budget row-3 probe. It is a bucketed short-row path,
   not the general runtime.
+- The tracked `runtime/moss_bundle_manifest.json` now lets the private
+  FluidAudio CLI resolve package paths, tokenizer path, runtime manifest path,
+  and cache presets through `--bundle-manifest`. A one-row `short-512` smoke
+  with no manual package/tokenizer/runtime flags completed with WER/CER `0.0`
+  and 0.73 RTFx.
 - The matched 768-token prefill package can compile and Torch-validates with
   zero diff at prompt length 313, but it is not an active runtime path:
   `cpu-gpu` FluidAudio execution crashes in MPSGraph before the first row, and

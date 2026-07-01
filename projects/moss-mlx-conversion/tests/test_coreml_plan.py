@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 from moss_mlx_conversion.config import MossModelConfig
@@ -54,3 +55,23 @@ def test_coreml_plan_uses_moss_shapes() -> None:
     assert plan["derived_shapes"]["kv_cache"]["shape_per_layer"] == [1, 8, 768, 128]
     assert plan["derived_shapes"]["kv_cache"]["total_mib_fp16"] == 84.0
     assert not plan["warnings"]
+
+
+def test_coreml_bundle_manifest_declares_required_cache_presets() -> None:
+    project_root = Path(__file__).resolve().parents[1]
+    manifest = json.loads((project_root / "runtime/moss_bundle_manifest.json").read_text())
+
+    assert manifest["version"] == 1
+    assert manifest["default_cache_preset"] == "compat-768"
+    artifacts = manifest["artifacts"]
+    assert artifacts["token_package_path"] == "compiled/moss_token_embedding.mlmodelc"
+    assert artifacts["tokenizer_path"] == "../../artifacts/coreml/moss_tokenizer.json"
+
+    presets = {item["name"]: item for item in manifest["cache_presets"]}
+    assert set(presets) == {"short-512", "compat-768", "matched-768"}
+    assert presets["short-512"]["cache_len"] == 512
+    assert presets["short-512"]["step_package_path"].endswith(
+        "moss_decoder_step_padded_512.mlmodelc"
+    )
+    assert presets["compat-768"]["cache_len"] == 768
+    assert presets["matched-768"]["status"] == "experimental-mpsgraph-blocked"

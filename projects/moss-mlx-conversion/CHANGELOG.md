@@ -180,6 +180,11 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   passed a one-row `--cache-preset short-512` smoke with WER/CER `0.0` and
   rejected an over-budget `short-512` run with a clear `requires cache length
   712, but cache length is 512` error.
+- Added tracked private bundle metadata at `runtime/moss_bundle_manifest.json`
+  and taught the FluidAudio scaffold patch to resolve package paths and cache
+  presets from it. A manifest-backed one-row `short-512` benchmark, with no
+  manual package/tokenizer/runtime flags, completed with WER/CER `0.0` and
+  0.73 RTFx.
 - Exported and compiled an experimental 768-token padded prefill cache package.
   It Torch-validates with zero diff against the exact 313-token prefill on
   logits and valid K/V slices, but the private FluidAudio `cpu-gpu` runtime
