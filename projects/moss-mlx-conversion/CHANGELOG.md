@@ -175,3 +175,9 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   `0.00418`, while full manager processing dropped to 237.57s for 164.49s
   audio (`0.69` RTFx). A direct-argmax decode cleanup was tested, preserved
   WER/CER, and then reverted because it did not improve the full benchmark.
+- Exported and compiled an experimental 768-token padded prefill cache package.
+  It Torch-validates with zero diff against the exact 313-token prefill on
+  logits and valid K/V slices, but the private FluidAudio `cpu-gpu` runtime
+  crashes in MPSGraph before producing a row; a CPU-only one-row probe was
+  stopped after no output. The matched 768 bucket is not the current runtime
+  path.

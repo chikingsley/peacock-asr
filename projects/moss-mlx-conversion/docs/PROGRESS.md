@@ -654,6 +654,7 @@ Fixture component probes completed on `home-mac`:
 | `moss_decoder_prefill_cache_195` | merged embeds `[1, 195, 2048]` | exports logits plus explicit cache tensors `[28, 1, 8, 195, 128]`; compiled on `home-mac` as `compiled_prefill_cache_195/moss_decoder_prefill_cache_195.mlmodelc` |
 | `moss_decoder_prefill_cache_313` | merged embeds `[1, 313, 2048]` | exports logits plus explicit cache tensors `[28, 1, 8, 313, 128]`; compiled on `home-mac` as `compiled_prefill_cache_313/moss_decoder_prefill_cache_313.mlmodelc` |
 | `moss_decoder_prefill_cache_512` | padded merged embeds `[1, 512, 2048]` plus `last_token_mask [1, 512, 1]` | exports logits plus explicit cache tensors `[28, 1, 8, 512, 128]`; compiled on `home-mac` as `compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc`; Torch validation at prompt length 313 has max/mean diff `0.0` / `0.0` for logits, valid keys, and valid values |
+| `moss_decoder_prefill_cache_768` | padded merged embeds `[1, 768, 2048]` plus `last_token_mask [1, 768, 1]` | exports logits plus explicit cache tensors `[28, 1, 8, 768, 128]`; compiled on `home-mac` as `compiled_prefill_cache_768/moss_decoder_prefill_cache_768.mlmodelc`; Torch validation at prompt length 313 has max/mean diff `0.0` / `0.0` for logits, valid keys, and valid values; FluidAudio `cpu-gpu` runtime currently crashes in MPSGraph before row output |
 | `run_stateful_fixture_pipeline` component path | CoreML token IDs + CoreML mel/audio + host merge + stateful decoder | merged prompt max/mean diff vs saved BF16 reference `0.002686` / `0.000337`; prefill top-1 `4197`; step top-1 `1059`; total fixture time `21.32s`, with `20.61s` decoder prefill and `0.226s` first decode step |
 | `run_stateful_fixture_pipeline` reference-merged isolation | saved merged embeds + stateful decoder | decoder input diff vs saved reference `0.0`; prefill top-1 `4197`; step top-1 `1059`; total fixture time `22.15s`, with `21.45s` decoder prefill and `0.143s` first decode step |
 | Swift `moss-coreml-fixture` 5-token greedy | JSON fixture mel/token IDs + compiled `.mlmodelc` bundles + `MLState` | generated IDs exactly match `[4197, 1059, 4158, 6177, 323]`; total fixture time `18.17s`, with `16.96s` decoder prefill and `0.809s` decoder decode calls |
@@ -695,6 +696,7 @@ Retained full-component package sizes:
 | `moss_decoder_prefill_cache_195` | not retained on Mac after compile | 3.2G |
 | `moss_decoder_prefill_cache_313` | not retained on Mac after compile | 3.2G |
 | `moss_decoder_prefill_cache_512` | not retained on Mac after compile | 3.2G |
+| `moss_decoder_prefill_cache_768` | 3.2G | 3.2G |
 
 Notes:
 
@@ -820,6 +822,13 @@ Notes:
   preserves WER `0.0158` / CER `0.00418` while improving full manager RTFx to
   `0.69`. The gain comes from avoiding the 512-to-768 prefill cache padding
   copy; decode is still autoregressive and not Parakeet-class speed.
+- A matched 768-token padded prefill package was exported and compiled to test
+  the general 768-cache bucket without host padding. Torch validation passed
+  with zero diff against exact 313-token prefill on logits and valid K/V, but
+  the FluidAudio `cpu-gpu` probe crashed in MPSGraph with
+  `shape.count = 0 != strides.count = 2` before any row. A CPU-only one-row
+  probe did not produce output before being stopped, so matched 768 is blocked
+  pending CoreML runtime debugging.
 
 ## Reproduction Commands
 

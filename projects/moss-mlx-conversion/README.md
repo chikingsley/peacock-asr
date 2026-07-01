@@ -129,6 +129,9 @@ Current short version:
   full FluidAudio RTFx from `0.23` to `0.69`. This is the best private
   FluidAudio-shaped baseline so far, but it is still single-window,
   cache-bucketed, and not a packaged production backend.
+- A matched 768-token prefill package was also exported and compiled, but the
+  private FluidAudio `cpu-gpu` probe crashes in MPSGraph before row output; it
+  is recorded as a CoreML runtime debugging item, not the active path.
 - No public upload/branch/PR action has been taken.
 
 ## Layout

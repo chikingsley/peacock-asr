@@ -169,6 +169,7 @@ Results:
 | `moss_decoder_prefill_cache_195` | merged embeds `[1, 195, 2048]` | exports logits plus explicit KV tensors `[28, 1, 8, 195, 128]`; compiled as `compiled_prefill_cache_195/moss_decoder_prefill_cache_195.mlmodelc` |
 | `moss_decoder_prefill_cache_313` | merged embeds `[1, 313, 2048]` | exports logits plus explicit KV tensors `[28, 1, 8, 313, 128]`; compiled as `compiled_prefill_cache_313/moss_decoder_prefill_cache_313.mlmodelc` |
 | `moss_decoder_prefill_cache_512` | padded merged embeds `[1, 512, 2048]` plus `last_token_mask [1, 512, 1]` | exports logits plus explicit KV tensors `[28, 1, 8, 512, 128]`; compiled as `compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc`; Torch validation at prompt length 313 has zero diff on logits, valid keys, and valid values |
+| `moss_decoder_prefill_cache_768` | padded merged embeds `[1, 768, 2048]` plus `last_token_mask [1, 768, 1]` | exports logits plus explicit KV tensors `[28, 1, 8, 768, 128]`; compiled as `compiled_prefill_cache_768/moss_decoder_prefill_cache_768.mlmodelc`; Torch validation at prompt length 313 has zero diff on logits, valid keys, and valid values; FluidAudio `cpu-gpu` runtime currently crashes in MPSGraph before row output |
 | `run_stateful_fixture_pipeline` component path | CoreML token/audio packages, host merge, stateful decoder | prefill top-1 `4197`; step top-1 `1059`; merged prompt max/mean diff vs saved reference `0.002686` / `0.000337`; total fixture time `21.32s` |
 | `run_stateful_fixture_pipeline` reference-merged isolation | saved merged embeds, stateful decoder | prefill top-1 `4197`; step top-1 `1059`; decoder input diff vs saved reference `0.0`; total fixture time `22.15s` |
 | Swift `moss-coreml-fixture` 5-token greedy | JSON fixture, compiled `.mlmodelc`, `MLState` | generated IDs exactly match `[4197, 1059, 4158, 6177, 323]`; total fixture time `18.17s` |
@@ -223,6 +224,12 @@ The matched 512-cache decoder-step package is the first meaningful FluidAudio
 runtime speed improvement. On the same 20 rows it avoids the 512-to-768 prefill
 cache padding copy, keeps WER/CER unchanged, and raises full manager RTFx to
 0.69. It is a bucketed short-row path, not a general full-test-clean solution.
+
+A matched 768-token prefill package was also exported to remove the same
+padding copy for the 768 cache bucket. It validates in Torch but currently
+crashes under the private FluidAudio `cpu-gpu` runtime in MPSGraph before
+producing a row; CPU-only did not produce a row before the probe was stopped.
+Treat this as a CoreML runtime debugging item, not an active benchmark path.
 
 Current decoder read: the stateful decoder package was validated at fixture
 prompt length 203 and works on shorter prompt lengths 56, 76, and 195. It

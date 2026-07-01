@@ -95,6 +95,9 @@ The current private bundle needs these files:
 - `moss_decoder_step_padded_fixture.mlmodelc` for the 768-cache fallback.
 - `moss_decoder_step_padded_512.mlmodelc` for short prompts that fit a
   512-token total prompt+decode window.
+- `moss_decoder_prefill_cache_768.mlmodelc` exists experimentally and
+  Torch-validates, but it is not currently usable under `cpu-gpu` in
+  FluidAudio because CoreML/MPSGraph crashes before the first row.
 - `moss_tokenizer.json`
 - `runtime/moss_runtime_manifest.json`, or the same fields embedded in a model
   bundle manifest: prompt prefix/suffix token IDs, placeholder ID, hidden size,
@@ -136,6 +139,11 @@ not make them runnable.
 - A 512-token prefill bucket covers the first 20 clean-test rows. Full
   LibriSpeech needs prompt/decode-length buckets or a larger padded prefill and
   step package.
+- A matched 768-token prefill package was exported and compiled, but the
+  private FluidAudio `cpu-gpu` probe crashed in MPSGraph with
+  `shape.count = 0 != strides.count = 2`; CPU-only did not produce a row before
+  the probe was stopped. Treat matched 768 as blocked pending CoreML runtime
+  debugging.
 - The audio path is single-window only. Long audio needs FluidAudio-style
   chunking and stitching before it is a general user-facing ASR backend.
 - Use `cpu-gpu` for the current padded audio package. Default `.all` routed to

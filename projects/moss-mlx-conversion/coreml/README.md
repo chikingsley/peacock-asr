@@ -206,7 +206,9 @@ The retained decoder artifacts now cover four stages:
   short prompts/decodes that fit the shared 512-token prefill bucket.
 - `moss_decoder_prefill_cache_<seq-len>`: exact or padded prefill that returns
   explicit KV tensors for the padded step decoder. The validated 512-token
-  padded package uses `last_token_mask` to select the real prompt end.
+  padded package uses `last_token_mask` to select the real prompt end. The
+  768-token padded package also Torch-validates, but currently crashes in the
+  private FluidAudio `cpu-gpu` runtime before row output.
 - `moss_decoder_stateful_fused`: one fused decoder package with final norm,
   tied LM head projection, and 56 CoreML State API KV tensors. It validates
   `prefill -> one decode step` with a single CoreML state object, but it still
@@ -428,6 +430,10 @@ Swift result on `home-mac`:
   and `--cache-len 512`. On the same 20 rows it preserves WER/CER and improves
   full FluidAudio manager RTFx to 0.69 by avoiding the 512-to-768 prefill cache
   padding copy. It is a bucketed short-row path, not the general runtime.
+- The matched 768-token prefill package can compile and Torch-validates with
+  zero diff at prompt length 313, but it is not an active runtime path:
+  `cpu-gpu` FluidAudio execution crashes in MPSGraph before the first row, and
+  a CPU-only one-row probe did not produce output before being stopped.
 - The same padded audio package failed under default `.all` compute-unit
   dispatch with an ANE inference error. Use `--compute-units cpu-gpu` for this
   package until compute placement is profiled more carefully.
