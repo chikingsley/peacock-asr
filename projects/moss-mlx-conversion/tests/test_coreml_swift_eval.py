@@ -23,6 +23,10 @@ def test_swift_command_uses_absolute_runtime_inputs() -> None:
         fixture=Path("artifacts/coreml/moss_swift_fixture_compact.json"),
         audio_max_frames=3000,
         audio_package="compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc",
+        decoder_package="compiled_stateful/moss_decoder_stateful_fused.mlmodelc",
+        prefill_cache_package=None,
+        step_package=None,
+        cache_len=768,
         compute_units="cpu-gpu",
         max_new_tokens=160,
     )
@@ -47,3 +51,37 @@ def test_swift_command_uses_absolute_runtime_inputs() -> None:
     assert "3000" in command
     assert "--reference-text-file" in command
     assert "/example/reference.txt" in command
+    assert "--decoder-package" in command
+    assert "compiled_stateful/moss_decoder_stateful_fused.mlmodelc" in command
+    assert "--prefill-cache-package" not in command
+
+
+def test_swift_command_can_use_external_cache_packages() -> None:
+    args = argparse.Namespace(
+        swift_package_path=Path("swift/MossCoreMLFixture"),
+        packages_dir=Path("coreml/build"),
+        fixture=Path("artifacts/coreml/moss_swift_fixture_compact.json"),
+        audio_max_frames=3000,
+        audio_package="compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc",
+        decoder_package="compiled_stateful/moss_decoder_stateful_fused.mlmodelc",
+        prefill_cache_package="compiled_prefill_cache_313/moss_decoder_prefill_cache_313.mlmodelc",
+        step_package="compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc",
+        cache_len=768,
+        compute_units="cpu-gpu",
+        max_new_tokens=160,
+    )
+
+    command = swift_command(
+        project_root=Path("/example/moss"),
+        args=args,
+        audio_path=Path("/example/audio.wav"),
+        reference_path=Path("/example/reference.txt"),
+        output_path=Path("/example/out.json"),
+    )
+
+    assert "--prefill-cache-package" in command
+    assert "compiled_prefill_cache_313/moss_decoder_prefill_cache_313.mlmodelc" in command
+    assert "--step-package" in command
+    assert "compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc" in command
+    assert "--cache-len" in command
+    assert "768" in command

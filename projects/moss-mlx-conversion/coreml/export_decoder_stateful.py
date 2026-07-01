@@ -229,6 +229,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--cache-len", type=int, default=768)
     parser.add_argument("--trace-query-len", type=int, default=1)
     parser.add_argument("--trace-end-step", type=int, default=5)
+    parser.add_argument(
+        "--default-query-len",
+        type=int,
+        default=None,
+        help="CoreML RangeDim default for query length. Defaults to --trace-query-len.",
+    )
+    parser.add_argument(
+        "--default-end-step",
+        type=int,
+        default=None,
+        help="CoreML RangeDim default for attention-mask end step. Defaults to --trace-end-step.",
+    )
     return parser.parse_args()
 
 
@@ -385,6 +397,8 @@ def export_stateful_decoder(
     cache_len: int,
     trace_query_len: int,
     trace_end_step: int,
+    default_query_len: int | None,
+    default_end_step: int | None,
     validate_predict: bool,
     overwrite: bool,
 ) -> dict[str, Any]:
@@ -410,6 +424,18 @@ def export_stateful_decoder(
         raise ValueError(
             f"trace_end_step={trace_end_step} must be >= trace_query_len={trace_query_len}"
         )
+    default_query_len = trace_query_len if default_query_len is None else default_query_len
+    default_end_step = trace_end_step if default_end_step is None else default_end_step
+    if not 1 <= default_query_len <= cache_len:
+        raise ValueError(
+            f"default_query_len={default_query_len} must be in [1, {cache_len}]"
+        )
+    if not 1 <= default_end_step <= cache_len:
+        raise ValueError(f"default_end_step={default_end_step} must be in [1, {cache_len}]")
+    if default_end_step < default_query_len:
+        raise ValueError(
+            f"default_end_step={default_end_step} must be >= default_query_len={default_query_len}"
+        )
     trace_inputs = (
         torch.zeros(1, trace_query_len, int(model.config.hidden_size), dtype=dtype),
         torch.zeros(1, trace_query_len, int(model.config.head_dim), dtype=dtype),
@@ -431,8 +457,8 @@ def export_stateful_decoder(
     hidden_size = int(model.config.hidden_size)
     head_dim = int(model.config.head_dim)
     num_key_value_heads = int(model.config.num_key_value_heads)
-    query_length = ct.RangeDim(lower_bound=1, upper_bound=cache_len, default=1)
-    end_step = ct.RangeDim(lower_bound=1, upper_bound=cache_len, default=1)
+    query_length = ct.RangeDim(lower_bound=1, upper_bound=cache_len, default=default_query_len)
+    end_step = ct.RangeDim(lower_bound=1, upper_bound=cache_len, default=default_end_step)
     states = []
     for layer_idx in range(num_layers):
         states.extend(
@@ -547,6 +573,10 @@ def export_stateful_decoder(
         "compute_precision": compute_precision_name,
         "num_layers": num_layers,
         "cache_len": cache_len,
+        "trace_query_len": trace_query_len,
+        "trace_end_step": trace_end_step,
+        "default_query_len": default_query_len,
+        "default_end_step": default_end_step,
         "prompt_len": fixture["prompt_len"],
         "first_token_id": fixture["first_token_id"],
         "second_token_id": fixture["second_token_id"],
@@ -598,6 +628,8 @@ def main() -> None:
         cache_len=args.cache_len,
         trace_query_len=args.trace_query_len,
         trace_end_step=args.trace_end_step,
+        default_query_len=args.default_query_len,
+        default_end_step=args.default_end_step,
         validate_predict=args.validate_predict,
         overwrite=args.overwrite,
     )

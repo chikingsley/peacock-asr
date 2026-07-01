@@ -553,6 +553,8 @@ Generated artifacts:
 - `artifacts/coreml/moss_decoder_stateful_fused_1layer.mlpackage/`
 - `artifacts/coreml/moss_decoder_stateful_fused_1layer.mlmodelc/`
 - `artifacts/coreml/moss_decoder_stateful_fused_1layer.json`
+- `artifacts/coreml/moss_decoder_prefill_cache_195.json`
+- `artifacts/coreml/moss_decoder_prefill_cache_313.json`
 - `artifacts/coreml/moss_coreml_stateful_fixture_pipeline.json`
 - `artifacts/coreml/moss_coreml_stateful_fixture_pipeline_reference_merged.json`
 - `artifacts/coreml/moss_swift_fixture.json`
@@ -588,6 +590,8 @@ Generated artifacts:
 - `artifacts/evals/librispeech-test-clean-swift-coreml-20/reference/*.json`
 - `artifacts/evals/librispeech-test-clean-swift-coreml-20/swift-json/*.json`
 - `artifacts/coreml/moss_swift_coreml_audio_30s_padded_cpu_gpu_librispeech_row3_prefill_only.json`
+- `artifacts/coreml/moss_swift_coreml_external_cache_cpu_gpu_librispeech_row1.json`
+- `artifacts/coreml/moss_swift_coreml_external_cache_cpu_gpu_librispeech_row3.json`
 
 Current default contract:
 
@@ -602,6 +606,11 @@ Current default contract:
 | Padded KV cache length | 768 |
 | Per-layer KV cache shape | `[1, 8, 768, 128]` |
 | Total FP16 KV cache | 84.0 MiB |
+
+External-cache prefill is currently fixed-length per compiled prompt. The
+validated non-fixture prefill packages are sequence lengths 195 and 313. The
+padded decoder step is reusable across those prompt lengths because it accepts
+host-provided cache, update mask, attention mask, and one-token RoPE tensors.
 
 Planned pieces:
 
@@ -634,6 +643,8 @@ Fixture component probes completed on `home-mac`:
 | `moss_decoder_step_fixture` | token `4197`, KV `[28, 1, 8, 203, 128]` | top-1 token `1059`; max/mean diff vs PyTorch `0.040039` / `0.015691` |
 | `moss_decoder_step_padded_fixture` | token `4197`, padded KV `[28, 1, 8, 768, 128]` | top-1 token `1059`; padded Torch path matches append-cache Torch exactly on valid logits/cache slices; CoreML vs Torch logits max/mean diff `0.040039` / `0.015691` |
 | `moss_decoder_stateful_fused` | prefill `[1, 203, 2048]`, then token `4197` with same CoreML state | prefill top-1 `4197`; step top-1 `1059`; 56 CoreML state tensors `[1, 8, 768, 128]`; CoreML vs static step logits max/mean diff `0.038696` / `0.015730` |
+| `moss_decoder_prefill_cache_195` | merged embeds `[1, 195, 2048]` | exports logits plus explicit cache tensors `[28, 1, 8, 195, 128]`; compiled on `home-mac` as `compiled_prefill_cache_195/moss_decoder_prefill_cache_195.mlmodelc` |
+| `moss_decoder_prefill_cache_313` | merged embeds `[1, 313, 2048]` | exports logits plus explicit cache tensors `[28, 1, 8, 313, 128]`; compiled on `home-mac` as `compiled_prefill_cache_313/moss_decoder_prefill_cache_313.mlmodelc` |
 | `run_stateful_fixture_pipeline` component path | CoreML token IDs + CoreML mel/audio + host merge + stateful decoder | merged prompt max/mean diff vs saved BF16 reference `0.002686` / `0.000337`; prefill top-1 `4197`; step top-1 `1059`; total fixture time `21.32s`, with `20.61s` decoder prefill and `0.226s` first decode step |
 | `run_stateful_fixture_pipeline` reference-merged isolation | saved merged embeds + stateful decoder | decoder input diff vs saved reference `0.0`; prefill top-1 `4197`; step top-1 `1059`; total fixture time `22.15s`, with `21.45s` decoder prefill and `0.143s` first decode step |
 | Swift `moss-coreml-fixture` 5-token greedy | JSON fixture mel/token IDs + compiled `.mlmodelc` bundles + `MLState` | generated IDs exactly match `[4197, 1059, 4158, 6177, 323]`; total fixture time `18.17s`, with `16.96s` decoder prefill and `0.809s` decoder decode calls |
@@ -650,6 +661,8 @@ Fixture component probes completed on `home-mac`:
 | Swift 30s padded-audio non-fixture row | LibriSpeech clean-test row `6930-75918-0001`, 14.23s WAV, reference text file, `--max-new-tokens 160`, `--compute-units cpu-gpu` | prompt length 195; audio tokens 185; generated 47 tokens and stopped on EOS `151645`; normalized WER/CER `0.0`; raw WER/CER `1.0` / `0.8304` from case/punctuation; total time `8.25s`, including `0.139s` audio frontend, `1.34s` audio encoder+adapter, `0.770s` decoder prefill, and `5.77s` decoder decode calls |
 | `moss-swift-coreml-eval` two-row batch | LibriSpeech clean-test rows 1-2, streamed HF rows/audio materialized to WAV/reference files, process-per-row Swift runner | WER/CER `0.0`; total audio 19.25s; summed Swift model time 13.43s; RTFx 1.43; wall time 42.99s; timing totals: 2.62s audio encoder+adapter, 8.60s decoder decode, 1.63s decoder prefill |
 | attempted 20-row Swift/CoreML batch | LibriSpeech clean-test rows 0-19 requested through `moss-swift-coreml-eval` | rows 0-2 completed with WER/CER `0.0`; partial total audio 22.76s; partial summed Swift model time 14.32s; row 3 prompt length 313/audio tokens 303 prefill succeeds with top token `from`, but the first stateful decode step returns no finite logits under both `cpu-gpu` and `cpu-only` |
+| Swift explicit-cache row 1 | LibriSpeech clean-test row `6930-75918-0001`, prompt length 195, `compiled_prefill_cache_195` + `compiled_step_padded`, `--compute-units cpu-gpu` | normalized WER/CER `0.0`; generated 47 tokens and stopped on EOS; total model time `22.13s` for `14.23s` audio, RTFx `0.64`; decoder prefill `0.823s`, decoder decode `7.03s`; output artifact `artifacts/coreml/moss_swift_coreml_external_cache_cpu_gpu_librispeech_row1.json` |
+| Swift explicit-cache row 3 | LibriSpeech clean-test row `6930-75918-0003`, prompt length 313, `compiled_prefill_cache_313` + `compiled_step_padded`, `--compute-units cpu-gpu` | normalized WER/CER `0.0`; generated 77 tokens and stopped on EOS; this bypasses the stateful row-3 no-finite-logits failure; total model time `26.84s` for `23.32s` audio, RTFx `0.87`; decoder prefill `1.29s`, decoder decode `12.31s`; output artifact `artifacts/coreml/moss_swift_coreml_external_cache_cpu_gpu_librispeech_row3.json` |
 
 Retained full-component package sizes:
 
@@ -662,6 +675,8 @@ Retained full-component package sizes:
 | `moss_decoder_step_fixture` | 3.3G | 3.3G |
 | `moss_decoder_step_padded_fixture` | 3.3G | 3.3G |
 | `moss_decoder_stateful_fused` | 3.3G | 3.3G |
+| `moss_decoder_prefill_cache_195` | not retained on Mac after compile | 3.2G |
+| `moss_decoder_prefill_cache_313` | not retained on Mac after compile | 3.2G |
 
 Notes:
 
@@ -716,10 +731,15 @@ Notes:
 - Swift top-k reporting now skips non-finite logits. This prevents JSON
   encoding from crashing on `NaN`, and it exposed the real row 3 failure as
   `decode step produced no logits`.
-- The current CoreML blocker is the stateful decoder for longer prompts. It is
-  proven at prompt lengths 56, 76, 195, and 203, but row 3's prompt length 313
-  prefilled successfully and then produced no finite logits on the first decode
-  step. The failure reproduced under both `cpu-gpu` and `cpu-only`.
+- The stateful CoreML decoder still has a longer-prompt stability boundary. It
+  is proven at prompt lengths 56, 76, 195, and 203, but row 3's prompt length
+  313 prefilled successfully and then produced no finite logits on the first
+  decode step. The failure reproduced under both `cpu-gpu` and `cpu-only`.
+- The explicit-cache decoder path bypasses that row-3 stateful failure and
+  produces WER/CER `0.0` on rows 1 and 3. It is currently a correctness path,
+  not the final FluidAudio shape: prefill packages are fixed to one prompt
+  length each, and every decode token passes full `[28, 1, 8, 768, 128]` KV
+  arrays through CoreML. This is correct but slow and memory-bandwidth heavy.
 - The padded audio package failed with default `.all` compute-unit dispatch on
   `home-mac` because CoreML routed it to ANE and reported an ANE inference
   error. The same path succeeds with `--compute-units cpu-gpu`, which is the
@@ -797,8 +817,9 @@ The private conversion now has two completed tracks:
    prefill, append-cache step, padded external-cache step, fused stateful
    decoder, integrated Python/CoreML fixture runner, and private Swift
    `MLState` greedy fixture runner all validate and are retained locally. The
-   Swift path now also has one non-fixture <=30s LibriSpeech probe with
-   reference-text scoring and EOS stop.
+   Swift path now also has non-fixture <=30s LibriSpeech probes with
+   reference-text scoring and EOS stop, plus an explicit-cache decoder fallback
+   that bypasses the row-3 stateful failure.
 
 The next real work is a Swift/CoreML runtime decision:
 
@@ -809,15 +830,17 @@ The next real work is a Swift/CoreML runtime decision:
    Swift core, a batch benchmark harness, long-audio chunking beyond one
    30-second window, and optional general prompt tokenizer/template support
    beyond the fixed English no-time-marker path.
-3. Fix or work around the stateful decoder's no-finite-logits failure for
-   prompt length 313. The likely next probes are a longer-prompt CoreML export
-   trace/default shape, an external-cache Swift decoder path for row 3, or a
-   smaller bisect over prompt/audio-token length to find the failure threshold.
-4. After row 3 decodes, rerun the 20-row clean-test eval through
-   `moss-swift-coreml-eval`. If the process-per-row wall time is too noisy,
-   make the Swift runner accept a JSONL batch and keep the compiled
-   models/state machinery alive across rows.
-5. Profile compute placement and startup overhead. Only after that should
+3. Generalize the explicit-cache prefill strategy. Options are prompt-length
+   buckets, a padded/fixed prefill contract with host-side last-token
+   selection, or a deeper stateful-cache fix after isolating the prompt-length
+   threshold. The current proven packages cover lengths 195 and 313 only.
+4. Rerun the 20-row clean-test eval through the explicit-cache-capable path.
+   Because prefill is currently fixed-length, this either needs per-row
+   prefill package selection or a bucketed prefill contract first.
+5. Reduce runtime overhead before treating this as FluidAudio-ready: avoid
+   process-per-row launches, keep compiled models alive across rows, and
+   profile the cost of moving full padded KV arrays each decode token.
+6. Profile compute placement and startup overhead. Only after that should
    quantized CoreML or artifact publication be scoped.
-6. Keep all work private. Public branch, PR, push, and Hugging Face upload
+7. Keep all work private. Public branch, PR, push, and Hugging Face upload
    remain out of scope until explicitly requested.

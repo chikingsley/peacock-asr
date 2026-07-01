@@ -72,6 +72,13 @@ def parse_args() -> argparse.Namespace:
         default="compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc",
     )
     parser.add_argument(
+        "--decoder-package",
+        default="compiled_stateful/moss_decoder_stateful_fused.mlmodelc",
+    )
+    parser.add_argument("--prefill-cache-package")
+    parser.add_argument("--step-package")
+    parser.add_argument("--cache-len", type=int, default=768)
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=ARTIFACTS_DIR / "evals" / "librispeech-test-clean-swift-coreml-1",
@@ -147,7 +154,7 @@ def swift_command(
     reference_path: Path,
     output_path: Path,
 ) -> list[str]:
-    return [
+    command = [
         "swift",
         "run",
         "--package-path",
@@ -165,6 +172,8 @@ def swift_command(
         str(args.audio_max_frames),
         "--audio-package",
         str(args.audio_package),
+        "--decoder-package",
+        str(args.decoder_package),
         "--compute-units",
         str(args.compute_units),
         "--max-new-tokens",
@@ -174,6 +183,20 @@ def swift_command(
         "--output",
         str(output_path),
     ]
+    if args.prefill_cache_package or args.step_package:
+        if not args.prefill_cache_package or not args.step_package:
+            raise ValueError("pass both --prefill-cache-package and --step-package")
+        command.extend(
+            [
+                "--prefill-cache-package",
+                str(args.prefill_cache_package),
+                "--step-package",
+                str(args.step_package),
+                "--cache-len",
+                str(args.cache_len),
+            ]
+        )
+    return command
 
 
 def run_swift_report(
@@ -244,6 +267,7 @@ def prediction_report(
         "audio_placeholder_count": int(swift_report["audio_token_count"]),
         "generated_token_count": len(swift_report["generated_ids"]),
         "stopped_on_eos": bool(swift_report["stopped_on_eos"]),
+        "decoder_mode": swift_report.get("decoder_mode", "stateful"),
         "audio_frontend_elapsed_sec": float(swift_report["timing_seconds"]["audio_frontend"]),
         "audio_encoder_adapter_elapsed_sec": float(
             swift_report["timing_seconds"]["audio_encoder_adapter"]
@@ -361,6 +385,10 @@ def main() -> None:
             "max_audio_sec": args.max_audio_sec,
             "max_new_tokens": args.max_new_tokens,
             "compute_units": args.compute_units,
+            "decoder_package": args.decoder_package,
+            "prefill_cache_package": args.prefill_cache_package,
+            "step_package": args.step_package,
+            "cache_len": args.cache_len,
         },
     )
     print(json.dumps(summary, indent=2, sort_keys=True))

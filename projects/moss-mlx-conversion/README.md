@@ -54,18 +54,19 @@ Current short version:
   a separate CoreML/ANE decoder experiment is explicitly scoped.
 - `moss-coreml-plan` now writes a private Mobius-style CoreML conversion
   contract under `artifacts/coreml/`, including component boundaries, fixed
-  prefill/cache shapes, and parity gates. This is planning/export groundwork,
-  not a CoreML model yet.
+  prefill/cache shapes, and parity gates. This is the private CoreML workbench,
+  not a public FluidAudio branch.
 - Private CoreML fixture exports now cover token embedding, audio
   encoder+adapter, full decoder prefill, fixed append-cache decoder step,
   padded 768-slot cache-external decoder step, and a fused stateful decoder
   with CoreML State API KV buffers. All exported packages validated against
   PyTorch fixture tensors on `home-mac` and compiled with
   `xcrun coremlcompiler`.
-- The fused stateful decoder is the current Mobius-style finish-line artifact:
+- The fused stateful decoder is the current Mobius-style single-model decoder:
   one CoreML model handles prompt prefill and the next decode call with the
-  same internal state, ranking fixture tokens `4197` then `1059`. It is not
-  yet a FluidAudio Swift backend or benchmarked end-to-end runtime.
+  same internal state, ranking fixture tokens `4197` then `1059`. It is proven
+  on short prompts, but a longer non-fixture row exposed a stateful decode
+  stability bug.
 - `run_stateful_fixture_pipeline.py` now wires the exported token embedding,
   audio encoder+adapter, audio-mask merge, Qwen3 RoPE/masks, and stateful
   decoder in one CoreML process on `home-mac`. The component-merged fixture
@@ -99,9 +100,14 @@ Current short version:
   streamed Hugging Face rows by materializing short WAV/reference pairs and
   calling the Swift runner. The first two-row clean-test batch scored WER/CER
   `0.0` with 1.43 RTFx on summed Swift model time.
-- The 20-row Swift/CoreML gate exposed the current roadblock: rows 0-2
-  completed with WER/CER `0.0`, but row 3 has prompt length 313 and the first
-  stateful decode step produced no finite logits. Prefill for that row works.
+- The 20-row Swift/CoreML gate exposed the stateful decoder roadblock: rows
+  0-2 completed with WER/CER `0.0`, but row 3 has prompt length 313 and the
+  first stateful decode step produced no finite logits. A new explicit-cache
+  decoder path bypasses that failure: fixed-length prefill-cache packages for
+  prompt lengths 195 and 313 plus the padded step decoder scored WER/CER
+  `0.0` on rows 1 and 3. This is still a correctness bridge, not a final
+  FluidAudio backend, because prefill is fixed-length and decode moves full
+  padded KV arrays per token.
 - No public upload/branch/PR action has been taken.
 
 ## Layout

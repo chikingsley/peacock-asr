@@ -125,3 +125,11 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   20-row Swift/CoreML gate completed rows 0-2 with WER/CER `0.0`, then exposed
   the current decoder roadblock on row 3: prompt length 313 prefill succeeds,
   but the first stateful decode step returns no finite logits.
+- Added an explicit-cache CoreML decoder path for Swift:
+  `export_decoder_prefill_cache.py`, `--prefill-cache-package` /
+  `--step-package` runner flags, and eval-harness wiring. Fixed-length
+  prefill-cache packages for prompt lengths 195 and 313 plus the reusable
+  padded step decoder produced normalized WER/CER `0.0` on LibriSpeech rows 1
+  and 3, bypassing the row-3 stateful no-finite-logits failure. This remains a
+  correctness bridge rather than a final FluidAudio backend because prefill is
+  fixed-length and decode moves full padded KV arrays per token.
