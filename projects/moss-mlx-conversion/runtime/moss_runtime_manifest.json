@@ -1,0 +1,20 @@
+{
+  "audio_placeholder_id": 0,
+  "head_dim": 128,
+  "hidden_size": 2048,
+  "prompt_prefix_ids": [
+    151644,
+    872,
+    198,
+    151669
+  ],
+  "prompt_suffix_ids": [
+    151670,
+    151645,
+    198,
+    151644,
+    77091,
+    198
+  ],
+  "rope_theta": 1000000.0
+}

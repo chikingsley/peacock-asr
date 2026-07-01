@@ -18,6 +18,11 @@ artifacts from this handoff without an explicit request.
   691.58s wall.
 - The persistent batch proves the required FluidAudio runtime property: compiled
   CoreML models must be loaded once and reused across utterances.
+- Fixture-free runtime manifest eval:
+  `artifacts/evals/librispeech-test-clean-swift-coreml-runtime-manifest-cache-512-batch-20/summary.json`
+  used `runtime/moss_runtime_manifest.json`, completed 20/20 rows, and produced
+  identical row IDs, normalized hypotheses, prompt lengths, generated-token
+  counts, WER, and CER versus the prior persistent batch.
 
 ## Relevant FluidAudio Shape
 
@@ -63,13 +68,13 @@ The current private bundle needs these files:
 - `moss_decoder_prefill_cache_512.mlmodelc`
 - `moss_decoder_step_padded_fixture.mlmodelc`
 - `moss_tokenizer.json`
-- A small config/manifest file replacing the current compact fixture JSON:
-  prompt prefix/suffix token IDs, placeholder ID, hidden size, head dim,
-  RoPE theta, EOS token, audio-token stride, max audio frames, cache length,
-  prefill bucket length.
+- `runtime/moss_runtime_manifest.json`, or the same fields embedded in a model
+  bundle manifest: prompt prefix/suffix token IDs, placeholder ID, hidden size,
+  head dim, and RoPE theta. The CLI still passes EOS token, audio-frame limit,
+  cache length, and prefill bucket length as runtime options.
 
-The current `moss_swift_fixture_compact.json` is acceptable for the private
-fixture runner but should not be the public runtime config contract.
+The old `moss_swift_fixture_compact.json` remains acceptable for regression
+fixtures but is no longer the production-shaped runtime config contract.
 
 ## Why This Is Not Just Model Registration
 
@@ -121,7 +126,8 @@ If we decide to actually modify FluidAudio, start with a private local branch in
 
 1. Add `MossAsrConfig`, `MossModels`, and `MossPipeline` by lifting the proven
    Swift runtime out of `MossCoreMLFixture`.
-2. Replace fixture JSON dependency with a small runtime manifest.
+2. Use `runtime/moss_runtime_manifest.json` as the first runtime manifest
+   contract and remove any dependency on fixture tensors.
 3. Add manual model loading first; only add Hugging Face download metadata after
    the local model directory path works.
 4. Add a CLI `moss-transcribe` command that accepts `--model-dir` and one WAV.

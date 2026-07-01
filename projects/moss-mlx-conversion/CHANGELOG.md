@@ -156,3 +156,8 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   on the Mac checkout at `a95ec26`. It records the required `ASR/MOSS` manager,
   model-store files, runtime manifest, CLI commands, and benchmark gate needed
   before any private FluidAudio backend work.
+- Added tracked `runtime/moss_runtime_manifest.json` and Swift
+  `--runtime-manifest` support so the runtime no longer depends on the compact
+  fixture JSON for prompt/model constants. The 20-row manifest batch produced
+  identical row IDs, normalized hypotheses, prompt lengths, generated-token
+  counts, WER, and CER versus the prior persistent batch.

@@ -21,6 +21,7 @@ def test_swift_command_uses_absolute_runtime_inputs() -> None:
         swift_package_path=Path("swift/MossCoreMLFixture"),
         packages_dir=Path("coreml/build"),
         fixture=Path("artifacts/coreml/moss_swift_fixture_compact.json"),
+        runtime_manifest=None,
         audio_max_frames=3000,
         audio_package="compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc",
         decoder_package="compiled_stateful/moss_decoder_stateful_fused.mlmodelc",
@@ -62,6 +63,7 @@ def test_swift_command_can_use_external_cache_packages() -> None:
         swift_package_path=Path("swift/MossCoreMLFixture"),
         packages_dir=Path("coreml/build"),
         fixture=Path("artifacts/coreml/moss_swift_fixture_compact.json"),
+        runtime_manifest=None,
         audio_max_frames=3000,
         audio_package="compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc",
         decoder_package="compiled_stateful/moss_decoder_stateful_fused.mlmodelc",
@@ -96,6 +98,7 @@ def test_swift_batch_command_uses_manifest_and_external_cache() -> None:
         swift_package_path=Path("swift/MossCoreMLFixture"),
         packages_dir=Path("coreml/build"),
         fixture=Path("artifacts/coreml/moss_swift_fixture_compact.json"),
+        runtime_manifest=Path("runtime/moss_runtime_manifest.json"),
         audio_max_frames=3000,
         audio_package="compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc",
         decoder_package="compiled_stateful/moss_decoder_stateful_fused.mlmodelc",
@@ -120,5 +123,7 @@ def test_swift_batch_command_uses_manifest_and_external_cache() -> None:
     assert "/example/batch-results.jsonl" in command
     assert "--audio" not in command
     assert "--reference-text-file" not in command
+    assert "--runtime-manifest" in command
+    assert "/example/moss/runtime/moss_runtime_manifest.json" in command
     assert "--prefill-cache-seq-len" in command
     assert "512" in command

@@ -407,6 +407,14 @@ Swift result on `home-mac`:
   cut wall time to 691.58s. This removes process-per-row startup as the main
   issue; the remaining runtime cost is per-token decoder work and full padded
   KV tensor movement.
+- The Swift runner now accepts `--runtime-manifest
+  runtime/moss_runtime_manifest.json` for production-shaped prompt/model
+  constants. The compact fixture JSON remains useful for regression tests, but
+  it is no longer the runtime config contract. The 20-row manifest batch
+  matched the prior persistent batch row-for-row on normalized hypotheses,
+  prompt lengths, generated-token counts, WER, and CER; it measured RTFx 0.75
+  and wall time 813.11s, so use it as a correctness/package gate rather than a
+  performance comparison.
 - The same padded audio package failed under default `.all` compute-unit
   dispatch with an ANE inference error. Use `--compute-units cpu-gpu` for this
   package until compute placement is profiled more carefully.

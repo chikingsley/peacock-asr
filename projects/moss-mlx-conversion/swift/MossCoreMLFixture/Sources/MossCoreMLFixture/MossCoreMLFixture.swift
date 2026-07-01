@@ -36,6 +36,42 @@ struct Fixture: Decodable {
     }
 }
 
+struct RuntimeManifest: Decodable {
+    let hiddenSize: Int
+    let headDim: Int
+    let ropeTheta: Double
+    let promptPrefixIds: [Int32]
+    let promptSuffixIds: [Int32]
+    let audioPlaceholderId: Int32
+
+    enum CodingKeys: String, CodingKey {
+        case hiddenSize = "hidden_size"
+        case headDim = "head_dim"
+        case ropeTheta = "rope_theta"
+        case promptPrefixIds = "prompt_prefix_ids"
+        case promptSuffixIds = "prompt_suffix_ids"
+        case audioPlaceholderId = "audio_placeholder_id"
+    }
+}
+
+struct RuntimeContext {
+    let sourcePath: String
+    let promptLen: Int
+    let hiddenSize: Int
+    let headDim: Int
+    let ropeTheta: Double
+    let inputIds: [Int32]?
+    let audioInputMask: [Bool]?
+    let promptPrefixIds: [Int32]?
+    let promptSuffixIds: [Int32]?
+    let audioTokenCount: Int?
+    let audioPlaceholderId: Int32?
+    let audioDataShape: [Int]
+    let audioData: [Float]
+    let audioDataSeqlens: [Int32]
+    let generatedIds: [Int32]
+}
+
 struct Prompt {
     let inputIds: [Int32]
     let audioInputMask: [Bool]
@@ -53,6 +89,7 @@ struct Prompt {
 struct Options {
     var packagesDir = URL(fileURLWithPath: "coreml/build")
     var fixture = URL(fileURLWithPath: "artifacts/coreml/moss_swift_fixture.json")
+    var runtimeManifest: URL?
     var audio: URL?
     var audioMaxFrames: Int?
     var compareFixtureAudio = false
@@ -274,6 +311,8 @@ func parseOptions(_ arguments: [String]) throws -> Options {
             options.packagesDir = URL(fileURLWithPath: try value())
         case "--fixture":
             options.fixture = URL(fileURLWithPath: try value())
+        case "--runtime-manifest":
+            options.runtimeManifest = URL(fileURLWithPath: try value())
         case "--audio":
             options.audio = URL(fileURLWithPath: try value())
         case "--audio-max-frames":
@@ -335,7 +374,9 @@ func parseOptions(_ arguments: [String]) throws -> Options {
         case "--help", "-h":
             print(
                 """
-                Usage: moss-coreml-fixture [--packages-dir DIR] [--fixture JSON] [--output JSON]
+                Usage: moss-coreml-fixture [--packages-dir DIR]
+                                           [--fixture JSON | --runtime-manifest JSON]
+                                           [--output JSON]
                                            [--audio WAV] [--audio-max-frames N]
                                            [--compare-fixture-audio]
                                            [--token-package NAME] [--audio-package NAME]
@@ -391,16 +432,62 @@ func loadFixture(_ url: URL) throws -> Fixture {
     return try decoder.decode(Fixture.self, from: data)
 }
 
-func resolvePrompt(_ fixture: Fixture, audioTokenCountOverride: Int? = nil) throws -> Prompt {
-    if let prefixIds = fixture.promptPrefixIds,
-       let suffixIds = fixture.promptSuffixIds,
-       let fixtureAudioTokenCount = fixture.audioTokenCount
+func loadRuntimeContext(options: Options) throws -> RuntimeContext {
+    if let runtimeManifest = options.runtimeManifest {
+        let data = try Data(contentsOf: runtimeManifest)
+        let manifest = try JSONDecoder().decode(RuntimeManifest.self, from: data)
+        return RuntimeContext(
+            sourcePath: runtimeManifest.path,
+            promptLen: 0,
+            hiddenSize: manifest.hiddenSize,
+            headDim: manifest.headDim,
+            ropeTheta: manifest.ropeTheta,
+            inputIds: nil,
+            audioInputMask: nil,
+            promptPrefixIds: manifest.promptPrefixIds,
+            promptSuffixIds: manifest.promptSuffixIds,
+            audioTokenCount: nil,
+            audioPlaceholderId: manifest.audioPlaceholderId,
+            audioDataShape: [],
+            audioData: [],
+            audioDataSeqlens: [],
+            generatedIds: []
+        )
+    }
+    let fixture = try loadFixture(options.fixture)
+    return RuntimeContext(
+        sourcePath: options.fixture.path,
+        promptLen: fixture.promptLen,
+        hiddenSize: fixture.hiddenSize,
+        headDim: fixture.headDim,
+        ropeTheta: fixture.ropeTheta,
+        inputIds: fixture.inputIds,
+        audioInputMask: fixture.audioInputMask,
+        promptPrefixIds: fixture.promptPrefixIds,
+        promptSuffixIds: fixture.promptSuffixIds,
+        audioTokenCount: fixture.audioTokenCount,
+        audioPlaceholderId: fixture.audioPlaceholderId,
+        audioDataShape: fixture.audioDataShape,
+        audioData: fixture.audioData,
+        audioDataSeqlens: fixture.audioDataSeqlens,
+        generatedIds: fixture.generatedIds
+    )
+}
+
+func resolvePrompt(_ runtime: RuntimeContext, audioTokenCountOverride: Int? = nil) throws -> Prompt {
+    if let prefixIds = runtime.promptPrefixIds,
+       let suffixIds = runtime.promptSuffixIds
     {
+        guard let fixtureAudioTokenCount = runtime.audioTokenCount ?? audioTokenCountOverride else {
+            throw RunnerError.invalidArgument(
+                "runtime manifest prompt construction requires audio input"
+            )
+        }
         let audioTokenCount = audioTokenCountOverride ?? fixtureAudioTokenCount
         guard audioTokenCount >= 0 else {
             throw RunnerError.invalidArgument("audio_token_count must be non-negative")
         }
-        let placeholderId = fixture.audioPlaceholderId ?? 0
+        let placeholderId = runtime.audioPlaceholderId ?? 0
         let inputIds = prefixIds
             + [Int32](repeating: placeholderId, count: audioTokenCount)
             + suffixIds
@@ -408,9 +495,9 @@ func resolvePrompt(_ fixture: Fixture, audioTokenCountOverride: Int? = nil) thro
             + [Bool](repeating: true, count: audioTokenCount)
             + [Bool](repeating: false, count: suffixIds.count)
         if audioTokenCountOverride == nil {
-            guard inputIds.count == fixture.promptLen else {
+            guard inputIds.count == runtime.promptLen else {
                 throw RunnerError.invalidArgument(
-                    "compact prompt length \(inputIds.count) != fixture prompt_len \(fixture.promptLen)"
+                    "compact prompt length \(inputIds.count) != fixture prompt_len \(runtime.promptLen)"
                 )
             }
         }
@@ -423,19 +510,19 @@ func resolvePrompt(_ fixture: Fixture, audioTokenCountOverride: Int? = nil) thro
             "audio override requires compact prompt_prefix_ids/prompt_suffix_ids fields"
         )
     }
-    guard let inputIds = fixture.inputIds, let audioInputMask = fixture.audioInputMask else {
+    guard let inputIds = runtime.inputIds, let audioInputMask = runtime.audioInputMask else {
         throw RunnerError.invalidArgument(
             "fixture needs either compact prompt fields or input_ids/audio_input_mask"
         )
     }
-    guard inputIds.count == fixture.promptLen else {
+    guard inputIds.count == runtime.promptLen else {
         throw RunnerError.invalidArgument(
-            "input_ids length \(inputIds.count) != fixture prompt_len \(fixture.promptLen)"
+            "input_ids length \(inputIds.count) != fixture prompt_len \(runtime.promptLen)"
         )
     }
-    guard audioInputMask.count == fixture.promptLen else {
+    guard audioInputMask.count == runtime.promptLen else {
         throw RunnerError.invalidArgument(
-            "audio_input_mask length \(audioInputMask.count) != fixture prompt_len \(fixture.promptLen)"
+            "audio_input_mask length \(audioInputMask.count) != fixture prompt_len \(runtime.promptLen)"
         )
     }
     return Prompt(inputIds: inputIds, audioInputMask: audioInputMask, source: "serialized")
@@ -458,16 +545,21 @@ func resolveExpectedText(
 }
 
 func resolveAudioFeatures(
-    fixture: Fixture,
+    runtime: RuntimeContext,
     options: Options
 ) throws -> (features: MossAudioFeatures, diff: AudioFeatureDiff?, seconds: Double) {
     guard let audioURL = options.audio else {
+        guard !runtime.audioData.isEmpty, !runtime.audioDataShape.isEmpty else {
+            throw RunnerError.invalidArgument(
+                "runtime manifest mode requires --audio; fixture audio is not available"
+            )
+        }
         return (
             features: MossAudioFeatures(
                 source: "fixture",
-                shape: fixture.audioDataShape,
-                data: fixture.audioData,
-                seqlens: fixture.audioDataSeqlens
+                shape: runtime.audioDataShape,
+                data: runtime.audioData,
+                seqlens: runtime.audioDataSeqlens
             ),
             diff: nil,
             seconds: 0
@@ -484,11 +576,16 @@ func resolveAudioFeatures(
     let seconds = Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000.0
     let diff: AudioFeatureDiff?
     if options.compareFixtureAudio {
+        guard !runtime.audioData.isEmpty, !runtime.audioDataShape.isEmpty else {
+            throw RunnerError.invalidArgument(
+                "--compare-fixture-audio requires fixture audio data"
+            )
+        }
         diff = compareAudioFeaturesPrefix(
             features.data,
             leftShape: features.shape,
-            fixture.audioData,
-            rightShape: fixture.audioDataShape
+            runtime.audioData,
+            rightShape: runtime.audioDataShape
         )
     } else {
         diff = nil
@@ -632,14 +729,14 @@ func buildPaddedStepInputs(cacheLen: Int, pastLen: Int) throws -> (
 func buildMergedEmbeddings(
     tokenEmbeddings: MLMultiArray,
     audioEmbeddings: MLMultiArray,
-    fixture: Fixture,
+    runtime: RuntimeContext,
     prompt: Prompt
 ) throws -> MLMultiArray {
-    let merged = try makeFloatArray(shape: [1, prompt.promptLen, fixture.hiddenSize])
+    let merged = try makeFloatArray(shape: [1, prompt.promptLen, runtime.hiddenSize])
     var audioIndex = 0
     for position in 0..<prompt.promptLen {
         let sourceIsAudio = prompt.audioInputMask[position]
-        for hidden in 0..<fixture.hiddenSize {
+        for hidden in 0..<runtime.hiddenSize {
             let value: Float
             if sourceIsAudio {
                 value = floatValue(audioEmbeddings, [audioIndex, hidden])
@@ -836,14 +933,14 @@ func loadModels(options: Options, useExternalCache: Bool) throws -> LoadedModels
 
 func runFixture(
     options: Options,
-    fixture: Fixture,
+    runtime: RuntimeContext,
     tokenizer: QwenByteLevelTokenizer,
     models: LoadedModels,
     decoderMode: String
 ) async throws -> Result {
     let rowStart = DispatchTime.now().uptimeNanoseconds
     let (audioFeatures, audioFrontendDiff, audioFrontendSeconds) = try resolveAudioFeatures(
-        fixture: fixture,
+        runtime: runtime,
         options: options
     )
     guard let audioFrameCount = audioFeatures.seqlens.first else {
@@ -855,15 +952,15 @@ func runFixture(
         mossAudioTokenCount(melFrames: Int(audioFrameCount))
     }
     let prompt = try resolvePrompt(
-        fixture,
+        runtime,
         audioTokenCountOverride: audioTokenCountOverride
     )
     let maxNewTokens = options.maxNewTokens
     guard maxNewTokens > 0 else {
         throw RunnerError.invalidArgument("--max-new-tokens must be positive")
     }
-    let firstToken = Int(fixture.generatedIds[0])
-    let secondToken = Int(fixture.generatedIds[1])
+    let firstToken = runtime.generatedIds.indices.contains(0) ? Int(runtime.generatedIds[0]) : -1
+    let secondToken = runtime.generatedIds.indices.contains(1) ? Int(runtime.generatedIds[1]) : -1
     let audioTokenCount = prompt.audioTokenCount
     let useExternalCache = decoderMode == "external_cache"
 
@@ -894,7 +991,7 @@ func runFixture(
     let mergedEmbeddings = try buildMergedEmbeddings(
         tokenEmbeddings: tokenEmbeddings,
         audioEmbeddings: audioEmbeddings,
-        fixture: fixture,
+        runtime: runtime,
         prompt: prompt
     )
 
@@ -920,7 +1017,7 @@ func runFixture(
                     mergedEmbeddings,
                     promptLen: prompt.promptLen,
                     seqLen: prefillCacheSeqLen,
-                    hiddenSize: fixture.hiddenSize
+                    hiddenSize: runtime.hiddenSize
                 )
             )
             prefillFeatures["last_token_mask"] = MLFeatureValue(
@@ -969,15 +1066,15 @@ func runFixture(
             decodeTokenSeconds += tokenDecodeSeconds
             let tokenEmbedding = try firstTokenEmbedding(
                 try featureArray(tokenOutput, "token_embeddings"),
-                hiddenSize: fixture.hiddenSize
+                hiddenSize: runtime.hiddenSize
             )
 
             let stepPosition = prompt.promptLen + stepIndex
             let (stepCos, stepSin) = try buildRope(
                 length: 1,
                 start: stepPosition,
-                headDim: fixture.headDim,
-                ropeTheta: fixture.ropeTheta
+                headDim: runtime.headDim,
+                ropeTheta: runtime.ropeTheta
             )
             let masks = try buildPaddedStepInputs(
                 cacheLen: options.cacheLen,
@@ -1023,8 +1120,8 @@ func runFixture(
         let (prefillCos, prefillSin) = try buildRope(
             length: prompt.promptLen,
             start: 0,
-            headDim: fixture.headDim,
-            ropeTheta: fixture.ropeTheta
+            headDim: runtime.headDim,
+            ropeTheta: runtime.ropeTheta
         )
         let prefillMask = try buildCausalMask(length: prompt.promptLen)
         let prefillInput = try MLDictionaryFeatureProvider(dictionary: [
@@ -1060,15 +1157,15 @@ func runFixture(
             decodeTokenSeconds += tokenDecodeSeconds
             let tokenEmbedding = try firstTokenEmbedding(
                 try featureArray(tokenOutput, "token_embeddings"),
-                hiddenSize: fixture.hiddenSize
+                hiddenSize: runtime.hiddenSize
             )
 
             let stepPosition = prompt.promptLen + stepIndex
             let (stepCos, stepSin) = try buildRope(
                 length: 1,
                 start: stepPosition,
-                headDim: fixture.headDim,
-                ropeTheta: fixture.ropeTheta
+                headDim: runtime.headDim,
+                ropeTheta: runtime.ropeTheta
             )
             let stepMask = try makeFloatArray(shape: [1, 1, 1, stepPosition + 1])
             let stepInput = try MLDictionaryFeatureProvider(dictionary: [
@@ -1097,7 +1194,7 @@ func runFixture(
             currentToken = Int32(nextToken)
         }
     }
-    let expectedGeneratedIds = fixture.generatedIds.prefix(maxNewTokens).map { Int($0) }
+    let expectedGeneratedIds = runtime.generatedIds.prefix(maxNewTokens).map { Int($0) }
     var generatedPrefixMatchCount = 0
     for (actual, expected) in zip(generatedIds, expectedGeneratedIds) {
         guard actual == expected else { break }
@@ -1118,7 +1215,7 @@ func runFixture(
     ) / 1_000_000_000.0
 
     return Result(
-        fixture: options.fixture.path,
+        fixture: runtime.sourcePath,
         packagesDir: options.packagesDir.path,
         audioSource: audioFeatures.source,
         audioDataShape: audioFeatures.shape,
@@ -1215,7 +1312,7 @@ func appendJSONLine<T: Encodable>(_ value: T, to url: URL) throws {
 
 func runBatch(
     options: Options,
-    fixture: Fixture,
+    runtime: RuntimeContext,
     tokenizer: QwenByteLevelTokenizer,
     models: LoadedModels,
     decoderMode: String
@@ -1241,7 +1338,7 @@ func runBatch(
         rowOptions.batchOutputJsonl = nil
         let result = try await runFixture(
             options: rowOptions,
-            fixture: fixture,
+            runtime: runtime,
             tokenizer: tokenizer,
             models: models,
             decoderMode: decoderMode
@@ -1270,7 +1367,7 @@ func runBatch(
 struct MossCoreMLFixture {
     static func main() async throws {
         let options = try parseOptions(CommandLine.arguments)
-        let fixture = try loadFixture(options.fixture)
+        let runtime = try loadRuntimeContext(options: options)
         let tokenizer = try QwenByteLevelTokenizer(tokenizerJSON: options.tokenizer)
         let useExternalCache = try validateDecoderOptions(options)
         let decoderMode = useExternalCache ? "external_cache" : "stateful"
@@ -1278,7 +1375,7 @@ struct MossCoreMLFixture {
         if options.batchManifest != nil {
             try await runBatch(
                 options: options,
-                fixture: fixture,
+                runtime: runtime,
                 tokenizer: tokenizer,
                 models: models,
                 decoderMode: decoderMode
@@ -1287,7 +1384,7 @@ struct MossCoreMLFixture {
         }
         let result = try await runFixture(
             options: options,
-            fixture: fixture,
+            runtime: runtime,
             tokenizer: tokenizer,
             models: models,
             decoderMode: decoderMode

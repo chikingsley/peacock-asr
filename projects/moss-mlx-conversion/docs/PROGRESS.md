@@ -675,6 +675,7 @@ Fixture component probes completed on `home-mac`:
 | Swift padded-prefill row 3 | LibriSpeech clean-test row `6930-75918-0003`, prompt length 313, same shared `compiled_prefill_cache_512` + `compiled_step_padded`, `--prefill-cache-seq-len 512`, `--compute-units cpu-gpu` | normalized WER/CER `0.0`; generated 77 tokens and stopped on EOS; total model time `13.80s` for `23.32s` audio, RTFx `1.69`; decoder prefill `1.14s`, decoder decode `10.41s`; output artifact `artifacts/coreml/moss_swift_coreml_external_cache_512_cpu_gpu_librispeech_row3.json` |
 | Swift padded-prefill 20-row batch | LibriSpeech clean-test rows 0-19, shared `compiled_prefill_cache_512` + `compiled_step_padded`, `--prefill-cache-seq-len 512`, `--compute-units cpu-gpu` | completed 20/20; WER `0.0158`, CER `0.00418`; total audio `164.49s`; summed Swift model time `216.29s`; RTFx `0.76`; wall `1382.60s` because the harness launches one Swift process per row; max prompt length 313, max audio tokens 303; artifacts under `artifacts/evals/librispeech-test-clean-swift-coreml-external-cache-512-20/` |
 | Swift padded-prefill persistent 20-row batch | same rows/packages through `moss-swift-coreml-eval --swift-batch`, which writes a JSONL manifest and calls the Swift runner once | completed 20/20 with the same WER `0.0158` and CER `0.00418`; total audio `164.49s`; summed Swift model time `132.95s`; RTFx `1.24`; wall `691.58s`; sum of per-row Swift walls `652.28s`; artifacts under `artifacts/evals/librispeech-test-clean-swift-coreml-external-cache-512-batch-20/` |
+| Swift runtime-manifest persistent 20-row batch | same rows/packages plus `--runtime-manifest runtime/moss_runtime_manifest.json`, no compact fixture JSON runtime constants | completed 20/20 with identical row IDs, normalized hypotheses, prompt lengths, generated-token counts, WER `0.0158`, and CER `0.00418` versus the prior persistent batch; total audio `164.49s`; summed Swift model time `219.52s`; RTFx `0.75`; wall `813.11s`; artifact `artifacts/evals/librispeech-test-clean-swift-coreml-runtime-manifest-cache-512-batch-20/summary.json` |
 
 Retained full-component package sizes:
 
@@ -763,6 +764,14 @@ Notes:
   process for all rows. On the same 20-row window it preserved WER/CER and cut
   wall time from 1382.60s to 691.58s. This proves persistent model residency,
   but it does not change the per-token explicit-cache decoder contract.
+- The Swift path now accepts `--runtime-manifest
+  runtime/moss_runtime_manifest.json`. That moves prompt/model constants out
+  of `moss_swift_fixture_compact.json`, leaving the compact fixture as a
+  regression artifact only. The 20-row runtime-manifest batch produced
+  identical normalized hypotheses and WER/CER versus the prior persistent
+  batch, so the fixture-free runtime contract is proven. This pass was slower
+  than the previous persistent run, so treat it as a correctness/packaging
+  gate rather than a performance result.
 - The padded audio package failed with default `.all` compute-unit dispatch on
   `home-mac` because CoreML routed it to ANE and reported an ANE inference
   error. The same path succeeds with `--compute-units cpu-gpu`, which is the
@@ -849,7 +858,8 @@ The private conversion now has two completed tracks:
    that bypasses the row-3 stateful failure and completes the first 20 clean
    rows with the shared 512-token padded prefill package. The persistent
    `--swift-batch` harness keeps the CoreML models loaded across rows and cuts
-   20-row wall time roughly in half.
+   20-row wall time roughly in half. The runner can now use the tracked
+   fixture-free `runtime/moss_runtime_manifest.json` for runtime constants.
 
 The next real work is a Swift/CoreML runtime decision:
 

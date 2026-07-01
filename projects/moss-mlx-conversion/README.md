@@ -111,6 +111,10 @@ Current short version:
   fails row 3's 313-token prompt, but the explicit-cache path bypasses that
   stability boundary. This is still a correctness bridge, not a final
   FluidAudio backend, because decode moves full padded KV arrays per token.
+- The Swift path now supports `--runtime-manifest
+  runtime/moss_runtime_manifest.json`, a fixture-free config carrier for prompt
+  template and model constants. The 20-row manifest batch produced identical
+  normalized hypotheses and WER/CER to the prior compact-fixture batch.
 - No public upload/branch/PR action has been taken.
 
 ## Layout

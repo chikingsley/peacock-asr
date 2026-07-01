@@ -68,6 +68,12 @@ def parse_args() -> argparse.Namespace:
         default=Path("artifacts/coreml/moss_swift_fixture_compact.json"),
     )
     parser.add_argument(
+        "--runtime-manifest",
+        type=Path,
+        default=None,
+        help="Fixture-free Swift runtime manifest for prompt/model constants.",
+    )
+    parser.add_argument(
         "--audio-package",
         default="compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc",
     )
@@ -189,6 +195,13 @@ def swift_command(
         "--output",
         str(output_path),
     ]
+    if args.runtime_manifest is not None:
+        command.extend(
+            [
+                "--runtime-manifest",
+                str(resolved_under(project_root, args.runtime_manifest)),
+            ]
+        )
     if args.prefill_cache_package or args.step_package:
         if not args.prefill_cache_package or not args.step_package:
             raise ValueError("pass both --prefill-cache-package and --step-package")
@@ -247,6 +260,13 @@ def swift_batch_command(
         "--batch-output-jsonl",
         str(batch_output_path),
     ]
+    if args.runtime_manifest is not None:
+        command.extend(
+            [
+                "--runtime-manifest",
+                str(resolved_under(project_root, args.runtime_manifest)),
+            ]
+        )
     if args.prefill_cache_package or args.step_package:
         if not args.prefill_cache_package or not args.step_package:
             raise ValueError("pass both --prefill-cache-package and --step-package")
@@ -551,6 +571,9 @@ def main() -> None:
             "max_new_tokens": args.max_new_tokens,
             "compute_units": args.compute_units,
             "decoder_package": args.decoder_package,
+            "runtime_manifest": str(args.runtime_manifest)
+            if args.runtime_manifest is not None
+            else None,
             "prefill_cache_package": args.prefill_cache_package,
             "prefill_cache_seq_len": args.prefill_cache_seq_len,
             "step_package": args.step_package,

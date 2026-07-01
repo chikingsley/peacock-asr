@@ -187,6 +187,7 @@ Results:
 | Swift padded-prefill row 3 | LibriSpeech clean-test row `6930-75918-0003`, prompt length 313, same shared 512-token prefill cache + padded step | normalized WER/CER `0.0`; generated 77 tokens and stopped on EOS; bypasses the stateful row-3 no-finite-logits failure; total model time `13.80s` for `23.32s` audio, RTFx `1.69` |
 | Swift padded-prefill 20-row batch | LibriSpeech clean-test rows 0-19, same shared 512-token prefill cache + padded step, `--prefill-cache-seq-len 512`, `--compute-units cpu-gpu` | completed 20/20; WER `0.0158`, CER `0.00418`; total audio `164.49s`; summed Swift model time `216.29s`; RTFx `0.76`; wall time `1382.60s` because the harness launches one Swift process per row; artifact `artifacts/evals/librispeech-test-clean-swift-coreml-external-cache-512-20/summary.json` |
 | Swift padded-prefill persistent 20-row batch | same rows/packages plus `moss-swift-coreml-eval --swift-batch` JSONL manifest mode | completed 20/20 with the same WER `0.0158` and CER `0.00418`; summed Swift model time `132.95s`; RTFx `1.24`; wall time `691.58s`; sum of per-row Swift walls `652.28s`; artifact `artifacts/evals/librispeech-test-clean-swift-coreml-external-cache-512-batch-20/summary.json` |
+| Swift runtime-manifest persistent 20-row batch | same rows/packages plus `--runtime-manifest runtime/moss_runtime_manifest.json` instead of compact fixture constants | completed 20/20 with identical row IDs, normalized hypotheses, prompt lengths, generated-token counts, WER `0.0158`, and CER `0.00418` versus the prior persistent batch; summed Swift model time `219.52s`; RTFx `0.75`; wall time `813.11s`; artifact `artifacts/evals/librispeech-test-clean-swift-coreml-runtime-manifest-cache-512-batch-20/summary.json` |
 
 Important caveat: these are still fixture-level proof components. The padded
 external-cache step proves the planned 768-token cache shape. The stateful fused
@@ -205,6 +206,10 @@ The explicit-cache batch proves the current CoreML path can complete the first
 20 clean-test rows, including the former row-3 stateful failure case. The
 persistent Swift batch mode removes one-process-per-row startup from the main
 path, but it is still a private harness rather than a FluidAudio manager.
+The runtime-manifest pass removes the compact fixture JSON as the runtime
+constant carrier and proves the fixture-free model/prompt contract. Its slower
+RTFx is not a regression in the model graph; no optimization was attempted in
+that pass.
 
 Current decoder read: the stateful decoder package was validated at fixture
 prompt length 203 and works on shorter prompt lengths 56, 76, and 195. It
