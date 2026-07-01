@@ -152,3 +152,7 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   while improving summed Swift model time to 132.95s, RTFx to 1.24, and wall
   time to 691.58s. This cuts the process-per-row wall roughly in half, but
   decode still copies full padded KV tensors each token.
+- Added `docs/FLUIDAUDIO_INTEGRATION.md`, a read-only FluidAudio handoff based
+  on the Mac checkout at `a95ec26`. It records the required `ASR/MOSS` manager,
+  model-store files, runtime manifest, CLI commands, and benchmark gate needed
+  before any private FluidAudio backend work.

@@ -786,6 +786,10 @@ Notes:
   `a95ec26`; current `main` does not contain a merged Qwen3-ASR Swift manager.
   A MOSS backend would need a new `ASR/MOSS` manager/model store rather than a
   small model-name addition.
+- The current Mac FluidAudio checkout at `/Users/simonpeacocks/GitHub/FluidAudio`
+  was inspected read-only at the same commit. `docs/FLUIDAUDIO_INTEGRATION.md`
+  records the exact MOSS files, model bundle, and CLI steps needed for a
+  private FluidAudio backend pass.
 
 ## Reproduction Commands
 

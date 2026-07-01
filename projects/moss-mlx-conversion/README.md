@@ -13,6 +13,9 @@ Use the docs this way:
   latest measurements, and next steps. Update during active work.
 - [docs/COREML_MOBIUS.md](docs/COREML_MOBIUS.md): private CoreML/Mobius track,
   component split, static shapes, and validation gates.
+- [docs/FLUIDAUDIO_INTEGRATION.md](docs/FLUIDAUDIO_INTEGRATION.md): private
+  handoff for turning the proven Swift/CoreML runtime into a FluidAudio-style
+  backend later.
 - [CHANGELOG.md](CHANGELOG.md): terse history of completed milestones.
 
 Start with [docs/PLAN.md](docs/PLAN.md). The plan is written to stay close to the
