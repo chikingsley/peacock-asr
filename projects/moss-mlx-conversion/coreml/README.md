@@ -400,6 +400,13 @@ Swift result on `home-mac`:
   `Ralph` vs `Raoul`, and row 19 `moon beams` vs `moonbeams`. Wall time was
   1382.60s because the current batch harness launches a new Swift process for
   every row.
+- `moss-swift-coreml-eval --swift-batch` now writes a JSONL manifest and calls
+  the Swift runner once, keeping compiled CoreML models loaded across rows.
+  The persistent 20-row run preserved WER `0.0158` / CER `0.00418`, reduced
+  summed Swift model time to 132.95s, improved model-time RTFx to 1.24, and
+  cut wall time to 691.58s. This removes process-per-row startup as the main
+  issue; the remaining runtime cost is per-token decoder work and full padded
+  KV tensor movement.
 - The same padded audio package failed under default `.all` compute-unit
   dispatch with an ANE inference error. Use `--compute-units cpu-gpu` for this
   package until compute placement is profiled more carefully.

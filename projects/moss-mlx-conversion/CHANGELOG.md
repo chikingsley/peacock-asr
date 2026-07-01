@@ -146,3 +146,9 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   normalization, row 17 `Ralph` vs `Raoul`, and row 19 `moon beams` vs
   `moonbeams`. Wall time was 1382.60s because the current harness starts one
   Swift process per row.
+- Added `--swift-batch`, a persistent Swift/CoreML batch mode that consumes a
+  JSONL manifest, keeps token/audio/decoder models loaded, and writes the same
+  per-row report files. The 20-row explicit-cache batch kept the same WER/CER
+  while improving summed Swift model time to 132.95s, RTFx to 1.24, and wall
+  time to 691.58s. This cuts the process-per-row wall roughly in half, but
+  decode still copies full padded KV tensors each token.

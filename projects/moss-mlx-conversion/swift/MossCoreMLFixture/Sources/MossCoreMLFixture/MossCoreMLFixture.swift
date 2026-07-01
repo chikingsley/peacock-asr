@@ -67,10 +67,62 @@ struct Options {
     var tokenizer = URL(fileURLWithPath: "artifacts/coreml/moss_tokenizer.json")
     var referenceText: String?
     var referenceTextFile: URL?
+    var batchManifest: URL?
+    var batchOutputJsonl: URL?
     var computeUnits = MLComputeUnits.all
     var tokenMaxSeqLen = 512
     var maxNewTokens = 5
     var eosTokenId = 151645
+}
+
+struct BatchItem: Decodable {
+    let rowIdx: Int?
+    let id: String?
+    let audio: String
+    let referenceTextFile: String
+    let output: String
+
+    enum CodingKeys: String, CodingKey {
+        case rowIdx = "row_idx"
+        case id
+        case audio
+        case referenceTextFile = "reference_text_file"
+        case output
+    }
+}
+
+struct BatchLineResult: Encodable {
+    let rowIdx: Int?
+    let id: String?
+    let output: String
+    let promptLen: Int
+    let audioTokenCount: Int
+    let generatedTokenCount: Int
+    let stoppedOnEos: Bool
+    let normalizedWer: Double
+    let normalizedCer: Double
+    let rowWallSeconds: Double
+
+    enum CodingKeys: String, CodingKey {
+        case rowIdx = "row_idx"
+        case id
+        case output
+        case promptLen = "prompt_len"
+        case audioTokenCount = "audio_token_count"
+        case generatedTokenCount = "generated_token_count"
+        case stoppedOnEos = "stopped_on_eos"
+        case normalizedWer = "normalized_wer"
+        case normalizedCer = "normalized_cer"
+        case rowWallSeconds = "row_wall_sec"
+    }
+}
+
+struct LoadedModels {
+    let tokenModel: MLModel
+    let audioModel: MLModel
+    let statefulDecoderModel: MLModel?
+    let prefillCacheModel: MLModel?
+    let stepModel: MLModel?
 }
 
 struct TopKEntry: Encodable {
@@ -146,6 +198,7 @@ struct Result: Encodable {
     let prefillTop1MatchesFirstToken: Bool
     let stepTop1MatchesSecondToken: Bool
     let timingSeconds: Timing
+    let rowWallSeconds: Double
 
     enum CodingKeys: String, CodingKey {
         case fixture
@@ -180,6 +233,7 @@ struct Result: Encodable {
         case prefillTop1MatchesFirstToken = "prefill_top1_matches_first_token"
         case stepTop1MatchesSecondToken = "step_top1_matches_second_token"
         case timingSeconds = "timing_seconds"
+        case rowWallSeconds = "row_wall_sec"
     }
 }
 
@@ -257,6 +311,10 @@ func parseOptions(_ arguments: [String]) throws -> Options {
             options.referenceText = try value()
         case "--reference-text-file":
             options.referenceTextFile = URL(fileURLWithPath: try value())
+        case "--batch-manifest":
+            options.batchManifest = URL(fileURLWithPath: try value())
+        case "--batch-output-jsonl":
+            options.batchOutputJsonl = URL(fileURLWithPath: try value())
         case "--compute-units":
             options.computeUnits = try parseComputeUnits(try value())
         case "--token-max-seq-len":
@@ -286,6 +344,7 @@ func parseOptions(_ arguments: [String]) throws -> Options {
                                            [--prefill-cache-seq-len N] [--cache-len N]
                                            [--max-new-tokens N] [--tokenizer JSON]
                                            [--reference-text TEXT | --reference-text-file FILE]
+                                           [--batch-manifest JSONL --batch-output-jsonl JSONL]
                                            [--eos-token-id ID]
                                            [--compute-units all|cpu-only|cpu-gpu|cpu-ane]
                 """
@@ -299,6 +358,13 @@ func parseOptions(_ arguments: [String]) throws -> Options {
     if options.referenceText != nil, options.referenceTextFile != nil {
         throw RunnerError.invalidArgument(
             "pass only one of --reference-text or --reference-text-file"
+        )
+    }
+    if options.batchManifest != nil,
+       (options.audio != nil || options.referenceText != nil || options.referenceTextFile != nil)
+    {
+        throw RunnerError.invalidArgument(
+            "batch mode takes per-row audio/reference paths from --batch-manifest"
         )
     }
     return options
@@ -717,374 +783,516 @@ func timedPrediction(
     return (output, elapsed)
 }
 
+func validateDecoderOptions(_ options: Options) throws -> Bool {
+    let useExternalCache = options.prefillCachePackage != nil || options.stepPackage != nil
+    if useExternalCache && (options.prefillCachePackage == nil || options.stepPackage == nil) {
+        throw RunnerError.invalidArgument(
+            "external cache mode requires both --prefill-cache-package and --step-package"
+        )
+    }
+    return useExternalCache
+}
+
+func loadModels(options: Options, useExternalCache: Bool) throws -> LoadedModels {
+    let configuration = MLModelConfiguration()
+    configuration.computeUnits = options.computeUnits
+    let tokenModel = try MLModel(
+        contentsOf: options.packagesDir.appendingPathComponent(options.tokenPackage),
+        configuration: configuration
+    )
+    let audioModel = try MLModel(
+        contentsOf: options.packagesDir.appendingPathComponent(options.audioPackage),
+        configuration: configuration
+    )
+    if useExternalCache {
+        return LoadedModels(
+            tokenModel: tokenModel,
+            audioModel: audioModel,
+            statefulDecoderModel: nil,
+            prefillCacheModel: try MLModel(
+                contentsOf: options.packagesDir.appendingPathComponent(options.prefillCachePackage!),
+                configuration: configuration
+            ),
+            stepModel: try MLModel(
+                contentsOf: options.packagesDir.appendingPathComponent(options.stepPackage!),
+                configuration: configuration
+            )
+        )
+    }
+    guard #available(macOS 15, *) else {
+        throw RunnerError.unavailable("stateful decoder requires macOS 15+")
+    }
+    return LoadedModels(
+        tokenModel: tokenModel,
+        audioModel: audioModel,
+        statefulDecoderModel: try MLModel(
+            contentsOf: options.packagesDir.appendingPathComponent(options.decoderPackage),
+            configuration: configuration
+        ),
+        prefillCacheModel: nil,
+        stepModel: nil
+    )
+}
+
+func runFixture(
+    options: Options,
+    fixture: Fixture,
+    tokenizer: QwenByteLevelTokenizer,
+    models: LoadedModels,
+    decoderMode: String
+) async throws -> Result {
+    let rowStart = DispatchTime.now().uptimeNanoseconds
+    let (audioFeatures, audioFrontendDiff, audioFrontendSeconds) = try resolveAudioFeatures(
+        fixture: fixture,
+        options: options
+    )
+    guard let audioFrameCount = audioFeatures.seqlens.first else {
+        throw RunnerError.invalidArgument("audio_data_seqlens is empty")
+    }
+    let audioTokenCountOverride: Int? = if options.audio == nil {
+        nil
+    } else {
+        mossAudioTokenCount(melFrames: Int(audioFrameCount))
+    }
+    let prompt = try resolvePrompt(
+        fixture,
+        audioTokenCountOverride: audioTokenCountOverride
+    )
+    let maxNewTokens = options.maxNewTokens
+    guard maxNewTokens > 0 else {
+        throw RunnerError.invalidArgument("--max-new-tokens must be positive")
+    }
+    let firstToken = Int(fixture.generatedIds[0])
+    let secondToken = Int(fixture.generatedIds[1])
+    let audioTokenCount = prompt.audioTokenCount
+    let useExternalCache = decoderMode == "external_cache"
+
+    let tokenInput = try MLDictionaryFeatureProvider(dictionary: [
+        "input_ids": MLFeatureValue(
+            multiArray: try paddedIds(prompt.inputIds, maxSeqLen: options.tokenMaxSeqLen)
+        )
+    ])
+    let (tokenOutput, tokenSeconds) = try await timedPrediction(
+        model: models.tokenModel,
+        input: tokenInput
+    )
+    let tokenEmbeddings = try featureArray(tokenOutput, "token_embeddings")
+
+    let audioInput = try MLDictionaryFeatureProvider(dictionary: [
+        "audio_data": MLFeatureValue(
+            multiArray: try makeFloatArray(shape: audioFeatures.shape, values: audioFeatures.data)
+        ),
+        "audio_data_seqlens": MLFeatureValue(
+            multiArray: try makeIntArray(shape: [1], values: audioFeatures.seqlens)
+        ),
+    ])
+    let (audioOutput, audioSeconds) = try await timedPrediction(
+        model: models.audioModel,
+        input: audioInput
+    )
+    let audioEmbeddings = try featureArray(audioOutput, "audio_embeddings")
+    let mergedEmbeddings = try buildMergedEmbeddings(
+        tokenEmbeddings: tokenEmbeddings,
+        audioEmbeddings: audioEmbeddings,
+        fixture: fixture,
+        prompt: prompt
+    )
+
+    let prefillTopK: [TopKEntry]
+    let prefillSeconds: Double
+    var generatedIds: [Int]
+    var stoppedOnEos: Bool
+    var firstStepTopK: [TopKEntry] = []
+    var currentToken: Int32
+    var decodeTokenSeconds = 0.0
+    var decodeStepSeconds = 0.0
+
+    if useExternalCache {
+        guard let prefillCacheModel = models.prefillCacheModel,
+              let stepModel = models.stepModel
+        else {
+            throw RunnerError.invalidArgument("external cache models were not loaded")
+        }
+        var prefillFeatures: [String: MLFeatureValue] = [:]
+        if let prefillCacheSeqLen = options.prefillCacheSeqLen {
+            prefillFeatures["inputs_embeds"] = MLFeatureValue(
+                multiArray: try padMergedEmbeddings(
+                    mergedEmbeddings,
+                    promptLen: prompt.promptLen,
+                    seqLen: prefillCacheSeqLen,
+                    hiddenSize: fixture.hiddenSize
+                )
+            )
+            prefillFeatures["last_token_mask"] = MLFeatureValue(
+                multiArray: try buildLastTokenMask(
+                    promptLen: prompt.promptLen,
+                    seqLen: prefillCacheSeqLen
+                )
+            )
+        } else {
+            prefillFeatures["inputs_embeds"] = MLFeatureValue(multiArray: mergedEmbeddings)
+        }
+        let prefillInput = try MLDictionaryFeatureProvider(dictionary: prefillFeatures)
+        let (prefillOutput, elapsed) = try await timedPrediction(
+            model: prefillCacheModel,
+            input: prefillInput
+        )
+        prefillSeconds = elapsed
+        prefillTopK = try topK(featureArray(prefillOutput, "logits"))
+        guard let firstGenerated = prefillTopK.first?.index else {
+            throw RunnerError.invalidArgument("prefill produced no logits")
+        }
+        generatedIds = [firstGenerated]
+        stoppedOnEos = firstGenerated == options.eosTokenId
+        currentToken = Int32(firstGenerated)
+        var pastKeys = try padDecoderCache(
+            try featureArray(prefillOutput, "past_keys"),
+            cacheLen: options.cacheLen,
+            featureName: "past_keys"
+        )
+        var pastValues = try padDecoderCache(
+            try featureArray(prefillOutput, "past_values"),
+            cacheLen: options.cacheLen,
+            featureName: "past_values"
+        )
+
+        for stepIndex in 0..<max(0, maxNewTokens - 1) where !stoppedOnEos {
+            let tokenInput = try MLDictionaryFeatureProvider(dictionary: [
+                "input_ids": MLFeatureValue(
+                    multiArray: try paddedIds([currentToken], maxSeqLen: options.tokenMaxSeqLen)
+                )
+            ])
+            let (tokenOutput, tokenDecodeSeconds) = try await timedPrediction(
+                model: models.tokenModel,
+                input: tokenInput
+            )
+            decodeTokenSeconds += tokenDecodeSeconds
+            let tokenEmbedding = try firstTokenEmbedding(
+                try featureArray(tokenOutput, "token_embeddings"),
+                hiddenSize: fixture.hiddenSize
+            )
+
+            let stepPosition = prompt.promptLen + stepIndex
+            let (stepCos, stepSin) = try buildRope(
+                length: 1,
+                start: stepPosition,
+                headDim: fixture.headDim,
+                ropeTheta: fixture.ropeTheta
+            )
+            let masks = try buildPaddedStepInputs(
+                cacheLen: options.cacheLen,
+                pastLen: stepPosition
+            )
+            let stepInput = try MLDictionaryFeatureProvider(dictionary: [
+                "inputs_embeds": MLFeatureValue(multiArray: tokenEmbedding),
+                "past_keys": MLFeatureValue(multiArray: pastKeys),
+                "past_values": MLFeatureValue(multiArray: pastValues),
+                "cache_update_mask": MLFeatureValue(multiArray: masks.cacheUpdateMask),
+                "attention_mask": MLFeatureValue(multiArray: masks.attentionMask),
+                "cos": MLFeatureValue(multiArray: stepCos),
+                "sin": MLFeatureValue(multiArray: stepSin),
+            ])
+            let (stepOutput, stepSeconds) = try await timedPrediction(
+                model: stepModel,
+                input: stepInput
+            )
+            decodeStepSeconds += stepSeconds
+            let stepTopK = try topK(featureArray(stepOutput, "logits"))
+            if stepIndex == 0 {
+                firstStepTopK = stepTopK
+            }
+            guard let nextToken = stepTopK.first?.index else {
+                throw RunnerError.invalidArgument("decode step produced no logits")
+            }
+            generatedIds.append(nextToken)
+            if nextToken == options.eosTokenId {
+                stoppedOnEos = true
+            }
+            currentToken = Int32(nextToken)
+            pastKeys = try featureArray(stepOutput, "updated_keys")
+            pastValues = try featureArray(stepOutput, "updated_values")
+        }
+    } else {
+        guard let decoderModel = models.statefulDecoderModel else {
+            throw RunnerError.invalidArgument("stateful decoder model was not loaded")
+        }
+        guard #available(macOS 15, *) else {
+            throw RunnerError.unavailable("stateful decoder requires macOS 15+")
+        }
+        let state = decoderModel.makeState()
+        let (prefillCos, prefillSin) = try buildRope(
+            length: prompt.promptLen,
+            start: 0,
+            headDim: fixture.headDim,
+            ropeTheta: fixture.ropeTheta
+        )
+        let prefillMask = try buildCausalMask(length: prompt.promptLen)
+        let prefillInput = try MLDictionaryFeatureProvider(dictionary: [
+            "inputs_embeds": MLFeatureValue(multiArray: mergedEmbeddings),
+            "cos": MLFeatureValue(multiArray: prefillCos),
+            "sin": MLFeatureValue(multiArray: prefillSin),
+            "attention_mask": MLFeatureValue(multiArray: prefillMask),
+        ])
+        let (prefillOutput, elapsed) = try await timedPrediction(
+            model: decoderModel,
+            input: prefillInput,
+            state: state
+        )
+        prefillSeconds = elapsed
+        prefillTopK = try topK(featureArray(prefillOutput, "logits"))
+        guard let firstGenerated = prefillTopK.first?.index else {
+            throw RunnerError.invalidArgument("prefill produced no logits")
+        }
+
+        generatedIds = [firstGenerated]
+        stoppedOnEos = firstGenerated == options.eosTokenId
+        currentToken = Int32(firstGenerated)
+        for stepIndex in 0..<max(0, maxNewTokens - 1) where !stoppedOnEos {
+            let tokenInput = try MLDictionaryFeatureProvider(dictionary: [
+                "input_ids": MLFeatureValue(
+                    multiArray: try paddedIds([currentToken], maxSeqLen: options.tokenMaxSeqLen)
+                )
+            ])
+            let (tokenOutput, tokenDecodeSeconds) = try await timedPrediction(
+                model: models.tokenModel,
+                input: tokenInput
+            )
+            decodeTokenSeconds += tokenDecodeSeconds
+            let tokenEmbedding = try firstTokenEmbedding(
+                try featureArray(tokenOutput, "token_embeddings"),
+                hiddenSize: fixture.hiddenSize
+            )
+
+            let stepPosition = prompt.promptLen + stepIndex
+            let (stepCos, stepSin) = try buildRope(
+                length: 1,
+                start: stepPosition,
+                headDim: fixture.headDim,
+                ropeTheta: fixture.ropeTheta
+            )
+            let stepMask = try makeFloatArray(shape: [1, 1, 1, stepPosition + 1])
+            let stepInput = try MLDictionaryFeatureProvider(dictionary: [
+                "inputs_embeds": MLFeatureValue(multiArray: tokenEmbedding),
+                "cos": MLFeatureValue(multiArray: stepCos),
+                "sin": MLFeatureValue(multiArray: stepSin),
+                "attention_mask": MLFeatureValue(multiArray: stepMask),
+            ])
+            let (stepOutput, stepSeconds) = try await timedPrediction(
+                model: decoderModel,
+                input: stepInput,
+                state: state
+            )
+            decodeStepSeconds += stepSeconds
+            let stepTopK = try topK(featureArray(stepOutput, "logits"))
+            if stepIndex == 0 {
+                firstStepTopK = stepTopK
+            }
+            guard let nextToken = stepTopK.first?.index else {
+                throw RunnerError.invalidArgument("decode step produced no logits")
+            }
+            generatedIds.append(nextToken)
+            if nextToken == options.eosTokenId {
+                stoppedOnEos = true
+            }
+            currentToken = Int32(nextToken)
+        }
+    }
+    let expectedGeneratedIds = fixture.generatedIds.prefix(maxNewTokens).map { Int($0) }
+    var generatedPrefixMatchCount = 0
+    for (actual, expected) in zip(generatedIds, expectedGeneratedIds) {
+        guard actual == expected else { break }
+        generatedPrefixMatchCount += 1
+    }
+    let generatedPrefixMatchesExpected = generatedPrefixMatchCount == expectedGeneratedIds.count
+    let generatedText = tokenizer.decode(generatedIds)
+    let expected = try resolveExpectedText(
+        options: options,
+        tokenizer: tokenizer,
+        expectedGeneratedIds: expectedGeneratedIds
+    )
+    let expectedText = expected.text
+    let normalizedGeneratedText = normalizedTranscript(generatedText)
+    let normalizedExpectedText = normalizedTranscript(expectedText)
+    let rowWallSeconds = Double(
+        DispatchTime.now().uptimeNanoseconds - rowStart
+    ) / 1_000_000_000.0
+
+    return Result(
+        fixture: options.fixture.path,
+        packagesDir: options.packagesDir.path,
+        audioSource: audioFeatures.source,
+        audioDataShape: audioFeatures.shape,
+        audioDataSeqlens: audioFeatures.seqlens,
+        audioFrontendDiff: audioFrontendDiff,
+        promptSource: prompt.source,
+        promptLen: prompt.promptLen,
+        audioTokenCount: audioTokenCount,
+        firstTokenId: firstToken,
+        secondTokenId: secondToken,
+        maxNewTokens: maxNewTokens,
+        stoppedOnEos: stoppedOnEos,
+        decoderMode: decoderMode,
+        generatedIds: generatedIds,
+        expectedGeneratedIds: expectedGeneratedIds,
+        generatedPrefixMatchCount: generatedPrefixMatchCount,
+        generatedPrefixMatchesExpected: generatedPrefixMatchesExpected,
+        generatedText: generatedText,
+        expectedText: expectedText,
+        expectedTextSource: expected.source,
+        normalizedGeneratedText: normalizedGeneratedText,
+        normalizedExpectedText: normalizedExpectedText,
+        rawWer: wordErrorRate(reference: expectedText, hypothesis: generatedText),
+        rawCer: characterErrorRate(reference: expectedText, hypothesis: generatedText),
+        normalizedWer: wordErrorRate(
+            reference: normalizedExpectedText,
+            hypothesis: normalizedGeneratedText
+        ),
+        normalizedCer: characterErrorRate(
+            reference: normalizedExpectedText,
+            hypothesis: normalizedGeneratedText
+        ),
+        prefillTopK: prefillTopK,
+        stepTopK: firstStepTopK,
+        prefillTop1MatchesFirstToken: prefillTopK.first?.index == firstToken,
+        stepTop1MatchesSecondToken: generatedIds.count > 1 && generatedIds[1] == secondToken,
+        timingSeconds: Timing(
+            audioFrontend: audioFrontendSeconds,
+            tokenEmbeddingPrompt: tokenSeconds,
+            audioEncoderAdapter: audioSeconds,
+            statefulDecoderPrefill: prefillSeconds,
+            tokenEmbeddingDecode: decodeTokenSeconds,
+            statefulDecoderDecode: decodeStepSeconds
+        ),
+        rowWallSeconds: rowWallSeconds
+    )
+}
+
+func encodedResult(_ result: Result) throws -> Data {
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+    return try encoder.encode(result)
+}
+
+func writeResult(_ result: Result, output: URL?) throws -> Data {
+    let data = try encodedResult(result)
+    if let output {
+        try FileManager.default.createDirectory(
+            at: output.deletingLastPathComponent(),
+            withIntermediateDirectories: true
+        )
+        try data.write(to: output)
+    }
+    return data
+}
+
+func loadBatchItems(_ manifest: URL) throws -> [BatchItem] {
+    let decoder = JSONDecoder()
+    return try String(contentsOf: manifest, encoding: .utf8)
+        .split(separator: "\n")
+        .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        .map { line in
+            try decoder.decode(BatchItem.self, from: Data(line.utf8))
+        }
+}
+
+func appendJSONLine<T: Encodable>(_ value: T, to url: URL) throws {
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.sortedKeys]
+    let data = try encoder.encode(value)
+    try FileManager.default.createDirectory(
+        at: url.deletingLastPathComponent(),
+        withIntermediateDirectories: true
+    )
+    if !FileManager.default.fileExists(atPath: url.path) {
+        FileManager.default.createFile(atPath: url.path, contents: nil)
+    }
+    let handle = try FileHandle(forWritingTo: url)
+    try handle.seekToEnd()
+    try handle.write(contentsOf: data)
+    try handle.write(contentsOf: Data("\n".utf8))
+    try handle.close()
+}
+
+func runBatch(
+    options: Options,
+    fixture: Fixture,
+    tokenizer: QwenByteLevelTokenizer,
+    models: LoadedModels,
+    decoderMode: String
+) async throws {
+    guard let manifest = options.batchManifest else {
+        throw RunnerError.invalidArgument("missing --batch-manifest")
+    }
+    let batchOutput = options.batchOutputJsonl
+        ?? manifest.deletingPathExtension().appendingPathExtension("results.jsonl")
+    try FileManager.default.createDirectory(
+        at: batchOutput.deletingLastPathComponent(),
+        withIntermediateDirectories: true
+    )
+    FileManager.default.createFile(atPath: batchOutput.path, contents: nil)
+    let items = try loadBatchItems(manifest)
+    for item in items {
+        var rowOptions = options
+        rowOptions.audio = URL(fileURLWithPath: item.audio)
+        rowOptions.referenceText = nil
+        rowOptions.referenceTextFile = URL(fileURLWithPath: item.referenceTextFile)
+        rowOptions.output = URL(fileURLWithPath: item.output)
+        rowOptions.batchManifest = nil
+        rowOptions.batchOutputJsonl = nil
+        let result = try await runFixture(
+            options: rowOptions,
+            fixture: fixture,
+            tokenizer: tokenizer,
+            models: models,
+            decoderMode: decoderMode
+        )
+        _ = try writeResult(result, output: rowOptions.output)
+        let line = BatchLineResult(
+            rowIdx: item.rowIdx,
+            id: item.id,
+            output: item.output,
+            promptLen: result.promptLen,
+            audioTokenCount: result.audioTokenCount,
+            generatedTokenCount: result.generatedIds.count,
+            stoppedOnEos: result.stoppedOnEos,
+            normalizedWer: result.normalizedWer,
+            normalizedCer: result.normalizedCer,
+            rowWallSeconds: result.rowWallSeconds
+        )
+        try appendJSONLine(line, to: batchOutput)
+        let stdoutLine = try JSONEncoder().encode(line)
+        print(String(decoding: stdoutLine, as: UTF8.self))
+        fflush(stdout)
+    }
+}
+
 @main
 struct MossCoreMLFixture {
     static func main() async throws {
         let options = try parseOptions(CommandLine.arguments)
         let fixture = try loadFixture(options.fixture)
-        let (audioFeatures, audioFrontendDiff, audioFrontendSeconds) = try resolveAudioFeatures(
-            fixture: fixture,
-            options: options
-        )
-        guard let audioFrameCount = audioFeatures.seqlens.first else {
-            throw RunnerError.invalidArgument("audio_data_seqlens is empty")
-        }
-        let audioTokenCountOverride: Int? = if options.audio == nil {
-            nil
-        } else {
-            mossAudioTokenCount(melFrames: Int(audioFrameCount))
-        }
-        let prompt = try resolvePrompt(
-            fixture,
-            audioTokenCountOverride: audioTokenCountOverride
-        )
-        let maxNewTokens = options.maxNewTokens
-        guard maxNewTokens > 0 else {
-            throw RunnerError.invalidArgument("--max-new-tokens must be positive")
-        }
-        let firstToken = Int(fixture.generatedIds[0])
-        let secondToken = Int(fixture.generatedIds[1])
-        let audioTokenCount = prompt.audioTokenCount
         let tokenizer = try QwenByteLevelTokenizer(tokenizerJSON: options.tokenizer)
-        let useExternalCache = options.prefillCachePackage != nil || options.stepPackage != nil
-        if useExternalCache && (options.prefillCachePackage == nil || options.stepPackage == nil) {
-            throw RunnerError.invalidArgument(
-                "external cache mode requires both --prefill-cache-package and --step-package"
-            )
-        }
+        let useExternalCache = try validateDecoderOptions(options)
         let decoderMode = useExternalCache ? "external_cache" : "stateful"
-
-        let configuration = MLModelConfiguration()
-        configuration.computeUnits = options.computeUnits
-        let tokenModel = try MLModel(
-            contentsOf: options.packagesDir.appendingPathComponent(options.tokenPackage),
-            configuration: configuration
-        )
-        let audioModel = try MLModel(
-            contentsOf: options.packagesDir.appendingPathComponent(options.audioPackage),
-            configuration: configuration
-        )
-        let statefulDecoderModel: MLModel?
-        let prefillCacheModel: MLModel?
-        let stepModel: MLModel?
-        let state: MLState?
-        if useExternalCache {
-            statefulDecoderModel = nil
-            prefillCacheModel = try MLModel(
-                contentsOf: options.packagesDir.appendingPathComponent(options.prefillCachePackage!),
-                configuration: configuration
+        let models = try loadModels(options: options, useExternalCache: useExternalCache)
+        if options.batchManifest != nil {
+            try await runBatch(
+                options: options,
+                fixture: fixture,
+                tokenizer: tokenizer,
+                models: models,
+                decoderMode: decoderMode
             )
-            stepModel = try MLModel(
-                contentsOf: options.packagesDir.appendingPathComponent(options.stepPackage!),
-                configuration: configuration
-            )
-            state = nil
-        } else {
-            let decoderModel = try MLModel(
-                contentsOf: options.packagesDir.appendingPathComponent(options.decoderPackage),
-                configuration: configuration
-            )
-            statefulDecoderModel = decoderModel
-            prefillCacheModel = nil
-            stepModel = nil
-            guard #available(macOS 15, *) else {
-                throw RunnerError.unavailable("stateful decoder requires macOS 15+")
-            }
-            state = decoderModel.makeState()
+            return
         }
-
-        let tokenInput = try MLDictionaryFeatureProvider(dictionary: [
-            "input_ids": MLFeatureValue(
-                multiArray: try paddedIds(prompt.inputIds, maxSeqLen: options.tokenMaxSeqLen)
-            )
-        ])
-        let (tokenOutput, tokenSeconds) = try await timedPrediction(model: tokenModel, input: tokenInput)
-        let tokenEmbeddings = try featureArray(tokenOutput, "token_embeddings")
-
-        let audioInput = try MLDictionaryFeatureProvider(dictionary: [
-            "audio_data": MLFeatureValue(
-                multiArray: try makeFloatArray(shape: audioFeatures.shape, values: audioFeatures.data)
-            ),
-            "audio_data_seqlens": MLFeatureValue(
-                multiArray: try makeIntArray(shape: [1], values: audioFeatures.seqlens)
-            ),
-        ])
-        let (audioOutput, audioSeconds) = try await timedPrediction(model: audioModel, input: audioInput)
-        let audioEmbeddings = try featureArray(audioOutput, "audio_embeddings")
-        let mergedEmbeddings = try buildMergedEmbeddings(
-            tokenEmbeddings: tokenEmbeddings,
-            audioEmbeddings: audioEmbeddings,
-            fixture: fixture,
-            prompt: prompt
-        )
-
-        let prefillTopK: [TopKEntry]
-        let prefillSeconds: Double
-        var generatedIds: [Int]
-        var stoppedOnEos: Bool
-        var firstStepTopK: [TopKEntry] = []
-        var currentToken: Int32
-        var decodeTokenSeconds = 0.0
-        var decodeStepSeconds = 0.0
-
-        if useExternalCache {
-            guard let prefillCacheModel, let stepModel else {
-                throw RunnerError.invalidArgument("external cache models were not loaded")
-            }
-            var prefillFeatures: [String: MLFeatureValue] = [:]
-            if let prefillCacheSeqLen = options.prefillCacheSeqLen {
-                prefillFeatures["inputs_embeds"] = MLFeatureValue(
-                    multiArray: try padMergedEmbeddings(
-                        mergedEmbeddings,
-                        promptLen: prompt.promptLen,
-                        seqLen: prefillCacheSeqLen,
-                        hiddenSize: fixture.hiddenSize
-                    )
-                )
-                prefillFeatures["last_token_mask"] = MLFeatureValue(
-                    multiArray: try buildLastTokenMask(
-                        promptLen: prompt.promptLen,
-                        seqLen: prefillCacheSeqLen
-                    )
-                )
-            } else {
-                prefillFeatures["inputs_embeds"] = MLFeatureValue(multiArray: mergedEmbeddings)
-            }
-            let prefillInput = try MLDictionaryFeatureProvider(dictionary: prefillFeatures)
-            let (prefillOutput, elapsed) = try await timedPrediction(
-                model: prefillCacheModel,
-                input: prefillInput
-            )
-            prefillSeconds = elapsed
-            prefillTopK = try topK(featureArray(prefillOutput, "logits"))
-            guard let firstGenerated = prefillTopK.first?.index else {
-                throw RunnerError.invalidArgument("prefill produced no logits")
-            }
-            generatedIds = [firstGenerated]
-            stoppedOnEos = firstGenerated == options.eosTokenId
-            currentToken = Int32(firstGenerated)
-            var pastKeys = try padDecoderCache(
-                try featureArray(prefillOutput, "past_keys"),
-                cacheLen: options.cacheLen,
-                featureName: "past_keys"
-            )
-            var pastValues = try padDecoderCache(
-                try featureArray(prefillOutput, "past_values"),
-                cacheLen: options.cacheLen,
-                featureName: "past_values"
-            )
-
-            for stepIndex in 0..<max(0, maxNewTokens - 1) where !stoppedOnEos {
-                let tokenInput = try MLDictionaryFeatureProvider(dictionary: [
-                    "input_ids": MLFeatureValue(
-                        multiArray: try paddedIds([currentToken], maxSeqLen: options.tokenMaxSeqLen)
-                    )
-                ])
-                let (tokenOutput, tokenDecodeSeconds) = try await timedPrediction(
-                    model: tokenModel,
-                    input: tokenInput
-                )
-                decodeTokenSeconds += tokenDecodeSeconds
-                let tokenEmbedding = try firstTokenEmbedding(
-                    try featureArray(tokenOutput, "token_embeddings"),
-                    hiddenSize: fixture.hiddenSize
-                )
-
-                let stepPosition = prompt.promptLen + stepIndex
-                let (stepCos, stepSin) = try buildRope(
-                    length: 1,
-                    start: stepPosition,
-                    headDim: fixture.headDim,
-                    ropeTheta: fixture.ropeTheta
-                )
-                let masks = try buildPaddedStepInputs(
-                    cacheLen: options.cacheLen,
-                    pastLen: stepPosition
-                )
-                let stepInput = try MLDictionaryFeatureProvider(dictionary: [
-                    "inputs_embeds": MLFeatureValue(multiArray: tokenEmbedding),
-                    "past_keys": MLFeatureValue(multiArray: pastKeys),
-                    "past_values": MLFeatureValue(multiArray: pastValues),
-                    "cache_update_mask": MLFeatureValue(multiArray: masks.cacheUpdateMask),
-                    "attention_mask": MLFeatureValue(multiArray: masks.attentionMask),
-                    "cos": MLFeatureValue(multiArray: stepCos),
-                    "sin": MLFeatureValue(multiArray: stepSin),
-                ])
-                let (stepOutput, stepSeconds) = try await timedPrediction(
-                    model: stepModel,
-                    input: stepInput
-                )
-                decodeStepSeconds += stepSeconds
-                let stepTopK = try topK(featureArray(stepOutput, "logits"))
-                if stepIndex == 0 {
-                    firstStepTopK = stepTopK
-                }
-                guard let nextToken = stepTopK.first?.index else {
-                    throw RunnerError.invalidArgument("decode step produced no logits")
-                }
-                generatedIds.append(nextToken)
-                if nextToken == options.eosTokenId {
-                    stoppedOnEos = true
-                }
-                currentToken = Int32(nextToken)
-                pastKeys = try featureArray(stepOutput, "updated_keys")
-                pastValues = try featureArray(stepOutput, "updated_values")
-            }
-        } else {
-            guard let decoderModel = statefulDecoderModel, let state else {
-                throw RunnerError.invalidArgument("stateful decoder model was not loaded")
-            }
-            let (prefillCos, prefillSin) = try buildRope(
-                length: prompt.promptLen,
-                start: 0,
-                headDim: fixture.headDim,
-                ropeTheta: fixture.ropeTheta
-            )
-            let prefillMask = try buildCausalMask(length: prompt.promptLen)
-            let prefillInput = try MLDictionaryFeatureProvider(dictionary: [
-                "inputs_embeds": MLFeatureValue(multiArray: mergedEmbeddings),
-                "cos": MLFeatureValue(multiArray: prefillCos),
-                "sin": MLFeatureValue(multiArray: prefillSin),
-                "attention_mask": MLFeatureValue(multiArray: prefillMask),
-            ])
-            let (prefillOutput, elapsed) = try await timedPrediction(
-                model: decoderModel,
-                input: prefillInput,
-                state: state
-            )
-            prefillSeconds = elapsed
-            prefillTopK = try topK(featureArray(prefillOutput, "logits"))
-            guard let firstGenerated = prefillTopK.first?.index else {
-                throw RunnerError.invalidArgument("prefill produced no logits")
-            }
-
-            generatedIds = [firstGenerated]
-            stoppedOnEos = firstGenerated == options.eosTokenId
-            currentToken = Int32(firstGenerated)
-            for stepIndex in 0..<max(0, maxNewTokens - 1) where !stoppedOnEos {
-                let tokenInput = try MLDictionaryFeatureProvider(dictionary: [
-                    "input_ids": MLFeatureValue(
-                        multiArray: try paddedIds([currentToken], maxSeqLen: options.tokenMaxSeqLen)
-                    )
-                ])
-                let (tokenOutput, tokenDecodeSeconds) = try await timedPrediction(
-                    model: tokenModel,
-                    input: tokenInput
-                )
-                decodeTokenSeconds += tokenDecodeSeconds
-                let tokenEmbedding = try firstTokenEmbedding(
-                    try featureArray(tokenOutput, "token_embeddings"),
-                    hiddenSize: fixture.hiddenSize
-                )
-
-                let stepPosition = prompt.promptLen + stepIndex
-                let (stepCos, stepSin) = try buildRope(
-                    length: 1,
-                    start: stepPosition,
-                    headDim: fixture.headDim,
-                    ropeTheta: fixture.ropeTheta
-                )
-                let stepMask = try makeFloatArray(shape: [1, 1, 1, stepPosition + 1])
-                let stepInput = try MLDictionaryFeatureProvider(dictionary: [
-                    "inputs_embeds": MLFeatureValue(multiArray: tokenEmbedding),
-                    "cos": MLFeatureValue(multiArray: stepCos),
-                    "sin": MLFeatureValue(multiArray: stepSin),
-                    "attention_mask": MLFeatureValue(multiArray: stepMask),
-                ])
-                let (stepOutput, stepSeconds) = try await timedPrediction(
-                    model: decoderModel,
-                    input: stepInput,
-                    state: state
-                )
-                decodeStepSeconds += stepSeconds
-                let stepTopK = try topK(featureArray(stepOutput, "logits"))
-                if stepIndex == 0 {
-                    firstStepTopK = stepTopK
-                }
-                guard let nextToken = stepTopK.first?.index else {
-                    throw RunnerError.invalidArgument("decode step produced no logits")
-                }
-                generatedIds.append(nextToken)
-                if nextToken == options.eosTokenId {
-                    stoppedOnEos = true
-                }
-                currentToken = Int32(nextToken)
-            }
-        }
-        let expectedGeneratedIds = fixture.generatedIds.prefix(maxNewTokens).map { Int($0) }
-        var generatedPrefixMatchCount = 0
-        for (actual, expected) in zip(generatedIds, expectedGeneratedIds) {
-            guard actual == expected else { break }
-            generatedPrefixMatchCount += 1
-        }
-        let generatedPrefixMatchesExpected = generatedPrefixMatchCount == expectedGeneratedIds.count
-        let generatedText = tokenizer.decode(generatedIds)
-        let expected = try resolveExpectedText(
+        let result = try await runFixture(
             options: options,
+            fixture: fixture,
             tokenizer: tokenizer,
-            expectedGeneratedIds: expectedGeneratedIds
+            models: models,
+            decoderMode: decoderMode
         )
-        let expectedText = expected.text
-        let normalizedGeneratedText = normalizedTranscript(generatedText)
-        let normalizedExpectedText = normalizedTranscript(expectedText)
-
-        let result = Result(
-            fixture: options.fixture.path,
-            packagesDir: options.packagesDir.path,
-            audioSource: audioFeatures.source,
-            audioDataShape: audioFeatures.shape,
-            audioDataSeqlens: audioFeatures.seqlens,
-            audioFrontendDiff: audioFrontendDiff,
-            promptSource: prompt.source,
-            promptLen: prompt.promptLen,
-            audioTokenCount: audioTokenCount,
-            firstTokenId: firstToken,
-            secondTokenId: secondToken,
-            maxNewTokens: maxNewTokens,
-            stoppedOnEos: stoppedOnEos,
-            decoderMode: decoderMode,
-            generatedIds: generatedIds,
-            expectedGeneratedIds: expectedGeneratedIds,
-            generatedPrefixMatchCount: generatedPrefixMatchCount,
-            generatedPrefixMatchesExpected: generatedPrefixMatchesExpected,
-            generatedText: generatedText,
-            expectedText: expectedText,
-            expectedTextSource: expected.source,
-            normalizedGeneratedText: normalizedGeneratedText,
-            normalizedExpectedText: normalizedExpectedText,
-            rawWer: wordErrorRate(reference: expectedText, hypothesis: generatedText),
-            rawCer: characterErrorRate(reference: expectedText, hypothesis: generatedText),
-            normalizedWer: wordErrorRate(
-                reference: normalizedExpectedText,
-                hypothesis: normalizedGeneratedText
-            ),
-            normalizedCer: characterErrorRate(
-                reference: normalizedExpectedText,
-                hypothesis: normalizedGeneratedText
-            ),
-            prefillTopK: prefillTopK,
-            stepTopK: firstStepTopK,
-            prefillTop1MatchesFirstToken: prefillTopK.first?.index == firstToken,
-            stepTop1MatchesSecondToken: generatedIds.count > 1 && generatedIds[1] == secondToken,
-            timingSeconds: Timing(
-                audioFrontend: audioFrontendSeconds,
-                tokenEmbeddingPrompt: tokenSeconds,
-                audioEncoderAdapter: audioSeconds,
-                statefulDecoderPrefill: prefillSeconds,
-                tokenEmbeddingDecode: decodeTokenSeconds,
-                statefulDecoderDecode: decodeStepSeconds
-            )
-        )
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        let data = try encoder.encode(result)
-        if let output = options.output {
-            try FileManager.default.createDirectory(
-                at: output.deletingLastPathComponent(),
-                withIntermediateDirectories: true
-            )
-            try data.write(to: output)
-        }
+        let data = try writeResult(result, output: options.output)
         print(String(decoding: data, as: UTF8.self))
     }
 }

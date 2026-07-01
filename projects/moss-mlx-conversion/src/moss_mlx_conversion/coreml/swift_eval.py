@@ -80,6 +80,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--step-package")
     parser.add_argument("--cache-len", type=int, default=768)
     parser.add_argument(
+        "--swift-batch",
+        action="store_true",
+        help="Call the Swift runner once with a JSONL manifest and keep CoreML models loaded.",
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=ARTIFACTS_DIR / "evals" / "librispeech-test-clean-swift-coreml-1",
@@ -208,6 +213,64 @@ def swift_command(
     return command
 
 
+def swift_batch_command(
+    *,
+    project_root: Path,
+    args: argparse.Namespace,
+    manifest_path: Path,
+    batch_output_path: Path,
+) -> list[str]:
+    command = [
+        "swift",
+        "run",
+        "--package-path",
+        str(resolved_under(project_root, args.swift_package_path)),
+        "-c",
+        "release",
+        "moss-coreml-fixture",
+        "--packages-dir",
+        str(resolved_under(project_root, args.packages_dir)),
+        "--fixture",
+        str(resolved_under(project_root, args.fixture)),
+        "--audio-max-frames",
+        str(args.audio_max_frames),
+        "--audio-package",
+        str(args.audio_package),
+        "--decoder-package",
+        str(args.decoder_package),
+        "--compute-units",
+        str(args.compute_units),
+        "--max-new-tokens",
+        str(args.max_new_tokens),
+        "--batch-manifest",
+        str(manifest_path),
+        "--batch-output-jsonl",
+        str(batch_output_path),
+    ]
+    if args.prefill_cache_package or args.step_package:
+        if not args.prefill_cache_package or not args.step_package:
+            raise ValueError("pass both --prefill-cache-package and --step-package")
+        command.extend(
+            [
+                "--prefill-cache-package",
+                str(args.prefill_cache_package),
+                *(
+                    [
+                        "--prefill-cache-seq-len",
+                        str(args.prefill_cache_seq_len),
+                    ]
+                    if args.prefill_cache_seq_len is not None
+                    else []
+                ),
+                "--step-package",
+                str(args.step_package),
+                "--cache-len",
+                str(args.cache_len),
+            ]
+        )
+    return command
+
+
 def run_swift_report(
     *,
     project_root: Path,
@@ -243,6 +306,40 @@ def run_swift_report(
     report["swift_process_wall_sec"] = wall_elapsed_sec
     output_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return report
+
+
+def run_swift_batch(
+    *,
+    project_root: Path,
+    args: argparse.Namespace,
+    manifest_path: Path,
+    batch_output_path: Path,
+) -> dict[str, Any]:
+    command = swift_batch_command(
+        project_root=project_root,
+        args=args,
+        manifest_path=manifest_path,
+        batch_output_path=batch_output_path,
+    )
+    started = time.perf_counter()
+    completed = subprocess.run(  # noqa: S603
+        command,
+        cwd=project_root,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    wall_elapsed_sec = time.perf_counter() - started
+    if completed.returncode != 0:
+        raise RuntimeError(
+            "swift batch runner failed with exit code "
+            f"{completed.returncode}\nstdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
+        )
+    return {
+        "swift_stdout_tail": completed.stdout[-2000:],
+        "swift_stderr_tail": completed.stderr[-2000:],
+        "swift_batch_process_wall_sec": wall_elapsed_sec,
+    }
 
 
 def prediction_report(
@@ -293,7 +390,18 @@ def prediction_report(
         "token_embedding_decode_elapsed_sec": float(
             swift_report["timing_seconds"]["token_embedding_decode"]
         ),
-        "swift_process_wall_sec": float(swift_report["swift_process_wall_sec"]),
+        "swift_process_wall_sec": float(
+            swift_report.get("swift_process_wall_sec", swift_report.get("row_wall_sec", 0.0))
+        ),
+        **(
+            {
+                "swift_batch_process_wall_sec": float(
+                    swift_report["swift_batch_process_wall_sec"]
+                )
+            }
+            if "swift_batch_process_wall_sec" in swift_report
+            else {}
+        ),
     }
 
 
@@ -318,6 +426,24 @@ def print_sample(report: dict[str, Any]) -> None:
         f"tokens={report['generated_token_count']} "
         f"hyp={report['hypothesis']}"
     )
+
+
+def write_batch_manifest(
+    manifest_path: Path,
+    rows: list[tuple[StreamingExample, dict[str, Any], Path]],
+) -> None:
+    with manifest_path.open("w", encoding="utf-8") as manifest:
+        for example, input_metadata, swift_report_path in rows:
+            record = {
+                "row_idx": example.row_idx,
+                "id": example.example_id,
+                "audio": str(Path(str(input_metadata["audio_path"])).resolve()),
+                "reference_text_file": str(
+                    Path(str(input_metadata["reference_path"])).resolve()
+                ),
+                "output": str(swift_report_path.resolve()),
+            }
+            manifest.write(json.dumps(record, sort_keys=True) + "\n")
 
 
 def main() -> None:
@@ -346,6 +472,7 @@ def main() -> None:
             audio_column=args.audio_column,
             id_column=args.id_column,
         )
+        pending_batch_rows: list[tuple[StreamingExample, dict[str, Any], Path]] = []
         for example in examples:
             if example.row_idx in seen_row_indices or example.example_id in seen_ids:
                 continue
@@ -357,6 +484,9 @@ def main() -> None:
                 )
             stem = safe_stem(example)
             swift_report_path = paths.swift_report_dir / f"{stem}.json"
+            if args.swift_batch:
+                pending_batch_rows.append((example, input_metadata, swift_report_path))
+                continue
             swift_report = run_swift_report(
                 project_root=project_root,
                 args=args,
@@ -373,6 +503,32 @@ def main() -> None:
             sample_reports.append(report)
             append_prediction(paths.predictions_path, report)
             print_sample(report)
+        if args.swift_batch and pending_batch_rows:
+            manifest_path = paths.output_dir / "swift-batch-manifest.jsonl"
+            batch_output_path = paths.output_dir / "swift-batch-results.jsonl"
+            write_batch_manifest(manifest_path, pending_batch_rows)
+            batch_metadata = run_swift_batch(
+                project_root=project_root,
+                args=args,
+                manifest_path=manifest_path.resolve(),
+                batch_output_path=batch_output_path.resolve(),
+            )
+            for example, input_metadata, swift_report_path in pending_batch_rows:
+                swift_report = json.loads(swift_report_path.read_text(encoding="utf-8"))
+                swift_report.update(batch_metadata)
+                swift_report_path.write_text(
+                    json.dumps(swift_report, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8",
+                )
+                report = prediction_report(
+                    example=example,
+                    input_metadata=input_metadata,
+                    swift_report=swift_report,
+                    swift_report_path=swift_report_path,
+                )
+                sample_reports.append(report)
+                append_prediction(paths.predictions_path, report)
+                print_sample(report)
     finally:
         client.close()
 
@@ -399,6 +555,7 @@ def main() -> None:
             "prefill_cache_seq_len": args.prefill_cache_seq_len,
             "step_package": args.step_package,
             "cache_len": args.cache_len,
+            "swift_batch": args.swift_batch,
         },
     )
     print(json.dumps(summary, indent=2, sort_keys=True))

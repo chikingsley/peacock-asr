@@ -186,6 +186,7 @@ Results:
 | Swift padded-prefill row 1 | LibriSpeech clean-test row `6930-75918-0001`, prompt length 195, shared 512-token prefill cache + padded step | normalized WER/CER `0.0`; generated 47 tokens and stopped on EOS; total model time `9.46s` for `14.23s` audio, RTFx `1.50` |
 | Swift padded-prefill row 3 | LibriSpeech clean-test row `6930-75918-0003`, prompt length 313, same shared 512-token prefill cache + padded step | normalized WER/CER `0.0`; generated 77 tokens and stopped on EOS; bypasses the stateful row-3 no-finite-logits failure; total model time `13.80s` for `23.32s` audio, RTFx `1.69` |
 | Swift padded-prefill 20-row batch | LibriSpeech clean-test rows 0-19, same shared 512-token prefill cache + padded step, `--prefill-cache-seq-len 512`, `--compute-units cpu-gpu` | completed 20/20; WER `0.0158`, CER `0.00418`; total audio `164.49s`; summed Swift model time `216.29s`; RTFx `0.76`; wall time `1382.60s` because the harness launches one Swift process per row; artifact `artifacts/evals/librispeech-test-clean-swift-coreml-external-cache-512-20/summary.json` |
+| Swift padded-prefill persistent 20-row batch | same rows/packages plus `moss-swift-coreml-eval --swift-batch` JSONL manifest mode | completed 20/20 with the same WER `0.0158` and CER `0.00418`; summed Swift model time `132.95s`; RTFx `1.24`; wall time `691.58s`; sum of per-row Swift walls `652.28s`; artifact `artifacts/evals/librispeech-test-clean-swift-coreml-external-cache-512-batch-20/summary.json` |
 
 Important caveat: these are still fixture-level proof components. The padded
 external-cache step proves the planned 768-token cache shape. The stateful fused
@@ -201,9 +202,9 @@ chunking runtime. The non-fixture row proves the audio/prompt/scoring path can
 run a different <=30s WAV, but the runner still uses the fixture JSON as a
 compact config carrier for model constants and fixture-token sanity checks.
 The explicit-cache batch proves the current CoreML path can complete the first
-20 clean-test rows, including the former row-3 stateful failure case. The batch
-harness is still process-per-row, so its wall time is not the final runtime
-shape.
+20 clean-test rows, including the former row-3 stateful failure case. The
+persistent Swift batch mode removes one-process-per-row startup from the main
+path, but it is still a private harness rather than a FluidAudio manager.
 
 Current decoder read: the stateful decoder package was validated at fixture
 prompt length 203 and works on shorter prompt lengths 56, 76, and 195. It
@@ -215,7 +216,9 @@ padded prefill removes the per-row prefill package blocker for prompts up to
 rows had nonzero normalized WER: row 4 (`opened for them` vs `opened before
 them`), row 15 possessive normalization, row 17 `Ralph` vs `Raoul`, and row 19
 `moon beams` vs `moonbeams`. It is still not the final runtime shape because
-each decode step moves full padded KV arrays through CoreML.
+each decode step moves full padded KV arrays through CoreML. Persistent batch
+mode cuts wall time roughly in half, but it does not solve that decoder data
+movement.
 
 Compute-unit caveat: the 30-second padded audio package failed with default
 `.all` dispatch on `home-mac` because CoreML routed it to ANE and reported an

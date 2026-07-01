@@ -101,11 +101,13 @@ Current short version:
   calling the Swift runner. The shared 512-token padded prefill package plus
   padded external-cache step completed the first 20 LibriSpeech clean-test rows:
   WER `0.0158`, CER `0.00418`, 164.49s audio, 216.29s summed Swift model time,
-  and 0.76 RTFx. The older CoreML State API decoder still fails row 3's
-  313-token prompt, but the explicit-cache path bypasses that stability
-  boundary. This is still a correctness bridge, not a final FluidAudio backend,
-  because decode moves full padded KV arrays per token and the current evaluator
-  launches one Swift process per row.
+  0.76 RTFx, and 1382.60s wall in the original process-per-row harness. The
+  newer `--swift-batch` mode keeps the compiled CoreML models alive across all
+  20 rows and preserves the same WER/CER while improving model-time RTFx to
+  `1.24` and wall time to 691.58s. The older CoreML State API decoder still
+  fails row 3's 313-token prompt, but the explicit-cache path bypasses that
+  stability boundary. This is still a correctness bridge, not a final
+  FluidAudio backend, because decode moves full padded KV arrays per token.
 - No public upload/branch/PR action has been taken.
 
 ## Layout
