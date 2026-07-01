@@ -438,6 +438,10 @@ Swift result on `home-mac`:
   and cache presets through `--bundle-manifest`. A one-row `short-512` smoke
   with no manual package/tokenizer/runtime flags completed with WER/CER `0.0`
   and 0.73 RTFx.
+- `scripts/build_fluid_audio_bundle.sh` builds the active local bundle under
+  `bundles/moss-fluid-audio-coreml-active` with package-local manifest paths.
+  On `home-mac`, that bundle runs through private FluidAudio as a plain
+  `--model-dir` and completed the same row with WER/CER `0.0` and 0.77 RTFx.
 - The matched 768-token prefill package can compile and Torch-validates with
   zero diff at prompt length 313, but it is not an active runtime path:
   `cpu-gpu` FluidAudio execution crashes in MPSGraph before the first row, and

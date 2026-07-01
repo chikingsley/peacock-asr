@@ -185,6 +185,11 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   presets from it. A manifest-backed one-row `short-512` benchmark, with no
   manual package/tokenizer/runtime flags, completed with WER/CER `0.0` and
   0.73 RTFx.
+- Added `scripts/build_fluid_audio_bundle.sh` for an ignored single-directory
+  active CoreML bundle. The Mac bundle at
+  `bundles/moss-fluid-audio-coreml-active` contains local package paths,
+  tokenizer, runtime manifest, and bundle manifest; a model-dir-only
+  FluidAudio smoke completed with WER/CER `0.0` and 0.77 RTFx.
 - Exported and compiled an experimental 768-token padded prefill cache package.
   It Torch-validates with zero diff against the exact 313-token prefill on
   logits and valid K/V slices, but the private FluidAudio `cpu-gpu` runtime

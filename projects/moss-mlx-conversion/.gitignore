@@ -1,4 +1,5 @@
 /artifacts/
+/bundles/
 /.venv/
 /coreml/.venv/
 /coreml/build/

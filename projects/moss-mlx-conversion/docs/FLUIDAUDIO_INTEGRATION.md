@@ -61,6 +61,17 @@ artifacts from this handoff without an explicit request.
   tokenizer, or runtime-manifest flags and completed row `6930-75918-0001`
   with WER/CER `0.0`, 14.23s audio, 19.41s processing, 18.03s model timing,
   and 0.73 RTFx.
+- Local active bundle smoke:
+  `scripts/build_fluid_audio_bundle.sh` created
+  `/Users/simonpeacocks/GitHub/moss-mlx-conversion/bundles/moss-fluid-audio-coreml-active`
+  with package-local manifest paths. The bundle contains `compiled`,
+  `compiled_audio_30s`, `compiled_prefill_cache_512`,
+  `compiled_step_padded`, `compiled_step_padded_512`,
+  `moss_tokenizer.json`, `moss_runtime_manifest.json`, and
+  `moss_bundle_manifest.json`. A private FluidAudio run with only
+  `--model-dir <bundle> --cache-preset short-512` completed the same row with
+  WER/CER `0.0`, 14.23s audio, 18.43s processing, 16.98s model timing, and
+  0.77 RTFx.
 
 ## Relevant FluidAudio Shape
 
@@ -198,13 +209,10 @@ decoder makes the runtime fundamentally different from Parakeet.
 The first private FluidAudio scaffold exists as a patch and an uncommitted Mac
 checkout change. Keep it private and unpushed.
 
-1. Move the current manifest-plus-artifact layout into a single local model
-   bundle directory that can be copied or later uploaded without `../../`
-   relative paths.
-2. Add automatic prompt/decode bucket selection beyond the current manual
+1. Add automatic prompt/decode bucket selection beyond the current manual
    `short-512` path.
-3. Profile and reduce explicit-cache KV movement; this is the current
+2. Profile and reduce explicit-cache KV movement; this is the current
    production-speed blocker.
-4. Add long-audio chunking and stitching beyond the single 30-second window.
-5. Add Hugging Face download/model-name metadata only after a private model
+3. Add long-audio chunking and stitching beyond the single 30-second window.
+4. Add Hugging Face download/model-name metadata only after a private model
    bundle exists.

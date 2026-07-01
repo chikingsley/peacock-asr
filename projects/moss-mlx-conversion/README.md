@@ -136,6 +136,12 @@ Current short version:
   presets. The Mac FluidAudio CLI now accepts `--bundle-manifest`; a one-row
   `short-512` benchmark with no manual package/tokenizer/runtime flags produced
   WER/CER `0.0` and 0.73 RTFx.
+- Added `scripts/build_fluid_audio_bundle.sh`, which builds an ignored local
+  bundle directory with package-local tokenizer/runtime paths. On `home-mac`,
+  `/Users/simonpeacocks/GitHub/moss-mlx-conversion/bundles/moss-fluid-audio-coreml-active`
+  was built as a 12G APFS-cloned active bundle and ran through FluidAudio with
+  only `--model-dir <bundle> --cache-preset short-512`, producing WER/CER
+  `0.0` and 0.77 RTFx on the smoke row.
 - A matched 768-token prefill package was also exported and compiled, but the
   private FluidAudio `cpu-gpu` probe crashes in MPSGraph before row output; it
   is recorded as a CoreML runtime debugging item, not the active path.
