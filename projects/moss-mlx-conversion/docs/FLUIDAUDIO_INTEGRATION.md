@@ -209,8 +209,9 @@ decoder makes the runtime fundamentally different from Parakeet.
 The first private FluidAudio scaffold exists as a patch and an uncommitted Mac
 checkout change. Keep it private and unpushed.
 
-1. Add automatic prompt/decode bucket selection beyond the current manual
-   `short-512` path.
+1. Debug automatic prompt/decode bucket selection. A first `--cache-preset auto`
+   experiment crashed in CoreML/MPSGraph before row output, so the committed
+   stable path remains manual `--cache-preset short-512`.
 2. Profile and reduce explicit-cache KV movement; this is the current
    production-speed blocker.
 3. Add long-audio chunking and stitching beyond the single 30-second window.

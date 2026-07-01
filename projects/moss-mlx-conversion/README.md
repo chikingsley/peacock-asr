@@ -16,6 +16,8 @@ Use the docs this way:
 - [docs/FLUIDAUDIO_INTEGRATION.md](docs/FLUIDAUDIO_INTEGRATION.md): private
   handoff for turning the proven Swift/CoreML runtime into a FluidAudio-style
   backend later.
+- [docs/STOPPING_POINT.md](docs/STOPPING_POINT.md): current pause point,
+  upload readiness, disk state, and what is safe to clean.
 - [CHANGELOG.md](CHANGELOG.md): terse history of completed milestones.
 
 Start with [docs/PLAN.md](docs/PLAN.md). The plan is written to stay close to the

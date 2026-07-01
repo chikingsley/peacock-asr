@@ -190,6 +190,11 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   `bundles/moss-fluid-audio-coreml-active` contains local package paths,
   tokenizer, runtime manifest, and bundle manifest; a model-dir-only
   FluidAudio smoke completed with WER/CER `0.0` and 0.77 RTFx.
+- Added `docs/STOPPING_POINT.md` to mark the stable pause point: the private
+  bundle/manual-preset path works, but it is not production FluidAudio-level or
+  ready for a polished public upload. The later `--cache-preset auto`
+  experiment crashed in CoreML/MPSGraph and is excluded from the committed
+  stable baseline.
 - Exported and compiled an experimental 768-token padded prefill cache package.
   It Torch-validates with zero diff against the exact 313-token prefill on
   logits and valid K/V slices, but the private FluidAudio `cpu-gpu` runtime
