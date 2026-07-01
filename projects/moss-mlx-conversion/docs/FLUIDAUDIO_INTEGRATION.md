@@ -25,7 +25,8 @@ artifacts from this handoff without an explicit request.
   counts, WER, and CER versus the prior persistent batch.
 - Private FluidAudio scaffold patch:
   `patches/fluid-audio-moss-private-scaffold.patch` adds
-  `Sources/FluidAudio/ASR/MOSS` plus `fluidaudiocli moss-transcribe`.
+  `Sources/FluidAudio/ASR/MOSS` plus `fluidaudiocli moss-transcribe` and
+  `moss-benchmark`.
   It was applied uncommitted to `/Users/simonpeacocks/GitHub/FluidAudio`,
   built with `swift build -c release`, and smoke-tested on row
   `6930-75918-0001`.
@@ -34,6 +35,11 @@ artifacts from this handoff without an explicit request.
   transcript on both runs, generated 47 tokens, stopped on EOS, and used prompt
   length 195 / 185 audio tokens. Cold model load was 78.95s; repeated
   transcribe processing times were 52.50s and 41.07s for 14.23s audio.
+- FluidAudio 20-row benchmark:
+  `artifacts/evals/fluid-audio-moss-benchmark-20/summary.json` completed 20/20
+  rows with WER `0.0158`, CER `0.00418`, 164.49s audio, 710.41s full manager
+  processing, and 0.23 RTFx. This matches the prior WER/CER exactly and proves
+  the FluidAudio code shape, while confirming the speed blocker.
 
 ## Relevant FluidAudio Shape
 
@@ -112,11 +118,11 @@ not make them runnable.
 - The explicit-cache path is correct but memory-bandwidth heavy because every
   generated token copies full padded KV arrays through CoreML.
 - The private FluidAudio scaffold proves the code can live inside FluidAudio
-  and reuse loaded models across calls, but the row-1 repeat smoke was only
-  0.27x then 0.35x RTFx by full manager processing time. This is much slower
-  than the private batch harness's summed model-time RTFx because it measures
-  full end-to-end manager work and still pays the same explicit-cache KV
-  movement each generated token.
+  and reuse loaded models across calls, but the 20-row benchmark is only 0.23x
+  RTFx by full manager processing time. This is much slower than the private
+  batch harness's summed model-time RTFx because it measures full end-to-end
+  manager work and still pays the same explicit-cache KV movement each
+  generated token.
 - A 512-token prefill bucket covers the first 20 clean-test rows. Full
   LibriSpeech needs either prompt-length buckets or a larger padded prefill.
 - The audio path is single-window only. Long audio needs FluidAudio-style
@@ -146,12 +152,9 @@ checkout change. Keep it private and unpushed.
 1. Package the MOSS model directory into the shape the FluidAudio scaffold
    expects, with tokenizer and runtime manifest beside the compiled model
    folders or with config paths adjusted.
-2. Add a `moss-benchmark` command for LibriSpeech rows, reusing the same
-   normalization/WER behavior as the private harness.
-3. Re-run the 20-row gate through FluidAudio CLI and require matching WER/CER
-   plus a single-process wall profile.
-4. Add prompt-length buckets or a larger prefill package before full test-clean.
-5. Profile and reduce explicit-cache KV movement; this is the current
+2. Add prompt-length buckets or a larger prefill package before full test-clean.
+3. Profile and reduce explicit-cache KV movement; this is the current
    production-speed blocker.
-6. Add Hugging Face download/model-name metadata only after a private model
+4. Add long-audio chunking and stitching beyond the single 30-second window.
+5. Add Hugging Face download/model-name metadata only after a private model
    bundle exists.

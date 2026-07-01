@@ -163,9 +163,8 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   counts, WER, and CER versus the prior persistent batch.
 - Added `patches/fluid-audio-moss-private-scaffold.patch`, a private
   FluidAudio scaffold for `Sources/FluidAudio/ASR/MOSS` plus
-  `fluidaudiocli moss-transcribe`. Applied uncommitted on `home-mac`, it builds
-  with `swift build -c release` and transcribed row `6930-75918-0001` twice
-  with one loaded manager, matching the expected text both times. The repeat
-  smoke measured 78.95s cold model load and 52.50s / 41.07s processing for
-  14.23s audio, confirming the remaining blocker is runtime/KV movement rather
-  than just process startup.
+  `fluidaudiocli moss-transcribe` and `moss-benchmark`. Applied uncommitted on
+  `home-mac`, it builds with `swift build -c release`. The FluidAudio 20-row
+  gate completed with the same WER `0.0158` and CER `0.00418` as the private
+  Swift runner, but full manager processing took 710.41s for 164.49s audio
+  (0.23 RTFx), confirming runtime/KV movement is the next blocker.

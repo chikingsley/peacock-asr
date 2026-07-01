@@ -417,10 +417,10 @@ Swift result on `home-mac`:
   performance comparison.
 - `patches/fluid-audio-moss-private-scaffold.patch` ports the same
   external-cache path into a private FluidAudio `ASR/MOSS` scaffold with
-  manual model-dir loading and `fluidaudiocli moss-transcribe`. It builds on
-  `home-mac` and smokes row `6930-75918-0001` correctly with one loaded
-  manager, but the repeat run still measured only 0.27x then 0.35x RTFx by
-  full manager processing time.
+  manual model-dir loading plus `fluidaudiocli moss-transcribe` and
+  `moss-benchmark`. It builds on `home-mac`; the FluidAudio 20-row gate matches
+  WER `0.0158` / CER `0.00418`, but measures only 0.23 RTFx by full manager
+  processing time.
 - The same padded audio package failed under default `.all` compute-unit
   dispatch with an ANE inference error. Use `--compute-units cpu-gpu` for this
   package until compute placement is profiled more carefully.

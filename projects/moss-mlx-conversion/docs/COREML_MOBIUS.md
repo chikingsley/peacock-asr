@@ -212,9 +212,9 @@ RTFx is not a regression in the model graph; no optimization was attempted in
 that pass.
 The private FluidAudio scaffold patch moves this exact external-cache runtime
 into `Sources/FluidAudio/ASR/MOSS` with manual model-dir loading and a
-`moss-transcribe` CLI. It builds and smokes row `6930-75918-0001` correctly on
-`home-mac`, but the repeat CLI run still measured only 0.27x and 0.35x RTFx by
-full manager processing time.
+`moss-transcribe` / `moss-benchmark` CLI pair. It builds on `home-mac` and the
+20-row FluidAudio benchmark matches WER `0.0158` / CER `0.00418`, but only
+reaches 0.23 RTFx by full manager processing time.
 
 Current decoder read: the stateful decoder package was validated at fixture
 prompt length 203 and works on shorter prompt lengths 56, 76, and 195. It
