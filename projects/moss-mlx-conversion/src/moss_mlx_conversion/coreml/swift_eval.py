@@ -76,6 +76,7 @@ def parse_args() -> argparse.Namespace:
         default="compiled_stateful/moss_decoder_stateful_fused.mlmodelc",
     )
     parser.add_argument("--prefill-cache-package")
+    parser.add_argument("--prefill-cache-seq-len", type=int)
     parser.add_argument("--step-package")
     parser.add_argument("--cache-len", type=int, default=768)
     parser.add_argument(
@@ -190,6 +191,14 @@ def swift_command(
             [
                 "--prefill-cache-package",
                 str(args.prefill_cache_package),
+                *(
+                    [
+                        "--prefill-cache-seq-len",
+                        str(args.prefill_cache_seq_len),
+                    ]
+                    if args.prefill_cache_seq_len is not None
+                    else []
+                ),
                 "--step-package",
                 str(args.step_package),
                 "--cache-len",
@@ -387,6 +396,7 @@ def main() -> None:
             "compute_units": args.compute_units,
             "decoder_package": args.decoder_package,
             "prefill_cache_package": args.prefill_cache_package,
+            "prefill_cache_seq_len": args.prefill_cache_seq_len,
             "step_package": args.step_package,
             "cache_len": args.cache_len,
         },

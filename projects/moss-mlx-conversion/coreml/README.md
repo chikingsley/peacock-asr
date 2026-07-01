@@ -127,18 +127,20 @@ uv run --project projects/moss-mlx-conversion/coreml --locked \
   --package-name moss_decoder_stateful_fused.mlpackage
 ```
 
-The explicit-cache prefill exporter returns logits plus KV tensors for one
-fixed prompt length. The padded one-token step package is reusable, but prefill
-is currently compiled per prompt length:
+The explicit-cache prefill exporter returns logits plus KV tensors. It supports
+exact prompt-length packages and a padded package with `last_token_mask`, so
+one compiled model can cover multiple prompt lengths inside the same bucket:
 
 ```bash
 uv run --project projects/moss-mlx-conversion/coreml --locked \
   projects/moss-mlx-conversion/coreml/export_decoder_prefill_cache.py \
-  --seq-len 313 \
+  --seq-len 512 \
+  --mode padded \
+  --validation-prompt-len 313 \
   --trace-dtype fp32 \
   --compute-precision float16 \
   --overwrite \
-  --package-name moss_decoder_prefill_cache_313.mlpackage
+  --package-name moss_decoder_prefill_cache_512.mlpackage
 ```
 
 Run the integrated CoreML fixture pipeline after all three runtime packages
@@ -200,8 +202,9 @@ The retained decoder artifacts now cover three stages:
   `past_len=203 -> 204`.
 - `moss_decoder_step_padded_fixture`: fixed 768-slot external-cache contract
   with host-provided update mask, attention mask, and RoPE tensors.
-- `moss_decoder_prefill_cache_<seq-len>`: fixed prompt-length prefill that
-  returns explicit KV tensors for the padded step decoder.
+- `moss_decoder_prefill_cache_<seq-len>`: exact or padded prefill that returns
+  explicit KV tensors for the padded step decoder. The validated 512-token
+  padded package uses `last_token_mask` to select the real prompt end.
 - `moss_decoder_stateful_fused`: one fused decoder package with final norm,
   tied LM head projection, and 56 CoreML State API KV tensors. It validates
   `prefill -> one decode step` with a single CoreML state object, but it still
@@ -330,7 +333,8 @@ swift run --package-path swift/MossCoreMLFixture -c release moss-coreml-fixture 
   --audio artifacts/evals/librispeech-test-clean-swift-coreml-20/audio/000003-6930-75918-0003.wav \
   --audio-max-frames 3000 \
   --audio-package compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc \
-  --prefill-cache-package compiled_prefill_cache_313/moss_decoder_prefill_cache_313.mlmodelc \
+  --prefill-cache-package compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc \
+  --prefill-cache-seq-len 512 \
   --step-package compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc \
   --cache-len 768 \
   --compute-units cpu-gpu \
@@ -383,12 +387,12 @@ Swift result on `home-mac`:
   boundary.
 - The explicit-cache path bypasses the row-3 stateful failure. Row 1
   (`prompt_len=195`) and row 3 (`prompt_len=313`) both score normalized
-  WER/CER `0.0` with `compiled_prefill_cache_195` /
-  `compiled_prefill_cache_313` plus `compiled_step_padded`. Row 3 generated 77
-  tokens, stopped on EOS, and measured 26.84s model time for 23.32s audio
-  (RTFx 0.87). This is a correctness bridge, not the final FluidAudio backend:
-  prefill is still fixed-length per compiled package and every decode token
-  moves full padded KV arrays through CoreML.
+  WER/CER `0.0` with the shared `compiled_prefill_cache_512` plus
+  `compiled_step_padded`. Row 3 generated 77 tokens, stopped on EOS, and
+  measured 13.80s model time for 23.32s audio (RTFx 1.69). This is a stronger
+  correctness bridge, not the final FluidAudio backend: decode still moves
+  full padded KV arrays through CoreML each token, and longer prompts need a
+  larger or bucketed prefill package.
 - The same padded audio package failed under default `.all` compute-unit
   dispatch with an ANE inference error. Use `--compute-units cpu-gpu` for this
   package until compute placement is profiled more carefully.

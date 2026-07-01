@@ -103,11 +103,11 @@ Current short version:
 - The 20-row Swift/CoreML gate exposed the stateful decoder roadblock: rows
   0-2 completed with WER/CER `0.0`, but row 3 has prompt length 313 and the
   first stateful decode step produced no finite logits. A new explicit-cache
-  decoder path bypasses that failure: fixed-length prefill-cache packages for
-  prompt lengths 195 and 313 plus the padded step decoder scored WER/CER
-  `0.0` on rows 1 and 3. This is still a correctness bridge, not a final
-  FluidAudio backend, because prefill is fixed-length and decode moves full
-  padded KV arrays per token.
+  decoder path bypasses that failure. The first row-specific packages for
+  prompt lengths 195 and 313 scored WER/CER `0.0` on rows 1 and 3, and the
+  newer shared 512-token padded prefill package does the same with one compiled
+  prefill model. This is still a correctness bridge, not a final FluidAudio
+  backend, because decode moves full padded KV arrays per token.
 - No public upload/branch/PR action has been taken.
 
 ## Layout

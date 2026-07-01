@@ -79,7 +79,7 @@ Default shape contract:
 | `moss_decoder_prefill.mlpackage` | Fixed-length prefill over merged token/audio embeddings. |
 | `moss_decoder_step_cache_external.mlpackage` | One-token decode with host-managed KV cache and logits. |
 | `moss_decoder_stateful_fused.mlpackage` | Mobius-style fused decoder with final norm/LM head and 56 CoreML State API KV tensors. |
-| `moss_decoder_prefill_cache_<seq-len>.mlpackage` | Fixed-length prefill that returns logits plus explicit KV tensors for the padded step decoder. |
+| `moss_decoder_prefill_cache_<seq-len>.mlpackage` | Exact or padded prefill that returns logits plus explicit KV tensors for the padded step decoder. |
 
 ## Build Sequence
 
@@ -144,9 +144,13 @@ stateful decoder proof:
 - Hardened Swift top-k reporting to ignore non-finite logits. The 20-row
   stateful gate stops at row 3 because the stateful decoder's first decode step
   returns no finite logits for prompt length 313, although prefill succeeds.
-- Added an explicit-cache Swift decoder path. Fixed-length prefill-cache
-  packages for prompt lengths 195 and 313 plus the reusable padded step decoder
-  produce normalized WER/CER `0.0` on LibriSpeech rows 1 and 3.
+- Added an explicit-cache Swift decoder path. The first fixed-length
+  prefill-cache packages for prompt lengths 195 and 313 plus the reusable
+  padded step decoder produced normalized WER/CER `0.0` on LibriSpeech rows 1
+  and 3.
+- Added a shared 512-token padded prefill-cache package with
+  `last_token_mask`. It validates exactly against 313-token exact prefill in
+  Torch and runs both rows 1 and 3 with normalized WER/CER `0.0`.
 - Compiled each package with `xcrun coremlcompiler compile`.
 - Copied retained `.mlpackage`, `.mlmodelc`, and JSON manifests back to local
   ignored `artifacts/coreml/`.
@@ -163,6 +167,7 @@ Results:
 | `moss_decoder_stateful_fused` | prefill `[1, 203, 2048]`, then token `4197` with the same CoreML state | prefill top-1 `4197`; step top-1 `1059`; 56 state tensors; CoreML vs static step logits max/mean diff `0.038696` / `0.015730` |
 | `moss_decoder_prefill_cache_195` | merged embeds `[1, 195, 2048]` | exports logits plus explicit KV tensors `[28, 1, 8, 195, 128]`; compiled as `compiled_prefill_cache_195/moss_decoder_prefill_cache_195.mlmodelc` |
 | `moss_decoder_prefill_cache_313` | merged embeds `[1, 313, 2048]` | exports logits plus explicit KV tensors `[28, 1, 8, 313, 128]`; compiled as `compiled_prefill_cache_313/moss_decoder_prefill_cache_313.mlmodelc` |
+| `moss_decoder_prefill_cache_512` | padded merged embeds `[1, 512, 2048]` plus `last_token_mask [1, 512, 1]` | exports logits plus explicit KV tensors `[28, 1, 8, 512, 128]`; compiled as `compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc`; Torch validation at prompt length 313 has zero diff on logits, valid keys, and valid values |
 | `run_stateful_fixture_pipeline` component path | CoreML token/audio packages, host merge, stateful decoder | prefill top-1 `4197`; step top-1 `1059`; merged prompt max/mean diff vs saved reference `0.002686` / `0.000337`; total fixture time `21.32s` |
 | `run_stateful_fixture_pipeline` reference-merged isolation | saved merged embeds, stateful decoder | prefill top-1 `4197`; step top-1 `1059`; decoder input diff vs saved reference `0.0`; total fixture time `22.15s` |
 | Swift `moss-coreml-fixture` 5-token greedy | JSON fixture, compiled `.mlmodelc`, `MLState` | generated IDs exactly match `[4197, 1059, 4158, 6177, 323]`; total fixture time `18.17s` |
@@ -178,6 +183,8 @@ Results:
 | attempted 20-row Swift/CoreML batch | LibriSpeech clean-test rows 0-19 requested | rows 0-2 completed with WER/CER `0.0`; row 3 prefill succeeds at prompt length 313 and audio tokens 303, but the first stateful decode step returns no finite logits under `cpu-gpu` and `cpu-only` |
 | Swift explicit-cache row 1 | LibriSpeech clean-test row `6930-75918-0001`, prompt length 195, fixed prefill cache + padded step | normalized WER/CER `0.0`; generated 47 tokens and stopped on EOS; total model time `22.13s` for `14.23s` audio, RTFx `0.64` |
 | Swift explicit-cache row 3 | LibriSpeech clean-test row `6930-75918-0003`, prompt length 313, fixed prefill cache + padded step | normalized WER/CER `0.0`; generated 77 tokens and stopped on EOS; bypasses the stateful row-3 no-finite-logits failure; total model time `26.84s` for `23.32s` audio, RTFx `0.87` |
+| Swift padded-prefill row 1 | LibriSpeech clean-test row `6930-75918-0001`, prompt length 195, shared 512-token prefill cache + padded step | normalized WER/CER `0.0`; generated 47 tokens and stopped on EOS; total model time `9.46s` for `14.23s` audio, RTFx `1.50` |
+| Swift padded-prefill row 3 | LibriSpeech clean-test row `6930-75918-0003`, prompt length 313, same shared 512-token prefill cache + padded step | normalized WER/CER `0.0`; generated 77 tokens and stopped on EOS; bypasses the stateful row-3 no-finite-logits failure; total model time `13.80s` for `23.32s` audio, RTFx `1.69` |
 
 Important caveat: these are still fixture-level proof components. The padded
 external-cache step proves the planned 768-token cache shape. The stateful fused
@@ -199,9 +206,10 @@ Current decoder read: the stateful decoder package was validated at fixture
 prompt length 203 and works on shorter prompt lengths 56, 76, and 195. It
 prefilled row 3 at prompt length 313, but the first one-token decode call
 returned all non-finite logits. The explicit-cache path works around that
-failure and produces correct transcripts on rows 1 and 3, but it is not yet the
-final runtime shape because prefill is fixed-length per compiled package and
-each decode step moves full padded KV arrays through CoreML.
+failure and produces correct transcripts on rows 1 and 3. The shared 512-token
+padded prefill removes the per-row prefill package blocker for prompts up to
+512 tokens. It is still not the final runtime shape because each decode step
+moves full padded KV arrays through CoreML.
 
 Compute-unit caveat: the 30-second padded audio package failed with default
 `.all` dispatch on `home-mac` because CoreML routed it to ANE and reported an

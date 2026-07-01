@@ -133,3 +133,8 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   and 3, bypassing the row-3 stateful no-finite-logits failure. This remains a
   correctness bridge rather than a final FluidAudio backend because prefill is
   fixed-length and decode moves full padded KV arrays per token.
+- Generalized the explicit-cache prefill bridge with a shared 512-token padded
+  prefill package and `last_token_mask`. Torch validation against exact
+  313-token prefill had zero diff on logits and valid KV slices; the same
+  compiled `moss_decoder_prefill_cache_512.mlmodelc` produced normalized
+  WER/CER `0.0` on LibriSpeech rows 1 and 3 with RTFx 1.50 and 1.69.

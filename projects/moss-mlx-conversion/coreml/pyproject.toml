@@ -21,6 +21,7 @@ only-include = [
     "export_swift_fixture.py",
     "export_audio_encoder_adapter.py",
     "export_decoder_prefill.py",
+    "export_decoder_prefill_cache.py",
     "export_decoder_stateful.py",
     "export_decoder_step.py",
     "run_stateful_fixture_pipeline.py",

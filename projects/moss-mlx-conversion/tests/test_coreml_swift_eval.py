@@ -25,6 +25,7 @@ def test_swift_command_uses_absolute_runtime_inputs() -> None:
         audio_package="compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc",
         decoder_package="compiled_stateful/moss_decoder_stateful_fused.mlmodelc",
         prefill_cache_package=None,
+        prefill_cache_seq_len=None,
         step_package=None,
         cache_len=768,
         compute_units="cpu-gpu",
@@ -64,7 +65,8 @@ def test_swift_command_can_use_external_cache_packages() -> None:
         audio_max_frames=3000,
         audio_package="compiled_audio_30s/moss_audio_encoder_adapter_30s_padded.mlmodelc",
         decoder_package="compiled_stateful/moss_decoder_stateful_fused.mlmodelc",
-        prefill_cache_package="compiled_prefill_cache_313/moss_decoder_prefill_cache_313.mlmodelc",
+        prefill_cache_package="compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc",
+        prefill_cache_seq_len=512,
         step_package="compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc",
         cache_len=768,
         compute_units="cpu-gpu",
@@ -80,7 +82,9 @@ def test_swift_command_can_use_external_cache_packages() -> None:
     )
 
     assert "--prefill-cache-package" in command
-    assert "compiled_prefill_cache_313/moss_decoder_prefill_cache_313.mlmodelc" in command
+    assert "compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc" in command
+    assert "--prefill-cache-seq-len" in command
+    assert "512" in command
     assert "--step-package" in command
     assert "compiled_step_padded/moss_decoder_step_padded_fixture.mlmodelc" in command
     assert "--cache-len" in command

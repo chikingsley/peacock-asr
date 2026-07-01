@@ -61,6 +61,7 @@ struct Options {
     var audioPackage = "compiled_audio/moss_audio_encoder_adapter_fixture.mlmodelc"
     var decoderPackage = "compiled_stateful/moss_decoder_stateful_fused.mlmodelc"
     var prefillCachePackage: String?
+    var prefillCacheSeqLen: Int?
     var stepPackage: String?
     var cacheLen = 768
     var tokenizer = URL(fileURLWithPath: "artifacts/coreml/moss_tokenizer.json")
@@ -238,6 +239,11 @@ func parseOptions(_ arguments: [String]) throws -> Options {
             options.decoderPackage = try value()
         case "--prefill-cache-package":
             options.prefillCachePackage = try value()
+        case "--prefill-cache-seq-len":
+            guard let parsed = Int(try value()) else {
+                throw RunnerError.invalidArgument("invalid --prefill-cache-seq-len")
+            }
+            options.prefillCacheSeqLen = parsed
         case "--step-package":
             options.stepPackage = try value()
         case "--cache-len":
@@ -277,7 +283,7 @@ func parseOptions(_ arguments: [String]) throws -> Options {
                                            [--token-package NAME] [--audio-package NAME]
                                            [--decoder-package NAME] [--token-max-seq-len N]
                                            [--prefill-cache-package NAME --step-package NAME]
-                                           [--cache-len N]
+                                           [--prefill-cache-seq-len N] [--cache-len N]
                                            [--max-new-tokens N] [--tokenizer JSON]
                                            [--reference-text TEXT | --reference-text-file FILE]
                                            [--eos-token-id ID]
@@ -588,6 +594,41 @@ func buildMergedEmbeddings(
     return merged
 }
 
+func padMergedEmbeddings(
+    _ mergedEmbeddings: MLMultiArray,
+    promptLen: Int,
+    seqLen: Int,
+    hiddenSize: Int
+) throws -> MLMultiArray {
+    guard seqLen >= promptLen else {
+        throw RunnerError.invalidArgument(
+            "prefill cache seq len \(seqLen) is shorter than prompt length \(promptLen)"
+        )
+    }
+    let padded = try makeFloatArray(shape: [1, seqLen, hiddenSize])
+    for position in 0..<promptLen {
+        for hidden in 0..<hiddenSize {
+            setFloat(
+                padded,
+                [0, position, hidden],
+                floatValue(mergedEmbeddings, [0, position, hidden])
+            )
+        }
+    }
+    return padded
+}
+
+func buildLastTokenMask(promptLen: Int, seqLen: Int) throws -> MLMultiArray {
+    guard promptLen >= 1, promptLen <= seqLen else {
+        throw RunnerError.invalidArgument(
+            "prompt length \(promptLen) is outside prefill cache seq len \(seqLen)"
+        )
+    }
+    let mask = try makeFloatArray(shape: [1, seqLen, 1])
+    setFloat(mask, [0, promptLen - 1, 0], 1)
+    return mask
+}
+
 func firstTokenEmbedding(_ tokenEmbeddings: MLMultiArray, hiddenSize: Int) throws -> MLMultiArray {
     let tokenEmbedding = try makeFloatArray(shape: [1, 1, hiddenSize])
     for hidden in 0..<hiddenSize {
@@ -790,9 +831,26 @@ struct MossCoreMLFixture {
             guard let prefillCacheModel, let stepModel else {
                 throw RunnerError.invalidArgument("external cache models were not loaded")
             }
-            let prefillInput = try MLDictionaryFeatureProvider(dictionary: [
-                "inputs_embeds": MLFeatureValue(multiArray: mergedEmbeddings)
-            ])
+            var prefillFeatures: [String: MLFeatureValue] = [:]
+            if let prefillCacheSeqLen = options.prefillCacheSeqLen {
+                prefillFeatures["inputs_embeds"] = MLFeatureValue(
+                    multiArray: try padMergedEmbeddings(
+                        mergedEmbeddings,
+                        promptLen: prompt.promptLen,
+                        seqLen: prefillCacheSeqLen,
+                        hiddenSize: fixture.hiddenSize
+                    )
+                )
+                prefillFeatures["last_token_mask"] = MLFeatureValue(
+                    multiArray: try buildLastTokenMask(
+                        promptLen: prompt.promptLen,
+                        seqLen: prefillCacheSeqLen
+                    )
+                )
+            } else {
+                prefillFeatures["inputs_embeds"] = MLFeatureValue(multiArray: mergedEmbeddings)
+            }
+            let prefillInput = try MLDictionaryFeatureProvider(dictionary: prefillFeatures)
             let (prefillOutput, elapsed) = try await timedPrediction(
                 model: prefillCacheModel,
                 input: prefillInput
