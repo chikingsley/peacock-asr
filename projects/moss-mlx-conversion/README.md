@@ -98,16 +98,14 @@ Current short version:
   matched the reference after normalization with WER/CER `0.0`.
 - `moss-swift-coreml-eval` now runs a repeatable Swift/CoreML batch eval over
   streamed Hugging Face rows by materializing short WAV/reference pairs and
-  calling the Swift runner. The first two-row clean-test batch scored WER/CER
-  `0.0` with 1.43 RTFx on summed Swift model time.
-- The 20-row Swift/CoreML gate exposed the stateful decoder roadblock: rows
-  0-2 completed with WER/CER `0.0`, but row 3 has prompt length 313 and the
-  first stateful decode step produced no finite logits. A new explicit-cache
-  decoder path bypasses that failure. The first row-specific packages for
-  prompt lengths 195 and 313 scored WER/CER `0.0` on rows 1 and 3, and the
-  newer shared 512-token padded prefill package does the same with one compiled
-  prefill model. This is still a correctness bridge, not a final FluidAudio
-  backend, because decode moves full padded KV arrays per token.
+  calling the Swift runner. The shared 512-token padded prefill package plus
+  padded external-cache step completed the first 20 LibriSpeech clean-test rows:
+  WER `0.0158`, CER `0.00418`, 164.49s audio, 216.29s summed Swift model time,
+  and 0.76 RTFx. The older CoreML State API decoder still fails row 3's
+  313-token prompt, but the explicit-cache path bypasses that stability
+  boundary. This is still a correctness bridge, not a final FluidAudio backend,
+  because decode moves full padded KV arrays per token and the current evaluator
+  launches one Swift process per row.
 - No public upload/branch/PR action has been taken.
 
 ## Layout

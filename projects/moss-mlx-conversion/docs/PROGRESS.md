@@ -673,6 +673,7 @@ Fixture component probes completed on `home-mac`:
 | Swift explicit-cache row 3 | LibriSpeech clean-test row `6930-75918-0003`, prompt length 313, `compiled_prefill_cache_313` + `compiled_step_padded`, `--compute-units cpu-gpu` | normalized WER/CER `0.0`; generated 77 tokens and stopped on EOS; this bypasses the stateful row-3 no-finite-logits failure; total model time `26.84s` for `23.32s` audio, RTFx `0.87`; decoder prefill `1.29s`, decoder decode `12.31s`; output artifact `artifacts/coreml/moss_swift_coreml_external_cache_cpu_gpu_librispeech_row3.json` |
 | Swift padded-prefill row 1 | LibriSpeech clean-test row `6930-75918-0001`, prompt length 195, shared `compiled_prefill_cache_512` + `compiled_step_padded`, `--prefill-cache-seq-len 512`, `--compute-units cpu-gpu` | normalized WER/CER `0.0`; generated 47 tokens and stopped on EOS; total model time `9.46s` for `14.23s` audio, RTFx `1.50`; decoder prefill `1.55s`, decoder decode `6.41s`; output artifact `artifacts/coreml/moss_swift_coreml_external_cache_512_cpu_gpu_librispeech_row1.json` |
 | Swift padded-prefill row 3 | LibriSpeech clean-test row `6930-75918-0003`, prompt length 313, same shared `compiled_prefill_cache_512` + `compiled_step_padded`, `--prefill-cache-seq-len 512`, `--compute-units cpu-gpu` | normalized WER/CER `0.0`; generated 77 tokens and stopped on EOS; total model time `13.80s` for `23.32s` audio, RTFx `1.69`; decoder prefill `1.14s`, decoder decode `10.41s`; output artifact `artifacts/coreml/moss_swift_coreml_external_cache_512_cpu_gpu_librispeech_row3.json` |
+| Swift padded-prefill 20-row batch | LibriSpeech clean-test rows 0-19, shared `compiled_prefill_cache_512` + `compiled_step_padded`, `--prefill-cache-seq-len 512`, `--compute-units cpu-gpu` | completed 20/20; WER `0.0158`, CER `0.00418`; total audio `164.49s`; summed Swift model time `216.29s`; RTFx `0.76`; wall `1382.60s` because the harness launches one Swift process per row; max prompt length 313, max audio tokens 303; artifacts under `artifacts/evals/librispeech-test-clean-swift-coreml-external-cache-512-20/` |
 
 Retained full-component package sizes:
 
@@ -749,9 +750,13 @@ Notes:
 - The explicit-cache decoder path bypasses that row-3 stateful failure and
   produces WER/CER `0.0` on rows 1 and 3. The 512-token padded prefill package
   removes the row-specific prefill package blocker for prompts up to 512
-  tokens. It is still not the final FluidAudio shape because every decode token
-  passes full `[28, 1, 8, 768, 128]` KV arrays through CoreML. This is correct
-  but memory-bandwidth heavy.
+  tokens. The same explicit-cache path completed the first 20 LibriSpeech
+  clean-test rows with WER `0.0158` and CER `0.00418`; four rows had nonzero
+  normalized WER: row 4 (`opened for them` vs `opened before them`), row 15
+  possessive normalization, row 17 `Ralph` vs `Raoul`, and row 19 `moon beams`
+  vs `moonbeams`. It is still not the final FluidAudio shape because every
+  decode token passes full `[28, 1, 8, 768, 128]` KV arrays through CoreML.
+  This is correct but memory-bandwidth heavy.
 - The padded audio package failed with default `.all` compute-unit dispatch on
   `home-mac` because CoreML routed it to ANE and reported an ANE inference
   error. The same path succeeds with `--compute-units cpu-gpu`, which is the
@@ -831,7 +836,8 @@ The private conversion now has two completed tracks:
    `MLState` greedy fixture runner all validate and are retained locally. The
    Swift path now also has non-fixture <=30s LibriSpeech probes with
    reference-text scoring and EOS stop, plus an explicit-cache decoder fallback
-   that bypasses the row-3 stateful failure.
+   that bypasses the row-3 stateful failure and completes the first 20 clean
+   rows with the shared 512-token padded prefill package.
 
 The next real work is a Swift/CoreML runtime decision:
 
@@ -839,20 +845,17 @@ The next real work is a Swift/CoreML runtime decision:
    batch teacher transcription and quality gates.
 2. If pursuing FluidAudio-level runtime, the remaining missing pieces are
    model store/download layout, an `ASR/MOSS` manager API around the proven
-   Swift core, a batch benchmark harness, long-audio chunking beyond one
-   30-second window, and optional general prompt tokenizer/template support
-   beyond the fixed English no-time-marker path.
-3. Rerun the 20-row clean-test eval through the explicit-cache-capable path
-   using the shared 512-token padded prefill package. This should cover the
-   first 20-row failure window unless a row exceeds the 512 prompt-token
-   bucket.
-4. Add prompt-length bucket handling for >512 prompts, or a larger padded
+   Swift core, a persistent batch benchmark harness that keeps compiled models
+   alive, long-audio chunking beyond one 30-second window, and optional general
+   prompt tokenizer/template support beyond the fixed English no-time-marker
+   path.
+3. Add prompt-length bucket handling for >512 prompts, or a larger padded
    prefill package, before treating the runtime as general for the full
    LibriSpeech clean set.
-5. Reduce runtime overhead before treating this as FluidAudio-ready: avoid
+4. Reduce runtime overhead before treating this as FluidAudio-ready: avoid
    process-per-row launches, keep compiled models alive across rows, and
    profile the cost of moving full padded KV arrays each decode token.
-6. Profile compute placement and startup overhead. Only after that should
+5. Profile compute placement and startup overhead. Only after that should
    quantized CoreML or artifact publication be scoped.
-7. Keep all work private. Public branch, PR, push, and Hugging Face upload
+6. Keep all work private. Public branch, PR, push, and Hugging Face upload
    remain out of scope until explicitly requested.

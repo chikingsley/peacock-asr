@@ -138,3 +138,11 @@ and next steps live in `docs/PROGRESS.md`; durable design context lives in
   313-token prefill had zero diff on logits and valid KV slices; the same
   compiled `moss_decoder_prefill_cache_512.mlmodelc` produced normalized
   WER/CER `0.0` on LibriSpeech rows 1 and 3 with RTFx 1.50 and 1.69.
+- Ran the first 20-row LibriSpeech clean-test Swift/CoreML batch through that
+  shared 512-token explicit-cache path. It completed all rows with WER
+  `0.0158`, CER `0.00418`, 164.49s audio, 216.29s summed Swift model time, and
+  0.76 RTFx. Four rows had nonzero normalized WER: row 4
+  (`opened for them` vs `opened before them`), row 15 possessive
+  normalization, row 17 `Ralph` vs `Raoul`, and row 19 `moon beams` vs
+  `moonbeams`. Wall time was 1382.60s because the current harness starts one
+  Swift process per row.

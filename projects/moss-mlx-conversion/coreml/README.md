@@ -393,6 +393,13 @@ Swift result on `home-mac`:
   correctness bridge, not the final FluidAudio backend: decode still moves
   full padded KV arrays through CoreML each token, and longer prompts need a
   larger or bucketed prefill package.
+- The same shared 512-token explicit-cache path completed the first 20
+  LibriSpeech clean-test rows with WER `0.0158`, CER `0.00418`, 164.49s audio,
+  216.29s summed Swift model time, and 0.76 RTFx. Nonzero normalized WER rows
+  were row 4 (`opened for them`), row 15 possessive normalization, row 17
+  `Ralph` vs `Raoul`, and row 19 `moon beams` vs `moonbeams`. Wall time was
+  1382.60s because the current batch harness launches a new Swift process for
+  every row.
 - The same padded audio package failed under default `.all` compute-unit
   dispatch with an ANE inference error. Use `--compute-units cpu-gpu` for this
   package until compute placement is profiled more carefully.
