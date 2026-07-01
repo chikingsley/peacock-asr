@@ -11,8 +11,10 @@ Working:
 
 - Private FluidAudio scaffold patch:
   `patches/fluid-audio-moss-private-scaffold.patch`
-- Local active CoreML bundle on `home-mac`:
-  `/Users/simonpeacocks/GitHub/moss-mlx-conversion/bundles/moss-fluid-audio-coreml-active`
+- Local active CoreML bundle:
+  `projects/moss-mlx-conversion/bundles/moss-fluid-audio-coreml-active`
+- Local CoreML build tree used to rebuild that bundle:
+  `projects/moss-mlx-conversion/coreml/build`
 - Bundle smoke command shape:
   `fluidaudiocli moss-benchmark --model-dir <bundle> --cache-preset short-512 ...`
 - Best bundle smoke result:
@@ -52,41 +54,44 @@ Reasonable future upload target, after explicit approval:
 
 ## Disk State
 
-On `home-mac`, the last checked sizes were:
+The Mac has been cleaned. The removed Mac-side paths were:
 
-- `/Users/simonpeacocks/GitHub/moss-mlx-conversion`: 54G
-- `coreml/build`: 36G
-- `bundles`: 12G
-- `artifacts`: 5.1G
-- `/Users/simonpeacocks/GitHub/FluidAudio/.build`: 199M
-- free space under `/Users`: about 14GiB
+- `/Users/simonpeacocks/GitHub/moss-mlx-conversion`
+- `/tmp/FluidAudio`
+- `/tmp/FluidAudio-stable`
+- the private MOSS scaffold paths inside
+  `/Users/simonpeacocks/GitHub/FluidAudio`
+- `/Users/simonpeacocks/GitHub/FluidAudio/.build`
 
-The active bundle was created with APFS clone copies, so `du` reports 12G, but
-the clone did not visibly reduce free disk space when it was created. It will
-still behave like a 12G bundle if copied or uploaded.
+After cleanup, `home-mac` free space under `/Users` was about 62GiB.
+
+The local Linux project now retains the needed ignored artifacts:
+
+- `coreml/build`: 15G
+- `bundles/moss-fluid-audio-coreml-active`: 15G
+- `artifacts`: 56G
+- full project: 68G
+
+The local bundle uses reflink-style copies where the filesystem supports them,
+but it should still be treated as a 15G bundle if copied or uploaded.
 
 ## Keep
 
-- `projects/moss-mlx-conversion` commits through `c7a5d3e`.
+- Tracked `projects/moss-mlx-conversion` history.
 - `runtime/moss_bundle_manifest.json`
 - `scripts/build_fluid_audio_bundle.sh`
 - `patches/fluid-audio-moss-private-scaffold.patch`
-- Mac active bundle if more FluidAudio testing is planned.
-- `coreml/build` while continuing CoreML development; it contains the compiled
-  packages used to rebuild the active bundle.
+- Ignored local active bundle:
+  `bundles/moss-fluid-audio-coreml-active`
+- Ignored local `coreml/build` while continuing CoreML development; it contains
+  the compiled packages used to rebuild the active bundle, including the
+  working 512-cache pair and experimental matched-768 prefill package.
 
 ## Cleanup Candidates
 
-Only remove these after deciding that immediate FluidAudio testing is paused:
-
-- Mac active bundle:
-  `/Users/simonpeacocks/GitHub/moss-mlx-conversion/bundles/moss-fluid-audio-coreml-active`
-- Empty failed-probe eval dirs under Mac
-  `/Users/simonpeacocks/GitHub/moss-mlx-conversion/artifacts/evals/`
-- FluidAudio `.build` if no Swift rebuild is needed soon.
-
-Do not remove `coreml/build` unless you are comfortable rebuilding or recopying
-multi-GB CoreML packages later.
+The Mac cleanup is complete. Do not remove local `coreml/build` or the local
+bundle unless you are comfortable rebuilding or recopying multi-GB CoreML
+packages later.
 
 ## Next Work
 

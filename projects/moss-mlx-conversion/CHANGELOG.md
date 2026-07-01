@@ -4,6 +4,16 @@ Historical record of completed project work. Live commands, current results,
 and next steps live in `docs/PROGRESS.md`; durable design context lives in
 `docs/PLAN.md`.
 
+## 2026-07-01
+
+- Completed the Mac-to-Linux handoff for the private MOSS FluidAudio/CoreML
+  work. Copied the Mac-only compiled CoreML cache artifacts into local ignored
+  `coreml/build`, rebuilt the local ignored
+  `bundles/moss-fluid-audio-coreml-active` bundle with the working 512-cache
+  path and experimental matched-768 prefill package, then removed the Mac
+  `/Users/simonpeacocks/GitHub/moss-mlx-conversion` checkout, temp FluidAudio
+  mirrors, private MOSS scaffold paths, and FluidAudio `.build` directory.
+
 ## 2026-06-30
 
 - Built a role-organized MOSS MLX conversion project with `reference/`,

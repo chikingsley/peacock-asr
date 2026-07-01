@@ -806,8 +806,9 @@ Notes:
   records the exact MOSS files, model bundle, and CLI steps needed for a
   private FluidAudio backend pass.
 - A private FluidAudio scaffold now exists as
-  `patches/fluid-audio-moss-private-scaffold.patch` and as uncommitted changes
-  in `/Users/simonpeacocks/GitHub/FluidAudio`. It adds
+  `patches/fluid-audio-moss-private-scaffold.patch`. It was previously applied
+  as uncommitted changes in `/Users/simonpeacocks/GitHub/FluidAudio`, then
+  removed from the Mac after the local handoff was verified. The patch adds
   `Sources/FluidAudio/ASR/MOSS`, `fluidaudiocli moss-transcribe`, and
   `moss-benchmark`, builds with `swift build -c release`, and can run the
   manual model-dir MOSS artifacts. The FluidAudio 20-row gate under
@@ -839,14 +840,12 @@ Notes:
   WER/CER `0.0`, 14.23s audio, 19.41s processing, 18.03s model timing, and
   0.73 RTFx.
 - `scripts/build_fluid_audio_bundle.sh` now builds an ignored active bundle
-  directory with package-local paths. On `home-mac`, the bundle at
-  `/Users/simonpeacocks/GitHub/moss-mlx-conversion/bundles/moss-fluid-audio-coreml-active`
-  was built with APFS clone copies, reports 12G by `du`, did not reduce free
-  space from 14GiB, and contains the active 512 prefill, 512 step, 768 compat
-  step, token embedding, audio adapter, tokenizer, runtime manifest, and bundle
-  manifest. A FluidAudio run with only `--model-dir <bundle> --cache-preset
-  short-512` completed row `6930-75918-0001` with WER/CER `0.0`, 14.23s audio,
-  18.43s processing, 16.98s model timing, and 0.77 RTFx.
+  directory with package-local paths. The bundle contains the active 512
+  prefill, 512 step, 768 compat step, token embedding, audio adapter,
+  tokenizer, runtime manifest, and bundle manifest. A FluidAudio run with only
+  `--model-dir <bundle> --cache-preset short-512` completed row
+  `6930-75918-0001` with WER/CER `0.0`, 14.23s audio, 18.43s processing,
+  16.98s model timing, and 0.77 RTFx.
 - A matched 768-token padded prefill package was exported and compiled to test
   the general 768-cache bucket without host padding. Torch validation passed
   with zero diff against exact 313-token prefill on logits and valid K/V, but
@@ -854,6 +853,13 @@ Notes:
   `shape.count = 0 != strides.count = 2` before any row. A CPU-only one-row
   probe did not produce output before being stopped, so matched 768 is blocked
   pending CoreML runtime debugging.
+- The Mac handoff is complete. Mac-only CoreML cache artifacts were copied into
+  local ignored `coreml/build`, and the local bundle was rebuilt at
+  `bundles/moss-fluid-audio-coreml-active` with the working 512-cache preset
+  and experimental matched-768 prefill package. The Mac
+  `/Users/simonpeacocks/GitHub/moss-mlx-conversion` checkout, temp FluidAudio
+  mirrors, private MOSS scaffold paths, and FluidAudio `.build` directory were
+  removed after local verification.
 
 ## Reproduction Commands
 
@@ -921,9 +927,9 @@ The private conversion now has three completed tracks:
    `moss-benchmark`. The full 20-row gate matches the prior WER/CER exactly,
    and the matched 512-cache step improves full manager RTFx from `0.23` to
    `0.69` on those rows. The CLI now has named cache presets, a cache capacity
-   guard, a tracked bundle manifest for package metadata, and an ignored local
-   active model bundle. It is not yet a downloadable, long-audio,
-   production-speed FluidAudio backend.
+   guard, a tracked bundle manifest for package metadata, an ignored local
+   CoreML build tree, and an ignored local active model bundle. It is not yet a
+   downloadable, long-audio, production-speed FluidAudio backend.
 
 The next real work is a Swift/CoreML runtime decision:
 
