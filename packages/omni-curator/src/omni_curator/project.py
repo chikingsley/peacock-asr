@@ -200,7 +200,102 @@ def _labeled_video_ids(project: CuratorProject, slug: str) -> set[str]:
     return done
 
 
+_YOUTUBE_METADATA_FIELDS = (
+    "title",
+    "description",
+    "upload_date",
+    "channel",
+    "channel_id",
+    "channel_url",
+    "webpage_url",
+    "duration",
+    "categories",
+    "tags",
+)
+
+
+def _metadata_value_ok(value: object) -> bool:
+    return isinstance(value, str | int | float | bool) or (
+        isinstance(value, list)
+        and all(isinstance(item, str | int | float | bool) for item in value)
+    )
+
+
+def _read_video_metadata(flac: Path) -> dict[str, object]:
+    """Read the bounded yt-dlp ``<video_id>.info.json`` sidecar for queue/store metadata."""
+    info_path = flac.with_suffix(".info.json")
+    if not info_path.exists():
+        return {}
+    try:
+        raw = json.loads(info_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    if not isinstance(raw, dict):
+        return {}
+    meta: dict[str, object] = {}
+    for meta_field in _YOUTUBE_METADATA_FIELDS:
+        value = raw.get(meta_field)
+        if value in (None, "", [], {}):
+            continue
+        if meta_field == "description" and isinstance(value, str):
+            meta[meta_field] = value[:4000]
+        elif meta_field == "tags" and isinstance(value, list):
+            meta[meta_field] = [str(item) for item in value[:32]]
+        elif _metadata_value_ok(value):
+            meta[meta_field] = value
+    return meta
+
+
+def _queue_video_stem(row: Mapping[str, object]) -> str:
+    path = Path(str(row["path"]))
+    if path.suffix:
+        return path.stem
+    video_id = str(row["video_id"])
+    channel = str(row["channel"])
+    prefix = f"{channel}_"
+    return video_id.removeprefix(prefix)
+
+
+def _queue_video_metadata(project: CuratorProject, row: Mapping[str, object]) -> dict[str, object]:
+    """Build bounded queue metadata from sidecars plus stable YouTube identity fields."""
+    from omni_curator.data.export import normalize_youtube_category
+
+    channel = str(row["channel"])
+    ch = project.channels_by_slug[channel]
+    stem = _queue_video_stem(row)
+    meta = _read_video_metadata(Path(str(row["path"])))
+    meta.setdefault("youtube_id", stem)
+    meta.setdefault("webpage_url", f"https://www.youtube.com/watch?v={stem}")
+    meta.setdefault("channel_slug", ch.slug)
+    meta.setdefault("channel_url", ch.url)
+    meta["category"] = normalize_youtube_category(ch.category)
+    meta["tier"] = ch.tier
+    return meta
+
+
 # -- source stage ------------------------------------------------------------------------------
+
+
+def cmd_prescan(project: CuratorProject, args: argparse.Namespace) -> int:
+    """Check selected channels before download and persist the decision surface."""
+    from omni_curator.create.youtube import prescan_channels
+
+    db_path = Path(args.db) if args.db else project.data / "prescan.sqlite"
+    results = prescan_channels(
+        project.selected_channels(args),
+        db_path=db_path,
+        limit=args.limit or 1,
+        lane=args.lane,
+    )
+    for result in results:
+        print(
+            f"{result.slug:20s} {result.status:5s} {result.video_count:>4} "
+            f"{result.tier:6s} {result.category:16s} {result.url}"
+        )
+        if result.last_error:
+            print(f"  ERROR {result.last_error[:160]}")
+    print(f"prescan -> {db_path}")
+    return 1 if any(result.status != "ok" for result in results) else 0
 
 
 def cmd_list(project: CuratorProject, args: argparse.Namespace) -> int:
@@ -291,12 +386,65 @@ def cmd_enqueue(project: CuratorProject, args: argparse.Namespace) -> int:
             video_id = f"{ch.slug}_{flac.stem}"
             if video_id in done:
                 continue
-            videos.append(QVideo(video_id, ch.slug, str(flac), ch.tier, ch.url))
+            videos.append(
+                QVideo(
+                    video_id,
+                    ch.slug,
+                    str(flac),
+                    ch.tier,
+                    ch.url,
+                    category=ch.category,
+                    meta=_read_video_metadata(flac),
+                )
+            )
     queue = QueueStore(project.queue_path)
     inserted = queue.enqueue_videos(videos)
     counts = queue.status_counts()
     queue.close()
     print(f"enqueued {inserted} new videos ({len(videos)} candidates) -> {project.queue_path}")
+    print(f"  queue now: videos={counts['videos']} clips={counts['clips']}")
+    return 0
+
+
+def cmd_repair_metadata(project: CuratorProject, args: argparse.Namespace) -> int:
+    """Refresh existing queue rows from the current channel registry and sidecar metadata."""
+    from omni_curator.create.queue import QueueStore, QVideo
+
+    channels = {channel.slug: channel for channel in project.selected_channels(args)}
+    queue = QueueStore(project.queue_path)
+    rows = queue.video_records()
+    videos: list[QVideo] = []
+    missing_registry = 0
+    for row in rows:
+        channel = str(row["channel"])
+        ch = channels.get(channel)
+        if ch is None:
+            if not args.channel and not args.tier and channel not in project.channels_by_slug:
+                missing_registry += 1
+            continue
+        videos.append(
+            QVideo(
+                str(row["video_id"]),
+                ch.slug,
+                str(row["path"]),
+                ch.tier,
+                ch.url,
+                category=ch.category,
+                meta=_queue_video_metadata(project, row),
+            )
+        )
+    result = queue.repair_video_metadata(videos, dry_run=args.dry_run)
+    counts = queue.status_counts()
+    queue.close()
+    action = "would update" if args.dry_run else "updated"
+    print(
+        f"repair-metadata {project.name}: matched={result.matched} "
+        f"changed={result.changed} {action}={result.updated}"
+    )
+    if result.skipped_missing:
+        print(f"  skipped {result.skipped_missing} update candidates missing from queue")
+    if missing_registry:
+        print(f"  skipped {missing_registry} queue rows with channels absent from registry")
     print(f"  queue now: videos={counts['videos']} clips={counts['clips']}")
     return 0
 
@@ -307,10 +455,7 @@ def cmd_segment(project: CuratorProject, args: argparse.Namespace) -> int:
     from omni_curator.create.segment import run_segmenters
     from omni_curator.create.vad import resolve_devices
 
-    # --procs is the deprecated alias: N GPU workers (what older scripts/invocations pass).
-    gpu_req = args.procs if args.procs is not None else args.gpu_procs
-    cpu_req = 0 if args.procs is not None else args.cpu_procs
-    gpu_procs, cpu_procs = resolve_devices(gpu_req, cpu_req)
+    gpu_procs, cpu_procs = resolve_devices(args.gpu_procs, args.cpu_procs)
     # --clips-root lets clips land on a fast disk (e.g. an SSD) while sources stay put; clip_path is
     # stored absolute, so the labeler reads new (SSD) and old (overflow) clips transparently.
     clips_root = Path(args.clips_root) if args.clips_root else project.clips_dir
@@ -336,6 +481,7 @@ def cmd_resegment(project: CuratorProject, args: argparse.Namespace) -> int:
     so it can't wipe a queue by accident. Idempotent (a re-run with nothing to reset is a no-op).
     """
     from omni_curator.create.queue import QueueStore
+    from omni_curator.factory import flock
 
     queue = QueueStore(project.queue_path)
     preview = queue.resegment_preview()
@@ -351,6 +497,26 @@ def cmd_resegment(project: CuratorProject, args: argparse.Namespace) -> int:
         print("  refusing without --yes (dry preview only; pass --yes to actually reset)")
         queue.close()
         return 0
+    active = [
+        stage for stage in ("enqueue", "segment", "labelq", "harvest", "archive")
+        if flock.is_locked(flock.lock_path(project.data, stage))
+    ]
+    if active:
+        print(f"  refusing: active stage locks are held: {', '.join(active)}")
+        queue.close()
+        return 2
+    existing_stores = sorted(project.channels_dir.glob("*/store.sqlite"))
+    if existing_stores and not args.allow_existing_stores:
+        print(
+            "  refusing: per-channel stores already exist. Re-segmenting the queue alone would "
+            "not update existing harvested/master rows because harvest is insert-if-absent."
+        )
+        print(
+            "  move/delete the affected stores deliberately, or pass --allow-existing-stores "
+            "only for a queue-only experiment."
+        )
+        queue.close()
+        return 2
     clip_paths = [] if args.keep_clip_files else queue.all_clip_paths()
     result = queue.reset_for_resegment()
     queue.close()
@@ -428,13 +594,18 @@ def cmd_harvest(project: CuratorProject, args: argparse.Namespace) -> int:
             if not c.label.strip():  # empty label: nothing to train on, but still mark harvested
                 skipped += 1
                 continue
+            meta = dict(c.meta)
+            meta["category"] = c.category
+            meta["tier"] = c.tier
+            if c.variants:
+                meta["variants"] = json.loads(c.variants)
             by_channel.setdefault(c.channel, []).append(
                 Sample(
                     id=c.clip_id, source=f"youtube-{c.channel}", language=c.language,
                     text=c.label, audio_path=c.clip_path,
                     duration=round(c.end - c.start, 3), sample_rate=16_000,
                     citation=c.citation,
-                    meta={"variants": json.loads(c.variants)} if c.variants else {},
+                    meta=meta,
                 )
             )
         for slug, samples in by_channel.items():
@@ -478,7 +649,7 @@ def cmd_merge(project: CuratorProject, args: argparse.Namespace) -> int:  # noqa
 # -- ingest stage -------------------------------------------------------------------------------
 
 
-def fleurs_source(config: str) -> IngestFn:
+def fleurs_source(config: str, *, streaming: bool = False) -> IngestFn:
     """Ready-made ingest: google/fleurs ``config`` (e.g. ``tg_tj``), splits preserved."""
 
     def load(project: CuratorProject) -> Iterable[Sample]:
@@ -487,7 +658,7 @@ def fleurs_source(config: str) -> IngestFn:
 
         return load_fleurs(
             config, language=project.language,
-            audio_dir=project.canonical_dir / "fleurs", streaming=True,
+            audio_dir=project.canonical_dir / "fleurs", streaming=streaming,
         )
 
     return load
@@ -523,6 +694,7 @@ def huggingface_source(
     source: str | None = None,
     text_column: str | None = None,
     force_split: str | None = None,
+    streaming: bool = False,
 ) -> IngestFn:
     """Ready-made ingest: any HF audio dataset (column auto-detect; 16 kHz mono FLAC clips).
 
@@ -543,7 +715,7 @@ def huggingface_source(
         name = source or f"hf-{repo.rsplit('/', 1)[-1].lower()}"
         samples = load_hf_audio(
             repo, language=project.language, source=name, config=config, splits=splits,
-            text_column=text_column, audio_dir=project.canonical_dir / name,
+            text_column=text_column, audio_dir=project.canonical_dir / name, streaming=streaming,
         )
         if force_split is None:
             return samples
@@ -651,14 +823,23 @@ def _parse_weights(project: CuratorProject, values: list[str] | None) -> dict[st
 
 def cmd_export(project: CuratorProject, args: argparse.Namespace) -> int:
     """Materialize a dataset ablation: store -> omni-parquet under ``datasets/<name>``."""
-    from omni_curator.data.export import Selection, export_dataset
+    from omni_curator.data.export import Selection, YoutubeSplitPolicy, export_dataset
     from omni_curator.data.store import CuratorStore
 
     heldout = frozenset() if args.no_heldout else project.heldout_videos()
     weights = {} if args.no_mixture_weights else _parse_weights(project, args.mixture_weight)
+    youtube_split_policy = (
+        YoutubeSplitPolicy(
+            dev_ratio=args.youtube_dev_ratio,
+            test_ratio=args.youtube_test_ratio,
+            seed=args.youtube_split_seed,
+        )
+        if args.youtube_stratified_splits
+        else None
+    )
     selection = Selection(
         max_duration_seconds=args.max_duration, max_scribe_wer=args.max_wer,
-        heldout_test_videos=heldout,
+        heldout_test_videos=heldout, youtube_split_policy=youtube_split_policy,
     )
     store = CuratorStore(project.db)
     stats = export_dataset(
@@ -674,6 +855,12 @@ def cmd_export(project: CuratorProject, args: argparse.Namespace) -> int:
         print(f"  held-out conversational test: {len(heldout)} videos carved to split=test")
     if weights:
         print(f"  mixture weights -> language_distribution_weighted.tsv: {weights}")
+    if youtube_split_policy is not None:
+        print(
+            "  YouTube splits: "
+            f"dev={youtube_split_policy.dev_ratio:g} test={youtube_split_policy.test_ratio:g} "
+            f"seed={youtube_split_policy.seed}"
+        )
     print(f"  by corpus: {stats.rows_by_corpus}")
     print(f"  by split: {stats.rows_by_split}")
     if stats.dropped_quality_total:
@@ -694,6 +881,13 @@ def _add_channel_args(parser: argparse.ArgumentParser, project: CuratorProject) 
 
 
 def _add_source_parsers(sub: argparse._SubParsersAction, project: CuratorProject) -> None:
+    p_pre = sub.add_parser("prescan", help="preflight channels and record reachability")
+    _add_channel_args(p_pre, project)
+    p_pre.add_argument("--lane", help="record intended VPN lane for later download routing")
+    p_pre.add_argument("--db", default=None, metavar="PATH",
+                       help="write prescan DB here (default: data/prescan.sqlite)")
+    p_pre.set_defaults(func=cmd_prescan)
+
     p_list = sub.add_parser("list", help="size channels (video counts, no download)")
     _add_channel_args(p_list, project)
     p_list.set_defaults(func=cmd_list)
@@ -726,13 +920,18 @@ def _add_create_parsers(sub: argparse._SubParsersAction, project: CuratorProject
                       help="scan DIR instead of data/create for new sources (match download)")
     p_eq.set_defaults(func=cmd_enqueue)
 
+    p_repair = sub.add_parser(
+        "repair-metadata", help="refresh queue tier/category/meta from the channel registry"
+    )
+    _add_channel_args(p_repair, project)
+    p_repair.add_argument("--dry-run", action="store_true", help="preview without updating rows")
+    p_repair.set_defaults(func=cmd_repair_metadata)
+
     p_sg = sub.add_parser("segment", help="VAD-segment queued videos into clips (GPU+CPU)")
     p_sg.add_argument("--gpu-procs", type=int, default=2,
                       help="VAD workers on the GPU (models share it; ~3 fit in 12 GB)")
     p_sg.add_argument("--cpu-procs", type=int, default=8,
                       help="VAD workers on the CPU cores, run alongside the GPU for max throughput")
-    p_sg.add_argument("--procs", type=int, default=None,
-                      help="deprecated: N GPU workers (use --gpu-procs/--cpu-procs)")
     p_sg.add_argument("--max-duration", type=float, default=30.0, help="hard cap per VAD span (s)")
     p_sg.add_argument("--hwm", type=int, default=DEFAULT_PENDING_HWM,
                       help="pending-clip backpressure ceiling (segment pauses above it)")
@@ -750,6 +949,8 @@ def _add_create_parsers(sub: argparse._SubParsersAction, project: CuratorProject
                        help="actually reset (without it, prints a dry preview and exits)")
     p_rsg.add_argument("--keep-clip-files", action="store_true",
                        help="clear clip ROWS only; leave the orphan clip FILES on disk")
+    p_rsg.add_argument("--allow-existing-stores", action="store_true",
+                       help="allow reset even when channel stores already contain harvested rows")
     p_rsg.set_defaults(func=cmd_resegment)
 
     p_lq = sub.add_parser("labelq", help="drain the clip queue with Scribe workers (I/O)")
@@ -817,6 +1018,11 @@ def _add_store_parsers(sub: argparse._SubParsersAction, project: CuratorProject)
                       help="export only commercial-licensed sources (drops NC/unknown)")
     p_ex.add_argument("--no-mixture-weights", action="store_true",
                       help="write no weighted TSV (true hours only)")
+    p_ex.add_argument("--youtube-stratified-splits", action="store_true",
+                      help="assign YouTube rows to category-stratified, video-disjoint splits")
+    p_ex.add_argument("--youtube-dev-ratio", type=float, default=0.05)
+    p_ex.add_argument("--youtube-test-ratio", type=float, default=0.05)
+    p_ex.add_argument("--youtube-split-seed", default="youtube-v1")
     p_ex.set_defaults(func=cmd_export)
 
 

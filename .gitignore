@@ -41,6 +41,11 @@ wandb/
 # storage are ignored by each project's own `.gitignore` (`/data`), which matches
 # symlinks too — the trailing-slash rule here only catches real directories.
 data/
+# ...but `src/omni_curator/data/` is the curator's SOURCE package (store/sample/export/provenance),
+# not artifacts — the bare `data/` above was silently un-tracking the whole data layer (package broke
+# on a fresh clone). Re-include the source package.
+!/packages/omni-curator/src/omni_curator/data/
+!/packages/omni-curator/src/omni_curator/data/**
 
 # Repo-level base/pretrained model cache (large .nemo/.pt weights, copied not symlinked)
 base_models/

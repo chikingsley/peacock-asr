@@ -4,7 +4,7 @@ Pure data: which datasets to ingest. All curation LOGIC lives in omni-curator; `
 wires these in. Russian is INGEST-heavy: FLEURS + Common Voice + the large local corpora below.
 A YouTube channel registry can be added later if conversational scrape is wanted.
 
-LOCAL CORPORA (under data/, migrated to /mnt/overflow): ru_open_stt, sova_dataset, TIMIT.
+LOCAL CORPORA (under data/, migrated to /mnt/tiny-2t): ru_open_stt, sova_dataset, TIMIT.
 These are pre-labelled but in their own formats — each needs an ingest adapter (TODO) before it
 lands in the store. FLEURS + Common Voice ingest via the standard factories today.
 """
@@ -64,13 +64,13 @@ LICENSES: dict[str, tuple[str, bool]] = {
     "ru_open_stt": ("CC-BY-NC", False),
 }
 
-#: LOCAL pre-labelled corpora already on disk (data/<name> -> /mnt/overflow) — own formats, each
+#: LOCAL pre-labelled corpora already on disk (data/<name> -> /mnt/tiny-2t) — own formats, each
 #: needs a manifest-parsing adapter. LICENSE-tagged (verified 2026-06-15):
 #:   sova_dataset -> CC-BY-4.0 (commercial OK; attribute Virtual Assistant LLC)
 #:   ru_open_stt  -> CC-BY-NC  (NON-COMMERCIAL — poisons a commercial release; keep behind opt-in)
 #: REMOVED: the local "TIMIT" dir is the original ENGLISH LDC TIMIT mislabeled as Russian — wrong
 #: language AND LDC-restricted (no redistribution / no commercial / no publishing models on it).
-#: Quarantined at /mnt/overflow/.../russian-asr/data/TIMIT — do NOT ingest, train, or upload it.
+#: Quarantined at /mnt/tiny-2t/.../russian-asr/data/TIMIT — do NOT ingest, train, or upload it.
 LOCAL_CORPORA = ("sova_dataset", "ru_open_stt")  # NC: ru_open_stt
 
 #: No YouTube scrape yet — Russian has ample labelled data. Add channels here if/when wanted.

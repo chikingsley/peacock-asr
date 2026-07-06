@@ -1,4 +1,4 @@
-"""The single-writer ``flock`` primitive (factory_plan §1) — replaces pidfiles.
+"""The single-writer ``flock`` primitive — replaces pidfiles.
 
 Each long-running stage is owned by a per-(project, stage) exclusive ``flock`` on
 ``<project>/data/.lock.<stage>``. The stage process acquires it at startup and holds it for its

@@ -14,6 +14,8 @@ import pytest
 from omni_curator.create.segment import (
     DEFAULT_PENDING_HWM,
     _free_gb,
+    _publish_staged_clip_dir,
+    _staging_root,
     _terminate_workers,
     resolve_source_path,
 )
@@ -98,6 +100,20 @@ def test_free_gb_probes_existing_parent(tmp_path):
 
 def test_default_pending_hwm_is_finite_and_sane():
     assert DEFAULT_PENDING_HWM == 50_000  # not the old effectively-infinite 5_000_000
+
+
+def test_publish_staged_clip_dir_moves_output_and_cleans_staging(tmp_path):
+    clips_root = tmp_path / "clips"
+    staging_root = _staging_root(clips_root, "claim-token")
+    staging_dir = staging_root / "chan" / "video1"
+    final_dir = clips_root / "chan" / "video1"
+    staging_dir.mkdir(parents=True)
+    (staging_dir / "seg_0000.flac").write_bytes(b"clip")
+
+    _publish_staged_clip_dir(staging_root, staging_dir, final_dir)
+
+    assert (final_dir / "seg_0000.flac").read_bytes() == b"clip"
+    assert not staging_root.exists()
 
 
 if __name__ == "__main__":  # pragma: no cover

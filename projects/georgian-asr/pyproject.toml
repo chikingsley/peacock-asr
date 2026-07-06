@@ -38,9 +38,6 @@ georgian-curate = "georgian_asr.curate:main"
 # omni (OmniASR CTC) family
 georgian-omni-train = "georgian_asr.omni.train:main"
 georgian-omni-eval = "georgian_asr.omni.eval:main"
-# deprecated bare aliases (= omni) — kept for one transition, retire later
-georgian-train = "georgian_asr.omni.train:main"
-georgian-eval = "georgian_asr.omni.eval:main"
 
 [project.entry-points."fairseq2.extension"]
 georgian_asr = "georgian_asr.assets:setup_fairseq2_extension"

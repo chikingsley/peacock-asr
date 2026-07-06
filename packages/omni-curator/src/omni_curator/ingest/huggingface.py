@@ -114,9 +114,9 @@ def load_hf_audio(
     audio_column: str | None = None,
     text_column: str | None = None,
     audio_dir: Path,
-    streaming: bool = True,
+    streaming: bool = False,
 ) -> Iterator[Sample]:
-    """Stream any HF audio dataset -> 16 kHz mono FLAC clips + ``Sample``s."""
+    """Load any HF audio dataset -> 16 kHz mono FLAC clips + ``Sample``s."""
     import librosa
     import numpy as np
     import soundfile as sf

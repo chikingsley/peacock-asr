@@ -25,9 +25,9 @@ def load_fleurs(
     audio_dir: Path,
     source: str = "fleurs",
     splits: tuple[str, ...] | None = None,
-    streaming: bool = True,
+    streaming: bool = False,
 ) -> Iterator[Sample]:
-    """Stream ``google/fleurs`` ``config`` (e.g. ``"ka_ge"``) -> 16 kHz FLAC clips + ``Sample``s.
+    """Load ``google/fleurs`` ``config`` (e.g. ``"ka_ge"``) -> 16 kHz FLAC clips + ``Sample``s.
 
     ``language`` is the curator language code stored on each Sample (e.g. ``"kat_Geor"``);
     ``config`` is the HF FLEURS config id (e.g. ``"ka_ge"``).

@@ -24,7 +24,8 @@ COMMONVOICE: dict[str, str] = {
 
 #: Georgian YouTube channels for the create path. Policy: a channel qualifies when a meaningful
 #: share of its content is spoken Georgian (bilingual is fine — the export language gate filters
-#: per-clip); only pure music/song channels are skipped. Vetted 2026-06-07 (web-searched handles).
+#: per-clip); only pure music/song channels are skipped. Vetted 2026-06-07 and expanded from the
+#: 2026-06-13 research pass. `@interpressnews` is excluded because it still 404s in yt-dlp.
 YOUTUBE_CHANNELS: tuple[Channel, ...] = (
     # -- clean: scripted / anchor / single-speaker narration ----------------------------------
     _ch("gpb_first_channel", "https://www.youtube.com/channel/UCNFAwk1As-qyvbbm2almNpQ", "clean",
@@ -64,5 +65,60 @@ YOUTUBE_CHANNELS: tuple[Channel, ...] = (
         "Shabatis Show — comedy/entertainment talk; conversational speech"),
     _ch("komedi_shou", "https://www.youtube.com/@komedishou3378", "noisy",
         "Komedi Shou (Rustavi 2 sketches) — scripted dialogue; re-upload channel, verify size"),
+    # -- news / TV broadcasters (2026-06-13 research pass) ------------------------------------
+    _ch("maestro_tv", "@maestrotv3750", "noisy",
+        "Maestro TV — news + analytical talk shows; large catalog."),
+    _ch("kavkasia_tv", "@KavkasiaTelevision", "noisy",
+        "Telecompany Kavkasia — political talk shows, debates, analytics."),
+    _ch("postv", "@POSTV", "noisy",
+        "POSTV — talk/analytical programs; pro-gov slant, Georgian-dominant."),
+    _ch("postv_analytics", "@POSTV.Analytics", "noisy",
+        "POSTV analytics sub-channel — long-form panel discussion."),
+    _ch("publika_tv", "@publika_news", "noisy",
+        "Publika — independent socio-political outlet; reports, interviews, street audio."),
+    _ch("batumelebi", "@BatumelebiNews", "noisy",
+        "Batumelebi — independent Batumi/Adjara newsroom; reports, interviews."),
+    _ch("forbes_georgia", "@ForbesGeo", "clean",
+        "Forbes Georgia — studio business interviews; small channel."),
+    _ch("tv_georgian_times", "@TVGeorgianTimes", "noisy",
+        "TV Georgian Times — news + reporting."),
+    # -- talk / podcast / interview -----------------------------------------------------------
+    _ch("nanukas_channel", "@nanukaschannel6465", "noisy",
+        "Nanuka Zhorzholiani's Show — flagship social/celebrity talk show, multi-guest."),
+    _ch("gattsu", "@Gattsu", "noisy",
+        "Gattsu — geopolitics/culture commentary + interviews; spontaneous speech."),
+    _ch("octopus", "@Octopusi", "noisy",
+        "Octopus — entertainment + sports talk shows, panel formats."),
+    _ch("studio_monitori", "@studiomonitori", "noisy",
+        "Studio Monitor — investigative docs + on-camera interviews."),
+    _ch("tabula_tv", "@TabulaTelevision", "noisy",
+        "Tabula — political analysis, interviews, longform talk."),
+    # -- comedy / entertainment / variety -----------------------------------------------------
+    _ch("comedy_group", "@c-comedy", "noisy",
+        "Comedy Group — sketches, talk shows, variety."),
+    _ch("komedi_arxi", "https://www.youtube.com/channel/UCMwRaK_tGpS8oCMOJk7s5Hg",
+        "noisy", "Komedi Arxi — comedy sketches/shows; small re-upload, verify size."),
+    _ch("nichieri", "@nichieri", "noisy",
+        "Nichieri — Georgia's Got Talent; live banter, judge/host speech."),
+    _ch("colis_dakalebi", "@ColisDakalebiTELEGE", "noisy",
+        "'Chemi Tsolis Dakalebi' sitcom — scripted conversational dialogue."),
+    _ch("hungryman", "@hungrymantv", "noisy",
+        "Hungryman — food challenges, pranks, street social experiments."),
+    # -- vlogs / lifestyle --------------------------------------------------------------------
+    _ch("soso_around_world", "@SosoAroundTheWorld", "noisy",
+        "Soso Nebieridze — travel vlogger; narration + field audio."),
+    # -- educational / children ---------------------------------------------------------------
+    _ch("eduwoes", "@Eduwoes", "clean",
+        "Eduwoes — educational explainers, mostly single-speaker narration."),
+    _ch("emili_tv", "@EmiliTV", "noisy",
+        "Emili TV — father/daughter edutainment for kids/teens, conversational."),
+    _ch("jirafi_joze", "https://www.youtube.com/channel/UC2VLd27TDiI8ZTpVg2wdL7Q",
+        "clean", "Giraffe Jose — children's educational narration, clean single-speaker."),
+    # -- religious / literature / culture -----------------------------------------------------
+    _ch("patriarchate_georgia", "@patriarchateofgeorgia797", "clean",
+        "Patriarchate of Georgia — sermons, liturgy readings; some chant."),
+    _ch("nplg_official", "@NPLGofficial", "clean",
+        "National Parliamentary Library — audiobook readings by actors/writers."),
+    _ch("voices_ancestors", "@voicesoftheancestors", "clean",
+        "Polyphony podcast — partly English, language gate will filter."),
 )
-

@@ -22,7 +22,7 @@ curate download → enqueue → segment → labelq → harvest → merge → (in
   for the export gate).
 - `tajik-curate export vN [--max-wer ...]` — `Selection` over the pool → omni-parquet under
   `data/datasets/vN` (normalize → language gate → quality filter → tokenizer-coverage gate).
-- `tajik-train` / `tajik-eval` — fine-tune / score via `omni-finetune-core` presets + `assets.py` cards.
+- `tajik-omni-train` / `tajik-omni-eval` — fine-tune / score via `omni-finetune-core` presets + `assets.py` cards.
 
 ## Data layout (`data/`, gitignored)
 

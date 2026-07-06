@@ -38,14 +38,18 @@ def run_recipe(
 ) -> None:
     """Invoke the recipe CLI (via runpy) with an existing config file + output dir."""
     output_dir.mkdir(parents=True, exist_ok=True)
-    sys.argv = [
-        RECIPE_MODULE,
-        str(output_dir),
-        "--config-file",
-        str(config_file),
-        *(extra_args or []),
-    ]
-    runpy.run_module(RECIPE_MODULE, run_name="__main__")
+    old_argv = sys.argv[:]
+    try:
+        sys.argv = [
+            RECIPE_MODULE,
+            str(output_dir),
+            "--config-file",
+            str(config_file),
+            *(extra_args or []),
+        ]
+        runpy.run_module(RECIPE_MODULE, run_name="__main__")
+    finally:
+        sys.argv = old_argv
 
 
 def train(

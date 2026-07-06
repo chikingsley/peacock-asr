@@ -30,7 +30,7 @@ def test_parse_jobs_same_lang_both_stages_are_distinct_jobs():
 def test_parse_jobs_ignores_non_scribe_stages():
     ps = (
         "russian-curate download --lane gluetun-lane1\n"
-        "tajik-curate segment --procs 2\n"
+        "tajik-curate segment --gpu-procs 2\n"
         "python -m omni_curator.scribe.balance --budget 300\n"
     )
     assert parse_jobs(ps) == []

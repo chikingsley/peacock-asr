@@ -2,7 +2,7 @@
 
 Every other module imports paths and env lookups from here instead of redefining ``.env``
 parsing, API-key resolution, or the data-dir layout. Paths hang off the ``data`` symlink so the
-project stays portable: it currently points at ``/mnt/overflow/peacock-asr/...``.
+project stays portable: it currently points at ``/mnt/tiny-2t/peacock-asr/...``.
 """
 
 from __future__ import annotations

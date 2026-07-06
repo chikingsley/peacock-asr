@@ -8,7 +8,10 @@ import multiprocessing as mp
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 from farsi_asr import LANGUAGE, ROOT
 
@@ -89,6 +92,27 @@ def file_sha256_prefix(path: Path, *, length: int = 12) -> str:
     return hasher.hexdigest()[:length]
 
 
+def _parquet_row_batches(parquet: Any, path: Path) -> Iterator[tuple[list[bytes], list[str]]]:
+    schema_names = set(parquet.schema_arrow.names)
+    if {"audio_bytes", "normalized_text"}.issubset(schema_names):
+        for batch in parquet.iter_batches(
+            batch_size=256, columns=["audio_bytes", "normalized_text"]
+        ):
+            yield (
+                batch.column("audio_bytes").to_pylist(),
+                batch.column("normalized_text").to_pylist(),
+            )
+        return
+    if {"audio", "transcription"}.issubset(schema_names):
+        for batch in parquet.iter_batches(batch_size=256, columns=["audio", "transcription"]):
+            yield (
+                [row["bytes"] for row in batch.column("audio").to_pylist()],
+                batch.column("transcription").to_pylist(),
+            )
+        return
+    raise SystemExit(f"unsupported benchmark schema in {path}: {sorted(schema_names)}")
+
+
 def load_rows(paths: list[Path], limit: int) -> tuple[list[bytes], list[str]]:
     import pyarrow.parquet as pq
 
@@ -97,24 +121,19 @@ def load_rows(paths: list[Path], limit: int) -> tuple[list[bytes], list[str]]:
     remaining = limit or None
 
     for path in paths:
-        schema_names = set(pq.ParquetFile(path).schema_arrow.names)
-        if {"audio_bytes", "normalized_text"}.issubset(schema_names):
-            table = pq.read_table(path, columns=["audio_bytes", "normalized_text"])
-            shard_audio = table.column("audio_bytes").to_pylist()
-            shard_refs = table.column("normalized_text").to_pylist()
-        elif {"audio", "transcription"}.issubset(schema_names):
-            table = pq.read_table(path, columns=["audio", "transcription"])
-            shard_audio = [row["bytes"] for row in table.column("audio").to_pylist()]
-            shard_refs = table.column("transcription").to_pylist()
-        else:
-            raise SystemExit(f"unsupported benchmark schema in {path}: {sorted(schema_names)}")
+        parquet = pq.ParquetFile(path)
+        for shard_audio, shard_refs in _parquet_row_batches(parquet, path):
+            batch_audio = shard_audio
+            batch_refs = shard_refs
+            if remaining is not None:
+                batch_audio = shard_audio[:remaining]
+                batch_refs = shard_refs[:remaining]
+                remaining -= len(batch_audio)
+            audio.extend(batch_audio)
+            refs.extend(batch_refs)
+            if remaining == 0:
+                break
 
-        if remaining is not None:
-            shard_audio = shard_audio[:remaining]
-            shard_refs = shard_refs[:remaining]
-            remaining -= len(shard_audio)
-        audio.extend(shard_audio)
-        refs.extend(shard_refs)
         if remaining == 0:
             break
 

@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
+import sys
 from typing import Any, cast
 
 import pytest
 
+from omni_finetune_core import train as train_mod
 from omni_finetune_core.presets import gpu_max_finetune
 from omni_finetune_core.project import (
     FinetuneProject,
@@ -114,3 +116,33 @@ def test_train_parser_offers_presets_and_regimes(project):
     assert args.lr == 2e-6
     with pytest.raises(SystemExit):
         parser.parse_args(["--preset", "nonexistent"])
+
+
+def test_run_recipe_restores_sys_argv(tmp_path, monkeypatch):
+    outer_argv = ["outer-command", "--still-here"]
+    monkeypatch.setattr(sys, "argv", outer_argv[:])
+    seen: dict[str, object] = {}
+
+    def fake_run_module(module: str, *, run_name: str) -> None:
+        seen["module"] = module
+        seen["run_name"] = run_name
+        seen["argv"] = sys.argv[:]
+
+    monkeypatch.setattr(train_mod.runpy, "run_module", fake_run_module)
+
+    train_mod.run_recipe(
+        tmp_path / "config.yaml", tmp_path / "run", extra_args=["--dry-run"]
+    )
+
+    assert seen == {
+        "module": train_mod.RECIPE_MODULE,
+        "run_name": "__main__",
+        "argv": [
+            train_mod.RECIPE_MODULE,
+            str(tmp_path / "run"),
+            "--config-file",
+            str(tmp_path / "config.yaml"),
+            "--dry-run",
+        ],
+    }
+    assert sys.argv == outer_argv

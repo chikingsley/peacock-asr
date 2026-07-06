@@ -1,4 +1,4 @@
-"""The single-writer flock primitive: acquire, contention, release-on-exit (factory_plan §1)."""
+"""The single-writer flock primitive: acquire, contention, release-on-exit."""
 
 from __future__ import annotations
 

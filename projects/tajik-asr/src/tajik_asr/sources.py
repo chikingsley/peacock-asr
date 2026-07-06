@@ -113,6 +113,7 @@ YOUTUBE_CHANNELS: tuple[Channel, ...] = (
         "UCu2DqlrzjVrkSE45s_DrsMQ",
         "clean",
         "1000 Китоб: narrated Tajik folk stories.",
+        category="audiobook",
     ),
     _ch(
         "quran_tajik",
@@ -183,7 +184,13 @@ YOUTUBE_CHANNELS: tuple[Channel, ...] = (
     ),
     _ch("vashgird", "UCOMGlLskQ6oMQxdcAa9r7pg", "noisy", "VASHGIRD: Tajik talk/entertainment."),
     _ch("blogi_tojikon", "UC1an9Iqjb_j9MqSKOimishw", "noisy", "Блоги Тоҷикон: Tajik vlogs."),
-    _ch("najm_tv", "UCtbkheg9Y_4Gqd5fJvTPnIA", "noisy", "Najm TV: Tajik programs."),
+    _ch(
+        "najm_tv",
+        "UCtbkheg9Y_4Gqd5fJvTPnIA",
+        "noisy",
+        "Najm TV: Tajik programs.",
+        category="entertainment",
+    ),
     _ch("dfilm_tj", "UCkWYn30XkWkBG7Xz3EUQdxA", "noisy", "Dfilm tj: Tajik film/talk."),
     _ch(
         "aziya_khujand",
@@ -244,7 +251,13 @@ YOUTUBE_CHANNELS: tuple[Channel, ...] = (
     _ch("rushdi_millat", "UCl2ddsg2vGcQSNYKbRTGPxg", "noisy", "РУШДИ МИЛЛАТ: migrant-focused commentary."),
     _ch("gayurov", "UCB07-cMoeNiSpYnVSf5LTGA", "noisy", "GAYUROV: work-abroad explainers (some RU)."),
     _ch("talabsho_usa", "UCK6xYrrzDKSdpQoJe7F25vQ", "noisy", "Talabsho: Tajiks-in-USA events/interviews."),
-    _ch("sm_sharipov", "UC-EvNte5h0RtqVlsrJqJD1Q", "noisy", "SM Sharipov: colloquial true-crime narration."),
+    _ch(
+        "sm_sharipov",
+        "UC-EvNte5h0RtqVlsrJqJD1Q",
+        "noisy",
+        "SM Sharipov: colloquial true-crime narration.",
+        category="documentary",
+    ),
     _ch("hamnavo", "UCSz_lk2CpAedtc4Wnf__TBw", "noisy", "Hamnavo: Dushanbe street vlogs/news walks."),
     _ch("gap_nadorm", "UCWYmF-OgBfGFMdxlKPMoh8w", "noisy", "ГАП НАДОРМ: colloquial cars/life vlogs (RU)."),
     _ch("taj_mama", "UCoE97TS7fekqgoxgyDFSP7g", "noisy", "Taj mama: family vlogs, northern colloquial."),

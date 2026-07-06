@@ -1,8 +1,8 @@
 """Score Russian model cards on an export's test split — delegates to the core eval.
 
-  russian-eval                                    # base on the v0 export's test split
-  russian-eval --models ft=<trained card> --device cuda
-  russian-eval --only-corpus-prefix youtube-      # conversational held-out alone
+  russian-omni-eval                                    # base on the v0 export's test split
+  russian-omni-eval --models ft=<trained card> --device cuda
+  russian-omni-eval --only-corpus-prefix youtube-      # conversational held-out alone
 """
 
 from __future__ import annotations

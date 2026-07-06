@@ -11,6 +11,7 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -31,9 +32,120 @@ class Channel:
     url: str
     tier: str  # "clean" = scripted/single-speaker | "noisy" = conversational
     note: str
+    category: str = "uncategorized"
 
 
-def channel(slug: str, ident: str, tier: str, note: str) -> Channel:
+_CATEGORY_KEYWORDS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    (
+        "language_learning",
+        (
+            "language learning",
+            "language lessons",
+            "phrase pairs",
+            "grammar lessons",
+            "learning tajik",
+        ),
+    ),
+    (
+        "audiobook",
+        (
+            "audiobook",
+            "audiobooks",
+            "audio book",
+            "audio books",
+            "narrated literature",
+            "book readings",
+        ),
+    ),
+    (
+        "children",
+        ("children", "kids", "kid", "alphabet", "riddles", "father/daughter"),
+    ),
+    (
+        "religion",
+        (
+            "religious",
+            "sermon",
+            "sermons",
+            "quran",
+            "tafsir",
+            "liturgy",
+            "patriarchate",
+            "hoji",
+        ),
+    ),
+    (
+        "education",
+        (
+            "education",
+            "educational",
+            "science",
+            "school",
+            "university",
+            "lecture",
+            "lectures",
+            "lessons",
+            "course",
+            "academic",
+            "mooc",
+            "explainer",
+        ),
+    ),
+    (
+        "news",
+        (
+            "news",
+            "bulletin",
+            "bulletins",
+            "reporting",
+            "reports",
+            "broadcaster",
+            "journalism",
+            "rfe/rl",
+            "voa",
+            "state channel",
+        ),
+    ),
+    ("podcast", ("podcast",)),
+    ("interview", ("interview", "interviews", "call-in")),
+    (
+        "talk",
+        (
+            "talk",
+            "panel",
+            "debate",
+            "discussion",
+            "conversation",
+            "conversational",
+            "commentary",
+            "monologue",
+            "analysis",
+            "analytics",
+            "show",
+        ),
+    ),
+    ("documentary", ("documentary", "docs", "investigative")),
+    ("comedy", ("comedy", "sketch", "skit", "sitcom", "humor", "ханда")),
+    ("food", ("cooking", "cook", "food")),
+    ("travel", ("travel", "around world")),
+    ("vlog", ("vlog", "vlogs", "daily-life", "daily life", "lifestyle", "street")),
+    ("entertainment", ("entertainment", "variety", "talent", "sports", "football", "film")),
+    ("music", ("music", "song", "chant")),
+)
+
+
+def infer_channel_category(slug: str, note: str) -> str:
+    """Infer the source-category taxonomy from a channel slug/note when not set explicitly."""
+    text = f"{slug} {note}".lower().replace("-", " ").replace("_", " ")
+    for category, needles in _CATEGORY_KEYWORDS:
+        if any(needle in text for needle in needles):
+            return category
+    return "uncategorized"
+
+
+def channel(
+    slug: str, ident: str, tier: str, note: str, *, category: str = "uncategorized"
+) -> Channel:
     """Build a :class:`Channel`; ``ident`` is a full URL, an ``@handle``, or a ``UC...`` id."""
     if ident.startswith(("http://", "https://")):
         url = ident
@@ -41,7 +153,9 @@ def channel(slug: str, ident: str, tier: str, note: str) -> Channel:
         url = f"https://www.youtube.com/{ident}"
     else:
         url = f"https://www.youtube.com/channel/{ident}"
-    return Channel(slug, url, tier, note)
+    if category == "uncategorized":
+        category = infer_channel_category(slug, note)
+    return Channel(slug, url, tier, note, category)
 
 
 #: Containerized yt-dlp for VPN lanes: runs inside a gluetun container's network namespace so the
@@ -93,6 +207,35 @@ class ChannelDownload:
         return self.total_seconds / 3600.0
 
 
+@dataclass(frozen=True)
+class PrescanResult:
+    """One pre-download channel reachability check persisted to the project prescan DB."""
+
+    slug: str
+    url: str
+    tier: str
+    category: str
+    lane: str | None
+    status: str
+    video_count: int
+    last_error: str | None
+
+
+_PRESCAN_SCHEMA = """
+CREATE TABLE IF NOT EXISTS channel_prescan (
+    slug        TEXT PRIMARY KEY,
+    url         TEXT NOT NULL,
+    tier        TEXT NOT NULL,
+    category    TEXT NOT NULL,
+    lane        TEXT,
+    status      TEXT NOT NULL,
+    video_count INTEGER NOT NULL,
+    checked_at  REAL NOT NULL,
+    last_error  TEXT
+);
+"""
+
+
 def list_channel_videos(channel_url: str, *, limit: int | None = None) -> list[str]:
     """List a channel/playlist's video ids (flat, metadata-only — no audio downloaded).
 
@@ -106,17 +249,79 @@ def list_channel_videos(channel_url: str, *, limit: int | None = None) -> list[s
     return [line.strip() for line in out.stdout.splitlines() if line.strip()]
 
 
+def prescan_channels(
+    channels: list[Channel],
+    *,
+    db_path: Path,
+    limit: int | None = 1,
+    lane: str | None = None,
+    list_videos: Callable[..., list[str]] | None = None,
+) -> list[PrescanResult]:
+    """Record a reachability check for each channel before spending download bandwidth."""
+    from omni_curator.data.store import connect_wal
+
+    lister = list_videos or list_channel_videos
+    conn = connect_wal(db_path, _PRESCAN_SCHEMA)
+    checked_at = time.time()
+    results: list[PrescanResult] = []
+    with conn:
+        for ch in channels:
+            try:
+                ids = lister(ch.url, limit=limit)
+            except subprocess.CalledProcessError as exc:
+                result = PrescanResult(
+                    slug=ch.slug,
+                    url=ch.url,
+                    tier=ch.tier,
+                    category=ch.category,
+                    lane=lane,
+                    status="error",
+                    video_count=0,
+                    last_error=(exc.stderr or str(exc))[:500],
+                )
+            else:
+                result = PrescanResult(
+                    slug=ch.slug,
+                    url=ch.url,
+                    tier=ch.tier,
+                    category=ch.category,
+                    lane=lane,
+                    status="ok",
+                    video_count=len(ids),
+                    last_error=None,
+                )
+            conn.execute(
+                "INSERT OR REPLACE INTO channel_prescan "
+                "(slug, url, tier, category, lane, status, video_count, checked_at, last_error) "
+                "VALUES (?,?,?,?,?,?,?,?,?)",
+                (
+                    result.slug,
+                    result.url,
+                    result.tier,
+                    result.category,
+                    result.lane,
+                    result.status,
+                    result.video_count,
+                    checked_at,
+                    result.last_error,
+                ),
+            )
+            results.append(result)
+    conn.close()
+    return results
+
+
 def _lane_docker_prefix(lane: str, out_dir: Path, cookies: Path | None) -> list[str]:
     """``docker run`` prefix that runs yt-dlp inside gluetun container ``lane``'s netns.
 
     The container borrows the VPN container's network namespace (``--network=container:<lane>``) so
     the download egresses through the VPN's clean IP. The output dir and cookies are bind-mounted
-    at their **resolved real paths** (the project data dir is a symlink into ``/mnt/overflow``; only
+    at their **resolved real paths** (the project data dir is a symlink into ``/mnt/tiny-2t``; only
     the real target is mounted), and the yt-dlp flags are built against those same paths — so
     ``--download-archive``, ``-o``, and ``--cookies`` resolve identically in and out of the
     container, and files / the archive / ``<id>.flac`` naming land in the same place as a host run.
     ``--user`` + a writable ``HOME`` (pointed at the mounted out_dir) make the output files
-    ``simon:simon`` on ``/mnt/overflow`` and give deno a place for its cache. Cookies are mounted
+    ``simon:simon`` on ``/mnt/tiny-2t`` and give deno a place for its cache. Cookies are mounted
     read-write because yt-dlp rewrites the jar on exit.
     """
     real_out = out_dir.resolve()
@@ -185,7 +390,7 @@ def download_channel(
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     # In a lane run only the *resolved* real paths are bind-mounted into the container (the project
-    # data dir is a symlink into /mnt/overflow), so build the file-path flags against those. A host
+    # data dir is a symlink into /mnt/tiny-2t), so build the file-path flags against those. A host
     # run uses the paths as given — behaviorally identical, since the symlink resolves locally.
     flag_dir = out_dir.resolve() if lane is not None else out_dir
     flag_cookies = (
@@ -196,6 +401,7 @@ def download_channel(
         "--download-archive", str(flag_dir / "downloaded.txt"),
         "--lazy-playlist",  # download as the channel is listed, not after — files land immediately
         "--ignore-errors",
+        "--write-info-json",
         # Throttle so YouTube doesn't rate-limit / bot-block us — the two official sleep knobs:
         # --sleep-requests delays metadata extraction, --sleep-interval/--max delays each download.
         "--sleep-requests", str(sleep),

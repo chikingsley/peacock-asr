@@ -1,7 +1,7 @@
 """Train Tajik omni CTC models — pure config over :mod:`omni_finetune_core.project`.
 
 Presets are typed ``TrainingConfig`` factories (proven field-equivalent to the YAML recipe
-configs they replaced); ``tajik-train --preset tajik-corpus-v3-300m`` runs the shipping recipe.
+configs they replaced); ``tajik-omni-train --preset tajik-corpus-v3-300m`` runs the shipping recipe.
 Past experiments (v0/v1/v2) live in EXPERIMENTS.md + git history; their runs are complete.
 """
 

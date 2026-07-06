@@ -1,6 +1,6 @@
 # Georgian ASR — experiment log
 
-Newest at the bottom. Numbers come from `georgian-eval` (corpus-level jiwer on the export's
+Newest at the bottom. Numbers come from `georgian-omni-eval` (corpus-level jiwer on the export's
 test split) unless noted.
 
 ## 2026-06-12 — v0: first Georgian fine-tune (145.3 h gold)

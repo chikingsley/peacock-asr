@@ -1,8 +1,8 @@
 """Score Tajik model cards on an export's test split — delegates to the core eval.
 
-  tajik-eval                                          # base/v0/v3 on the v3 export's test split
-  tajik-eval --only-corpus-prefix youtube-            # the conversational held-out alone
-  tajik-eval --device cuda --models v3=omni_ctc_300m_v2_tajik_v3_step_20000
+  tajik-omni-eval                                  # base/v0/v3 on the v3 export's test split
+  tajik-omni-eval --only-corpus-prefix youtube-            # the conversational held-out alone
+  tajik-omni-eval --device cuda --models v3=omni_ctc_300m_v2_tajik_v3_step_20000
 """
 
 from __future__ import annotations

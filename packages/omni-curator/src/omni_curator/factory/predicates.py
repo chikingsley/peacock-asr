@@ -1,7 +1,7 @@
-"""Per-stage "claimable now" predicates derived from the DBs (factory_plan §2, the two v0 rows).
+"""Per-stage "claimable now" predicates derived from the DBs.
 
 A trigger must mean **work claimable right now**, not just "rows in a transient state" — otherwise a
-stage launches, finds nothing to claim, exits, and gets relaunched in a tight loop. The two v0
+stage launches, finds nothing to claim, exits, and gets relaunched in a tight loop. Core
 predicates:
 
 - ``enqueue`` (one-shot): the create-root (SSD) holds ``*.flac`` whose ``video_id`` is absent from
@@ -80,6 +80,17 @@ def segment_backlog(queue_path: Path, *, now: float | None = None) -> int:
 def segment_needed(queue_path: Path, *, now: float | None = None) -> bool:
     """``True`` if there is at least one claimable video to segment."""
     return segment_backlog(queue_path, now=now) > 0
+
+
+def pending_clip_count(queue_path: Path) -> int:
+    """Count unlabeled clips for segment backpressure."""
+    if not queue_path.exists():
+        return 0
+    queue = QueueStore(queue_path)
+    try:
+        return queue.pending_clip_count()
+    finally:
+        queue.close()
 
 
 # -- v1 predicates ------------------------------------------------------------------------------

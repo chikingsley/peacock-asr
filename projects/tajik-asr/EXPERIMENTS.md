@@ -183,7 +183,7 @@ is not recorded anywhere, it says "not recorded".
 - **Comparability rules for future versions (v4+):** (1) the test set = clips from the frozen 157
   videos *that pass the curation gates*, and gates evolve (the 2026-06-09 vocabulary-gate fix will
   admit more clips) — so **always compare models on the SAME export's test partition** (re-eval old
-  models via `tajik-eval --dataset-root .../vN/version=0`), never across exports. (2) Known
+  models via `tajik-omni-eval --dataset-root .../vN/version=0`), never across exports. (2) Known
   asymmetry, deliberate: FLEURS test is exported unfiltered (gold labels — never censor the exam),
   the conversational held-out IS WER-gated (machine labels — an unfiltered reference would grade
   against known-garbage labels). Consequence: the conversational number measures agreement on

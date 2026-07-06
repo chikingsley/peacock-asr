@@ -26,7 +26,7 @@ The system must:
 | Segment launch policy | No hard global segment cap. Segment launches are gated per project by locks, pending-clip HWM, clip-disk free space, worker lifecycle, and claim-token output ownership. |
 | Scribe API budget | One global API budget is split across all live Scribe jobs: `labelq` and any manual `verify`. |
 | Project working roots | `/mnt/tiny-2t/peacock-asr/<project>` backs the active language-project `data` symlinks except Russian. |
-| Workers SSD | `/mnt/workerssd-2t` holds Russian working audio and the active `peacock-clips` scratch root. |
+| Workers SSD | `/mnt/workerssd-2t` holds Russian working audio. It is only a clip scratch target when an operator explicitly passes `--clips-root`. |
 | Archive root | `/mnt/massive-22t/peacock-asr-archive` is the only cold archive root. |
 | Documentation | This file is current. Stale plan files are deleted after their useful content is represented here. |
 
@@ -58,10 +58,11 @@ registry:
 3. `download` writes yt-dlp `*.info.json` sidecars.
 4. `enqueue` stores bounded video metadata (`title`, `description`, `upload_date`, channel URL,
    duration, tags/categories) on `queue.sqlite.videos`.
-5. `segment` copies `tier`, `category`, and metadata into clip rows.
-6. `harvest` writes those fields into `Sample.meta`.
-7. `export` writes row-level `metadata` JSON next to the training columns and license fields.
-8. `export --youtube-stratified-splits` applies the 17-genre taxonomy and deterministic,
+5. Existing queue rows can be refreshed from registry changes with `<lang>-curate repair-metadata`.
+6. `segment` copies `tier`, `category`, and metadata into clip rows.
+7. `harvest` writes those fields into `Sample.meta`.
+8. `export` writes row-level `metadata` JSON next to the training columns and license fields.
+9. `export --youtube-stratified-splits` applies the 17-genre taxonomy and deterministic,
    category-stratified, whole-video dev/test assignment. Existing exports are unchanged unless the
    flag is passed.
 
@@ -71,19 +72,21 @@ The workers SSD pressure is Russian canonical audio, not SQLite.
 
 | Path | Approx size | Verified origin / writer |
 |---|---:|---|
-| `/mnt/tiny-2t/peacock-asr/{dari,farsi,georgian,tajik}-asr/data/create` | `~709G` total | Active source-audio landing zones for project `data/create` symlinks. |
+| `/mnt/tiny-2t/peacock-asr/{dari,farsi,georgian,tajik}-asr/data/create` | `~716G` total | Active source-audio landing zones for project `data/create` symlinks. |
 | `/mnt/workerssd-2t/peacock-asr/russian-asr/canonical_audio` | `~1.2T` | Russian ingest working root. |
 | `/mnt/workerssd-2t/peacock-asr/russian-asr/curator.sqlite` | `~8.4G` | Russian master SQLite store. Not the main space consumer. |
-| `/mnt/workerssd-2t/peacock-clips` | bounded scratch | Active clip cache used by `segment --clips-root` and factory launches. |
+| Project `data/clips` | bounded project-local clip output | Default clip root used by `segment`; an explicit `--clips-root` may redirect new clips to scratch. |
 
 Archive state:
 
 - Canonical root: `/mnt/massive-22t/peacock-asr-archive`.
 - Current top-level buckets: `dari`, `farsi`, `georgian`, `russian`, `tajik`.
 - Removed stale language bucket: `/mnt/massive-22t/peacock-asr-archive/persian`.
-- Former `persian/iran_international` material is preserved at
-  `/mnt/massive-22t/peacock-asr-archive/farsi/iran_international_legacy` pending an off-hours
-  checksum dedup into `farsi/iran_international`.
+- Former `persian/iran_international` material was non-destructively merged into canonical
+  `farsi/iran_international`; `16` same-name conflicts were resolved by promoting the
+  manifest-backed legacy variants and preserving previous canonical variants under
+  `/mnt/massive-22t/peacock-asr-archive/farsi/iran_international_conflicts_2026-06-30/current_variants_before_legacy_promotion`.
+  The legacy folder is retained temporarily until an explicit deletion checkpoint.
 - Previous pre-renaming archive root is gone.
 - On 2026-06-25, 678 completed files (`17.6G`) were migrated from the removed root into the
   canonical root.
@@ -97,7 +100,8 @@ Storage rules:
    Keep at least `250G` free; do not put new clip caches here.
 2. Source audio lands in the owning project's `data/create` tree by default. Do not create top-level
    source-cache roots; use `--create-root` only for an explicit, temporary scratch relocation.
-3. `/mnt/workerssd-2t/peacock-clips` is the active clip cache. Soft cap: `450G`.
+3. Project `data/clips` is the default clip cache. Use `/mnt/workerssd-2t` as a scratch clip root
+   only by explicit operator choice, with a soft cap such as `450G`.
 4. `/mnt/workerssd-2t/peacock-asr/russian-asr/canonical_audio` is frozen working debt, not general
    scratch. It must be published or moved before the workers SSD is treated as a clean factory disk.
 5. `/mnt/massive-22t/peacock-asr-archive` is the cold source-audio archive and release staging area.

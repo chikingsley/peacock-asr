@@ -8,13 +8,15 @@ they back off when the pending-clip high-watermark is hit so a stalled labeler c
 segmenter cut the entire corpus to disk.
 
 The Scribe/label half lives in :mod:`omni_curator.create.labelq`; both share the queue
-(:mod:`omni_curator.create.queue`). See ``docs/archive/PIPELINE_SPLIT.md``.
+(:mod:`omni_curator.create.queue`). See ``docs/CURATION_FACTORY.md`` for the current stage
+contracts.
 """
 
 from __future__ import annotations
 
 import shutil
 import time
+from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -43,7 +45,7 @@ def _free_gb(path: Path) -> float:
 
 
 #: Where archived sources live: ``<root>/<lang>/<channel>/<file>`` (see ``create/archive.py``).
-DEFAULT_ARCHIVE_ROOT = Path("/mnt/storage/peacock-asr-archive")
+DEFAULT_ARCHIVE_ROOT = Path("/mnt/massive-22t/peacock-asr-archive")
 
 
 def resolve_source_path(
@@ -94,6 +96,7 @@ def _cut_clips(
     spans: Sequence[tuple[float, float]],
     *,
     clips_root: Path,
+    clip_path_root: Path | None = None,
     language: str,
     script: str,
     source: Path | None = None,
@@ -105,6 +108,7 @@ def _cut_clips(
     ``source`` is the already-resolved source path (work drive or archive); resolved here if None.
     """
     out_dir = clips_root / video.channel / video.video_id
+    clip_dir = (clip_path_root or clips_root) / video.channel / video.video_id
     out_dir.mkdir(parents=True, exist_ok=True)
     if source is None:
         source = resolve_source_path(video.path, channel=video.channel)
@@ -121,15 +125,84 @@ def _cut_clips(
                 video_id=video.video_id,
                 channel=video.channel,
                 clip_index=idx,
-                clip_path=str(final),
+                clip_path=str(clip_dir / final.name),
                 start=round(start, 2),
                 end=round(end, 2),
                 language=language,
                 script=script,
                 citation=video.citation,
+                tier=video.tier,
+                category=video.category,
+                meta=dict(video.meta),
             )
         )
     return clips
+
+
+def _staging_root(clips_root: Path, claim_token: str) -> Path:
+    """Claim-token staging root for segment output files."""
+    return clips_root / ".staging" / claim_token
+
+
+def _publish_staged_clip_dir(staging_root: Path, staging_dir: Path, final_dir: Path) -> None:
+    """Atomically publish one staged video directory and remove empty staging parents."""
+    if final_dir.exists():
+        shutil.rmtree(final_dir)
+    final_dir.parent.mkdir(parents=True, exist_ok=True)
+    staging_dir.rename(final_dir)
+    shutil.rmtree(staging_root, ignore_errors=True)
+
+
+def _claim_token(video: QVideo) -> str:
+    token = video.claim_token
+    if token is None:
+        raise RuntimeError("claimed video has no claim_token")
+    return token
+
+
+def _cleanup_staging(clips_root: Path, video: QVideo) -> None:
+    if video.claim_token is not None:
+        shutil.rmtree(_staging_root(clips_root, video.claim_token), ignore_errors=True)
+
+
+def _process_segment_video(
+    queue: QueueStore,
+    model: Any,
+    video: QVideo,
+    *,
+    clips_root: Path,
+    language: str,
+    script: str,
+    max_dur: float,
+    vad_kwargs: dict[str, Any],
+) -> bool:
+    """VAD, cut into claim-token staging, then publish only if SQLite ownership still holds."""
+    claim_token = _claim_token(video)
+    source = resolve_source_path(video.path, channel=video.channel)
+    from omni_curator.create.vad import segment_vad_with
+
+    spans = segment_vad_with(model, source, max_dur=max_dur, **vad_kwargs)
+    staging_root = _staging_root(clips_root, claim_token)
+    staging_dir = staging_root / video.channel / video.video_id
+    final_dir = clips_root / video.channel / video.video_id
+    clips = _cut_clips(
+        video,
+        spans,
+        clips_root=staging_root,
+        clip_path_root=clips_root,
+        language=language,
+        script=script,
+        source=source,
+    )
+    published = queue.complete_video(
+        video.video_id,
+        clips,
+        claim_token=claim_token,
+        publish=partial(_publish_staged_clip_dir, staging_root, staging_dir, final_dir),
+    )
+    if not published:
+        shutil.rmtree(staging_root, ignore_errors=True)
+    return published
 
 
 def segment_worker(
@@ -162,7 +235,7 @@ def segment_worker(
     import torch
 
     torch.set_num_threads(max(1, cpu_threads))
-    from omni_curator.create.vad import load_vad_model, segment_vad_with
+    from omni_curator.create.vad import load_vad_model
 
     queue = QueueStore(queue_path)
     model = load_vad_model(device=device)
@@ -185,21 +258,26 @@ def segment_worker(
                 time.sleep(poll_s)
                 continue
             try:
-                # Resolve the source once (working drive OR the storage archive, for re-segments),
-                # then VAD + cut both read it — never re-derive the path.
-                source = resolve_source_path(video.path, channel=video.channel)
-                spans = segment_vad_with(model, source, max_dur=max_dur, **(vad_kwargs or {}))
-                clips = _cut_clips(video, spans, clips_root=clips_root, language=language,
-                                   script=script, source=source)
-                queue.complete_video(video.video_id, clips, claim_token=video.claim_token)
-                done += 1
+                if _process_segment_video(
+                    queue,
+                    model,
+                    video,
+                    clips_root=clips_root,
+                    language=language,
+                    script=script,
+                    max_dur=max_dur,
+                    vad_kwargs=vad_kwargs or {},
+                ):
+                    done += 1
             except torch.cuda.OutOfMemoryError:
+                _cleanup_staging(clips_root, video)
                 # A GPU OOM is the worker's fault, not the video's — don't fail/retire the clip.
                 # Re-raise so this worker exits non-zero (caught by run_segmenters); the video's
                 # lease lapses and another worker re-claims it. Swallowing it would silently fail
                 # every video on a too-crowded GPU.
                 raise
             except Exception as exc:  # noqa: BLE001 — one bad video must never abort the worker
+                _cleanup_staging(clips_root, video)
                 queue.fail_video(
                     video.video_id, f"{type(exc).__name__}: {exc}", claim_token=video.claim_token
                 )
@@ -257,16 +335,27 @@ def run_segmenters(
         )
         for dev, i, th in specs
     ]
+    import signal
+
     for w in workers:
         w.start()
+
+    def _on_sigterm(*_: object) -> None:
+        # Default SIGTERM kills the process WITHOUT running `finally`, orphaning the workers' VRAM
+        # (the 11.5 GB-pinned orphans the audit found on a plain `kill <pid>`). Convert it to
+        # SystemExit so the `finally` below actually reaps them.
+        raise SystemExit(143)
+
+    prev_sigterm = signal.signal(signal.SIGTERM, _on_sigterm)
     try:
         for w in workers:
             w.join()
     finally:
-        # The parent dying (signal, KeyboardInterrupt, an exception above) must NOT leave spawned
-        # VAD workers orphaned — they each hold a CUDA context + the resident model (audit: 3
-        # orphans pinning 11.5 GB of VRAM). Tear every still-alive child down so it releases the
-        # GPU: SIGTERM first (clean), escalate to SIGKILL for any that ignore it.
+        signal.signal(signal.SIGTERM, prev_sigterm)  # restore the default disposition
+        # The parent dying — SIGTERM (now caught above), SIGINT/KeyboardInterrupt, or an exception —
+        # must NOT leave spawned VAD workers orphaned; they each hold a CUDA context + the resident
+        # model (audit: 3 orphans pinning 11.5 GB of VRAM). Tear every still-alive child down so it
+        # releases the GPU: SIGTERM first (clean), escalate to SIGKILL for any that ignore it.
         _terminate_workers(workers)
     failed = [w.exitcode for w in workers if w.exitcode]
     if failed:  # a worker that died (e.g. CUDA OOM) must not look like a successful drain

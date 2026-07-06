@@ -1,4 +1,4 @@
-"""Supervisor reconcile logic (v0): predicate gating, lock adoption, the global segment cap.
+"""Supervisor reconcile logic: predicate gating, lock adoption, resource blockers.
 
 These run in ``dry_run`` so a tick launches nothing — it only computes which ``lang:stage`` keys it
 WOULD launch — which is exactly the headless ``--once --dry-run`` contract.
@@ -9,9 +9,10 @@ from __future__ import annotations
 import time
 
 from omni_curator.create.queue import QueueStore, QVideo
+from omni_curator.factory import __main__ as factory_cli
 from omni_curator.factory import flock
 from omni_curator.factory.supervisor import (
-    GLOBAL_SEGMENT_CAP,
+    FactorySettings,
     Project,
     Supervisor,
     discover_projects,
@@ -68,7 +69,12 @@ def _seed_done_clip(project, video_id="chan_v1"):
 
 
 def _supervisor(projects):
-    return Supervisor(projects=list(projects), log=lambda _m: None, dry_run=True)
+    return Supervisor(
+        projects=list(projects),
+        log=lambda _m: None,
+        dry_run=True,
+        settings=FactorySettings(min_free_gb=0.0),
+    )
 
 
 # -- predicate gating --------------------------------------------------------------------------
@@ -115,37 +121,70 @@ def test_held_enqueue_lock_is_adopted(tmp_path):
         assert _supervisor([p]).tick() == []
 
 
-# -- the GLOBAL segment cap (one segment across ALL projects) ----------------------------------
+# -- segment resource predicates ---------------------------------------------------------------
 
 
-def test_global_segment_cap_blocks_second_project(tmp_path):
+def test_multiple_projects_can_segment_when_predicates_pass(tmp_path):
     a = _project(tmp_path, "dari")
     b = _project(tmp_path, "farsi")
     _seed_pending_video(a)
     _seed_pending_video(b)
-    # Both eligible, but the global cap is 1: only the first project's segment launches this tick.
-    launched = _supervisor([a, b]).tick()
-    assert launched == ["dari:segment"]
-    assert GLOBAL_SEGMENT_CAP == 1
+    assert _supervisor([a, b]).tick() == ["dari:segment", "farsi:segment"]
 
 
-def test_existing_segment_lock_consumes_the_global_slot(tmp_path):
+def test_existing_segment_lock_only_blocks_that_project(tmp_path):
     a = _project(tmp_path, "dari")
     b = _project(tmp_path, "farsi")
     _seed_pending_video(b)
-    # a already has a live segment (the cap counts from live locks) -> b is blocked this tick.
+    # a already has a live segment, but no global slot is consumed; b can still launch.
     with flock.hold(flock.lock_path(a.data_dir, "segment")):
-        assert _supervisor([a, b]).tick() == []
+        assert _supervisor([a, b]).tick() == ["farsi:segment"]
 
 
-def test_enqueue_runs_freely_alongside_a_capped_segment(tmp_path):
+def test_segment_pending_hwm_blocks_launch(tmp_path):
+    p = _project(tmp_path, "dari")
+    q = QueueStore(p.queue_path)
+    q.enqueue_videos([
+        QVideo("chan_done", "chan", "/done.flac", "noisy", None),
+        QVideo("chan_pending", "chan", "/pending.flac", "noisy", None),
+    ])
+    claimed = q.claim_video("w1")
+    assert claimed is not None
+    q.complete_video("chan_done", _one_clip("chan_done"), claim_token=claimed.claim_token)
+    q.close()
+    logs: list[str] = []
+    sup = Supervisor(
+        projects=[p],
+        log=logs.append,
+        dry_run=True,
+        settings=FactorySettings(pending_hwm=1, min_free_gb=0.0),
+    )
+    assert sup.tick() == ["dari:labelq"]
+    assert any("pending clips 1 >= HWM 1" in line for line in logs)
+
+
+def test_segment_min_free_gb_blocks_launch(tmp_path):
+    p = _project(tmp_path, "dari")
+    _seed_pending_video(p)
+    logs: list[str] = []
+    sup = Supervisor(
+        projects=[p],
+        log=logs.append,
+        dry_run=True,
+        settings=FactorySettings(min_free_gb=10**12),
+    )
+    assert sup.tick() == []
+    assert any("clips free" in line and "< min" in line for line in logs)
+
+
+def test_enqueue_runs_alongside_segments_when_predicates_pass(tmp_path):
     a = _project(tmp_path, "dari")
     b = _project(tmp_path, "farsi")
-    _seed_pending_video(a)  # a wants segment (takes the one slot)
+    _seed_pending_video(a)  # a wants segment
     _seed_new_flac(b, stem="v2")  # b wants enqueue (cheap, uncapped); distinct from its queued vid
-    _seed_pending_video(b, video_id="chan_v1")  # b also wants segment (blocked by the cap)
+    _seed_pending_video(b, video_id="chan_v1")  # b also wants segment
     launched = _supervisor([a, b]).tick()
-    assert launched == ["dari:segment", "farsi:enqueue"]  # b:enqueue runs; b:segment held
+    assert launched == ["dari:segment", "farsi:enqueue", "farsi:segment"]
 
 
 # -- command construction ----------------------------------------------------------------------
@@ -161,7 +200,7 @@ def test_command_is_flock_wrapped_so_the_spawned_stage_holds_the_lock(tmp_path):
     assert cmd[8] == "segment"
 
 
-def test_enqueue_argv_passes_ssd_create_root(tmp_path):
+def test_enqueue_argv_passes_project_create_root(tmp_path):
     p = _project(tmp_path, "dari")
     argv = stage_argv(p, "enqueue")
     assert argv[:5] == ["uv", "run", "--project", str(p.path), "dari-curate"]
@@ -169,14 +208,21 @@ def test_enqueue_argv_passes_ssd_create_root(tmp_path):
     assert argv[argv.index("--create-root") + 1] == str(p.create_root)
 
 
-def test_segment_argv_passes_ssd_clips_root_and_knobs(tmp_path):
+def test_segment_argv_passes_configured_clips_root_and_knobs(tmp_path):
     p = _project(tmp_path, "dari")
-    argv = stage_argv(p, "segment")
+    settings = FactorySettings(
+        segment_gpu_procs=4,
+        segment_cpu_procs=12,
+        pending_hwm=1234,
+        min_free_gb=77.5,
+    )
+    argv = stage_argv(p, "segment", settings)
     assert argv[5] == "segment"
     assert argv[argv.index("--clips-root") + 1] == str(p.clips_root)
-    assert argv[argv.index("--gpu-procs") + 1] == "3"
-    assert argv[argv.index("--cpu-procs") + 1] == "10"
-    assert argv[argv.index("--hwm") + 1] == "5000000"
+    assert argv[argv.index("--gpu-procs") + 1] == "4"
+    assert argv[argv.index("--cpu-procs") + 1] == "12"
+    assert argv[argv.index("--hwm") + 1] == "1234"
+    assert argv[argv.index("--min-free-gb") + 1] == "77.5"
 
 
 def test_archive_argv_passes_archive_root(tmp_path):
@@ -189,7 +235,7 @@ def test_archive_argv_passes_archive_root(tmp_path):
 # -- discovery ---------------------------------------------------------------------------------
 
 
-def test_discover_explicit_names_builds_ssd_roots(tmp_path):
+def test_discover_explicit_names_builds_configured_roots(tmp_path):
     projects = discover_projects(
         ["dari", "farsi"],
         repo_root=tmp_path,
@@ -207,10 +253,11 @@ def test_discover_scans_projects_dir(tmp_path):
         (tmp_path / "projects" / f"{lang}-asr" / "data").mkdir(parents=True)
     (tmp_path / "projects" / "no-data-asr").mkdir(parents=True)  # no data/ -> skipped
     projects = discover_projects(None, repo_root=tmp_path)
+    assert projects[0].create_root == tmp_path / "projects" / "dari-asr" / "data" / "create"
     assert sorted(p.name for p in projects) == ["dari", "georgian"]
 
 
-# -- THE FLOCK FIX: a flock(1)-held lock is seen, and the global cap blocks a 2nd segment ------
+# -- THE FLOCK FIX: a flock(1)-held lock is seen by the probe -------------------------------
 
 
 def _flock_hold(lockfile, hold_s):
@@ -253,15 +300,15 @@ def test_flock_utility_held_lock_is_seen_by_the_probe(tmp_path):
     assert not flock.is_locked(lockfile)  # released on the holder's death
 
 
-def test_global_cap_blocks_second_segment_when_flock_utility_holds_the_first(tmp_path):
-    # The end-to-end cap proof: a real flock(1) holding project a's segment lock consumes the one
-    # global slot, so the supervisor must NOT launch project b's segment this tick.
+def test_flock_utility_held_segment_lock_does_not_block_other_projects(tmp_path):
+    # A real flock(1) holding project a's segment lock only blocks project a. Project b can launch
+    # if its own resource predicates pass.
     a = _project(tmp_path, "dari")
     b = _project(tmp_path, "farsi")
     _seed_pending_video(b)
     proc = _flock_hold(flock.lock_path(a.data_dir, "segment"), 30)
     try:
-        assert _supervisor([a, b]).tick() == []
+        assert _supervisor([a, b]).tick() == ["farsi:segment"]
     finally:
         _kill_group(proc)
 
@@ -365,7 +412,11 @@ def test_stages_filter_runs_segment_only(tmp_path):
     _seed_new_flac(p, stem="v2")  # would trigger enqueue, but it's filtered out
     _seed_pending_video(p, video_id="chan_v1")
     sup = Supervisor(
-        projects=[p], log=lambda _m: None, dry_run=True, stages=("segment",)
+        projects=[p],
+        log=lambda _m: None,
+        dry_run=True,
+        stages=("segment",),
+        settings=FactorySettings(min_free_gb=0.0),
     )
     assert sup.tick() == ["dari:segment"]  # enqueue not in --stages
 
@@ -378,7 +429,7 @@ def test_balancer_splits_budget_across_live_jobs(tmp_path, monkeypatch):
     logs = []
     sup = Supervisor(
         projects=[p], log=logs.append, dry_run=False, stages=("enqueue",),
-        budget=300, repo_root=tmp_path,
+        settings=FactorySettings(scribe_budget=300), repo_root=tmp_path,
     )
     monkeypatch.setattr(
         "omni_curator.factory.supervisor.active_scribe_jobs",
@@ -401,5 +452,76 @@ def test_balancer_disabled_without_budget(tmp_path, monkeypatch):
         "omni_curator.factory.supervisor.active_scribe_jobs",
         lambda: called.append(True) or [],
     )
-    Supervisor(projects=[p], log=lambda _m: None, dry_run=False, budget=None).tick()
+    Supervisor(projects=[p], log=lambda _m: None, dry_run=False).tick()
     assert called == []  # no budget -> the balancer never even probes
+
+
+def test_balancer_dry_run_reports_assignment_without_writing(tmp_path, monkeypatch):
+    p = _project(tmp_path, "dari")
+    logs: list[str] = []
+    sup = Supervisor(
+        projects=[p],
+        log=logs.append,
+        dry_run=True,
+        settings=FactorySettings(scribe_budget=300),
+        repo_root=tmp_path,
+    )
+    monkeypatch.setattr(
+        "omni_curator.factory.supervisor.active_scribe_jobs",
+        lambda: ["dari:labelq", "farsi:verify"],
+    )
+
+    sup.tick()
+
+    assert any("BALANCE dry-run budget=300" in line for line in logs)
+    assert not (tmp_path / "projects" / "dari-asr" / "data" / ".scribe_window.labelq").exists()
+
+
+def test_factory_cli_reads_config_file_for_settings_and_roots(tmp_path):
+    (tmp_path / "projects" / "dari-asr" / "data").mkdir(parents=True)
+    cfg = tmp_path / "factory.toml"
+    log = tmp_path / "factory.log"
+    cfg.write_text(
+        "\n".join(
+            [
+                f'repo_root = "{tmp_path}"',
+                f'clips_root = "{tmp_path / "clips"}"',
+                f'create_root = "{tmp_path / "create"}"',
+                f'archive_root = "{tmp_path / "archive"}"',
+                f'log_file = "{log}"',
+                'projects = ["dari"]',
+                'stages = ["segment"]',
+                "segment_gpu_procs = 4",
+                "segment_cpu_procs = 12",
+                "pending_hwm = 1234",
+                "min_free_gb = 77.5",
+                "scribe_budget = 300",
+                "tick_s = 1.0",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    assert factory_cli.main(["--config", str(cfg), "--once", "--dry-run"]) == 0
+
+    text = log.read_text(encoding="utf-8")
+    assert "projects=['dari']" in text
+    assert "segment_gpu_procs=4" in text
+    assert "segment_cpu_procs=12" in text
+    assert "pending_hwm=1234" in text
+    assert "min_free_gb=77.5" in text
+    assert "scribe_budget=300" in text
+
+
+def test_factory_cli_default_does_not_write_repo_root_log(tmp_path):
+    (tmp_path / "projects" / "dari-asr" / "data").mkdir(parents=True)
+
+    assert factory_cli.main([
+        "--repo-root", str(tmp_path),
+        "--projects", "dari",
+        "--stages", "segment",
+        "--once",
+        "--dry-run",
+    ]) == 0
+
+    assert not (tmp_path / "factory.log").exists()

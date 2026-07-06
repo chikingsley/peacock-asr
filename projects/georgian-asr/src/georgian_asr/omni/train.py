@@ -1,8 +1,8 @@
 """Train Georgian omni CTC models — pure config over :mod:`omni_finetune_core.project`.
 
-  georgian-train --regime gpu_max               # 300M fresh fine-tune, ~30-epoch auto budget
-  georgian-train --regime gpu_max --num-steps 6000
-  georgian-train --regime warm_restart --lr 2e-6
+  georgian-omni-train --regime gpu_max               # 300M fresh fine-tune, ~30-epoch auto budget
+  georgian-omni-train --regime gpu_max --num-steps 6000
+  georgian-omni-train --regime warm_restart --lr 2e-6
 """
 
 from __future__ import annotations

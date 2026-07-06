@@ -1,6 +1,6 @@
 """QueueStore contract: claims, token-guarded writebacks, leases, attempt fairness, harvest.
 
-These encode the invariants the split pipeline depends on (see docs/PIPELINE_SPLIT.md):
+These encode the invariants the split pipeline depends on:
 a reclaimed lease's late write can never land, and run-level outages (a dead key) never
 burn a clip's retry budget.
 """
@@ -39,6 +39,33 @@ def test_enqueue_is_idempotent(queue):
     assert queue.enqueue_videos(_videos(3)) == 0  # same PKs -> no new rows
 
 
+def test_repair_video_metadata_updates_existing_rows(queue):
+    assert queue.enqueue_videos(_videos(1)) == 1
+
+    result = queue.repair_video_metadata(
+        [
+            QVideo(
+                "chan_v000",
+                "chan",
+                "/audio/v000.flac",
+                "clean",
+                "https://example.test/channel",
+                category="news",
+                meta={"webpage_url": "https://www.youtube.com/watch?v=v000"},
+            )
+        ]
+    )
+    assert result.matched == 1
+    assert result.changed == 1
+    assert result.updated == 1
+
+    video = queue.claim_video("seg-0")
+    assert video is not None
+    assert video.tier == "clean"
+    assert video.category == "news"
+    assert video.meta["webpage_url"] == "https://www.youtube.com/watch?v=v000"
+
+
 def test_video_claim_complete_cycle(queue):
     queue.enqueue_videos(_videos(1))
     video = queue.claim_video("seg-0")
@@ -50,6 +77,56 @@ def test_video_claim_complete_cycle(queue):
     counts = queue.status_counts()
     assert counts["videos"] == {"segmented": 1}
     assert counts["clips"] == {"pending": 4}
+
+
+def test_source_metadata_survives_queue_lifecycle(queue):
+    video = QVideo(
+        "chan_v000",
+        "chan",
+        "/audio/v000.flac",
+        "clean",
+        "https://example.test/channel",
+        category="news",
+        meta={"title": "Video title", "upload_date": "20250102"},
+    )
+    assert queue.enqueue_videos([video]) == 1
+
+    claimed_video = queue.claim_video("seg-0")
+    assert claimed_video is not None
+    assert claimed_video.category == "news"
+    assert claimed_video.meta["title"] == "Video title"
+
+    clips = [
+        QClip(
+            "chan_v000_0000",
+            "chan_v000",
+            "chan",
+            0,
+            "/clips/chan_v000/seg_0000.flac",
+            0.0,
+            5.0,
+            "tgk_Cyrl",
+            "Cyrillic",
+            "https://example.test/channel",
+            tier=claimed_video.tier,
+            category=claimed_video.category,
+            meta=dict(claimed_video.meta),
+        )
+    ]
+    assert queue.complete_video(
+        claimed_video.video_id, clips, claim_token=claimed_video.claim_token
+    )
+
+    claimed_clip = queue.claim_clips(1, "label-token")[0]
+    assert claimed_clip.tier == "clean"
+    assert claimed_clip.category == "news"
+    assert claimed_clip.meta["upload_date"] == "20250102"
+
+    assert queue.complete_clips("label-token", [(claimed_clip.clip_id, "label", "[]")]) == 1
+    ready = queue.harvestable(limit=1)
+    assert ready[0].tier == "clean"
+    assert ready[0].category == "news"
+    assert ready[0].meta["title"] == "Video title"
 
 
 def test_video_completion_requires_matching_token(queue):
@@ -72,6 +149,34 @@ def test_video_completion_requires_matching_token(queue):
     )
     assert queue.status_counts()["videos"] == {"segmented": 1}
     assert queue.status_counts()["clips"] == {"pending": 2}
+
+
+def test_video_publish_callback_requires_matching_token(queue):
+    """Stale segmenters must not publish clip files after their SQLite claim was reclaimed."""
+    queue.enqueue_videos(_videos(1))
+    first = queue.claim_video("seg-0")
+    assert first is not None
+    second = queue.claim_video("seg-1", stale_after_s=0.0)
+    assert second is not None
+
+    published: list[str] = []
+    stale_ok = queue.complete_video(
+        first.video_id,
+        _clips(first.video_id, 1),
+        claim_token=first.claim_token,
+        publish=lambda: published.append("stale"),
+    )
+    assert stale_ok is False
+    assert published == []
+
+    current_ok = queue.complete_video(
+        second.video_id,
+        _clips(second.video_id, 1),
+        claim_token=second.claim_token,
+        publish=lambda: published.append("current"),
+    )
+    assert current_ok is True
+    assert published == ["current"]
 
 
 def test_clip_writeback_requires_matching_token(queue):

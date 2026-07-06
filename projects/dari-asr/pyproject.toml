@@ -34,9 +34,7 @@ override-dependencies = [
 [project.scripts]
 dari-curate = "dari_asr.curate:main"
 dari-omni-train = "dari_asr.omni.train:main"
-dari-train = "dari_asr.omni.train:main"
 dari-omni-eval = "dari_asr.omni.eval:main"
-dari-eval = "dari_asr.omni.eval:main"
 
 [project.entry-points."fairseq2.extension"]
 dari_asr = "dari_asr.assets:setup_fairseq2_extension"

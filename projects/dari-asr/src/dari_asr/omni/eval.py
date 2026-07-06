@@ -1,8 +1,8 @@
 """Score Dari model cards on an export's test split — delegates to the core eval.
 
-  dari-eval                                    # base on the v0 export's test split
-  dari-eval --models ft=<trained card> --device cuda
-  dari-eval --only-corpus-prefix youtube-      # conversational held-out alone
+  dari-omni-eval                                    # base on the v0 export's test split
+  dari-omni-eval --models ft=<trained card> --device cuda
+  dari-omni-eval --only-corpus-prefix youtube-      # conversational held-out alone
 """
 
 from __future__ import annotations

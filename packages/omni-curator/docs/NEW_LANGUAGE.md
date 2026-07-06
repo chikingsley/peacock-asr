@@ -39,7 +39,7 @@ mostly 7.
    ```text
    projects/<lang>-asr/
      pyproject.toml          deps: omni-curator[ingest,youtube,normalize] + omni-finetune-core;
-                             <lang>-curate / <lang>-train / <lang>-eval script entry points;
+                             <lang>-curate / <lang>-omni-train / <lang>-omni-eval script entry points;
                              a fairseq2.extension entry -> assets:setup_fairseq2_extension
      src/<lang>_asr/
        __init__.py           LANGUAGE ("xxx_Yyyy"), SCRIPT, ROOT/DATA/DB path constants
@@ -88,11 +88,11 @@ mostly 7.
    the project's `mixture_weights` if a small clean corpus needs lifting against a large
    conversational mass (tajik's anti-drift recipe: `{"fleurs": 490.0}`).
 
-8. **Train + eval**: `<lang>-train --regime gpu_max` budgets ~30 epochs from the export's true
+8. **Train + eval**: `<lang>-omni-train --regime gpu_max` budgets ~30 epochs from the export's true
    hours; once a recipe proves out, pin it as a named `TrainingPreset` (typed config — see
    tajik's `tajik-corpus-v3-300m`). Always set `fragment_cache_dir` to real disk. Register the
    best checkpoint as a ModelCard in `assets.py`, add it to `eval_models`, and score with
-   `<lang>-eval` (`--only-corpus-prefix youtube-` = the conversational held-out alone).
+   `<lang>-omni-eval` (`--only-corpus-prefix youtube-` = the conversational held-out alone).
 
 ## The decode stack — after the CTC is trained
 

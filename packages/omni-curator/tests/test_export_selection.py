@@ -10,10 +10,30 @@ Locks in two measurement-integrity rules learned the hard way:
 
 from __future__ import annotations
 
+import json
+from collections import Counter, defaultdict
+
+import numpy as np
+import pyarrow.parquet as pq
 import pytest
+import soundfile as sf
 
 from omni_curator.audit.quality import is_descriptor_only
-from omni_curator.data.export import Selection, write_weighted_distribution
+from omni_curator.data.export import (
+    Selection,
+    YoutubeSplitPolicy,
+    _normalize_and_filter,
+    export_dataset,
+    normalize_youtube_category,
+    write_weighted_distribution,
+)
+from omni_curator.data.provenance import (
+    LicenseInfo,
+    SourceProvenance,
+    TransformStep,
+    normalize_license_registry,
+)
+from omni_curator.data.store import CuratorStore
 
 
 def test_wer_gate_applies_to_train_only(make_sample):
@@ -58,6 +78,23 @@ def test_heldout_video_is_gated_then_regrouped(make_sample):
     assert sel.gates(good)
 
 
+def test_trusted_source_bypasses_language_gate(make_sample):
+    sel = Selection(trusted_language_sources=frozenset({"fleurs"}))
+    trusted = make_sample(source="fleurs", split="train")
+    ordinary = make_sample(source="youtube", split="train")
+
+    assert not sel.applies_language_gate(trusted)
+    assert sel.applies_language_gate(ordinary)
+
+
+def test_trusted_provenance_authority_bypasses_language_gate(make_sample):
+    provenance = SourceProvenance(origin="hf", authority="gold-corpus", tool="ingest")
+    sample = make_sample(source="hf-example", split="train").with_provenance(provenance)
+    sel = Selection(trusted_language_authorities=frozenset({"gold-corpus"}))
+
+    assert not sel.applies_language_gate(sample)
+
+
 def test_descriptor_only_cases():
     junk = ["[outro jingle]", "[музыка]", "♪", "...", "(background noise)", "[singing] ♪", ""]
     real = ["Салом [музыка]", "дар як намоиш буд", "The Barefoot Investor by Scott Pape."]
@@ -82,3 +119,119 @@ def test_write_weighted_distribution(tmp_path):
 
     with pytest.raises(ValueError, match="not in the export"):
         write_weighted_distribution(true_tsv, tmp_path / "bad.tsv", {"flerus": 490.0})  # typo
+
+
+def test_sample_provenance_round_trips_through_meta(make_sample):
+    provenance = SourceProvenance(
+        origin="youtube",
+        authority="channel_registry",
+        tool="yt-dlp",
+        license=LicenseInfo("cc-by-4.0", commercial_use=True, authority="source-card"),
+        transforms=(
+            TransformStep("download", "yt-dlp", version="2026.03.17"),
+            TransformStep("segment", "nemo-vad", parameters={"max_duration": 30.0}),
+        ),
+    )
+
+    sample = make_sample().with_provenance(provenance)
+
+    assert sample.provenance == provenance
+    assert sample.meta["provenance"]["license"]["commercial_use"] is True
+
+
+def test_license_registry_accepts_legacy_tuples_and_typed_values():
+    registry = normalize_license_registry(
+        {
+            "fleurs": ("cc-by-4.0", True),
+            "youtube": LicenseInfo("unknown", commercial_use=False),
+            "hf": {"id": "cc0-1.0", "commercial_use": True, "authority": "dataset-card"},
+        }
+    )
+
+    assert registry["fleurs"] == LicenseInfo("cc-by-4.0", commercial_use=True)
+    assert registry["youtube"] == LicenseInfo("unknown", commercial_use=False)
+    assert registry["hf"] == LicenseInfo("cc0-1.0", commercial_use=True, authority="dataset-card")
+
+
+def test_youtube_category_taxonomy_normalizes_aliases():
+    assert normalize_youtube_category("news") == "news"
+    assert normalize_youtube_category("language learning") == "language_learning"
+    assert normalize_youtube_category("kids") == "children"
+    assert normalize_youtube_category("made-up") == "uncategorized"
+    with pytest.raises(ValueError, match="dev_ratio"):
+        YoutubeSplitPolicy(dev_ratio=0.7, test_ratio=0.4)
+
+
+def test_youtube_split_policy_is_category_stratified_and_video_disjoint(make_sample, tmp_path):
+    store = CuratorStore(tmp_path / "store.sqlite")
+    samples = []
+    for category in ("news", "education"):
+        for video_idx in range(4):
+            video_id = f"{category}_vid{video_idx}"
+            samples.extend(
+                [
+                    make_sample(
+                        id=f"{video_id}_{clip_idx:04d}",
+                        source=f"youtube-{category}",
+                        meta={"category": category},
+                    )
+                    for clip_idx in range(2)
+                ]
+            )
+    store.upsert(samples)
+
+    grouped, dropped = _normalize_and_filter(
+        store,
+        Selection(
+            language_gate=False,
+            youtube_split_policy=YoutubeSplitPolicy(
+                dev_ratio=0.25, test_ratio=0.25, seed="test-seed"
+            ),
+        ),
+    )
+    store.close()
+
+    assert dropped == {}
+    video_splits: dict[str, set[str]] = defaultdict(set)
+    split_counts_by_category: dict[str, Counter[str]] = defaultdict(Counter)
+    for (_source, split, _language), rows in grouped.items():
+        for sample, _norm_text in rows:
+            video_id = sample.id.rsplit("_", 1)[0]
+            category = str(sample.meta["category"])
+            video_splits[video_id].add(split)
+            split_counts_by_category[category][split] += 1
+
+    assert all(len(splits) == 1 for splits in video_splits.values())
+    for counts in split_counts_by_category.values():
+        assert counts == {"train": 4, "dev": 2, "test": 2}
+
+
+def test_export_writes_sample_metadata(make_sample, tmp_path):
+    audio = tmp_path / "clip.flac"
+    sf.write(audio, np.zeros(1600, dtype=np.float32), 16_000, format="FLAC")
+    sample = make_sample(
+        audio_path=str(audio),
+        meta={"category": "news", "tier": "clean", "title": "Video title"},
+    )
+    store = CuratorStore(tmp_path / "store.sqlite")
+    store.upsert([sample])
+
+    stats = export_dataset(
+        store,
+        tmp_path / "dataset",
+        selection=Selection(language_gate=False),
+        row_group_size=1,
+    )
+    store.close()
+
+    assert stats.rows == 1
+    parquet = next(
+        (tmp_path / "dataset" / "version=0").glob("corpus=*/split=*/language=*/*.parquet")
+    )
+    table = pq.read_table(parquet)
+    assert table.schema.names[:3] == ["text", "audio_bytes", "audio_size"]
+    assert json.loads(table.column("metadata")[0].as_py()) == {
+        "category": "news",
+        "tier": "clean",
+        "title": "Video title",
+    }

@@ -1,8 +1,8 @@
 """Train Dari omni CTC models — pure config over :mod:`omni_finetune_core.project`.
 
-  dari-train --regime gpu_max                # 300M cold fine-tune from the omni base
-  dari-train --regime warm_restart --lr 2e-6 # warm-start from the Farsi production checkpoint
-  dari-train --preset dari-corpus-v0-300m    # pinned, exactly reproducible
+  dari-omni-train --regime gpu_max                # 300M cold fine-tune from the omni base
+  dari-omni-train --regime warm_restart --lr 2e-6 # warm-start from the Farsi production checkpoint
+  dari-omni-train --preset dari-corpus-v0-300m    # pinned, exactly reproducible
 
 Plan: train BOTH the cold-base fine-tune (template-conformant baseline) and the Farsi-warm restart
 (likely winner — Dari shares fas_Arab with Iranian Farsi), compare on the same v0 test split.

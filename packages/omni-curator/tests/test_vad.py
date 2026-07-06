@@ -63,16 +63,18 @@ def test_under_min_duration_island_is_dropped():
 
 def test_split_window_no_op_within_cap():
     w = SpeechWindow(5.0, 20.0)
-    assert split_window(w, hard_max_seconds=30.0, min_duration_seconds=1.0) == [w]
+    assert split_window(w, hard_max_seconds=30.0) == [w]
 
 
-def test_split_window_folds_sub_min_tail_into_previous():
-    """An exact-multiple split has no sliver; an awkward length must not leave a < min tail."""
-    # 61 s, cap 30 -> ceil = 3 equal chunks of ~20.33 s each (no sliver). Verify all >= min and
-    # the boundary case where a naive last-chunk slice would be tiny is folded.
+def test_split_window_keeps_hard_cap_non_negotiable():
+    """Even awkward or impossible min/max cases must not create an over-cap clip."""
     w = SpeechWindow(0.0, 61.0)
-    chunks = split_window(w, hard_max_seconds=30.0, min_duration_seconds=1.0)
+    chunks = split_window(w, hard_max_seconds=30.0)
     assert all(c.duration <= 30.0 + 1e-9 for c in chunks)
-    assert all(c.duration >= 1.0 for c in chunks)
     assert chunks[0].start == 0.0
     assert chunks[-1].end == 61.0
+
+    awkward = SpeechWindow(0.0, 31.0)
+    chunks = split_window(awkward, hard_max_seconds=30.0)
+    assert len(chunks) == 2
+    assert all(c.duration <= 30.0 + 1e-9 for c in chunks)

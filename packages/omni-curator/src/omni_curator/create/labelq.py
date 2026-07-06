@@ -12,7 +12,7 @@ Idles when the queue is empty so it keeps draining as the segmenter feeds it.
 Failure policy: the deployed service owns ASR key rotation, so there is no in-process key
 renewal here. A per-clip error requeues the clip (attempts-capped, via ``fail_clips``); a long
 streak of consecutive failed clips aborts the run so a service outage can't become a request
-spray. See ``docs/archive/PIPELINE_SPLIT.md``.
+spray. See ``docs/CURATION_FACTORY.md`` for the current stage contracts.
 """
 
 from __future__ import annotations

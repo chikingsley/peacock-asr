@@ -2,8 +2,7 @@
 
 A thin project: config (``sources.py``) + wiring (``curate.py``, ``train.py``, ``eval.py``) over
 the shared packages. All curation/training LOGIC and the Georgian normalizer (``kat_Geor``) live in
-omni-curator / omni-finetune-core. The data lives under ``data/`` (gitignored); see the package's
-CURATING.md for the layout.
+omni-curator / omni-finetune-core. The data lives under ``data/`` (gitignored).
 """
 
 from __future__ import annotations

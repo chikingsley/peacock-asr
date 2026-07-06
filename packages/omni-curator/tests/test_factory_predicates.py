@@ -1,4 +1,4 @@
-"""The v0 enqueue/segment predicates against temp queue sqlite DBs (factory_plan §2)."""
+"""The enqueue/segment predicates against temp queue sqlite DBs."""
 
 from __future__ import annotations
 

@@ -1,7 +1,7 @@
 """Score Georgian model cards on an export's test split — delegates to the core eval.
 
-  georgian-eval                                       # base on the v0 export's test split
-  georgian-eval --models ft=<trained card> --device cuda
+  georgian-omni-eval                                       # base on the v0 export's test split
+  georgian-omni-eval --models ft=<trained card> --device cuda
 """
 
 from __future__ import annotations

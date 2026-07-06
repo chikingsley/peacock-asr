@@ -1,8 +1,8 @@
 """Train Russian omni CTC models — pure config over :mod:`omni_finetune_core.project`.
 
-  russian-train --regime gpu_max                # 300M cold fine-tune from the omni base
-  russian-train --regime warm_restart --lr 2e-6 # warm-start from the Farsi production checkpoint
-  russian-train --preset russian-corpus-v0-300m    # pinned, exactly reproducible
+  russian-omni-train --regime gpu_max                # 300M cold fine-tune from the omni base
+  russian-omni-train --regime warm_restart --lr 2e-6 # warm-start from Farsi checkpoint
+  russian-omni-train --preset russian-corpus-v0-300m    # pinned, exactly reproducible
 
 Plan: train BOTH the cold-base fine-tune (template-conformant baseline) and the Farsi-warm restart
 (likely winner — Russian shares rus_Cyrl with Iranian Farsi), compare on the same v0 test split.

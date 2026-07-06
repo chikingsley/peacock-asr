@@ -13,10 +13,10 @@ const YTDLP_IMAGE = "jauderho/yt-dlp:latest";
 
 export const DISKS = [
   { label: "main-ssd", mount: "/" },
-  { label: "overflow", mount: "/mnt/overflow" },
-  { label: "storage", mount: "/mnt/storage" },
-  { label: "media", mount: "/mnt/media" },
-  { label: "fast-ssd", mount: "/mnt/fast-ssd-2tb" },
+  { label: "tiny-2t", mount: "/mnt/tiny-2t" },
+  { label: "massive-22t", mount: "/mnt/massive-22t" },
+  { label: "media-5t", mount: "/mnt/media-5t" },
+  { label: "workerssd", mount: "/mnt/workerssd-2t" },
 ] as const;
 
 // Subprocess timeouts. A pathological / locked sqlite read gets killed here and

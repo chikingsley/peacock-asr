@@ -34,9 +34,7 @@ override-dependencies = [
 [project.scripts]
 russian-curate = "russian_asr.curate:main"
 russian-omni-train = "russian_asr.omni.train:main"
-russian-train = "russian_asr.omni.train:main"
 russian-omni-eval = "russian_asr.omni.eval:main"
-russian-eval = "russian_asr.omni.eval:main"
 
 [project.entry-points."fairseq2.extension"]
 russian_asr = "russian_asr.assets:setup_fairseq2_extension"

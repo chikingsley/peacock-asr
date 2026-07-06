@@ -39,9 +39,7 @@ def main() -> int:
     from omni_finetune_core.metrics import compute_measures
     from omni_finetune_core.project import _load_test
 
-    audio, refs, corpora, _ = _load_test(args.version_root, args.language, 0, 40.0)
-    if args.limit:
-        audio, refs, corpora = audio[: args.limit], refs[: args.limit], corpora[: args.limit]
+    audio, refs, corpora, _ = _load_test(args.version_root, args.language, args.limit, 40.0)
     print(f"rows: {len(audio)}", flush=True)
 
     for card in models:

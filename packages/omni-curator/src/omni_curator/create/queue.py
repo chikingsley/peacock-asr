@@ -13,21 +13,22 @@ The queue DB (``data/queue.sqlite``) is transient work-state, deliberately separ
 canonical store. Concurrency safety: WAL mode, ``BEGIN IMMEDIATE`` for the (rare) claim writes, a
 lease (``locked_at``) for crash recovery, and a per-claim ``claim_token`` so a result from a
 reclaimed lease can never overwrite the retry that replaced it.
-See ``docs/archive/PIPELINE_SPLIT.md``.
+See ``docs/CURATION_FACTORY.md`` for the current stage contracts.
 """
 
 from __future__ import annotations
 
+import json
 import time
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from omni_curator.data.store import connect_wal
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Callable, Iterator
     from pathlib import Path
 
 _SCHEMA = """
@@ -37,6 +38,8 @@ CREATE TABLE IF NOT EXISTS videos (
     path       TEXT NOT NULL,
     tier       TEXT NOT NULL,
     citation   TEXT,
+    category   TEXT NOT NULL DEFAULT 'uncategorized',
+    meta       TEXT NOT NULL DEFAULT '{}',
     status     TEXT NOT NULL DEFAULT 'pending',   -- pending|segmenting|segmented|failed
     n_clips    INTEGER,
     attempts   INTEGER NOT NULL DEFAULT 0,
@@ -54,11 +57,14 @@ CREATE TABLE IF NOT EXISTS clips (
     channel     TEXT NOT NULL,
     clip_index  INTEGER NOT NULL,
     clip_path   TEXT NOT NULL,
+    tier        TEXT NOT NULL DEFAULT 'unknown',
     start       REAL NOT NULL,
     end         REAL NOT NULL,
     language    TEXT NOT NULL,
     script      TEXT NOT NULL,
     citation    TEXT,
+    category    TEXT NOT NULL DEFAULT 'uncategorized',
+    meta        TEXT NOT NULL DEFAULT '{}',
     status      TEXT NOT NULL DEFAULT 'pending',   -- pending|labeling|done|failed
     attempts    INTEGER NOT NULL DEFAULT 0,
     claim_token TEXT,
@@ -85,6 +91,8 @@ class QVideo:
     tier: str
     citation: str | None
     claim_token: str | None = None  # set by claim_video; guards complete_video/fail_video
+    category: str = "uncategorized"
+    meta: dict[str, object] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -101,6 +109,9 @@ class QClip:
     language: str
     script: str
     citation: str | None
+    tier: str = "unknown"
+    category: str = "uncategorized"
+    meta: dict[str, object] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -118,6 +129,33 @@ class QLabeledClip:
     citation: str | None
     label: str
     variants: str | None
+    tier: str = "unknown"
+    category: str = "uncategorized"
+    meta: dict[str, object] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class QueueRepairResult:
+    """Counts from refreshing existing queue row metadata."""
+
+    matched: int
+    changed: int
+    updated: int
+    skipped_missing: int
+
+
+def _meta_json(meta: dict[str, object]) -> str:
+    return json.dumps(meta, ensure_ascii=False, sort_keys=True)
+
+
+def _load_meta(raw: str | None) -> dict[str, object]:
+    if not raw:
+        return {}
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError:
+        return {}
+    return value if isinstance(value, dict) else {}
 
 
 class QueueStore:
@@ -132,9 +170,28 @@ class QueueStore:
 
     def _migrate(self) -> None:
         """Add columns a pre-existing queue predates (idempotent; CREATE TABLE never alters)."""
-        have = {row["name"] for row in self._conn.execute("PRAGMA table_info(videos)")}
-        if "claim_token" not in have:
-            self._conn.execute("ALTER TABLE videos ADD COLUMN claim_token TEXT")
+        self._add_missing_columns(
+            "videos",
+            {
+                "claim_token": "TEXT",
+                "category": "TEXT NOT NULL DEFAULT 'uncategorized'",
+                "meta": "TEXT NOT NULL DEFAULT '{}'",
+            },
+        )
+        self._add_missing_columns(
+            "clips",
+            {
+                "tier": "TEXT NOT NULL DEFAULT 'unknown'",
+                "category": "TEXT NOT NULL DEFAULT 'uncategorized'",
+                "meta": "TEXT NOT NULL DEFAULT '{}'",
+            },
+        )
+
+    def _add_missing_columns(self, table: str, columns: dict[str, str]) -> None:
+        have = {row["name"] for row in self._conn.execute(f"PRAGMA table_info({table})")}
+        for name, definition in columns.items():
+            if name not in have:
+                self._conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {definition}")
 
     def close(self) -> None:
         self._conn.close()
@@ -157,10 +214,73 @@ class QueueStore:
         with self._tx():
             cur = self._conn.executemany(
                 "INSERT OR IGNORE INTO videos "
-                "(video_id, channel, path, tier, citation, updated_at) VALUES (?,?,?,?,?,?)",
-                [(v.video_id, v.channel, v.path, v.tier, v.citation, now) for v in videos],
+                "(video_id, channel, path, tier, citation, category, meta, updated_at) "
+                "VALUES (?,?,?,?,?,?,?,?)",
+                [
+                    (
+                        v.video_id,
+                        v.channel,
+                        v.path,
+                        v.tier,
+                        v.citation,
+                        v.category,
+                        _meta_json(v.meta),
+                        now,
+                    )
+                    for v in videos
+                ],
             )
             return cur.rowcount
+
+    def video_records(self) -> list[dict[str, object]]:
+        """Return current video rows as plain dicts for audit/repair commands."""
+        return [dict(row) for row in self._conn.execute("SELECT * FROM videos ORDER BY video_id")]
+
+    def repair_video_metadata(
+        self, videos: list[QVideo], *, dry_run: bool = False
+    ) -> QueueRepairResult:
+        """Refresh existing video/clip tier, citation, category, and metadata by ``video_id``."""
+        current = {
+            row["video_id"]: row
+            for row in self._conn.execute(
+                "SELECT video_id, tier, citation, category, meta FROM videos"
+            )
+        }
+        now = time.time()
+        matched = 0
+        changed = 0
+        updated = 0
+        missing = 0
+        updates: list[tuple[str, str | None, str, str, float, str]] = []
+        clip_updates: list[tuple[str, str | None, str, str, float, str]] = []
+        for video in videos:
+            row = current.get(video.video_id)
+            if row is None:
+                missing += 1
+                continue
+            matched += 1
+            meta = _meta_json(video.meta)
+            values = (video.tier, video.citation, video.category, meta)
+            old = (row["tier"], row["citation"], row["category"], row["meta"])
+            if values == old:
+                continue
+            changed += 1
+            updates.append((*values, now, video.video_id))
+            clip_updates.append((*values, now, video.video_id))
+        if updates and not dry_run:
+            with self._tx(immediate=True):
+                cur = self._conn.executemany(
+                    "UPDATE videos SET tier=?, citation=?, category=?, meta=?, updated_at=? "
+                    "WHERE video_id=?",
+                    updates,
+                )
+                updated = cur.rowcount
+                self._conn.executemany(
+                    "UPDATE clips SET tier=?, citation=?, category=?, meta=?, updated_at=? "
+                    "WHERE video_id=?",
+                    clip_updates,
+                )
+        return QueueRepairResult(matched, changed, updated, missing)
 
     # -- segment stage -----------------------------------------------------------------------
 
@@ -194,21 +314,29 @@ class QueueStore:
             )
         return QVideo(
             row["video_id"], row["channel"], row["path"], row["tier"], row["citation"],
-            claim_token=token,
+            claim_token=token, category=row["category"], meta=_load_meta(row["meta"]),
         )
 
     def complete_video(
-        self, video_id: str, clips: list[QClip], *, claim_token: str | None = None
-    ) -> None:
+        self,
+        video_id: str,
+        clips: list[QClip],
+        *,
+        claim_token: str | None = None,
+        publish: Callable[[], None] | None = None,
+    ) -> bool:
         """Enqueue a segmented video's clips and mark it done — one txn (no half-cut clip view).
 
         Guarded by ``claim_token``: if the video was reclaimed (a fresh token) the marking matches
         zero rows and the clips are NOT enqueued, so a stale segmenter can't double-process.
+        ``publish`` runs only after the token-guarded row update succeeds and while this writer
+        holds the transaction, so stale segmenters can cut staging files but cannot publish final
+        clip files after SQLite ownership moved on.
         """
         now = time.time()
         cols = (
-            "clip_id, video_id, channel, clip_index, clip_path, "
-            "start, end, language, script, citation, updated_at"
+            "clip_id, video_id, channel, clip_index, clip_path, tier, "
+            "start, end, language, script, citation, category, meta, updated_at"
         )
         with self._tx():
             cur = self._conn.execute(
@@ -216,15 +344,33 @@ class QueueStore:
                 "claim_token=NULL, updated_at=? WHERE video_id=? AND claim_token IS ?",
                 (len(clips), now, video_id, claim_token),
             )
-            if cur.rowcount:  # only enqueue clips if WE still own the video
-                self._conn.executemany(
-                    f"INSERT OR IGNORE INTO clips ({cols}) VALUES (?,?,?,?,?,?,?,?,?,?,?)",  # noqa: S608 — fixed column list
-                    [
-                        (c.clip_id, c.video_id, c.channel, c.clip_index, c.clip_path,
-                         c.start, c.end, c.language, c.script, c.citation, now)
-                        for c in clips
-                    ],
-                )
+            if not cur.rowcount:
+                return False
+            if publish is not None:
+                publish()
+            self._conn.executemany(
+                f"INSERT OR IGNORE INTO clips ({cols}) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",  # noqa: S608 — fixed column list
+                [
+                    (
+                        c.clip_id,
+                        c.video_id,
+                        c.channel,
+                        c.clip_index,
+                        c.clip_path,
+                        c.tier,
+                        c.start,
+                        c.end,
+                        c.language,
+                        c.script,
+                        c.citation,
+                        c.category,
+                        _meta_json(c.meta),
+                        now,
+                    )
+                    for c in clips
+                ],
+            )
+            return True
 
     def fail_video(
         self, video_id: str, error: str, *, claim_token: str | None = None, max_attempts: int = 3
@@ -313,6 +459,7 @@ class QueueStore:
             QClip(
                 r["clip_id"], r["video_id"], r["channel"], r["clip_index"], r["clip_path"],
                 r["start"], r["end"], r["language"], r["script"], r["citation"],
+                tier=r["tier"], category=r["category"], meta=_load_meta(r["meta"]),
             )
             for r in rows
         ]
@@ -383,6 +530,7 @@ class QueueStore:
             QLabeledClip(
                 r["clip_id"], r["video_id"], r["channel"], r["clip_index"], r["clip_path"],
                 r["start"], r["end"], r["language"], r["citation"], r["label"] or "", r["variants"],
+                tier=r["tier"], category=r["category"], meta=_load_meta(r["meta"]),
             )
             for r in rows
         ]

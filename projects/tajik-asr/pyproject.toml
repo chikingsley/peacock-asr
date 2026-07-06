@@ -47,9 +47,6 @@ tajik-curate = "tajik_asr.curate:main"
 # omni (OmniASR CTC) family
 tajik-omni-train = "tajik_asr.omni.train:main"
 tajik-omni-eval = "tajik_asr.omni.eval:main"
-# deprecated bare aliases (= omni) — kept for one transition, retire later
-tajik-train = "tajik_asr.omni.train:main"
-tajik-eval = "tajik_asr.omni.eval:main"
 # parakeet family
 tajik-parakeet-train-tokenizer = "tajik_asr.parakeet.train:train_tokenizer"
 tajik-parakeet-train-ctc = "tajik_asr.parakeet.train:train_ctc"

@@ -61,9 +61,6 @@ farsi-curate = "farsi_asr.curate:main"
 farsi-omni-train = "farsi_asr.omni.train:main"
 farsi-omni-eval = "farsi_asr.omni.eval:main"
 farsi-omni-eval-lm = "farsi_asr.omni.lm_eval:main"
-# deprecated bare aliases (= omni) — kept for one transition, retire later
-farsi-train = "farsi_asr.omni.train:main"
-farsi-eval = "farsi_asr.omni.eval:main"
 # parakeet family
 farsi-parakeet-train-tokenizer = "farsi_asr.parakeet.train:train_tokenizer"
 farsi-parakeet-train-ctc = "farsi_asr.parakeet.train:train_ctc"

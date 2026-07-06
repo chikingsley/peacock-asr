@@ -1,18 +1,32 @@
 # TODO — peacock-asr
 
-Active work is unchecked. Checked items below were closed or verified in the 2026-06-25 cleanup
-and are kept briefly for review; `CHANGELOG.md` is the historical record.
+Active work is unchecked. Checked items below were closed or verified in the 2026-06-25/2026-06-30
+cleanup passes and are kept briefly for review; `CHANGELOG.md` is the historical record.
 
 ## Curator pipeline
 
-- [ ] Pre-resegmentation data audit: finish reconciling `data/create` channel folders against
-  `queue.sqlite`, classify downloaded-not-queued/archive-only/stale-cache material, and use
-  `docs/data-state-audit-2026-06-28.md` as the current handoff before replacing the segmenter.
-- [ ] Farsi resegment pilot prep: the `267` legacy-only FLACs were merged into canonical
-  `farsi/iran_international`; resolve the `16` common-name size mismatches, classify the `664`
-  local unqueued FLACs (`@AvasBookClub=220`, `iran_international=444`), refresh queue
-  metadata/categories, then run a small `iran_international` pilot with clips on
-  `/mnt/workerssd-2t/peacock-clips/farsi`.
+- [ ] Pre-resegmentation source-path policy: Farsi downloaded local source and the Tajik
+  missing-from-both rows are reconciled. Before production resegmentation, decide per
+  language/channel whether archive-backed non-Farsi gaps are restored to Tiny2T in bounded batches
+  or served from Massive fallback for pilots; keep `docs/data-state-audit-2026-06-28.md` current as
+  the handoff before replacing the segmenter.
+- [ ] Farsi resegment pilot prep: current downloaded local source audio is reconciled in the queue
+  (`iran_international=12,005`, `avas_book_club=220`); run a small Farsi pilot with the project
+  `data/clips` default unless an operator explicitly chooses a scratch clip root.
+- [ ] Farsi broad-registry downloads: the registry has `124` YouTube channels; only
+  `iran_international` and `avas_book_club` currently have local FLACs, so download/enqueue the
+  remaining `122` registry channels before calling the broad Farsi YouTube corpus complete.
+  Current audit manifests and runnable commands are under `projects/farsi-asr/data/audit/`.
+- [x] Farsi current source reconciliation: merged/promoted the legacy `iran_international` archive
+  variants, restored the `428` Tiny2T source gaps from Massive, enqueued the `444` local
+  `iran_international` files plus `220` `avas_book_club` files, and verified local Farsi FLACs
+  outside the queue are `0`.
+- [x] Tajik missing-from-both recovery: re-downloaded the former `31` rows absent from both
+  project-create and Massive; remaining Tajik local source gaps are archive-backed.
+- [x] Queue metadata/category refresh: repaired active Dari/Farsi/Georgian/Tajik YouTube queues
+  from the channel registries; every active row now has non-uncategorized `category`,
+  `meta.webpage_url`, `meta.tier`, and `meta.category`. Russian has no active split-pipeline
+  YouTube queue to repair.
 - [ ] Tajik v4 scale run: finish download → enqueue → segment → labelq → harvest → merge → verify → export v4 (`--max-wer 0.35`) → train (3–5 epochs / best-WER ckpt) → eval all models on v4 test + KenLM α=0.5/β=0. Dedup `tv_tajikistan`/`tvt_tojikiston`.
 - [ ] Dari v0 remaining work: refresh cookies, download remaining wired channels, stage Pimsleur Dari audio into the create root, run enqueue → segment → labelq → harvest → merge → verify → export v0, then train cold-base vs Farsi-warm (`--regime warm_restart --lr 2e-6`). Optional: Pashto language gate for bilingual channels.
 - [x] Georgian v1 source registry: wired the non-duplicate 2026-06-13 researched channels from `projects/georgian-asr/docs/georgian_youtube_channels.md` into `sources.py`; left `@interpressnews` out because `yt-dlp` still returns 404, and skipped the duplicate audiobook channel already present as `audiobooks_geo_ka`.
@@ -54,9 +68,10 @@ and are kept briefly for review; `CHANGELOG.md` is the historical record.
 
 ## Storage
 
-- [x] Storage tiering policy: current snapshot is `/mnt/tiny-2t` 51%, `/mnt/workerssd-2t` 64%,
-  `/mnt/massive-22t` 54%, and `/` 35% in the 2026-06-28 audit; workers SSD has Russian
-  canonical audio 1.2T, Russian SQLite 8.4G, and active clip cache.
+- [x] Storage tiering policy: current snapshot is `/mnt/tiny-2t` 52%, `/mnt/workerssd-2t` 64%,
+  `/mnt/massive-22t` 54%, and `/` 41% in the 2026-06-28 audit; workers SSD has Russian
+  canonical audio 1.2T and Russian SQLite 8.4G. New Farsi/Dari/Georgian/Tajik source audio stays
+  on Tiny2T by default; any WorkersSSD clip scratch root requires an explicit operator choice.
   `CURATION_FACTORY.md` now defines tier ownership, minimum free-space floors, and source audio
   defaults to each project's `data/create` unless an operator explicitly overrides it.
 - [x] Transparent re-segment-from-archive: segment resolves missing create-root sources under `/mnt/massive-22t/peacock-asr-archive`; covered by `packages/omni-curator/tests/test_segment.py`.

@@ -34,15 +34,13 @@ _AUTH_ERROR_MARKERS = ("401", "unauthorized", "403", "forbidden")
 class ScribeError(RuntimeError):
     """A Scribe call failed for one clip.
 
-    The deployed service owns key rotation, so ``auth`` is informational only (it no longer
-    drives an in-process renewal): a job failure surfaces as a per-clip error that the caller
-    counts and skips. ``generation`` is retained for call-site compatibility.
+    The deployed service owns key rotation, so ``auth`` is informational only: a job failure
+    surfaces as a per-clip error that the caller counts and skips.
     """
 
-    def __init__(self, message: str, *, auth: bool = False, generation: int = 0) -> None:
+    def __init__(self, message: str, *, auth: bool = False) -> None:
         super().__init__(message)
         self.auth = auth
-        self.generation = generation
 
 
 def raise_for_scribe_error(result: Mapping[str, object]) -> None:

@@ -67,6 +67,18 @@ def _free_gb(path: Path) -> float:
     return stat.f_bavail * stat.f_frsize / _BYTES_PER_GB
 
 
+def _sha256(path: Path) -> str:
+    """Streamed SHA-256 of a file — content identity, since equal byte-size is NOT proof of
+    identical content (a truncated/corrupt copy can match size). Gates source-audio deletion."""
+    import hashlib
+
+    h = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 def copy_verify(src: Path, dst: Path) -> int:
     """Copy ``src`` -> ``dst`` and verify the copied byte-size matches; return the size.
 
@@ -80,9 +92,9 @@ def copy_verify(src: Path, dst: Path) -> int:
     with tmp.open("rb") as fh:
         os.fsync(fh.fileno())  # flush the copied bytes to disk BEFORE the caller unlinks the source
     copied = tmp.stat().st_size
-    if copied != size:
+    if copied != size or _sha256(tmp) != _sha256(src):
         tmp.unlink(missing_ok=True)
-        msg = f"copy size mismatch for {src} ({copied} != {size})"
+        msg = f"copy verify FAILED for {src} (size {copied} vs {size}, or checksum mismatch)"
         raise OSError(msg)
     tmp.replace(dst)
     dir_fd = os.open(dst.parent, os.O_RDONLY)  # make the rename itself durable (exFAT/ext4)
@@ -97,8 +109,8 @@ def _move(src: Path, dst: Path) -> int:
     """Move ``src`` -> ``dst``: atomic rename if same filesystem, else copy-verify-unlink."""
     dst.parent.mkdir(parents=True, exist_ok=True)
     size = src.stat().st_size
-    if dst.exists() and dst.stat().st_size == size:
-        src.unlink()  # idempotent: a prior run already copied it; just finish the move
+    if dst.exists() and dst.stat().st_size == size and _sha256(dst) == _sha256(src):
+        src.unlink()  # idempotent: a prior run already copied an IDENTICAL file (content-verified)
         return size
     if src.stat().st_dev == dst.parent.stat().st_dev:
         src.replace(dst)  # same filesystem -> atomic rename

@@ -47,20 +47,14 @@ def merge_windows(
     return merged
 
 
-def split_window(
-    window: SpeechWindow, *, hard_max_seconds: float, min_duration_seconds: float
-) -> list[SpeechWindow]:
+def split_window(window: SpeechWindow, *, hard_max_seconds: float) -> list[SpeechWindow]:
     """Split a window longer than ``hard_max_seconds`` into near-equal contiguous sub-windows.
 
     Merging caps the *length of a merge*, but a single raw speech island with no internal silence
     can still exceed ``hard_max_seconds`` — VAD found no boundary to cut at. Rather than emit one
     over-length clip (the bug: dari had 60k clips >30s, up to 777s), slice the island into
     ``ceil(duration / hard_max)`` equal contiguous chunks so every chunk is ``<= hard_max_seconds``.
-
-    The tail must not be a sub-``min_duration_seconds`` sliver: if the final equal chunk would fall
-    below the floor, it is folded into the previous chunk instead (which may then be slightly over
-    ``hard_max``, but never by more than ``min_duration_seconds`` and never a dropped sliver). A
-    window already within the cap is returned unchanged.
+    The hard cap is non-negotiable; the minimum-duration filter applies before splitting.
     """
     if window.duration <= hard_max_seconds:
         return [window]
@@ -68,14 +62,7 @@ def split_window(
     step = window.duration / n
     bounds = [window.start + i * step for i in range(n)]
     bounds.append(window.end)
-    chunks = [SpeechWindow(bounds[i], bounds[i + 1]) for i in range(n)]
-    # Equal slicing keeps every chunk <= hard_max and >= step; step dips below the floor only when
-    # min_duration_seconds > hard_max (a misconfiguration), so guard the tail defensively anyway.
-    fold_threshold = 2  # need at least two chunks to fold a sub-min tail into the previous one
-    if len(chunks) >= fold_threshold and chunks[-1].duration < min_duration_seconds:
-        tail = chunks.pop()
-        chunks[-1] = SpeechWindow(chunks[-1].start, tail.end)
-    return chunks
+    return [SpeechWindow(bounds[i], bounds[i + 1]) for i in range(n)]
 
 
 def boolean_windows(
@@ -113,7 +100,6 @@ def boolean_windows(
             split_window(
                 window,
                 hard_max_seconds=hard_max_seconds,
-                min_duration_seconds=min_duration_seconds,
             )
         )
     return out
