@@ -3,15 +3,22 @@
 from __future__ import annotations
 
 import argparse
+import re
 import runpy
 import sys
+import tarfile
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Never
 
 if TYPE_CHECKING:
     from parakeet_finetune_core.project import ParakeetProject
 
 TRANSDUCER_MODEL_HINTS = ("tdt", "rnnt", "transducer")
+TRUSTED_REMOTE_CTC = re.compile(r"^nvidia/parakeet-ctc[-_].+$", re.IGNORECASE)
+PURE_CTC_TARGETS = {
+    "nemo.collections.asr.models.ctc_models.EncDecCTCModel",
+    "nemo.collections.asr.models.ctc_bpe_models.EncDecCTCModelBPE",
+}
 
 
 def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
@@ -55,14 +62,47 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
 
 def validate_ctc_only(args: argparse.Namespace) -> None:
     model_name = str(args.model_name)
-    if args.model_kind != "ctc" or any(
+    refused = args.model_kind != "ctc" or any(
         hint in model_name.lower() for hint in TRANSDUCER_MODEL_HINTS
-    ):
-        raise SystemExit(
-            "the generic NeMo recipe is CTC-only; TDT/RNNT models must use the dedicated "
-            "<language>-parakeet-train-tdt command so loss repair, compute_eval_loss=True, "
-            "and val_loss checkpoint selection cannot be bypassed"
-        )
+    )
+    model_path = Path(model_name).expanduser()
+    if not refused and model_path.is_file():
+        refused = _local_nemo_target(model_path) not in PURE_CTC_TARGETS
+    elif not refused and (model_path.suffix == ".nemo" or model_path.is_absolute()):
+        raise SystemExit(f"local NeMo model does not exist: {model_path}")
+    elif not refused:
+        refused = TRUSTED_REMOTE_CTC.fullmatch(model_name) is None
+    if refused:
+        _raise_ctc_only()
+
+
+def _local_nemo_target(path: Path) -> str:
+    """Read the model class from a local NeMo archive without restoring its weights."""
+    try:
+        with tarfile.open(path, mode="r:*") as archive:
+            members = [
+                member
+                for member in archive.getmembers()
+                if member.name.endswith("model_config.yaml")
+            ]
+            if len(members) != 1:
+                _raise_ctc_only()
+            handle = archive.extractfile(members[0])
+            if handle is None:
+                _raise_ctc_only()
+            config = handle.read().decode("utf-8")
+    except (OSError, tarfile.TarError, UnicodeDecodeError) as exc:
+        raise SystemExit(f"could not inspect local NeMo model {path}: {exc}") from exc
+    match = re.search(r"(?m)^target:\s*([^\s#]+)", config)
+    return match.group(1) if match else ""
+
+
+def _raise_ctc_only() -> Never:
+    raise SystemExit(
+        "the generic NeMo recipe is CTC-only; TDT/RNNT models must use the dedicated "
+        "<language>-parakeet-train-tdt command so loss repair, compute_eval_loss=True, "
+        "and val_loss checkpoint selection cannot be bypassed"
+    )
 
 
 def build_script_args(args: argparse.Namespace) -> tuple[Path, list[str]]:
@@ -104,8 +144,10 @@ def build_script_args(args: argparse.Namespace) -> tuple[Path, list[str]]:
         "exp_manager.create_wandb_logger=false",
         "exp_manager.checkpoint_callback_params.monitor=val_wer",
         "exp_manager.checkpoint_callback_params.mode=min",
-        f"+init_from_pretrained_model={args.model_name}",
     ]
+    model_path = Path(str(args.model_name)).expanduser()
+    init_key = "init_from_nemo_model" if model_path.is_file() else "init_from_pretrained_model"
+    script_args.append(f"+{init_key}={args.model_name}")
     if args.early_stopping:
         script_args.extend(
             [

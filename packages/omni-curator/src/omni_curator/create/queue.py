@@ -252,7 +252,7 @@ class QueueStore:
         updated = 0
         missing = 0
         updates: list[tuple[str, str | None, str, str, float, str]] = []
-        clip_updates: list[tuple[str, str | None, str, str, float, str]] = []
+        clip_updates: list[tuple[str, str | None, str, dict[str, object], float, str]] = []
         for video in videos:
             row = current.get(video.video_id)
             if row is None:
@@ -266,7 +266,9 @@ class QueueStore:
                 continue
             changed += 1
             updates.append((*values, now, video.video_id))
-            clip_updates.append((*values, now, video.video_id))
+            clip_updates.append(
+                (video.tier, video.citation, video.category, dict(video.meta), now, video.video_id)
+            )
         if updates and not dry_run:
             with self._tx(immediate=True):
                 cur = self._conn.executemany(
@@ -275,11 +277,31 @@ class QueueStore:
                     updates,
                 )
                 updated = cur.rowcount
-                self._conn.executemany(
-                    "UPDATE clips SET tier=?, citation=?, category=?, meta=?, updated_at=? "
-                    "WHERE video_id=?",
-                    clip_updates,
-                )
+                for tier, citation, category, source_meta, changed_at, video_id in clip_updates:
+                    rows = self._conn.execute(
+                        "SELECT clip_id, meta FROM clips WHERE video_id=?", (video_id,)
+                    ).fetchall()
+                    repaired: list[tuple[str, str | None, str, str, float, str]] = []
+                    for clip in rows:
+                        meta = dict(source_meta)
+                        old_meta = _load_meta(clip["meta"])
+                        if "segmentation" in old_meta:
+                            meta["segmentation"] = old_meta["segmentation"]
+                        repaired.append(
+                            (
+                                tier,
+                                citation,
+                                category,
+                                _meta_json(meta),
+                                changed_at,
+                                clip["clip_id"],
+                            )
+                        )
+                    self._conn.executemany(
+                        "UPDATE clips SET tier=?, citation=?, category=?, meta=?, updated_at=? "
+                        "WHERE clip_id=?",
+                        repaired,
+                    )
         return QueueRepairResult(matched, changed, updated, missing)
 
     # -- segment stage -----------------------------------------------------------------------
@@ -324,6 +346,7 @@ class QueueStore:
         *,
         claim_token: str | None = None,
         publish: Callable[[], None] | None = None,
+        video_meta: dict[str, object] | None = None,
     ) -> bool:
         """Enqueue a segmented video's clips and mark it done — one txn (no half-cut clip view).
 
@@ -334,6 +357,7 @@ class QueueStore:
         clip files after SQLite ownership moved on.
         """
         now = time.time()
+        video_meta_json = _meta_json(video_meta) if video_meta is not None else None
         cols = (
             "clip_id, video_id, channel, clip_index, clip_path, tier, "
             "start, end, language, script, citation, category, meta, updated_at"
@@ -341,8 +365,9 @@ class QueueStore:
         with self._tx():
             cur = self._conn.execute(
                 "UPDATE videos SET status='segmented', n_clips=?, locked_by=NULL, locked_at=NULL, "
-                "claim_token=NULL, updated_at=? WHERE video_id=? AND claim_token IS ?",
-                (len(clips), now, video_id, claim_token),
+                "claim_token=NULL, meta=COALESCE(?, meta), updated_at=? "
+                "WHERE video_id=? AND claim_token IS ?",
+                (len(clips), video_meta_json, now, video_id, claim_token),
             )
             if not cur.rowcount:
                 return False

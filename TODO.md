@@ -5,23 +5,19 @@ Active work only. Completed work belongs in `CHANGELOG.md`; live pipeline state 
 
 ## Multi-VAD curation
 
-- [ ] Implement one engine contract for Cobra, Silero, and the exact benchmark MarbleNet model:
-  decoded 16 kHz mono audio in, raw speech intervals out. Decode each source only once.
-- [ ] Implement one shared, versioned postprocessor for padding, short-span filtering, merging, and
-  hard splitting. Keep raw intervals; make emitted `max_segment_seconds` profile/model-aware rather
-  than treating 30 seconds as a universal VAD rule.
-- [ ] Persist engine, model revision, threshold/native options, postprocessing profile, and policy
-  revision with every segmentation run and clip.
+- [ ] Add a durable production segmentation-run record (clip metadata already carries the exact
+  engine/model/backend/postprocessor policy and effective hash).
 - [ ] Add explicit per-project routing plus clean/read and noisy/conversational postprocessing
   profiles. Treat Dari -> Cobra as provisional until a Dari-specific pilot.
-- [ ] Add a bounded pilot surface (`--max-videos`, channel, or manifest selector) with isolated
-  output so comparisons cannot drain or overwrite production queues.
-- [ ] Run the same Farsi news and audiobook sources through Cobra, Silero, and MarbleNet. Compare
-  speech coverage, interval/duration distributions, empty/error rate, Scribe yield, output bytes,
-  curator throughput, and a sampled boundary audit; carry the selected profile through
+- [ ] Finish the Farsi pilot gate: the 32-source same-audio interval run is complete, but all 60
+  Scribe samples returned the service-wide HTTP 502 seen at `/health`. Retry ASR yield after service
+  recovery, review sampled boundaries, choose the profile, then carry it through
   `labelq -> harvest -> verify` before production scale.
 - [ ] Make direct CLI and factory worker/device defaults engine-aware, load project secrets before
   Cobra preflight, and rerun live parent-death/orphan-GPU cleanup tests.
+- [ ] Add a repository-level third-party notice before redistributing VAD adapter code or the
+  NVIDIA MarbleNet v2 weights; runtime dependencies have upstream licenses, but this repo has no
+  consolidated release notice yet.
 
 ## Language curation
 

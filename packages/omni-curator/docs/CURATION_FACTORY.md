@@ -27,7 +27,7 @@ The system must:
 | VAD engine contract | Cobra, Silero, and the pinned benchmark MarbleNet adapter from `a-vad-bench` commit `a838e7f` consume the same decoded 16 kHz mono audio and return raw speech intervals. Peacock queue/publication machinery remains engine-independent. |
 | Interval policy | One versioned Peacock postprocessor owns padding, minimum speech, gap merging, and hard splitting. Keep raw intervals and make emitted maximum duration profile/model-aware; 30 seconds is not a universal VAD truth. |
 | VAD routing | Route explicitly by project/language and recording profile. Support clean/read and noisy/conversational profiles; validate policy changes with bounded same-audio pilots before scale. |
-| Segmentation provenance | Store engine, model revision, native threshold/options, postprocessing profile, and policy revision for every run and clip. |
+| Segmentation provenance | Clip metadata and zero-output video rows store engine, model revision, native threshold/options, resolved runtime/backend, postprocessing profile, and policy revision. A separate durable production-run record remains open. |
 | Scribe API budget | One global API budget is split across all live Scribe jobs: `labelq` and any manual `verify`. |
 | Project working roots | `/mnt/tiny-2t/peacock-asr/<project>` backs the active language-project `data` symlinks except Russian. |
 | Workers SSD | `/mnt/workerssd-2t` holds Russian working audio. It is only a clip scratch target when an operator explicitly passes `--clips-root`. |
@@ -233,6 +233,13 @@ quality signals, not proof that a transcript is true.
 ## P3 - Multi-VAD Segmentation
 
 Correctness comes before speed.
+
+Current state (2026-07-09): steps 1-3, clip/zero-output provenance and hard caps from step 4, and the
+bounded manifest surface in step 5 are implemented. The same-audio 32-source Farsi interval pilot
+in step 7 is complete. Production still defaults to legacy MarbleNet boundaries. Scribe yield and
+downstream carry-through remain open because the pilot's 60 calls, a direct source probe, and the
+deployed service health endpoint all returned HTTP 502. Engine-aware defaults, a durable run table,
+and live orphan-process validation also remain open.
 
 Order:
 

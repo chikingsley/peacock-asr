@@ -451,24 +451,67 @@ def cmd_repair_metadata(project: CuratorProject, args: argparse.Namespace) -> in
 
 def cmd_segment(project: CuratorProject, args: argparse.Namespace) -> int:
     """Segment stage: resident-model VAD producers cut queued videos into clips (CPU-bound)."""
+    project.load_env()
     from omni_curator.create.queue import QueueStore
     from omni_curator.create.segment import run_segmenters
-    from omni_curator.create.vad import resolve_devices
+    from omni_curator.create.vad import build_vad_policy, resolve_devices
 
     gpu_procs, cpu_procs = resolve_devices(args.gpu_procs, args.cpu_procs)
+    policy = build_vad_policy(
+        engine=args.vad_engine, profile=args.vad_profile, max_speech_s=args.max_duration,
+        threshold=args.vad_threshold, model_path=args.vad_model,
+        silero_backend=args.silero_backend,
+    )
     # --clips-root lets clips land on a fast disk (e.g. an SSD) while sources stay put; clip_path is
     # stored absolute, so the labeler reads new (SSD) and old (overflow) clips transparently.
     clips_root = Path(args.clips_root) if args.clips_root else project.clips_dir
     clips_root.mkdir(parents=True, exist_ok=True)
-    print(f"segment: {gpu_procs} GPU + {cpu_procs} CPU VAD workers -> clips at {clips_root}")
+    print(
+        f"segment: engine={policy.engine} profile={policy.profile_id} "
+        f"{gpu_procs} GPU + {cpu_procs} CPU workers -> clips at {clips_root}"
+    )
     run_segmenters(
         project.queue_path, gpu_procs=gpu_procs, cpu_procs=cpu_procs, clips_root=clips_root,
         language=project.language, script=project.script,
         max_dur=args.max_duration, pending_hwm=args.hwm, min_free_gb=args.min_free_gb,
+        policy=policy,
     )
     queue = QueueStore(project.queue_path)
     print(f"segment done. queue: {queue.status_counts()}")
     queue.close()
+    return 0
+
+
+def cmd_vad_pilot(project: CuratorProject, args: argparse.Namespace) -> int:
+    """Run an isolated, exact-manifest VAD comparison without opening the production queue."""
+    project.load_env()
+    from omni_curator.create.vad_pilot import run_vad_pilot
+
+    output_dir = Path(args.output_dir).expanduser().resolve()
+    production_clips = project.clips_dir.resolve()
+    project_root = project.data.resolve().parent
+    if output_dir.is_relative_to(project_root) or project_root.is_relative_to(output_dir):
+        raise ValueError(f"pilot output must not overlap the project tree: {project_root}")
+    if output_dir == production_clips or output_dir.is_relative_to(production_clips):
+        raise ValueError(f"pilot output must not be inside production clips: {production_clips}")
+    summary = run_vad_pilot(
+        manifest=Path(args.manifest), output_dir=output_dir,
+        engines=args.engine or ["cobra", "silero", "marblenet"],
+        profile=args.vad_profile, max_duration=args.max_duration,
+        threshold=args.vad_threshold,
+        model_path=Path(args.vad_model) if args.vad_model else None,
+        silero_backend=args.silero_backend, device=args.device,
+        write_clips=args.write_clips, overwrite=args.overwrite,
+        scribe_max_clips_per_engine=args.scribe_max_clips_per_engine,
+        scribe_model=args.scribe_model, scribe_language=args.scribe_language,
+    )
+    print(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True))
+    scribe = summary["scribe"]
+    attempted = sum(int(row["attempted"]) for row in scribe)
+    errors = sum(int(row["errors"]) for row in scribe)
+    if attempted and errors == attempted:
+        print("vad-pilot: every requested Scribe call failed; ASR-yield gate is unresolved")
+        return 2
     return 0
 
 
@@ -912,7 +955,9 @@ def _add_source_parsers(sub: argparse._SubParsersAction, project: CuratorProject
     p_ck.set_defaults(func=cmd_cookies)
 
 
-def _add_create_parsers(sub: argparse._SubParsersAction, project: CuratorProject) -> None:
+def _add_create_parsers(  # noqa: PLR0915
+    sub: argparse._SubParsersAction, project: CuratorProject
+) -> None:
     p_eq = sub.add_parser("enqueue", help="seed the queue with not-yet-labeled videos")
     _add_channel_args(p_eq, project)
     p_eq.add_argument("--all", action="store_true", help="ignore the already-labeled skip")
@@ -933,6 +978,16 @@ def _add_create_parsers(sub: argparse._SubParsersAction, project: CuratorProject
     p_sg.add_argument("--cpu-procs", type=int, default=8,
                       help="VAD workers on the CPU cores, run alongside the GPU for max throughput")
     p_sg.add_argument("--max-duration", type=float, default=30.0, help="hard cap per VAD span (s)")
+    p_sg.add_argument("--vad-engine", choices=("marblenet", "cobra", "silero"),
+                      default="marblenet", help="resident VAD adapter (default: marblenet)")
+    p_sg.add_argument("--vad-profile",
+                      choices=("legacy-marblenet-v1", "conservative-v1"),
+                      default="legacy-marblenet-v1",
+                      help="shared interval postprocessor; legacy remains production default")
+    p_sg.add_argument("--vad-threshold", type=float, default=0.5)
+    p_sg.add_argument("--vad-model", default=None, metavar="PATH",
+                      help="exact MarbleNet v2 .nemo path (or OMNI_CURATOR_VAD_MODEL)")
+    p_sg.add_argument("--silero-backend", choices=("auto", "onnx", "jit"), default="auto")
     p_sg.add_argument("--hwm", type=int, default=DEFAULT_PENDING_HWM,
                       help="pending-clip backpressure ceiling (segment pauses above it)")
     p_sg.add_argument("--min-free-gb", type=float, default=DEFAULT_MIN_FREE_GB,
@@ -941,6 +996,30 @@ def _add_create_parsers(sub: argparse._SubParsersAction, project: CuratorProject
                       help="write clips here instead of data/clips (e.g. a fast SSD); clip paths "
                            "stay absolute so the labeler reads old + new clips transparently")
     p_sg.set_defaults(func=cmd_segment)
+
+    p_vp = sub.add_parser(
+        "vad-pilot", help="compare VAD engines on an exact manifest in an isolated output root"
+    )
+    p_vp.add_argument("--manifest", required=True, metavar="JSONL",
+                      help="bounded selector; each row has id/path/tier/channel")
+    p_vp.add_argument("--output-dir", required=True, metavar="DIR")
+    p_vp.add_argument("--engine", action="append", choices=("cobra", "silero", "marblenet"),
+                      help="engine to compare (repeat; default: all three)")
+    p_vp.add_argument("--vad-profile", choices=("conservative-v1",),
+                      default="conservative-v1")
+    p_vp.add_argument("--max-duration", type=float, default=30.0)
+    p_vp.add_argument("--vad-threshold", type=float, default=0.5)
+    p_vp.add_argument("--vad-model", default=None, metavar="PATH")
+    p_vp.add_argument("--silero-backend", choices=("auto", "onnx", "jit"), default="auto")
+    p_vp.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
+    p_vp.add_argument("--write-clips", action=argparse.BooleanOptionalAction, default=False)
+    p_vp.add_argument("--overwrite", action="store_true")
+    p_vp.add_argument("--scribe-max-clips-per-engine", type=int, default=0,
+                      help="balanced clean/noisy Scribe sample; 0 disables ASR yield")
+    p_vp.add_argument("--scribe-model", default="scribe-v2")
+    p_vp.add_argument("--scribe-language", default=None,
+                      help="service language code (default: auto-detect)")
+    p_vp.set_defaults(func=cmd_vad_pilot)
 
     p_rsg = sub.add_parser(
         "resegment", help="reset videos->pending + clear clips to re-cut with the fixed VAD"

@@ -42,6 +42,10 @@ comes from `packages/omni-curator/status.py`; root `STATUS.md` is ignored and no
 
 ## Verify / scoring
 
+- The generic Parakeet NeMo CTC wrapper now inspects `model_config.yaml` inside local `.nemo`
+  archives and accepts only pure CTC model classes. A custom-named RNNT/TDT archive can no longer
+  bypass the dedicated transducer recipe by claiming `--model-kind ctc`; local CTC archives use
+  NeMo's `init_from_nemo_model` path and remote IDs use an explicit NVIDIA Parakeet CTC allowlist.
 - Parakeet evaluation safety: promoted `.nemo` models no longer run `change_vocabulary()` during
   evaluation; base-plus-checkpoint reconstruction requires explicit `--replace-tokenizer` and an
   exact state-dict match. The evaluator now records raw/normalized WER and CER, empty outputs,
@@ -74,6 +78,27 @@ comes from `packages/omni-curator/status.py`; root `STATUS.md` is ignored and no
 
 ## Curator package (this session)
 
+- Multi-VAD production boundary landed: Cobra 3.0.3/engine 3.0.0, Silero 6.2.1, and the exact
+  MarbleNet v2 SHA256 `84bda37e...` consume the same decoded 16 kHz mono array and emit native
+  intervals into one versioned sanitize/pad/merge/filter/hard-split postprocessor. Segment decoding
+  is single-pass, failures are fail-closed (no engine/model fallback), and every clip carries the
+  exact runtime/model revision plus an effective policy hash through harvest/export metadata.
+- Added the isolated manifest-bounded `vad-pilot` surface and the duration-matched Farsi selector:
+  16 clean Avas audiobook + 16 noisy Iran International sources, 3.209 hours per tier (0.03%
+  duration difference). The 2026-07-09 live all-engine run wrote 16,852 clips / 1.05 GB under
+  `/mnt/workerssd-2t/peacock-asr/pilots/farsi-vad-2026-07-09` without opening the production queue.
+- Farsi shared-policy measurements: Cobra coverage was 66.76% clean / 83.98% noisy (4,185 / 4,292
+  clips, 646x / 635x explicit-CPU inference RTFx); Silero 73.54% / 91.51% (3,530 / 2,237,
+  236x / 236x); MarbleNet v2 76.59% / 93.62% (1,750 / 858, 688x / 678x). All 32 sources emitted
+  speech and no interval exceeded 30 seconds. Historical Scribe-positive noisy spans gave gross time-coverage
+  anchors of 87.46% Cobra, 94.87% Silero, and 97.14% MarbleNet, but remain old-MarbleNet-biased
+  pseudo-references rather than ground truth. The corrected report with explicit devices, native
+  options, dependency/model hashes, and manifest/implementation hashes is under the sibling
+  `farsi-vad-2026-07-09-v2` scratch directory; all 96 raw/emitted interval arrays exactly match the
+  retained-clip run.
+- The pilot's 60 balanced Scribe calls all returned HTTP 502, as did the service `/health` endpoint
+  and a direct source-path probe. ASR yield remains explicitly unresolved rather than being reported
+  as empty output; future all-failed Scribe pilot runs exit non-zero.
 - Audited and removed abandoned pre-reset clip output: 4,227 FLAC/temp files (~2.8 GB) plus all
   empty descendants from Dari, Farsi, Georgian, and Tajik `data/clips`. Current queues, active and
   premigration stores, manifests, and training artifacts had zero exact references; all 128 source

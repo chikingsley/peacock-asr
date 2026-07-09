@@ -7,6 +7,8 @@ burn a clip's retry budget.
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from omni_curator.create.queue import QClip, QueueStore, QVideo
@@ -66,6 +68,38 @@ def test_repair_video_metadata_updates_existing_rows(queue):
     assert video.meta["webpage_url"] == "https://www.youtube.com/watch?v=v000"
 
 
+def test_repair_video_metadata_preserves_clip_segmentation_provenance(queue):
+    original = QVideo(
+        "chan_v000", "chan", "/audio/v000.flac", "noisy", None,
+        meta={"title": "old", "stale": True},
+    )
+    queue.enqueue_videos([original])
+    claimed = queue.claim_video("segmenter")
+    assert claimed is not None
+    clip = QClip(
+        "chan_v000_0000", claimed.video_id, claimed.channel, 0,
+        "/clips/chan_v000/seg_0000.flac", 0.0, 1.0, "tgk_Cyrl", "Cyrillic", None,
+        meta={**claimed.meta, "segmentation": {"profile_id": "vad-exact"}},
+    )
+    assert queue.complete_video(
+        claimed.video_id, [clip], claim_token=claimed.claim_token
+    )
+
+    queue.repair_video_metadata(
+        [
+            QVideo(
+                original.video_id, original.channel, original.path, "clean", "new citation",
+                category="news", meta={"title": "new"},
+            )
+        ]
+    )
+    repaired = queue.claim_clips(1, "labeler")[0]
+    assert repaired.meta == {
+        "title": "new",
+        "segmentation": {"profile_id": "vad-exact"},
+    }
+
+
 def test_video_claim_complete_cycle(queue):
     queue.enqueue_videos(_videos(1))
     video = queue.claim_video("seg-0")
@@ -77,6 +111,20 @@ def test_video_claim_complete_cycle(queue):
     counts = queue.status_counts()
     assert counts["videos"] == {"segmented": 1}
     assert counts["clips"] == {"pending": 4}
+
+
+def test_zero_clip_completion_keeps_video_segmentation_provenance(queue):
+    queue.enqueue_videos(_videos(1))
+    video = queue.claim_video("seg-0")
+    assert video is not None
+    assert queue.complete_video(
+        video.video_id,
+        [],
+        claim_token=video.claim_token,
+        video_meta={"segmentation": {"profile_id": "vad-empty"}},
+    )
+    row = queue.video_records()[0]
+    assert json.loads(row["meta"])["segmentation"]["profile_id"] == "vad-empty"
 
 
 def test_source_metadata_survives_queue_lifecycle(queue):

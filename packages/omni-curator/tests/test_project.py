@@ -21,7 +21,8 @@ from omni_curator.project import (
 
 ALL_COMMANDS = {
     "prescan", "list", "download", "cookies",
-    "enqueue", "repair-metadata", "segment", "resegment", "labelq", "harvest", "archive",
+    "enqueue", "repair-metadata", "segment", "vad-pilot", "resegment", "labelq", "harvest",
+    "archive",
     "merge", "ingest", "verify", "rescore", "export",
 }
 

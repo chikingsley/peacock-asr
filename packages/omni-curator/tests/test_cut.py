@@ -7,6 +7,7 @@ import soundfile as sf
 
 from omni_curator.create.queue import QVideo
 from omni_curator.create.segment import _cut_clips
+from omni_curator.process.audio import load_16k_mono
 
 
 def test_cut_clips_decodes_once_and_slices(tmp_path) -> None:
@@ -19,8 +20,14 @@ def test_cut_clips_decodes_once_and_slices(tmp_path) -> None:
 
     video = QVideo(video_id="vid1", channel="chan", path=str(src), tier="t1", citation="http://x")
     spans = [(0.0, 1.0), (1.5, 2.5), (3.0, 4.0)]
+    audio = load_16k_mono(src)
     clips = _cut_clips(
-        video, spans, clips_root=tmp_path / "clips", language="tgk_Cyrl", script="Cyrl"
+        video,
+        spans,
+        clips_root=tmp_path / "clips",
+        language="tgk_Cyrl",
+        script="Cyrl",
+        audio=audio,
     )
 
     assert len(clips) == 3

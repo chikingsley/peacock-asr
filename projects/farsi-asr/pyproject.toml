@@ -15,7 +15,7 @@ dependencies = [
   # pin predates numpy 2; force 2.x because fairseq2n needs it (matches tajik/georgian).
   "numpy==2.4.6",
   "pyctcdecode>=0.5.0",
-  "omni-curator[ingest,youtube,normalize]",
+  "omni-curator[ingest,normalize,vad-cobra,vad-silero,youtube]",
   "omni-finetune-core",
   "parakeet-finetune-core",
   "omnilingual-asr==0.2.0+peacock.1",

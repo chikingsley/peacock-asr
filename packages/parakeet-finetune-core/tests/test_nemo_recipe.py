@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import io
+import tarfile
+
 import pytest
 
 from parakeet_finetune_core.nemo_recipe import build_command, build_parser, build_script_args
@@ -107,6 +110,79 @@ def test_nemo_recipe_refuses_transducer_model_disguised_as_ctc(tmp_path):
 
     with pytest.raises(SystemExit, match="CTC-only"):
         build_script_args(args)
+
+
+def test_nemo_recipe_inspects_custom_local_model_without_filename_hints(tmp_path):
+    model = tmp_path / "custom-base-model.nemo"
+    config = (
+        b"target: nemo.collections.asr.models.rnnt_bpe_models.EncDecRNNTBPEModel\n"
+        b"decoder:\n  _target_: nemo.collections.asr.modules.RNNTDecoder\n"
+    )
+    with tarfile.open(model, "w") as archive:
+        info = tarfile.TarInfo("./model_config.yaml")
+        info.size = len(config)
+        archive.addfile(info, io.BytesIO(config))
+    project = ParakeetProject(
+        name="tajik",
+        language="tgk_Cyrl",
+        root=tmp_path,
+        nemo_root=tmp_path / "nemo",
+    )
+    args = build_parser(project).parse_args(
+        [
+            "--train-manifest",
+            str(tmp_path / "train.jsonl"),
+            "--validation-manifest",
+            str(tmp_path / "dev.jsonl"),
+            "--tokenizer-dir",
+            str(tmp_path / "tok"),
+            "--model-kind",
+            "ctc",
+            "--model-name",
+            str(model),
+        ]
+    )
+
+    with pytest.raises(SystemExit, match="CTC-only"):
+        build_script_args(args)
+
+
+def test_nemo_recipe_accepts_proven_pure_ctc_local_model(tmp_path):
+    model = tmp_path / "custom-base-model.nemo"
+    config = (
+        b"target: nemo.collections.asr.models.ctc_bpe_models.EncDecCTCModelBPE\n"
+        b"decoder:\n  _target_: nemo.collections.asr.modules.ConvASRDecoder\n"
+    )
+    with tarfile.open(model, "w") as archive:
+        info = tarfile.TarInfo("model_config.yaml")
+        info.size = len(config)
+        archive.addfile(info, io.BytesIO(config))
+    project = ParakeetProject(
+        name="tajik",
+        language="tgk_Cyrl",
+        root=tmp_path,
+        nemo_root=tmp_path / "nemo",
+    )
+    args = build_parser(project).parse_args(
+        [
+            "--train-manifest",
+            str(tmp_path / "train.jsonl"),
+            "--validation-manifest",
+            str(tmp_path / "dev.jsonl"),
+            "--tokenizer-dir",
+            str(tmp_path / "tok"),
+            "--model-kind",
+            "ctc",
+            "--model-name",
+            str(model),
+        ]
+    )
+    script = project.default_nemo_root() / "examples/asr/speech_to_text_finetune.py"
+    script.parent.mkdir(parents=True)
+    script.write_text("# placeholder\n")
+
+    _, script_args = build_script_args(args)
+    assert f"+init_from_nemo_model={model}" in script_args
 
 
 def test_nemo_recipe_early_stopping_overrides_are_explicit(tmp_path):

@@ -1,8 +1,8 @@
 """Segment stage: the CPU producer half of the split create pipeline.
 
-Each worker loads the NeMo frame-VAD model **once** (resident for the process), then loops: claim a
-video from the queue -> VAD-segment -> cut each span to a 16 kHz FLAC (temp file, then atomic
-rename so the labeler never sees a half-written clip) -> enqueue the clip rows in one transaction.
+Each worker loads its selected VAD engine **once** (resident for the process), then loops: claim a
+video from the queue -> decode once -> VAD-segment -> cut each span to a 16 kHz FLAC (temp file,
+then atomic rename) -> enqueue the clip rows in one transaction.
 Run several workers as separate processes (``run_segmenters``) to hold the cores near saturation;
 they back off when the pending-clip high-watermark is hit so a stalled labeler can't let the
 segmenter cut the entire corpus to disk.
@@ -25,6 +25,10 @@ from omni_curator.process.audio import load_16k_mono, write_clip_16k
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+    import numpy as np
+
+    from omni_curator.create.vad import VadEngine, VadPolicy
 
 #: Default pending-clip backpressure ceiling. A finite cap (NOT the old ``5_000_000`` that never
 #: tripped): once this many clips are unlabeled the segmenter pauses so a stalled labeler can't let
@@ -99,21 +103,21 @@ def _cut_clips(
     clip_path_root: Path | None = None,
     language: str,
     script: str,
-    source: Path | None = None,
+    audio: np.ndarray,
+    segmentation: dict[str, object] | None = None,
 ) -> list[QClip]:
     """Cut each span to ``clips_root/<channel>/<video_id>/seg_NNNN.flac`` (temp, atomic rename).
 
-    The source is decoded once into a 16 kHz mono array; each span is sliced out of it in memory
-    and written as FLAC -- no per-clip ffmpeg spawn, no O(N x file) redundant re-decoding.
-    ``source`` is the already-resolved source path (work drive or archive); resolved here if None.
+    ``audio`` is the same already-decoded array used for VAD inference. Each span is sliced out of
+    it in memory and written as FLAC -- no second source decode and no per-clip ffmpeg spawn.
     """
     out_dir = clips_root / video.channel / video.video_id
     clip_dir = (clip_path_root or clips_root) / video.channel / video.video_id
     out_dir.mkdir(parents=True, exist_ok=True)
-    if source is None:
-        source = resolve_source_path(video.path, channel=video.channel)
-    audio = load_16k_mono(source)  # one decode for the whole video (working drive or archive)
     clips: list[QClip] = []
+    meta = dict(video.meta)
+    if segmentation is not None:
+        meta["segmentation"] = segmentation
     for idx, (start, end) in enumerate(spans):
         final = out_dir / f"seg_{idx:04d}.flac"
         tmp = out_dir / f".seg_{idx:04d}.tmp.flac"  # keep .flac so soundfile picks the format
@@ -133,7 +137,7 @@ def _cut_clips(
                 citation=video.citation,
                 tier=video.tier,
                 category=video.category,
-                meta=dict(video.meta),
+                meta=meta,
             )
         )
     return clips
@@ -165,23 +169,31 @@ def _cleanup_staging(clips_root: Path, video: QVideo) -> None:
         shutil.rmtree(_staging_root(clips_root, video.claim_token), ignore_errors=True)
 
 
+def _is_resource_error(exc: Exception) -> bool:
+    """Recognize worker-level accelerator exhaustion without importing Torch for CPU engines."""
+    message = str(exc).lower()
+    return type(exc).__name__ == "OutOfMemoryError" or "cuda out of memory" in message
+
+
 def _process_segment_video(
     queue: QueueStore,
-    model: Any,
+    engine: VadEngine,
+    policy: VadPolicy,
     video: QVideo,
     *,
     clips_root: Path,
     language: str,
     script: str,
-    max_dur: float,
-    vad_kwargs: dict[str, Any],
 ) -> bool:
     """VAD, cut into claim-token staging, then publish only if SQLite ownership still holds."""
     claim_token = _claim_token(video)
     source = resolve_source_path(video.path, channel=video.channel)
-    from omni_curator.create.vad import segment_vad_with
+    from omni_curator.create.vad import segment_audio_with, segmentation_metadata
 
-    spans = segment_vad_with(model, source, max_dur=max_dur, **vad_kwargs)
+    audio = load_16k_mono(source)
+    result = segment_audio_with(engine, audio, policy=policy)
+    spans = list(result.intervals)
+    segmentation = segmentation_metadata(policy, engine, result)
     staging_root = _staging_root(clips_root, claim_token)
     staging_dir = staging_root / video.channel / video.video_id
     final_dir = clips_root / video.channel / video.video_id
@@ -192,20 +204,22 @@ def _process_segment_video(
         clip_path_root=clips_root,
         language=language,
         script=script,
-        source=source,
+        audio=audio,
+        segmentation=segmentation,
     )
     published = queue.complete_video(
         video.video_id,
         clips,
         claim_token=claim_token,
         publish=partial(_publish_staged_clip_dir, staging_root, staging_dir, final_dir),
+        video_meta={**video.meta, "segmentation": segmentation},
     )
     if not published:
         shutil.rmtree(staging_root, ignore_errors=True)
     return published
 
 
-def segment_worker(
+def segment_worker(  # noqa: C901 - worker loop keeps claim/error cleanup in one ownership scope
     queue_path: Path,
     *,
     clips_root: Path,
@@ -217,7 +231,7 @@ def segment_worker(
     min_free_gb: float = DEFAULT_MIN_FREE_GB,
     poll_s: float = 5.0,
     idle_exit: bool = True,
-    vad_kwargs: dict[str, Any] | None = None,
+    policy: VadPolicy | None = None,
     device: str | None = None,
     cpu_threads: int = 1,
 ) -> int:
@@ -229,18 +243,20 @@ def segment_worker(
     # oversubscribe the box and thrash. Set the env vars first; we want workers*threads ~= cores.
     n = str(max(1, cpu_threads))
     for var in (
-        "OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS", "NUMEXPR_NUM_THREADS",
+        "OMP_NUM_THREADS",
+        "MKL_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "NUMEXPR_NUM_THREADS",
     ):
         os.environ[var] = n
-    import torch
+    from omni_curator.create.vad import build_vad_policy, load_vad_engine
 
-    torch.set_num_threads(max(1, cpu_threads))
-    from omni_curator.create.vad import load_vad_model
-
-    queue = QueueStore(queue_path)
-    model = load_vad_model(device=device)
+    resolved_policy = policy or build_vad_policy(max_speech_s=max_dur)
+    engine = load_vad_engine(resolved_policy, device=device)
+    queue: QueueStore | None = None
     done = 0
     try:
+        queue = QueueStore(queue_path)
         while True:
             # Two-sided backpressure: pause if the labeler is behind (pending-clip HWM) OR if the
             # clips disk is running out of space. Either way, idle_exit must NOT fire — there is
@@ -260,29 +276,27 @@ def segment_worker(
             try:
                 if _process_segment_video(
                     queue,
-                    model,
+                    engine,
+                    resolved_policy,
                     video,
                     clips_root=clips_root,
                     language=language,
                     script=script,
-                    max_dur=max_dur,
-                    vad_kwargs=vad_kwargs or {},
                 ):
                     done += 1
-            except torch.cuda.OutOfMemoryError:
+            except Exception as exc:  # one bad video must never abort the worker
                 _cleanup_staging(clips_root, video)
-                # A GPU OOM is the worker's fault, not the video's — don't fail/retire the clip.
-                # Re-raise so this worker exits non-zero (caught by run_segmenters); the video's
-                # lease lapses and another worker re-claims it. Swallowing it would silently fail
-                # every video on a too-crowded GPU.
-                raise
-            except Exception as exc:  # noqa: BLE001 — one bad video must never abort the worker
-                _cleanup_staging(clips_root, video)
+                if _is_resource_error(exc):
+                    # Resource failures are worker-level, not bad inputs. Exit non-zero and let the
+                    # lease lapse so a correctly provisioned worker can reclaim the video.
+                    raise
                 queue.fail_video(
                     video.video_id, f"{type(exc).__name__}: {exc}", claim_token=video.claim_token
                 )
     finally:
-        queue.close()
+        engine.close()
+        if queue is not None:
+            queue.close()
     return done
 
 
@@ -297,7 +311,7 @@ def run_segmenters(
     max_dur: float = 30.0,
     pending_hwm: int = DEFAULT_PENDING_HWM,
     min_free_gb: float = DEFAULT_MIN_FREE_GB,
-    vad_kwargs: dict[str, Any] | None = None,
+    policy: VadPolicy | None = None,
 ) -> None:
     """Drain the queue with ``gpu_procs`` GPU-VAD + ``cpu_procs`` CPU-VAD workers, concurrently.
 
@@ -314,10 +328,28 @@ def run_segmenters(
     specs += [("cpu", i, cpu_threads) for i in range(cpu_procs)]
     if not specs:
         return
+    from omni_curator.create.vad import build_vad_policy
+
+    resolved_policy = policy or build_vad_policy(max_speech_s=max_dur)
+    devices = tuple(dict.fromkeys(device for device, _, _ in specs))
+    if (
+        resolved_policy.engine == "silero"
+        and resolved_policy.silero_backend == "auto"
+        and len(devices) > 1
+    ):
+        raise ValueError(
+            "Silero backend=auto would mix ONNX CPU and JIT CUDA models in one queue drain; "
+            "select --silero-backend jit or use only one device class"
+        )
+    _preflight_vad_workers(resolved_policy, devices)
     common: dict[str, Any] = {
-        "clips_root": clips_root, "language": language, "script": script,
-        "max_dur": max_dur, "pending_hwm": pending_hwm, "min_free_gb": min_free_gb,
-        "vad_kwargs": vad_kwargs,
+        "clips_root": clips_root,
+        "language": language,
+        "script": script,
+        "max_dur": max_dur,
+        "pending_hwm": pending_hwm,
+        "min_free_gb": min_free_gb,
+        "policy": resolved_policy,
     }
     if len(specs) == 1:
         dev, _, th = specs[0]
@@ -361,6 +393,31 @@ def run_segmenters(
     if failed:  # a worker that died (e.g. CUDA OOM) must not look like a successful drain
         msg = f"{len(failed)}/{len(workers)} segment workers exited non-zero (exit codes {failed})"
         raise RuntimeError(msg)
+
+
+def _preflight_vad_worker(policy: VadPolicy, device: str) -> None:
+    """Load and close one adapter in an isolated process before any queue can be claimed."""
+    from omni_curator.create.vad import load_vad_engine
+
+    engine = load_vad_engine(policy, device=device)
+    engine.close()
+
+
+def _preflight_vad_workers(policy: VadPolicy, devices: Sequence[str]) -> None:
+    """Require every planned device/backend to load successfully before segment workers start."""
+    import multiprocessing as mp
+
+    ctx = mp.get_context("spawn")
+    probes = [
+        ctx.Process(target=_preflight_vad_worker, args=(policy, device)) for device in devices
+    ]
+    for probe in probes:
+        probe.start()
+    for probe in probes:
+        probe.join()
+    failed = [probe.exitcode for probe in probes if probe.exitcode]
+    if failed:
+        raise RuntimeError(f"VAD worker preflight failed before queue claims (exit codes {failed})")
 
 
 def _terminate_workers(workers: Sequence[Any], *, grace_s: float = 10.0) -> None:

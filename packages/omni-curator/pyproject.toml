@@ -44,6 +44,13 @@ normalize = [
   "num2geotext>=0.0.1",
   "anbani>=0.9.5",
 ]
+vad-silero = [
+    "onnxruntime==1.26.0",
+    "silero-vad==6.2.1",
+]
+vad-cobra = [
+    "pvcobra==3.0.3",
+]
 
 [dependency-groups]
 dev = [
