@@ -11,6 +11,26 @@ comes from `packages/omni-curator/status.py`; root `STATUS.md` is ignored and no
 
 ## Tajik
 
+- Reproduced and extended the 110M Parakeet TDT result on 2026-07-09 with the promoted final
+  `.nemo` loaded intact: FLEURS test `19.03%` WER / `6.72%` CER (600), Common Voice dev `17.77%` /
+  `5.89%` (357), and the restored video-disjoint conversational test `33.85%` / `14.89%` (1,625;
+  two empty outputs). The <=30-second slice is `34.38%` / `15.10%` (1,559), so 30 seconds is a
+  training/operational profile rather than an accuracy-improving universal cap.
+- Live same-audio comparison confirmed Omni CTC 300M v3 at `37.65%` WER / `14.04%` CER. The 110M
+  TDT wins conversational WER by `3.80` absolute (`10.1%` relative) but loses CER by `0.85`, so the
+  next step is per-source/error analysis rather than immediate retraining. TDT warm-cache throughput
+  reached `684x` on FLEURS and `876x` on conversational audio; the first cold FLEURS pass was `216x`,
+  proving cold I/O and warm model throughput must be reported separately.
+- Restored the exact conversational test from `Peacockery/tajik-asr-corpus-v3` revision
+  `3b05a4bb89104c21643081250729595347d1188e`: 18 Parquet files (`702,784,427` bytes), 1,625 rows,
+  9.926 hours, all FLACs valid, no rows above 40 seconds. Added a repeatable
+  `tajik-parakeet-materialize-eval` CLI with deterministic audio hashes, manifest provenance, resume
+  checks, summary output, and tests.
+- Restored `Peacockery/omni-ctc-300m-tajik` revision
+  `cafa6e9fb394f7cef29caf79385feb96bcfc05ae` after its asset card pointed at a retired training-run
+  directory. `model.pt` is `1,304,101,361` bytes with SHA256
+  `18b3ef847ec56b7ea3c3a9fcddc4cf38b94392880c79cf35710b4ca23b01d6bb`; the live asset card now uses
+  the HF-restored project data path.
 - v2 trained + eval: best step_19500, FLEURS test WER 17.17 (base 19.74, v0 17.34). Recorded in EXPERIMENTS.md.
 - Conversational test set + v3 — the data lever proven. Held-out 157 whole videos (frozen manifest, leakage-safe carve). Conversational held-out (1,625 clips): v0 49.89 → v3 37.65 WER (−12.2 pts / −24.5% rel from 1,070h); v3 (37.65) ≈ v2-contaminated (37.40) so it's real generalization. Shipping model `omni_ctc_300m_v2_tajik_v3_step_20000`. KenLM fusion proven (−16% rel, α=0.5/β=0).
 - Export v2: WER ≤ 0.35 + descriptor-junk filter + language gate; 0 unk.
@@ -22,6 +42,15 @@ comes from `packages/omni-curator/status.py`; root `STATUS.md` is ignored and no
 
 ## Verify / scoring
 
+- Parakeet evaluation safety: promoted `.nemo` models no longer run `change_vocabulary()` during
+  evaluation; base-plus-checkpoint reconstruction requires explicit `--replace-tokenizer` and an
+  exact state-dict match. The evaluator now records raw/normalized WER and CER, empty outputs,
+  timed RTFx, warm-up count, peak CUDA allocation, predictions, and a JSON summary.
+- Parakeet training safety: the generic NeMo wrapper is CTC-only and refuses TDT/RNNT models;
+  dedicated TDT runs enforce the loss repair, eval loss, and `val_loss` selection. Training now saves
+  distinct last-step `_final.nemo` and best-validation `_best-valloss.nemo` artifacts.
+- Omni evaluation accepts materialized JSONL manifests, avoiding the four-minute / multi-GB Python
+  expansion of embedded Parquet audio lists observed on the Tajik conversational benchmark.
 - Script-aware verify scoring (Sonnet transliteration won the bake-off; hypothesis-only prompt) + `rescore` CLI.
 - Full verify + 150k-row rescore — every scoreable row has an honest score.
 - Dev split: FLEURS dev/test are the benchmarks (gates train-only by design — `Selection.gated_splits`).
@@ -45,6 +74,10 @@ comes from `packages/omni-curator/status.py`; root `STATUS.md` is ignored and no
 
 ## Curator package (this session)
 
+- Audited and removed abandoned pre-reset clip output: 4,227 FLAC/temp files (~2.8 GB) plus all
+  empty descendants from Dari, Farsi, Georgian, and Tajik `data/clips`. Current queues, active and
+  premigration stores, manifests, and training artifacts had zero exact references; all 128 source
+  recordings remained locally or archive-resolvable. The four clip root directories were preserved.
 - Package reorg (`audit/` `data/` `scribe/`); dead-code/shim inventory (codex: zero stale refs).
 - Live Scribe concurrency control + cross-job balancer (`scribe/concurrency.py`, `scribe/balance.py`).
 - GPU/hybrid VAD + codex fixes (`vad.py` NVML `resolve_devices`; `segment.py` thread caps + worker-exit checks).

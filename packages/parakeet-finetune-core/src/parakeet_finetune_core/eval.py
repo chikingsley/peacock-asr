@@ -6,6 +6,7 @@ import argparse
 import importlib
 import inspect
 import json
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -50,6 +51,12 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
     parser.add_argument("--manifest", type=Path, default=project.default_validation_manifest)
     parser.add_argument("--tokenizer-dir", type=Path, default=project.default_tokenizer_dir)
     parser.add_argument("--tokenizer-type", default="bpe")
+    parser.add_argument(
+        "--replace-tokenizer",
+        action="store_true",
+        help="Replace the base model tokenizer before loading --checkpoint. "
+        "Never use this for an already fine-tuned .nemo model.",
+    )
     parser.add_argument("--audio-field", default="audio_filepath")
     parser.add_argument("--text-field", default="text")
     parser.add_argument("--duration-field", default="duration")
@@ -57,12 +64,19 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
     parser.add_argument("--limit", type=int, default=0, help="0 means all rows")
     parser.add_argument("--device", default="cpu")
     parser.add_argument("--batch-size", type=int, default=8)
+    parser.add_argument(
+        "--warmup-count",
+        type=int,
+        default=8,
+        help="CUDA clips to transcribe before timing; ignored on CPU.",
+    )
     parser.add_argument("--normalizer", default=project.default_eval_normalizer)
     parser.add_argument(
         "--normalizer-language",
         default=project.default_eval_normalizer_language or project.language,
     )
     parser.add_argument("--output-jsonl", type=Path, default=None)
+    parser.add_argument("--output-summary-json", type=Path, default=None)
     parser.add_argument("--sample-count", type=int, default=4)
     parser.add_argument("--dry-run", action="store_true")
     return parser
@@ -149,11 +163,38 @@ def compute_wer_percent(refs: list[str], hyps: list[str], normalizer: Normalizer
     return float(process_words(normalized_refs, normalized_hyps).wer * 100)
 
 
+def compute_error_rates(
+    refs: list[str], hyps: list[str], normalizer: Normalizer
+) -> dict[str, float | int]:
+    from jiwer import process_characters, process_words
+
+    normalized_refs = [normalizer(ref) for ref in refs]
+    normalized_hyps = [normalizer(hyp) for hyp in hyps]
+    return {
+        "wer_percent": float(process_words(normalized_refs, normalized_hyps).wer * 100),
+        "cer_percent": float(process_characters(normalized_refs, normalized_hyps).cer * 100),
+        "empty_hypotheses": sum(not hyp.strip() for hyp in normalized_hyps),
+    }
+
+
 def coerce_hypotheses(raw_hypotheses: list[Any]) -> list[str]:
     return [str(hyp.text if hasattr(hyp, "text") else hyp) for hyp in raw_hypotheses]
 
 
+def replacement_tokenizer_dir(args: argparse.Namespace) -> Path | None:
+    if not args.replace_tokenizer:
+        return None
+    if args.checkpoint is None:
+        raise SystemExit(
+            "--replace-tokenizer requires --checkpoint; an already fine-tuned .nemo "
+            "must be evaluated without changing its vocabulary"
+        )
+    return Path(require(args.tokenizer_dir, "--tokenizer-dir"))
+
+
 def load_model(args: argparse.Namespace, model_name: str | Path) -> Any:
+    tokenizer_dir = replacement_tokenizer_dir(args)
+
     import torch  # ty: ignore[unresolved-import]
     from nemo.collections.asr.models import ASRModel  # ty: ignore[unresolved-import]
 
@@ -163,21 +204,17 @@ def load_model(args: argparse.Namespace, model_name: str | Path) -> Any:
     else:
         model = ASRModel.from_pretrained(str(model_name))
 
-    if args.tokenizer_dir is not None:
+    if tokenizer_dir is not None:
         model.change_vocabulary(
-            new_tokenizer_dir=str(Path(args.tokenizer_dir).resolve()),
+            new_tokenizer_dir=str(tokenizer_dir.resolve()),
             new_tokenizer_type=args.tokenizer_type,
         )
 
     if args.checkpoint is not None:
         checkpoint = torch.load(args.checkpoint, map_location=args.device, weights_only=False)
         state_dict = checkpoint.get("state_dict", checkpoint)
-        missing, unexpected = model.load_state_dict(state_dict, strict=False)
-        print(
-            f"loaded checkpoint {args.checkpoint}: missing={len(missing)} "
-            f"unexpected={len(unexpected)}",
-            flush=True,
-        )
+        model.load_state_dict(state_dict, strict=True)
+        print(f"loaded checkpoint {args.checkpoint} with an exact state-dict match", flush=True)
 
     return model.to(args.device).eval()
 
@@ -200,12 +237,47 @@ def write_predictions(path: Path, rows: list[EvalRow], hyps: list[str]) -> None:
             )
 
 
+def write_summary(path: Path, summary: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def transcribe_timed(
+    model: Any, rows: list[EvalRow], args: argparse.Namespace
+) -> tuple[list[str], dict[str, float | int | None]]:
+    import torch  # ty: ignore[unresolved-import]
+
+    paths = [row.audio_filepath for row in rows]
+    use_cuda_metrics = str(args.device).startswith("cuda") and torch.cuda.is_available()
+    if use_cuda_metrics and args.warmup_count > 0 and len(paths) > args.warmup_count:
+        model.transcribe(paths[: args.warmup_count], batch_size=args.batch_size)
+        torch.cuda.synchronize()
+        torch.cuda.reset_peak_memory_stats()
+
+    started = time.perf_counter()
+    raw_hypotheses = model.transcribe(paths, batch_size=args.batch_size)
+    if use_cuda_metrics:
+        torch.cuda.synchronize()
+    elapsed_seconds = time.perf_counter() - started
+    audio_seconds = sum(row.duration or 0.0 for row in rows)
+    rtfx = audio_seconds / elapsed_seconds if audio_seconds and elapsed_seconds else None
+    performance = {
+        "warmup_count": args.warmup_count if use_cuda_metrics else 0,
+        "audio_seconds": audio_seconds,
+        "elapsed_seconds": elapsed_seconds,
+        "rtfx": rtfx,
+        "peak_vram_bytes": torch.cuda.max_memory_allocated() if use_cuda_metrics else None,
+    }
+    return coerce_hypotheses(raw_hypotheses), performance
+
+
 def run(project: ParakeetProject, args: argparse.Namespace) -> None:
     manifest = Path(require(args.manifest, "--manifest"))
     model_name = args.model_name or default_model_for_kind(project, args.kind)
     model_name = require(model_name, "--model-name")
     if args.checkpoint is None:
         args.checkpoint = default_checkpoint_for_kind(project, args.kind)
+    replacement_tokenizer_dir(args)
 
     rows = load_manifest(
         manifest,
@@ -217,7 +289,8 @@ def run(project: ParakeetProject, args: argparse.Namespace) -> None:
     )
     print(
         f"kind={args.kind} model={model_name} checkpoint={args.checkpoint} "
-        f"manifest={manifest} rows={len(rows)} device={args.device}",
+        f"replace_tokenizer={args.replace_tokenizer} manifest={manifest} "
+        f"rows={len(rows)} device={args.device}",
         flush=True,
     )
     if args.dry_run:
@@ -226,21 +299,55 @@ def run(project: ParakeetProject, args: argparse.Namespace) -> None:
         raise SystemExit("manifest produced no rows")
 
     model = load_model(args, model_name)
-    paths = [row.audio_filepath for row in rows]
     refs = [row.text for row in rows]
-    raw_hyps = model.transcribe(paths, batch_size=args.batch_size)
-    hyps = coerce_hypotheses(raw_hyps)
+    hyps, performance = transcribe_timed(model, rows, args)
     normalizer = make_normalizer(args.normalizer, args.normalizer_language)
-    wer = compute_wer_percent(refs, hyps, normalizer)
+    normalized = compute_error_rates(refs, hyps, normalizer)
+    raw = compute_error_rates(refs, hyps, str)
+    summary = {
+        "kind": args.kind,
+        "model": str(model_name),
+        "checkpoint": str(args.checkpoint) if args.checkpoint is not None else None,
+        "manifest": str(manifest),
+        "rows": len(rows),
+        "device": args.device,
+        "batch_size": args.batch_size,
+        **performance,
+        "raw": raw,
+        "normalized": normalized,
+    }
 
     print("\n=== samples ===", flush=True)
     for row, hyp in list(zip(rows, hyps, strict=True))[: args.sample_count]:
         print(f"REF: {row.text[:120]}\nHYP: {hyp[:120]}\n", flush=True)
-    print(f"=== WER ({len(rows)} clips): {wer:.2f}% ===", flush=True)
+    print(
+        f"=== normalized WER/CER ({len(rows)} clips): "
+        f"{normalized['wer_percent']:.2f}% / {normalized['cer_percent']:.2f}% ===",
+        flush=True,
+    )
+    print(
+        f"raw WER/CER: {raw['wer_percent']:.2f}% / {raw['cer_percent']:.2f}% | "
+        f"empty hypotheses: {normalized['empty_hypotheses']}",
+        flush=True,
+    )
+    if performance["rtfx"] is not None:
+        print(
+            f"RTFx={performance['rtfx']:.1f} "
+            f"({performance['audio_seconds']:.1f}s audio / "
+            f"{performance['elapsed_seconds']:.2f}s, batch={args.batch_size}, "
+            f"warmup={performance['warmup_count']})",
+            flush=True,
+        )
+    if performance["peak_vram_bytes"] is not None:
+        peak_gib = float(performance["peak_vram_bytes"]) / (1024**3)
+        print(f"peak CUDA allocation={peak_gib:.2f} GiB", flush=True)
 
     if args.output_jsonl is not None:
         write_predictions(args.output_jsonl, rows, hyps)
         print(f"wrote {args.output_jsonl}", flush=True)
+    if args.output_summary_json is not None:
+        write_summary(args.output_summary_json, summary)
+        print(f"wrote {args.output_summary_json}", flush=True)
 
 
 def eval_main(project: ParakeetProject, argv: list[str] | None = None) -> int:

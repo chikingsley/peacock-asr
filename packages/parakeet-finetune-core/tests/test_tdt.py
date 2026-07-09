@@ -12,6 +12,7 @@ from parakeet_finetune_core.tdt import (
     apply_loss_init_fix,
     configure_fused_tdt_loss,
     enable_eval_loss,
+    export_training_artifacts,
     freeze_encoder,
     train_ds,
     val_ds,
@@ -20,10 +21,11 @@ from parakeet_finetune_core.tdt import (
 
 
 class FakeRNNTLoss:
-    def __init__(self, *, num_classes, loss_name, loss_kwargs):
+    def __init__(self, *, num_classes, loss_name, loss_kwargs, reduction):
         self.num_classes = num_classes
         self.loss_name = loss_name
         self.loss_kwargs = loss_kwargs
+        self.reduction = reduction
 
 
 def _install_fake_rnnt_loss(monkeypatch):
@@ -84,6 +86,7 @@ def test_apply_loss_init_fix_excludes_blank_and_tdt_duration_bins(monkeypatch):
     assert model.loss.num_classes == 1024
     assert model.loss.loss_name == "tdt"
     assert model.loss.loss_kwargs == {"tdt_kwargs": {"durations": [0, 1, 2, 3, 4]}}
+    assert model.loss.reduction == "mean_batch"
 
 
 def test_apply_loss_init_fix_handles_plain_rnnt_shape(monkeypatch):
@@ -195,6 +198,50 @@ def test_validation_checkpoint_monitors_eval_loss(tmp_path):
     assert config["monitor"] == "val_loss"
     assert config["mode"] == "min"
     assert config["filename"] == "best-valloss-step{step}-{val_loss:.3f}"
+
+
+class FakeArtifactModel:
+    def __init__(self):
+        self.events = []
+
+    def save_to(self, path):
+        self.events.append(("save_to", path))
+
+    def load_state_dict(self, state_dict, *, strict):
+        self.events.append(("load_state_dict", state_dict, strict))
+
+
+def test_export_training_artifacts_saves_last_and_best_validation_models(tmp_path):
+    model = FakeArtifactModel()
+    checkpoint = tmp_path / "checkpoints" / "best.ckpt"
+    checkpoint.parent.mkdir()
+    checkpoint.touch()
+
+    final_path, best_path = export_training_artifacts(
+        model,
+        tmp_path,
+        "tajik-tdt",
+        checkpoint,
+        checkpoint_loader=lambda _path: {"state_dict": {"weight": "best"}},
+    )
+
+    assert final_path == tmp_path / "tajik-tdt_final.nemo"
+    assert best_path == tmp_path / "tajik-tdt_best-valloss.nemo"
+    assert model.events == [
+        ("save_to", str(final_path)),
+        ("load_state_dict", {"weight": "best"}, True),
+        ("save_to", str(best_path)),
+    ]
+
+
+def test_export_training_artifacts_allows_no_validation_checkpoint(tmp_path):
+    model = FakeArtifactModel()
+
+    final_path, best_path = export_training_artifacts(model, tmp_path, "tajik-tdt", None)
+
+    assert final_path == tmp_path / "tajik-tdt_final.nemo"
+    assert best_path is None
+    assert model.events == [("save_to", str(final_path))]
 
 
 def test_jsonl_train_logger_writes_rounded_loss_and_lr(tmp_path):

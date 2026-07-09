@@ -3,8 +3,8 @@
 Status: live-state audit after the root `peacock-create` cleanup and the archive `persian` bucket
 cleanup. This document is a handoff for the pause-and-stabilize phase before resegmentation.
 
-Updated 2026-06-30 after queue metadata repair, Farsi source reconciliation, and Tajik
-missing-from-both recovery.
+Updated 2026-07-09 after queue metadata repair, source reconciliation, the physical clip-reference
+audit/cleanup, and the bounded Tajik benchmark restore.
 
 ## Current Storage Layout
 
@@ -20,17 +20,17 @@ Canonical cold archive:
 
 Working mirror/project roots:
 
-- `/mnt/tiny-2t/peacock-asr/dari-asr` - `188G`
+- `/mnt/tiny-2t/peacock-asr/dari-asr` - `186G`
 - `/mnt/tiny-2t/peacock-asr/farsi-asr` - `277G`
 - `/mnt/tiny-2t/peacock-asr/georgian-asr` - `105G`
-- `/mnt/tiny-2t/peacock-asr/tajik-asr` - `169G`
+- `/mnt/tiny-2t/peacock-asr/tajik-asr` - `171G` (includes the restored Tajik evaluation subset and model)
 - `/mnt/workerssd-2t/peacock-asr/russian-asr` - Russian working/canonical audio only
 
 Current filesystem free space:
 
 | Mount | Used | Free | Use |
 |---|---:|---:|---:|
-| `/` | `696G` | `1.1T` | `41%` |
+| `/` | `681G` | `1.1T` | `40%` |
 | `/mnt/tiny-2t` | `889G` | `851G` | `52%` |
 | `/mnt/workerssd-2t` | `1.2T` | `663G` | `64%` |
 | `/mnt/massive-22t` | `11T` | `9.3T` | `54%` |
@@ -60,6 +60,28 @@ for changing the segmenter before producing more clip data.
 | `farsi-asr` | `12,225` | `pending=12,225` | `0` |
 | `georgian-asr` | `12,696` | `pending=12,696` | `0` |
 | `tajik-asr` | `27,347` | `pending=27,347` | `0` |
+
+### Physical clip-reference audit and cleanup (2026-07-09)
+
+Queue `clips=0` was checked against the filesystem rather than trusted by itself. The four project
+clip trees contained 4,227 abandoned pre-reset FLAC/temp files (~2.8 GB) and 30,351 already-empty
+directories. Exact-reference checks found zero matches in current queues, active stores,
+premigration backups, manifests, or training artifacts. All 128 corresponding source recordings
+still resolved either in project `data/create` or the canonical Massive archive, and no ASR job was
+active.
+
+The 4,227 files and all empty descendants were removed after that proof. Current verified state:
+
+| Project clip root | Files | Child directories |
+|---|---:|---:|
+| `dari-asr/data/clips` | `0` | `0` |
+| `farsi-asr/data/clips` | `0` | `0` |
+| `georgian-asr/data/clips` | `0` | `0` |
+| `tajik-asr/data/clips` | `0` | `0` |
+
+The four root directories remain in place for the next segmenter. Historical Tajik SQLite paths
+into data subsequently embedded in `Peacockery/tajik-asr-corpus-v3` are publication provenance,
+not references to this deleted residue.
 
 Path classes in `queue.sqlite.videos`:
 
@@ -224,12 +246,12 @@ Operational conclusion:
    - This is a throughput choice, not a data-loss blocker: pilots can use the resolver fallback;
      full runs should copy bounded channel/language batches back to Tiny2T or explicitly accept
      archive-read throughput.
-3. The replacement segmenter/VAD path still needs to land behind the queue contract.
+3. The multi-VAD segmenter still needs to land behind the queue contract.
    - Current queues are paused cleanly with `clips=0`, which is the right state for the swap.
-   - The pilot should verify source resolution, clipping ownership, duration gates, and downstream
-     labelq/harvest behavior before scale-out.
-4. The repo has a broad dirty worktree across curator, docs, project packages, and finetune core.
-   - Stabilization should follow this audit, before production resegmentation.
+   - Cobra, Silero, and the pinned MarbleNet adapter must share one decoded-audio/raw-interval
+     contract plus one versioned postprocessor and provenance schema.
+   - The pilot should verify source resolution, clipping ownership, model/profile-specific duration
+     gates, clean versus noisy behavior, and downstream labelq/harvest behavior before scale-out.
 
 ## Recommended Order
 
@@ -247,9 +269,9 @@ Operational conclusion:
    - Keep a cheap path audit in the runbook: missing project-create paths, Massive fallback hits,
      archive-only queue rows, and local folders outside queue coverage.
 
-3. Freeze old segmentation output.
-   - Confirm `clips=0` stays true or explicitly archive/delete old clips after verification.
-   - Hold new `segment` runs until the replacement segmenter is selected and tested.
+3. Keep the verified clean segmentation checkpoint.
+   - All four clip roots are empty and queue `clips=0`; do not start a legacy segment worker.
+   - Hold production `segment` runs until the multi-VAD adapters and bounded pilot surface are tested.
 
 4. Update the queue/source model for resegmentation.
    - Decide whether queue `videos.path` should point to project-local source caches, archive paths,
@@ -259,8 +281,10 @@ Operational conclusion:
 
 5. Swap in the new segmenter behind a guarded interface.
    - Keep the existing queue contract.
-   - Add fixture/equivalence tests on a few known source files per language.
-   - Gate by max-duration, no orphan workers, and deterministic output ownership.
+   - Share one decoded array across Cobra/Silero/MarbleNet and the cutter; apply one versioned
+     postprocessor after the engine output.
+   - Add fixture/equivalence tests on known source files and persist engine/profile provenance.
+   - Gate by selected-profile max duration, no orphan workers, and deterministic output ownership.
 
 6. Run one small Farsi resegmentation pilot.
    - Start with a bounded `iran_international` + `avas_book_club` slice so the pilot includes
@@ -269,11 +293,10 @@ Operational conclusion:
    - Use pilot output to choose duration thresholds, archive fallback behavior, and whether to
      download the full Farsi registry before larger segmentation.
 
-7. Stabilize and commit the repo.
-   - Keep `CURATION_FACTORY.md` as the current plan.
-   - Keep active work in `TODO.md`.
-   - Move history into `CHANGELOG.md`.
-   - Run focused tests before committing.
+7. Record measured pilot results in the canonical docs.
+   - Keep `CURATION_FACTORY.md` as the current plan, active work in `TODO.md`, and completed results
+     in `CHANGELOG.md`.
+   - Archive this pre-resegmentation handoff only after its live decisions are represented there.
 
 8. Run full production in project order.
    - If prioritizing the original Farsi goal, scale Farsi after the pilot decision above.

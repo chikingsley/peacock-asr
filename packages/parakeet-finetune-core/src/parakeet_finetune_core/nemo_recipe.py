@@ -1,4 +1,4 @@
-"""Wrapper for NeMo's generic speech-to-text fine-tune example."""
+"""CTC-only wrapper for NeMo's generic speech-to-text fine-tune example."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from parakeet_finetune_core.project import ParakeetProject
 
-DEFAULT_MODEL = "nvidia/parakeet-tdt_ctc-110m"
+TRANSDUCER_MODEL_HINTS = ("tdt", "rnnt", "transducer")
 
 
 def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
@@ -21,7 +21,8 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
     parser.add_argument("--train-manifest", type=Path, required=True)
     parser.add_argument("--validation-manifest", type=Path, required=True)
     parser.add_argument("--tokenizer-dir", type=Path, required=True)
-    parser.add_argument("--model-name", default=str(project.default_tdt_model or DEFAULT_MODEL))
+    parser.add_argument("--model-name", required=True)
+    parser.add_argument("--model-kind", choices=["ctc", "tdt", "rnnt"], required=True)
     parser.add_argument("--tokenizer-type", default="bpe", choices=["bpe", "wpe", "agg"])
     parser.add_argument("--nemo-root", type=Path, default=project.default_nemo_root())
     parser.add_argument("--exp-dir", type=Path, default=project.runs)
@@ -42,8 +43,8 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
     parser.add_argument("--min-duration", type=float, default=0.1)
     parser.add_argument("--max-duration", type=float, default=20.0)
     parser.add_argument("--early-stopping", action="store_true")
-    parser.add_argument("--early-stopping-monitor", default="val_wer")
-    parser.add_argument("--early-stopping-mode", default="min")
+    parser.add_argument("--early-stopping-monitor", choices=["val_wer"], default="val_wer")
+    parser.add_argument("--early-stopping-mode", choices=["min"], default="min")
     parser.add_argument("--early-stopping-patience", type=int, default=3)
     parser.add_argument("--early-stopping-min-delta", type=float, default=0.001)
     parser.add_argument("--early-stopping-check-on-train-epoch-end", action="store_true")
@@ -52,7 +53,20 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
     return parser
 
 
+def validate_ctc_only(args: argparse.Namespace) -> None:
+    model_name = str(args.model_name)
+    if args.model_kind != "ctc" or any(
+        hint in model_name.lower() for hint in TRANSDUCER_MODEL_HINTS
+    ):
+        raise SystemExit(
+            "the generic NeMo recipe is CTC-only; TDT/RNNT models must use the dedicated "
+            "<language>-parakeet-train-tdt command so loss repair, compute_eval_loss=True, "
+            "and val_loss checkpoint selection cannot be bypassed"
+        )
+
+
 def build_script_args(args: argparse.Namespace) -> tuple[Path, list[str]]:
+    validate_ctc_only(args)
     script = args.nemo_root / "examples/asr/speech_to_text_finetune.py"
     if not script.exists():
         raise FileNotFoundError(script)
@@ -88,6 +102,8 @@ def build_script_args(args: argparse.Namespace) -> tuple[Path, list[str]]:
         f"exp_manager.exp_dir={args.exp_dir}",
         f"exp_manager.name={args.name}",
         "exp_manager.create_wandb_logger=false",
+        "exp_manager.checkpoint_callback_params.monitor=val_wer",
+        "exp_manager.checkpoint_callback_params.mode=min",
         f"+init_from_pretrained_model={args.model_name}",
     ]
     if args.early_stopping:

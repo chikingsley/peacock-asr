@@ -1,6 +1,6 @@
 # Curation Factory Operating Plan
 
-Status: current plan as of 2026-06-25. This is the canonical curation/factory plan.
+Status: current plan as of 2026-07-09. This is the canonical curation/factory plan.
 `CHANGELOG.md` is the historical record. `TODO.md` is the active backlog.
 
 ## Objective
@@ -24,6 +24,10 @@ The system must:
 | Factory-owned stages | `enqueue`, `segment`, `labelq`, `harvest`, and `archive`. |
 | Post-factory workflows | `merge`, `verify`, `export`, and `publish` are explicit operator/release workflows, not factory stages. |
 | Segment launch policy | No hard global segment cap. Segment launches are gated per project by locks, pending-clip HWM, clip-disk free space, worker lifecycle, and claim-token output ownership. |
+| VAD engine contract | Cobra, Silero, and the pinned benchmark MarbleNet adapter from `a-vad-bench` commit `a838e7f` consume the same decoded 16 kHz mono audio and return raw speech intervals. Peacock queue/publication machinery remains engine-independent. |
+| Interval policy | One versioned Peacock postprocessor owns padding, minimum speech, gap merging, and hard splitting. Keep raw intervals and make emitted maximum duration profile/model-aware; 30 seconds is not a universal VAD truth. |
+| VAD routing | Route explicitly by project/language and recording profile. Support clean/read and noisy/conversational profiles; validate policy changes with bounded same-audio pilots before scale. |
+| Segmentation provenance | Store engine, model revision, native threshold/options, postprocessing profile, and policy revision for every run and clip. |
 | Scribe API budget | One global API budget is split across all live Scribe jobs: `labelq` and any manual `verify`. |
 | Project working roots | `/mnt/tiny-2t/peacock-asr/<project>` backs the active language-project `data` symlinks except Russian. |
 | Workers SSD | `/mnt/workerssd-2t` holds Russian working audio. It is only a clip scratch target when an operator explicitly passes `--clips-root`. |
@@ -39,7 +43,7 @@ Use these names in code, logs, docs, and runbooks.
 | `prescan` | Resolve configured channels, check reachability, and record lane/status/count/error in `data/prescan.sqlite`. | Manual/source-preflight. |
 | `download` | Fetch channel/source audio into an active source cache. | Manual today; factory-supervised later. |
 | `enqueue` | Scan active source FLACs into `queue.sqlite.videos`. | Factory one-shot. |
-| `segment` | Run VAD, cut source audio into clip FLACs, then write `queue.sqlite.clips`. | Factory daemon after P0 readiness. |
+| `segment` | Decode once, run the routed VAD adapter plus shared postprocessor, cut clip FLACs, and write `queue.sqlite.clips` with segmentation provenance. | Factory daemon after P0 readiness. |
 | `labelq` | Send queued clips through Scribe pass(es), fuse variants, and write labels to queue rows. Default is one `auto` Scribe pass unless configured otherwise. | Factory daemon. |
 | `harvest` | Insert labeled queue rows into per-channel stores. | Factory one-shot. |
 | `archive` | Move segmented source FLACs from hot/work storage to cold archive. | Factory one-shot. |
@@ -97,7 +101,8 @@ Archive state:
 Storage rules:
 
 1. `/mnt/tiny-2t` owns active project `data` symlinks for Dari, Farsi, Georgian, Tajik, and CV26.
-   Keep at least `250G` free; do not put new clip caches here.
+   Keep at least `250G` free. Bounded project-local `data/clips` is allowed, but segment launch must
+   stop at the configured pending-clip and free-space limits.
 2. Source audio lands in the owning project's `data/create` tree by default. Do not create top-level
    source-cache roots; use `--create-root` only for an explicit, temporary scratch relocation.
 3. Project `data/clips` is the default clip cache. Use `/mnt/workerssd-2t` as a scratch clip root
@@ -114,7 +119,7 @@ Storage rules:
 
 Factory production readiness requires all of this work to be true at the same time:
 
-1. VAD never emits a clip above the configured max duration.
+1. VAD never emits a clip above the selected segmentation profile's maximum duration.
 2. Segment parent death terminates child workers and releases GPU memory; verify with `nvidia-smi`.
 3. Stale `segmenting` videos are reclaimed before fresh pending work.
 4. Segment output publication is ownership-safe: workers cut into claim-token staging dirs and
@@ -193,8 +198,11 @@ medium-resource `<= 30%`, low-resource `<= 50%`.
 Duration:
 
 1. Never export above `OMNI_MAX_DURATION_S = 40s`; Omni ASR truncates input audio at 40 seconds.
-2. Keep NeMo's `0.3s` minimum as a cheap artifact filter when the corpus can tolerate it.
-3. The lower bound is not model-constant; CTC only requires enough encoder frames for the label.
+2. Emitted clip caps are model/profile-specific: current Parakeet CTC recipes use 20 seconds, TDT
+   uses 30 seconds, and Omni evaluation accepts 40 seconds. Preserve raw intervals so a curation run
+   is not falsely described as having a universal 30-second VAD limit.
+3. Keep NeMo's `0.3s` minimum as a cheap artifact filter when the corpus can tolerate it.
+4. The lower bound is not model-constant; CTC only requires enough encoder frames for the label.
 
 Per-second text rates are a physical-plausibility backstop, not the main gate. Compute
 `chars_per_second` and `words_per_second` on normalized labels to catch audio/text mismatch where
@@ -206,22 +214,44 @@ Code constants live in `packages/omni-curator/src/omni_curator/audit/quality.py`
 docs are NVIDIA NeMo Curator WER filtering and audio quality metrics; speech-rate rationale comes
 from the cross-language `~39 bits/sec` result and speech-tempo literature.
 
-## P3 - VAD Throughput
+Planned independent transcript/audio audit:
+
+1. Add a beginning/end ASR-diff signal equivalent to NeMo Speech Data Processor's
+   `DropASRErrorBeginningEnd`, using a draft model independent from the label teacher.
+2. Add CTC-segmentation confidence and token/character timings with a different model family.
+3. Treat unsupported characters and normalization/tokenizer failures as review, not bad audio.
+4. Store all scores and reasons in an audit sidecar first. Do not make the first implementation an
+   automatic destructive filter.
+5. Calibrate a high-precision reject lane on a human-reviewed sample, then prove value with a
+   size-matched cleaned-versus-random training ablation. Never filter dev/test by model confidence.
+
+Primary implementations: NVIDIA NeMo Speech Data Processor
+[`DropASRErrorBeginningEnd`](https://nvidia.github.io/NeMo-speech-data-processor/_modules/sdp/processors/modify_manifest/data_to_dropbool.html)
+and [`ctc-segmentation`](https://github.com/lumaku/ctc-segmentation). These are model-conditioned
+quality signals, not proof that a transcript is true.
+
+## P3 - Multi-VAD Segmentation
 
 Correctness comes before speed.
 
 Order:
 
-1. enforce max duration;
-2. clean up child process lifecycle;
-3. share decoded 16 kHz mono audio between VAD and cutting where memory permits;
-4. batch/bucket VAD inputs;
-5. evaluate sharded output only after Scribe/labelq can consume shard members or staged temp clips.
+1. define the typed engine and postprocessing profile contracts;
+2. port Cobra, Silero, and the exact benchmark MarbleNet revision behind that contract;
+3. decode each source once and share the 16 kHz mono array between VAD and cutting;
+4. persist deterministic engine/profile provenance and enforce the selected maximum duration;
+5. add bounded channel/video/manifest selectors plus isolated pilot output;
+6. make worker/device/secret preflight engine-aware and verify child-process cleanup live;
+7. run the same Farsi news and audiobook audio through all engines, then carry the selected profile
+   through `labelq`, `harvest`, and `verify` before production scale;
+8. batch/bucket VAD inputs only after correctness and output equivalence are established.
 
 Exit criteria:
 
-- VAD speed experiments include equivalence checks against current windows;
-- no speed change reintroduces over-length clips or orphaned GPU workers.
+- every adapter passes the same interval, hard-split, provenance, and failure-contract tests;
+- the bounded Farsi pilot records coverage, duration distribution, empty/error rate, Scribe yield,
+  output bytes, real curator throughput, and sampled boundary judgments;
+- no engine or speed change reintroduces over-length clips, queue overwrite, or orphaned GPU workers.
 
 ## P4 - Hugging Face Release Lifecycle
 

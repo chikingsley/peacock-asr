@@ -33,6 +33,7 @@ _PKG = Path(__file__).resolve().parent
 _PROJECT = Path(__file__).resolve().parents[2]
 _MODELS = _PKG / "models"
 _OMNI_BASE = Path(__file__).resolve().parents[4] / "base_models" / "omni"
+_RESTORED_MODELS = _PROJECT / "data" / "models"
 # v0 = the baseline-model provenance corpus (v1/v2 superseded, recorded in EXPERIMENTS.md and
 # deleted; kept datasets live on the Peacockery HF org). Canonical data lives under data/, not src.
 _PARQUET = _PROJECT / "data" / "datasets" / "v0" / "version=0"
@@ -83,14 +84,12 @@ CARDS = [
         tokenizer_ref=TOKENIZER_NAME,
     ),
     # v3 (v2 corpus minus the held-out conversational test) best dev-WER ckpt (step_20000,
-    # FLEURS dev 17.41). The fair model for the conversational held-out — never saw those clips.
+    # FLEURS dev 17.41). Restored from Peacockery/omni-ctc-300m-tajik at pinned Hub revision
+    # cafa6e9fb394f7cef29caf79385feb96bcfc05ae; the original training-run directory was retired.
+    # This is the fair model for the conversational held-out — it never saw those clips.
     ModelCard(
         name="omni_ctc_300m_v2_tajik_v3_step_20000",
-        checkpoint=(
-            _PROJECT
-            / "runs/omni-ctc-300m-tajik-asr-corpus-v3/ws_1.83a064a5/"
-            / "checkpoints/step_20000/model/pp_00/tp_00/sdp_00.pt"
-        ),
+        checkpoint=_RESTORED_MODELS / "omni-ctc-300m-tajik" / "model.pt",
         tokenizer_ref=TOKENIZER_NAME,
     ),
 ]

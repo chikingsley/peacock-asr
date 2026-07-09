@@ -10,6 +10,14 @@ Fine-tune NVIDIA **Parakeet TDT-0.6B-v3** (FastConformer + Token-and-Duration Tr
 
 **FINAL RESULT (fp32, final model):** **FLEURS-test WER 19.0 %** (600), dev 17.8 % (357), **RTFx 568×** (bs32 fp32, vs omni CTC ~450×). Near-exact transcriptions; errors are real phonetic ones. **Verdict:** the TDT new-language fine-tuning thesis is **validated end-to-end at scale** — the loss-init-fix + recipe take the documented "TDT head stalls ~0.8 WER" failure to a competitive 19 % Tajik model. It does **not** beat the 300M omni CTC (16.9 / 14.5 +KenLM) — expected for a 110M English-base model with no LM. The **v3 0.6B** (Cyrillic prior, bigger) is the higher-ceiling follow-up that could beat it; RTFx has headroom with optimized (bf16/large-batch) inference.
 
+**CONVERSATIONAL RESULT (reproduced 2026-07-09):** the promoted 110M final model was restored
+without replacing its tokenizer and reproduced FLEURS `19.03%` WER / `6.72%` CER plus dev
+`17.77%` / `5.89%`. On the later 1,625-clip, video-disjoint conversational test it scores
+**`33.85%` WER / `14.89%` CER**, versus live Omni CTC 300M v3 at `37.65%` / `14.04%`. TDT wins
+word error by `3.80` absolute (`10.1%` relative) while Omni wins character error by `0.85`.
+The short-read FLEURS ranking therefore did hide a real in-domain TDT advantage, but the mixed
+WER/CER result needs per-source and error-type analysis before another training run.
+
 **The run was started on a bespoke `run_big.py` harness, then migrated to the shared `parakeet_finetune_core` package** (`tajik-parakeet-train-tdt`, the standard exp-style recipe — proper val logging + best-on-val checkpoints), resumed cleanly from the step-52k checkpoint. `run_big.py` and the gate/ablation scripts are now in `archive/`. **Eval:** bf16 TDT val_wer is noisy → trust `val_loss` during training; run `eval_ckpt.py` (fp32 `transcribe`) for a real WER (dev / FLEURS-test = 600 of `data/test_big.jsonl`).
 
 **Strategic caveat (CAPT goal).** The product is pronunciation training (Duolingo/Pimsleur-style); a core feature is **measuring pronunciation**. That is *not* lowest-WER open ASR — the learner reads a known prompt, so it's **forced alignment + phoneme-level scoring (GOP / mispronunciation detection)**. So before spending GPU-days on a big TDT-ASR run, weigh it against building the **pronunciation-assessment layer** (likely the higher-value next direction). The ASR work (CTC+KenLM, NAR, TDT) is substrate; CAPT scoring is the feature.
@@ -18,7 +26,10 @@ Fine-tune NVIDIA **Parakeet TDT-0.6B-v3** (FastConformer + Token-and-Duration Tr
 
 **The risk in one line:** multiple users (incl. on v3) report the TDT head stuck ~0.8 WER while CTC learns; a maintainer acknowledged a real `change_vocabulary` loss-init bug but the fix never merged (issue #14140 open). **This experiment's gate 0 is to reproduce that failure, then beat it.**
 
-**Outstanding, in order:** (0a) reproduce the TDT-stagnation + loss-init bug on the cheap 110M-hybrid; (0b) v3 inspection preflight (tokenizer coverage on Tajik, blank/duration indices, aux-CTC-head?); (1) parquet→NeMo-manifest builder; (2) Tajik tokenizer; (3) clean-controls ablation (loss-fix in all trainable arms; extend vs restore split); (4) scale the winning arm to v3; (5) eval WER (TDT head) + **RTFx** vs the omni+KenLM baseline.
+**Current next work:** analyze the saved TDT/Omni conversational predictions by source, duration,
+and error type; add the independent edge-error plus CTC-alignment data-quality pilot; standardize
+cold and warm benchmark timing; then decide whether a controlled new TDT run is justified. The old
+gates below remain as experiment history, not the current queue.
 
 ## Why (the numbers that motivate it)
 
@@ -148,8 +159,10 @@ Two process corrections this round:
 - **Code layout:** **live** = `eval_ckpt.py` (fp32 ckpt→WER) + `gate1b_curator_manifest.py` (manifest builder) +
   `data/`; the bespoke harness and completed gate/ablation scripts moved to **`archive/`** (see `archive/README.md`).
 
-**Known gap:** eval is still a loose script (`eval_ckpt.py`), not a package command — promoting it to
-`tajik-parakeet-eval-tdt` would make "train → eval" one harness. Deferred.
+**Resolved 2026-07-09:** `tajik-parakeet-eval` is the package command. It safely restores promoted
+`.nemo` artifacts without rebuilding their tokenizer/decoder, requires explicit tokenizer
+replacement for base-plus-checkpoint reconstruction, and records raw/normalized WER/CER, empty
+outputs, warm RTFx, peak CUDA allocation, predictions, and a JSON summary.
 
 ### CTC head + KenLM on the final 110M model (2026-06-16): KenLM beats the TDT-head greedy
 
@@ -258,13 +271,45 @@ models (110M, simple v3, extend v3). Only that comparison answers whether the bi
 in-domain. (Side note: omni CTC could likely be pushed toward NVIDIA's ~3000× RTFx in production the same way the TDT
 models were — speed isn't the blocker.)
 
+### Evaluation contract repaired + conversational scorecard (2026-07-09)
+
+The missing conversational evaluation was restored from
+`Peacockery/tajik-asr-corpus-v3` revision `3b05a4bb89104c21643081250729595347d1188e`.
+The bounded restore is 18 YouTube test Parquets (`702,784,427` bytes), materialized losslessly to
+1,625 FLACs / 9.926 hours with deterministic SHA256-backed filenames. All FLACs pass integrity
+testing and no clip exceeds the Omni 40-second ceiling.
+
+| model / slice | rows | WER | CER | notes |
+|---|---:|---:|---:|---|
+| Parakeet TDT 110M, FLEURS | 600 | 19.03 | 6.72 | exact reproduction of recorded 19.0 |
+| Parakeet TDT 110M, Common Voice dev | 357 | 17.77 | 5.89 | exact reproduction of recorded 17.8 |
+| Parakeet TDT 110M, conversational <=40s | 1,625 | **33.85** | 14.89 | 2 empty outputs |
+| Parakeet TDT 110M, conversational <=30s | 1,559 | 34.38 | 15.10 | training-profile slice |
+| Omni CTC 300M v3, conversational <=40s | 1,625 | 37.65 | **14.04** | live restored checkpoint |
+
+The 30-second slice is slightly worse, so the curation hard cap is not an accuracy rule. Current
+recipe limits differ—Parakeet CTC 20 seconds, TDT 30 seconds, Omni 40 seconds—and segmentation must
+store raw intervals plus a model/profile-specific emitted-clip cap.
+
+The first cold FLEURS pass ran at `216x`; an identical warm-cache pass reached `684x` (historical
+record: `568x`). Conversational warm throughput reached `876x`, and the <=30-second slice reached
+`966x`. Benchmark reports must therefore separate cold end-to-end throughput from warm model
+throughput and always record batch size, duration ceiling, and peak VRAM.
+
+The Omni shipping checkpoint was also restored from `Peacockery/omni-ctc-300m-tajik` revision
+`cafa6e9fb394f7cef29caf79385feb96bcfc05ae`; the old asset card pointed into a deleted run directory.
+The shared Omni evaluator now accepts the materialized manifest instead of expanding embedded
+Parquet audio into Python integer lists.
+
 ## Risks / open questions
 
 - **TDT stagnation may be fundamental, not a tuning gap.** It's reproduced on v3 by others and the upstream fix didn't merge. If B–D don't break the stall, that's the (valuable, publishable) finding — and the fallback is CTC.
 - **v3 tokenizer is 8,192 (unified), not 1,024.** The recipe's "append above 1023" becomes "above 8191"; the restore code must handle blank-id + the TDT duration outputs correctly (this is exactly where the #14155 bug lives).
 - **v3 may be transducer-only** → no free CTC fallback inside it; confirm at gate 0.
 - **Cyrillic prior is partial** — v3 knows Ru/Uk/Bg acoustics, not Tajik phonology; still a far better start than the English-only 110M, but not a guarantee.
-- **Data → manifest is new code** (no Tajik ledger); and **RTFx must be measured the same way** as the lm_decoding/omni baselines for a fair speed comparison.
+- **Data → manifest is now a tested project CLI**, but the cross-model benchmark still needs one
+  fully shared cold/warm timing and prediction schema before speed comparisons across NeMo and
+  Omni are promotion-grade.
 - **"Improve the community thing"** = implement the loss-init fix properly + monitor both heads + (if it works) write it up / contribute back — but only after we've validated it beats stock.
 
 ## References (provenance-flagged)

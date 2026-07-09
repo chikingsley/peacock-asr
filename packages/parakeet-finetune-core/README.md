@@ -45,7 +45,7 @@ Common in this package:
 - cache defaults under the language project
 - NeMo tokenizer helper invocation
 - CTC trainer config and dry-run YAML emission
-- generic NeMo fine-tune recipe wrapper
+- generic NeMo fine-tune recipe wrapper for CTC models only
 - TDT loss-init fix for duration-bin outputs
 - fused TDT loss/WER setup
 - TDT run logging and checkpoint defaults
@@ -74,6 +74,55 @@ Checkpoint and early-readout metrics are architecture-specific:
 - New Parakeet recipes must inspect the restored model/YAML config rather than assuming this flag.
   Some NVIDIA transducer configs ship with `compute_eval_loss: false`; the shared TDT harness
   overrides it intentionally.
+
+The generic `*-parakeet-train-nemo` wrapper is CTC-only. It requires an explicit CTC `--model-name`
+and `--model-kind ctc`, and refuses TDT/RNNT model kinds or model names. Transducers must use
+`*-parakeet-train-tdt`; that dedicated path repairs the duration-bin class count, enables eval loss,
+and selects checkpoints by `val_loss`.
+
+## Evaluation Safety
+
+Evaluate a promoted, already fine-tuned `.nemo` directly. Do not pass `--replace-tokenizer`; the
+tokenizer and trained decoder/joint are already bundled in the model:
+
+```bash
+uv run --project projects/tajik-asr tajik-parakeet-eval \
+  --model-name data/parakeet/final/tajik-parakeet-tdt-110m_final.nemo \
+  --manifest data/parakeet/manifests/test_fleurs.jsonl
+```
+
+Tokenizer replacement is only for reconstructing a fine-tuned model from a base `.nemo` plus a
+Lightning checkpoint. It must be requested explicitly and requires `--checkpoint`:
+
+```bash
+uv run --project projects/tajik-asr tajik-parakeet-eval \
+  --model-name base_models/parakeet/parakeet-tdt_ctc-110m-base-hybrid.nemo \
+  --checkpoint runs/parakeet/example/checkpoints/best-valloss.ckpt \
+  --replace-tokenizer \
+  --tokenizer-dir data/parakeet/tokenizers/tokenizer_spe_bpe_v1024
+```
+
+NeMo's `change_vocabulary()` rebuilds transducer decoder/joint weights even when the requested
+tokenizer is identical. The evaluator therefore never calls it implicitly, and checkpoint loading
+requires an exact state-dict match so a mismatched base model fails instead of producing a partial
+evaluation.
+
+Evaluation reports raw and project-normalized WER/CER, empty hypotheses, timed RTFx, CUDA warm-up
+count, and peak CUDA allocation. Use `--output-jsonl` and `--output-summary-json` to preserve the
+predictions and scorecard. For throughput comparisons, record a cold end-to-end pass separately
+from a warm-cache pass; `--warmup-count 8 --batch-size 32` reproduces the historical Tajik 110M TDT
+contract, but safe batch size is model- and duration-dependent.
+
+## TDT Training Artifacts
+
+The TDT harness writes two different model artifacts after training:
+
+- `<run>_final.nemo`: last-step weights, useful for exact resume/debug provenance.
+- `<run>_best-valloss.nemo`: weights reloaded from the best `val_loss` checkpoint; use this as the
+  promotion candidate, then confirm it with fp32 held-out WER.
+
+If a run produces no validation checkpoint, only the last-step final model is written and the
+harness reports that explicitly.
 
 ## TDT Status
 

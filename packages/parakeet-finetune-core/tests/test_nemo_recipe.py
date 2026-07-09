@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from parakeet_finetune_core.nemo_recipe import build_command, build_parser, build_script_args
 from parakeet_finetune_core.project import ParakeetProject
 
@@ -25,6 +27,10 @@ def test_nemo_recipe_command_uses_runpy_and_hydra_overrides(tmp_path):
             str(tmp_path / "dev.jsonl"),
             "--tokenizer-dir",
             str(tmp_path / "tok"),
+            "--model-kind",
+            "ctc",
+            "--model-name",
+            "nvidia/parakeet-ctc-0.6b",
             "--batch-size",
             "5",
             "--dry-run",
@@ -42,7 +48,65 @@ def test_nemo_recipe_command_uses_runpy_and_hydra_overrides(tmp_path):
     assert f"model.train_ds.manifest_filepath={(tmp_path / 'train.jsonl').resolve()}" in script_args
     assert "model.validation_ds.batch_size=5" in script_args
     assert "model.tokenizer.update_tokenizer=true" in script_args
-    assert "+init_from_pretrained_model=nvidia/parakeet-tdt_ctc-110m" in script_args
+    assert "exp_manager.checkpoint_callback_params.monitor=val_wer" in script_args
+    assert "exp_manager.checkpoint_callback_params.mode=min" in script_args
+    assert "+init_from_pretrained_model=nvidia/parakeet-ctc-0.6b" in script_args
+
+
+@pytest.mark.parametrize("model_kind", ["tdt", "rnnt"])
+def test_nemo_recipe_refuses_transducer_model_kinds(tmp_path, model_kind):
+    nemo_root = tmp_path / "nemo"
+    project = ParakeetProject(
+        name="tajik",
+        language="tgk_Cyrl",
+        root=tmp_path,
+        nemo_root=nemo_root,
+        default_tdt_model="nvidia/parakeet-tdt_ctc-110m",
+    )
+    args = build_parser(project).parse_args(
+        [
+            "--train-manifest",
+            str(tmp_path / "train.jsonl"),
+            "--validation-manifest",
+            str(tmp_path / "dev.jsonl"),
+            "--tokenizer-dir",
+            str(tmp_path / "tok"),
+            "--model-kind",
+            model_kind,
+            "--model-name",
+            "nvidia/parakeet-tdt_ctc-110m",
+        ]
+    )
+
+    with pytest.raises(SystemExit, match=r"dedicated.*train-tdt"):
+        build_script_args(args)
+
+
+def test_nemo_recipe_refuses_transducer_model_disguised_as_ctc(tmp_path):
+    project = ParakeetProject(
+        name="tajik",
+        language="tgk_Cyrl",
+        root=tmp_path,
+        nemo_root=tmp_path / "nemo",
+        default_tdt_model="nvidia/parakeet-tdt_ctc-110m",
+    )
+    args = build_parser(project).parse_args(
+        [
+            "--train-manifest",
+            str(tmp_path / "train.jsonl"),
+            "--validation-manifest",
+            str(tmp_path / "dev.jsonl"),
+            "--tokenizer-dir",
+            str(tmp_path / "tok"),
+            "--model-kind",
+            "ctc",
+            "--model-name",
+            "nvidia/parakeet-tdt_ctc-110m",
+        ]
+    )
+
+    with pytest.raises(SystemExit, match="CTC-only"):
+        build_script_args(args)
 
 
 def test_nemo_recipe_early_stopping_overrides_are_explicit(tmp_path):
@@ -64,9 +128,11 @@ def test_nemo_recipe_early_stopping_overrides_are_explicit(tmp_path):
             str(tmp_path / "dev.jsonl"),
             "--tokenizer-dir",
             str(tmp_path / "tok"),
+            "--model-kind",
+            "ctc",
+            "--model-name",
+            "nvidia/parakeet-ctc-0.6b",
             "--early-stopping",
-            "--early-stopping-monitor",
-            "val_loss",
             "--early-stopping-mode",
             "min",
             "--early-stopping-check-on-train-epoch-end",
@@ -76,9 +142,8 @@ def test_nemo_recipe_early_stopping_overrides_are_explicit(tmp_path):
     _, script_args = build_script_args(args)
 
     assert "+exp_manager.create_early_stopping_callback=true" in script_args
-    assert "+exp_manager.early_stopping_callback_params.monitor=val_loss" in script_args
+    assert "+exp_manager.early_stopping_callback_params.monitor=val_wer" in script_args
     assert "+exp_manager.early_stopping_callback_params.mode=min" in script_args
     assert (
-        "+exp_manager.early_stopping_callback_params.check_on_train_epoch_end=true"
-        in script_args
+        "+exp_manager.early_stopping_callback_params.check_on_train_epoch_end=true" in script_args
     )

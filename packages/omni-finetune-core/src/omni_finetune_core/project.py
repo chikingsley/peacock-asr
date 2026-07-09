@@ -101,16 +101,33 @@ def build_train_parser(project: FinetuneProject) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=f"Run an Omnilingual ASR training recipe for {project.name}."
     )
-    parser.add_argument("--preset", choices=sorted(project.presets), default=None,
-                        help="a pinned, named recipe (exactly reproducible)")
-    parser.add_argument("--regime", choices=REGIMES, default=None,
-                        help="a generic recipe built from the project's cards")
-    parser.add_argument("--num-steps", type=int, default=None,
-                        help="regime step budget (default: ~30 epochs from the export's hours)")
-    parser.add_argument("--lr", type=float, default=None,
-                        help="regime peak LR (warm_restart: peak_lr)")
-    parser.add_argument("--config-file", type=Path, default=None,
-                        help="ad-hoc recipe YAML (escape hatch; needs --output-dir)")
+    parser.add_argument(
+        "--preset",
+        choices=sorted(project.presets),
+        default=None,
+        help="a pinned, named recipe (exactly reproducible)",
+    )
+    parser.add_argument(
+        "--regime",
+        choices=REGIMES,
+        default=None,
+        help="a generic recipe built from the project's cards",
+    )
+    parser.add_argument(
+        "--num-steps",
+        type=int,
+        default=None,
+        help="regime step budget (default: ~30 epochs from the export's hours)",
+    )
+    parser.add_argument(
+        "--lr", type=float, default=None, help="regime peak LR (warm_restart: peak_lr)"
+    )
+    parser.add_argument(
+        "--config-file",
+        type=Path,
+        default=None,
+        help="ad-hoc recipe YAML (escape hatch; needs --output-dir)",
+    )
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("recipe_args", nargs=argparse.REMAINDER)
     return parser
@@ -136,20 +153,32 @@ def _regime_config(
     cache_dir = str(project.fragment_cache_dir) if project.fragment_cache_dir else None
     if regime == "gpu_max":
         return presets.gpu_max_finetune(
-            model=model, dataset=dataset, tokenizer=tokenizer,
-            dataset_summary_path=summary_path, num_steps=num_steps,
-            lr=lr if lr is not None else 1e-5, fragment_cache_dir=cache_dir,
+            model=model,
+            dataset=dataset,
+            tokenizer=tokenizer,
+            dataset_summary_path=summary_path,
+            num_steps=num_steps,
+            lr=lr if lr is not None else 1e-5,
+            fragment_cache_dir=cache_dir,
         )
     if regime == "1b":
         return presets.gpu_max_finetune_1b(
-            model=model, dataset=dataset, tokenizer=tokenizer,
-            dataset_summary_path=summary_path, num_steps=num_steps,
-            lr=lr if lr is not None else 1e-5, fragment_cache_dir=cache_dir,
+            model=model,
+            dataset=dataset,
+            tokenizer=tokenizer,
+            dataset_summary_path=summary_path,
+            num_steps=num_steps,
+            lr=lr if lr is not None else 1e-5,
+            fragment_cache_dir=cache_dir,
         )
     return presets.warm_restart(
-        checkpoint_card=model, dataset=dataset, tokenizer=tokenizer,
-        dataset_summary_path=summary_path, num_steps=num_steps,
-        peak_lr=lr if lr is not None else 2e-6, fragment_cache_dir=cache_dir,
+        checkpoint_card=model,
+        dataset=dataset,
+        tokenizer=tokenizer,
+        dataset_summary_path=summary_path,
+        num_steps=num_steps,
+        peak_lr=lr if lr is not None else 2e-6,
+        fragment_cache_dir=cache_dir,
     )
 
 
@@ -211,9 +240,7 @@ def _load_test(
     corpora: list[str] = []
     excluded = 0
     for parquet_path in _test_parquets(version_root, language):
-        corpus = next(
-            p.split("=", 1)[1] for p in parquet_path.parts if p.startswith("corpus=")
-        )
+        corpus = next(p.split("=", 1)[1] for p in parquet_path.parts if p.startswith("corpus="))
         # Stream batches so --limit stops early instead of reading the whole partition.
         for batch in pq.ParquetFile(str(parquet_path)).iter_batches(
             batch_size=256, columns=["text", "audio_bytes", "audio_size"]
@@ -235,6 +262,32 @@ def _load_test(
     return audio, refs, corpora, excluded
 
 
+def _load_manifest_test(
+    manifest: Path, limit: int, max_dur: float
+) -> tuple[list[np.ndarray], list[str], list[str], int]:
+    """Load materialized encoded audio without expanding Parquet list columns to Python ints."""
+    audio: list[np.ndarray] = []
+    refs: list[str] = []
+    corpora: list[str] = []
+    excluded = 0
+    with manifest.open(encoding="utf-8") as handle:
+        for line in handle:
+            row = json.loads(line)
+            duration = float(row.get("duration", 0.0))
+            if duration > max_dur:
+                excluded += 1
+                continue
+            audio_path = Path(row["audio_filepath"])
+            if not audio_path.is_file():
+                raise FileNotFoundError(audio_path)
+            audio.append(np.fromfile(audio_path, dtype=np.int8))
+            refs.append(str(row["text"]))
+            corpora.append(str(row.get("corpus", "manifest")))
+            if limit and len(audio) >= limit:
+                break
+    return audio, refs, corpora, excluded
+
+
 def _measures(refs: list[str], hyps: list[str]) -> dict[str, float]:
     """Corpus-level metrics via the shared scorer. WER/CER/MER/WIL + S/D/I/H per alignment."""
     m = compute_measures(refs, hyps)
@@ -250,9 +303,7 @@ def _measures(refs: list[str], hyps: list[str]) -> dict[str, float]:
     }
 
 
-def _parse_models(
-    project: FinetuneProject, values: list[str] | None
-) -> list[tuple[str, str]]:
+def _parse_models(project: FinetuneProject, values: list[str] | None) -> list[tuple[str, str]]:
     if not values:
         if not project.eval_models:
             raise SystemExit("no eval models: pass --models label=card_name")
@@ -264,30 +315,93 @@ def _parse_models(
     return out
 
 
+def _safe_output_label(label: str) -> str:
+    safe = "".join(
+        character if character.isalnum() or character in "-_" else "_" for character in label
+    )
+    return safe.strip("_-") or "model"
+
+
+def _write_eval_predictions(
+    path: Path,
+    refs: list[str],
+    hyps: list[str],
+    refs_norm: list[str],
+    hyps_norm: list[str],
+    corpora: list[str],
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as handle:
+        for index, (ref, hyp, ref_norm, hyp_norm, corpus) in enumerate(
+            zip(refs, hyps, refs_norm, hyps_norm, corpora, strict=True)
+        ):
+            handle.write(
+                json.dumps(
+                    {
+                        "row_index": index,
+                        "corpus": corpus,
+                        "text": ref,
+                        "hypothesis": hyp,
+                        "normalized_text": ref_norm,
+                        "normalized_hypothesis": hyp_norm,
+                    },
+                    ensure_ascii=False,
+                )
+                + "\n"
+            )
+
+
 def build_eval_parser(project: FinetuneProject) -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         description=f"Score {project.name} model cards on an export's test split."
     )
-    p.add_argument("--dataset-root", type=Path, default=project.eval_dataset_root,
-                   help="version=N root of an export (its split=test partitions are scored)")
-    p.add_argument("--models", nargs="+", default=None,
-                   help="label=card_name pairs (default: the project's eval_models)")
-    p.add_argument("--exclude-corpus", nargs="+", default=None,
-                   help="drop these corpora (e.g. fleurs -> conversational-only)")
-    p.add_argument("--only-corpus-prefix", default=None,
-                   help="keep only corpora starting with this (e.g. youtube-)")
+    p.add_argument(
+        "--dataset-root",
+        type=Path,
+        default=project.eval_dataset_root,
+        help="version=N root of an export (its split=test partitions are scored)",
+    )
+    p.add_argument(
+        "--manifest",
+        type=Path,
+        default=None,
+        help="materialized JSONL audio manifest; takes precedence over --dataset-root",
+    )
+    p.add_argument(
+        "--models",
+        nargs="+",
+        default=None,
+        help="label=card_name pairs (default: the project's eval_models)",
+    )
+    p.add_argument(
+        "--exclude-corpus",
+        nargs="+",
+        default=None,
+        help="drop these corpora (e.g. fleurs -> conversational-only)",
+    )
+    p.add_argument(
+        "--only-corpus-prefix",
+        default=None,
+        help="keep only corpora starting with this (e.g. youtube-)",
+    )
     p.add_argument("--device", default="cpu", help="cpu (default) or cuda")
     p.add_argument("--batch-size", type=int, default=4)
     p.add_argument("--max-duration", type=float, default=MAX_AUDIO_SEC, help="drop clips longer")
     p.add_argument("--limit", type=int, default=0)
+    p.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="write per-model predictions plus one summary JSON",
+    )
     return p
 
 
 def eval_main(project: FinetuneProject, argv: list[str] | None = None) -> int:
     """Transcribe + score the test partitions with each model card; print the comparison."""
     args = build_eval_parser(project).parse_args(argv)
-    if args.dataset_root is None:
-        raise SystemExit("no dataset root: pass --dataset-root (or set it on the project)")
+    if args.manifest is None and args.dataset_root is None:
+        raise SystemExit("pass --manifest or --dataset-root (or set a project dataset root)")
     os.environ.setdefault("FAIRSEQ2_CACHE_DIR", str(project.root / ".fairseq2-cache/assets"))
 
     import torch
@@ -299,9 +413,14 @@ def eval_main(project: FinetuneProject, argv: list[str] | None = None) -> int:
     from omnilingual_asr.models.inference.pipeline import ASRInferencePipeline
 
     models = _parse_models(project, args.models)
-    audio, refs, corpora, excluded = _load_test(
-        args.dataset_root, project.language, args.limit, args.max_duration
-    )
+    if args.manifest is not None:
+        audio, refs, corpora, excluded = _load_manifest_test(
+            args.manifest, args.limit, args.max_duration
+        )
+    else:
+        audio, refs, corpora, excluded = _load_test(
+            args.dataset_root, project.language, args.limit, args.max_duration
+        )
     keep = [
         i
         for i, c in enumerate(corpora)
@@ -330,6 +449,10 @@ def eval_main(project: FinetuneProject, argv: list[str] | None = None) -> int:
         hyps = [project.normalize(h) for h in hyps_raw]
         m = _measures(refs_norm, hyps)
         summary[label] = m
+        if args.output_dir is not None:
+            output_path = args.output_dir / f"{_safe_output_label(label)}-predictions.jsonl"
+            _write_eval_predictions(output_path, refs, hyps_raw, refs_norm, hyps, corpora)
+            print(f"wrote {output_path}", flush=True)
         print(
             f"{label}: WER {m['wer']:.2f}%  CER {m['cer']:.2f}%  MER {m['mer']:.2f}%  "
             f"WIL {m['wil']:.2f}%  |  sub {m['sub']:.0f} del {m['del']:.0f} "
@@ -348,4 +471,25 @@ def eval_main(project: FinetuneProject, argv: list[str] | None = None) -> int:
     print(f"{'model':<16}{'WER':>9}{'CER':>9}{'MER':>9}")
     for label, m in summary.items():
         print(f"{label:<16}{m['wer']:>8.2f}%{m['cer']:>8.2f}%{m['mer']:>8.2f}%")
+    if args.output_dir is not None:
+        args.output_dir.mkdir(parents=True, exist_ok=True)
+        summary_path = args.output_dir / "summary.json"
+        summary_path.write_text(
+            json.dumps(
+                {
+                    "project": project.name,
+                    "rows": len(audio),
+                    "corpora": sorted(set(corpora)),
+                    "device": args.device,
+                    "batch_size": args.batch_size,
+                    "models": dict(models),
+                    "metrics": summary,
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        print(f"wrote {summary_path}", flush=True)
     return 0

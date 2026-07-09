@@ -9,6 +9,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from parakeet_finetune_core.project import ParakeetProject
 
 
@@ -225,6 +227,46 @@ def validation_checkpoint_config(ckpt_dir: Path) -> dict[str, Any]:
     }
 
 
+def export_training_artifacts(
+    model: Any,
+    run_dir: Path,
+    run_name: str,
+    best_checkpoint_path: str | Path | None,
+    *,
+    checkpoint_loader: Callable[[Path], Any] | None = None,
+) -> tuple[Path, Path | None]:
+    """Save last-step weights and, when available, a distinct best-validation model."""
+    final_path = run_dir / f"{run_name}_final.nemo"
+    model.save_to(str(final_path))
+
+    if not best_checkpoint_path:
+        print("no best val_loss checkpoint was produced; saved last-step final only", flush=True)
+        return final_path, None
+
+    checkpoint_path = Path(best_checkpoint_path)
+    if not checkpoint_path.exists():
+        raise FileNotFoundError(checkpoint_path)
+    loader = checkpoint_loader
+    if loader is None:
+        import torch  # ty: ignore[unresolved-import]
+
+        def load_checkpoint(path: Path) -> Any:
+            return torch.load(path, map_location="cpu", weights_only=False)
+
+        loader = load_checkpoint
+    checkpoint = loader(checkpoint_path)
+    state_dict = checkpoint.get("state_dict", checkpoint)
+    model.load_state_dict(state_dict, strict=True)
+    best_path = run_dir / f"{run_name}_best-valloss.nemo"
+    model.save_to(str(best_path))
+    print(
+        f"saved last-step model={final_path} and best-val_loss model={best_path} "
+        f"from checkpoint={checkpoint_path}",
+        flush=True,
+    )
+    return final_path, best_path
+
+
 def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=f"Fine-tune a Parakeet TDT or TDT+CTC model for {project.name}."
@@ -344,9 +386,7 @@ def run(args: argparse.Namespace) -> None:
     if args.recipe == "extend-restore" and args.freeze_warmup_steps > 0:
         from parakeet_finetune_core.extend_restore import make_freeze_warmup_callback
 
-        callbacks.append(
-            make_freeze_warmup_callback(args.freeze_warmup_steps, args.unfreeze_top)
-        )
+        callbacks.append(make_freeze_warmup_callback(args.freeze_warmup_steps, args.unfreeze_top))
         print(
             f"freeze-warmup enabled: encoder frozen until step {args.freeze_warmup_steps} "
             f"(unfreeze_top={args.unfreeze_top})",
@@ -373,9 +413,7 @@ def run(args: argparse.Namespace) -> None:
                 "train_ds": train_ds(
                     Path(train_manifest), args.max_dur, args.batch_dur, args.num_workers
                 ),
-                "validation_ds": val_ds(
-                    Path(validation_manifest), args.max_dur, args.num_workers
-                ),
+                "validation_ds": val_ds(Path(validation_manifest), args.max_dur, args.num_workers),
                 "optim": {
                     "name": args.optim,
                     "lr": args.lr,
@@ -416,12 +454,10 @@ def run(args: argparse.Namespace) -> None:
     model.spec_augment = ASRModel.from_config_dict(resolved.model.spec_augment)
 
     resume_ckpt = (
-        str(ckpt_dir / "last.ckpt")
-        if args.resume and (ckpt_dir / "last.ckpt").exists()
-        else None
+        str(ckpt_dir / "last.ckpt") if args.resume and (ckpt_dir / "last.ckpt").exists() else None
     )
     trainer.fit(model, ckpt_path=resume_ckpt)
-    model.save_to(str(run_dir / f"{args.name}_final.nemo"))
+    export_training_artifacts(model, run_dir, args.name, checkpoint_val.best_model_path)
 
 
 def train_tdt_main(project: ParakeetProject, argv: list[str] | None = None) -> int:

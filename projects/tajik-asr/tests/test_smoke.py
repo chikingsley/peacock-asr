@@ -8,6 +8,7 @@ def test_cli_entrypoints_import() -> None:
     from tajik_asr.omni.eval import main as omni_eval
     from tajik_asr.omni.train import main as omni_train
     from tajik_asr.parakeet.eval import evaluate
+    from tajik_asr.parakeet.materialize import main as materialize_eval
     from tajik_asr.parakeet.train import (
         train_ctc,
         train_nemo_recipe,
@@ -15,6 +16,15 @@ def test_cli_entrypoints_import() -> None:
         train_tokenizer,
     )
 
-    fns = (curate, omni_train, omni_eval, evaluate,
-           train_ctc, train_nemo_recipe, train_tdt, train_tokenizer)
+    fns = (
+        curate,
+        omni_train,
+        omni_eval,
+        evaluate,
+        materialize_eval,
+        train_ctc,
+        train_nemo_recipe,
+        train_tdt,
+        train_tokenizer,
+    )
     assert all(callable(f) for f in fns)

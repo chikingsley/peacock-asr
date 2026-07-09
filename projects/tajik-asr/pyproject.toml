@@ -53,6 +53,7 @@ tajik-parakeet-train-ctc = "tajik_asr.parakeet.train:train_ctc"
 tajik-parakeet-train-tdt = "tajik_asr.parakeet.train:train_tdt"
 tajik-parakeet-train-nemo = "tajik_asr.parakeet.train:train_nemo_recipe"
 tajik-parakeet-eval = "tajik_asr.parakeet.eval:evaluate"
+tajik-parakeet-materialize-eval = "tajik_asr.parakeet.materialize:main"
 
 [project.entry-points."fairseq2.extension"]
 tajik_asr = "tajik_asr.assets:setup_fairseq2_extension"
