@@ -45,9 +45,9 @@
   <div class="overlay" id="overlay">
     <div class="card done">
       <h1>Blinded VAD listening review</h1>
-      <p class="instruction">Listen to the audio <strong>between the two tones</strong>. The one-second context outside the tones helps you hear boundary clipping.</p>
+      <p class="instruction">The <strong>isolated disputed region</strong> plays by itself. Very short regions repeat automatically so you can hear them clearly.</p>
       <button class="start" id="start">Start / resume</button>
-      <p class="muted">Nothing about the engine or disagreement direction is shown while voting.</p>
+      <p class="muted">Press C only when you want the original context; its tones bracket the disputed region. Nothing about the engine is shown while voting.</p>
     </div>
   </div>
   <main>
@@ -58,24 +58,26 @@
       <div class="bar"><div id="progress"></div></div>
     </section>
     <section class="card" id="review">
-      <p class="instruction">Classify only the disputed audio <strong>between the two tones</strong>.</p>
+      <p class="instruction">Does this <strong>isolated repeated audio</strong> contain speech?</p>
+      <div class="muted" id="target-meta"></div>
       <audio id="audio" controls preload="auto"></audio>
       <div class="buttons">
-        <button class="speech vote" data-label="speech"><span class="key">1</span>Speech — usable boundary</button>
+        <button class="speech vote" data-label="speech"><span class="key">1</span>Clear speech</button>
         <button class="nonspeech vote" data-label="non_speech"><span class="key">2</span>No speech</button>
-        <button class="clipped vote" data-label="clipped"><span class="key">3</span>Speech, but clipped boundary</button>
+        <button class="clipped vote" data-label="clipped"><span class="key">3</span>Speech fragment / cut-off</button>
         <button class="unsure vote" data-label="unsure"><span class="key">4</span>Unsure / mixed</button>
       </div>
       <div class="toolbar">
-        <button class="secondary" id="replay"><span class="key">Space</span>Replay</button>
+        <button class="secondary" id="replay"><span class="key">Space</span>Replay isolated</button>
+        <button class="secondary" id="context"><span class="key">C</span>Hear context</button>
         <button class="secondary" id="previous"><span class="key">←</span>Previous / revise</button>
         <button class="secondary" id="skip"><span class="key">0</span>Skip for now</button>
       </div>
       <div class="status" id="status"></div>
       <div class="legend">
-        <div><b>1 Speech:</b> speech is present between the tones and the marked boundary sounds usable.</div>
-        <div><b>2 No speech:</b> silence, music, noise, breath, or other non-speech between the tones.</div>
-        <div><b>3 Clipped:</b> speech crosses a tone, or a word/syllable sounds cut at a marked edge.</div>
+        <div><b>1 Clear speech:</b> the isolated region contains a complete, recognizable speech sound.</div>
+        <div><b>2 No speech:</b> silence, music, noise, breath, or another non-speech sound.</div>
+        <div><b>3 Speech fragment:</b> a word, syllable, onset, or ending is audible but cut off.</div>
         <div><b>4 Unsure:</b> genuinely ambiguous, mixed, or too hard to judge confidently.</div>
       </div>
     </section>
@@ -113,8 +115,18 @@
     async function playCurrent(manual = false) {
       if (!items.length) return;
       if (manual) replayCount += 1;
-      try { audio.currentTime = 0; await audio.play(); setStatus(manual ? 'Replaying…' : 'Playing…'); }
+      const item = items[index];
+      if (audio.getAttribute('src') !== item.audio) { audio.src = item.audio; audio.load(); }
+      try { audio.currentTime = 0; await audio.play(); setStatus(manual ? 'Replaying isolated region…' : 'Playing isolated region…'); }
       catch (error) { setStatus('Press Space or the play button to hear this item.', false); }
+    }
+    async function playContext() {
+      if (!items.length) return;
+      replayCount += 1;
+      const item = items[index];
+      audio.src = item.context_audio; audio.load();
+      try { await audio.play(); setStatus('Playing context — the tones bracket the disputed region.'); }
+      catch (error) { setStatus('Press C again or the play button to hear context.', false); }
     }
     function showItem(nextIndex, autoplay = true) {
       index = Math.max(0, Math.min(items.length - 1, nextIndex));
@@ -122,6 +134,7 @@
       const item = items[index];
       audio.src = item.audio;
       audio.load();
+      document.querySelector('#target-meta').textContent = `${item.target_duration.toFixed(2)}-second region${item.repetitions > 1 ? `, repeated ${item.repetitions} times` : ''}`;
       updateProgress();
       const existing = votes[item.item_id];
       setStatus(existing ? `Previously marked: ${existing.label.replace('_', ' ')} — choose again to revise.` : '');
@@ -153,6 +166,7 @@
 
     voteButtons.forEach(button => button.addEventListener('click', () => vote(button.dataset.label)));
     document.querySelector('#replay').addEventListener('click', () => playCurrent(true));
+    document.querySelector('#context').addEventListener('click', playContext);
     document.querySelector('#previous').addEventListener('click', previous);
     document.querySelector('#skip').addEventListener('click', skip);
     document.querySelector('#revisit').addEventListener('click', () => { document.querySelector('#done').classList.add('hidden'); document.querySelector('#review').classList.remove('hidden'); showItem(items.length - 1, false); });
@@ -161,10 +175,11 @@
       if (!started || saving || event.repeat) return;
       if (['1','2','3','4'].includes(event.key)) { event.preventDefault(); vote(['speech','non_speech','clipped','unsure'][Number(event.key) - 1]); }
       else if (event.code === 'Space') { event.preventDefault(); playCurrent(true); }
+      else if (event.key.toLowerCase() === 'c') { event.preventDefault(); playContext(); }
       else if (event.key === '0' || event.key.toLowerCase() === 's') { event.preventDefault(); skip(); }
       else if (event.key === 'ArrowLeft' || event.key === 'Backspace') { event.preventDefault(); previous(); }
     });
-    audio.addEventListener('ended', () => setStatus('Choose 1–4, or Space to replay.'));
+    audio.addEventListener('ended', () => setStatus('Choose 1–4, Space to replay isolated, or C for context.'));
 
     fetch('/api/state').then(response => response.json()).then(state => {
       items = state.items; votes = state.votes || {};

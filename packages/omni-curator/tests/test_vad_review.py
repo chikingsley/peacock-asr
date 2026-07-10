@@ -109,11 +109,14 @@ def test_prepare_review_writes_blinded_audio_and_resumable_store(tmp_path):
         "silero_only/noisy": 1,
     }
     assert len(manifest["items"]) == 4
+    assert manifest["schema_version"] == 2
     assert "favored_engine" not in (review_dir / "index.html").read_text()
     for item in manifest["items"]:
-        info = sf.info(review_dir / item["audio"])
-        assert info.samplerate == 16_000
-        assert info.channels == 1
+        assert item["repetitions"] == 3
+        for audio_key in ("audio", "context_audio"):
+            info = sf.info(review_dir / item[audio_key])
+            assert info.samplerate == 16_000
+            assert info.channels == 1
     assert review_summary(review_dir)["remaining"] == 4
 
     first = manifest["items"][0]

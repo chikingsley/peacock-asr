@@ -25,13 +25,14 @@ the old MarbleNet boundaries and are not human VAD truth.
 The 2026-07-09 review is prepared under
 `/mnt/workerssd-2t/peacock-asr/reviews/farsi-vad-marble-silero-2026-07-09`. It contains 160 unique
 disagreement regions: 40 each for MarbleNet-only clean, MarbleNet-only noisy, Silero-only clean,
-and Silero-only noisy. All 32 pilot sources are represented. Each clip has one second of context
-around two tones that mark the disputed span; duration strata within every cell prevent the result
-from being dominated by tiny boundary slivers.
+and Silero-only noisy. All 32 pilot sources are represented. The isolated disputed region autoplays;
+sub-0.35-second regions repeat three times and 0.35-0.75-second regions twice with silence between.
+An optional context clip has one second around two tones marking the disputed span. Duration strata
+within every cell prevent the result from being dominated by tiny boundary slivers.
 
-The browser is intentionally blinded. Key `1` means usable speech between the tones, `2` means
-non-speech, `3` means speech with a clipped boundary, and `4` means unsure. Space replays, `0` skips,
-and Left Arrow revisits the previous item. Votes persist in `review.sqlite`; the generated JSON/CSV
-exports join those votes back to the hidden engine direction for analysis. Cobra is not in this
-review because the common-profile pilot already excluded it and supplied effectively no noisy
+The browser is intentionally blinded. Key `1` means clear speech, `2` means non-speech, `3` means a
+cut-off speech fragment, and `4` means unsure. Space replays the isolated region, `C` plays context,
+`0` skips, and Left Arrow revisits the previous item. Votes persist in `review.sqlite`; the generated
+JSON/CSV exports join those votes back to the hidden engine direction for analysis. Cobra is not in
+this review because the common-profile pilot already excluded it and supplied effectively no noisy
 Cobra-only disagreement pool.

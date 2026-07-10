@@ -100,10 +100,11 @@ comes from `packages/omni-curator/status.py`; root `STATUS.md` is ignored and no
   and a direct source-path probe. ASR yield remains explicitly unresolved rather than being reported
   as empty output; future all-failed Scribe pilot runs exit non-zero.
 - Added the blinded `omni-vad-review` human gate with deterministic source/duration-balanced
-  disagreement sampling, tone-marked context audio, autoplay keyboard review, SQLite resume/revise
-  state, and JSON/CSV export. The prepared Farsi set has 160 unique items across all 32 pilot
-  sources, exactly 40 per MarbleNet-only/Silero-only and clean/noisy cell; Cobra was excluded after
-  the measured common profile and its near-empty one-sided disagreement supply failed the gate.
+  disagreement sampling, repeated isolated-region audio, optional tone-marked context, autoplay
+  keyboard review, SQLite resume/revise state, and JSON/CSV export. The prepared Farsi set has 160
+  unique items across all 32 pilot sources, exactly 40 per MarbleNet-only/Silero-only and clean/noisy
+  cell; Cobra was excluded after the measured common profile and its near-empty one-sided
+  disagreement supply failed the gate.
 - Audited and removed abandoned pre-reset clip output: 4,227 FLAC/temp files (~2.8 GB) plus all
   empty descendants from Dari, Farsi, Georgian, and Tajik `data/clips`. Current queues, active and
   premigration stores, manifests, and training artifacts had zero exact references; all 128 source

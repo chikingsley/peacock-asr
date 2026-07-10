@@ -317,6 +317,26 @@ def _marked_audio(
     )
 
 
+def _isolated_audio(audio: Any, *, start: float, end: float) -> tuple[Any, int]:
+    import numpy as np
+
+    start_sample = max(0, round(start * SAMPLE_RATE))
+    end_sample = min(len(audio), round(end * SAMPLE_RATE))
+    target = audio[start_sample:end_sample]
+    duration = len(target) / SAMPLE_RATE
+    repetitions = (
+        3 if duration < SHORT_REGION_SECONDS else 2 if duration < MEDIUM_REGION_SECONDS else 1
+    )
+    silence = np.zeros(round(0.25 * SAMPLE_RATE), dtype=np.float32)
+    pieces: list[Any] = [silence]
+    for repeat in range(repetitions):
+        pieces.append(target)
+        if repeat + 1 < repetitions:
+            pieces.append(silence)
+    pieces.append(silence)
+    return np.concatenate(pieces).astype(np.float32, copy=False), repetitions
+
+
 def prepare_review(
     *,
     intervals_path: Path,
@@ -326,7 +346,7 @@ def prepare_review(
     context_seconds: float = 1.0,
     overwrite: bool = False,
 ) -> dict[str, object]:
-    """Generate marked FLACs, blinded item order, static UI, and an empty vote database."""
+    """Generate isolated/context FLACs, blinded order, UI, and an empty vote database."""
     import soundfile as sf
 
     intervals_path = intervals_path.expanduser().resolve()
@@ -342,33 +362,47 @@ def prepare_review(
         source_path = Path(source_items[0][1].source_path)
         audio = load_16k_mono(source_path)
         for sequence, candidate in source_items:
-            marked = _marked_audio(
+            isolated, repetitions = _isolated_audio(
+                audio,
+                start=candidate.start,
+                end=candidate.end,
+            )
+            context = _marked_audio(
                 audio,
                 start=candidate.start,
                 end=candidate.end,
                 context_seconds=context_seconds,
             )
-            relative_audio = Path("audio") / f"{sequence:04d}_{candidate.candidate_id}.flac"
-            sf.write(
-                str(output_dir / relative_audio),
-                marked,
-                SAMPLE_RATE,
-                format="FLAC",
-                subtype="PCM_16",
-            )
+            stem = f"{sequence:04d}_{candidate.candidate_id}.flac"
+            relative_audio = Path("audio") / f"target_{stem}"
+            relative_context = Path("audio") / f"context_{stem}"
+            for relative_path, review_audio in (
+                (relative_audio, isolated),
+                (relative_context, context),
+            ):
+                sf.write(
+                    str(output_dir / relative_path),
+                    review_audio,
+                    SAMPLE_RATE,
+                    format="FLAC",
+                    subtype="PCM_16",
+                )
             item = {
                 **asdict(candidate),
                 "item_id": candidate.candidate_id,
                 "sequence": sequence,
                 "audio": relative_audio.as_posix(),
+                "context_audio": relative_context.as_posix(),
+                "repetitions": repetitions,
                 "target_duration": candidate.duration,
-                "review_duration": len(marked) / SAMPLE_RATE,
+                "review_duration": len(isolated) / SAMPLE_RATE,
+                "context_duration": len(context) / SAMPLE_RATE,
                 "duration_bucket": _duration_bucket(candidate),
             }
             items.append(item)
     items.sort(key=lambda item: int(item["sequence"]))
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "created_at": time.time(),
         "intervals_path": str(intervals_path),
         "intervals_sha256": hashlib.sha256(intervals_path.read_bytes()).hexdigest(),
@@ -376,9 +410,9 @@ def prepare_review(
         "context_seconds": context_seconds,
         "item_count": len(items),
         "labels": {
-            "speech": "Speech exists between the two tones and the boundary sounds usable.",
-            "non_speech": "No speech exists between the two tones.",
-            "clipped": "Speech crosses a tone or a word/syllable is cut at the marked boundary.",
+            "speech": "The isolated disputed region contains clear speech.",
+            "non_speech": "The isolated disputed region contains no speech.",
+            "clipped": "The region contains a speech fragment or cut-off word/syllable.",
             "unsure": "Mixed or ambiguous; cannot make a confident binary judgment.",
         },
         "items": items,
@@ -399,7 +433,11 @@ def prepare_review(
             f"{direction}/{tier}": count for (direction, tier), count in sorted(counts.items())
         },
         "sources": len({str(item["source_id"]) for item in items}),
-        "audio_bytes": sum((output_dir / str(item["audio"])).stat().st_size for item in items),
+        "audio_bytes": sum(
+            (output_dir / str(item[path_key])).stat().st_size
+            for item in items
+            for path_key in ("audio", "context_audio")
+        ),
     }
 
 
@@ -476,6 +514,8 @@ class ReviewHandler(SimpleHTTPRequestHandler):
                     "item_id": item["item_id"],
                     "sequence": item["sequence"],
                     "audio": item["audio"],
+                    "context_audio": item["context_audio"],
+                    "repetitions": item["repetitions"],
                     "target_duration": item["target_duration"],
                     "review_duration": item["review_duration"],
                 }
