@@ -9,9 +9,9 @@ Active work only. Completed work belongs in `CHANGELOG.md`; live pipeline state 
   engine/model/backend/postprocessor policy and effective hash).
 - [ ] Add explicit per-project routing plus clean/read and noisy/conversational postprocessing
   profiles. Treat Dari -> Cobra as provisional until a Dari-specific pilot.
-- [ ] Finish the Farsi pilot gate: the 32-source same-audio interval run is complete, but all 60
-  Scribe samples returned the service-wide HTTP 502 seen at `/health`. Retry ASR yield after service
-  recovery, review sampled boundaries, choose the profile, then carry it through
+- [ ] Finish the Farsi pilot gate: complete the prepared 160-item blinded MarbleNet-versus-Silero
+  disagreement review. All 60 Scribe samples returned the service-wide HTTP 502 seen at `/health`;
+  retry ASR yield after service recovery, choose the profile from both gates, then carry it through
   `labelq -> harvest -> verify` before production scale.
 - [ ] Make direct CLI and factory worker/device defaults engine-aware, load project secrets before
   Cobra preflight, and rerun live parent-death/orphan-GPU cleanup tests.

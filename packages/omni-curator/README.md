@@ -71,6 +71,23 @@ The default pilot runs Cobra, Silero, and MarbleNet over the same sources with t
 `conservative-v1` shared profile. The older FLEURS policy used engine-native semantics, so its
 quality rows are evidence for candidates, not an exact prediction of this central policy.
 
+For a human gate, `omni-vad-review` derives blinded engine-disagreement regions from the corrected
+`intervals.jsonl`, writes tone-marked listening clips, and stores resumable keyboard votes in
+SQLite. The item count must be a multiple of four so MarbleNet-only/Silero-only and clean/noisy
+cells remain exactly balanced:
+
+```bash
+uv run --project projects/farsi-asr --locked omni-vad-review prepare \
+  --intervals /scratch/farsi-vad-pilot/intervals.jsonl \
+  --output-dir /scratch/farsi-vad-review --items 160
+uv run --project projects/farsi-asr --locked omni-vad-review serve \
+  --review-dir /scratch/farsi-vad-review
+```
+
+The browser receives only randomized item IDs and audio paths while voting. Keys `1` through `4`
+record speech, non-speech, clipped speech, or unsure; Space replays and `0` skips. JSON and CSV
+exports reveal the engine direction only after votes have been stored.
+
 ## Dependencies
 
 Core dependencies include NumPy, SoundFile, Torchaudio, and NeMo. Adapter extras are deliberately

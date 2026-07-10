@@ -24,6 +24,8 @@ dependencies = [
 [project.scripts]
 # Build a KenLM word n-gram from a dataset export's train labels (for beam-decode LM fusion).
 omni-build-lm = "omni_curator.build_lm:main"
+# Prepare/serve the blinded keyboard review used to select a VAD policy.
+omni-vad-review = "omni_curator.create.vad_review:main"
 
 [project.optional-dependencies]
 # datasets powers ingest/huggingface.py (FLEURS); audio is read as raw bytes, decoded by soundfile.
@@ -107,6 +109,8 @@ ignore = [
 "src/omni_curator/factory/__main__.py" = ["T201"]
 # KenLM build CLI: prints progress; runs local lmplz/build_binary from packages/kenlm/build.
 "src/omni_curator/build_lm.py" = ["T201", "S603"]
+# Blinded review CLI/server: stdout is the operator interface.
+"src/omni_curator/create/vad_review.py" = ["T201"]
 # The Scribe budget balancer: a small cross-project CLI that prints + shells out to `ps`.
 "src/omni_curator/scribe/balance.py" = ["T201", "S603", "S607"]
 # The language gate is inherently bilingual Cyrillic vocabulary: "ambiguous character" lints

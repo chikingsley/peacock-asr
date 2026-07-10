@@ -19,3 +19,19 @@ source-engine pairs.
 The historical Scribe intervals are pseudo-reference speech-positive anchors from the retired
 segmentation policy. They are useful for detecting gross coverage loss, but they are biased toward
 the old MarbleNet boundaries and are not human VAD truth.
+
+## Blinded MarbleNet versus Silero review
+
+The 2026-07-09 review is prepared under
+`/mnt/workerssd-2t/peacock-asr/reviews/farsi-vad-marble-silero-2026-07-09`. It contains 160 unique
+disagreement regions: 40 each for MarbleNet-only clean, MarbleNet-only noisy, Silero-only clean,
+and Silero-only noisy. All 32 pilot sources are represented. Each clip has one second of context
+around two tones that mark the disputed span; duration strata within every cell prevent the result
+from being dominated by tiny boundary slivers.
+
+The browser is intentionally blinded. Key `1` means usable speech between the tones, `2` means
+non-speech, `3` means speech with a clipped boundary, and `4` means unsure. Space replays, `0` skips,
+and Left Arrow revisits the previous item. Votes persist in `review.sqlite`; the generated JSON/CSV
+exports join those votes back to the hidden engine direction for analysis. Cobra is not in this
+review because the common-profile pilot already excluded it and supplied effectively no noisy
+Cobra-only disagreement pool.
