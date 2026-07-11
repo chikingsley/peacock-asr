@@ -1,12 +1,8 @@
 # Georgian (kat_Geor) YouTube channels — exhaustive, for the first Georgian scrape
 
-Agent-researched 2026-06-13. Georgian only (Russian/other-language interleave flagged). 27 NEW
-channels beyond the ~18 already scaffolded in `sources.py`. Conversational-weighted — the v0 model
-(20.7 WER) has only 145h of scripted gold and badly needs real conversation. Handles resolved live.
+Agent-researched 2026-06-13. Georgian only (Russian/other-language interleave flagged). 27 NEW channels beyond the ~18 already scaffolded in `sources.py`. Conversational-weighted — the v0 model (20.7 WER) has only 145h of scripted gold and badly needs real conversation. Handles resolved live.
 
-Status 2026-06-25: the non-duplicate entries are wired into `sources.py`. The unresolved
-`@interpressnews` candidate was removed after `yt-dlp` returned 404. `audiobooks_geo_ena` is the
-same channel ID already present as `audiobooks_geo_ka`.
+Status 2026-06-25: the non-duplicate entries are wired into `sources.py`. The unresolved `@interpressnews` candidate was removed after `yt-dlp` returned 404. `audiobooks_geo_ena` is the same channel ID already present as `audiobooks_geo_ka`.
 
 ## Paste block for sources.py
 
@@ -49,9 +45,7 @@ _ch("voices_ancestors", "@voicesoftheancestors", "clean", "polyphony podcast —
 
 ## Risks
 
-- **Russian/other interleave:** publika_tv, batumelebi, kavkasia_tv and most news carry occasional
-  Russian-speaking guests; voices_ancestors is partly English. Rely on the per-clip language gate.
+- **Russian/other interleave:** publika_tv, batumelebi, kavkasia_tv and most news carry occasional Russian-speaking guests; voices_ancestors is partly English. Rely on the per-clip language gate.
 - **Tiny/low-yield (clean gold):** audiobooks_geo_ena (22 subs), nplg_official (485), forbes_georgia.
 - **Music-heavy / skip if low VAD yield:** georgian_voices_official, voices_ancestors.
-- **Already in sources.py (excluded):** GPB, adjara_tv, radio_tavisupleba, imedi, rustavi2, mtavari,
-  formula, tv_pirveli, palitra_news, netgazeti, audiobooks_geo_ka, geobooks_audio, komedi_shou, etc.
+- **Already in sources.py (excluded):** GPB, adjara_tv, radio_tavisupleba, imedi, rustavi2, mtavari, formula, tv_pirveli, palitra_news, netgazeti, audiobooks_geo_ka, geobooks_audio, komedi_shou, etc.

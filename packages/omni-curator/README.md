@@ -1,16 +1,12 @@
 # omni-curator
 
-Shared ASR dataset curation for Peacock language projects. The package owns one queue-driven
-pipeline; per-language projects provide source registries, language/script settings, and policy.
+Shared ASR dataset curation for Peacock language projects. The package owns one queue-driven pipeline; per-language projects provide source registries, language/script settings, and policy.
 
 ```text
 download -> enqueue -> segment -> labelq -> harvest -> merge -> verify -> export
 ```
 
-The working queue is SQLite. `segment` claims whole recordings, decodes each source once, runs a
-resident VAD engine, cuts 16 kHz FLAC clips through claim-token staging, and publishes clip rows
-atomically. `labelq` drains those rows through Scribe. `harvest` preserves clip metadata in the
-per-channel stores, so segmentation provenance survives through export.
+The working queue is SQLite. `segment` claims whole recordings, decodes each source once, runs a resident VAD engine, cuts 16 kHz FLAC clips through claim-token staging, and publishes clip rows atomically. `labelq` drains those rows through Scribe. `harvest` preserves clip metadata in the per-channel stores, so segmentation provenance survives through export.
 
 ## Multi-VAD contract
 
@@ -20,21 +16,15 @@ Three adapters implement the same boundary:
 - output: engine-native `(start_seconds, end_seconds)` speech intervals;
 - no adapter performs Peacock padding, short-span filtering, gap merging, or hard splitting.
 
-The shared versioned postprocessor owns those operations in this fixed order: sanitize and clamp,
-pad, sort, merge, remove short spans, then split above the selected ASR model's hard duration cap.
-Every emitted clip records the engine, exact model/runtime revision, threshold/backend,
-postprocessor values, policy revision, and an effective profile hash.
+The shared versioned postprocessor owns those operations in this fixed order: sanitize and clamp, pad, sort, merge, remove short spans, then split above the selected ASR model's hard duration cap. Every emitted clip records the engine, exact model/runtime revision, threshold/backend, postprocessor values, policy revision, and an effective profile hash.
 
 Supported engines:
 
-- `marblenet`: exact multilingual MarbleNet v2 `.nemo`; no fallback to the older similarly named
-  checkpoint;
+- `marblenet`: exact multilingual MarbleNet v2 `.nemo`; no fallback to the older similarly named checkpoint;
 - `cobra`: Picovoice Cobra, requiring `PICOVOICE_API_KEY`;
 - `silero`: Silero VAD, ONNX on CPU or JIT on CUDA.
 
-Production still defaults to `marblenet` with `legacy-marblenet-v1` boundaries until a measured
-per-project pilot selects a replacement. Engine choice is explicit; failures never silently route
-to another adapter.
+Production still defaults to `marblenet` with `legacy-marblenet-v1` boundaries until a measured per-project pilot selects a replacement. Engine choice is explicit; failures never silently route to another adapter.
 
 ## Language-project CLI
 
@@ -51,31 +41,22 @@ uv run --project projects/farsi-asr --locked farsi-curate verify
 uv run --project projects/farsi-asr --locked farsi-curate export v1
 ```
 
-Set `OMNI_CURATOR_VAD_MODEL` or pass `--vad-model` for the exact MarbleNet v2 checkpoint. Project
-environment files are loaded before adapter preflight, including the Cobra activation key.
+Set `OMNI_CURATOR_VAD_MODEL` or pass `--vad-model` for the exact MarbleNet v2 checkpoint. Project environment files are loaded before adapter preflight, including the Cobra activation key.
 
 ## Isolated VAD pilots
 
-`vad-pilot` requires an exact JSONL selector. Each line has `id`, `path`, `tier`, and `channel`.
-It never opens the production queue, refuses to write inside production `data/clips`, and emits a
-self-contained `run.json`, `intervals.jsonl`, optional clips, and optional Scribe sample:
+`vad-pilot` requires an exact JSONL selector. Each line has `id`, `path`, `tier`, and `channel`. It never opens the production queue, refuses to write inside production `data/clips`, and emits a self-contained `run.json`, `intervals.jsonl`, optional clips, and optional Scribe sample:
 
 ```bash
 uv run --project projects/farsi-asr --locked farsi-curate vad-pilot \
-  --manifest projects/farsi-asr/docs/vad-pilots/farsi-clean-noisy-32.jsonl \
+  --manifest /path/to/frozen-selector.jsonl \
   --output-dir /mnt/workerssd-2t/peacock-asr/pilots/farsi-vad-YYYY-MM-DD \
   --device cpu --write-clips --scribe-max-clips-per-engine 20
 ```
 
-The default pilot runs Cobra, Silero, and MarbleNet over the same sources with the new
-`conservative-v1` shared profile. The older FLEURS policy used engine-native semantics, so its
-quality rows are evidence for candidates, not an exact prediction of this central policy.
+The default pilot runs Cobra, Silero, and MarbleNet over the same sources with the new `conservative-v1` shared profile. The older FLEURS policy used engine-native semantics, so its quality rows are evidence for candidates, not an exact prediction of this central policy.
 
-For a human gate, `omni-vad-review` derives blinded engine-disagreement regions from the corrected
-`intervals.jsonl`, writes isolated audition clips plus optional tone-marked context, and stores
-resumable keyboard votes in SQLite. Sub-0.35-second regions repeat three times and 0.35-0.75-second
-regions twice, without changing playback speed. The item count must be a multiple of four so
-MarbleNet-only/Silero-only and clean/noisy cells remain exactly balanced:
+For a human gate, `omni-vad-review` derives blinded engine-disagreement regions from the corrected `intervals.jsonl`, writes isolated audition clips plus optional tone-marked context, and stores resumable keyboard votes in SQLite. Sub-0.35-second regions repeat three times and 0.35-0.75-second regions twice, without changing playback speed. The item count must be a multiple of four so MarbleNet-only/Silero-only and clean/noisy cells remain exactly balanced:
 
 ```bash
 uv run --project projects/farsi-asr --locked omni-vad-review prepare \
@@ -85,24 +66,31 @@ uv run --project projects/farsi-asr --locked omni-vad-review serve \
   --review-dir /scratch/farsi-vad-review
 ```
 
-The browser receives only randomized item IDs and audio paths while voting. Keys `1` through `4`
-record speech, non-speech, a cut-off speech fragment, or unsure; Space replays the isolated region,
-`C` plays context, and `0` skips. JSON and CSV exports reveal the engine direction only after votes
-have been stored.
+The browser receives only randomized item IDs and audio paths while voting. Keys `1` through `4` record speech, non-speech, a cut-off speech fragment, or unsure; Space replays the isolated region, `C` plays context, and `0` skips. JSON and CSV exports reveal the engine direction only after votes have been stored.
+
+## Additive data-quality audits
+
+`omni-quality` scores JSONL manifests without deleting rows or installing a filter threshold. `sample` freezes a deterministic bounded pilot, `edge` adds beginning/end ASR mismatch plus WER/CER from a fixed draft recognizer, `nfa-prepare` records normalization onto the selected language surface, and `nfa-run`/`nfa-summarize` add NeMo CTC forced-alignment coverage and margin signals with exact input/model/tool hashes.
+
+The NeMo Forced Aligner tool checkout must match the installed NeMo package. For the current 2.7.3 environment, keep a reusable sparse checkout under the ignored shared cache:
+
+```bash
+git clone --depth 1 --branch v2.7.3 --filter=blob:none --sparse \
+  https://github.com/NVIDIA-NeMo/NeMo.git base_models/nemo-v2.7.3
+git -C base_models/nemo-v2.7.3 sparse-checkout set tools/nemo_forced_aligner
+```
+
+Run the stages in order and keep outputs under the target project's ignored `data/audit/<run-id>/` directory. The ASR draft model and CTC model serve different jobs: draft hypotheses expose text disagreement, while CTC forced alignment places the supplied reference over frames and exposes alignment geometry. Neither signal is a ground-truth label.
 
 ## Dependencies
 
-Core dependencies include NumPy, SoundFile, Torchaudio, and NeMo. Adapter extras are deliberately
-small and do not import the benchmark project's incompatible Torch/NeMo environment:
+Core dependencies include NumPy, SoundFile, Torchaudio, and NeMo. Adapter extras are deliberately small and do not import the benchmark project's incompatible Torch/NeMo environment:
 
 ```bash
 uv sync --project packages/omni-curator --extra vad-cobra
 uv sync --project packages/omni-curator --extra vad-silero
 ```
 
-Cobra is activation-key gated. Silero is MIT licensed. MarbleNet v2 weights use the NVIDIA Open
-Model License; preserve the model attribution and license when redistributing the checkpoint.
+Cobra is activation-key gated. Silero is MIT licensed. MarbleNet v2 weights use the NVIDIA Open Model License; preserve the model attribution and license when redistributing the checkpoint.
 
-The canonical operating and storage contract is
-[`docs/CURATION_FACTORY.md`](docs/CURATION_FACTORY.md). Root `TODO.md` contains active work only;
-completed changes are recorded in root `CHANGELOG.md`.
+The canonical operating and storage contract is [`docs/CURATION_FACTORY.md`](docs/CURATION_FACTORY.md). Root `TODO.md` contains active work only; completed changes are recorded in root `CHANGELOG.md`.

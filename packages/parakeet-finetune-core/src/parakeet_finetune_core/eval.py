@@ -57,6 +57,25 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
         help="Replace the base model tokenizer before loading --checkpoint. "
         "Never use this for an already fine-tuned .nemo model.",
     )
+    parser.add_argument(
+        "--ngram-lm",
+        type=Path,
+        default=None,
+        help="Token-level ARPA/.nemo n-gram LM for NGPU-LM greedy fusion (hybrid models).",
+    )
+    parser.add_argument("--ngram-lm-alpha", type=float, default=0.0)
+    parser.add_argument(
+        "--beam-size",
+        type=int,
+        default=0,
+        help="0 uses batched greedy; a positive value uses batched GPU beam decoding.",
+    )
+    parser.add_argument(
+        "--beam-beta",
+        type=float,
+        default=0.0,
+        help="CTC word insertion bonus for batched beam decoding; ignored for TDT.",
+    )
     parser.add_argument("--audio-field", default="audio_filepath")
     parser.add_argument("--text-field", default="text")
     parser.add_argument("--duration-field", default="duration")
@@ -192,6 +211,44 @@ def replacement_tokenizer_dir(args: argparse.Namespace) -> Path | None:
     return Path(require(args.tokenizer_dir, "--tokenizer-dir"))
 
 
+def configured_decoding(source: Any, args: argparse.Namespace, decoder_type: str) -> Any | None:
+    """Build the requested greedy/beam NGPU-LM config for a CTC or transducer decoder."""
+    if getattr(args, "ngram_lm", None) is None and getattr(args, "beam_size", 0) <= 0:
+        return None
+
+    from copy import deepcopy
+
+    from omegaconf import open_dict
+
+    decoding_cfg = deepcopy(source)
+    with open_dict(decoding_cfg):
+        if args.beam_size > 0:
+            decoding_cfg.strategy = "malsd_batch" if decoder_type == "rnnt" else "beam_batch"
+            decoding_cfg.beam.beam_size = args.beam_size
+            decoding_cfg.beam.return_best_hypothesis = True
+            decoding_cfg.beam.ngram_lm_model = (
+                str(args.ngram_lm) if args.ngram_lm is not None else None
+            )
+            decoding_cfg.beam.ngram_lm_alpha = args.ngram_lm_alpha
+            if decoder_type == "rnnt":
+                # Some NVIDIA checkpoints serialize these PrettyStrEnum defaults as their
+                # uppercase member names, while current NeMo accepts their lowercase values.
+                decoding_cfg.beam.pruning_mode = "late"
+                decoding_cfg.beam.blank_lm_score_mode = "lm_weighted_full"
+            else:
+                decoding_cfg.beam.beam_beta = args.beam_beta
+        else:
+            decoding_cfg.strategy = "greedy_batch"
+            decoding_cfg.greedy.ngram_lm_model = str(args.ngram_lm)
+            decoding_cfg.greedy.ngram_lm_alpha = args.ngram_lm_alpha
+    print(
+        f"decoding strategy={decoding_cfg.strategy} beam_size={args.beam_size} "
+        f"NGPU-LM={args.ngram_lm} alpha={args.ngram_lm_alpha}",
+        flush=True,
+    )
+    return decoding_cfg
+
+
 def load_model(args: argparse.Namespace, model_name: str | Path) -> Any:
     tokenizer_dir = replacement_tokenizer_dir(args)
 
@@ -215,6 +272,30 @@ def load_model(args: argparse.Namespace, model_name: str | Path) -> Any:
         state_dict = checkpoint.get("state_dict", checkpoint)
         model.load_state_dict(state_dict, strict=True)
         print(f"loaded checkpoint {args.checkpoint} with an exact state-dict match", flush=True)
+
+    # Hybrid TDT+CTC models decode with whichever head is current; --kind must select it,
+    # otherwise both kinds silently score the same lane.
+    if hasattr(model, "cur_decoder"):
+        decoder_type = "ctc" if args.kind == "ctc" else "rnnt"
+        wants_decode_change = (
+            getattr(args, "ngram_lm", None) is not None or getattr(args, "beam_size", 0) > 0
+        )
+        if wants_decode_change:
+            source = model.cfg.decoding if decoder_type == "rnnt" else model.cfg.aux_ctc.decoding
+            decoding_cfg = configured_decoding(source, args, decoder_type)
+        else:
+            decoding_cfg = None
+        model.change_decoding_strategy(decoding_cfg, decoder_type=decoder_type)
+        print(f"hybrid model: decoding with the {decoder_type} head", flush=True)
+    else:
+        wants_decode_change = (
+            getattr(args, "ngram_lm", None) is not None or getattr(args, "beam_size", 0) > 0
+        )
+        if wants_decode_change:
+            decoder_type = "ctc" if args.kind == "ctc" else "rnnt"
+            decoding_cfg = configured_decoding(model.cfg.decoding, args, decoder_type)
+            model.change_decoding_strategy(decoding_cfg)
+            print(f"standalone model: configured the {decoder_type} decoder", flush=True)
 
     return model.to(args.device).eval()
 
@@ -312,6 +393,10 @@ def run(project: ParakeetProject, args: argparse.Namespace) -> None:
         "rows": len(rows),
         "device": args.device,
         "batch_size": args.batch_size,
+        "beam_size": args.beam_size,
+        "beam_beta": args.beam_beta,
+        "ngram_lm": str(args.ngram_lm) if args.ngram_lm is not None else None,
+        "ngram_lm_alpha": args.ngram_lm_alpha,
         **performance,
         "raw": raw,
         "normalized": normalized,

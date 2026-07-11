@@ -163,9 +163,7 @@ class QueueStore:
 
     def __init__(self, db_path: Path, *, busy_timeout_ms: int = 60_000) -> None:
         self.path = db_path
-        self._conn = connect_wal(
-            db_path, _SCHEMA, busy_timeout_ms=busy_timeout_ms, manual_tx=True
-        )
+        self._conn = connect_wal(db_path, _SCHEMA, busy_timeout_ms=busy_timeout_ms, manual_tx=True)
         self._migrate()
 
     def _migrate(self) -> None:
@@ -335,8 +333,14 @@ class QueueStore:
                 (worker_id, now, token, now, row["video_id"]),
             )
         return QVideo(
-            row["video_id"], row["channel"], row["path"], row["tier"], row["citation"],
-            claim_token=token, category=row["category"], meta=_load_meta(row["meta"]),
+            row["video_id"],
+            row["channel"],
+            row["path"],
+            row["tier"],
+            row["citation"],
+            claim_token=token,
+            category=row["category"],
+            meta=_load_meta(row["meta"]),
         )
 
     def complete_video(
@@ -462,9 +466,7 @@ class QueueStore:
 
     def all_clip_paths(self) -> list[str]:
         """Every clip's on-disk path — so the caller can delete orphaned files before a reset."""
-        return [
-            row["clip_path"] for row in self._conn.execute("SELECT clip_path FROM clips")
-        ]
+        return [row["clip_path"] for row in self._conn.execute("SELECT clip_path FROM clips")]
 
     # -- label stage -------------------------------------------------------------------------
 
@@ -482,9 +484,19 @@ class QueueStore:
         _ = lease_s  # lease enforced by reclaim_stale_clips; kept explicit for callers
         return [
             QClip(
-                r["clip_id"], r["video_id"], r["channel"], r["clip_index"], r["clip_path"],
-                r["start"], r["end"], r["language"], r["script"], r["citation"],
-                tier=r["tier"], category=r["category"], meta=_load_meta(r["meta"]),
+                r["clip_id"],
+                r["video_id"],
+                r["channel"],
+                r["clip_index"],
+                r["clip_path"],
+                r["start"],
+                r["end"],
+                r["language"],
+                r["script"],
+                r["citation"],
+                tier=r["tier"],
+                category=r["category"],
+                meta=_load_meta(r["meta"]),
             )
             for r in rows
         ]
@@ -500,8 +512,9 @@ class QueueStore:
             )
             return cur.rowcount
 
-    def fail_clips(self, claim_token: str, clip_ids: list[str], error: str,
-                   *, max_attempts: int = 3) -> None:
+    def fail_clips(
+        self, claim_token: str, clip_ids: list[str], error: str, *, max_attempts: int = 3
+    ) -> None:
         """Requeue failed clips (guarded by token) until ``max_attempts``, then mark failed."""
         now = time.time()
         with self._tx():
@@ -553,9 +566,20 @@ class QueueStore:
         ).fetchall()
         return [
             QLabeledClip(
-                r["clip_id"], r["video_id"], r["channel"], r["clip_index"], r["clip_path"],
-                r["start"], r["end"], r["language"], r["citation"], r["label"] or "", r["variants"],
-                tier=r["tier"], category=r["category"], meta=_load_meta(r["meta"]),
+                r["clip_id"],
+                r["video_id"],
+                r["channel"],
+                r["clip_index"],
+                r["clip_path"],
+                r["start"],
+                r["end"],
+                r["language"],
+                r["citation"],
+                r["label"] or "",
+                r["variants"],
+                tier=r["tier"],
+                category=r["category"],
+                meta=_load_meta(r["meta"]),
             )
             for r in rows
         ]

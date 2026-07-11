@@ -51,7 +51,9 @@ def main() -> int:
     with corpus.open() as fin, arpa.open("w") as fout:
         subprocess.run(
             [KENLM_BIN / "lmplz", "-o", str(args.order), "--prune", *prune, "-S", "40%"],
-            stdin=fin, stdout=fout, check=True,
+            stdin=fin,
+            stdout=fout,
+            check=True,
         )
     subprocess.run([KENLM_BIN / "build_binary", arpa, binary], check=True)
     print(f"built {binary} ({binary.stat().st_size / 1e6:.0f} MB)")

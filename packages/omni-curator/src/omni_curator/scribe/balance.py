@@ -91,7 +91,10 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Balance the Scribe concurrency budget across jobs.")
     ap.add_argument("--budget", type=int, required=True, help="total concurrent Scribe calls")
     ap.add_argument(
-        "--watch", type=float, default=0.0, metavar="SECS",
+        "--watch",
+        type=float,
+        default=0.0,
+        metavar="SECS",
         help="rebalance every SECS (0 = one-shot, the default)",
     )
     ap.add_argument("--root", type=Path, default=None, help="repo root (default: auto-detect)")

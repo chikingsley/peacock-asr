@@ -51,25 +51,54 @@ _MIGRATIONS = {
 }
 
 _COLUMNS = (
-    "id", "source", "language", "text", "audio_path", "duration",
-    "sample_rate", "split", "speaker_id", "citation", "scribe_wer", "scribe_cer", "meta",
+    "id",
+    "source",
+    "language",
+    "text",
+    "audio_path",
+    "duration",
+    "sample_rate",
+    "split",
+    "speaker_id",
+    "citation",
+    "scribe_wer",
+    "scribe_cer",
+    "meta",
 )
 
 
 def _to_row(s: Sample) -> tuple[object, ...]:
     return (
-        s.id, s.source, s.language, s.text, s.audio_path, s.duration,
-        s.sample_rate, s.split, s.speaker_id, s.citation, s.scribe_wer, s.scribe_cer,
+        s.id,
+        s.source,
+        s.language,
+        s.text,
+        s.audio_path,
+        s.duration,
+        s.sample_rate,
+        s.split,
+        s.speaker_id,
+        s.citation,
+        s.scribe_wer,
+        s.scribe_cer,
         json.dumps(s.meta, ensure_ascii=False),
     )
 
 
 def _from_row(row: sqlite3.Row) -> Sample:
     return Sample(
-        id=row["id"], source=row["source"], language=row["language"], text=row["text"],
-        audio_path=row["audio_path"], duration=row["duration"], sample_rate=row["sample_rate"],
-        split=row["split"], speaker_id=row["speaker_id"], citation=row["citation"],
-        scribe_wer=row["scribe_wer"], scribe_cer=row["scribe_cer"],
+        id=row["id"],
+        source=row["source"],
+        language=row["language"],
+        text=row["text"],
+        audio_path=row["audio_path"],
+        duration=row["duration"],
+        sample_rate=row["sample_rate"],
+        split=row["split"],
+        speaker_id=row["speaker_id"],
+        citation=row["citation"],
+        scribe_wer=row["scribe_wer"],
+        scribe_cer=row["scribe_cer"],
         meta=json.loads(row["meta"]),
     )
 

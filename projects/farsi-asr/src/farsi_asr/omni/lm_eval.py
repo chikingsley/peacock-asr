@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import multiprocessing as mp
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -23,11 +24,21 @@ BENCHMARKS = {
     "c1tech": ROOT / "data/benchmarks/data/data/train-00000-of-00001.parquet",
     "common_voice_25": ROOT / "data/common_voice_25/test",
     "fleurs": ROOT / "data/fleurs/test",
+    "fleurs_dev": ROOT / "data/fleurs/dev",
     "mana_tts": ROOT / "data/mana_tts/test",
     "neyshekar": ROOT / "data/neyshekar/test",
+    "neyshekar_dev": ROOT / "data/neyshekar/dev",
     "worldspeech": ROOT / "data/worldspeech/test",
+    "worldspeech_dev": ROOT / "data/worldspeech/dev",
     "youtube": ROOT / "data/youtube/test",
+    # Video-disjoint halves of the restored upstream YouTube test shards 0-1
+    # (canonical youtube test symlink is dangling; upstream test rows were never trained on).
+    "youtube_dev_conv": ROOT / "data/youtube_hf/dev_conv.parquet",
+    "youtube_test_conv": ROOT / "data/youtube_hf/test_conv.parquet",
 }
+ORACLE_CUTOFFS = (1, 4, 8, 16)
+# The omnilingual_asr inference pipeline rejects rows over 40 s.
+MAX_AUDIO_SEC = 40.0
 
 
 @dataclass
@@ -37,6 +48,10 @@ class DecodeResult:
     decode_secs: dict[str, float]
     model_secs: float
     audio_secs: float
+    # per decoder: per row, list of (text, acoustic_score, combined_lm_score)
+    nbest: dict[str, list[list[tuple[str, float, float]]]] = field(default_factory=dict)
+    # per decoder: (total raw beams, total unique-text beams) for duplicate-rate reporting
+    beam_counts: dict[str, list[int]] = field(default_factory=dict)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -58,6 +73,24 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--decoder-workers", type=int, default=8)
     parser.add_argument("--sweep", action="store_true", help="Evaluate the fixed alpha/beta grid.")
     parser.add_argument("--device", default="cuda")
+    parser.add_argument(
+        "--nbest",
+        type=int,
+        default=0,
+        help="Retain the top-N unique hypotheses per row and report oracle WER.",
+    )
+    parser.add_argument(
+        "--logits-dir",
+        type=Path,
+        default=None,
+        help="Cache fp16 log-probs here; a complete cache decodes without the acoustic model.",
+    )
+    parser.add_argument(
+        "--database",
+        type=Path,
+        default=None,
+        help="Persist plain-beam and KenLM predictions in the shared benchmark SQLite store.",
+    )
     return parser
 
 
@@ -191,8 +224,8 @@ def decoder_grid(args: argparse.Namespace) -> list[tuple[str, str | None, float,
         ]
     return [("beam (no LM)", None, 0.0, 0.0)] + [
         (f"beam+LM a={alpha} b={beta}", str(args.lm_path), alpha, beta)
-        for alpha in (0.3, 0.5, 0.7, 1.0)
-        for beta in (0.0, 1.5, 3.0)
+        for alpha in (0.15, 0.3, 0.45, 0.6)
+        for beta in (-0.25, 0.0, 0.25)
     ]
 
 
@@ -221,6 +254,135 @@ def install_logprob_capture(pipe: Any, captured: list[Any]) -> None:
     pipe._apply_model_wav2vec2asr = apply_and_capture  # noqa: SLF001
 
 
+def dedupe_beams(beams: list[Any], limit: int) -> tuple[list[tuple[str, float, float]], int]:
+    """Collapse output beams to unique texts (best-scored first); return (entries, raw count)."""
+    seen: set[str] = set()
+    entries: list[tuple[str, float, float]] = []
+    for beam in beams:
+        text = beam[0]
+        if text in seen:
+            continue
+        seen.add(text)
+        entries.append((text, float(beam[-2]), float(beam[-1])))
+    return entries[:limit], len(beams)
+
+
+def make_decoders(
+    grids: list[tuple[str, str | None, float, float]],
+    labels: list[str],
+    unigrams: list[str],
+    build_ctcdecoder: Any,
+) -> list[tuple[str, Any]]:
+    return [
+        (
+            name,
+            build_ctcdecoder(
+                labels,
+                kenlm_model_path=lm_path,
+                unigrams=unigrams if lm_path else None,
+                alpha=alpha,
+                beta=beta,
+            ),
+        )
+        for name, lm_path, alpha, beta in grids
+    ]
+
+
+def decode_chunk(
+    args: argparse.Namespace,
+    chunk_log_probs: list[Any],
+    decoders: list[tuple[str, Any]],
+    pool: Any,
+    result: DecodeResult,
+) -> None:
+    for name, decoder in decoders:
+        decode_started = time.monotonic()
+        if args.nbest > 0:
+            beams_lists = decoder.decode_beams_batch(
+                pool, chunk_log_probs, beam_width=args.beam_width
+            )
+            for beams in beams_lists:
+                entries, raw = dedupe_beams(beams, args.nbest)
+                result.nbest[name].append(entries)
+                result.hyps[name].append(entries[0][0] if entries else "")
+                counts = result.beam_counts[name]
+                counts[0] += raw
+                counts[1] += len({beam[0] for beam in beams})
+        else:
+            result.hyps[name].extend(
+                decoder.decode_batch(pool, chunk_log_probs, beam_width=args.beam_width),
+            )
+        result.decode_secs[name] += time.monotonic() - decode_started
+
+
+def new_decode_result(grids: list[tuple[str, str | None, float, float]]) -> DecodeResult:
+    names = [name for name, *_ in grids]
+    return DecodeResult(
+        greedy_hyps=[],
+        hyps={name: [] for name in names},
+        decode_secs=dict.fromkeys(names, 0.0),
+        model_secs=0.0,
+        audio_secs=0.0,
+        nbest={name: [] for name in names},
+        beam_counts={name: [0, 0] for name in names},
+    )
+
+
+class LogitsCache:
+    """fp16 log-prob shards plus row metadata so sweeps never rerun the acoustic model."""
+
+    def __init__(self, root: Path) -> None:
+        self.root = root
+        self.meta_path = root / "meta.json"
+
+    def load_meta(self) -> dict[str, Any] | None:
+        if not self.meta_path.exists():
+            return None
+        with self.meta_path.open(encoding="utf-8") as stream:
+            return json.load(stream)
+
+    def is_complete(self) -> bool:
+        meta = self.load_meta()
+        if meta is None:
+            return False
+        return all((self.root / name).exists() for name in meta["chunks"])
+
+    def validate(self, meta: dict[str, Any], benchmark_name: str, args: argparse.Namespace) -> None:
+        model_sha = file_sha256_prefix(ROOT / "data/benchmarks/model/model.pt")
+        checks = {
+            "benchmark": (meta["benchmark"], benchmark_name),
+            "model_sha": (meta["model_sha"], model_sha),
+            "limit": (meta["limit"], args.limit),
+        }
+        for key, (cached, wanted) in checks.items():
+            if cached != wanted:
+                raise SystemExit(
+                    f"logits cache mismatch on {key}: cache has {cached!r}, run wants {wanted!r}; "
+                    f"use a different --logits-dir",
+                )
+
+    def chunk_name(self, start: int) -> str:
+        return f"chunk_{start:06d}.npz"
+
+    def write_chunk(self, start: int, log_probs: list[Any]) -> None:
+        import numpy as np
+
+        self.root.mkdir(parents=True, exist_ok=True)
+        arrays = {str(i): array for i, array in enumerate(log_probs)}
+        np.savez(self.root / self.chunk_name(start), **arrays)
+
+    def read_chunk(self, name: str) -> list[Any]:
+        import numpy as np
+
+        with np.load(self.root / name) as data:
+            return [data[str(i)] for i in range(len(data.files))]
+
+    def write_meta(self, meta: dict[str, Any]) -> None:
+        self.root.mkdir(parents=True, exist_ok=True)
+        with self.meta_path.open("w", encoding="utf-8") as stream:
+            json.dump(meta, stream, ensure_ascii=False)
+
+
 def decode_rows(
     args: argparse.Namespace,
     audio: list[bytes],
@@ -229,18 +391,16 @@ def decode_rows(
     unigrams: list[str],
     sp: Any,
     build_ctcdecoder: Any,
+    cache: LogitsCache | None,
 ) -> DecodeResult:
     import numpy as np
 
     captured: list[Any] = []
     install_logprob_capture(pipe, captured)
-    greedy_hyps: list[str] = []
-    hyps = {name: [] for name, *_ in grids}
-    decode_secs = dict.fromkeys(hyps, 0.0)
+    result = new_decode_result(grids)
     decoders = None
     pool = None
     total_frames = 0
-    model_secs = 0.0
     started = time.monotonic()
 
     try:
@@ -248,40 +408,25 @@ def decode_rows(
             chunk = audio[start : start + args.chunk_rows]
             captured.clear()
             model_started = time.monotonic()
-            greedy_hyps.extend(
+            result.greedy_hyps.extend(
                 pipe.transcribe(
                     chunk,
                     lang=[LANGUAGE] * len(chunk),
                     batch_size=args.batch_size,
                 ),
             )
-            model_secs += time.monotonic() - model_started
+            result.model_secs += time.monotonic() - model_started
             total_frames += sum(log_probs.shape[0] for log_probs in captured)
+            if cache is not None:
+                cache.write_chunk(start, captured)
 
             if decoders is None:
                 labels, _ = build_labels(sp, captured)
-                decoders = [
-                    (
-                        name,
-                        build_ctcdecoder(
-                            labels,
-                            kenlm_model_path=lm_path,
-                            unigrams=unigrams if lm_path else None,
-                            alpha=alpha,
-                            beta=beta,
-                        ),
-                    )
-                    for name, lm_path, alpha, beta in grids
-                ]
+                decoders = make_decoders(grids, labels, unigrams, build_ctcdecoder)
                 pool = mp.get_context("fork").Pool(args.decoder_workers)
 
             chunk_log_probs = [log_probs.astype(np.float32) for log_probs in captured]
-            for name, decoder in decoders:
-                decode_started = time.monotonic()
-                hyps[name].extend(
-                    decoder.decode_batch(pool, chunk_log_probs, beam_width=args.beam_width),
-                )
-                decode_secs[name] += time.monotonic() - decode_started
+            decode_chunk(args, chunk_log_probs, decoders, pool, result)
 
             done = min(start + args.chunk_rows, len(audio))
             rate = done / max(time.monotonic() - started, 1e-9)
@@ -291,30 +436,123 @@ def decode_rows(
         if pool is not None:
             pool.terminate()
 
-    return DecodeResult(
-        greedy_hyps=greedy_hyps,
-        hyps=hyps,
-        decode_secs=decode_secs,
-        model_secs=model_secs,
-        audio_secs=total_frames * 0.02,
-    )
+    result.audio_secs = total_frames * 0.02
+    return result
+
+
+def decode_rows_cached(
+    args: argparse.Namespace,
+    cache: LogitsCache,
+    meta: dict[str, Any],
+    grids: list[tuple[str, str | None, float, float]],
+    unigrams: list[str],
+    sp: Any,
+    build_ctcdecoder: Any,
+) -> DecodeResult:
+    import numpy as np
+
+    result = new_decode_result(grids)
+    result.greedy_hyps = list(meta["greedy_hyps"])
+    result.model_secs = meta["model_secs"]
+    result.audio_secs = meta["audio_secs"]
+    decoders = None
+    pool = None
+    total = meta["rows"]
+    done = 0
+    started = time.monotonic()
+
+    try:
+        for name in meta["chunks"]:
+            captured = cache.read_chunk(name)
+            if decoders is None:
+                labels, _ = build_labels(sp, captured)
+                decoders = make_decoders(grids, labels, unigrams, build_ctcdecoder)
+                pool = mp.get_context("fork").Pool(args.decoder_workers)
+
+            chunk_log_probs = [log_probs.astype(np.float32) for log_probs in captured]
+            decode_chunk(args, chunk_log_probs, decoders, pool, result)
+
+            done += len(captured)
+            rate = done / max(time.monotonic() - started, 1e-9)
+            eta = (total - done) / max(rate, 1e-9)
+            print(f"  {done}/{total} ({rate:.1f} rows/s, ETA {eta / 60:.0f} min)", flush=True)
+    finally:
+        if pool is not None:
+            pool.terminate()
+
+    return result
 
 
 def print_results(
     benchmark_name: str,
     refs_norm: list[str],
     result: DecodeResult,
+    nbest: int,
 ) -> None:
     print(f"\n=== RESULTS ({benchmark_name}) ===", flush=True)
     print(
-        f"model forward+greedy: {result.model_secs:.1f}s "
+        f"logit generation (model forward+greedy): {result.model_secs:.1f}s "
         f"for ~{result.audio_secs / 3600:.2f}h audio",
         flush=True,
     )
     print_score("greedy (production)", refs_norm, result.greedy_hyps, 0.0, result.audio_secs)
     for name, hyps in result.hyps.items():
         print_score(name, refs_norm, hyps, result.decode_secs[name], result.audio_secs)
+    if nbest > 0:
+        for name, rows in result.nbest.items():
+            if any(rows):
+                print_nbest_report(name, refs_norm, rows, result.beam_counts[name], nbest)
     print("LM_RUN_DONE", flush=True)
+
+
+def print_nbest_report(
+    name: str,
+    refs_norm: list[str],
+    rows: list[list[tuple[str, float, float]]],
+    beam_counts: list[int],
+    nbest: int,
+) -> None:
+    from omni_curator.process import normalize
+
+    raw, unique = beam_counts
+    dup_rate = 100.0 * (1.0 - unique / raw) if raw else 0.0
+    mean_unique = sum(len(row) for row in rows) / max(len(rows), 1)
+    print(
+        f"\n--- N-best report: {name} (kept top {nbest}) ---\n"
+        f"raw beams {raw}, unique-text {unique} (duplicate rate {dup_rate:.1f}%), "
+        f"mean kept candidates/row {mean_unique:.1f}",
+        flush=True,
+    )
+
+    cutoffs = [cutoff for cutoff in ORACLE_CUTOFFS if cutoff <= nbest]
+    totals = dict.fromkeys(cutoffs, 0)
+    ref_words = 0
+    for ref, candidates in zip(refs_norm, rows, strict=True):
+        ref_norm = normalize(ref, LANGUAGE)
+        if not ref_norm.strip():
+            continue
+        words = len(ref_norm.split())
+        ref_words += words
+        errors = [
+            _word_errors(ref_norm, normalize(text, LANGUAGE))
+            for text, _, _ in candidates or [("", 0.0, 0.0)]
+        ]
+        for cutoff in cutoffs:
+            best = min(errors[:cutoff]) if errors[:cutoff] else words
+            totals[cutoff] += best
+    for cutoff in cutoffs:
+        oracle = 100.0 * totals[cutoff] / max(ref_words, 1)
+        label = "1-best" if cutoff == 1 else f"oracle@{cutoff}"
+        print(f"{label:<12} WER {oracle:6.2f}%", flush=True)
+
+
+def _word_errors(ref: str, hyp: str) -> int:
+    import jiwer
+
+    if not hyp.strip():
+        return len(ref.split())
+    out = jiwer.process_words(ref, hyp)
+    return out.substitutions + out.deletions + out.insertions
 
 
 def print_score(
@@ -347,18 +585,41 @@ def print_score(
 
 
 def run_eval(args: argparse.Namespace) -> int:
+    benchmark_name, benchmark_paths = resolve_benchmark(args)
+    assert_tokenizer_matches_model(args.tokenizer_path)
+
+    cache = LogitsCache(args.logits_dir) if args.logits_dir is not None else None
+    if cache is not None and cache.is_complete():
+        return run_eval_cached(args, benchmark_name, benchmark_paths, cache)
+    return run_eval_live(args, benchmark_name, benchmark_paths, cache)
+
+
+def run_eval_live(
+    args: argparse.Namespace,
+    benchmark_name: str,
+    benchmark_paths: list[Path],
+    cache: LogitsCache | None,
+) -> int:
+    import io
+
     import sentencepiece as spm
+    import soundfile as sf
     import torch
     from omni_curator.process import normalize
     from omnilingual_asr.models.inference.pipeline import ASRInferencePipeline
     from pyctcdecode import build_ctcdecoder
 
-    benchmark_name, benchmark_paths = resolve_benchmark(args)
-    assert_tokenizer_matches_model(args.tokenizer_path)
     print_preamble(benchmark_name, benchmark_paths, args.model_card)
 
     torch.set_num_threads(16)
     audio, refs = load_rows(benchmark_paths, args.limit)
+    durations = [float(sf.info(io.BytesIO(item)).duration) for item in audio]
+    kept = [i for i, duration in enumerate(durations) if duration <= MAX_AUDIO_SEC]
+    if len(kept) < len(audio):
+        print(f"dropped {len(audio) - len(kept)} rows over the {MAX_AUDIO_SEC}s cap", flush=True)
+        audio = [audio[i] for i in kept]
+        refs = [refs[i] for i in kept]
+        durations = [durations[i] for i in kept]
     refs_norm = [normalize(ref, LANGUAGE) for ref in refs]
     print(f"rows: {len(audio)}", flush=True)
 
@@ -367,10 +628,156 @@ def run_eval(args: argparse.Namespace) -> int:
     unigrams = load_unigrams(args.corpus_path)
     print(f"unigrams: {len(unigrams)}", flush=True)
 
-    sp = spm.SentencePieceProcessor(model_file=str(args.tokenizer_path))
-    result = decode_rows(args, audio, pipe, decoder_grid(args), unigrams, sp, build_ctcdecoder)
-    print_results(benchmark_name, refs_norm, result)
+    sp = spm.SentencePieceProcessor()
+    sp.Load(str(args.tokenizer_path))
+    result = decode_rows(
+        args, audio, pipe, decoder_grid(args), unigrams, sp, build_ctcdecoder, cache
+    )
+    audio_seconds = durations
+
+    if cache is not None:
+        cache.write_meta(
+            {
+                "benchmark": benchmark_name,
+                "model_sha": file_sha256_prefix(ROOT / "data/benchmarks/model/model.pt"),
+                "limit": args.limit,
+                "rows": len(audio),
+                "chunks": [
+                    cache.chunk_name(start) for start in range(0, len(audio), args.chunk_rows)
+                ],
+                "greedy_hyps": result.greedy_hyps,
+                "refs": refs,
+                "audio_seconds": audio_seconds,
+                "model_secs": result.model_secs,
+                "audio_secs": result.audio_secs,
+            },
+        )
+        print(f"logits cached -> {cache.root}", flush=True)
+
+    print_results(benchmark_name, refs_norm, result, args.nbest)
+    if args.database is not None:
+        persist_results(args, benchmark_name, benchmark_paths[0], audio_seconds, refs, result)
     return 0
+
+
+def run_eval_cached(
+    args: argparse.Namespace,
+    benchmark_name: str,
+    benchmark_paths: list[Path],
+    cache: LogitsCache,
+) -> int:
+    import sentencepiece as spm
+    from omni_curator.process import normalize
+    from pyctcdecode import build_ctcdecoder
+
+    meta = cache.load_meta()
+    if meta is None:
+        raise SystemExit(f"logits cache metadata missing: {cache.meta_path}")
+    cache.validate(meta, benchmark_name, args)
+    print_preamble(benchmark_name, benchmark_paths, args.model_card)
+    print(f"decoding from logits cache: {cache.root} ({meta['rows']} rows)", flush=True)
+
+    refs = meta["refs"]
+    refs_norm = [normalize(ref, LANGUAGE) for ref in refs]
+    unigrams = load_unigrams(args.corpus_path)
+    print(f"unigrams: {len(unigrams)}", flush=True)
+
+    sp = spm.SentencePieceProcessor()
+    sp.Load(str(args.tokenizer_path))
+    result = decode_rows_cached(
+        args, cache, meta, decoder_grid(args), unigrams, sp, build_ctcdecoder
+    )
+    print_results(benchmark_name, refs_norm, result, args.nbest)
+    if args.database is not None:
+        persist_results(
+            args, benchmark_name, benchmark_paths[0], meta["audio_seconds"], refs, result
+        )
+    return 0
+
+
+def persist_results(
+    args: argparse.Namespace,
+    benchmark_name: str,
+    benchmark_path: Path,
+    audio_seconds: list[float],
+    refs: list[str],
+    result: DecodeResult,
+) -> None:
+    """Persist decoder variants beside the shared greedy/model-family benchmark runs."""
+    from asr_benchmark_core.store import BenchmarkStore, NBestCandidate, Prediction
+
+    model_path = ROOT / "data/benchmarks/model/model.pt"
+    lm_name = f"beam+LM a={args.alpha} b={args.beta}"
+    suffix = f"-nb{args.nbest}" if args.nbest else ""
+    base = f"omni-ctc-300m-farsi-{benchmark_name}"
+    variants = [
+        (f"{base}-beam{args.beam_width}{suffix}", "beam", "beam (no LM)", None),
+        (
+            f"{base}-kenlm-a{args.alpha}-b{args.beta}-beam{args.beam_width}{suffix}",
+            "kenlm",
+            lm_name,
+            args.lm_path,
+        ),
+    ]
+    store = BenchmarkStore(args.database)
+    try:
+        for run_id, decoder, variant_name, lm_path in variants:
+            hypotheses = result.hyps[variant_name]
+            decode_seconds = result.decode_secs[variant_name]
+            config = {
+                "device": args.device,
+                "batch_size": args.batch_size,
+                "chunk_rows": args.chunk_rows,
+                "decoder": decoder,
+                "beam_width": args.beam_width,
+                "decoder_workers": args.decoder_workers,
+                "nbest": args.nbest,
+                "alpha": args.alpha if lm_path else 0.0,
+                "beta": args.beta if lm_path else 0.0,
+                "lm_path": str(lm_path.resolve()) if lm_path else None,
+                "tokenizer_path": str(args.tokenizer_path.resolve()),
+            }
+            store.ensure_run(
+                run_id=run_id,
+                adapter="omni",
+                model_path=model_path,
+                benchmark_path=benchmark_path,
+                language=LANGUAGE,
+                config=config,
+            )
+            seconds_per_row = (result.model_secs + decode_seconds) / len(hypotheses)
+            store.add_predictions(
+                run_id,
+                [
+                    Prediction(
+                        row_index=row_index,
+                        reference=reference,
+                        hypothesis=hypothesis,
+                        audio_seconds=duration,
+                        inference_seconds=seconds_per_row,
+                    )
+                    for row_index, (reference, hypothesis, duration) in enumerate(
+                        zip(refs, hypotheses, audio_seconds, strict=True)
+                    )
+                ],
+            )
+            if args.nbest > 0:
+                candidates = [
+                    NBestCandidate(
+                        row_index=row_index,
+                        rank=rank,
+                        hypothesis=text,
+                        acoustic_score=acoustic,
+                        lm_score=lm_score,
+                    )
+                    for row_index, row in enumerate(result.nbest[variant_name])
+                    for rank, (text, acoustic, lm_score) in enumerate(row)
+                ]
+                store.add_nbest(run_id, candidates)
+                print(f"persisted {run_id}: {len(candidates)} n-best rows", flush=True)
+            print(f"persisted {run_id}: {len(hypotheses)} rows -> {args.database}", flush=True)
+    finally:
+        store.close()
 
 
 def print_preamble(benchmark_name: str, benchmark_paths: list[Path], model_card: str) -> None:

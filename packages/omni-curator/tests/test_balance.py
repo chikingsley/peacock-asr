@@ -20,10 +20,7 @@ def test_parse_jobs_keys_are_lang_and_command():
 def test_parse_jobs_same_lang_both_stages_are_distinct_jobs():
     # labelq + verify for one language must count as TWO jobs (each reads its own window file),
     # so the budget is split per (lang, command), not collapsed to one per language.
-    ps = (
-        "tajik-curate labelq --workers 100\n"
-        "tajik-curate verify --workers 100\n"
-    )
+    ps = "tajik-curate labelq --workers 100\ntajik-curate verify --workers 100\n"
     assert parse_jobs(ps) == ["tajik:labelq", "tajik:verify"]
 
 

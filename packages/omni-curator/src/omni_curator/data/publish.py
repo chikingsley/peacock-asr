@@ -127,9 +127,7 @@ def export_hf_audio_dataset(
         stats.hours += sum(s.duration for s in batch) / 3600
         batch.clear()
 
-    for sample in _select(
-        store, source_prefix=source_prefix, language=language, stats=stats
-    ):
+    for sample in _select(store, source_prefix=source_prefix, language=language, stats=stats):
         batch.append(sample)
         if len(batch) >= rows_per_shard:
             flush()

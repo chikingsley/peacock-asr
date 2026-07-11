@@ -68,9 +68,7 @@ def make_scribe_fns(
         language = None if lang in ("auto", "") else lang
 
         def fn(clip: Path) -> dict[str, object]:
-            return transcribe_file(
-                clip, asr_model=model, language=language, diarize=diarize
-            )
+            return transcribe_file(clip, asr_model=model, language=language, diarize=diarize)
 
         return fn
 

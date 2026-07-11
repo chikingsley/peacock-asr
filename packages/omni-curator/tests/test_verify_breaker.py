@@ -24,8 +24,15 @@ def _seed(tmp_path, name: str, n: int) -> CuratorStore:
     store = CuratorStore(tmp_path / name)
     store.upsert(
         [
-            Sample(id=f"c{i:04d}", source="x", language="tgk_Cyrl", text="салом дӯстон",
-                   audio_path=f"/nonexistent/{i:04d}.flac", duration=2.0, sample_rate=16_000)
+            Sample(
+                id=f"c{i:04d}",
+                source="x",
+                language="tgk_Cyrl",
+                text="салом дӯстон",
+                audio_path=f"/nonexistent/{i:04d}.flac",
+                duration=2.0,
+                sample_rate=16_000,
+            )
             for i in range(n)
         ]
     )
@@ -57,8 +64,10 @@ def test_persistent_failure_aborts_with_bounded_calls(tmp_path, error):
         return {"error": error}
 
     store = _seed(tmp_path, "broken.sqlite", 400)
-    with mock.patch.object(V, "make_scribe_fns", return_value={"auto": broken_fn}), \
-         pytest.raises(RuntimeError, match="consecutive failures"):
+    with (
+        mock.patch.object(V, "make_scribe_fns", return_value={"auto": broken_fn}),
+        pytest.raises(RuntimeError, match="consecutive failures"),
+    ):
         V.verify_store(store, workers=10, breaker_threshold=50, pause_s=0.0, max_pauses=2)
     assert calls["n"] < 400, f"sprayed {calls['n']} calls at a dead service"
     store.close()
@@ -95,8 +104,10 @@ def test_blind_cap_limits_calls_before_first_success(tmp_path):
 
     store = _seed(tmp_path, "blind.sqlite", 400)
     # Large window (workers=200) but breaker_threshold=50; max_pauses=0 aborts on the first trip.
-    with mock.patch.object(V, "make_scribe_fns", return_value={"auto": broken_fn}), \
-         pytest.raises(RuntimeError, match="consecutive failures"):
+    with (
+        mock.patch.object(V, "make_scribe_fns", return_value={"auto": broken_fn}),
+        pytest.raises(RuntimeError, match="consecutive failures"),
+    ):
         V.verify_store(store, workers=200, breaker_threshold=50, pause_s=0.0, max_pauses=0)
     assert calls["n"] < 120, f"submitted {calls['n']} before the breaker — blind cap regressed"
     store.close()
@@ -113,10 +124,24 @@ def test_unscoreable_labels_skipped_without_any_call(tmp_path):
     store = CuratorStore(tmp_path / "junk.sqlite")
     store.upsert(
         [
-            Sample(id="j0", source="x", language="tgk_Cyrl", text="...",
-                   audio_path="/nonexistent/j0.flac", duration=2.0, sample_rate=16_000),
-            Sample(id="j1", source="x", language="tgk_Cyrl", text="♪",
-                   audio_path="/nonexistent/j1.flac", duration=2.0, sample_rate=16_000),
+            Sample(
+                id="j0",
+                source="x",
+                language="tgk_Cyrl",
+                text="...",
+                audio_path="/nonexistent/j0.flac",
+                duration=2.0,
+                sample_rate=16_000,
+            ),
+            Sample(
+                id="j1",
+                source="x",
+                language="tgk_Cyrl",
+                text="♪",
+                audio_path="/nonexistent/j1.flac",
+                duration=2.0,
+                sample_rate=16_000,
+            ),
         ]
     )
     with mock.patch.object(V, "make_scribe_fns", return_value={"auto": fn}):

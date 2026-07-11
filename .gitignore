@@ -47,8 +47,10 @@ data/
 !/packages/omni-curator/src/omni_curator/data/
 !/packages/omni-curator/src/omni_curator/data/**
 
-# Repo-level base/pretrained model cache (large .nemo/.pt weights, copied not symlinked)
-base_models/
+# Repo-level base/pretrained model cache (large .nemo/.pt weights, copied not symlinked).
+# Keep the inventory tracked while every weight/config subdirectory stays local.
+base_models/*
+!base_models/README.md
 
 # Scratch / dry-run outputs
 scratch/

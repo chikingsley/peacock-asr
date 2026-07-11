@@ -136,7 +136,8 @@ def normalize_georgian(text: str) -> str:
 # and stray symbols (So) map to a *space* — not removed — so morphemes stay separate word units
 # and the Omni char tokenizer never sees an unrepresentable glyph. This is the surface the Omni
 # CTC v2 Persian models were trained and scored on; do not swap it without re-exporting +
-# retraining. See projects/farsi-asr/docs/zwnj-normalization-decision-20260529.md.
+# retraining. The current decision is summarized in projects/farsi-asr/README.md and its measured
+# history lives in projects/farsi-asr/EXPERIMENTS.md.
 # Refresh upstream: hf download nvidia/stt_fa_fastconformer_hybrid_large README.md --revision <rev>
 _FAS_SOURCE_REPO = "nvidia/stt_fa_fastconformer_hybrid_large"
 _FAS_SOURCE_REVISION = "249cf5bf70dda7220a60ddeeecff2f6aad8e1784"
@@ -149,17 +150,57 @@ _FAS_SKIP = frozenset([*string.ascii_letters, "=", "ā", "š", "ة"])
 #: Punctuation, diacritics and tokenizer-incompatible symbols removed outright (no spoken content).
 _FAS_DISCARD = (
     "(خنده)",  # "(laughter)"
-    "!", '"', "#", "&", "'", "(", ")", ",", "-", ".", ":", ";",
-    "–", "“", "”", "…", "؟", "،", "؛", "ـ",
-    "ً", "ٌ", "َ", "ُ", "ِ", "ّ", "ْ", "ٔ",  # harakat / tanwin
-    "«", "»",
-    "٪", "×", "÷", "�",  # symbols with no Omni piece
+    "!",
+    '"',
+    "#",
+    "&",
+    "'",
+    "(",
+    ")",
+    ",",
+    "-",
+    ".",
+    ":",
+    ";",
+    "–",
+    "“",
+    "”",
+    "…",
+    "؟",
+    "،",
+    "؛",
+    "ـ",
+    "ً",
+    "ٌ",
+    "َ",
+    "ُ",
+    "ِ",
+    "ّ",
+    "ْ",
+    "ٔ",  # harakat / tanwin
+    "«",
+    "»",
+    "٪",
+    "×",
+    "÷",
+    "�",  # symbols with no Omni piece
 )
 
 #: Arabic letter variants folded to their canonical Persian forms (the tokenizer's surface).
 _FAS_REPLACEMENTS = {
-    "أ": "ا", "ۀ": "ە", "ك": "ک", "ي": "ی", "ى": "ی", "ﯽ": "ی",
-    "ﻮ": "و", "ے": "ی", "ﺒ": "ب", "ﻢ": "ﻡ", "٬": " ", "ە": "ه",
+    "|": " ",  # transcript/segment separator, never a spoken tokenizer symbol
+    "أ": "ا",
+    "ۀ": "ە",
+    "ك": "ک",
+    "ي": "ی",
+    "ى": "ی",
+    "ﯽ": "ی",
+    "ﻮ": "و",
+    "ے": "ی",
+    "ﺒ": "ب",
+    "ﻢ": "ﻡ",
+    "٬": " ",
+    "ە": "ه",
     "ٱ": "ا",  # ARABIC LETTER ALEF WASLA -> ALEF
 }
 

@@ -79,8 +79,11 @@ def _label_clip(
     variants = transcribe_clip(Path(clip.clip_path), _scribe_fns(langs), runs=runs)
     label = (
         consensus_fuse(
-            variants, language=clip.language, script=clip.script,
-            client=_client(), instruction=instruction,
+            variants,
+            language=clip.language,
+            script=clip.script,
+            client=_client(),
+            instruction=instruction,
         )
         if variants
         else ""
@@ -116,9 +119,7 @@ class _Breaker:
         self._base_backoff = base_backoff
         self._pauses = 0
 
-    def record(
-        self, done: int, errs: list[tuple[QClip, Exception]], labeled: int
-    ) -> bool:
+    def record(self, done: int, errs: list[tuple[QClip, Exception]], labeled: int) -> bool:
         """Account one batch; back off on a streak (returns True), abort a persistent outage."""
         if done:
             self.consecutive = 0
@@ -230,8 +231,12 @@ def run_labeler(
                 # there instead of draining (and charging an attempt to) all `batch` clips.
                 budget = max(1, breaker_threshold - breaker.consecutive)
                 outcome = _process_batch(
-                    pool, worker, clips,
-                    window_file=window_file, default_window=workers, pool_max=pool_max,
+                    pool,
+                    worker,
+                    clips,
+                    window_file=window_file,
+                    default_window=workers,
+                    pool_max=pool_max,
                     fail_budget=budget,
                 )
                 # Commit the batch BEFORE breaker.record (which may raise to abort the run).
@@ -242,9 +247,7 @@ def run_labeler(
     finally:
         queue.close()
     if breaker.errors:
-        notify(
-            f"labelq failures ({sum(breaker.errors.values())}): {breaker.errors.most_common(5)}"
-        )
+        notify(f"labelq failures ({sum(breaker.errors.values())}): {breaker.errors.most_common(5)}")
     return labeled
 
 
@@ -322,10 +325,30 @@ def _group_errors(errs: list[tuple[QClip, Exception]]) -> dict[str, list[str]]:
 #: Substrings marking a failure as a transient service/transport problem (HTTP 5xx, gateway,
 #: timeout, rate-limit, auth, mid-flight disconnects) rather than a fault in the clip itself.
 _RETRYABLE_MARKERS = (
-    "500", "502", "503", "504", "bad gateway", "service unavailable", "internal server error",
-    "gateway timeout", "timeout", "timed out", "connection", "temporarily", "429", "rate limit",
-    "401", "unauthorized", "403", "forbidden", "disconnect", "server disconnected",
-    "remote end closed", "connection reset", "broken pipe", "eof occurred",
+    "500",
+    "502",
+    "503",
+    "504",
+    "bad gateway",
+    "service unavailable",
+    "internal server error",
+    "gateway timeout",
+    "timeout",
+    "timed out",
+    "connection",
+    "temporarily",
+    "429",
+    "rate limit",
+    "401",
+    "unauthorized",
+    "403",
+    "forbidden",
+    "disconnect",
+    "server disconnected",
+    "remote end closed",
+    "connection reset",
+    "broken pipe",
+    "eof occurred",
 )
 #: Exception types that always mean a transport problem (the clip is fine, retry later).
 _TRANSIENT_EXC = (ConnectionError, TimeoutError, httpx.TransportError, httpx.TimeoutException)

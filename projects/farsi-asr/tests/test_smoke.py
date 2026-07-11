@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pathlib import Path
 
+SILERO_THRESHOLD = 0.5
+
 
 def test_cli_entrypoints_import() -> None:
     from farsi_asr.curate import main as curate
@@ -33,6 +35,20 @@ def test_cli_entrypoints_import() -> None:
         train_tokenizer,
     )
     assert all(callable(f) for f in fns)
+
+
+def test_farsi_segment_defaults_to_reviewed_silero_policy() -> None:
+    from omni_curator.project import build_parser
+
+    from farsi_asr.curate import PROJECT
+
+    args = build_parser(PROJECT).parse_args(["segment"])
+
+    assert args.vad_engine == "silero"
+    assert args.vad_profile == "conservative-v1"
+    assert args.vad_threshold == SILERO_THRESHOLD
+    assert args.silero_backend == "onnx"
+    assert args.gpu_procs == 0
 
 
 def test_lm_eval_load_rows_honors_limit(tmp_path: Path) -> None:

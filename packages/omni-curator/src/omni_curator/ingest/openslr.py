@@ -113,9 +113,7 @@ def _golos_split(manifest: Path) -> str:
     return "test" if "test" in parts else "train"
 
 
-def load_golos(
-    root: Path, *, language: str, source: str = "golos"
-) -> Iterator[Sample]:
+def load_golos(root: Path, *, language: str, source: str = "golos") -> Iterator[Sample]:
     """Read an extracted Golos tree -> ``Sample``s (audio stays WAV; process resamples it).
 
     Reads every full ``manifest.jsonl`` (NeMo jsonl: ``audio_filepath`` relative to the manifest
@@ -150,9 +148,7 @@ def load_golos(
                 )
 
 
-def load_ruls(
-    root: Path, *, language: str, source: str = "ruls"
-) -> Iterator[Sample]:
+def load_ruls(root: Path, *, language: str, source: str = "ruls") -> Iterator[Sample]:
     """Read an extracted RuLS (Russian LibriSpeech) tree -> ``Sample``s (wav; process resamples).
 
     RuLS ships ``{train,dev,test}/manifest.json`` (NeMo jsonl: ``audio_filepath`` relative to the

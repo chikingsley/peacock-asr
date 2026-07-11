@@ -112,8 +112,8 @@ CANONICAL_CORPORA: tuple[CorpusSource, ...] = (
 #: pourmand1376/asr-farsi-youtube-chunked-10-seconds, ingested by
 #: ``farsi_asr_dataset.canonical.youtube_samples``.
 #:
-#: Seeded from ``docs/persian_youtube_channels_iranian.md`` plus unique high-value Iranian
-#: conversational sources from the earlier mixed Persian/Dari research pass. Iranian Persian only;
+#: Seeded from the earlier Persian/Dari research pass and maintained here as executable config.
+#: Iranian Persian only;
 #: Dari stays in ``projects/dari-asr``. Domestic Iranian outlets may need the project cookie/VPN
 #: setup; per-clip language/quality gates handle code-switching, music beds, and unusable uploads.
 YOUTUBE_CHANNELS: tuple[Channel, ...] = (

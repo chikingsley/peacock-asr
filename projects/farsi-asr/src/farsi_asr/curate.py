@@ -37,6 +37,15 @@ PROJECT = CuratorProject(
     coverage_check=char_tokenizer_coverage(
         ROOT.parents[1] / "base_models" / "omni" / "omniASR_tokenizer_written_v2.model"
     ),
+    # Selected by the 2026-07-09 same-audio pilot plus 160-item blinded human review. Pin ONNX/CPU
+    # because that is the exact backend measured; mixed JIT/ONNX workers would make source claims
+    # choose the numeric backend nondeterministically.
+    vad_engine="silero",
+    vad_profile="conservative-v1",
+    vad_threshold=0.5,
+    vad_silero_backend="onnx",
+    vad_gpu_procs=0,
+    vad_cpu_procs=8,
     # No held-out conversational manifest yet — freeze one before the first new-pipeline training
     # run (see NEW_LANGUAGE.md step 7).
 )

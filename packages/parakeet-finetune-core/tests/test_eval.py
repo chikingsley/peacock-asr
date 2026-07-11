@@ -43,6 +43,18 @@ class FakeEvalModel:
         return self
 
 
+class FakeHybridEvalModel(FakeEvalModel):
+    cur_decoder = "rnnt"
+
+    def change_decoding_strategy(self, config, *, decoder_type):
+        self.events.append(("change_decoding_strategy", config, decoder_type))
+
+
+class FakeStandaloneEvalModel(FakeEvalModel):
+    def change_decoding_strategy(self, config):
+        self.events.append(("change_decoding_strategy", config))
+
+
 def _install_fake_model_runtime(monkeypatch, model):
     torch = types.ModuleType("torch")
 
@@ -153,6 +165,121 @@ def test_load_model_refuses_tokenizer_replacement_without_checkpoint(tmp_path):
 
     with pytest.raises(SystemExit, match="requires --checkpoint"):
         load_model(args, tmp_path / "final.nemo")
+
+
+@pytest.mark.parametrize(("kind", "decoder_type"), [("tdt", "rnnt"), ("ctc", "ctc")])
+def test_load_model_selects_requested_hybrid_head(monkeypatch, tmp_path, kind, decoder_type):
+    model = FakeHybridEvalModel()
+    _install_fake_model_runtime(monkeypatch, model)
+    final_model = tmp_path / "final.nemo"
+    final_model.touch()
+    args = argparse.Namespace(
+        checkpoint=None,
+        device="cpu",
+        kind=kind,
+        ngram_lm=None,
+        replace_tokenizer=False,
+        tokenizer_dir=tmp_path / "tokenizer",
+        tokenizer_type="bpe",
+    )
+
+    load_model(args, final_model)
+
+    assert ("change_decoding_strategy", None, decoder_type) in model.events
+
+
+def test_load_model_configures_tdt_batched_beam_ngpu_lm(monkeypatch, tmp_path):
+    from omegaconf import OmegaConf
+
+    model = FakeHybridEvalModel()
+    model.cfg = OmegaConf.create(
+        {
+            "decoding": {
+                "strategy": "greedy_batch",
+                "greedy": {"ngram_lm_model": None, "ngram_lm_alpha": 0.0},
+                "beam": {
+                    "beam_size": 2,
+                    "return_best_hypothesis": False,
+                    "ngram_lm_model": None,
+                    "ngram_lm_alpha": 0.0,
+                    "pruning_mode": "LATE",
+                    "blank_lm_score_mode": "LM_WEIGHTED_FULL",
+                },
+            },
+            "aux_ctc": {"decoding": {}},
+        }
+    )
+    _install_fake_model_runtime(monkeypatch, model)
+    final_model = tmp_path / "final.nemo"
+    final_model.touch()
+    lm = tmp_path / "lm.nemo"
+    args = argparse.Namespace(
+        checkpoint=None,
+        device="cpu",
+        kind="tdt",
+        ngram_lm=lm,
+        ngram_lm_alpha=0.3,
+        beam_size=8,
+        beam_beta=0.0,
+        replace_tokenizer=False,
+        tokenizer_dir=tmp_path / "tokenizer",
+        tokenizer_type="bpe",
+    )
+
+    load_model(args, final_model)
+
+    event = next(event for event in model.events if event[0] == "change_decoding_strategy")
+    config = event[1]
+    assert event[2] == "rnnt"
+    assert config.strategy == "malsd_batch"
+    assert config.beam.beam_size == 8
+    assert config.beam.ngram_lm_model == str(lm)
+    assert config.beam.ngram_lm_alpha == 0.3
+    assert config.beam.pruning_mode == "late"
+    assert config.beam.blank_lm_score_mode == "lm_weighted_full"
+
+
+def test_load_model_configures_standalone_tdt_batched_beam(monkeypatch, tmp_path):
+    from omegaconf import OmegaConf
+
+    model = FakeStandaloneEvalModel()
+    model.cfg = OmegaConf.create(
+        {
+            "decoding": {
+                "strategy": "greedy_batch",
+                "greedy": {"ngram_lm_model": None, "ngram_lm_alpha": 0.0},
+                "beam": {
+                    "beam_size": 2,
+                    "return_best_hypothesis": False,
+                    "ngram_lm_model": None,
+                    "ngram_lm_alpha": 0.0,
+                    "pruning_mode": "LATE",
+                    "blank_lm_score_mode": "LM_WEIGHTED_FULL",
+                },
+            }
+        }
+    )
+    _install_fake_model_runtime(monkeypatch, model)
+    final_model = tmp_path / "final.nemo"
+    final_model.touch()
+    args = argparse.Namespace(
+        checkpoint=None,
+        device="cpu",
+        kind="tdt",
+        ngram_lm=tmp_path / "lm.nemo",
+        ngram_lm_alpha=0.3,
+        beam_size=4,
+        beam_beta=0.0,
+        replace_tokenizer=False,
+        tokenizer_dir=tmp_path / "tokenizer",
+        tokenizer_type="bpe",
+    )
+
+    load_model(args, final_model)
+
+    event = next(event for event in model.events if event[0] == "change_decoding_strategy")
+    assert event[1].strategy == "malsd_batch"
+    assert event[1].beam.beam_size == 4
 
 
 def test_compute_error_rates_reports_wer_cer_and_empty_hypotheses():

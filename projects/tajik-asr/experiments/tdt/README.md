@@ -10,13 +10,7 @@ Fine-tune NVIDIA **Parakeet TDT-0.6B-v3** (FastConformer + Token-and-Duration Tr
 
 **FINAL RESULT (fp32, final model):** **FLEURS-test WER 19.0 %** (600), dev 17.8 % (357), **RTFx 568×** (bs32 fp32, vs omni CTC ~450×). Near-exact transcriptions; errors are real phonetic ones. **Verdict:** the TDT new-language fine-tuning thesis is **validated end-to-end at scale** — the loss-init-fix + recipe take the documented "TDT head stalls ~0.8 WER" failure to a competitive 19 % Tajik model. It does **not** beat the 300M omni CTC (16.9 / 14.5 +KenLM) — expected for a 110M English-base model with no LM. The **v3 0.6B** (Cyrillic prior, bigger) is the higher-ceiling follow-up that could beat it; RTFx has headroom with optimized (bf16/large-batch) inference.
 
-**CONVERSATIONAL RESULT (reproduced 2026-07-09):** the promoted 110M final model was restored
-without replacing its tokenizer and reproduced FLEURS `19.03%` WER / `6.72%` CER plus dev
-`17.77%` / `5.89%`. On the later 1,625-clip, video-disjoint conversational test it scores
-**`33.85%` WER / `14.89%` CER**, versus live Omni CTC 300M v3 at `37.65%` / `14.04%`. TDT wins
-word error by `3.80` absolute (`10.1%` relative) while Omni wins character error by `0.85`.
-The short-read FLEURS ranking therefore did hide a real in-domain TDT advantage, but the mixed
-WER/CER result needs per-source and error-type analysis before another training run.
+**CONVERSATIONAL RESULT (reproduced 2026-07-09):** the promoted 110M final model was restored without replacing its tokenizer and reproduced FLEURS `19.03%` WER / `6.72%` CER plus dev `17.77%` / `5.89%`. On the later 1,625-clip, video-disjoint conversational test it scores **`33.85%` WER / `14.89%` CER**, versus live Omni CTC 300M v3 at `37.65%` / `14.04%`. TDT wins word error by `3.80` absolute (`10.1%` relative) while Omni wins character error by `0.85`. The short-read FLEURS ranking therefore did hide a real in-domain TDT advantage, but the mixed WER/CER result needs per-source and error-type analysis before another training run.
 
 **The run was started on a bespoke `run_big.py` harness, then migrated to the shared `parakeet_finetune_core` package** (`tajik-parakeet-train-tdt`, the standard exp-style recipe — proper val logging + best-on-val checkpoints), resumed cleanly from the step-52k checkpoint. `run_big.py` and the gate/ablation scripts are now in `archive/`. **Eval:** bf16 TDT val_wer is noisy → trust `val_loss` during training; run `eval_ckpt.py` (fp32 `transcribe`) for a real WER (dev / FLEURS-test = 600 of `data/test_big.jsonl`).
 
@@ -26,21 +20,18 @@ WER/CER result needs per-source and error-type analysis before another training 
 
 **The risk in one line:** multiple users (incl. on v3) report the TDT head stuck ~0.8 WER while CTC learns; a maintainer acknowledged a real `change_vocabulary` loss-init bug but the fix never merged (issue #14140 open). **This experiment's gate 0 is to reproduce that failure, then beat it.**
 
-**Current next work:** analyze the saved TDT/Omni conversational predictions by source, duration,
-and error type; add the independent edge-error plus CTC-alignment data-quality pilot; standardize
-cold and warm benchmark timing; then decide whether a controlled new TDT run is justified. The old
-gates below remain as experiment history, not the current queue.
+**Current next work:** analyze the saved TDT/Omni conversational predictions by source, duration, and error type; add the independent edge-error plus CTC-alignment data-quality pilot; standardize cold and warm benchmark timing; then decide whether a controlled new TDT run is justified. The old gates below remain as experiment history, not the current queue.
 
 ## Why (the numbers that motivate it)
 
-| model (ours unless noted) | FLEURS WER | RTFx | notes |
-|---|---|---|---|
-| omni CTC 300M Tajik v3 (production) | 16.9 / **14.5** +KenLM | ~450× | multilingual base; current best |
-| our Parakeet CTC 110M (Farsi) | 17.3 | ~590× | English base, fine-tuned; ~1.3× faster than omni |
-| **Parakeet TDT 0.6B v2/v3 (NVIDIA, English/EU)** | ~6.3 avg | **~3,300×** | the speed prize — transducer + FastConformer |
-| our Parakeet TDT 110M Tajik (full-FT) | 19.0 | ~568× | English base; the validated baseline |
-| our Parakeet TDT 0.6B v3 — simple (fresh BPE) | 19.26 | — | decoder cold-start; ties the 110M |
-| our Parakeet TDT 0.6B v3 — extend/restore | 19.71 | 138× | preserves v3 decoder prior; still no win on FLEURS (see gate-log) |
+| model (ours unless noted)                        | FLEURS WER             | RTFx        | notes                                                             |
+| ------------------------------------------------ | ---------------------- | ----------- | ----------------------------------------------------------------- |
+| omni CTC 300M Tajik v3 (production)              | 16.9 / **14.5** +KenLM | ~450×       | multilingual base; current best                                   |
+| our Parakeet CTC 110M (Farsi)                    | 17.3                   | ~590×       | English base, fine-tuned; ~1.3× faster than omni                  |
+| **Parakeet TDT 0.6B v2/v3 (NVIDIA, English/EU)** | ~6.3 avg               | **~3,300×** | the speed prize — transducer + FastConformer                      |
+| our Parakeet TDT 110M Tajik (full-FT)            | 19.0                   | ~568×       | English base; the validated baseline                              |
+| our Parakeet TDT 0.6B v3 — simple (fresh BPE)    | 19.26                  | —           | decoder cold-start; ties the 110M                                 |
+| our Parakeet TDT 0.6B v3 — extend/restore        | 19.71                  | 138×        | preserves v3 decoder prior; still no win on FLEURS (see gate-log) |
 
 **Bottom line so far: all three of our Parakeet TDT fine-tunes cluster at ~19–20% FLEURS — none beats omni CTC (16.9).** FLEURS is clean read-aloud and out-of-domain for our ~92%-conversational YouTube corpus, and we never held out a conversational eval set, so the conversational question is still open. See the extend/restore gate-log entry for the full post-mortem.
 
@@ -118,12 +109,12 @@ Stock `change_vocabulary` fine-tune of the 110M hybrid on FLEURS-Tajik (400 trai
 
 110M-hybrid, 400 FLEURS-Tajik rows, identical 2000-step budget (`tdt_finetune.py --arm {A0,B}`):
 
-| arm | TDT-head `val_wer` | CTC-head `val_wer_ctc` |
-|---|---|---|
-| **A0** (stock — buggy loss) | **~1.04** (>100%, over-inserts) | ~0.99 |
-| **B** (loss-init fix: `num_classes` 1029→1024, −5 durations) | **~0.95** (<100%, sane length) | ~0.99 |
+| arm                                                          | TDT-head `val_wer`              | CTC-head `val_wer_ctc` |
+| ------------------------------------------------------------ | ------------------------------- | ---------------------- |
+| **A0** (stock — buggy loss)                                  | **~1.04** (>100%, over-inserts) | ~0.99                  |
+| **B** (loss-init fix: `num_classes` 1029→1024, −5 durations) | **~0.95** (\<100%, sane length) | ~0.99                  |
 
-**The loss-init fix works at the mechanism level:** it moves the TDT head from *broken* (>100% WER, garbage over-emission — confirmed at gate 0a as ~2.07) to *sane* (<100%, correct-length output). The community bug + our fix are real and validated.
+**The loss-init fix works at the mechanism level:** it moves the TDT head from *broken* (>100% WER, garbage over-emission — confirmed at gate 0a as ~2.07) to *sane* (\<100%, correct-length output). The community bug + our fix are real and validated.
 
 **But neither head learns Tajik content** (CTC also stuck ~0.99 in both arms). CTC stalling too — vs issue #14140 where CTC reached ~0.1 on 1800 h — proves this is **cold-start + tiny-data, not the bug**: the 110M is English-base (no Cyrillic acoustic prior) and 400 rows is far too little to learn a new script. **The 110M/400-row testbed validated the *fix* but cannot show *competitive* TDT training.** That requires the v3-centric build (next).
 
@@ -145,161 +136,89 @@ Overfit 32 rows HARD (fp32, lr 1e-3, 1500 steps → **train_loss 0.52**), then `
 
 ### Big run on real data + harness migration (2026-06-16): TDT learns Tajik; moved to the package recipe
 
-The decode-trust check cleared the path, so we ran the real thing: 110M-hybrid full fine-tune on the
-**1,197 h gated curator corpus** (not the 400-row probe). **First fp32 held-out eval: 21.3 % dev WER at
-step 24k**, still improving, with near-exact Tajik transcriptions — TDT genuinely learns Tajik at scale.
+The decode-trust check cleared the path, so we ran the real thing: 110M-hybrid full fine-tune on the **1,197 h gated curator corpus** (not the 400-row probe). **First fp32 held-out eval: 21.3 % dev WER at step 24k**, still improving, with near-exact Tajik transcriptions — TDT genuinely learns Tajik at scale.
 
 Two process corrections this round:
 
-- **Harness:** the run started on a bespoke `run_big.py` (manual `pl.Trainer`, `logger=False`, hand-rolled
-  loss logging, checkpoint-on-`train_loss`) — which surfaced **no eval signal** during training even though a
-  disjoint dev set was wired. Replaced by the shared **`parakeet_finetune_core`** recipe (`tajik-parakeet-train-tdt`,
-  the same exp-manager-style pattern as `farsi-asr/finetune_parakeet`): val_loss/val_wer logged to `val_log.jsonl`,
-  best-on-val checkpoints. Resumed from the step-52k checkpoint (identical model+hparams → clean resume).
-- **Code layout:** **live** = `eval_ckpt.py` (fp32 ckpt→WER) + `gate1b_curator_manifest.py` (manifest builder) +
-  `data/`; the bespoke harness and completed gate/ablation scripts moved to **`archive/`** (see `archive/README.md`).
+- **Harness:** the run started on a bespoke `run_big.py` (manual `pl.Trainer`, `logger=False`, hand-rolled loss logging, checkpoint-on-`train_loss`) — which surfaced **no eval signal** during training even though a disjoint dev set was wired. Replaced by the shared **`parakeet_finetune_core`** recipe (`tajik-parakeet-train-tdt`, the same exp-manager-style pattern as `farsi-asr/finetune_parakeet`): val_loss/val_wer logged to `val_log.jsonl`, best-on-val checkpoints. Resumed from the step-52k checkpoint (identical model+hparams → clean resume).
+- **Code layout:** **live** = `eval_ckpt.py` (fp32 ckpt→WER) + `gate1b_curator_manifest.py` (manifest builder) + `data/`; the bespoke harness and completed gate/ablation scripts moved to **`archive/`** (see `archive/README.md`).
 
-**Resolved 2026-07-09:** `tajik-parakeet-eval` is the package command. It safely restores promoted
-`.nemo` artifacts without rebuilding their tokenizer/decoder, requires explicit tokenizer
-replacement for base-plus-checkpoint reconstruction, and records raw/normalized WER/CER, empty
-outputs, warm RTFx, peak CUDA allocation, predictions, and a JSON summary.
+**Resolved 2026-07-09:** `tajik-parakeet-eval` is the package command. It safely restores promoted `.nemo` artifacts without rebuilding their tokenizer/decoder, requires explicit tokenizer replacement for base-plus-checkpoint reconstruction, and records raw/normalized WER/CER, empty outputs, warm RTFx, peak CUDA allocation, predictions, and a JSON summary.
 
 ### CTC head + KenLM on the final 110M model (2026-06-16): KenLM beats the TDT-head greedy
 
-The final model is a **hybrid (TDT+CTC)**, so its CTC head is a free second readout — and CTC is the
-head KenLM shallow fusion attaches to (the omni baseline went 16.9 → 14.5 +KenLM exactly this way).
-Tested it on FLEURS-test (600), fp32, **same WER methodology** as `eval_ckpt.py`
-(`omni_curator.process.normalize(·, "tgk_Cyrl")` → `omni_finetune_core.metrics.compute_measures`).
+The final model is a **hybrid (TDT+CTC)**, so its CTC head is a free second readout — and CTC is the head KenLM shallow fusion attaches to (the omni baseline went 16.9 → 14.5 +KenLM exactly this way). Tested it on FLEURS-test (600), fp32, **same WER methodology** as `eval_ckpt.py` (`omni_curator.process.normalize(·, "tgk_Cyrl")` → `omni_finetune_core.metrics.compute_measures`).
 
-- **Model:** `data/parakeet/final/tajik-parakeet-tdt-110m_final.nemo` (`EncDecHybridRNNTCTCBPEModel`),
-  CTC head (`change_decoding_strategy(decoder_type="ctc")`), 1025 classes (BPE-1024 + blank).
-- **KenLM:** **word 4-gram** (`lmplz -o 4`, KenLM at `packages/kenlm`), trained on the model's own
-  **232,824 `train_big.jsonl` transcripts** omni-normalized (`tgk_Cyrl`) → 372 MB binary
-  (`experiments/lm_decoding/lm4_parakeet.bin`; corpus `corpus_parakeet_trainbig.txt`, 309,687 unigrams).
-- **Decode:** pyctcdecode beam (width 64) over per-frame CTC log-probs, BPE/subword alphabet (`▁`
-  boundary marker), α/β sweep. Script: `experiments/lm_decoding/eval_parakeet_ctc_lm.py`.
+- **Model:** `data/parakeet/final/tajik-parakeet-tdt-110m_final.nemo` (`EncDecHybridRNNTCTCBPEModel`), CTC head (`change_decoding_strategy(decoder_type="ctc")`), 1025 classes (BPE-1024 + blank).
+- **KenLM:** **word 4-gram** (`lmplz -o 4`, KenLM at `packages/kenlm`), trained on the model's own **232,824 `train_big.jsonl` transcripts** omni-normalized (`tgk_Cyrl`) → 372 MB binary (`experiments/lm_decoding/lm4_parakeet.bin`; corpus `corpus_parakeet_trainbig.txt`, 309,687 unigrams).
+- **Decode:** pyctcdecode beam (width 64) over per-frame CTC log-probs, BPE/subword alphabet (`▁` boundary marker), α/β sweep. Script: `experiments/lm_decoding/eval_parakeet_ctc_lm.py`.
 
-| readout (CTC head, fp32, FLEURS test 600) | WER | CER |
-|---|---|---|
-| CTC greedy | 24.06 | 7.50 |
-| beam w=64, no LM | 24.51 | 7.39 |
+| readout (CTC head, fp32, FLEURS test 600)    | WER       | CER  |
+| -------------------------------------------- | --------- | ---- |
+| CTC greedy                                   | 24.06     | 7.50 |
+| beam w=64, no LM                             | 24.51     | 7.39 |
 | **beam + KenLM α=0.5 β=0.0** (best of sweep) | **16.64** | 7.03 |
 
 **Read:**
 
-- **CTC greedy (24.1 %) is worse than the TDT-head greedy (19.0 %)** on this model — the TDT head is
-  the stronger readout for greedy decoding here (and far faster).
-- **CTC + KenLM (16.64 %) beats the TDT-head greedy by 2.4 WER** and lands right at the *omni CTC 300M
-  greedy* baseline (16.9). The LM is the entire gain (**−7.42 WER** vs CTC-greedy); beam alone does
-  nothing (−0.0/slightly worse), and the word-insertion bonus β hurts — every β=0 row beats its β>0
-  siblings, same grid shape as the omni `lm_decoding` run.
-- It does **not** reach the omni **CTC+KenLM** (14.5) — expected: this is a 110M English-base CTC head
-  vs a 300M multilingual one. **Net:** KenLM on the CTC head is a real, free −7.4-WER lever and the
-  best *single-decode* number off this model is the **TDT-head greedy 19.0 %** unless you spend the
-  CTC+KenLM beam, which gets to 16.6 % at CPU beam-decode cost.
+- **CTC greedy (24.1 %) is worse than the TDT-head greedy (19.0 %)** on this model — the TDT head is the stronger readout for greedy decoding here (and far faster).
+- **CTC + KenLM (16.64 %) beats the TDT-head greedy by 2.4 WER** and lands right at the *omni CTC 300M greedy* baseline (16.9). The LM is the entire gain (**−7.42 WER** vs CTC-greedy); beam alone does nothing (−0.0/slightly worse), and the word-insertion bonus β hurts — every β=0 row beats its β>0 siblings, same grid shape as the omni `lm_decoding` run.
+- It does **not** reach the omni **CTC+KenLM** (14.5) — expected: this is a 110M English-base CTC head vs a 300M multilingual one. **Net:** KenLM on the CTC head is a real, free −7.4-WER lever and the best *single-decode* number off this model is the **TDT-head greedy 19.0 %** unless you spend the CTC+KenLM beam, which gets to 16.6 % at CPU beam-decode cost.
 
 ### 0.6B v3 memory ladder (2026-06-16): full fine-tune fits 12 GB via Adafactor
 
 Stepping into the v3 0.6B run, probing what fits on the 12 GB card (full-FT, short probes, recorded + reacted):
 
-| rung | config | result |
-|---|---|---|
-| A | full-FT **AdamW**, batch_dur 40, fused 1 | OOM, peak 11.5 GB |
-| A2 | full-FT AdamW, batch_dur 20 + `expandable_segments` | OOM, peak 11.5 GB (same) |
-| C2 | full-FT **Adafactor**, batch_dur 60, fused 2 | **fits, peak 9.8 GB, 617 M trainable, ~2.8 steps/s** |
+| rung | config                                              | result                                               |
+| ---- | --------------------------------------------------- | ---------------------------------------------------- |
+| A    | full-FT **AdamW**, batch_dur 40, fused 1            | OOM, peak 11.5 GB                                    |
+| A2   | full-FT AdamW, batch_dur 20 + `expandable_segments` | OOM, peak 11.5 GB (same)                             |
+| C2   | full-FT **Adafactor**, batch_dur 60, fused 2        | **fits, peak 9.8 GB, 617 M trainable, ~2.8 steps/s** |
 
-**The wall is the optimizer, not the batch.** AdamW keeps fp32 first+second moments (~12 B/param ≈ 7.4 GB
-for 0.6B) — a fixed floor batch size can't move (A vs A2 OOM identically at 11.5 GB). **Adafactor** factors
-the second moment and drops the first → tiny optimizer state → full fine-tune (all 617 M params) fits at
-**9.8 GB with ~2 GB margin**. Wired as `tajik-parakeet-train-tdt --optim adafactor` (`parakeet_finetune_core`
-sets `relative_step=False` so the manual lr + cosine schedule are honored). So 0.6B full-FT is viable on
-12 GB — not with AdamW. (Alternatives not needed: 8-bit AdamW would need bitsandbytes + NeMo wiring;
-partial-unfreeze is the fallback if Adafactor convergence disappoints.)
+**The wall is the optimizer, not the batch.** AdamW keeps fp32 first+second moments (~12 B/param ≈ 7.4 GB for 0.6B) — a fixed floor batch size can't move (A vs A2 OOM identically at 11.5 GB). **Adafactor** factors the second moment and drops the first → tiny optimizer state → full fine-tune (all 617 M params) fits at **9.8 GB with ~2 GB margin**. Wired as `tajik-parakeet-train-tdt --optim adafactor` (`parakeet_finetune_core` sets `relative_step=False` so the manual lr + cosine schedule are honored). So 0.6B full-FT is viable on 12 GB — not with AdamW. (Alternatives not needed: 8-bit AdamW would need bitsandbytes + NeMo wiring; partial-unfreeze is the fallback if Adafactor convergence disappoints.)
 
 ### 0.6B v3 simple recipe — plateau at 110M level (2026-06-16): decoder cold-start ceiling
 
-Full-FT 0.6B v3 (Adafactor, fresh BPE-1024 + reinit decoder/joint, the simple recipe) ran to step ~64k/200k
-(~32%, val_loss flat ~29.3 for 30k steps, bf16 val_wer ~0.32). **fp32 FLEURS WER of the best (step-60k)
-checkpoint = 19.26%** (120-clip subset) — **dead level with the 110M's 19.0%.** A 5× bigger model with v3's
-ru/uk/bg Cyrillic acoustic prior plateaued at the *same* WER as the 110M English base. Verdict: the fresh
-decoder/joint reinit discards v3's token prior, so the bigger encoder isn't exploited — the **decoder
-cold-start ceiling**. This is the documented trigger to pivot to the **extend-tokenizer + restore-decoder/joint
-recipe** (see `extend_restore_recipe.md`, codex-approved), which preserves v3's decoder prior. (A cheaper
-prior check — the `rnnt_reduction` ablation — is also on the table but the plateau-at-110M smells like
-cold-start, not loss-scaling.)
+Full-FT 0.6B v3 (Adafactor, fresh BPE-1024 + reinit decoder/joint, the simple recipe) ran to step ~64k/200k (~32%, val_loss flat ~29.3 for 30k steps, bf16 val_wer ~0.32). **fp32 FLEURS WER of the best (step-60k) checkpoint = 19.26%** (120-clip subset) — **dead level with the 110M's 19.0%.** A 5× bigger model with v3's ru/uk/bg Cyrillic acoustic prior plateaued at the *same* WER as the 110M English base. Verdict: the fresh decoder/joint reinit discards v3's token prior, so the bigger encoder isn't exploited — the **decoder cold-start ceiling**. This is the documented trigger to pivot to the **extend-tokenizer + restore-decoder/joint recipe** (see `extend_restore_recipe.md`, codex-approved), which preserves v3's decoder prior. (A cheaper prior check — the `rnnt_reduction` ablation — is also on the table but the plateau-at-110M smells like cold-start, not loss-scaling.)
 
 ### 0.6B v3 extend/restore recipe — COMPLETE (2026-06-17): no win on FLEURS, and the eval was the real lesson
 
-Ran the full extend-tokenizer + restore-decoder/joint recipe to **200k steps** (Adafactor, extended 8704-piece
-vocab, decoder/joint rows restored from v3, encoder frozen→step 2000, max-dur 12 / batch-dur 16 / fused 1 to fit
-the big-vocab RNNT-loss gradient in 12 GB; 0 OOM after the max-dur cap). Best checkpoint step-144709 (val_loss 15.636).
+Ran the full extend-tokenizer + restore-decoder/joint recipe to **200k steps** (Adafactor, extended 8704-piece vocab, decoder/joint rows restored from v3, encoder frozen→step 2000, max-dur 12 / batch-dur 16 / fused 1 to fit the big-vocab RNNT-loss gradient in 12 GB; 0 OOM after the max-dur cap). Best checkpoint step-144709 (val_loss 15.636).
 
-**fp32 FLEURS-test WER (full 600 clips, cuda, RTFx 138×): 19.71%.** That is **not a win** — it's a hair *worse*
-than the simple v3 (19.26%) and the 110M (19.0%), and well off omni CTC (16.9 / 14.5 +KenLM). A 5× bigger model
-with v3's Cyrillic prior *and* the decoder prior preserved landed in the same ~19–20% cluster as everything else.
+**fp32 FLEURS-test WER (full 600 clips, cuda, RTFx 138×): 19.71%.** That is **not a win** — it's a hair *worse* than the simple v3 (19.26%) and the 110M (19.0%), and well off omni CTC (16.9 / 14.5 +KenLM). A 5× bigger model with v3's Cyrillic prior *and* the decoder prior preserved landed in the same ~19–20% cluster as everything else.
 
 **Two lessons, the second more important than the result:**
 
-1. **The val_loss "win" was an artifact — don't compare loss across tokenizers.** During the run val_loss fell
-   88.9→~15.6, which *looked* like it crushed the simple run's ~29.3 plateau. It didn't: the two runs use different
-   tokenizers (8704 extended vs BPE-1024), so the loss magnitudes are on different scales and are **not comparable**.
-   The only legitimate cross-run signal is WER on a fixed eval set. Going forward: report WER on a held-out set at
-   every checkpoint, not loss — loss is for within-run convergence only.
+1. **The val_loss "win" was an artifact — don't compare loss across tokenizers.** During the run val_loss fell 88.9→~15.6, which *looked* like it crushed the simple run's ~29.3 plateau. It didn't: the two runs use different tokenizers (8704 extended vs BPE-1024), so the loss magnitudes are on different scales and are **not comparable**. The only legitimate cross-run signal is WER on a fixed eval set. Going forward: report WER on a held-out set at every checkpoint, not loss — loss is for within-run convergence only.
 
-2. **The experiment broke the eval contract, so it can't answer the real question.** The whole point of the corpus
-   was *conversational* ASR (≈215k pseudo-labeled YouTube segs, ~92% of train), but:
-   - There was **no held-out conversational dev/test**. `curator.sqlite` confirms it: `split` is `train=346,813`,
-     `dev=363`, `test=721` — and the dev/test are entirely read-aloud (Common Voice + FLEURS); **100% of YouTube is
-     in `train`**. So every number we tracked measured read-aloud, and FLEURS is clean broadcast read-speech —
-     out-of-domain for this model. 19.71% on FLEURS tells us little about the conversational target.
-   - The YouTube data is pseudo-labeled (gated `scribe_wer≤0.35`) and noisy — music/background leakage is visible
-     in the raw rows (e.g. `[موسیقی]` music tags, Perso-Arabic→Cyrillic transliteration artifacts). Noisy
-     conversational data is unlikely to move a *clean read-aloud* benchmark; clean gains likely need explicit
-     clean-speech sources (audiobook / news read-speech), not more YouTube.
+1. **The experiment broke the eval contract, so it can't answer the real question.** The whole point of the corpus was *conversational* ASR (≈215k pseudo-labeled YouTube segs, ~92% of train), but:
 
-**Dataset structure (for the redo).** `curator.sqlite` = one flat `samples` table (347,897 rows): `id, source,
-language, text, audio_path, duration, sample_rate, split, speaker_id, citation, scribe_wer, scribe_cer, meta(JSON)`.
-Channel is captured as `source = youtube-<channel>`; **genre/category is NOT stored** (only the channel). Video id
+   - There was **no held-out conversational dev/test**. `curator.sqlite` confirms it: `split` is `train=346,813`, `dev=363`, `test=721` — and the dev/test are entirely read-aloud (Common Voice + FLEURS); **100% of YouTube is in `train`**. So every number we tracked measured read-aloud, and FLEURS is clean broadcast read-speech — out-of-domain for this model. 19.71% on FLEURS tells us little about the conversational target.
+   - The YouTube data is pseudo-labeled (gated `scribe_wer≤0.35`) and noisy — music/background leakage is visible in the raw rows (e.g. `[موسیقی]` music tags, Perso-Arabic→Cyrillic transliteration artifacts). Noisy conversational data is unlikely to move a *clean read-aloud* benchmark; clean gains likely need explicit clean-speech sources (audiobook / news read-speech), not more YouTube.
 
-- segment are embedded in `id`/`audio_path` (`<channel>_<videoId>_seg####`), so video-disjoint splits are possible.
-It's trivially exportable by any split logic.
+**Dataset structure (for the redo).** `curator.sqlite` = one flat `samples` table (347,897 rows): `id, source, language, text, audio_path, duration, sample_rate, split, speaker_id, citation, scribe_wer, scribe_cer, meta(JSON)`. Channel is captured as `source = youtube-<channel>`; **genre/category is NOT stored** (only the channel). Video id
 
-**Path forward (proposed, not done):** tag the ~42 channels by category (news/podcast/film/quran/kids/…) — genre is
-per-channel today, crude but a fine start — then build **eSpeech-style train/dev/test splits per category, disjoint
-by video** (not a naive 3-way), retrain, and **measure WER on a real held-out conversational test** for all three
-models (110M, simple v3, extend v3). Only that comparison answers whether the big convo corpus + 0.6B actually helps
-in-domain. (Side note: omni CTC could likely be pushed toward NVIDIA's ~3000× RTFx in production the same way the TDT
-models were — speed isn't the blocker.)
+- segment are embedded in `id`/`audio_path` (`<channel>_<videoId>_seg####`), so video-disjoint splits are possible. It's trivially exportable by any split logic.
+
+**Path forward (proposed, not done):** tag the ~42 channels by category (news/podcast/film/quran/kids/…) — genre is per-channel today, crude but a fine start — then build **eSpeech-style train/dev/test splits per category, disjoint by video** (not a naive 3-way), retrain, and **measure WER on a real held-out conversational test** for all three models (110M, simple v3, extend v3). Only that comparison answers whether the big convo corpus + 0.6B actually helps in-domain. (Side note: omni CTC could likely be pushed toward NVIDIA's ~3000× RTFx in production the same way the TDT models were — speed isn't the blocker.)
 
 ### Evaluation contract repaired + conversational scorecard (2026-07-09)
 
-The missing conversational evaluation was restored from
-`Peacockery/tajik-asr-corpus-v3` revision `3b05a4bb89104c21643081250729595347d1188e`.
-The bounded restore is 18 YouTube test Parquets (`702,784,427` bytes), materialized losslessly to
-1,625 FLACs / 9.926 hours with deterministic SHA256-backed filenames. All FLACs pass integrity
-testing and no clip exceeds the Omni 40-second ceiling.
+The missing conversational evaluation was restored from `Peacockery/tajik-asr-corpus-v3` revision `3b05a4bb89104c21643081250729595347d1188e`. The bounded restore is 18 YouTube test Parquets (`702,784,427` bytes), materialized losslessly to 1,625 FLACs / 9.926 hours with deterministic SHA256-backed filenames. All FLACs pass integrity testing and no clip exceeds the Omni 40-second ceiling.
 
-| model / slice | rows | WER | CER | notes |
-|---|---:|---:|---:|---|
-| Parakeet TDT 110M, FLEURS | 600 | 19.03 | 6.72 | exact reproduction of recorded 19.0 |
-| Parakeet TDT 110M, Common Voice dev | 357 | 17.77 | 5.89 | exact reproduction of recorded 17.8 |
-| Parakeet TDT 110M, conversational <=40s | 1,625 | **33.85** | 14.89 | 2 empty outputs |
-| Parakeet TDT 110M, conversational <=30s | 1,559 | 34.38 | 15.10 | training-profile slice |
-| Omni CTC 300M v3, conversational <=40s | 1,625 | 37.65 | **14.04** | live restored checkpoint |
+| model / slice                            |  rows |       WER |       CER | notes                               |
+| ---------------------------------------- | ----: | --------: | --------: | ----------------------------------- |
+| Parakeet TDT 110M, FLEURS                |   600 |     19.03 |      6.72 | exact reproduction of recorded 19.0 |
+| Parakeet TDT 110M, Common Voice dev      |   357 |     17.77 |      5.89 | exact reproduction of recorded 17.8 |
+| Parakeet TDT 110M, conversational \<=40s | 1,625 | **33.85** |     14.89 | 2 empty outputs                     |
+| Parakeet TDT 110M, conversational \<=30s | 1,559 |     34.38 |     15.10 | training-profile slice              |
+| Omni CTC 300M v3, conversational \<=40s  | 1,625 |     37.65 | **14.04** | live restored checkpoint            |
 
-The 30-second slice is slightly worse, so the curation hard cap is not an accuracy rule. Current
-recipe limits differ—Parakeet CTC 20 seconds, TDT 30 seconds, Omni 40 seconds—and segmentation must
-store raw intervals plus a model/profile-specific emitted-clip cap.
+The 30-second slice is slightly worse, so the curation hard cap is not an accuracy rule. Current recipe limits differ—Parakeet CTC 20 seconds, TDT 30 seconds, Omni 40 seconds—and segmentation must store raw intervals plus a model/profile-specific emitted-clip cap.
 
-The first cold FLEURS pass ran at `216x`; an identical warm-cache pass reached `684x` (historical
-record: `568x`). Conversational warm throughput reached `876x`, and the <=30-second slice reached
-`966x`. Benchmark reports must therefore separate cold end-to-end throughput from warm model
-throughput and always record batch size, duration ceiling, and peak VRAM.
+The first cold FLEURS pass ran at `216x`; an identical warm-cache pass reached `684x` (historical record: `568x`). Conversational warm throughput reached `876x`, and the \<=30-second slice reached `966x`. Benchmark reports must therefore separate cold end-to-end throughput from warm model throughput and always record batch size, duration ceiling, and peak VRAM.
 
-The Omni shipping checkpoint was also restored from `Peacockery/omni-ctc-300m-tajik` revision
-`cafa6e9fb394f7cef29caf79385feb96bcfc05ae`; the old asset card pointed into a deleted run directory.
-The shared Omni evaluator now accepts the materialized manifest instead of expanding embedded
-Parquet audio into Python integer lists.
+The Omni shipping checkpoint was also restored from `Peacockery/omni-ctc-300m-tajik` revision `cafa6e9fb394f7cef29caf79385feb96bcfc05ae`; the old asset card pointed into a deleted run directory. The shared Omni evaluator now accepts the materialized manifest instead of expanding embedded Parquet audio into Python integer lists.
 
 ## Risks / open questions
 
@@ -307,9 +226,7 @@ Parquet audio into Python integer lists.
 - **v3 tokenizer is 8,192 (unified), not 1,024.** The recipe's "append above 1023" becomes "above 8191"; the restore code must handle blank-id + the TDT duration outputs correctly (this is exactly where the #14155 bug lives).
 - **v3 may be transducer-only** → no free CTC fallback inside it; confirm at gate 0.
 - **Cyrillic prior is partial** — v3 knows Ru/Uk/Bg acoustics, not Tajik phonology; still a far better start than the English-only 110M, but not a guarantee.
-- **Data → manifest is now a tested project CLI**, but the cross-model benchmark still needs one
-  fully shared cold/warm timing and prediction schema before speed comparisons across NeMo and
-  Omni are promotion-grade.
+- **Data → manifest is now a tested project CLI**, but the cross-model benchmark still needs one fully shared cold/warm timing and prediction schema before speed comparisons across NeMo and Omni are promotion-grade.
 - **"Improve the community thing"** = implement the loss-init fix properly + monitor both heads + (if it works) write it up / contribute back — but only after we've validated it beats stock.
 
 ## References (provenance-flagged)

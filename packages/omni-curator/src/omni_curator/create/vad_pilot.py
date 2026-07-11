@@ -77,9 +77,7 @@ def read_pilot_manifest(path: Path) -> list[PilotSource]:  # noqa: C901
                 f"pilot manifest line {line_number} requires non-empty id/path/tier/channel"
             )
         if not SAFE_SOURCE_ID.fullmatch(source_id) or source_id in {".", ".."}:
-            raise ValueError(
-                f"pilot source id {source_id!r} is not a safe single path component"
-            )
+            raise ValueError(f"pilot source id {source_id!r} is not a safe single path component")
         if source_id in seen:
             raise ValueError(f"duplicate pilot source id: {source_id}")
         if tier not in {"clean", "noisy"}:

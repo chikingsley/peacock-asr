@@ -46,8 +46,15 @@ def download_espeech(repo: str, dest: Path) -> Path:
     parts_dir.mkdir(exist_ok=True)
     subprocess.run(  # noqa: S603  # resumable; --include keeps READMEs/images out
         [  # noqa: S607
-            "hf", "download", repo, "--repo-type", "dataset",
-            "--include", "*.tar*", "--local-dir", str(parts_dir),
+            "hf",
+            "download",
+            repo,
+            "--repo-type",
+            "dataset",
+            "--include",
+            "*.tar*",
+            "--local-dir",
+            str(parts_dir),
         ],
         check=True,
     )
@@ -66,10 +73,13 @@ def download_espeech(repo: str, dest: Path) -> Path:
         base = p.name[:-3] if re.fullmatch(r".*\.tar\.[a-z]{2}", p.name) else p.name
         groups.setdefault(base, []).append(p)
     for _, gparts in sorted(groups.items()):
-        with subprocess.Popen(  # noqa: S603
-            ["cat", *map(str, sorted(gparts))],  # noqa: S607
-            stdout=subprocess.PIPE,
-        ) as cat, tarfile.open(fileobj=cat.stdout, mode="r|") as tar:
+        with (
+            subprocess.Popen(  # noqa: S603
+                ["cat", *map(str, sorted(gparts))],  # noqa: S607
+                stdout=subprocess.PIPE,
+            ) as cat,
+            tarfile.open(fileobj=cat.stdout, mode="r|") as tar,
+        ):
             tar.extractall(dest, filter="data")
             cat.wait()
     sentinel.touch()

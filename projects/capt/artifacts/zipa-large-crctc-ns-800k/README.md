@@ -1,8 +1,6 @@
-
 # ONNX Models for ZIPA
 
-This repository contains optimized ONNX models for the ZIPA speech recognition system.
-The models are exported from the original PyTorch checkpoints and support FP32, FP16, and INT8 precision.
+This repository contains optimized ONNX models for the ZIPA speech recognition system. The models are exported from the original PyTorch checkpoints and support FP32, FP16, and INT8 precision.
 
 ## Original Repository
 

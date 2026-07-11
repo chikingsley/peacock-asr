@@ -12,6 +12,7 @@ Pipeline: download -> enqueue -> segment -> labelq -> harvest -> merge -> ingest
 Run:   uv run --project packages/omni-curator packages/omni-curator/status.py
        uv run --project packages/omni-curator packages/omni-curator/status.py --output scratch/status.md
 """
+
 from __future__ import annotations
 
 import argparse
@@ -57,17 +58,37 @@ def scan(proj: Path) -> dict:
     videos, clips = _counts(qdb, "videos"), _counts(qdb, "clips")
     h = _q(qdb, "SELECT count(*) n FROM clips WHERE harvested_at IS NOT NULL")
     harvested = h[0]["n"] if h else 0
-    src = _q(cdb, "SELECT source, count(*) n, count(scribe_wer) scored, "
-                  "coalesce(sum(duration),0) dur FROM samples GROUP BY source")
-    sources = {r["source"]: dict(n=r["n"], scored=r["scored"], dur=r["dur"]) for r in src} if src else {}
+    src = _q(
+        cdb,
+        "SELECT source, count(*) n, count(scribe_wer) scored, "
+        "coalesce(sum(duration),0) dur FROM samples GROUP BY source",
+    )
+    sources = (
+        {r["source"]: dict(n=r["n"], scored=r["scored"], dur=r["dur"]) for r in src} if src else {}
+    )
     create = data / "create"
     channels = sum(1 for d in create.iterdir() if d.is_dir()) if create.exists() else 0
     ds = data / "datasets"
-    exports = sorted(d.name for d in ds.iterdir()
-                     if d.is_dir() and ((d / "export_summary.json").exists() or (d / "version=0").exists())) if ds.exists() else []
-    return dict(name=proj.name.replace("-asr", ""), videos=videos, clips=clips, harvested=harvested,
-                sources=sources, channels=channels, exports=exports,
-                has_q=qdb.exists(), has_c=cdb.exists())
+    exports = (
+        sorted(
+            d.name
+            for d in ds.iterdir()
+            if d.is_dir() and ((d / "export_summary.json").exists() or (d / "version=0").exists())
+        )
+        if ds.exists()
+        else []
+    )
+    return dict(
+        name=proj.name.replace("-asr", ""),
+        videos=videos,
+        clips=clips,
+        harvested=harvested,
+        sources=sources,
+        channels=channels,
+        exports=exports,
+        has_q=qdb.exists(),
+        has_c=cdb.exists(),
+    )
 
 
 def next_step(s: dict) -> str:
@@ -101,10 +122,12 @@ def next_step(s: dict) -> str:
 
 
 def render(rows: list[dict]) -> str:
-    L = [f"# omni-curator pipeline status   ({datetime.now():%Y-%m-%d %H:%M})",
-         "",
-         "pipeline: download → enqueue → segment → labelq(Scribe) → harvest → merge → ingest → verify → export",
-         ""]
+    L = [
+        f"# omni-curator pipeline status   ({datetime.now():%Y-%m-%d %H:%M})",
+        "",
+        "pipeline: download → enqueue → segment → labelq(Scribe) → harvest → merge → ingest → verify → export",
+        "",
+    ]
     for s in rows:
         v, c = s["videos"], s["clips"]
         total = sum(x["n"] for x in s["sources"].values())
@@ -122,12 +145,19 @@ def render(rows: list[dict]) -> str:
             L.append("  queue        : none (no YouTube pipeline staged)")
         if s["has_c"]:
             hrs = f"{hours:,.0f}h" if hours < 1_000_000 else "?h (corrupt durations)"
-            L.append(f"  curator      : {_k(total)} samples ({hrs})  scored={_k(scored)}/{_k(total)}")
+            L.append(
+                f"  curator      : {_k(total)} samples ({hrs})  scored={_k(scored)}/{_k(total)}"
+            )
             if yt:
-                L.append(f"     youtube   : {len(yt)} channels, {_k(sum(x['n'] for x in yt.values()))} samples")
+                L.append(
+                    f"     youtube   : {len(yt)} channels, {_k(sum(x['n'] for x in yt.values()))} samples"
+                )
             if ing:
                 top = sorted(ing.items(), key=lambda kv: -kv[1]["n"])[:5]
-                L.append(f"     datasets  : {len(ing)} sources — " + ", ".join(f"{k}={_k(x['n'])}" for k, x in top))
+                L.append(
+                    f"     datasets  : {len(ing)} sources — "
+                    + ", ".join(f"{k}={_k(x['n'])}" for k, x in top)
+                )
         else:
             L.append("  curator      : none")
         if s["exports"]:

@@ -28,8 +28,18 @@ def _seed_clips(qpath, n: int) -> None:
     q.complete_video(
         "chan_v000",
         [
-            QClip(f"chan_v000_{i:04d}", "chan_v000", "chan", i, f"/clips/{i:04d}.flac",
-                  i * 10.0, i * 10.0 + 5.0, "tgk_Cyrl", "Cyrillic", None)
+            QClip(
+                f"chan_v000_{i:04d}",
+                "chan_v000",
+                "chan",
+                i,
+                f"/clips/{i:04d}.flac",
+                i * 10.0,
+                i * 10.0 + 5.0,
+                "tgk_Cyrl",
+                "Cyrillic",
+                None,
+            )
             for i in range(n)
         ],
     )
@@ -67,9 +77,9 @@ def _status_error(code: int) -> httpx.HTTPStatusError:
 
 
 def test_is_retryable_httpx_status_codes():
-    assert _is_retryable(_status_error(503)) is True   # server error -> retry
-    assert _is_retryable(_status_error(429)) is True   # rate limit -> retry
-    assert _is_retryable(_status_error(408)) is True   # request timeout -> retry
+    assert _is_retryable(_status_error(503)) is True  # server error -> retry
+    assert _is_retryable(_status_error(429)) is True  # rate limit -> retry
+    assert _is_retryable(_status_error(408)) is True  # request timeout -> retry
     assert _is_retryable(_status_error(400)) is False  # bad request (bad clip) -> charge + retire
     assert _is_retryable(httpx.ConnectError("connect failed")) is True
 
@@ -89,22 +99,22 @@ def test_success_resets_pause_streak():
     """A success between pauses resets the streak; it then takes max_pauses again to abort."""
     b = _Breaker(50, max_pauses=2, base_backoff=0.0)
     with mock.patch("omni_curator.create.labelq.time.sleep"):
-        assert b.record(0, _errs(50), 0) is True   # pause 1
-        assert b.record(0, _errs(50), 0) is True   # pause 2
-        b.record(5, [], 5)                          # success -> resets the pause streak
-        assert b.record(0, _errs(50), 0) is True   # pause 1 again (would abort without the reset)
-        assert b.record(0, _errs(50), 0) is True   # pause 2 again
+        assert b.record(0, _errs(50), 0) is True  # pause 1
+        assert b.record(0, _errs(50), 0) is True  # pause 2
+        b.record(5, [], 5)  # success -> resets the pause streak
+        assert b.record(0, _errs(50), 0) is True  # pause 1 again (would abort without the reset)
+        assert b.record(0, _errs(50), 0) is True  # pause 2 again
         with pytest.raises(RuntimeError, match="consecutive failures"):
-            b.record(0, _errs(50), 0)               # only NOW aborts
+            b.record(0, _errs(50), 0)  # only NOW aborts
 
 
 def test_aborts_after_max_pauses():
     b = _Breaker(50, max_pauses=2, base_backoff=0.0)
     with mock.patch("omni_curator.create.labelq.time.sleep"):
-        assert b.record(0, _errs(50), 0) is True   # pause 1
-        assert b.record(0, _errs(50), 0) is True   # pause 2
+        assert b.record(0, _errs(50), 0) is True  # pause 1
+        assert b.record(0, _errs(50), 0) is True  # pause 2
         with pytest.raises(RuntimeError, match="consecutive failures"):
-            b.record(0, _errs(50), 0)               # 3rd trip with max_pauses=2 -> abort
+            b.record(0, _errs(50), 0)  # 3rd trip with max_pauses=2 -> abort
 
 
 def test_outage_releases_clips_instead_of_failing_them(tmp_path):
@@ -120,9 +130,11 @@ def test_outage_releases_clips_instead_of_failing_them(tmp_path):
     def outage(clip, *, langs, runs, instruction):
         raise RuntimeError("502 Bad Gateway")
 
-    with mock.patch("omni_curator.create.labelq._label_clip", outage), \
-         mock.patch("omni_curator.create.labelq.time.sleep"), \
-         pytest.raises(RuntimeError, match="aborted"):
+    with (
+        mock.patch("omni_curator.create.labelq._label_clip", outage),
+        mock.patch("omni_curator.create.labelq.time.sleep"),
+        pytest.raises(RuntimeError, match="aborted"),
+    ):
         run_labeler(qpath, workers=5, breaker_threshold=10, max_pauses=2)
 
     counts = _clip_counts(qpath)
@@ -140,9 +152,11 @@ def test_corrupt_clips_are_failed_not_released(tmp_path):
     def missing(clip, *, langs, runs, instruction):
         raise FileNotFoundError(f"Source file not found: {clip.clip_path}")
 
-    with mock.patch("omni_curator.create.labelq._label_clip", missing), \
-         mock.patch("omni_curator.create.labelq.time.sleep"), \
-         pytest.raises(RuntimeError, match="aborted"):
+    with (
+        mock.patch("omni_curator.create.labelq._label_clip", missing),
+        mock.patch("omni_curator.create.labelq.time.sleep"),
+        pytest.raises(RuntimeError, match="aborted"),
+    ):
         run_labeler(qpath, workers=5, breaker_threshold=10, max_pauses=2)
 
     counts = _clip_counts(qpath)

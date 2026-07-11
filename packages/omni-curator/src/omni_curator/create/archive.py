@@ -50,8 +50,7 @@ def _segmented_sources(queue_path: Path) -> list[tuple[str, str, str]]:
     conn.row_factory = sqlite3.Row
     try:
         rows = conn.execute(
-            "SELECT video_id, channel, path FROM videos "
-            "WHERE status='segmented' ORDER BY video_id"
+            "SELECT video_id, channel, path FROM videos WHERE status='segmented' ORDER BY video_id"
         ).fetchall()
     finally:
         conn.close()

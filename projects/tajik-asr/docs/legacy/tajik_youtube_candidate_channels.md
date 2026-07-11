@@ -64,10 +64,7 @@ Discovery date: 2026-05-30
 
 ## Topical Discovery (2026-05-30)
 
-Diverse-topic search pass (NOT in the lists above). One recent video per channel probed.
-**No channel had manual Tajik captions** (only `live_chat` artifacts); `auto-tg` = YouTube
-auto-captions exist (weak labels, not gold). **Language tags are unreliable for Tajik**
-(commonly `fa`/`ru`/`uz`/`tr`) — confirm by sampling audio before committing a channel.
+Diverse-topic search pass (NOT in the lists above). One recent video per channel probed. **No channel had manual Tajik captions** (only `live_chat` artifacts); `auto-tg` = YouTube auto-captions exist (weak labels, not gold). **Language tags are unreliable for Tajik** (commonly `fa`/`ru`/`uz`/`tr`) — confirm by sampling audio before committing a channel.
 
 ### Podcasts / interviews / long-form talk (most productive)
 
@@ -103,11 +100,8 @@ auto-captions exist (weak labels, not gold). **Language tags are unreliable for 
 
 ### Productive new queries
 
-`подкаст тоҷикӣ мусоҳиба` · `илм ва табиат тоҷикӣ` · `саломатии инсон тоҷикӣ` ·
-`тиҷорат ва пул кор кардан тоҷикӣ` · (moderate) `пухтупаз таомҳои тоҷикӣ`, `влоги ҳаррӯзаи ман тоҷикӣ`
+`подкаст тоҷикӣ мусоҳиба` · `илм ва табиат тоҷикӣ` · `саломатии инсон тоҷикӣ` · `тиҷорат ва пул кор кардан тоҷикӣ` · (moderate) `пухтупаз таомҳои тоҷикӣ`, `влоги ҳаррӯзаи ман тоҷикӣ`
 
 ### Low-yield topics
 
-Beauty/`ороиш` (sewing/hair, much non-Tajik), gaming, cars, travel (dominated by music
-videos + Russian vlogs). A few compound tech/religion queries returned empty — likely
-transient throttling, worth re-running.
+Beauty/`ороиш` (sewing/hair, much non-Tajik), gaming, cars, travel (dominated by music videos + Russian vlogs). A few compound tech/religion queries returned empty — likely transient throttling, worth re-running.

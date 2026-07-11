@@ -232,10 +232,7 @@ class Selection:
             or (self.languages is not None and sample.language not in self.languages)
         ):
             return False
-        if (
-            self.max_duration_seconds is not None
-            and sample.duration > self.max_duration_seconds
-        ):
+        if self.max_duration_seconds is not None and sample.duration > self.max_duration_seconds:
             return False
         if not self.gates(sample):
             return True  # held-out split: curation gates below don't apply
@@ -289,9 +286,7 @@ class Selection:
                 words_per_second > (self.max_words_per_second or 0.0),
             ),
         )
-        return next(
-            (reason for reason, active, failed in checks if active and failed), None
-        )
+        return next((reason for reason, active, failed in checks if active and failed), None)
 
 
 @dataclass
@@ -338,7 +333,7 @@ def partition_dir(version_root: Path, corpus: str, split: str, language: str) ->
         / f"corpus={_sanitize(corpus)}"
         / f"split={_sanitize(split)}"
         / f"language={_sanitize(language)}"
-        )
+    )
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -406,10 +401,7 @@ def _select(store: CuratorStore, selection: Selection) -> Iterator[Sample]:
     for sample in store.iter_samples():
         if not selection.keeps(sample):
             continue
-        if (
-            selection.max_per_source is not None
-            and seen[sample.source] >= selection.max_per_source
-        ):
+        if selection.max_per_source is not None and seen[sample.source] >= selection.max_per_source:
             continue
         seen[sample.source] += 1
         yield sample
@@ -472,9 +464,7 @@ def _group_filtered(
     return grouped
 
 
-def _chunked(
-    items: list[tuple[Sample, str]], n: int
-) -> Iterator[list[tuple[Sample, str]]]:
+def _chunked(items: list[tuple[Sample, str]], n: int) -> Iterator[list[tuple[Sample, str]]]:
     """Yield ``items`` in lists of at most ``n`` (the streaming batch boundary)."""
     batch: list[tuple[Sample, str]] = []
     for item in items:
@@ -582,9 +572,7 @@ def write_language_distribution(version_root: Path, out_path: Path) -> Path:
     return out_path
 
 
-def write_weighted_distribution(
-    true_tsv: Path, out_path: Path, weights: dict[str, float]
-) -> Path:
+def write_weighted_distribution(true_tsv: Path, out_path: Path, weights: dict[str, float]) -> Path:
     """Write a SAMPLING-WEIGHT copy of the mixture TSV with per-corpus hour overrides.
 
     fairseq2's mixture reader weights each corpus by the TSV hours (tempered by
@@ -627,16 +615,13 @@ def _normalize_and_filter(
         # Language gate (the ONLY content-language filter): drop clips whose text isn't the target
         # language — e.g. a Russian segment from a Tajik source. The store keeps every clip (Scribe
         # auto-detect transcribes each in its own language); this is where we select the target.
-        if (
-            selection.applies_language_gate(sample)
-            and not keep_for_language(norm_text, sample.language)
+        if selection.applies_language_gate(sample) and not keep_for_language(
+            norm_text, sample.language
         ):
             dropped["language"] += 1
             continue
         reason = (
-            selection.keeps_quality(norm_text, sample.duration)
-            if selection.gates(sample)
-            else None
+            selection.keeps_quality(norm_text, sample.duration) if selection.gates(sample) else None
         )
         if reason is not None:
             dropped[reason] += 1
@@ -742,8 +727,11 @@ def export_dataset(
             continue
         out_dir = partition_dir(version_root, corpus, split, language)
         rows, hours, skipped = _write_partition(
-            samples, out_dir, row_group_size=row_group_size,
-            license_str=license_info.id, commercial=license_info.commercial_use,
+            samples,
+            out_dir,
+            row_group_size=row_group_size,
+            license_str=license_info.id,
+            commercial=license_info.commercial_use,
         )
         stats.rows += rows
         stats.skipped_missing_audio += skipped

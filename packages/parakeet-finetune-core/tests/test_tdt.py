@@ -6,14 +6,19 @@ import types
 from types import SimpleNamespace
 from typing import Any
 
+from parakeet_finetune_core.project import ParakeetProject
 from parakeet_finetune_core.tdt import (
     JsonlTrainLogger,
     JsonlValLogger,
     apply_loss_init_fix,
+    build_parser,
+    configure_aux_ctc_weight,
     configure_fused_tdt_loss,
+    configure_spec_augmentation,
     enable_eval_loss,
     export_training_artifacts,
     freeze_encoder,
+    spec_augment_config,
     train_ds,
     val_ds,
     validation_checkpoint_config,
@@ -119,6 +124,45 @@ def test_enable_eval_loss_updates_runtime_flag_and_model_cfg():
     assert model.cfg["compute_eval_loss"] is True
 
 
+def test_configure_aux_ctc_weight_updates_runtime_flag_and_model_cfg():
+    model = FakeModel(FakeJoint())
+    model.ctc_loss_weight = 0.3
+
+    configured = configure_aux_ctc_weight(model, 0.1)
+
+    assert configured == 0.1
+    assert model.ctc_loss_weight == 0.1
+    assert model.cfg["aux_ctc"]["ctc_loss_weight"] == 0.1
+
+
+def test_spec_augment_profiles_have_controlled_mask_counts():
+    assert spec_augment_config("off") is None
+    assert spec_augment_config("half")["freq_masks"] == 1
+    assert spec_augment_config("half")["time_masks"] == 5
+    assert spec_augment_config("current")["freq_masks"] == 2
+    assert spec_augment_config("current")["time_masks"] == 10
+
+
+def test_configure_spec_augmentation_updates_forward_path_and_model_cfg():
+    model = FakeModel(FakeJoint())
+
+    class FakeModuleFactory:
+        @staticmethod
+        def from_config_dict(config):
+            return ("configured", config)
+
+    configure_spec_augmentation(model, "half", FakeModuleFactory)
+
+    assert model.spec_augmentation[0] == "configured"
+    assert model.spec_augmentation[1]["time_masks"] == 5
+    assert model.cfg["spec_augment"]["freq_masks"] == 1
+
+    configure_spec_augmentation(model, "off", FakeModuleFactory)
+
+    assert model.spec_augmentation is None
+    assert model.cfg["spec_augment"] is None
+
+
 class FakeParameter:
     def __init__(self, size):
         self.size = size
@@ -180,16 +224,32 @@ def test_freeze_encoder_can_unfreeze_only_top_layers():
 
 
 def test_tdt_dataset_configs_use_lhotse_train_and_plain_validation(tmp_path):
-    train_config = train_ds(tmp_path / "train.jsonl", max_dur=30.0, batch_dur=120.0, num_workers=8)
+    train_config = train_ds(
+        tmp_path / "train.jsonl",
+        max_dur=30.0,
+        batch_dur=120.0,
+        num_workers=8,
+        seed=17,
+    )
     validation_config = val_ds(tmp_path / "dev.jsonl", max_dur=25.0, num_workers=2)
 
     assert train_config["use_lhotse"] is True
     assert train_config["batch_duration"] == 120.0
     assert train_config["batch_size"] is None
     assert train_config["num_workers"] == 8
+    assert train_config["seed"] == 17
+    assert train_config["shard_seed"] == 17
     assert validation_config["batch_size"] == 2
     assert validation_config["num_workers"] == 2
     assert validation_config["max_duration"] == 25.0
+
+
+def test_tdt_parser_exposes_gradient_accumulation(tmp_path):
+    project = ParakeetProject(name="farsi", language="fas_Arab", root=tmp_path)
+
+    args = build_parser(project).parse_args(["--accumulate-grad-batches", "2"])
+
+    assert args.accumulate_grad_batches == 2
 
 
 def test_validation_checkpoint_monitors_eval_loss(tmp_path):
@@ -255,8 +315,11 @@ def test_jsonl_train_logger_writes_rounded_loss_and_lr(tmp_path):
     )
 
     logger.on_train_batch_end(trainer, None)
+    logger.on_train_batch_end(trainer, None)
 
-    record = json.loads(log_path.read_text(encoding="utf-8"))
+    records = log_path.read_text(encoding="utf-8").splitlines()
+    assert len(records) == 1
+    record = json.loads(records[0])
     assert record["step"] == 5
     assert record["loss"] == 12.3457
     assert record["lr"] == 0.00012346

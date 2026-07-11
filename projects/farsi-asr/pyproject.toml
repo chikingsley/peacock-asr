@@ -5,6 +5,7 @@ description = "Farsi (Iranian Persian) ASR dataset curation, Omnilingual fine-tu
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+  "asr-benchmark-core",
   "datasets[audio]==4.8.5",
   "fairseq2[arrow]==0.8.1",
   "huggingface-hub==0.36.2",
@@ -35,6 +36,7 @@ dependencies = [
 ]
 
 [tool.uv.sources]
+asr-benchmark-core = { path = "../../packages/asr-benchmark-core", editable = true }
 omni-curator = { path = "../../packages/omni-curator", editable = true }
 omni-finetune-core = { path = "../../packages/omni-finetune-core", editable = true }
 omnilingual-asr = { path = "../../../omnilingual-asr", editable = true }
@@ -61,12 +63,16 @@ farsi-curate = "farsi_asr.curate:main"
 farsi-omni-train = "farsi_asr.omni.train:main"
 farsi-omni-eval = "farsi_asr.omni.eval:main"
 farsi-omni-eval-lm = "farsi_asr.omni.lm_eval:main"
+# Score any shared cross-model SQLite run with the canonical Persian normalizer.
+farsi-benchmark-score = "farsi_asr.benchmark:main"
+farsi-vad-yield = "farsi_asr.vad_yield:main"
 # parakeet family
 farsi-parakeet-train-tokenizer = "farsi_asr.parakeet.train:train_tokenizer"
 farsi-parakeet-train-ctc = "farsi_asr.parakeet.train:train_ctc"
 farsi-parakeet-train-tdt = "farsi_asr.parakeet.train:train_tdt"
 farsi-parakeet-train-nemo = "farsi_asr.parakeet.train:train_nemo_recipe"
 farsi-parakeet-eval = "farsi_asr.parakeet.eval:evaluate"
+farsi-parakeet-build-ngram-lm = "farsi_asr.parakeet.train:build_ngram_lm"
 
 [tool.ruff]
 line-length = 100

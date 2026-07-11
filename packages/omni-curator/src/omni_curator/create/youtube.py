@@ -171,25 +171,37 @@ _LANE_DENO = "/usr/bin/deno"
 def _ytdlp_yt_args() -> list[str]:
     """The deno-bundled yt-dlp flags (no program prefix), for the in-container invocation."""
     return [
-        "--remote-components", "ejs:github",
-        "--js-runtimes", f"deno:{_LANE_DENO}",
+        "--remote-components",
+        "ejs:github",
+        "--js-runtimes",
+        f"deno:{_LANE_DENO}",
     ]
 
 
 def _ytdlp_base() -> list[str]:
     deno = shutil.which("deno") or str(Path.home() / ".deno" / "bin" / "deno")
     return [
-        sys.executable, "-m", "yt_dlp",
-        "--remote-components", "ejs:github",
-        "--js-runtimes", f"deno:{deno}",
+        sys.executable,
+        "-m",
+        "yt_dlp",
+        "--remote-components",
+        "ejs:github",
+        "--js-runtimes",
+        f"deno:{deno}",
     ]
 
 
 #: yt-dlp args that turn the best audio stream into a 16 kHz mono FLAC (shared by both downloaders).
 _AUDIO_TO_16K_FLAC = [
-    "-f", "ba/bestaudio",
-    "--extract-audio", "--audio-format", "flac", "--audio-quality", "0",
-    "--postprocessor-args", "ffmpeg:-ar 16000 -ac 1",
+    "-f",
+    "ba/bestaudio",
+    "--extract-audio",
+    "--audio-format",
+    "flac",
+    "--audio-quality",
+    "0",
+    "--postprocessor-args",
+    "ffmpeg:-ar 16000 -ac 1",
 ]
 
 
@@ -326,11 +338,16 @@ def _lane_docker_prefix(lane: str, out_dir: Path, cookies: Path | None) -> list[
     """
     real_out = out_dir.resolve()
     prefix = [
-        "docker", "run", "--rm",
+        "docker",
+        "run",
+        "--rm",
         f"--network=container:{lane}",
-        "--user", f"{os.getuid()}:{os.getgid()}",
-        "-e", f"HOME={real_out}",
-        "-v", f"{real_out}:{real_out}",
+        "--user",
+        f"{os.getuid()}:{os.getgid()}",
+        "-e",
+        f"HOME={real_out}",
+        "-v",
+        f"{real_out}:{real_out}",
     ]
     if cookies is not None:
         real_cookies = cookies.resolve()
@@ -393,22 +410,29 @@ def download_channel(
     # data dir is a symlink into /mnt/tiny-2t), so build the file-path flags against those. A host
     # run uses the paths as given — behaviorally identical, since the symlink resolves locally.
     flag_dir = out_dir.resolve() if lane is not None else out_dir
-    flag_cookies = (
-        cookies.resolve() if (lane is not None and cookies is not None) else cookies
-    )
+    flag_cookies = cookies.resolve() if (lane is not None and cookies is not None) else cookies
     # yt-dlp flags, identical for host and lane runs; only the *program prefix* differs.
     yt_flags = [
-        "--download-archive", str(flag_dir / "downloaded.txt"),
+        "--download-archive",
+        str(flag_dir / "downloaded.txt"),
         "--lazy-playlist",  # download as the channel is listed, not after — files land immediately
         "--ignore-errors",
         "--write-info-json",
         # Throttle so YouTube doesn't rate-limit / bot-block us — the two official sleep knobs:
         # --sleep-requests delays metadata extraction, --sleep-interval/--max delays each download.
-        "--sleep-requests", str(sleep),
-        "--sleep-interval", str(sleep), "--max-sleep-interval", str(round(sleep * 3, 1)),
-        "--retries", "10", "--extractor-retries", "5",
+        "--sleep-requests",
+        str(sleep),
+        "--sleep-interval",
+        str(sleep),
+        "--max-sleep-interval",
+        str(round(sleep * 3, 1)),
+        "--retries",
+        "10",
+        "--extractor-retries",
+        "5",
         *_AUDIO_TO_16K_FLAC,
-        "-o", str(flag_dir / "%(id)s.%(ext)s"),
+        "-o",
+        str(flag_dir / "%(id)s.%(ext)s"),
     ]
     if flag_cookies is not None:
         yt_flags += ["--cookies", str(flag_cookies)]
@@ -460,10 +484,16 @@ def refresh_cookies_from_browser(profile_dir: Path, out_path: Path) -> int:
     """
     out_path.parent.mkdir(parents=True, exist_ok=True)
     cmd = [
-        sys.executable, "-m", "yt_dlp",
-        "--cookies-from-browser", f"chrome:{profile_dir}",
-        "--cookies", str(out_path),
-        "--skip-download", "--no-warnings", "--quiet",
+        sys.executable,
+        "-m",
+        "yt_dlp",
+        "--cookies-from-browser",
+        f"chrome:{profile_dir}",
+        "--cookies",
+        str(out_path),
+        "--skip-download",
+        "--no-warnings",
+        "--quiet",
         "https://www.youtube.com/watch?v=jNQXAC9IVRw",  # any stable public video works
     ]
     subprocess.run(cmd, check=False)  # noqa: S603 — fixed argv, no shell
@@ -471,7 +501,8 @@ def refresh_cookies_from_browser(profile_dir: Path, out_path: Path) -> int:
         msg = f"yt-dlp wrote no cookie file at {out_path}"
         raise RuntimeError(msg)
     count = sum(
-        1 for line in out_path.read_text(encoding="utf-8").splitlines()
+        1
+        for line in out_path.read_text(encoding="utf-8").splitlines()
         if "youtube.com" in line and not line.startswith("#")
     )
     if count == 0:

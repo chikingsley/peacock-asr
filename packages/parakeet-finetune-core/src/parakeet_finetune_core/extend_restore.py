@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import torch
+import torch  # ty: ignore[unresolved-import]
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

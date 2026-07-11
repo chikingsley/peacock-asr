@@ -19,11 +19,10 @@ Our dataset implementation supports flexible combinations of storage and task ba
 
 - Mixture parquet backend - [`MixtureParquetStorage`](/src/omnilingual_asr/datasets/storage/mixture_parquet_storage.py)
 - Manifest-based backend - [`ManifestStorage`](/src/omnilingual_asr/datasets/storage/manifest_storage.py)
-- SSL task  - [`SslTask`](/src/omnilingual_asr/datasets/tasks/ssl_task.py)
-- ASR task  - [`AsrTask`](/src/omnilingual_asr/datasets/tasks/asr_task.py)
+- SSL task - [`SslTask`](/src/omnilingual_asr/datasets/tasks/ssl_task.py)
+- ASR task - [`AsrTask`](/src/omnilingual_asr/datasets/tasks/asr_task.py)
 
-The SSL task returns a `SequenceBatch` (audio-only) rather than `Seq2SeqBatch` (audio + text), making integration non-trivial but kept here as a reference.
-We also include the manifest-based storage implementation as an alternative to parquet; the codebase includes comprehensive comments to guide implementation.
+The SSL task returns a `SequenceBatch` (audio-only) rather than `Seq2SeqBatch` (audio + text), making integration non-trivial but kept here as a reference. We also include the manifest-based storage implementation as an alternative to parquet; the codebase includes comprehensive comments to guide implementation.
 
 ### Usage
 

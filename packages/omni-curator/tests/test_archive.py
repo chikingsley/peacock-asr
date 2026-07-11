@@ -16,8 +16,18 @@ def _video(create: Path, vid: str, channel: str = "chan") -> QVideo:
 
 
 def _clip(vid: str) -> QClip:
-    return QClip(f"{vid}_0000", vid, "chan", 0, f"/clips/{vid}/0.flac",
-                 0.0, 5.0, "tgk_Cyrl", "Cyrillic", None)
+    return QClip(
+        f"{vid}_0000",
+        vid,
+        "chan",
+        0,
+        f"/clips/{vid}/0.flac",
+        0.0,
+        5.0,
+        "tgk_Cyrl",
+        "Cyrillic",
+        None,
+    )
 
 
 def _seed_segmented(queue: QueueStore, create: Path, vids: list[str]) -> None:
@@ -46,8 +56,7 @@ def test_archive_moves_segmented_sources(tmp_path):
         assert moved.exists()
         assert moved.read_bytes() == _FLAC  # content intact
     manifest = [
-        json.loads(line)
-        for line in (archive / "archive_manifest.jsonl").read_text().splitlines()
+        json.loads(line) for line in (archive / "archive_manifest.jsonl").read_text().splitlines()
     ]
     assert {m["video_id"] for m in manifest} == {"v0", "v1", "v2"}
     assert all(m["action"] == "move" for m in manifest)

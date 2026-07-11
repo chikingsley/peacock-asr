@@ -200,11 +200,16 @@ def stage_argv(
     if stage == "segment":
         return [
             *base,
-            "--clips-root", str(project.clips_root),
-            "--gpu-procs", str(settings.segment_gpu_procs),
-            "--cpu-procs", str(settings.segment_cpu_procs),
-            "--hwm", str(settings.pending_hwm),
-            "--min-free-gb", str(settings.min_free_gb),
+            "--clips-root",
+            str(project.clips_root),
+            "--gpu-procs",
+            str(settings.segment_gpu_procs),
+            "--cpu-procs",
+            str(settings.segment_cpu_procs),
+            "--hwm",
+            str(settings.pending_hwm),
+            "--min-free-gb",
+            str(settings.min_free_gb),
         ]
     if stage == "labelq":
         return base  # window file (data/.scribe_window.labelq) is the balancer's knob; defaults OK
@@ -320,9 +325,7 @@ class Supervisor:
         self.log(f"LAUNCH-FAILED {key}: child exited before acquiring lock (will retry)")
         return False
 
-    def _await_lock(
-        self, project: Project, stage: str, proc: subprocess.Popen[bytes]
-    ) -> bool:
+    def _await_lock(self, project: Project, stage: str, proc: subprocess.Popen[bytes]) -> bool:
         """Poll until the child holds its lock (success) or dies first (failure), with a timeout."""
         lock = flock.lock_path(project.data_dir, stage)
         deadline = time.monotonic() + LAUNCH_HANDSHAKE_TIMEOUT_S

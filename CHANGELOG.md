@@ -1,36 +1,27 @@
 # CHANGELOG — peacock-asr
 
-Historical record of completed work, terse. Active work is in `TODO.md`; generated pipeline state
-comes from `packages/omni-curator/status.py`; root `STATUS.md` is ignored and not canonical.
+Historical record of completed work, terse. Active work is in `TODO.md`; generated pipeline state comes from `packages/omni-curator/status.py`; root `STATUS.md` is ignored and not canonical.
 
 ## MOSS MLX conversion
 
-- Created `projects/moss-mlx-conversion`: pinned MOSS Transcribe 2B, captured PyTorch BF16
-  reference/parity artifacts, converted all 838 BF16 tensors to MLX layout, verified Apple Silicon
-  smoke parity, and added streamed LibriSpeech clean-test eval (20 rows: 1.58% WER, 0.65 RTF).
+- Created `projects/moss-mlx-conversion`: pinned MOSS Transcribe 2B, captured PyTorch BF16 reference/parity artifacts, converted all 838 BF16 tensors to MLX layout, verified Apple Silicon smoke parity, and added streamed LibriSpeech clean-test eval (20 rows: 1.58% WER, 0.65 RTF).
+
+## Farsi VAD
+
+- Promoted Silero 6.2.1 ONNX CPU at threshold 0.5 with the shared `conservative-v1` postprocessor after a 160-item human review (102-58 over MarbleNet) and a source-balanced local-ASR yield gate. The yield gate sampled 160 full clips per engine across all 32 sources and ran fine-tuned Omni CTC 300M plus C1Tech Whisper Base: 640 predictions, zero runtime errors, 100% Persian-script letter rate, and three Omni empties confined to 0.316-0.668-second Silero fragments that C1Tech transcribed. The separate bounded pipeline carry-through remains active work.
+
+## Farsi data quality
+
+- Added the shared additive `omni-quality` CLI for deterministic bounded sampling, NeMo-SDP-style beginning/end ASR mismatch scoring, and version-matched NeMo Forced Aligner execution/import. Every output preserves the source row and records raw signals; the command never deletes samples or silently installs a filter threshold.
+- Proved the complete path on a seed-20260711 sample of 160 rows from the 74,752-row matched-audio training manifest. The promoted 0.6B TDT draft recognizer scored 24.71% WER / 11.68% CER at 298.5× RTFx; the exact published Persian Parakeet CTC revision aligned all 160 rows with median leading/trailing margins of 0.320/0.474 seconds after 29 labels were normalized onto its text surface. Ten rows had an ASR edge mismatch over 10 characters and nine of those also exceeded 35% WER, while none of the 18 low-alignment-span rows overlapped the edge set, supporting a multi-signal human audit rather than an immediate automatic reject rule.
+- Consolidated Farsi operator documentation to `README.md` plus `EXPERIMENTS.md`. Removed ten superseded plans, source-list drafts, per-run diaries, and decision notes plus the completed VAD review JSONL from the active tree after folding current VAD, normalization, source-registry, training, and quality-audit policies into the canonical files; Git history remains the archive.
 
 ## Tajik
 
-- Reproduced and extended the 110M Parakeet TDT result on 2026-07-09 with the promoted final
-  `.nemo` loaded intact: FLEURS test `19.03%` WER / `6.72%` CER (600), Common Voice dev `17.77%` /
-  `5.89%` (357), and the restored video-disjoint conversational test `33.85%` / `14.89%` (1,625;
-  two empty outputs). The <=30-second slice is `34.38%` / `15.10%` (1,559), so 30 seconds is a
-  training/operational profile rather than an accuracy-improving universal cap.
-- Live same-audio comparison confirmed Omni CTC 300M v3 at `37.65%` WER / `14.04%` CER. The 110M
-  TDT wins conversational WER by `3.80` absolute (`10.1%` relative) but loses CER by `0.85`, so the
-  next step is per-source/error analysis rather than immediate retraining. TDT warm-cache throughput
-  reached `684x` on FLEURS and `876x` on conversational audio; the first cold FLEURS pass was `216x`,
-  proving cold I/O and warm model throughput must be reported separately.
-- Restored the exact conversational test from `Peacockery/tajik-asr-corpus-v3` revision
-  `3b05a4bb89104c21643081250729595347d1188e`: 18 Parquet files (`702,784,427` bytes), 1,625 rows,
-  9.926 hours, all FLACs valid, no rows above 40 seconds. Added a repeatable
-  `tajik-parakeet-materialize-eval` CLI with deterministic audio hashes, manifest provenance, resume
-  checks, summary output, and tests.
-- Restored `Peacockery/omni-ctc-300m-tajik` revision
-  `cafa6e9fb394f7cef29caf79385feb96bcfc05ae` after its asset card pointed at a retired training-run
-  directory. `model.pt` is `1,304,101,361` bytes with SHA256
-  `18b3ef847ec56b7ea3c3a9fcddc4cf38b94392880c79cf35710b4ca23b01d6bb`; the live asset card now uses
-  the HF-restored project data path.
+- Reproduced and extended the 110M Parakeet TDT result on 2026-07-09 with the promoted final `.nemo` loaded intact: FLEURS test `19.03%` WER / `6.72%` CER (600), Common Voice dev `17.77%` / `5.89%` (357), and the restored video-disjoint conversational test `33.85%` / `14.89%` (1,625; two empty outputs). The \<=30-second slice is `34.38%` / `15.10%` (1,559), so 30 seconds is a training/operational profile rather than an accuracy-improving universal cap.
+- Live same-audio comparison confirmed Omni CTC 300M v3 at `37.65%` WER / `14.04%` CER. The 110M TDT wins conversational WER by `3.80` absolute (`10.1%` relative) but loses CER by `0.85`, so the next step is per-source/error analysis rather than immediate retraining. TDT warm-cache throughput reached `684x` on FLEURS and `876x` on conversational audio; the first cold FLEURS pass was `216x`, proving cold I/O and warm model throughput must be reported separately.
+- Restored the exact conversational test from `Peacockery/tajik-asr-corpus-v3` revision `3b05a4bb89104c21643081250729595347d1188e`: 18 Parquet files (`702,784,427` bytes), 1,625 rows, 9.926 hours, all FLACs valid, no rows above 40 seconds. Added a repeatable `tajik-parakeet-materialize-eval` CLI with deterministic audio hashes, manifest provenance, resume checks, summary output, and tests.
+- Restored `Peacockery/omni-ctc-300m-tajik` revision `cafa6e9fb394f7cef29caf79385feb96bcfc05ae` after its asset card pointed at a retired training-run directory. `model.pt` is `1,304,101,361` bytes with SHA256 `18b3ef847ec56b7ea3c3a9fcddc4cf38b94392880c79cf35710b4ca23b01d6bb`; the live asset card now uses the HF-restored project data path.
 - v2 trained + eval: best step_19500, FLEURS test WER 17.17 (base 19.74, v0 17.34). Recorded in EXPERIMENTS.md.
 - Conversational test set + v3 — the data lever proven. Held-out 157 whole videos (frozen manifest, leakage-safe carve). Conversational held-out (1,625 clips): v0 49.89 → v3 37.65 WER (−12.2 pts / −24.5% rel from 1,070h); v3 (37.65) ≈ v2-contaminated (37.40) so it's real generalization. Shipping model `omni_ctc_300m_v2_tajik_v3_step_20000`. KenLM fusion proven (−16% rel, α=0.5/β=0).
 - Export v2: WER ≤ 0.35 + descriptor-junk filter + language gate; 0 unk.
@@ -42,19 +33,10 @@ comes from `packages/omni-curator/status.py`; root `STATUS.md` is ignored and no
 
 ## Verify / scoring
 
-- The generic Parakeet NeMo CTC wrapper now inspects `model_config.yaml` inside local `.nemo`
-  archives and accepts only pure CTC model classes. A custom-named RNNT/TDT archive can no longer
-  bypass the dedicated transducer recipe by claiming `--model-kind ctc`; local CTC archives use
-  NeMo's `init_from_nemo_model` path and remote IDs use an explicit NVIDIA Parakeet CTC allowlist.
-- Parakeet evaluation safety: promoted `.nemo` models no longer run `change_vocabulary()` during
-  evaluation; base-plus-checkpoint reconstruction requires explicit `--replace-tokenizer` and an
-  exact state-dict match. The evaluator now records raw/normalized WER and CER, empty outputs,
-  timed RTFx, warm-up count, peak CUDA allocation, predictions, and a JSON summary.
-- Parakeet training safety: the generic NeMo wrapper is CTC-only and refuses TDT/RNNT models;
-  dedicated TDT runs enforce the loss repair, eval loss, and `val_loss` selection. Training now saves
-  distinct last-step `_final.nemo` and best-validation `_best-valloss.nemo` artifacts.
-- Omni evaluation accepts materialized JSONL manifests, avoiding the four-minute / multi-GB Python
-  expansion of embedded Parquet audio lists observed on the Tajik conversational benchmark.
+- The generic Parakeet NeMo CTC wrapper now inspects `model_config.yaml` inside local `.nemo` archives and accepts only pure CTC model classes. A custom-named RNNT/TDT archive can no longer bypass the dedicated transducer recipe by claiming `--model-kind ctc`; local CTC archives use NeMo's `init_from_nemo_model` path and remote IDs use an explicit NVIDIA Parakeet CTC allowlist.
+- Parakeet evaluation safety: promoted `.nemo` models no longer run `change_vocabulary()` during evaluation; base-plus-checkpoint reconstruction requires explicit `--replace-tokenizer` and an exact state-dict match. The evaluator now records raw/normalized WER and CER, empty outputs, timed RTFx, warm-up count, peak CUDA allocation, predictions, and a JSON summary.
+- Parakeet training safety: the generic NeMo wrapper is CTC-only and refuses TDT/RNNT models; dedicated TDT runs enforce the loss repair, eval loss, and `val_loss` selection. Training now saves distinct last-step `_final.nemo` and best-validation `_best-valloss.nemo` artifacts.
+- Omni evaluation accepts materialized JSONL manifests, avoiding the four-minute / multi-GB Python expansion of embedded Parquet audio lists observed on the Tajik conversational benchmark.
 - Script-aware verify scoring (Sonnet transliteration won the bake-off; hypothesis-only prompt) + `rescore` CLI.
 - Full verify + 150k-row rescore — every scoreable row has an honest score.
 - Dev split: FLEURS dev/test are the benchmarks (gates train-only by design — `Selection.gated_splits`).
@@ -78,128 +60,43 @@ comes from `packages/omni-curator/status.py`; root `STATUS.md` is ignored and no
 
 ## Curator package (this session)
 
-- Multi-VAD production boundary landed: Cobra 3.0.3/engine 3.0.0, Silero 6.2.1, and the exact
-  MarbleNet v2 SHA256 `84bda37e...` consume the same decoded 16 kHz mono array and emit native
-  intervals into one versioned sanitize/pad/merge/filter/hard-split postprocessor. Segment decoding
-  is single-pass, failures are fail-closed (no engine/model fallback), and every clip carries the
-  exact runtime/model revision plus an effective policy hash through harvest/export metadata.
-- Added the isolated manifest-bounded `vad-pilot` surface and the duration-matched Farsi selector:
-  16 clean Avas audiobook + 16 noisy Iran International sources, 3.209 hours per tier (0.03%
-  duration difference). The 2026-07-09 live all-engine run wrote 16,852 clips / 1.05 GB under
-  `/mnt/workerssd-2t/peacock-asr/pilots/farsi-vad-2026-07-09` without opening the production queue.
-- Farsi shared-policy measurements: Cobra coverage was 66.76% clean / 83.98% noisy (4,185 / 4,292
-  clips, 646x / 635x explicit-CPU inference RTFx); Silero 73.54% / 91.51% (3,530 / 2,237,
-  236x / 236x); MarbleNet v2 76.59% / 93.62% (1,750 / 858, 688x / 678x). All 32 sources emitted
-  speech and no interval exceeded 30 seconds. Historical Scribe-positive noisy spans gave gross time-coverage
-  anchors of 87.46% Cobra, 94.87% Silero, and 97.14% MarbleNet, but remain old-MarbleNet-biased
-  pseudo-references rather than ground truth. The corrected report with explicit devices, native
-  options, dependency/model hashes, and manifest/implementation hashes is under the sibling
-  `farsi-vad-2026-07-09-v2` scratch directory; all 96 raw/emitted interval arrays exactly match the
-  retained-clip run.
-- The pilot's 60 balanced Scribe calls all returned HTTP 502, as did the service `/health` endpoint
-  and a direct source-path probe. ASR yield remains explicitly unresolved rather than being reported
-  as empty output; future all-failed Scribe pilot runs exit non-zero.
-- Added the blinded `omni-vad-review` human gate with deterministic source/duration-balanced
-  disagreement sampling, repeated isolated-region audio, optional tone-marked context, autoplay
-  keyboard review, SQLite resume/revise state, and JSON/CSV export. The prepared Farsi set has 160
-  unique items across all 32 pilot sources, exactly 40 per MarbleNet-only/Silero-only and clean/noisy
-  cell; Cobra was excluded after the measured common profile and its near-empty one-sided
-  disagreement supply failed the gate.
-- Audited and removed abandoned pre-reset clip output: 4,227 FLAC/temp files (~2.8 GB) plus all
-  empty descendants from Dari, Farsi, Georgian, and Tajik `data/clips`. Current queues, active and
-  premigration stores, manifests, and training artifacts had zero exact references; all 128 source
-  recordings remained locally or archive-resolvable. The four clip root directories were preserved.
+- Multi-VAD production boundary landed: Cobra 3.0.3/engine 3.0.0, Silero 6.2.1, and the exact MarbleNet v2 SHA256 `84bda37e...` consume the same decoded 16 kHz mono array and emit native intervals into one versioned sanitize/pad/merge/filter/hard-split postprocessor. Segment decoding is single-pass, failures are fail-closed (no engine/model fallback), and every clip carries the exact runtime/model revision plus an effective policy hash through harvest/export metadata.
+- Added the isolated manifest-bounded `vad-pilot` surface and the duration-matched Farsi selector: 16 clean Avas audiobook + 16 noisy Iran International sources, 3.209 hours per tier (0.03% duration difference). The 2026-07-09 live all-engine run wrote 16,852 clips / 1.05 GB under `/mnt/workerssd-2t/peacock-asr/pilots/farsi-vad-2026-07-09` without opening the production queue.
+- Farsi shared-policy measurements: Cobra coverage was 66.76% clean / 83.98% noisy (4,185 / 4,292 clips, 646x / 635x explicit-CPU inference RTFx); Silero 73.54% / 91.51% (3,530 / 2,237, 236x / 236x); MarbleNet v2 76.59% / 93.62% (1,750 / 858, 688x / 678x). All 32 sources emitted speech and no interval exceeded 30 seconds. Historical Scribe-positive noisy spans gave gross time-coverage anchors of 87.46% Cobra, 94.87% Silero, and 97.14% MarbleNet, but remain old-MarbleNet-biased pseudo-references rather than ground truth. The corrected report with explicit devices, native options, dependency/model hashes, and manifest/implementation hashes is under the sibling `farsi-vad-2026-07-09-v2` scratch directory; all 96 raw/emitted interval arrays exactly match the retained-clip run.
+- The pilot's 60 balanced Scribe calls all returned HTTP 502, as did the service `/health` endpoint and a direct source-path probe. ASR yield remains explicitly unresolved rather than being reported as empty output; future all-failed Scribe pilot runs exit non-zero.
+- Added the blinded `omni-vad-review` human gate with deterministic source/duration-balanced disagreement sampling, repeated isolated-region audio, optional tone-marked context, autoplay keyboard review, SQLite resume/revise state, and JSON/CSV export. The prepared Farsi set has 160 unique items across all 32 pilot sources, exactly 40 per MarbleNet-only/Silero-only and clean/noisy cell; Cobra was excluded after the measured common profile and its near-empty one-sided disagreement supply failed the gate.
+- Completed the Farsi human gate: all 160 regions were judged with zero unsure votes. Silero beat MarbleNet 102-58 overall, 53-27 on clean/read, 49-31 on noisy/broadcast, and across every duration stratum. Farsi now defaults to Silero 6.2.1 ONNX at threshold 0.5 with `conservative-v1` and CPU workers, matching the reviewed backend instead of inheriting the global legacy-MarbleNet default.
+- Audited and removed abandoned pre-reset clip output: 4,227 FLAC/temp files (~2.8 GB) plus all empty descendants from Dari, Farsi, Georgian, and Tajik `data/clips`. Current queues, active and premigration stores, manifests, and training artifacts had zero exact references; all 128 source recordings remained locally or archive-resolvable. The four clip root directories were preserved.
 - Package reorg (`audit/` `data/` `scribe/`); dead-code/shim inventory (codex: zero stale refs).
 - Live Scribe concurrency control + cross-job balancer (`scribe/concurrency.py`, `scribe/balance.py`).
 - GPU/hybrid VAD + codex fixes (`vad.py` NVML `resolve_devices`; `segment.py` thread caps + worker-exit checks).
 - Dev tooling: ruff, ty, vulture, ai-slop-detector, dslop.
 - Verify hardened for the SuperWhisper async-API migration (rides silent-clip 200s).
 - Canonical curation/factory plan added at `packages/omni-curator/docs/CURATION_FACTORY.md`.
-- Curation/factory docs realigned: `CURATION_FACTORY.md` is the plan, `TODO.md` is active backlog,
-  and `CHANGELOG.md` is historical record.
-- Archive root consolidated on `/mnt/storage/peacock-asr-archive`: migrated 678 completed files
-  (`17.6G`) from `/mnt/storage/peacock-archive`, verified four stale partials still had source
-  FLACs under `/mnt/overflow/peacock-asr`, removed those partials, and removed the old root.
+- Curation/factory docs realigned: `CURATION_FACTORY.md` is the plan, `TODO.md` is active backlog, and `CHANGELOG.md` is historical record.
+- Archive root consolidated on `/mnt/storage/peacock-asr-archive`: migrated 678 completed files (`17.6G`) from `/mnt/storage/peacock-archive`, verified four stale partials still had source FLACs under `/mnt/overflow/peacock-asr`, removed those partials, and removed the old root.
 - Removed the accidental root `factory.log` relocation and deleted `/home/simon/logs/peacock-asr/`.
-- VAD hard-cap edge fixed: `split_window()` no longer has a tail-fold path that can exceed the
-  configured max duration.
-- `resegment` hardened to refuse active stage locks and existing per-channel stores unless the
-  operator explicitly overrides.
-- Deleted superseded curation docs: `packages/omni-curator/docs/factory_plan.md`,
-  `packages/omni-curator/docs/segment_throughput_plan.md`, `packages/omni-curator/CURATING.md`,
-  and `packages/omni-curator/docs/archive/PIPELINE_SPLIT.md`.
-- Removed deprecated curator/model shims: `segment --procs`, `ScribeError.generation`, and bare
-  `<lang>-train` / `<lang>-eval` script aliases from Tajik, Farsi, Dari, Georgian, and Russian
-  project pyprojects; current examples use explicit `*-omni-*` commands.
-- Collapsed `packages/omni-curator/QUALITY.md` into the canonical curation plan and updated
-  `docs/ASR_PROJECT_STANDARD.md` plus `docs/NEW_LANGUAGE.md` to the explicit `*-omni-*` command
-  surface.
-- Georgian source registry expanded from the 2026-06-13 research pass: wired the non-duplicate
-  channel entries into `projects/georgian-asr/src/georgian_asr/sources.py`, kept `@interpressnews`
-  out after `yt-dlp` returned 404, and noted the duplicate audiobook channel.
-- HF state verified on 2026-06-25: `tajik-asr-youtube`, `tajik-asr-corpus-v3`,
-  `georgian-asr-corpus-v0`, `farsi-asr-corpus-v4`, `omni-ctc-300m-tajik`,
-  `omni-ctc-300m-farsi`, and `parakeet-ctc-109m-farsi` are public/ungated via the HF API.
-- Mechanical carry-overs closed: HF/FLEURS ingest defaults to non-streaming with an explicit
-  `streaming=` knob; `omni-bench-llm` and Farsi KenLM eval honor `--limit` without full-shard
-  parquet reads; `run_recipe()` restores `sys.argv` after `runpy`.
-- Factory P0/P1 implementation closed: removed the hard global segment cap, added per-project
-  resource blockers (pending clip HWM, min free GB, stage locks), claim-token staged clip
-  publication, flat TOML factory config with CLI overrides, and dry-run `RUN`/`HOLD`/`BALANCE`
-  status output. The factory CLI now logs to stdout only unless `--log-file` or config sets a path,
-  so it does not create repo-root `factory.log` by default.
-- Provenance/export contracts tightened: curator export now preserves row-level `metadata` JSON
-  after the training columns/license fields; source provenance and license policy have typed models;
-  language-gate bypass can be granted by trusted source or trusted provenance authority. Fine-tune
-  policy now has Pydantic contracts for recipe/head/metric/eval decisions, including CTC-vs-
-  transducer checkpoint metric validation and the Omni 40s eval cap.
-- YouTube source preflight/metadata added: `prescan` writes project-local `data/prescan.sqlite`,
-  channel registries carry `category`, downloads write yt-dlp info sidecars, and enqueue/segment/
-  harvest/export preserve `tier`, `category`, and bounded video metadata. Export now has an
-  opt-in `--youtube-stratified-splits` policy with a 17-genre taxonomy and deterministic,
-  category-stratified, whole-video dev/test assignment.
-- Queue metadata repair on 2026-06-30: added `<lang>-curate repair-metadata`, inferred registry
-  categories when source entries omit them, refreshed active Dari/Farsi/Georgian/Tajik queues, and
-  backfilled `meta.webpage_url`, `meta.channel_url`, `meta.tier`, and `meta.category` on every
-  active row. Russian was skipped because it has no active split-pipeline YouTube queue.
-- Storage tiering policy made explicit on the live mounts: `/mnt/tiny-2t` owns active
-  non-Russian project `data` symlinks and source caches, `/mnt/workerssd-2t` currently holds
-  Russian working audio plus any explicitly chosen scratch roots, `/mnt/massive-22t` is the cold
-  archive/release staging root, and non-ASR media mounts are excluded from ASR writes.
-- Root cleanup on 2026-06-30: removed stale `.prettierrc.json`, root `.python-version`,
-  root `STATUS.md`, retired `docs/hf-cards/uploader.py`, and historical research imports after
-  preserving the history in Git; aligned the live handoff docs around `TODO.md`,
-  `CHANGELOG.md`, `docs/data-state-audit-2026-06-28.md`, and `CURATION_FACTORY.md`.
-- Farsi archive merge on 2026-06-30: copied `267` legacy-only FLACs plus
-  `archive_manifest.jsonl` from `farsi/iran_international_legacy` into canonical
-  `farsi/iran_international`; promoted the `16` manifest-backed legacy variants for same-name
-  conflicts, preserved the previous canonical variants under
-  `/mnt/massive-22t/peacock-asr-archive/farsi/iran_international_conflicts_2026-06-30/current_variants_before_legacy_promotion`,
-  and verified all `430` common canonical/legacy FLAC names now match by decoded-audio MD5.
-- Farsi source inventory on 2026-06-30: enqueued the `444` completed local
-  `iran_international` FLACs that were present in `downloaded.txt` but absent from `queue.sqlite`;
-  renamed `@AvasBookClub` to registry slug `avas_book_club`, enqueued its `220` clean audiobook
-  FLACs, and repaired metadata for those rows. The currently downloaded Farsi local source set now
-  has `0` local unqueued FLACs.
-- Farsi Tiny2T source backfill on 2026-06-30: copied the `428` queue-recorded
-  `iran_international` project-create gaps (`8.92G`) from the canonical Massive archive back to
-  `/mnt/tiny-2t/peacock-asr/farsi-asr/data/create/iran_international`; post-copy check returned
-  `missing_after 0`.
-- Tajik missing-source recovery on 2026-06-30: materialized the `31` queue rows missing from both
-  local create paths and Massive archive fallback, re-downloaded them from their
-  `meta.webpage_url` values into the recorded `data/create` paths, and verified all `31` expected
-  FLACs now exist. Remaining Tajik local gaps are archive-backed.
-- Georgian research cleanup: removed the unresolved `@interpressnews` paste-block/risk entry after
-  live `yt-dlp` returned 404; it remains unwired.
-- Live checks on 2026-06-25: factory dry-run against Dari segment held correctly on real blockers
-  (`no pending/stale videos`; `426327` pending clips >= HWM `50000`), `nvidia-smi` showed no GPU
-  worker processes, no repo-root `factory.log`/`/home/simon/logs/peacock-asr`/old archive root
-  existed, and the canonical archive root had no `.partial` files.
-- Verification for this cleanup: `uv run --project packages/omni-curator --locked pytest
-  packages/omni-curator/tests` (`203 passed`), finetune-core tests (`14 passed`), curator Ruff,
-  finetune-core Ruff, Farsi smoke
-  tests/Ruff, touched language-project Ruff checks, live factory dry-run, `nvidia-smi`, storage
-  snapshot, archive-partial scan, and `git diff --check`.
+- VAD hard-cap edge fixed: `split_window()` no longer has a tail-fold path that can exceed the configured max duration.
+- `resegment` hardened to refuse active stage locks and existing per-channel stores unless the operator explicitly overrides.
+- Deleted superseded curation docs: `packages/omni-curator/docs/factory_plan.md`, `packages/omni-curator/docs/segment_throughput_plan.md`, `packages/omni-curator/CURATING.md`, and `packages/omni-curator/docs/archive/PIPELINE_SPLIT.md`.
+- Removed deprecated curator/model shims: `segment --procs`, `ScribeError.generation`, and bare `<lang>-train` / `<lang>-eval` script aliases from Tajik, Farsi, Dari, Georgian, and Russian project pyprojects; current examples use explicit `*-omni-*` commands.
+- Collapsed `packages/omni-curator/QUALITY.md` into the canonical curation plan and updated `docs/ASR_PROJECT_STANDARD.md` plus `docs/NEW_LANGUAGE.md` to the explicit `*-omni-*` command surface.
+- Georgian source registry expanded from the 2026-06-13 research pass: wired the non-duplicate channel entries into `projects/georgian-asr/src/georgian_asr/sources.py`, kept `@interpressnews` out after `yt-dlp` returned 404, and noted the duplicate audiobook channel.
+- HF state verified on 2026-06-25: `tajik-asr-youtube`, `tajik-asr-corpus-v3`, `georgian-asr-corpus-v0`, `farsi-asr-corpus-v4`, `omni-ctc-300m-tajik`, `omni-ctc-300m-farsi`, and `parakeet-ctc-109m-farsi` are public/ungated via the HF API.
+- Mechanical carry-overs closed: HF/FLEURS ingest defaults to non-streaming with an explicit `streaming=` knob; `omni-bench-llm` and Farsi KenLM eval honor `--limit` without full-shard parquet reads; `run_recipe()` restores `sys.argv` after `runpy`.
+- Factory P0/P1 implementation closed: removed the hard global segment cap, added per-project resource blockers (pending clip HWM, min free GB, stage locks), claim-token staged clip publication, flat TOML factory config with CLI overrides, and dry-run `RUN`/`HOLD`/`BALANCE` status output. The factory CLI now logs to stdout only unless `--log-file` or config sets a path, so it does not create repo-root `factory.log` by default.
+- Provenance/export contracts tightened: curator export now preserves row-level `metadata` JSON after the training columns/license fields; source provenance and license policy have typed models; language-gate bypass can be granted by trusted source or trusted provenance authority. Fine-tune policy now has Pydantic contracts for recipe/head/metric/eval decisions, including CTC-vs- transducer checkpoint metric validation and the Omni 40s eval cap.
+- YouTube source preflight/metadata added: `prescan` writes project-local `data/prescan.sqlite`, channel registries carry `category`, downloads write yt-dlp info sidecars, and enqueue/segment/ harvest/export preserve `tier`, `category`, and bounded video metadata. Export now has an opt-in `--youtube-stratified-splits` policy with a 17-genre taxonomy and deterministic, category-stratified, whole-video dev/test assignment.
+- Queue metadata repair on 2026-06-30: added `<lang>-curate repair-metadata`, inferred registry categories when source entries omit them, refreshed active Dari/Farsi/Georgian/Tajik queues, and backfilled `meta.webpage_url`, `meta.channel_url`, `meta.tier`, and `meta.category` on every active row. Russian was skipped because it has no active split-pipeline YouTube queue.
+- Storage tiering policy made explicit on the live mounts: `/mnt/tiny-2t` owns active non-Russian project `data` symlinks and source caches, `/mnt/workerssd-2t` currently holds Russian working audio plus any explicitly chosen scratch roots, `/mnt/massive-22t` is the cold archive/release staging root, and non-ASR media mounts are excluded from ASR writes.
+- Root cleanup on 2026-06-30: removed stale `.prettierrc.json`, root `.python-version`, root `STATUS.md`, retired `docs/hf-cards/uploader.py`, and historical research imports after preserving the history in Git; aligned the live handoff docs around `TODO.md`, `CHANGELOG.md`, `docs/data-state-audit-2026-06-28.md`, and `CURATION_FACTORY.md`.
+- Farsi archive merge on 2026-06-30: copied `267` legacy-only FLACs plus `archive_manifest.jsonl` from `farsi/iran_international_legacy` into canonical `farsi/iran_international`; promoted the `16` manifest-backed legacy variants for same-name conflicts, preserved the previous canonical variants under `/mnt/massive-22t/peacock-asr-archive/farsi/iran_international_conflicts_2026-06-30/current_variants_before_legacy_promotion`, and verified all `430` common canonical/legacy FLAC names now match by decoded-audio MD5.
+- Farsi source inventory on 2026-06-30: enqueued the `444` completed local `iran_international` FLACs that were present in `downloaded.txt` but absent from `queue.sqlite`; renamed `@AvasBookClub` to registry slug `avas_book_club`, enqueued its `220` clean audiobook FLACs, and repaired metadata for those rows. The currently downloaded Farsi local source set now has `0` local unqueued FLACs.
+- Farsi Tiny2T source backfill on 2026-06-30: copied the `428` queue-recorded `iran_international` project-create gaps (`8.92G`) from the canonical Massive archive back to `/mnt/tiny-2t/peacock-asr/farsi-asr/data/create/iran_international`; post-copy check returned `missing_after 0`.
+- Tajik missing-source recovery on 2026-06-30: materialized the `31` queue rows missing from both local create paths and Massive archive fallback, re-downloaded them from their `meta.webpage_url` values into the recorded `data/create` paths, and verified all `31` expected FLACs now exist. Remaining Tajik local gaps are archive-backed.
+- Georgian research cleanup: removed the unresolved `@interpressnews` paste-block/risk entry after live `yt-dlp` returned 404; it remains unwired.
+- Live checks on 2026-06-25: factory dry-run against Dari segment held correctly on real blockers (`no pending/stale videos`; `426327` pending clips >= HWM `50000`), `nvidia-smi` showed no GPU worker processes, no repo-root `factory.log`/`/home/simon/logs/peacock-asr`/old archive root existed, and the canonical archive root had no `.partial` files.
+- Verification for this cleanup: `uv run --project packages/omni-curator --locked pytest packages/omni-curator/tests` (`203 passed`), finetune-core tests (`14 passed`), curator Ruff, finetune-core Ruff, Farsi smoke tests/Ruff, touched language-project Ruff checks, live factory dry-run, `nvidia-smi`, storage snapshot, archive-partial scan, and `git diff --check`.
 
 ## Factory prereqs (completed before current plan)
 

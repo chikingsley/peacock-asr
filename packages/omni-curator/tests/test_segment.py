@@ -168,8 +168,13 @@ def test_process_decodes_once_reuses_audio_and_stamps_policy(tmp_path, monkeypat
 
     queue = FakeQueue()
     video = QVideo(
-        "video1", "channel", str(source), "clean", None,
-        claim_token=tmp_path.name, meta={"x": 1},
+        "video1",
+        "channel",
+        str(source),
+        "clean",
+        None,
+        claim_token=tmp_path.name,
+        meta={"x": 1},
     )
     policy = build_vad_policy(profile="conservative-v1")
 

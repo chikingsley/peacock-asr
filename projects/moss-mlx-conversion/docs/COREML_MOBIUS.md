@@ -1,12 +1,10 @@
 # MOSS CoreML / Mobius Track
 
-Status: private workbench. No public branch, PR, push, or Hugging Face upload is
-part of this track.
+Status: private workbench. No public branch, PR, push, or Hugging Face upload is part of this track.
 
 ## What Mobius Provides
 
-FluidInference `mobius` is useful as prior art and repo shape, not as a generic
-MOSS converter.
+FluidInference `mobius` is useful as prior art and repo shape, not as a generic MOSS converter.
 
 Relevant Mobius references:
 
@@ -17,30 +15,20 @@ Relevant Mobius references:
 
 The useful lessons are:
 
-- Split the model into host-manageable pieces rather than tracing the whole ASR
-  pipeline as one opaque graph.
-- Use a fixed or variable-length prefill graph for prompt/audio embeddings, then
-  a one-token decode graph for generation.
-- Treat host-managed KV cache as a useful bridge, but the real Mobius
-  production direction is CoreML State API KV cache so decoder calls do not
-  marshal tens of MiB of cache tensors through Swift every token.
-- Keep Qwen-family decoder and LM-head precision conservative until parity
-  proves lower precision is safe.
-- Profile compiled models with `coreml-cli`; successful `.mlpackage` conversion
-  is not enough.
+- Split the model into host-manageable pieces rather than tracing the whole ASR pipeline as one opaque graph.
+- Use a fixed or variable-length prefill graph for prompt/audio embeddings, then a one-token decode graph for generation.
+- Treat host-managed KV cache as a useful bridge, but the real Mobius production direction is CoreML State API KV cache so decoder calls do not marshal tens of MiB of cache tensors through Swift every token.
+- Keep Qwen-family decoder and LM-head precision conservative until parity proves lower precision is safe.
+- Profile compiled models with `coreml-cli`; successful `.mlpackage` conversion is not enough.
 
 ## What Is MOSS-Specific
 
 MOSS is not Cohere Transcribe and is not the same as Qwen3-ASR 0.6B.
 
-- MOSS is decoder-only Qwen3 text generation after audio embeddings are inserted
-  into the prompt.
-- The audio tower is `qwen3_omni_moe_audio_encoder`: 32 layers, hidden size
-  1280, 20 attention heads, output dim 2048.
-- The text decoder is Qwen3-style: 28 layers, hidden size 2048, 16 query heads,
-  8 KV heads, head dim 128, vocab size 151936.
-- The audio placeholder token ID is `0`, but the true insertion signal is
-  `audio_input_mask`.
+- MOSS is decoder-only Qwen3 text generation after audio embeddings are inserted into the prompt.
+- The audio tower is `qwen3_omni_moe_audio_encoder`: 32 layers, hidden size 1280, 20 attention heads, output dim 2048.
+- The text decoder is Qwen3-style: 28 layers, hidden size 2048, 16 query heads, 8 KV heads, head dim 128, vocab size 151936.
+- The audio placeholder token ID is `0`, but the true insertion signal is `audio_input_mask`.
 - The default baseline is English-only with time markers disabled.
 
 ## Current Private Artifact
@@ -52,236 +40,134 @@ uv run --project projects/moss-mlx-conversion --locked moss-coreml-plan \
   --output projects/moss-mlx-conversion/artifacts/coreml/moss-coreml-plan.json
 ```
 
-The artifact records model constants, static shape defaults, component names,
-cache shape, Mobius prior art, MOSS-specific deltas, and validation gates.
+The artifact records model constants, static shape defaults, component names, cache shape, Mobius prior art, MOSS-specific deltas, and validation gates.
 
 Default shape contract:
 
-| Item | Value |
-| --- | ---: |
-| Max audio seconds | 30 |
-| Max mel frames | 3000 |
-| Max MOSS audio tokens | 390 |
-| Fixed prompt overhead tokens | 10 |
-| Prefill sequence length | 512 |
-| Decode budget | 256 |
-| Padded cache length | 768 |
-| KV cache per layer | `[1, 8, 768, 128]` |
-| Total FP16 KV cache | 84.0 MiB |
+| Item                         |              Value |
+| ---------------------------- | -----------------: |
+| Max audio seconds            |                 30 |
+| Max mel frames               |               3000 |
+| Max MOSS audio tokens        |                390 |
+| Fixed prompt overhead tokens |                 10 |
+| Prefill sequence length      |                512 |
+| Decode budget                |                256 |
+| Padded cache length          |                768 |
+| KV cache per layer           | `[1, 8, 768, 128]` |
+| Total FP16 KV cache          |           84.0 MiB |
 
 ## Planned Component Split
 
-| Component | Role |
-| --- | --- |
-| `moss_mel_frontend` | Host-side 16 kHz Whisper log-mel frontend. Python and Swift paths are proven for the LibriSpeech fixture; long-audio chunking remains later work. |
-| `moss_audio_encoder_adapter.mlpackage` | Qwen3-Omni audio encoder plus MOSS gated adapter. The current production-shaped probe accepts a padded 30-second `[128, 3000]` mel window and masks invalid audio tokens. |
-| `moss_token_embedding.mlpackage` | Qwen token embedding table. |
-| `moss_decoder_prefill.mlpackage` | Fixed-length prefill over merged token/audio embeddings. |
-| `moss_decoder_step_cache_external.mlpackage` | One-token decode with host-managed KV cache and logits. |
-| `moss_decoder_stateful_fused.mlpackage` | Mobius-style fused decoder with final norm/LM head and 56 CoreML State API KV tensors. |
-| `moss_decoder_prefill_cache_<seq-len>.mlpackage` | Exact or padded prefill that returns logits plus explicit KV tensors for the padded step decoder. |
+| Component                                        | Role                                                                                                                                                                      |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `moss_mel_frontend`                              | Host-side 16 kHz Whisper log-mel frontend. Python and Swift paths are proven for the LibriSpeech fixture; long-audio chunking remains later work.                         |
+| `moss_audio_encoder_adapter.mlpackage`           | Qwen3-Omni audio encoder plus MOSS gated adapter. The current production-shaped probe accepts a padded 30-second `[128, 3000]` mel window and masks invalid audio tokens. |
+| `moss_token_embedding.mlpackage`                 | Qwen token embedding table.                                                                                                                                               |
+| `moss_decoder_prefill.mlpackage`                 | Fixed-length prefill over merged token/audio embeddings.                                                                                                                  |
+| `moss_decoder_step_cache_external.mlpackage`     | One-token decode with host-managed KV cache and logits.                                                                                                                   |
+| `moss_decoder_stateful_fused.mlpackage`          | Mobius-style fused decoder with final norm/LM head and 56 CoreML State API KV tensors.                                                                                    |
+| `moss_decoder_prefill_cache_<seq-len>.mlpackage` | Exact or padded prefill that returns logits plus explicit KV tensors for the padded step decoder.                                                                         |
 
 ## Build Sequence
 
 1. Generate the CoreML plan artifact from the local converted config.
-2. Add PyTorch wrapper modules that exactly expose the planned component
-   signatures.
-3. On macOS, convert the first component with `coremltools` using CPU-only trace
-   inputs and fixed shapes.
-4. Compare CoreML output to PyTorch fixture tensors before converting the next
-   component.
-5. Generalize the one-token decode graph to a padded fixed cache window.
-6. Export a stateful fused decoder and require one CoreML state object to
-   survive `prefill -> decode` on the fixture.
-7. Build a Swift runtime loop after the stateful package validates on fixture
-   prompts, while keeping the explicit-cache decoder as the fallback for
-   longer prompt lengths.
-8. Run the existing 20-row LibriSpeech clean smoke eval from Swift/CoreML.
-9. Profile compiled models with `coreml-cli` or FluidAudio's profiler tooling.
-10. Try quantization only after BF16/F32 CoreML parity is stable.
+1. Add PyTorch wrapper modules that exactly expose the planned component signatures.
+1. On macOS, convert the first component with `coremltools` using CPU-only trace inputs and fixed shapes.
+1. Compare CoreML output to PyTorch fixture tensors before converting the next component.
+1. Generalize the one-token decode graph to a padded fixed cache window.
+1. Export a stateful fused decoder and require one CoreML state object to survive `prefill -> decode` on the fixture.
+1. Build a Swift runtime loop after the stateful package validates on fixture prompts, while keeping the explicit-cache decoder as the fallback for longer prompt lengths.
+1. Run the existing 20-row LibriSpeech clean smoke eval from Swift/CoreML.
+1. Profile compiled models with `coreml-cli` or FluidAudio's profiler tooling.
+1. Try quantization only after BF16/F32 CoreML parity is stable.
 
 ## Completed Component Probes
 
-The private fixture-level component probes are complete through a Mobius-style
-stateful decoder proof:
+The private fixture-level component probes are complete through a Mobius-style stateful decoder proof:
 
-- Extracted `model.embed_tokens.weight`,
-  `model.audio_model`/`model.audio_adapter`, and `model.language_model` weights
-  into smaller CoreML workbench safetensors files.
-- Exported and validated token embedding, audio encoder+adapter, decoder
-  prefill, fixed append-cache decoder step, padded cache-external decoder step,
-  and fused stateful decoder packages on `home-mac`.
-- Added an integrated Python/CoreML fixture runner that wires token embedding,
-  audio encoder+adapter, host audio-mask merge, Qwen3 RoPE/masks, and the
-  stateful decoder in one process.
-- Added a private Swift/CoreML fixture runner that loads compiled `.mlmodelc`
-  bundles, uses `MLState`, and greedy-decodes the fixture from exported mel and
-  token IDs.
-- Added a Swift Qwen ByteLevel tokenizer decoder for generated IDs and fixture
-  transcript scoring.
-- Added a compact Swift prompt builder for the fixed English no-time-marker
-  MOSS template: `[151644, 872, 198, 151669] + audio placeholders +
-  [151670, 151645, 198, 151644, 77091, 198]`.
-- Added a fixture-level Swift Whisper log-mel frontend. It reads the LibriSpeech
-  WAV, emits `[128, 1484]` mel features, matches the saved PyTorch/Whisper mel
-  with max/mean abs diff `0.003906` / `0.000515`, and feeds the CoreML audio
-  encoder path without serialized fixture mel.
-- Added a 30-second padded audio encoder package. It accepts fixed
-  `[128, 3000]` mel input, keeps real `audio_data_seqlens`, masks invalid
-  encoder attention keys, returns fixed `[390, 2048]` audio embeddings, and
-  allows the Swift `--audio` path to use the production max-audio contract for
-  clips that fit in one 30-second window.
-- Added reference-text scoring and EOS stop to the Swift runner. Fixture mel
-  comparison is now explicit via `--compare-fixture-audio`, so non-fixture
-  audio reports are not compared to the saved LibriSpeech fixture mel.
-- Ran the first non-fixture LibriSpeech clean-test row through Swift/CoreML.
-  The row `6930-75918-0001` is 14.23s, produces 185 MOSS audio tokens and
-  prompt length 195, stops on EOS token `151645`, and matches the reference
-  after normalization.
-- Added `moss-swift-coreml-eval`, a repeatable batch harness that streams
-  Hugging Face rows, writes short WAV/reference inputs, calls the Swift runner,
-  and writes JSONL plus a corpus summary.
-- Hardened Swift top-k reporting to ignore non-finite logits. The 20-row
-  stateful gate stops at row 3 because the stateful decoder's first decode step
-  returns no finite logits for prompt length 313, although prefill succeeds.
-- Added an explicit-cache Swift decoder path. The first fixed-length
-  prefill-cache packages for prompt lengths 195 and 313 plus the reusable
-  padded step decoder produced normalized WER/CER `0.0` on LibriSpeech rows 1
-  and 3.
-- Added a shared 512-token padded prefill-cache package with
-  `last_token_mask`. It validates exactly against 313-token exact prefill in
-  Torch and runs both rows 1 and 3 with normalized WER/CER `0.0`.
+- Extracted `model.embed_tokens.weight`, `model.audio_model`/`model.audio_adapter`, and `model.language_model` weights into smaller CoreML workbench safetensors files.
+- Exported and validated token embedding, audio encoder+adapter, decoder prefill, fixed append-cache decoder step, padded cache-external decoder step, and fused stateful decoder packages on `home-mac`.
+- Added an integrated Python/CoreML fixture runner that wires token embedding, audio encoder+adapter, host audio-mask merge, Qwen3 RoPE/masks, and the stateful decoder in one process.
+- Added a private Swift/CoreML fixture runner that loads compiled `.mlmodelc` bundles, uses `MLState`, and greedy-decodes the fixture from exported mel and token IDs.
+- Added a Swift Qwen ByteLevel tokenizer decoder for generated IDs and fixture transcript scoring.
+- Added a compact Swift prompt builder for the fixed English no-time-marker MOSS template: `[151644, 872, 198, 151669] + audio placeholders + [151670, 151645, 198, 151644, 77091, 198]`.
+- Added a fixture-level Swift Whisper log-mel frontend. It reads the LibriSpeech WAV, emits `[128, 1484]` mel features, matches the saved PyTorch/Whisper mel with max/mean abs diff `0.003906` / `0.000515`, and feeds the CoreML audio encoder path without serialized fixture mel.
+- Added a 30-second padded audio encoder package. It accepts fixed `[128, 3000]` mel input, keeps real `audio_data_seqlens`, masks invalid encoder attention keys, returns fixed `[390, 2048]` audio embeddings, and allows the Swift `--audio` path to use the production max-audio contract for clips that fit in one 30-second window.
+- Added reference-text scoring and EOS stop to the Swift runner. Fixture mel comparison is now explicit via `--compare-fixture-audio`, so non-fixture audio reports are not compared to the saved LibriSpeech fixture mel.
+- Ran the first non-fixture LibriSpeech clean-test row through Swift/CoreML. The row `6930-75918-0001` is 14.23s, produces 185 MOSS audio tokens and prompt length 195, stops on EOS token `151645`, and matches the reference after normalization.
+- Added `moss-swift-coreml-eval`, a repeatable batch harness that streams Hugging Face rows, writes short WAV/reference inputs, calls the Swift runner, and writes JSONL plus a corpus summary.
+- Hardened Swift top-k reporting to ignore non-finite logits. The 20-row stateful gate stops at row 3 because the stateful decoder's first decode step returns no finite logits for prompt length 313, although prefill succeeds.
+- Added an explicit-cache Swift decoder path. The first fixed-length prefill-cache packages for prompt lengths 195 and 313 plus the reusable padded step decoder produced normalized WER/CER `0.0` on LibriSpeech rows 1 and 3.
+- Added a shared 512-token padded prefill-cache package with `last_token_mask`. It validates exactly against 313-token exact prefill in Torch and runs both rows 1 and 3 with normalized WER/CER `0.0`.
 - Compiled each package with `xcrun coremlcompiler compile`.
-- Copied retained `.mlpackage`, `.mlmodelc`, and JSON manifests back to local
-  ignored `artifacts/coreml/`.
+- Copied retained `.mlpackage`, `.mlmodelc`, and JSON manifests back to local ignored `artifacts/coreml/`.
 
 Results:
 
-| Component | Fixture input | Key validation |
-| --- | --- | --- |
-| `moss_token_embedding` | token IDs `[1, 512]` | CoreML vs PyTorch max/mean diff `0.0` / `0.0` |
-| `moss_audio_encoder_adapter_fixture` | mel `[128, 1484]` | CoreML vs PyTorch max/mean diff `0.002675` / `0.000354` |
-| `moss_decoder_prefill_fixture` | merged embeds `[1, 203, 2048]` | top-1 token `4197`; CoreML vs PyTorch max/mean diff `0.048508` / `0.017621` |
-| `moss_decoder_step_fixture` | token `4197`, KV `[28, 1, 8, 203, 128]` | top-1 token `1059`; CoreML vs PyTorch max/mean diff `0.040039` / `0.015691` |
-| `moss_decoder_step_padded_fixture` | token `4197`, padded KV `[28, 1, 8, 768, 128]` | top-1 token `1059`; padded Torch path is exactly equal to append-cache Torch on valid slices; CoreML vs Torch logits max/mean diff `0.040039` / `0.015691` |
-| `moss_decoder_step_padded_512` | token `4197`, padded KV `[28, 1, 8, 512, 128]` | top-1 token `1059`; padded Torch path is exactly equal to append-cache Torch on valid slices; compiled as `compiled_step_padded_512/moss_decoder_step_padded_512.mlmodelc` |
-| `moss_decoder_stateful_fused` | prefill `[1, 203, 2048]`, then token `4197` with the same CoreML state | prefill top-1 `4197`; step top-1 `1059`; 56 state tensors; CoreML vs static step logits max/mean diff `0.038696` / `0.015730` |
-| `moss_decoder_prefill_cache_195` | merged embeds `[1, 195, 2048]` | exports logits plus explicit KV tensors `[28, 1, 8, 195, 128]`; compiled as `compiled_prefill_cache_195/moss_decoder_prefill_cache_195.mlmodelc` |
-| `moss_decoder_prefill_cache_313` | merged embeds `[1, 313, 2048]` | exports logits plus explicit KV tensors `[28, 1, 8, 313, 128]`; compiled as `compiled_prefill_cache_313/moss_decoder_prefill_cache_313.mlmodelc` |
-| `moss_decoder_prefill_cache_512` | padded merged embeds `[1, 512, 2048]` plus `last_token_mask [1, 512, 1]` | exports logits plus explicit KV tensors `[28, 1, 8, 512, 128]`; compiled as `compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc`; Torch validation at prompt length 313 has zero diff on logits, valid keys, and valid values |
-| `moss_decoder_prefill_cache_768` | padded merged embeds `[1, 768, 2048]` plus `last_token_mask [1, 768, 1]` | exports logits plus explicit KV tensors `[28, 1, 8, 768, 128]`; compiled as `compiled_prefill_cache_768/moss_decoder_prefill_cache_768.mlmodelc`; Torch validation at prompt length 313 has zero diff on logits, valid keys, and valid values; FluidAudio `cpu-gpu` runtime currently crashes in MPSGraph before row output |
-| `run_stateful_fixture_pipeline` component path | CoreML token/audio packages, host merge, stateful decoder | prefill top-1 `4197`; step top-1 `1059`; merged prompt max/mean diff vs saved reference `0.002686` / `0.000337`; total fixture time `21.32s` |
-| `run_stateful_fixture_pipeline` reference-merged isolation | saved merged embeds, stateful decoder | prefill top-1 `4197`; step top-1 `1059`; decoder input diff vs saved reference `0.0`; total fixture time `22.15s` |
-| Swift `moss-coreml-fixture` 5-token greedy | JSON fixture, compiled `.mlmodelc`, `MLState` | generated IDs exactly match `[4197, 1059, 4158, 6177, 323]`; total fixture time `18.17s` |
-| Swift `moss-coreml-fixture` 52-token greedy | JSON fixture, compiled `.mlmodelc`, `MLState` | first 10 IDs match; comma-only drift after `smokestack`; normalized WER/CER `0.0`; total fixture time `23.53s` |
-| Swift tokenizer-enabled fixture | JSON fixture, compiled `.mlmodelc`, `MLState`, Qwen ByteLevel tokenizer JSON | 5-token decoded text matches exactly; 52-token raw WER/CER `0.0278` / `0.00442`; normalized WER/CER `0.0` |
-| Swift compact prompt fixture | compact JSON fixture without serialized `input_ids` / `audio_input_mask` | `prompt_source=compact`; 5-token output matches exactly; 52-token output has the same comma-only normalized-WER-zero drift; total times `16.17s` and `22.74s` |
-| Swift audio frontend fixture | source WAV, Swift Whisper log-mel, compact prompt, compiled `.mlmodelc`, `MLState` | `prompt_source=compact_audio`; mel max/mean diff `0.003906` / `0.000515`; 5-token output matches exactly; 52-token normalized WER/CER `0.0`; total times `18.02s` and `25.22s` |
-| `moss_audio_encoder_adapter_30s_padded` | padded mel `[128, 3000]`, real seqlens `[1484]` | output `[390, 2048]`; prefix `[193, 2048]` vs BF16 max/mean diff `0.003738` / `0.000462`; Torch padded-prefix diff `0.000190` / `0.00000645` |
-| Swift padded-audio 5-token greedy | source WAV + Swift mel padded to `[128, 3000]` + compact prompt + CoreML path, `--compute-units cpu-gpu` | generated IDs/text exactly match; total time `4.21s`, including `0.15s` audio frontend, `2.82s` audio encoder+adapter, `0.73s` decoder prefill, and `0.37s` decoder decode calls |
-| Swift padded-audio 52-token greedy | same padded-audio path, `--compute-units cpu-gpu` | generated IDs/text exactly match; raw/normalized WER/CER all `0.0`; total time `7.07s`, including `0.14s` audio frontend, `1.30s` audio encoder+adapter, `0.75s` decoder prefill, and `4.70s` decoder decode calls |
-| Swift padded-audio non-fixture row | LibriSpeech clean-test row `6930-75918-0001`, source WAV, reference text file, `--max-new-tokens 160`, EOS stop | prompt length 195; audio tokens 185; generated 47 tokens and stopped on `151645`; normalized WER/CER `0.0`; total time `8.25s`, including `0.14s` audio frontend, `1.34s` audio encoder+adapter, `0.77s` decoder prefill, and `5.77s` decoder decode calls |
-| `moss-swift-coreml-eval` two-row batch | LibriSpeech clean-test rows 1-2, per-row WAV/reference files, padded CoreML path | WER/CER `0.0`; total audio 19.25s; summed Swift model time 13.43s; RTFx 1.43; wall time 42.99s because each row launches a Swift process |
-| attempted 20-row Swift/CoreML batch | LibriSpeech clean-test rows 0-19 requested | rows 0-2 completed with WER/CER `0.0`; row 3 prefill succeeds at prompt length 313 and audio tokens 303, but the first stateful decode step returns no finite logits under `cpu-gpu` and `cpu-only` |
-| Swift explicit-cache row 1 | LibriSpeech clean-test row `6930-75918-0001`, prompt length 195, fixed prefill cache + padded step | normalized WER/CER `0.0`; generated 47 tokens and stopped on EOS; total model time `22.13s` for `14.23s` audio, RTFx `0.64` |
-| Swift explicit-cache row 3 | LibriSpeech clean-test row `6930-75918-0003`, prompt length 313, fixed prefill cache + padded step | normalized WER/CER `0.0`; generated 77 tokens and stopped on EOS; bypasses the stateful row-3 no-finite-logits failure; total model time `26.84s` for `23.32s` audio, RTFx `0.87` |
-| Swift padded-prefill row 1 | LibriSpeech clean-test row `6930-75918-0001`, prompt length 195, shared 512-token prefill cache + padded step | normalized WER/CER `0.0`; generated 47 tokens and stopped on EOS; total model time `9.46s` for `14.23s` audio, RTFx `1.50` |
-| Swift padded-prefill row 3 | LibriSpeech clean-test row `6930-75918-0003`, prompt length 313, same shared 512-token prefill cache + padded step | normalized WER/CER `0.0`; generated 77 tokens and stopped on EOS; bypasses the stateful row-3 no-finite-logits failure; total model time `13.80s` for `23.32s` audio, RTFx `1.69` |
-| Swift padded-prefill 20-row batch | LibriSpeech clean-test rows 0-19, same shared 512-token prefill cache + padded step, `--prefill-cache-seq-len 512`, `--compute-units cpu-gpu` | completed 20/20; WER `0.0158`, CER `0.00418`; total audio `164.49s`; summed Swift model time `216.29s`; RTFx `0.76`; wall time `1382.60s` because the harness launches one Swift process per row; artifact `artifacts/evals/librispeech-test-clean-swift-coreml-external-cache-512-20/summary.json` |
-| Swift padded-prefill persistent 20-row batch | same rows/packages plus `moss-swift-coreml-eval --swift-batch` JSONL manifest mode | completed 20/20 with the same WER `0.0158` and CER `0.00418`; summed Swift model time `132.95s`; RTFx `1.24`; wall time `691.58s`; sum of per-row Swift walls `652.28s`; artifact `artifacts/evals/librispeech-test-clean-swift-coreml-external-cache-512-batch-20/summary.json` |
-| Swift runtime-manifest persistent 20-row batch | same rows/packages plus `--runtime-manifest runtime/moss_runtime_manifest.json` instead of compact fixture constants | completed 20/20 with identical row IDs, normalized hypotheses, prompt lengths, generated-token counts, WER `0.0158`, and CER `0.00418` versus the prior persistent batch; summed Swift model time `219.52s`; RTFx `0.75`; wall time `813.11s`; artifact `artifacts/evals/librispeech-test-clean-swift-coreml-runtime-manifest-cache-512-batch-20/summary.json` |
-| FluidAudio scaffold 20-row batch, 768 cache | private `fluidaudiocli moss-benchmark`, default `compiled_step_padded` 768-cache step | completed 20/20; WER `0.0158`, CER `0.00418`; full manager processing `710.41s`; RTFx `0.23`; artifact `artifacts/evals/fluid-audio-moss-benchmark-20/summary.json` |
-| FluidAudio scaffold 20-row batch, 512 cache | private `fluidaudiocli moss-benchmark`, `compiled_step_padded_512` and `--cache-len 512` | completed 20/20; WER `0.0158`, CER `0.00418`; full manager processing `237.57s`; host overhead `21.68s`; RTFx `0.69`; artifact `artifacts/evals/fluid-audio-moss-benchmark-cache512-20/summary.json` |
+| Component                                                  | Fixture input                                                                                                                                 | Key validation                                                                                                                                                                                                                                                                                                                                                 |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `moss_token_embedding`                                     | token IDs `[1, 512]`                                                                                                                          | CoreML vs PyTorch max/mean diff `0.0` / `0.0`                                                                                                                                                                                                                                                                                                                  |
+| `moss_audio_encoder_adapter_fixture`                       | mel `[128, 1484]`                                                                                                                             | CoreML vs PyTorch max/mean diff `0.002675` / `0.000354`                                                                                                                                                                                                                                                                                                        |
+| `moss_decoder_prefill_fixture`                             | merged embeds `[1, 203, 2048]`                                                                                                                | top-1 token `4197`; CoreML vs PyTorch max/mean diff `0.048508` / `0.017621`                                                                                                                                                                                                                                                                                    |
+| `moss_decoder_step_fixture`                                | token `4197`, KV `[28, 1, 8, 203, 128]`                                                                                                       | top-1 token `1059`; CoreML vs PyTorch max/mean diff `0.040039` / `0.015691`                                                                                                                                                                                                                                                                                    |
+| `moss_decoder_step_padded_fixture`                         | token `4197`, padded KV `[28, 1, 8, 768, 128]`                                                                                                | top-1 token `1059`; padded Torch path is exactly equal to append-cache Torch on valid slices; CoreML vs Torch logits max/mean diff `0.040039` / `0.015691`                                                                                                                                                                                                     |
+| `moss_decoder_step_padded_512`                             | token `4197`, padded KV `[28, 1, 8, 512, 128]`                                                                                                | top-1 token `1059`; padded Torch path is exactly equal to append-cache Torch on valid slices; compiled as `compiled_step_padded_512/moss_decoder_step_padded_512.mlmodelc`                                                                                                                                                                                     |
+| `moss_decoder_stateful_fused`                              | prefill `[1, 203, 2048]`, then token `4197` with the same CoreML state                                                                        | prefill top-1 `4197`; step top-1 `1059`; 56 state tensors; CoreML vs static step logits max/mean diff `0.038696` / `0.015730`                                                                                                                                                                                                                                  |
+| `moss_decoder_prefill_cache_195`                           | merged embeds `[1, 195, 2048]`                                                                                                                | exports logits plus explicit KV tensors `[28, 1, 8, 195, 128]`; compiled as `compiled_prefill_cache_195/moss_decoder_prefill_cache_195.mlmodelc`                                                                                                                                                                                                               |
+| `moss_decoder_prefill_cache_313`                           | merged embeds `[1, 313, 2048]`                                                                                                                | exports logits plus explicit KV tensors `[28, 1, 8, 313, 128]`; compiled as `compiled_prefill_cache_313/moss_decoder_prefill_cache_313.mlmodelc`                                                                                                                                                                                                               |
+| `moss_decoder_prefill_cache_512`                           | padded merged embeds `[1, 512, 2048]` plus `last_token_mask [1, 512, 1]`                                                                      | exports logits plus explicit KV tensors `[28, 1, 8, 512, 128]`; compiled as `compiled_prefill_cache_512/moss_decoder_prefill_cache_512.mlmodelc`; Torch validation at prompt length 313 has zero diff on logits, valid keys, and valid values                                                                                                                  |
+| `moss_decoder_prefill_cache_768`                           | padded merged embeds `[1, 768, 2048]` plus `last_token_mask [1, 768, 1]`                                                                      | exports logits plus explicit KV tensors `[28, 1, 8, 768, 128]`; compiled as `compiled_prefill_cache_768/moss_decoder_prefill_cache_768.mlmodelc`; Torch validation at prompt length 313 has zero diff on logits, valid keys, and valid values; FluidAudio `cpu-gpu` runtime currently crashes in MPSGraph before row output                                    |
+| `run_stateful_fixture_pipeline` component path             | CoreML token/audio packages, host merge, stateful decoder                                                                                     | prefill top-1 `4197`; step top-1 `1059`; merged prompt max/mean diff vs saved reference `0.002686` / `0.000337`; total fixture time `21.32s`                                                                                                                                                                                                                   |
+| `run_stateful_fixture_pipeline` reference-merged isolation | saved merged embeds, stateful decoder                                                                                                         | prefill top-1 `4197`; step top-1 `1059`; decoder input diff vs saved reference `0.0`; total fixture time `22.15s`                                                                                                                                                                                                                                              |
+| Swift `moss-coreml-fixture` 5-token greedy                 | JSON fixture, compiled `.mlmodelc`, `MLState`                                                                                                 | generated IDs exactly match `[4197, 1059, 4158, 6177, 323]`; total fixture time `18.17s`                                                                                                                                                                                                                                                                       |
+| Swift `moss-coreml-fixture` 52-token greedy                | JSON fixture, compiled `.mlmodelc`, `MLState`                                                                                                 | first 10 IDs match; comma-only drift after `smokestack`; normalized WER/CER `0.0`; total fixture time `23.53s`                                                                                                                                                                                                                                                 |
+| Swift tokenizer-enabled fixture                            | JSON fixture, compiled `.mlmodelc`, `MLState`, Qwen ByteLevel tokenizer JSON                                                                  | 5-token decoded text matches exactly; 52-token raw WER/CER `0.0278` / `0.00442`; normalized WER/CER `0.0`                                                                                                                                                                                                                                                      |
+| Swift compact prompt fixture                               | compact JSON fixture without serialized `input_ids` / `audio_input_mask`                                                                      | `prompt_source=compact`; 5-token output matches exactly; 52-token output has the same comma-only normalized-WER-zero drift; total times `16.17s` and `22.74s`                                                                                                                                                                                                  |
+| Swift audio frontend fixture                               | source WAV, Swift Whisper log-mel, compact prompt, compiled `.mlmodelc`, `MLState`                                                            | `prompt_source=compact_audio`; mel max/mean diff `0.003906` / `0.000515`; 5-token output matches exactly; 52-token normalized WER/CER `0.0`; total times `18.02s` and `25.22s`                                                                                                                                                                                 |
+| `moss_audio_encoder_adapter_30s_padded`                    | padded mel `[128, 3000]`, real seqlens `[1484]`                                                                                               | output `[390, 2048]`; prefix `[193, 2048]` vs BF16 max/mean diff `0.003738` / `0.000462`; Torch padded-prefix diff `0.000190` / `0.00000645`                                                                                                                                                                                                                   |
+| Swift padded-audio 5-token greedy                          | source WAV + Swift mel padded to `[128, 3000]` + compact prompt + CoreML path, `--compute-units cpu-gpu`                                      | generated IDs/text exactly match; total time `4.21s`, including `0.15s` audio frontend, `2.82s` audio encoder+adapter, `0.73s` decoder prefill, and `0.37s` decoder decode calls                                                                                                                                                                               |
+| Swift padded-audio 52-token greedy                         | same padded-audio path, `--compute-units cpu-gpu`                                                                                             | generated IDs/text exactly match; raw/normalized WER/CER all `0.0`; total time `7.07s`, including `0.14s` audio frontend, `1.30s` audio encoder+adapter, `0.75s` decoder prefill, and `4.70s` decoder decode calls                                                                                                                                             |
+| Swift padded-audio non-fixture row                         | LibriSpeech clean-test row `6930-75918-0001`, source WAV, reference text file, `--max-new-tokens 160`, EOS stop                               | prompt length 195; audio tokens 185; generated 47 tokens and stopped on `151645`; normalized WER/CER `0.0`; total time `8.25s`, including `0.14s` audio frontend, `1.34s` audio encoder+adapter, `0.77s` decoder prefill, and `5.77s` decoder decode calls                                                                                                     |
+| `moss-swift-coreml-eval` two-row batch                     | LibriSpeech clean-test rows 1-2, per-row WAV/reference files, padded CoreML path                                                              | WER/CER `0.0`; total audio 19.25s; summed Swift model time 13.43s; RTFx 1.43; wall time 42.99s because each row launches a Swift process                                                                                                                                                                                                                       |
+| attempted 20-row Swift/CoreML batch                        | LibriSpeech clean-test rows 0-19 requested                                                                                                    | rows 0-2 completed with WER/CER `0.0`; row 3 prefill succeeds at prompt length 313 and audio tokens 303, but the first stateful decode step returns no finite logits under `cpu-gpu` and `cpu-only`                                                                                                                                                            |
+| Swift explicit-cache row 1                                 | LibriSpeech clean-test row `6930-75918-0001`, prompt length 195, fixed prefill cache + padded step                                            | normalized WER/CER `0.0`; generated 47 tokens and stopped on EOS; total model time `22.13s` for `14.23s` audio, RTFx `0.64`                                                                                                                                                                                                                                    |
+| Swift explicit-cache row 3                                 | LibriSpeech clean-test row `6930-75918-0003`, prompt length 313, fixed prefill cache + padded step                                            | normalized WER/CER `0.0`; generated 77 tokens and stopped on EOS; bypasses the stateful row-3 no-finite-logits failure; total model time `26.84s` for `23.32s` audio, RTFx `0.87`                                                                                                                                                                              |
+| Swift padded-prefill row 1                                 | LibriSpeech clean-test row `6930-75918-0001`, prompt length 195, shared 512-token prefill cache + padded step                                 | normalized WER/CER `0.0`; generated 47 tokens and stopped on EOS; total model time `9.46s` for `14.23s` audio, RTFx `1.50`                                                                                                                                                                                                                                     |
+| Swift padded-prefill row 3                                 | LibriSpeech clean-test row `6930-75918-0003`, prompt length 313, same shared 512-token prefill cache + padded step                            | normalized WER/CER `0.0`; generated 77 tokens and stopped on EOS; bypasses the stateful row-3 no-finite-logits failure; total model time `13.80s` for `23.32s` audio, RTFx `1.69`                                                                                                                                                                              |
+| Swift padded-prefill 20-row batch                          | LibriSpeech clean-test rows 0-19, same shared 512-token prefill cache + padded step, `--prefill-cache-seq-len 512`, `--compute-units cpu-gpu` | completed 20/20; WER `0.0158`, CER `0.00418`; total audio `164.49s`; summed Swift model time `216.29s`; RTFx `0.76`; wall time `1382.60s` because the harness launches one Swift process per row; artifact `artifacts/evals/librispeech-test-clean-swift-coreml-external-cache-512-20/summary.json`                                                            |
+| Swift padded-prefill persistent 20-row batch               | same rows/packages plus `moss-swift-coreml-eval --swift-batch` JSONL manifest mode                                                            | completed 20/20 with the same WER `0.0158` and CER `0.00418`; summed Swift model time `132.95s`; RTFx `1.24`; wall time `691.58s`; sum of per-row Swift walls `652.28s`; artifact `artifacts/evals/librispeech-test-clean-swift-coreml-external-cache-512-batch-20/summary.json`                                                                               |
+| Swift runtime-manifest persistent 20-row batch             | same rows/packages plus `--runtime-manifest runtime/moss_runtime_manifest.json` instead of compact fixture constants                          | completed 20/20 with identical row IDs, normalized hypotheses, prompt lengths, generated-token counts, WER `0.0158`, and CER `0.00418` versus the prior persistent batch; summed Swift model time `219.52s`; RTFx `0.75`; wall time `813.11s`; artifact `artifacts/evals/librispeech-test-clean-swift-coreml-runtime-manifest-cache-512-batch-20/summary.json` |
+| FluidAudio scaffold 20-row batch, 768 cache                | private `fluidaudiocli moss-benchmark`, default `compiled_step_padded` 768-cache step                                                         | completed 20/20; WER `0.0158`, CER `0.00418`; full manager processing `710.41s`; RTFx `0.23`; artifact `artifacts/evals/fluid-audio-moss-benchmark-20/summary.json`                                                                                                                                                                                            |
+| FluidAudio scaffold 20-row batch, 512 cache                | private `fluidaudiocli moss-benchmark`, `compiled_step_padded_512` and `--cache-len 512`                                                      | completed 20/20; WER `0.0158`, CER `0.00418`; full manager processing `237.57s`; host overhead `21.68s`; RTFx `0.69`; artifact `artifacts/evals/fluid-audio-moss-benchmark-cache512-20/summary.json`                                                                                                                                                           |
 
-Important caveat: these are still fixture-level proof components. The padded
-external-cache step proves the planned 768-token cache shape. The stateful fused
-decoder proves CoreML State API prediction for `prefill -> one decode step`.
-The integrated runner proves the Python/CoreML runtime contract, but neither is
-yet a FluidAudio manager, model-store entry, tokenizer bridge, or benchmarked
-end-to-end CoreML ASR runtime. The Swift runner proves the `MLModel`/`MLState`
-path, generated-token detokenization, fixed prompt construction, and
-WAV-to-mel frontend. The 30-second padded audio package removes the old
-`[128, 1484]` audio-package fixture shape, but this is still a private fixture
-runner rather than a model-store-backed FluidAudio manager or long-audio
-chunking runtime. The non-fixture row proves the audio/prompt/scoring path can
-run a different <=30s WAV, but the runner still uses the fixture JSON as a
-compact config carrier for model constants and fixture-token sanity checks.
-The explicit-cache batch proves the current CoreML path can complete the first
-20 clean-test rows, including the former row-3 stateful failure case. The
-persistent Swift batch mode removes one-process-per-row startup from the main
-path, but it is still a private harness rather than a FluidAudio manager.
-The runtime-manifest pass removes the compact fixture JSON as the runtime
-constant carrier and proves the fixture-free model/prompt contract. Its slower
-RTFx is not a regression in the model graph; no optimization was attempted in
-that pass.
-The private FluidAudio scaffold patch moves this exact external-cache runtime
-into `Sources/FluidAudio/ASR/MOSS` with manual model-dir loading and a
-`moss-transcribe` / `moss-benchmark` CLI pair. It builds on `home-mac` and the
-20-row FluidAudio benchmark matches WER `0.0158` / CER `0.00418`, but only
-reaches 0.23 RTFx by full manager processing time.
+Important caveat: these are still fixture-level proof components. The padded external-cache step proves the planned 768-token cache shape. The stateful fused decoder proves CoreML State API prediction for `prefill -> one decode step`. The integrated runner proves the Python/CoreML runtime contract, but neither is yet a FluidAudio manager, model-store entry, tokenizer bridge, or benchmarked end-to-end CoreML ASR runtime. The Swift runner proves the `MLModel`/`MLState` path, generated-token detokenization, fixed prompt construction, and WAV-to-mel frontend. The 30-second padded audio package removes the old `[128, 1484]` audio-package fixture shape, but this is still a private fixture runner rather than a model-store-backed FluidAudio manager or long-audio chunking runtime. The non-fixture row proves the audio/prompt/scoring path can run a different \<=30s WAV, but the runner still uses the fixture JSON as a compact config carrier for model constants and fixture-token sanity checks. The explicit-cache batch proves the current CoreML path can complete the first 20 clean-test rows, including the former row-3 stateful failure case. The persistent Swift batch mode removes one-process-per-row startup from the main path, but it is still a private harness rather than a FluidAudio manager. The runtime-manifest pass removes the compact fixture JSON as the runtime constant carrier and proves the fixture-free model/prompt contract. Its slower RTFx is not a regression in the model graph; no optimization was attempted in that pass. The private FluidAudio scaffold patch moves this exact external-cache runtime into `Sources/FluidAudio/ASR/MOSS` with manual model-dir loading and a `moss-transcribe` / `moss-benchmark` CLI pair. It builds on `home-mac` and the 20-row FluidAudio benchmark matches WER `0.0158` / CER `0.00418`, but only reaches 0.23 RTFx by full manager processing time.
 
-The matched 512-cache decoder-step package is the first meaningful FluidAudio
-runtime speed improvement. On the same 20 rows it avoids the 512-to-768 prefill
-cache padding copy, keeps WER/CER unchanged, and raises full manager RTFx to
-0.69. It is a bucketed short-row path, not a general full-test-clean solution.
+The matched 512-cache decoder-step package is the first meaningful FluidAudio runtime speed improvement. On the same 20 rows it avoids the 512-to-768 prefill cache padding copy, keeps WER/CER unchanged, and raises full manager RTFx to 0.69. It is a bucketed short-row path, not a general full-test-clean solution.
 
-A matched 768-token prefill package was also exported to remove the same
-padding copy for the 768 cache bucket. It validates in Torch but currently
-crashes under the private FluidAudio `cpu-gpu` runtime in MPSGraph before
-producing a row; CPU-only did not produce a row before the probe was stopped.
-Treat this as a CoreML runtime debugging item, not an active benchmark path.
+A matched 768-token prefill package was also exported to remove the same padding copy for the 768 cache bucket. It validates in Torch but currently crashes under the private FluidAudio `cpu-gpu` runtime in MPSGraph before producing a row; CPU-only did not produce a row before the probe was stopped. Treat this as a CoreML runtime debugging item, not an active benchmark path.
 
-Current decoder read: the stateful decoder package was validated at fixture
-prompt length 203 and works on shorter prompt lengths 56, 76, and 195. It
-prefilled row 3 at prompt length 313, but the first one-token decode call
-returned all non-finite logits. The explicit-cache path works around that
-failure and produces correct transcripts on rows 1 and 3. The shared 512-token
-padded prefill removes the per-row prefill package blocker for prompts up to
-512 tokens, and the matched 512-step package removes the 768-cache padding
-overhead for rows whose prompt plus generated tokens fit in 512 slots. The
-20-row batch completed with aggregate WER `0.0158`. Four
-rows had nonzero normalized WER: row 4 (`opened for them` vs `opened before
-them`), row 15 possessive normalization, row 17 `Ralph` vs `Raoul`, and row 19
-`moon beams` vs `moonbeams`. It is still not the final runtime shape because
-each decode step moves full padded KV arrays through CoreML. Persistent batch
-mode cuts wall time roughly in half, but it does not solve that decoder data
-movement.
+Current decoder read: the stateful decoder package was validated at fixture prompt length 203 and works on shorter prompt lengths 56, 76, and 195. It prefilled row 3 at prompt length 313, but the first one-token decode call returned all non-finite logits. The explicit-cache path works around that failure and produces correct transcripts on rows 1 and 3. The shared 512-token padded prefill removes the per-row prefill package blocker for prompts up to 512 tokens, and the matched 512-step package removes the 768-cache padding overhead for rows whose prompt plus generated tokens fit in 512 slots. The 20-row batch completed with aggregate WER `0.0158`. Four rows had nonzero normalized WER: row 4 (`opened for them` vs `opened before them`), row 15 possessive normalization, row 17 `Ralph` vs `Raoul`, and row 19 `moon beams` vs `moonbeams`. It is still not the final runtime shape because each decode step moves full padded KV arrays through CoreML. Persistent batch mode cuts wall time roughly in half, but it does not solve that decoder data movement.
 
-Compute-unit caveat: the 30-second padded audio package failed with default
-`.all` dispatch on `home-mac` because CoreML routed it to ANE and reported an
-ANE inference error. The same package succeeds with `--compute-units cpu-gpu`.
-That workaround also made the current fixture runs much faster, but compute
-placement still needs profiling per component before treating it as a final
-runtime policy.
+Compute-unit caveat: the 30-second padded audio package failed with default `.all` dispatch on `home-mac` because CoreML routed it to ANE and reported an ANE inference error. The same package succeeds with `--compute-units cpu-gpu`. That workaround also made the current fixture runs much faster, but compute placement still needs profiling per component before treating it as a final runtime policy.
 
 Current retained package sizes:
 
-| Component | `.mlpackage` | `.mlmodelc` |
-| --- | ---: | ---: |
-| `moss_token_embedding` | 594M | 594M |
-| `moss_audio_encoder_adapter_fixture` | 1.4G | 1.4G |
-| `moss_audio_encoder_adapter_30s_padded` | 1.4G | 1.4G |
-| `moss_decoder_prefill_fixture` | 3.3G | 3.3G |
-| `moss_decoder_step_fixture` | 3.3G | 3.3G |
-| `moss_decoder_step_padded_fixture` | 3.3G | 3.3G |
-| `moss_decoder_stateful_fused` | 3.3G | 3.3G |
+| Component                               | `.mlpackage` | `.mlmodelc` |
+| --------------------------------------- | -----------: | ----------: |
+| `moss_token_embedding`                  |         594M |        594M |
+| `moss_audio_encoder_adapter_fixture`    |         1.4G |        1.4G |
+| `moss_audio_encoder_adapter_30s_padded` |         1.4G |        1.4G |
+| `moss_decoder_prefill_fixture`          |         3.3G |        3.3G |
+| `moss_decoder_step_fixture`             |         3.3G |        3.3G |
+| `moss_decoder_step_padded_fixture`      |         3.3G |        3.3G |
+| `moss_decoder_stateful_fused`           |         3.3G |        3.3G |
 
 ## Expected Hard Parts
 
 - RoPE layout and position IDs must match MOSS/Qwen3 exactly.
-- Swift must reproduce audio mask insertion, concatenated-half RoPE layout,
-  causal masks, state reset behavior, and any future prompt/time-marker
-  variants exactly.
-- CoreML per-token call overhead can dominate even when the graph is correct;
-  the stateful fused decoder removes cache tensor marshaling but still calls
-  CoreML once per generated token.
-- Static masks, audio padding, cache lengths, and CoreML compute-unit placement
-  may decide whether ANE dispatch succeeds.
-- The current Swift audio frontend is correct enough for the fixture, but it is
-  a private runner implementation with a 400-point table DFT. A production
-  FluidAudio path should decide whether to reuse/extend existing FluidAudio
-  frontend utilities or keep a MOSS-specific Whisper frontend.
+- Swift must reproduce audio mask insertion, concatenated-half RoPE layout, causal masks, state reset behavior, and any future prompt/time-marker variants exactly.
+- CoreML per-token call overhead can dominate even when the graph is correct; the stateful fused decoder removes cache tensor marshaling but still calls CoreML once per generated token.
+- Static masks, audio padding, cache lengths, and CoreML compute-unit placement may decide whether ANE dispatch succeeds.
+- The current Swift audio frontend is correct enough for the fixture, but it is a private runner implementation with a 400-point table DFT. A production FluidAudio path should decide whether to reuse/extend existing FluidAudio frontend utilities or keep a MOSS-specific Whisper frontend.
 - MOSS can be correct and still much slower than Parakeet/TDT-style ASR.
-- Current FluidAudio `main` was inspected as a reference clone and does not
-  contain a merged Qwen3-ASR Swift manager; MOSS would need a new
-  `ASR/MOSS` manager rather than a small model-name addition.
+- Current FluidAudio `main` was inspected as a reference clone and does not contain a merged Qwen3-ASR Swift manager; MOSS would need a new `ASR/MOSS` manager rather than a small model-name addition.

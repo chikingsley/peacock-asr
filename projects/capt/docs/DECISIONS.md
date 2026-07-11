@@ -4,102 +4,41 @@ Append-only record of what we chose and why (and what we rejected), so we don't 
 
 ## 2026-06-01 — Architecture: one funnel, two target sources
 
-Score pronunciation as `text → G2P → canonical IPA` vs `audio → ZIPA universal phone recognizer`,
-by panphon **PFER** (phonological-feature edit distance). Two paths share the funnel and differ
-only in where the target text comes from: **read-aloud** (known reference, no ASR) and
-**free-form** (ASR = ElevenLabs Scribe v2). ZIPA is the recognizer; it's solid across languages —
-**G2P is the bottleneck.** Removed Gradio + Qwen.
+Score pronunciation as `text → G2P → canonical IPA` vs `audio → ZIPA universal phone recognizer`, by panphon **PFER** (phonological-feature edit distance). Two paths share the funnel and differ only in where the target text comes from: **read-aloud** (known reference, no ASR) and **free-form** (ASR = ElevenLabs Scribe v2). ZIPA is the recognizer; it's solid across languages — **G2P is the bottleneck.** Removed Gradio + Qwen.
 
 ## 2026-06-01 — Per-language G2P routing
 
-No single G2P wins; it's per-language. `TargetG2P(backend="routed")` reads `g2p_routing.json`,
-populated by `scripts/g2p_ablation.py` (recognize each FLEURS clip once with ZIPA, score the
-reference against candidate G2Ps by PFER, pick the min). Candidates: **espeak** (universal floor),
-**Epitran** (~70 langs), **CharsiuG2P** (~60, complementary — covers Epitran gaps + CJK). All 102
-FLEURS languages routed (espeak ~33 / epitran ~37 / charsiu ~23). Surprise: Charsiu beats
-espeak+epitran on de/fr.
+No single G2P wins; it's per-language. `TargetG2P(backend="routed")` reads `g2p_routing.json`, populated by `scripts/g2p_ablation.py` (recognize each FLEURS clip once with ZIPA, score the reference against candidate G2Ps by PFER, pick the min). Candidates: **espeak** (universal floor), **Epitran** (~70 langs), **CharsiuG2P** (~60, complementary — covers Epitran gaps + CJK). All 102 FLEURS languages routed (espeak ~33 / epitran ~37 / charsiu ~23). Surprise: Charsiu beats espeak+epitran on de/fr.
 
 ## 2026-06-01 — Trained G2P for the 9 no-G2P gap languages
 
-9 languages (ig_ng, wo_sn, ast_es, kam_ke, kea_cv, ln_cd, luo_ke, nso_za, umb_ao) have no viable
-rule-based G2P. Fix: **distill a G2P from ZIPA itself** — run ZIPA on FLEURS audio, align to the
-reference words, train a G2P on the (word→IPA) pairs (matches ZIPA's convention by construction).
-Trial: Igbo went from *no target (1.0)* → **0.235**. **Phonetisaurus** (WFST, CPU, trivial install)
-is the proof-of-concept trainer; **byT5** (neural) scored slightly better on identical data
-(0.179/0.230 vs 0.209/0.235) and is the planned scale-up (small/base, on a free GPU). Distillation
-does NOT beat existing routes on well-covered languages, so it's a gap-filler, not a replacement —
-unless the improved (G2P-scaffolded monotonic) aligner closes that gap. Wired as the `trained`
-backend; the 9 gaps route to it.
+9 languages (ig_ng, wo_sn, ast_es, kam_ke, kea_cv, ln_cd, luo_ke, nso_za, umb_ao) have no viable rule-based G2P. Fix: **distill a G2P from ZIPA itself** — run ZIPA on FLEURS audio, align to the reference words, train a G2P on the (word→IPA) pairs (matches ZIPA's convention by construction). Trial: Igbo went from *no target (1.0)* → **0.235**. **Phonetisaurus** (WFST, CPU, trivial install) is the proof-of-concept trainer; **byT5** (neural) scored slightly better on identical data (0.179/0.230 vs 0.209/0.235) and is the planned scale-up (small/base, on a free GPU). Distillation does NOT beat existing routes on well-covered languages, so it's a gap-filler, not a replacement — unless the improved (G2P-scaffolded monotonic) aligner closes that gap. Wired as the `trained` backend; the 9 gaps route to it.
 
 ## 2026-06-01 — REJECTED (for now): MixGoP / reference-free scoring
 
-**What:** score pronunciation without any G2P/answer-key by modeling the density of native (L1)
-speech in SSL-feature space (per-phone GMMs) and scoring a clip's phone log-likelihood (Choi et al.
-2025, arXiv:2502.07029). Prototype built + validated that the density model fits native Russian
-(held-out native clips score tightly). Parked in `experiments/mixgop/` (isolated, never wired in).
-**Why not pursued:** a typicality score isn't proven to measure *pronunciation quality* until it's
-shown to **discriminate good vs bad** — and that can only be validated against **human L2
-pronunciation labels**, which exist only for a few languages (English speechocean762). The
-discrimination test was never run. Given the project's whole premise is *no L2 data*, validating a
-second, harder-to-trust lane wasn't worth it versus improving the G2P lane that already works.
-**Revisit if:** we want a fluency/holistic signal for free-form speech (where segmental G2P scoring
-is weakest), or we decide to validate both lanes head-to-head on speechocean762 (PCC vs human
-scores). The prototype + how-to-validate notes are in `experiments/mixgop/README.md`.
+**What:** score pronunciation without any G2P/answer-key by modeling the density of native (L1) speech in SSL-feature space (per-phone GMMs) and scoring a clip's phone log-likelihood (Choi et al. 2025, arXiv:2502.07029). Prototype built + validated that the density model fits native Russian (held-out native clips score tightly). Parked in `experiments/mixgop/` (isolated, never wired in). **Why not pursued:** a typicality score isn't proven to measure *pronunciation quality* until it's shown to **discriminate good vs bad** — and that can only be validated against **human L2 pronunciation labels**, which exist only for a few languages (English speechocean762). The discrimination test was never run. Given the project's whole premise is *no L2 data*, validating a second, harder-to-trust lane wasn't worth it versus improving the G2P lane that already works. **Revisit if:** we want a fluency/holistic signal for free-form speech (where segmental G2P scoring is weakest), or we decide to validate both lanes head-to-head on speechocean762 (PCC vs human scores). The prototype + how-to-validate notes are in `experiments/mixgop/README.md`.
 
 ## 2026-06-01 — REJECTED: distilled-G2P as the universal backend (stays gap-only)
 
-Tested whether scaffold-distilled Phonetisaurus should replace rule-G2P routing on covered
-languages (the de_de=0.109 lead). Re-test across 10 covered langs (300-utt train, same held-out
-eval): distilled wins only 2/10 (de_de, es_419 — both ties within 6-clip noise) and loses 8/10,
-badly on ja (0.60 vs 0.39), ko (0.42 vs 0.13), hi (0.37 vs 0.19). Mean PFER routed 0.135 vs
-distilled 0.220. **Decision: keep `trained` as a GAP-FILLER ONLY** — not universal, not even an
-ablation co-candidate for covered languages. Rule G2Ps generalize better on covered langs;
-distillation is limited by low eval-word reuse + noisy targets.
-**Scope: this rejection is for distilled-Phonetisaurus specifically.** byT5-distilled-universal is
-UNTESTED — byT5-tiny already beat Phonetisaurus on the gaps (ig_ng 0.230 vs 0.235), so it could
-plausibly beat the rule backends on covered languages too. The universal question stays OPEN for
-byT5; re-test on a few covered langs during the byT5 (GPU) run, alongside the gap byT5 run.
-Study: experiments/g2p_train/RESULTS_UNIVERSAL.md.
+Tested whether scaffold-distilled Phonetisaurus should replace rule-G2P routing on covered languages (the de_de=0.109 lead). Re-test across 10 covered langs (300-utt train, same held-out eval): distilled wins only 2/10 (de_de, es_419 — both ties within 6-clip noise) and loses 8/10, badly on ja (0.60 vs 0.39), ko (0.42 vs 0.13), hi (0.37 vs 0.19). Mean PFER routed 0.135 vs distilled 0.220. **Decision: keep `trained` as a GAP-FILLER ONLY** — not universal, not even an ablation co-candidate for covered languages. Rule G2Ps generalize better on covered langs; distillation is limited by low eval-word reuse + noisy targets. **Scope: this rejection is for distilled-Phonetisaurus specifically.** byT5-distilled-universal is UNTESTED — byT5-tiny already beat Phonetisaurus on the gaps (ig_ng 0.230 vs 0.235), so it could plausibly beat the rule backends on covered languages too. The universal question stays OPEN for byT5; re-test on a few covered langs during the byT5 (GPU) run, alongside the gap byT5 run. Study: experiments/g2p_train/RESULTS_UNIVERSAL.md.
 
 ## 2026-06-01 — byT5 base-model + training strategy (research-backed; for the GPU run)
 
 Q: best trainable G2P base for small per-language data in 2026; byT5 vs mT5 vs newer.
 
-- **byT5 (byte-level) > mT5 (subword) for G2P** — CharsiuG2P: ByT5-small 8.8 PER vs mT5-small 11.9
-  (equal params); tiny byT5 (7–20M) beats pretrained mT5-small. byte vocab ≤256 + any-script.
-- **byT5 not superseded in 2026.** Lightweight 2025 alt LatPhon (7.5M, RoPE+lang-ID) beats byT5 on
-  6 high-resource European langs but unproven low-resource/broad-IPA → not for us. NVIDIA NeMo
-  supports exactly two trainable G2P: ByT5 G2P + G2P-Conformer-CTC (~20x smaller, non-autoregr.).
-- **Strategy (changes the plan): JOINT multilingual fine-tune, not per-language.** Fine-tune from
-  CharsiuG2P's *pretrained* multilingual ByT5 (tiny for ~1.5k pairs; small = accuracy ceiling) over
-  all gap langs at once with language-ID prefixes. Joint mitigates small-data instability
-  (multilingual ByT5 PER vs dict-size ρ=-0.05 vs -0.64 monolingual-from-scratch); pretrained init
-  beats random. `run_neural.py` is per-language → needs a joint variant for the GPU run.
-- Caveat: CharsiuG2P pretrained IPA is Wiktionary-style, not ZIPA broad-IPA; our ZIPA-distilled
-  fine-tune targets teach the convention, pretrained init supplies priors (untested for ZIPA).
+- **byT5 (byte-level) > mT5 (subword) for G2P** — CharsiuG2P: ByT5-small 8.8 PER vs mT5-small 11.9 (equal params); tiny byT5 (7–20M) beats pretrained mT5-small. byte vocab ≤256 + any-script.
+- **byT5 not superseded in 2026.** Lightweight 2025 alt LatPhon (7.5M, RoPE+lang-ID) beats byT5 on 6 high-resource European langs but unproven low-resource/broad-IPA → not for us. NVIDIA NeMo supports exactly two trainable G2P: ByT5 G2P + G2P-Conformer-CTC (~20x smaller, non-autoregr.).
+- **Strategy (changes the plan): JOINT multilingual fine-tune, not per-language.** Fine-tune from CharsiuG2P's *pretrained* multilingual ByT5 (tiny for ~1.5k pairs; small = accuracy ceiling) over all gap langs at once with language-ID prefixes. Joint mitigates small-data instability (multilingual ByT5 PER vs dict-size ρ=-0.05 vs -0.64 monolingual-from-scratch); pretrained init beats random. `run_neural.py` is per-language → needs a joint variant for the GPU run.
+- Caveat: CharsiuG2P pretrained IPA is Wiktionary-style, not ZIPA broad-IPA; our ZIPA-distilled fine-tune targets teach the convention, pretrained init supplies priors (untested for ZIPA).
 
 ## 2026-06-16 — Reorg to the wider-project standard
 
-Brought `capt` up to the layout the rest of peacock-asr uses (omni-curator-style domain subpackages,
-`[project.scripts]` CLIs, strict ruff, `artifacts/` for generated/large files). Changes:
+Brought `capt` up to the layout the rest of peacock-asr uses (omni-curator-style domain subpackages, `[project.scripts]` CLIs, strict ruff, `artifacts/` for generated/large files). Changes:
 
 - **`src/capt/` folderized by funnel stage:** `g2p/` (routing.py + routing.json + text_normalization
-  - models/), `recognize/` (zipa.py + vendored `_vendor_zipa.py`), `score/` (alignment/features/phones),
-  `cli/`; `pipeline.py`/`audio.py`/`asr.py` stay top-level. `g2p_models/` → `g2p/models/`,
-  `g2p_routing.json` → `g2p/routing.json` (the 9 ZIPA-distilled gap FSTs are package data, loaded via
-  `__file__`).
-- **ZIPA vendored + run in-process:** only the CTC inference (fbank + greedy decode) is kept, copied
-  from the ZIPA repo (MIT, `recognize/ZIPA_LICENSE.txt`) into `recognize/_vendor_zipa.py`. The old
-  `subprocess` shell-out to a `third_party/zipa` clone is gone; the ONNX session is built once and
-  reused, defaulting to `CPUExecutionProvider` so eval never contends with a GPU training run. `lhotse`
-  moved from the `zipa` extra to a hard dependency. **`third_party/` deleted.**
-- **`scripts/` → `cli/` + entry points:** `capt-eval`, `capt-manifest`, `capt-g2p-ablation`,
-  `capt-fetch-zipa`. `bootstrap_zipa.sh` (a `.sh`, against repo rules) is replaced by the Python
-  `capt-fetch-zipa` (HF download only — inference is vendored). **`scripts/` deleted.**
-- **Artifacts:** NeMo text-processing grammar cache redirected to `artifacts/nemo_text_processing/`
-  (was a stray `.nemo_text_processing/` at the project root); stale `artifacts/p016_app.log` removed.
-- **Disk:** ~6.4 GB of regenerable `experiments/g2p_train/` scratch (FLEURS audio, intermediate model
-  checkpoints, raw ZIPA dumps/logs) deleted; scripts, result JSONs, RESULTS docs, lexicons kept (see
-  `experiments/g2p_train/README.md`).
-- **Lint:** the two remaining ruff complexity hotspots refactored out; `ruff check src tests` clean,
-  32 tests pass, vendored in-process ZIPA verified end-to-end on a clip.
+  - models/), `recognize/` (zipa.py + vendored `_vendor_zipa.py`), `score/` (alignment/features/phones), `cli/`; `pipeline.py`/`audio.py`/`asr.py` stay top-level. `g2p_models/` → `g2p/models/`, `g2p_routing.json` → `g2p/routing.json` (the 9 ZIPA-distilled gap FSTs are package data, loaded via `__file__`).
+- **ZIPA vendored + run in-process:** only the CTC inference (fbank + greedy decode) is kept, copied from the ZIPA repo (MIT, `recognize/ZIPA_LICENSE.txt`) into `recognize/_vendor_zipa.py`. The old `subprocess` shell-out to a `third_party/zipa` clone is gone; the ONNX session is built once and reused, defaulting to `CPUExecutionProvider` so eval never contends with a GPU training run. `lhotse` moved from the `zipa` extra to a hard dependency. **`third_party/` deleted.**
+- **`scripts/` → `cli/` + entry points:** `capt-eval`, `capt-manifest`, `capt-g2p-ablation`, `capt-fetch-zipa`. `bootstrap_zipa.sh` (a `.sh`, against repo rules) is replaced by the Python `capt-fetch-zipa` (HF download only — inference is vendored). **`scripts/` deleted.**
+- **Artifacts:** NeMo text-processing grammar cache redirected to `artifacts/nemo_text_processing/` (was a stray `.nemo_text_processing/` at the project root); stale `artifacts/p016_app.log` removed.
+- **Disk:** ~6.4 GB of regenerable `experiments/g2p_train/` scratch (FLEURS audio, intermediate model checkpoints, raw ZIPA dumps/logs) deleted; scripts, result JSONs, RESULTS docs, lexicons kept (see `experiments/g2p_train/README.md`).
+- **Lint:** the two remaining ruff complexity hotspots refactored out; `ruff check src tests` clean, 32 tests pass, vendored in-process ZIPA verified end-to-end on a clip.

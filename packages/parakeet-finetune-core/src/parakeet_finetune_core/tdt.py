@@ -21,11 +21,13 @@ class JsonlTrainLogger:
         self.path = path
         self.every = every
         self.t0 = time.time()
+        self._last_logged_step: int | None = None
 
     def on_train_batch_end(self, trainer: Any, _pl_module: Any, *_args: object) -> None:
         step = trainer.global_step
-        if step % self.every != 0:
+        if step % self.every != 0 or step == self._last_logged_step:
             return
+        self._last_logged_step = step
         metrics = trainer.callback_metrics
         loss = metrics.get("train_loss", metrics.get("loss"))
         loss_value = float(loss) if loss is not None else float("nan")
@@ -115,6 +117,62 @@ def enable_eval_loss(model: Any) -> None:
             cfg.compute_eval_loss = True
 
 
+def configure_aux_ctc_weight(model: Any, weight: float | None) -> float | None:
+    """Override the auxiliary CTC share on a hybrid model when explicitly requested."""
+    if weight is None:
+        return None
+    if not 0.0 <= weight <= 1.0:
+        raise ValueError("ctc_loss_weight must be between 0.0 and 1.0")
+    if not hasattr(model, "ctc_loss_weight"):
+        raise ValueError("ctc_loss_weight requires a hybrid TDT+CTC model")
+    model.ctc_loss_weight = weight
+    cfg = getattr(model, "cfg", None)
+    if cfg is not None:
+        if isinstance(cfg, dict):
+            cfg.setdefault("aux_ctc", {})["ctc_loss_weight"] = weight
+        else:
+            from omegaconf import open_dict
+
+            with open_dict(cfg.aux_ctc):
+                cfg.aux_ctc.ctc_loss_weight = weight
+    return weight
+
+
+def spec_augment_config(profile: str) -> dict[str, Any] | None:
+    """Return the controlled SpecAugment profile used by TDT experiments."""
+    if profile == "off":
+        return None
+    if profile == "half":
+        freq_masks, time_masks = 1, 5
+    elif profile == "current":
+        freq_masks, time_masks = 2, 10
+    else:
+        raise ValueError(f"unknown SpecAugment profile: {profile}")
+    return {
+        "_target_": "nemo.collections.asr.modules.SpectrogramAugmentation",
+        "freq_masks": freq_masks,
+        "time_masks": time_masks,
+        "freq_width": 27,
+        "time_width": 0.05,
+    }
+
+
+def configure_spec_augmentation(model: Any, profile: str, module_factory: Any) -> None:
+    """Install the selected profile on NeMo's actual forward-path attribute and config."""
+    config = spec_augment_config(profile)
+    model.spec_augmentation = None if config is None else module_factory.from_config_dict(config)
+    cfg = getattr(model, "cfg", None)
+    if cfg is None:
+        return
+    if isinstance(cfg, dict):
+        cfg["spec_augment"] = config
+        return
+    from omegaconf import open_dict
+
+    with open_dict(cfg):
+        cfg.spec_augment = config
+
+
 def freeze_encoder(model: Any, *, unfreeze_top: int = 0) -> str:
     model.encoder.freeze()
     if unfreeze_top <= 0:
@@ -175,9 +233,14 @@ def load_and_prepare_model(
     num_classes = apply_loss_init_fix(model, args.reduction or None)
     configure_fused_tdt_loss(model, args.fused_batch_size)
     enable_eval_loss(model)
+    ctc_loss_weight = configure_aux_ctc_weight(model, args.ctc_loss_weight)
+    effective_ctc_loss_weight = (
+        getattr(model, "ctc_loss_weight", None) if ctc_loss_weight is None else ctc_loss_weight
+    )
     print(
         f"RNNTLoss num_classes={num_classes}; fused_batch_size={args.fused_batch_size}; "
-        f"compute_eval_loss={model.compute_eval_loss}",
+        f"compute_eval_loss={model.compute_eval_loss}; "
+        f"ctc_loss_weight={effective_ctc_loss_weight}",
         flush=True,
     )
     if args.freeze_encoder or args.unfreeze_top > 0:
@@ -185,7 +248,9 @@ def load_and_prepare_model(
     return model
 
 
-def train_ds(manifest: Path, max_dur: float, batch_dur: float, num_workers: int) -> dict[str, Any]:
+def train_ds(
+    manifest: Path, max_dur: float, batch_dur: float, num_workers: int, seed: int
+) -> dict[str, Any]:
     return {
         "manifest_filepath": str(manifest),
         "sample_rate": 16_000,
@@ -196,6 +261,8 @@ def train_ds(manifest: Path, max_dur: float, batch_dur: float, num_workers: int)
         "quadratic_duration": 15.0,
         "batch_size": None,
         "shuffle": True,
+        "seed": seed,
+        "shard_seed": seed,
         "num_workers": num_workers,
         "pin_memory": True,
         "min_duration": 0.5,
@@ -289,6 +356,7 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
     parser.add_argument("--tokenizer-type", default="bpe")
     parser.add_argument("--exp-dir", type=Path, default=project.runs)
     parser.add_argument("--batch-dur", type=float, default=120.0)
+    parser.add_argument("--accumulate-grad-batches", type=int, default=1)
     parser.add_argument("--max-dur", type=float, default=30.0)
     parser.add_argument("--max-steps", type=int, default=100_000)
     parser.add_argument("--lr", type=float, default=3e-4)
@@ -299,6 +367,19 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
     parser.add_argument("--log-every", type=int, default=50)
     parser.add_argument("--precision", default="bf16")
     parser.add_argument("--num-workers", type=int, default=8)
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--ctc-loss-weight",
+        type=float,
+        default=None,
+        help="Auxiliary CTC share for a hybrid model; empty keeps the base-model value.",
+    )
+    parser.add_argument(
+        "--spec-augment",
+        choices=["off", "half", "current"],
+        default="current",
+        help="Controlled SpecAugment profile: off, half masks, or the current base recipe.",
+    )
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--freeze-encoder", action="store_true")
     parser.add_argument("--unfreeze-top", type=int, default=0)
@@ -343,7 +424,8 @@ def run(args: argparse.Namespace) -> None:
 
     print(
         f"model={model_name} train={train_manifest} dev={validation_manifest} "
-        f"tokenizer={tokenizer_dir} run={run_dir}",
+        f"tokenizer={tokenizer_dir} run={run_dir} batch_dur={args.batch_dur} "
+        f"accumulate_grad_batches={args.accumulate_grad_batches}",
         flush=True,
     )
     if args.dry_run:
@@ -354,6 +436,8 @@ def run(args: argparse.Namespace) -> None:
     from nemo.collections.asr.models import ASRModel  # ty: ignore[unresolved-import]
     from nemo.utils import model_utils  # ty: ignore[unresolved-import]
     from omegaconf import OmegaConf
+
+    pl.seed_everything(args.seed, workers=True)
 
     class TrainLogger(JsonlTrainLogger, pl.Callback):
         pass
@@ -396,8 +480,12 @@ def run(args: argparse.Namespace) -> None:
         devices=1,
         accelerator="gpu",
         precision=args.precision,
+        accumulate_grad_batches=args.accumulate_grad_batches,
         max_steps=args.max_steps,
-        val_check_interval=args.val_every,
+        # Lightning counts val_check_interval in microbatches, while max_steps and our CLI
+        # contract count optimizer updates. Preserve the historical optimizer-step interval
+        # when gradient accumulation is enabled.
+        val_check_interval=args.val_every * args.accumulate_grad_batches,
         num_sanity_val_steps=0,
         gradient_clip_val=1.0,
         log_every_n_steps=args.log_every,
@@ -411,7 +499,7 @@ def run(args: argparse.Namespace) -> None:
         {
             "model": {
                 "train_ds": train_ds(
-                    Path(train_manifest), args.max_dur, args.batch_dur, args.num_workers
+                    Path(train_manifest), args.max_dur, args.batch_dur, args.num_workers, args.seed
                 ),
                 "validation_ds": val_ds(Path(validation_manifest), args.max_dur, args.num_workers),
                 "optim": {
@@ -437,13 +525,6 @@ def run(args: argparse.Namespace) -> None:
                         "max_steps": args.max_steps,
                     },
                 },
-                "spec_augment": {
-                    "_target_": "nemo.collections.asr.modules.SpectrogramAugmentation",
-                    "freq_masks": 2,
-                    "time_masks": 10,
-                    "freq_width": 27,
-                    "time_width": 0.05,
-                },
             }
         }
     )
@@ -451,7 +532,8 @@ def run(args: argparse.Namespace) -> None:
     model.setup_training_data(resolved.model.train_ds)
     model.setup_multiple_validation_data(resolved.model.validation_ds)
     model.setup_optimization(resolved.model.optim)
-    model.spec_augment = ASRModel.from_config_dict(resolved.model.spec_augment)
+    configure_spec_augmentation(model, args.spec_augment, ASRModel)
+    print(f"SpecAugment profile={args.spec_augment}", flush=True)
 
     resume_ckpt = (
         str(ckpt_dir / "last.ckpt") if args.resume and (ckpt_dir / "last.ckpt").exists() else None

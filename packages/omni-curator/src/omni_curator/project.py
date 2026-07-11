@@ -73,6 +73,12 @@ class CuratorProject:
     coverage_check: Callable[[list[str]], int] | None = None
     heldout_manifest: Path | None = None
     mixture_weights: Mapping[str, float] = field(default_factory=dict)
+    vad_engine: str = "marblenet"
+    vad_profile: str = "legacy-marblenet-v1"
+    vad_threshold: float = 0.5
+    vad_silero_backend: str = "auto"
+    vad_gpu_procs: int = 2
+    vad_cpu_procs: int = 8
     #: Per-source license: ``source name -> (license_id, commercial_use)``. Stamped onto every
     #: exported row (license/commercial_use columns); an unregistered source defaults to
     #: ``("unknown", False)`` so it's excluded from a ``--commercial-only`` export.
@@ -93,6 +99,16 @@ class CuratorProject:
         if bad_tiers:
             msg = f"unknown channel tiers {bad_tiers}; expected one of {_TIERS}"
             raise ValueError(msg)
+        if self.vad_engine not in {"cobra", "marblenet", "silero"}:
+            raise ValueError(f"unknown VAD engine: {self.vad_engine}")
+        if self.vad_profile not in {"legacy-marblenet-v1", "conservative-v1"}:
+            raise ValueError(f"unknown VAD profile: {self.vad_profile}")
+        if self.vad_silero_backend not in {"auto", "jit", "onnx"}:
+            raise ValueError(f"unknown Silero backend: {self.vad_silero_backend}")
+        if not 0 <= self.vad_threshold <= 1:
+            raise ValueError("VAD threshold must be between 0 and 1")
+        if self.vad_gpu_procs < 0 or self.vad_cpu_procs < 0:
+            raise ValueError("VAD worker counts must be non-negative")
 
     # -- the project-owned data layout ---------------------------------------------------------
 
@@ -315,9 +331,7 @@ def cmd_download(project: CuratorProject, args: argparse.Namespace) -> int:
     from omni_curator.create.youtube import download_channel
 
     cookies_override = Path(args.cookies) if getattr(args, "cookies", None) else None
-    cookies = cookies_override or (
-        project.cookies_path if project.cookies_path.exists() else None
-    )
+    cookies = cookies_override or (project.cookies_path if project.cookies_path.exists() else None)
     if cookies is not None and not cookies.exists():
         raise SystemExit(f"cookies file not found: {cookies}")
     lane = getattr(args, "lane", None)
@@ -334,23 +348,26 @@ def cmd_download(project: CuratorProject, args: argparse.Namespace) -> int:
         if args.disk_guard:
             free_gb = shutil.disk_usage(create_dir).free / 1e9
             if free_gb < args.disk_guard:
-                print(f"DISK GUARD: {free_gb:.0f} G free < {args.disk_guard} G"
-                      f" — stopping before {ch.slug}")
+                print(
+                    f"DISK GUARD: {free_gb:.0f} G free < {args.disk_guard} G"
+                    f" — stopping before {ch.slug}"
+                )
                 break
         print(f"== {ch.slug} ({ch.tier}): {ch.url}")
         result = download_channel(
-            ch.url, out_dir=create_dir / ch.slug, limit=args.limit,
-            cookies=cookies, lane=lane,
+            ch.url,
+            out_dir=create_dir / ch.slug,
+            limit=args.limit,
+            cookies=cookies,
+            lane=lane,
             # the per-channel guard above only stops *between* channels; passing it here makes the
             # same floor abort *mid-channel* too (P4) — the factory sets --disk-guard to its floor
             min_free_gb=args.disk_guard or None,
         )
         total_hours += result.hours
         done += 1
-        print(f"   {result.flac_count} files, {result.hours:.2f} h"
-              f" -> {create_dir / ch.slug}")
-    print(f"TOTAL: {total_hours:.2f} h across {done} channel(s)"
-          f" under {create_dir}")
+        print(f"   {result.flac_count} files, {result.hours:.2f} h -> {create_dir / ch.slug}")
+    print(f"TOTAL: {total_hours:.2f} h across {done} channel(s) under {create_dir}")
     return 0
 
 
@@ -458,8 +475,11 @@ def cmd_segment(project: CuratorProject, args: argparse.Namespace) -> int:
 
     gpu_procs, cpu_procs = resolve_devices(args.gpu_procs, args.cpu_procs)
     policy = build_vad_policy(
-        engine=args.vad_engine, profile=args.vad_profile, max_speech_s=args.max_duration,
-        threshold=args.vad_threshold, model_path=args.vad_model,
+        engine=args.vad_engine,
+        profile=args.vad_profile,
+        max_speech_s=args.max_duration,
+        threshold=args.vad_threshold,
+        model_path=args.vad_model,
         silero_backend=args.silero_backend,
     )
     # --clips-root lets clips land on a fast disk (e.g. an SSD) while sources stay put; clip_path is
@@ -471,9 +491,15 @@ def cmd_segment(project: CuratorProject, args: argparse.Namespace) -> int:
         f"{gpu_procs} GPU + {cpu_procs} CPU workers -> clips at {clips_root}"
     )
     run_segmenters(
-        project.queue_path, gpu_procs=gpu_procs, cpu_procs=cpu_procs, clips_root=clips_root,
-        language=project.language, script=project.script,
-        max_dur=args.max_duration, pending_hwm=args.hwm, min_free_gb=args.min_free_gb,
+        project.queue_path,
+        gpu_procs=gpu_procs,
+        cpu_procs=cpu_procs,
+        clips_root=clips_root,
+        language=project.language,
+        script=project.script,
+        max_dur=args.max_duration,
+        pending_hwm=args.hwm,
+        min_free_gb=args.min_free_gb,
         policy=policy,
     )
     queue = QueueStore(project.queue_path)
@@ -495,15 +521,20 @@ def cmd_vad_pilot(project: CuratorProject, args: argparse.Namespace) -> int:
     if output_dir == production_clips or output_dir.is_relative_to(production_clips):
         raise ValueError(f"pilot output must not be inside production clips: {production_clips}")
     summary = run_vad_pilot(
-        manifest=Path(args.manifest), output_dir=output_dir,
+        manifest=Path(args.manifest),
+        output_dir=output_dir,
         engines=args.engine or ["cobra", "silero", "marblenet"],
-        profile=args.vad_profile, max_duration=args.max_duration,
+        profile=args.vad_profile,
+        max_duration=args.max_duration,
         threshold=args.vad_threshold,
         model_path=Path(args.vad_model) if args.vad_model else None,
-        silero_backend=args.silero_backend, device=args.device,
-        write_clips=args.write_clips, overwrite=args.overwrite,
+        silero_backend=args.silero_backend,
+        device=args.device,
+        write_clips=args.write_clips,
+        overwrite=args.overwrite,
         scribe_max_clips_per_engine=args.scribe_max_clips_per_engine,
-        scribe_model=args.scribe_model, scribe_language=args.scribe_language,
+        scribe_model=args.scribe_model,
+        scribe_language=args.scribe_language,
     )
     print(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True))
     scribe = summary["scribe"]
@@ -541,7 +572,8 @@ def cmd_resegment(project: CuratorProject, args: argparse.Namespace) -> int:
         queue.close()
         return 0
     active = [
-        stage for stage in ("enqueue", "segment", "labelq", "harvest", "archive")
+        stage
+        for stage in ("enqueue", "segment", "labelq", "harvest", "archive")
         if flock.is_locked(flock.lock_path(project.data, stage))
     ]
     if active:
@@ -587,8 +619,12 @@ def cmd_labelq(project: CuratorProject, args: argparse.Namespace) -> int:
     default_window = project.data / ".scribe_window.labelq"
     window_file = Path(args.window_file) if args.window_file else default_window
     labeled = run_labeler(
-        project.queue_path, workers=args.workers, batch=args.batch, runs=args.runs,
-        window_file=window_file, pool_max=args.pool_max,
+        project.queue_path,
+        workers=args.workers,
+        batch=args.batch,
+        runs=args.runs,
+        window_file=window_file,
+        pool_max=args.pool_max,
         idle_rounds=args.idle_rounds,
         on_progress=lambda n: print(f"  labeled {n}", flush=True) if n % 1000 == 0 else None,
         on_event=lambda msg: print(msg, flush=True),
@@ -644,9 +680,13 @@ def cmd_harvest(project: CuratorProject, args: argparse.Namespace) -> int:
                 meta["variants"] = json.loads(c.variants)
             by_channel.setdefault(c.channel, []).append(
                 Sample(
-                    id=c.clip_id, source=f"youtube-{c.channel}", language=c.language,
-                    text=c.label, audio_path=c.clip_path,
-                    duration=round(c.end - c.start, 3), sample_rate=16_000,
+                    id=c.clip_id,
+                    source=f"youtube-{c.channel}",
+                    language=c.language,
+                    text=c.label,
+                    audio_path=c.clip_path,
+                    duration=round(c.end - c.start, 3),
+                    sample_rate=16_000,
                     citation=c.citation,
                     meta=meta,
                 )
@@ -700,8 +740,10 @@ def fleurs_source(config: str, *, streaming: bool = False) -> IngestFn:
         from omni_curator.ingest.fleurs import load_fleurs
 
         return load_fleurs(
-            config, language=project.language,
-            audio_dir=project.canonical_dir / "fleurs", streaming=streaming,
+            config,
+            language=project.language,
+            audio_dir=project.canonical_dir / "fleurs",
+            streaming=streaming,
         )
 
     return load
@@ -757,8 +799,14 @@ def huggingface_source(
 
         name = source or f"hf-{repo.rsplit('/', 1)[-1].lower()}"
         samples = load_hf_audio(
-            repo, language=project.language, source=name, config=config, splits=splits,
-            text_column=text_column, audio_dir=project.canonical_dir / name, streaming=streaming,
+            repo,
+            language=project.language,
+            source=name,
+            config=config,
+            splits=splits,
+            text_column=text_column,
+            audio_dir=project.canonical_dir / name,
+            streaming=streaming,
         )
         if force_split is None:
             return samples
@@ -811,8 +859,13 @@ def cmd_verify(project: CuratorProject, args: argparse.Namespace) -> int:
     default_window = project.data / ".scribe_window.verify"
     window_file = Path(args.window_file) if args.window_file else default_window
     stats = verify_store(
-        store, key=args.source, scribe_language=args.scribe_language,
-        workers=args.workers, window_file=window_file, pool_max=args.pool_max, force=args.force,
+        store,
+        key=args.source,
+        scribe_language=args.scribe_language,
+        workers=args.workers,
+        window_file=window_file,
+        pool_max=args.pool_max,
+        force=args.force,
     )
     renew_note = f", key renewals {stats.renewals}" if stats.renewals else ""
     print(f"scored {stats.scored}, skipped {stats.skipped}, failed {stats.failed}{renew_note}")
@@ -834,7 +887,9 @@ def cmd_rescore(project: CuratorProject, args: argparse.Namespace) -> int:
 
     store = CuratorStore(project.db)
     stats = rescore_cross_script(
-        store, key=args.source, workers=args.workers,
+        store,
+        key=args.source,
+        workers=args.workers,
         on_progress=lambda n: print(f"  rescored {n}", flush=True) if n % 5000 == 0 else None,
     )
     print(f"rescored {stats.scored}, failed {stats.failed}")
@@ -881,19 +936,25 @@ def cmd_export(project: CuratorProject, args: argparse.Namespace) -> int:
         else None
     )
     selection = Selection(
-        max_duration_seconds=args.max_duration, max_scribe_wer=args.max_wer,
-        heldout_test_videos=heldout, youtube_split_policy=youtube_split_policy,
+        max_duration_seconds=args.max_duration,
+        max_scribe_wer=args.max_wer,
+        heldout_test_videos=heldout,
+        youtube_split_policy=youtube_split_policy,
     )
     store = CuratorStore(project.db)
     stats = export_dataset(
-        store, project.datasets_dir / args.name, version=0, selection=selection,
-        coverage_check=project.coverage_check, strict=not args.no_strict,
+        store,
+        project.datasets_dir / args.name,
+        version=0,
+        selection=selection,
+        coverage_check=project.coverage_check,
+        strict=not args.no_strict,
         mixture_weights=weights or None,
-        licenses=project.licenses, commercial_only=args.commercial_only,
+        licenses=project.licenses,
+        commercial_only=args.commercial_only,
     )
     store.close()
-    print(f"exported {stats.rows} rows ({stats.hours:.2f} h)"
-          f" -> {project.datasets_dir / args.name}")
+    print(f"exported {stats.rows} rows ({stats.hours:.2f} h) -> {project.datasets_dir / args.name}")
     if heldout:
         print(f"  held-out conversational test: {len(heldout)} videos carved to split=test")
     if weights:
@@ -927,8 +988,12 @@ def _add_source_parsers(sub: argparse._SubParsersAction, project: CuratorProject
     p_pre = sub.add_parser("prescan", help="preflight channels and record reachability")
     _add_channel_args(p_pre, project)
     p_pre.add_argument("--lane", help="record intended VPN lane for later download routing")
-    p_pre.add_argument("--db", default=None, metavar="PATH",
-                       help="write prescan DB here (default: data/prescan.sqlite)")
+    p_pre.add_argument(
+        "--db",
+        default=None,
+        metavar="PATH",
+        help="write prescan DB here (default: data/prescan.sqlite)",
+    )
     p_pre.set_defaults(func=cmd_prescan)
 
     p_list = sub.add_parser("list", help="size channels (video counts, no download)")
@@ -937,17 +1002,31 @@ def _add_source_parsers(sub: argparse._SubParsersAction, project: CuratorProject
 
     p_dl = sub.add_parser("download", help="download channel audio -> data/create/<slug>")
     _add_channel_args(p_dl, project)
-    p_dl.add_argument("--disk-guard", type=int, metavar="GB",
-                      help="stop before a channel if free space on the data fs drops below GB")
-    p_dl.add_argument("--lane", metavar="GLUETUN_CONTAINER",
-                      help="egress through a gluetun VPN container's clean IP (e.g. gluetun-lane1)"
-                           " instead of the host IP — for bot-blocked channels")
-    p_dl.add_argument("--cookies", metavar="PATH",
-                      help="Netscape cookies.txt to use (default: the project's youtube_cookies.txt"
-                           " when present)")
-    p_dl.add_argument("--create-root", default=None, metavar="DIR",
-                      help="download into DIR instead of data/create (e.g. a fast SSD); pass the "
-                           "same --create-root to enqueue so segment picks the new sources up")
+    p_dl.add_argument(
+        "--disk-guard",
+        type=int,
+        metavar="GB",
+        help="stop before a channel if free space on the data fs drops below GB",
+    )
+    p_dl.add_argument(
+        "--lane",
+        metavar="GLUETUN_CONTAINER",
+        help="egress through a gluetun VPN container's clean IP (e.g. gluetun-lane1)"
+        " instead of the host IP — for bot-blocked channels",
+    )
+    p_dl.add_argument(
+        "--cookies",
+        metavar="PATH",
+        help="Netscape cookies.txt to use (default: the project's youtube_cookies.txt"
+        " when present)",
+    )
+    p_dl.add_argument(
+        "--create-root",
+        default=None,
+        metavar="DIR",
+        help="download into DIR instead of data/create (e.g. a fast SSD); pass the "
+        "same --create-root to enqueue so segment picks the new sources up",
+    )
     p_dl.set_defaults(func=cmd_download)
 
     p_ck = sub.add_parser("cookies", help="refresh youtube_cookies.txt from the browser profile")
@@ -961,8 +1040,12 @@ def _add_create_parsers(  # noqa: PLR0915
     p_eq = sub.add_parser("enqueue", help="seed the queue with not-yet-labeled videos")
     _add_channel_args(p_eq, project)
     p_eq.add_argument("--all", action="store_true", help="ignore the already-labeled skip")
-    p_eq.add_argument("--create-root", default=None, metavar="DIR",
-                      help="scan DIR instead of data/create for new sources (match download)")
+    p_eq.add_argument(
+        "--create-root",
+        default=None,
+        metavar="DIR",
+        help="scan DIR instead of data/create for new sources (match download)",
+    )
     p_eq.set_defaults(func=cmd_enqueue)
 
     p_repair = sub.add_parser(
@@ -973,40 +1056,79 @@ def _add_create_parsers(  # noqa: PLR0915
     p_repair.set_defaults(func=cmd_repair_metadata)
 
     p_sg = sub.add_parser("segment", help="VAD-segment queued videos into clips (GPU+CPU)")
-    p_sg.add_argument("--gpu-procs", type=int, default=2,
-                      help="VAD workers on the GPU (models share it; ~3 fit in 12 GB)")
-    p_sg.add_argument("--cpu-procs", type=int, default=8,
-                      help="VAD workers on the CPU cores, run alongside the GPU for max throughput")
+    p_sg.add_argument(
+        "--gpu-procs",
+        type=int,
+        default=project.vad_gpu_procs,
+        help=f"VAD workers on the GPU (project default: {project.vad_gpu_procs})",
+    )
+    p_sg.add_argument(
+        "--cpu-procs",
+        type=int,
+        default=project.vad_cpu_procs,
+        help=f"VAD workers on the CPU (project default: {project.vad_cpu_procs})",
+    )
     p_sg.add_argument("--max-duration", type=float, default=30.0, help="hard cap per VAD span (s)")
-    p_sg.add_argument("--vad-engine", choices=("marblenet", "cobra", "silero"),
-                      default="marblenet", help="resident VAD adapter (default: marblenet)")
-    p_sg.add_argument("--vad-profile",
-                      choices=("legacy-marblenet-v1", "conservative-v1"),
-                      default="legacy-marblenet-v1",
-                      help="shared interval postprocessor; legacy remains production default")
-    p_sg.add_argument("--vad-threshold", type=float, default=0.5)
-    p_sg.add_argument("--vad-model", default=None, metavar="PATH",
-                      help="exact MarbleNet v2 .nemo path (or OMNI_CURATOR_VAD_MODEL)")
-    p_sg.add_argument("--silero-backend", choices=("auto", "onnx", "jit"), default="auto")
-    p_sg.add_argument("--hwm", type=int, default=DEFAULT_PENDING_HWM,
-                      help="pending-clip backpressure ceiling (segment pauses above it)")
-    p_sg.add_argument("--min-free-gb", type=float, default=DEFAULT_MIN_FREE_GB,
-                      help="stop cutting when the clips disk drops below N GB free (backpressure)")
-    p_sg.add_argument("--clips-root", default=None, metavar="DIR",
-                      help="write clips here instead of data/clips (e.g. a fast SSD); clip paths "
-                           "stay absolute so the labeler reads old + new clips transparently")
+    p_sg.add_argument(
+        "--vad-engine",
+        choices=("marblenet", "cobra", "silero"),
+        default=project.vad_engine,
+        help=f"resident VAD adapter (project default: {project.vad_engine})",
+    )
+    p_sg.add_argument(
+        "--vad-profile",
+        choices=("legacy-marblenet-v1", "conservative-v1"),
+        default=project.vad_profile,
+        help=f"shared interval postprocessor (project default: {project.vad_profile})",
+    )
+    p_sg.add_argument("--vad-threshold", type=float, default=project.vad_threshold)
+    p_sg.add_argument(
+        "--vad-model",
+        default=None,
+        metavar="PATH",
+        help="exact MarbleNet v2 .nemo path (or OMNI_CURATOR_VAD_MODEL)",
+    )
+    p_sg.add_argument(
+        "--silero-backend", choices=("auto", "onnx", "jit"), default=project.vad_silero_backend
+    )
+    p_sg.add_argument(
+        "--hwm",
+        type=int,
+        default=DEFAULT_PENDING_HWM,
+        help="pending-clip backpressure ceiling (segment pauses above it)",
+    )
+    p_sg.add_argument(
+        "--min-free-gb",
+        type=float,
+        default=DEFAULT_MIN_FREE_GB,
+        help="stop cutting when the clips disk drops below N GB free (backpressure)",
+    )
+    p_sg.add_argument(
+        "--clips-root",
+        default=None,
+        metavar="DIR",
+        help="write clips here instead of data/clips (e.g. a fast SSD); clip paths "
+        "stay absolute so the labeler reads old + new clips transparently",
+    )
     p_sg.set_defaults(func=cmd_segment)
 
     p_vp = sub.add_parser(
         "vad-pilot", help="compare VAD engines on an exact manifest in an isolated output root"
     )
-    p_vp.add_argument("--manifest", required=True, metavar="JSONL",
-                      help="bounded selector; each row has id/path/tier/channel")
+    p_vp.add_argument(
+        "--manifest",
+        required=True,
+        metavar="JSONL",
+        help="bounded selector; each row has id/path/tier/channel",
+    )
     p_vp.add_argument("--output-dir", required=True, metavar="DIR")
-    p_vp.add_argument("--engine", action="append", choices=("cobra", "silero", "marblenet"),
-                      help="engine to compare (repeat; default: all three)")
-    p_vp.add_argument("--vad-profile", choices=("conservative-v1",),
-                      default="conservative-v1")
+    p_vp.add_argument(
+        "--engine",
+        action="append",
+        choices=("cobra", "silero", "marblenet"),
+        help="engine to compare (repeat; default: all three)",
+    )
+    p_vp.add_argument("--vad-profile", choices=("conservative-v1",), default="conservative-v1")
     p_vp.add_argument("--max-duration", type=float, default=30.0)
     p_vp.add_argument("--vad-threshold", type=float, default=0.5)
     p_vp.add_argument("--vad-model", default=None, metavar="PATH")
@@ -1014,22 +1136,36 @@ def _add_create_parsers(  # noqa: PLR0915
     p_vp.add_argument("--device", choices=("cpu", "cuda"), default="cpu")
     p_vp.add_argument("--write-clips", action=argparse.BooleanOptionalAction, default=False)
     p_vp.add_argument("--overwrite", action="store_true")
-    p_vp.add_argument("--scribe-max-clips-per-engine", type=int, default=0,
-                      help="balanced clean/noisy Scribe sample; 0 disables ASR yield")
+    p_vp.add_argument(
+        "--scribe-max-clips-per-engine",
+        type=int,
+        default=0,
+        help="balanced clean/noisy Scribe sample; 0 disables ASR yield",
+    )
     p_vp.add_argument("--scribe-model", default="scribe-v2")
-    p_vp.add_argument("--scribe-language", default=None,
-                      help="service language code (default: auto-detect)")
+    p_vp.add_argument(
+        "--scribe-language", default=None, help="service language code (default: auto-detect)"
+    )
     p_vp.set_defaults(func=cmd_vad_pilot)
 
     p_rsg = sub.add_parser(
         "resegment", help="reset videos->pending + clear clips to re-cut with the fixed VAD"
     )
-    p_rsg.add_argument("--yes", action="store_true",
-                       help="actually reset (without it, prints a dry preview and exits)")
-    p_rsg.add_argument("--keep-clip-files", action="store_true",
-                       help="clear clip ROWS only; leave the orphan clip FILES on disk")
-    p_rsg.add_argument("--allow-existing-stores", action="store_true",
-                       help="allow reset even when channel stores already contain harvested rows")
+    p_rsg.add_argument(
+        "--yes",
+        action="store_true",
+        help="actually reset (without it, prints a dry preview and exits)",
+    )
+    p_rsg.add_argument(
+        "--keep-clip-files",
+        action="store_true",
+        help="clear clip ROWS only; leave the orphan clip FILES on disk",
+    )
+    p_rsg.add_argument(
+        "--allow-existing-stores",
+        action="store_true",
+        help="allow reset even when channel stores already contain harvested rows",
+    )
     p_rsg.set_defaults(func=cmd_resegment)
 
     p_lq = sub.add_parser("labelq", help="drain the clip queue with Scribe workers (I/O)")
@@ -1037,10 +1173,17 @@ def _add_create_parsers(  # noqa: PLR0915
     p_lq.add_argument("--batch", type=int, default=None, help="clips per claim (default 2x worker)")
     p_lq.add_argument("--runs", type=int, default=1, help="Scribe ensemble runs per clip")
     p_lq.add_argument("--idle-rounds", type=int, default=3, help="empty polls before exit")
-    p_lq.add_argument("--pool-max", type=int, default=350,
-                      help="thread-pool ceiling; the live window throttles concurrency below it")
-    p_lq.add_argument("--window-file", default=None,
-                      help="live concurrency window file (default data/.scribe_window.<stage>)")
+    p_lq.add_argument(
+        "--pool-max",
+        type=int,
+        default=350,
+        help="thread-pool ceiling; the live window throttles concurrency below it",
+    )
+    p_lq.add_argument(
+        "--window-file",
+        default=None,
+        help="live concurrency window file (default data/.scribe_window.<stage>)",
+    )
     p_lq.set_defaults(func=cmd_labelq)
 
     p_hv = sub.add_parser("harvest", help="fold labeled clips into per-channel stores")
@@ -1048,12 +1191,20 @@ def _add_create_parsers(  # noqa: PLR0915
     p_hv.set_defaults(func=cmd_harvest)
 
     p_ar = sub.add_parser("archive", help="move segmented videos' source FLACs off the work drive")
-    p_ar.add_argument("--archive-root",
-                      help="move sources to ROOT/<lang>/<channel>/ (required unless --delete)")
-    p_ar.add_argument("--delete", action="store_true",
-                      help="DELETE sources instead of moving (loses the ability to re-segment)")
-    p_ar.add_argument("--only-if-free-gb", type=float, default=None,
-                      help="only run when the working drive has fewer than N GB free")
+    p_ar.add_argument(
+        "--archive-root", help="move sources to ROOT/<lang>/<channel>/ (required unless --delete)"
+    )
+    p_ar.add_argument(
+        "--delete",
+        action="store_true",
+        help="DELETE sources instead of moving (loses the ability to re-segment)",
+    )
+    p_ar.add_argument(
+        "--only-if-free-gb",
+        type=float,
+        default=None,
+        help="only run when the working drive has fewer than N GB free",
+    )
     p_ar.set_defaults(func=cmd_archive)
 
 
@@ -1062,8 +1213,12 @@ def _add_store_parsers(sub: argparse._SubParsersAction, project: CuratorProject)
     p_mg.set_defaults(func=cmd_merge)
 
     p_in = sub.add_parser("ingest", help="ingest existing-labeled dataset(s) into the store")
-    p_in.add_argument("dataset", nargs="*", choices=sorted(project.ingests),
-                      help="one or more registered sources (omit when using --all)")
+    p_in.add_argument(
+        "dataset",
+        nargs="*",
+        choices=sorted(project.ingests),
+        help="one or more registered sources (omit when using --all)",
+    )
     p_in.add_argument("--all", action="store_true", help="ingest every registered source")
     p_in.set_defaults(func=cmd_ingest)
 
@@ -1071,10 +1226,17 @@ def _add_store_parsers(sub: argparse._SubParsersAction, project: CuratorProject)
     p_vf.add_argument("--source", help="restrict to one source (e.g. fleurs)")
     p_vf.add_argument("--scribe-language", help="Scribe language (default auto)")
     p_vf.add_argument("--workers", type=int, default=100)
-    p_vf.add_argument("--pool-max", type=int, default=350,
-                      help="thread-pool ceiling; the live window throttles concurrency below it")
-    p_vf.add_argument("--window-file", default=None,
-                      help="live concurrency window file (default data/.scribe_window.<stage>)")
+    p_vf.add_argument(
+        "--pool-max",
+        type=int,
+        default=350,
+        help="thread-pool ceiling; the live window throttles concurrency below it",
+    )
+    p_vf.add_argument(
+        "--window-file",
+        default=None,
+        help="live concurrency window file (default data/.scribe_window.<stage>)",
+    )
     p_vf.add_argument("--force", action="store_true", help="re-score already-scored clips")
     p_vf.set_defaults(func=cmd_verify)
 
@@ -1088,17 +1250,31 @@ def _add_store_parsers(sub: argparse._SubParsersAction, project: CuratorProject)
     p_ex.add_argument("--max-wer", type=float, default=None, help="drop clips above this WER")
     p_ex.add_argument("--max-duration", type=float, default=OMNI_MAX_DURATION_S)
     p_ex.add_argument("--no-strict", action="store_true", help="warn instead of fail on <unk>")
-    p_ex.add_argument("--no-heldout", action="store_true",
-                      help="do NOT carve the held-out test videos to split=test")
-    p_ex.add_argument("--mixture-weight", action="append", metavar="CORPUS=HOURS",
-                      help="sampling-weight override for the weighted TSV (repeatable; "
-                      "default: the project recipe)")
-    p_ex.add_argument("--commercial-only", action="store_true",
-                      help="export only commercial-licensed sources (drops NC/unknown)")
-    p_ex.add_argument("--no-mixture-weights", action="store_true",
-                      help="write no weighted TSV (true hours only)")
-    p_ex.add_argument("--youtube-stratified-splits", action="store_true",
-                      help="assign YouTube rows to category-stratified, video-disjoint splits")
+    p_ex.add_argument(
+        "--no-heldout",
+        action="store_true",
+        help="do NOT carve the held-out test videos to split=test",
+    )
+    p_ex.add_argument(
+        "--mixture-weight",
+        action="append",
+        metavar="CORPUS=HOURS",
+        help="sampling-weight override for the weighted TSV (repeatable; "
+        "default: the project recipe)",
+    )
+    p_ex.add_argument(
+        "--commercial-only",
+        action="store_true",
+        help="export only commercial-licensed sources (drops NC/unknown)",
+    )
+    p_ex.add_argument(
+        "--no-mixture-weights", action="store_true", help="write no weighted TSV (true hours only)"
+    )
+    p_ex.add_argument(
+        "--youtube-stratified-splits",
+        action="store_true",
+        help="assign YouTube rows to category-stratified, video-disjoint splits",
+    )
     p_ex.add_argument("--youtube-dev-ratio", type=float, default=0.05)
     p_ex.add_argument("--youtube-test-ratio", type=float, default=0.05)
     p_ex.add_argument("--youtube-split-seed", default="youtube-v1")

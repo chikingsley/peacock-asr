@@ -425,9 +425,7 @@ class MarbleNetEngine:
         nemo_asr = import_module("nemo.collections.asr")
         chosen = _resolve_marblenet_path(model_path)
         cls = nemo_asr.models.EncDecFrameClassificationModel
-        self._model = cls.restore_from(
-            str(chosen), map_location=torch.device(device), strict=False
-        )
+        self._model = cls.restore_from(str(chosen), map_location=torch.device(device), strict=False)
         self.model_revision = f"{chosen.name}:sha256:{_sha256(chosen)}"
         self._torch = torch
         self._device = device

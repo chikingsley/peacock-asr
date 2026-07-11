@@ -1,9 +1,6 @@
 # Dari (Afghan Persian, prs) YouTube channels — seeds a separate Dari ASR project
 
-Agent-researched 2026-06-13. **Dari / Afghan Persian only** — Iranian Persian, Tajik, and
-Pashto-dominant channels excluded. Kept SEPARATE from Iranian Persian (different project) because
-mixing varieties dilutes the model. 28 channels. Many Afghan outlets are bilingual Dari+Pashto —
-**language-filter at ingest** (the curator's language gate handles this; flag the bilingual ones).
+Agent-researched 2026-06-13. **Dari / Afghan Persian only** — Iranian Persian, Tajik, and Pashto-dominant channels excluded. Kept SEPARATE from Iranian Persian (different project) because mixing varieties dilutes the model. 28 channels. Many Afghan outlets are bilingual Dari+Pashto — **language-filter at ingest** (the curator's language gate handles this; flag the bilingual ones).
 
 ## Paste block (for a future projects/dari-asr sources.py)
 
@@ -48,9 +45,7 @@ _ch("afghan_comedy", "@AfghanComedyOfficial", "noisy", "Dari comedy skits; scrip
 
 ## Risks
 
-- **Pashto interleave (biggest):** TOLOnews, Ariana, Amu, Afghanistan International (post-2023),
-  Azadi, and field vlogs carry Pashto on the same channel — language-filter, don't ingest blind.
-  Prefer the language-split feeds (`@RTADari`, `@voaafghanistandari`, `@tolonewstalkshows`).
+- **Pashto interleave (biggest):** TOLOnews, Ariana, Amu, Afghanistan International (post-2023), Azadi, and field vlogs carry Pashto on the same channel — language-filter, don't ingest blind. Prefer the language-split feeds (`@RTADari`, `@voaafghanistandari`, `@tolonewstalkshows`).
 - **Handle spelling unverified** for several (resolve by `/channel/UC…` ID at ingest).
 - **Diaspora accent drift** (Amu, Afghanistan Intl, Begum, Rukhshana) — tag in-country vs diaspora.
 - **Dialect spread** (Kabuli, Hazaragi, Herati, diaspora) — a feature; tag for balanced sampling.

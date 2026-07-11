@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from parakeet_finetune_core.ctc import train_ctc_main
 from parakeet_finetune_core.nemo_recipe import train_nemo_recipe_main
+from parakeet_finetune_core.ngram_lm import build_ngram_lm_main
 from parakeet_finetune_core.tdt import train_tdt_main
 from parakeet_finetune_core.tokenizer import train_tokenizer_main
 
@@ -24,3 +25,7 @@ def train_nemo_recipe(argv: list[str] | None = None) -> int:
 
 def train_tdt(argv: list[str] | None = None) -> int:
     return train_tdt_main(PROJECT, argv)
+
+
+def build_ngram_lm(argv: list[str] | None = None) -> int:
+    return build_ngram_lm_main(argv)

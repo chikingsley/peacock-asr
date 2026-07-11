@@ -124,10 +124,17 @@ def test_scribe_sample_stops_after_three_consecutive_service_failures(tmp_path, 
         clip.write_bytes(b"clip")
         rows.append(
             {
-                "clip_id": str(index), "source_id": "source", "tier": "clean",
-                "channel": "channel", "engine": "cobra", "profile_id": "profile",
-                "model_revision": "model", "path": str(clip), "start": 0.0,
-                "end": 1.0, "duration": 1.0,
+                "clip_id": str(index),
+                "source_id": "source",
+                "tier": "clean",
+                "channel": "channel",
+                "engine": "cobra",
+                "profile_id": "profile",
+                "model_revision": "model",
+                "path": str(clip),
+                "start": 0.0,
+                "end": 1.0,
+                "duration": 1.0,
             }
         )
 
@@ -145,10 +152,17 @@ def test_scribe_sample_counts_structured_service_errors(tmp_path, monkeypatch):
     clip.write_bytes(b"clip")
     rows = [
         {
-            "clip_id": str(index), "source_id": "source", "tier": "clean",
-            "channel": "channel", "engine": "cobra", "profile_id": "profile",
-            "model_revision": "model", "path": str(clip), "start": 0.0,
-            "end": 1.0, "duration": 1.0,
+            "clip_id": str(index),
+            "source_id": "source",
+            "tier": "clean",
+            "channel": "channel",
+            "engine": "cobra",
+            "profile_id": "profile",
+            "model_revision": "model",
+            "path": str(clip),
+            "start": 0.0,
+            "end": 1.0,
+            "duration": 1.0,
         }
         for index in range(10)
     ]

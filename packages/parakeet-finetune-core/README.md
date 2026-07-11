@@ -4,8 +4,7 @@ Shared NeMo/Parakeet training glue for Peacock ASR language projects.
 
 ## Contract
 
-Every language project should expose console scripts in its own `pyproject.toml` and call this
-package from a small project adapter:
+Every language project should expose console scripts in its own `pyproject.toml` and call this package from a small project adapter:
 
 ```python
 from parakeet_finetune_core import ParakeetProject
@@ -35,8 +34,7 @@ uv run --project projects/tajik-asr tajik-parakeet-train-ctc --max-steps 1000
 uv run --project projects/tajik-asr tajik-parakeet-eval --limit 80 --device cpu
 ```
 
-Do not launch project workflows through direct interpreters or helper-script paths. The reusable
-surface is `uv run --project <language-project> <console-script> ...`.
+Do not launch project workflows through direct interpreters or helper-script paths. The reusable surface is `uv run --project <language-project> <console-script> ...`.
 
 ## Common vs Language-Specific
 
@@ -66,24 +64,15 @@ Language-specific in each `<language>-asr` project:
 
 Checkpoint and early-readout metrics are architecture-specific:
 
-- CTC runs monitor validation WER. CTC validation loss is cheap, but WER is the selection signal
-  used by the existing Parakeet CTC recipes and does not have the TDT/RNNT decode issue.
-- TDT/RNNT runs enable `model.compute_eval_loss = True` after restoring the base model and
-  changing vocabulary, then monitor `val_loss` for best validation checkpoints. BF16 TDT/RNNT
-  validation WER can be noisy after tokenizer changes, so use fp32 checkpoint eval for WER gates.
-- New Parakeet recipes must inspect the restored model/YAML config rather than assuming this flag.
-  Some NVIDIA transducer configs ship with `compute_eval_loss: false`; the shared TDT harness
-  overrides it intentionally.
+- CTC runs monitor validation WER. CTC validation loss is cheap, but WER is the selection signal used by the existing Parakeet CTC recipes and does not have the TDT/RNNT decode issue.
+- TDT/RNNT runs enable `model.compute_eval_loss = True` after restoring the base model and changing vocabulary, then monitor `val_loss` for best validation checkpoints. BF16 TDT/RNNT validation WER can be noisy after tokenizer changes, so use fp32 checkpoint eval for WER gates.
+- New Parakeet recipes must inspect the restored model/YAML config rather than assuming this flag. Some NVIDIA transducer configs ship with `compute_eval_loss: false`; the shared TDT harness overrides it intentionally.
 
-The generic `*-parakeet-train-nemo` wrapper is CTC-only. It requires an explicit CTC `--model-name`
-and `--model-kind ctc`, and refuses TDT/RNNT model kinds or model names. Transducers must use
-`*-parakeet-train-tdt`; that dedicated path repairs the duration-bin class count, enables eval loss,
-and selects checkpoints by `val_loss`.
+The generic `*-parakeet-train-nemo` wrapper is CTC-only. It requires an explicit CTC `--model-name` and `--model-kind ctc`, and refuses TDT/RNNT model kinds or model names. Transducers must use `*-parakeet-train-tdt`; that dedicated path repairs the duration-bin class count, enables eval loss, and selects checkpoints by `val_loss`.
 
 ## Evaluation Safety
 
-Evaluate a promoted, already fine-tuned `.nemo` directly. Do not pass `--replace-tokenizer`; the
-tokenizer and trained decoder/joint are already bundled in the model:
+Evaluate a promoted, already fine-tuned `.nemo` directly. Do not pass `--replace-tokenizer`; the tokenizer and trained decoder/joint are already bundled in the model:
 
 ```bash
 uv run --project projects/tajik-asr tajik-parakeet-eval \
@@ -91,8 +80,7 @@ uv run --project projects/tajik-asr tajik-parakeet-eval \
   --manifest data/parakeet/manifests/test_fleurs.jsonl
 ```
 
-Tokenizer replacement is only for reconstructing a fine-tuned model from a base `.nemo` plus a
-Lightning checkpoint. It must be requested explicitly and requires `--checkpoint`:
+Tokenizer replacement is only for reconstructing a fine-tuned model from a base `.nemo` plus a Lightning checkpoint. It must be requested explicitly and requires `--checkpoint`:
 
 ```bash
 uv run --project projects/tajik-asr tajik-parakeet-eval \
@@ -102,31 +90,19 @@ uv run --project projects/tajik-asr tajik-parakeet-eval \
   --tokenizer-dir data/parakeet/tokenizers/tokenizer_spe_bpe_v1024
 ```
 
-NeMo's `change_vocabulary()` rebuilds transducer decoder/joint weights even when the requested
-tokenizer is identical. The evaluator therefore never calls it implicitly, and checkpoint loading
-requires an exact state-dict match so a mismatched base model fails instead of producing a partial
-evaluation.
+NeMo's `change_vocabulary()` rebuilds transducer decoder/joint weights even when the requested tokenizer is identical. The evaluator therefore never calls it implicitly, and checkpoint loading requires an exact state-dict match so a mismatched base model fails instead of producing a partial evaluation.
 
-Evaluation reports raw and project-normalized WER/CER, empty hypotheses, timed RTFx, CUDA warm-up
-count, and peak CUDA allocation. Use `--output-jsonl` and `--output-summary-json` to preserve the
-predictions and scorecard. For throughput comparisons, record a cold end-to-end pass separately
-from a warm-cache pass; `--warmup-count 8 --batch-size 32` reproduces the historical Tajik 110M TDT
-contract, but safe batch size is model- and duration-dependent.
+Evaluation reports raw and project-normalized WER/CER, empty hypotheses, timed RTFx, CUDA warm-up count, and peak CUDA allocation. Use `--output-jsonl` and `--output-summary-json` to preserve the predictions and scorecard. For throughput comparisons, record a cold end-to-end pass separately from a warm-cache pass; `--warmup-count 8 --batch-size 32` reproduces the historical Tajik 110M TDT contract, but safe batch size is model- and duration-dependent.
 
 ## TDT Training Artifacts
 
 The TDT harness writes two different model artifacts after training:
 
 - `<run>_final.nemo`: last-step weights, useful for exact resume/debug provenance.
-- `<run>_best-valloss.nemo`: weights reloaded from the best `val_loss` checkpoint; use this as the
-  promotion candidate, then confirm it with fp32 held-out WER.
+- `<run>_best-valloss.nemo`: weights reloaded from the best `val_loss` checkpoint; use this as the promotion candidate, then confirm it with fp32 held-out WER.
 
-If a run produces no validation checkpoint, only the last-step final model is written and the
-harness reports that explicitly.
+If a run produces no validation checkpoint, only the last-step final model is written and the harness reports that explicitly.
 
 ## TDT Status
 
-TDT is supported here as shared mechanics, not as a fully promoted production recipe. The reusable
-pieces are the parts that must be identical across projects: the RNNT loss class-count fix, fused
-joint loss/WER, optional encoder freeze/unfreeze, run logging, and checkpoint handling. Project
-experiments still own their ablation choices, data gates, and promotion criteria.
+TDT is supported here as shared mechanics, not as a fully promoted production recipe. The reusable pieces are the parts that must be identical across projects: the RNNT loss class-count fix, fused joint loss/WER, optional encoder freeze/unfreeze, run logging, and checkpoint handling. Project experiments still own their ablation choices, data gates, and promotion criteria.

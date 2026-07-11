@@ -16,15 +16,36 @@ def store(tmp_path, make_sample):
     clip.write_bytes(b"fLaC-fake-bytes")
     s.upsert(
         [
-            make_sample(id="chan_vidA_0000", source="youtube-chan", text="ман китоб хондам",
-                        audio_path=str(clip), scribe_wer=0.1, scribe_cer=0.05),
+            make_sample(
+                id="chan_vidA_0000",
+                source="youtube-chan",
+                text="ман китоб хондам",
+                audio_path=str(clip),
+                scribe_wer=0.1,
+                scribe_cer=0.05,
+            ),
             # terrible score, but published anyway (scores are columns, not gates)
-            make_sample(id="chan_vidA_0001", source="youtube-chan", text="хеле бад шуд ин ҷо",
-                        audio_path=str(clip), scribe_wer=0.92, scribe_cer=0.5),
-            make_sample(id="chan_vidA_0002", source="youtube-chan", text="[outro jingle]",
-                        audio_path=str(clip), scribe_wer=0.0),
-            make_sample(id="chan_vidA_0003", source="youtube-chan",
-                        text="Это очень хорошо, мы согласны", audio_path=str(clip)),
+            make_sample(
+                id="chan_vidA_0001",
+                source="youtube-chan",
+                text="хеле бад шуд ин ҷо",
+                audio_path=str(clip),
+                scribe_wer=0.92,
+                scribe_cer=0.5,
+            ),
+            make_sample(
+                id="chan_vidA_0002",
+                source="youtube-chan",
+                text="[outro jingle]",
+                audio_path=str(clip),
+                scribe_wer=0.0,
+            ),
+            make_sample(
+                id="chan_vidA_0003",
+                source="youtube-chan",
+                text="Это очень хорошо, мы согласны",
+                audio_path=str(clip),
+            ),
             make_sample(id="x_0", source="fleurs", text="на гӯшт", audio_path=str(clip)),
         ]
     )
@@ -33,9 +54,7 @@ def store(tmp_path, make_sample):
 
 
 def test_publishes_ungated_with_scores(store, tmp_path):
-    stats = export_hf_audio_dataset(
-        store, tmp_path / "out", language="tgk_Cyrl", rows_per_shard=10
-    )
+    stats = export_hf_audio_dataset(store, tmp_path / "out", language="tgk_Cyrl", rows_per_shard=10)
     assert stats.rows == 2  # the good clip AND the terrible-score clip
     assert stats.skipped == {"descriptor_only": 1, "language_gate": 1}
     assert stats.shards == 1

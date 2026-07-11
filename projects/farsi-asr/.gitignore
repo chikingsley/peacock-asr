@@ -44,3 +44,7 @@ vendor/
 
 # ─── farsi-asr-specific ───
 benchmarks/
+
+# Generated experiment results. Keep executable presets/scripts; record measured conclusions in
+# EXPERIMENTS.md and regenerate these structured outputs locally.
+experiments/parakeet/evals/

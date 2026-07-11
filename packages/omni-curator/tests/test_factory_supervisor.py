@@ -30,7 +30,10 @@ def _project(tmp_path, name):
     data.mkdir(parents=True)
     create.mkdir(parents=True)
     return Project(
-        name=name, path=root, clips_root=root / "clips", create_root=create,
+        name=name,
+        path=root,
+        clips_root=root / "clips",
+        create_root=create,
         archive_root=tmp_path / "archive",
     )
 
@@ -50,8 +53,18 @@ def _one_clip(video_id):
     from omni_curator.create.queue import QClip
 
     return [
-        QClip(f"{video_id}_0000", video_id, "chan", 0, f"/clips/{video_id}/0.flac",
-              0.0, 5.0, "tgk_Cyrl", "Cyrillic", None)
+        QClip(
+            f"{video_id}_0000",
+            video_id,
+            "chan",
+            0,
+            f"/clips/{video_id}/0.flac",
+            0.0,
+            5.0,
+            "tgk_Cyrl",
+            "Cyrillic",
+            None,
+        )
     ]
 
 
@@ -144,10 +157,12 @@ def test_existing_segment_lock_only_blocks_that_project(tmp_path):
 def test_segment_pending_hwm_blocks_launch(tmp_path):
     p = _project(tmp_path, "dari")
     q = QueueStore(p.queue_path)
-    q.enqueue_videos([
-        QVideo("chan_done", "chan", "/done.flac", "noisy", None),
-        QVideo("chan_pending", "chan", "/pending.flac", "noisy", None),
-    ])
+    q.enqueue_videos(
+        [
+            QVideo("chan_done", "chan", "/done.flac", "noisy", None),
+            QVideo("chan_pending", "chan", "/pending.flac", "noisy", None),
+        ]
+    )
     claimed = q.claim_video("w1")
     assert claimed is not None
     q.complete_video("chan_done", _one_clip("chan_done"), claim_token=claimed.claim_token)
@@ -428,8 +443,12 @@ def test_balancer_splits_budget_across_live_jobs(tmp_path, monkeypatch):
     p = _project(tmp_path, "dari")
     logs = []
     sup = Supervisor(
-        projects=[p], log=logs.append, dry_run=False, stages=("enqueue",),
-        settings=FactorySettings(scribe_budget=300), repo_root=tmp_path,
+        projects=[p],
+        log=logs.append,
+        dry_run=False,
+        stages=("enqueue",),
+        settings=FactorySettings(scribe_budget=300),
+        repo_root=tmp_path,
     )
     monkeypatch.setattr(
         "omni_curator.factory.supervisor.active_scribe_jobs",
@@ -438,10 +457,12 @@ def test_balancer_splits_budget_across_live_jobs(tmp_path, monkeypatch):
     monkeypatch.setattr(sup, "_spawn", lambda _cmd: _FakeProc())  # no real children this test
     sup.tick()
     # each job's window file got half the budget (split_budget); the balancer logged it
-    assert (tmp_path / "projects" / "dari-asr" / "data" / ".scribe_window.labelq").read_text(
-    ).strip() == "150"
-    assert (tmp_path / "projects" / "farsi-asr" / "data" / ".scribe_window.verify").read_text(
-    ).strip() == "150"
+    assert (
+        tmp_path / "projects" / "dari-asr" / "data" / ".scribe_window.labelq"
+    ).read_text().strip() == "150"
+    assert (
+        tmp_path / "projects" / "farsi-asr" / "data" / ".scribe_window.verify"
+    ).read_text().strip() == "150"
     assert any("BALANCE" in m for m in logs)
 
 
@@ -516,12 +537,20 @@ def test_factory_cli_reads_config_file_for_settings_and_roots(tmp_path):
 def test_factory_cli_default_does_not_write_repo_root_log(tmp_path):
     (tmp_path / "projects" / "dari-asr" / "data").mkdir(parents=True)
 
-    assert factory_cli.main([
-        "--repo-root", str(tmp_path),
-        "--projects", "dari",
-        "--stages", "segment",
-        "--once",
-        "--dry-run",
-    ]) == 0
+    assert (
+        factory_cli.main(
+            [
+                "--repo-root",
+                str(tmp_path),
+                "--projects",
+                "dari",
+                "--stages",
+                "segment",
+                "--once",
+                "--dry-run",
+            ]
+        )
+        == 0
+    )
 
     assert not (tmp_path / "factory.log").exists()

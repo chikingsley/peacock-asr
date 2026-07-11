@@ -3,6 +3,7 @@ util/file_piece.cc.gz
 *.o
 doc/
 build/
+build-*/
 /bin
 /lib
 /tests

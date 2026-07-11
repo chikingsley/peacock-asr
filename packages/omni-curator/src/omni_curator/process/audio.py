@@ -37,9 +37,21 @@ def to_16k_flac(
         seek += ["-to", f"{end:.3f}"]
     subprocess.run(  # noqa: S603
         [  # noqa: S607
-            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-            *seek, "-i", str(src),
-            "-ar", "16000", "-ac", "1", "-c:a", "flac", str(dst),
+            "ffmpeg",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-y",
+            *seek,
+            "-i",
+            str(src),
+            "-ar",
+            "16000",
+            "-ac",
+            "1",
+            "-c:a",
+            "flac",
+            str(dst),
         ],
         check=True,
     )

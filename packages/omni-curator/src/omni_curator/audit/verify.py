@@ -44,6 +44,7 @@ _SCRIPT_NAMES = {
     "Geor": "Georgian script",
 }
 
+
 class _ThreadState(threading.local):
     """Per-thread SuperWhisper text client for transliteration (not assumed thread-safe)."""
 
@@ -60,6 +61,7 @@ def _text_client() -> SuperwhisperClient:
 
         _state.client = SuperwhisperClient()
     return _state.client
+
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable, Iterator
@@ -269,9 +271,15 @@ def verify_store(
                     consecutive += 1
                     if consecutive >= breaker_threshold:
                         consecutive, pauses = _pause_or_abort(
-                            pool, consecutive=consecutive, pauses=pauses,
-                            threshold=breaker_threshold, max_pauses=max_pauses,
-                            pause_s=pause_s, stats=stats, exc=exc, progress=progress,
+                            pool,
+                            consecutive=consecutive,
+                            pauses=pauses,
+                            threshold=breaker_threshold,
+                            max_pauses=max_pauses,
+                            pause_s=pause_s,
+                            stats=stats,
+                            exc=exc,
+                            progress=progress,
                         )
                         proven = False  # re-arm the cap: re-prove the service before ramping back
                         epoch += 1  # in-flight futures now "old"; their fails won't re-trip
@@ -436,9 +444,15 @@ def rescore_cross_script(
                     consecutive += 1
                     if consecutive >= breaker_threshold:
                         consecutive, pauses = _pause_or_abort(
-                            pool, consecutive=consecutive, pauses=pauses,
-                            threshold=breaker_threshold, max_pauses=max_pauses,
-                            pause_s=pause_s, stats=stats, exc=exc, progress=progress,
+                            pool,
+                            consecutive=consecutive,
+                            pauses=pauses,
+                            threshold=breaker_threshold,
+                            max_pauses=max_pauses,
+                            pause_s=pause_s,
+                            stats=stats,
+                            exc=exc,
+                            progress=progress,
                         )
                         proven = False
                         epoch += 1

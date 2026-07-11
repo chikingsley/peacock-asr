@@ -20,10 +20,23 @@ from omni_curator.project import (
 )
 
 ALL_COMMANDS = {
-    "prescan", "list", "download", "cookies",
-    "enqueue", "repair-metadata", "segment", "vad-pilot", "resegment", "labelq", "harvest",
+    "prescan",
+    "list",
+    "download",
+    "cookies",
+    "enqueue",
+    "repair-metadata",
+    "segment",
+    "vad-pilot",
+    "resegment",
+    "labelq",
+    "harvest",
     "archive",
-    "merge", "ingest", "verify", "rescore", "export",
+    "merge",
+    "ingest",
+    "verify",
+    "rescore",
+    "export",
 }
 
 
@@ -75,6 +88,31 @@ def test_data_layout_is_owned_by_the_project(project):
     assert project.channels_by_slug["chan_a"].category == "news"
 
 
+def test_segment_defaults_come_from_project_vad_policy(tmp_path):
+    configured = CuratorProject(
+        name="farsi",
+        language="fas_Arab",
+        script="Arabic",
+        data=tmp_path / "data",
+        db=tmp_path / "data/curator.sqlite",
+        vad_engine="silero",
+        vad_profile="conservative-v1",
+        vad_threshold=0.55,
+        vad_silero_backend="onnx",
+        vad_gpu_procs=0,
+        vad_cpu_procs=6,
+    )
+
+    args = build_parser(configured).parse_args(["segment"])
+
+    assert args.vad_engine == "silero"
+    assert args.vad_profile == "conservative-v1"
+    assert args.vad_threshold == 0.55
+    assert args.silero_backend == "onnx"
+    assert args.gpu_procs == 0
+    assert args.cpu_procs == 6
+
+
 def test_prescan_records_channel_decision(tmp_path):
     from omni_curator.create.youtube import prescan_channels
 
@@ -86,8 +124,9 @@ def test_prescan_records_channel_decision(tmp_path):
         return ["vid1"]
 
     db = tmp_path / "prescan.sqlite"
-    results = prescan_channels([ch], db_path=db, limit=1, lane="gluetun-lane1",
-                               list_videos=fake_lister)
+    results = prescan_channels(
+        [ch], db_path=db, limit=1, lane="gluetun-lane1", list_videos=fake_lister
+    )
 
     assert seen == [("https://www.youtube.com/@a", 1)]
     assert results[0].status == "ok"
@@ -139,9 +178,7 @@ def test_repair_metadata_refreshes_existing_queue_rows(project):
     from omni_curator.create.queue import QueueStore, QVideo
 
     queue = QueueStore(project.queue_path)
-    queue.enqueue_videos([
-        QVideo("chan_a_vid1", "chan_a", "/audio/vid1.flac", "noisy", None)
-    ])
+    queue.enqueue_videos([QVideo("chan_a_vid1", "chan_a", "/audio/vid1.flac", "noisy", None)])
     queue.close()
 
     args = build_parser(project).parse_args(["repair-metadata", "--channel", "chan_a"])
@@ -163,17 +200,19 @@ def test_harvest_writes_source_metadata_to_channel_store(project):
     from omni_curator.data.store import CuratorStore
 
     queue = QueueStore(project.queue_path)
-    queue.enqueue_videos([
-        QVideo(
-            "chan_a_vid1",
-            "chan_a",
-            "/audio/vid1.flac",
-            "clean",
-            "https://www.youtube.com/@handle_a",
-            category="news",
-            meta={"title": "Video title", "upload_date": "20250102"},
-        )
-    ])
+    queue.enqueue_videos(
+        [
+            QVideo(
+                "chan_a_vid1",
+                "chan_a",
+                "/audio/vid1.flac",
+                "clean",
+                "https://www.youtube.com/@handle_a",
+                category="news",
+                meta={"title": "Video title", "upload_date": "20250102"},
+            )
+        ]
+    )
     clip = QClip(
         "chan_a_vid1_0000",
         "chan_a_vid1",
@@ -211,14 +250,21 @@ def test_heldout_none_is_empty_but_missing_path_fails_fast(project, tmp_path):
     manifest = tmp_path / "heldout.json"
     manifest.write_text('{"video_ids": ["chan_a_vid1", "chan_b_vid2"]}')
     with_manifest = CuratorProject(
-        name="t", language="x", script="X",
-        data=tmp_path, db=tmp_path / "db.sqlite", heldout_manifest=manifest,
+        name="t",
+        language="x",
+        script="X",
+        data=tmp_path,
+        db=tmp_path / "db.sqlite",
+        heldout_manifest=manifest,
     )
     assert with_manifest.heldout_videos() == {"chan_a_vid1", "chan_b_vid2"}
     # A configured-but-missing manifest must raise, never silently skip the carve.
     broken = CuratorProject(
-        name="t", language="x", script="X",
-        data=tmp_path, db=tmp_path / "db.sqlite",
+        name="t",
+        language="x",
+        script="X",
+        data=tmp_path,
+        db=tmp_path / "db.sqlite",
         heldout_manifest=tmp_path / "nonexistent.json",
     )
     with pytest.raises(FileNotFoundError, match="held-out manifest"):
@@ -262,13 +308,30 @@ def test_hf_sources_default_to_non_streaming(project, monkeypatch):
 def test_config_typos_fail_at_construction(tmp_path):
     with pytest.raises(ValueError, match="duplicate channel slugs"):
         CuratorProject(
-            name="t", language="x", script="X", data=tmp_path, db=tmp_path / "db",
+            name="t",
+            language="x",
+            script="X",
+            data=tmp_path,
+            db=tmp_path / "db",
             channels=(channel("a", "@a", "clean", ""), channel("a", "@b", "noisy", "")),
         )
     with pytest.raises(ValueError, match="unknown channel tiers"):
         CuratorProject(
-            name="t", language="x", script="X", data=tmp_path, db=tmp_path / "db",
+            name="t",
+            language="x",
+            script="X",
+            data=tmp_path,
+            db=tmp_path / "db",
             channels=(channel("a", "@a", "claen", ""),),
+        )
+    with pytest.raises(ValueError, match="unknown VAD engine"):
+        CuratorProject(
+            name="t",
+            language="x",
+            script="X",
+            data=tmp_path,
+            db=tmp_path / "db",
+            vad_engine="silroo",
         )
 
 

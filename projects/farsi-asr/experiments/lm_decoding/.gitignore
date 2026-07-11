@@ -3,3 +3,8 @@ corpus.txt
 *.arpa
 *.bin
 *.log
+logits/
+corpus_*.txt
+int_*
+*.nemo
+tune_dev_refs.txt

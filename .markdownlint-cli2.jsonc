@@ -1,6 +1,5 @@
 {
-  // Repo markdown style. Structural rules on (tables, headings, lists); prose line-length off —
-  // these are lab notebooks (EXPERIMENTS.md, docs/) with long sentences and wide result tables.
+  // mdformat --wrap no owns Markdown layout; markdownlint checks structure only.
   "config": {
     "MD013": false, // line-length: not enforced for prose/notebooks (code is ruff's E501)
     "MD024": { "siblings_only": true }, // duplicate headings ok across sections (per-experiment)

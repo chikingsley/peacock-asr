@@ -259,10 +259,10 @@ def extract_base_tokenizer_model(nemo_path: Path, out_dir: Path) -> Path:
             raise FileNotFoundError(msg)
         member = members[0]
         extracted = out_dir / "base_tokenizer.model"
-        with tar.extractfile(member) as src:  # type: ignore[union-attr]
-            if src is None:
-                msg = f"could not read {member.name} from {nemo_path}"
-                raise OSError(msg)
+        src = tar.extractfile(member)
+        if src is None:
+            raise RuntimeError(f"failed to extract {member.name} from {nemo_path}")
+        with src:
             extracted.write_bytes(src.read())
     return extracted
 

@@ -23,15 +23,24 @@ def queue(tmp_path):
 
 def _videos(n: int) -> list[QVideo]:
     return [
-        QVideo(f"chan_v{i:03d}", "chan", f"/audio/v{i:03d}.flac", "noisy", None)
-        for i in range(n)
+        QVideo(f"chan_v{i:03d}", "chan", f"/audio/v{i:03d}.flac", "noisy", None) for i in range(n)
     ]
 
 
 def _clips(video_id: str, n: int) -> list[QClip]:
     return [
-        QClip(f"{video_id}_{i:04d}", video_id, "chan", i, f"/clips/{video_id}/{i:04d}.flac",
-              i * 10.0, i * 10.0 + 5.0, "tgk_Cyrl", "Cyrillic", None)
+        QClip(
+            f"{video_id}_{i:04d}",
+            video_id,
+            "chan",
+            i,
+            f"/clips/{video_id}/{i:04d}.flac",
+            i * 10.0,
+            i * 10.0 + 5.0,
+            "tgk_Cyrl",
+            "Cyrillic",
+            None,
+        )
         for i in range(n)
     ]
 
@@ -70,26 +79,41 @@ def test_repair_video_metadata_updates_existing_rows(queue):
 
 def test_repair_video_metadata_preserves_clip_segmentation_provenance(queue):
     original = QVideo(
-        "chan_v000", "chan", "/audio/v000.flac", "noisy", None,
+        "chan_v000",
+        "chan",
+        "/audio/v000.flac",
+        "noisy",
+        None,
         meta={"title": "old", "stale": True},
     )
     queue.enqueue_videos([original])
     claimed = queue.claim_video("segmenter")
     assert claimed is not None
     clip = QClip(
-        "chan_v000_0000", claimed.video_id, claimed.channel, 0,
-        "/clips/chan_v000/seg_0000.flac", 0.0, 1.0, "tgk_Cyrl", "Cyrillic", None,
+        "chan_v000_0000",
+        claimed.video_id,
+        claimed.channel,
+        0,
+        "/clips/chan_v000/seg_0000.flac",
+        0.0,
+        1.0,
+        "tgk_Cyrl",
+        "Cyrillic",
+        None,
         meta={**claimed.meta, "segmentation": {"profile_id": "vad-exact"}},
     )
-    assert queue.complete_video(
-        claimed.video_id, [clip], claim_token=claimed.claim_token
-    )
+    assert queue.complete_video(claimed.video_id, [clip], claim_token=claimed.claim_token)
 
     queue.repair_video_metadata(
         [
             QVideo(
-                original.video_id, original.channel, original.path, "clean", "new citation",
-                category="news", meta={"title": "new"},
+                original.video_id,
+                original.channel,
+                original.path,
+                "clean",
+                "new citation",
+                category="news",
+                meta={"title": "new"},
             )
         ]
     )

@@ -37,6 +37,7 @@ from omni_curator.factory.supervisor import (
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+
 def _make_logger(log_path: Path | None) -> Callable[[str], None]:
     """A logger that timestamps each line and optionally appends to the configured log."""
     if log_path is not None:
@@ -105,48 +106,73 @@ def build_parser() -> argparse.ArgumentParser:
         description="omni-curator factory: auto-drive the curate pipeline across projects.",
     )
     parser.add_argument(
-        "--config", type=Path, default=None,
+        "--config",
+        type=Path,
+        default=None,
         help="flat TOML config path for roots, workers, HWM, min free GB, stages, projects, budget",
     )
     parser.add_argument(
-        "--once", action="store_true",
+        "--once",
+        action="store_true",
         help="run a single reconcile tick and exit (for cron / testing)",
     )
     parser.add_argument(
-        "--dry-run", action="store_true",
+        "--dry-run",
+        action="store_true",
         help="log what each stage WOULD launch, but spawn nothing (headless reconcile test)",
     )
     parser.add_argument(
-        "--projects", metavar="dari,farsi,...", default=None,
+        "--projects",
+        metavar="dari,farsi,...",
+        default=None,
         help="comma-separated lang names to drive (default: discover projects/<lang>-asr)",
     )
     parser.add_argument(
-        "--stages", metavar="enqueue,segment,...", default=None,
+        "--stages",
+        metavar="enqueue,segment,...",
+        default=None,
         help="comma-separated stages to drive, or 'all' (default all): "
-             "enqueue,segment,labelq,harvest,archive",
+        "enqueue,segment,labelq,harvest,archive",
     )
     parser.add_argument(
-        "--budget", type=int, default=None, metavar="N",
+        "--budget",
+        type=int,
+        default=None,
+        metavar="N",
         help="total concurrent Scribe calls to split across live labelq+verify jobs (off if unset)",
     )
     parser.add_argument(
-        "--tick", type=float, default=None, metavar="SECONDS",
+        "--tick",
+        type=float,
+        default=None,
+        metavar="SECONDS",
         help=f"daemon loop interval (default {DEFAULT_TICK_S:g}s)",
     )
     parser.add_argument(
-        "--repo-root", type=Path, default=None,
+        "--repo-root",
+        type=Path,
+        default=None,
         help="repo root holding projects/<lang>-asr",
     )
     parser.add_argument(
-        "--clips-root", type=Path, default=None, metavar="DIR",
+        "--clips-root",
+        type=Path,
+        default=None,
+        metavar="DIR",
         help=f"SSD clips root; segment writes <DIR>/<lang> (default {DEFAULT_CLIPS_ROOT})",
     )
     parser.add_argument(
-        "--create-root", type=Path, default=None, metavar="DIR",
+        "--create-root",
+        type=Path,
+        default=None,
+        metavar="DIR",
         help="optional scratch create root; enqueue scans <DIR>/<lang> (default project create)",
     )
     parser.add_argument(
-        "--archive-root", type=Path, default=None, metavar="DIR",
+        "--archive-root",
+        type=Path,
+        default=None,
+        metavar="DIR",
         help=f"archive destination; sources drain to <DIR>/<lang> (default {DEFAULT_ARCHIVE_ROOT})",
     )
     parser.add_argument("--segment-gpu-procs", type=int, default=None)
@@ -154,7 +180,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--pending-hwm", type=int, default=None)
     parser.add_argument("--min-free-gb", type=float, default=None)
     parser.add_argument(
-        "--log-file", type=Path, default=None, metavar="PATH",
+        "--log-file",
+        type=Path,
+        default=None,
+        metavar="PATH",
         help="append factory logs here (default: stdout only)",
     )
     return parser
@@ -172,15 +201,20 @@ def main(argv: list[str] | None = None) -> int:
     tick_s = args.tick if args.tick is not None else _cfg_float(cfg, "tick_s", DEFAULT_TICK_S)
     settings = FactorySettings(
         segment_gpu_procs=args.segment_gpu_procs
-        if args.segment_gpu_procs is not None else _cfg_int(cfg, "segment_gpu_procs", 3),
+        if args.segment_gpu_procs is not None
+        else _cfg_int(cfg, "segment_gpu_procs", 3),
         segment_cpu_procs=args.segment_cpu_procs
-        if args.segment_cpu_procs is not None else _cfg_int(cfg, "segment_cpu_procs", 10),
+        if args.segment_cpu_procs is not None
+        else _cfg_int(cfg, "segment_cpu_procs", 10),
         pending_hwm=args.pending_hwm
-        if args.pending_hwm is not None else _cfg_int(cfg, "pending_hwm", 50_000),
+        if args.pending_hwm is not None
+        else _cfg_int(cfg, "pending_hwm", 50_000),
         min_free_gb=args.min_free_gb
-        if args.min_free_gb is not None else _cfg_float(cfg, "min_free_gb", 50.0),
+        if args.min_free_gb is not None
+        else _cfg_float(cfg, "min_free_gb", 50.0),
         scribe_budget=args.budget
-        if args.budget is not None else _cfg_optional_int(cfg, "scribe_budget", None),
+        if args.budget is not None
+        else _cfg_optional_int(cfg, "scribe_budget", None),
     )
     stages = resolve_stages(stages_spec)  # raises on an unknown stage name
     names = [n.strip() for n in projects_spec.split(",") if n.strip()] if projects_spec else None
@@ -205,8 +239,12 @@ def main(argv: list[str] | None = None) -> int:
         f"settings={settings} once={args.once} dry_run={args.dry_run} tick={tick_s:g}s"
     )
     supervisor = Supervisor(
-        projects=projects, log=log, dry_run=args.dry_run, stages=stages,
-        settings=settings, repo_root=repo_root,
+        projects=projects,
+        log=log,
+        dry_run=args.dry_run,
+        stages=stages,
+        settings=settings,
+        repo_root=repo_root,
     )
     if args.once:
         launched = supervisor.tick()

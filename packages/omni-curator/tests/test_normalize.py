@@ -28,7 +28,7 @@ RLE = chr(0x202B)  # right-to-left embedding (bidi)
 BOM = chr(0xFEFF)
 
 # (input, expected) pairs per language code. Persian uses the NVIDIA fastconformer surface with
-# ZWNJ -> space (see docs/zwnj-normalization-decision-20260529.md): morphemes become separate
+# ZWNJ -> space (the Farsi README policy): morphemes become separate
 # word units, digits stay digits, Arabic letter variants fold to canonical Persian forms.
 PINNED: dict[str, list[tuple[str, str]]] = {
     "fas_Arab": [
@@ -38,6 +38,7 @@ PINNED: dict[str, list[tuple[str, str]]] = {
         ("سال ۱۴۰۰ بود", "سال ۱۴۰۰ بود"),  # digits stay digits (the trained surface)
         ("کك ﻮ", "کک و"),  # REPLACEMENTS: ك -> ک, ﻮ -> و
         ("متن، با: نقطه.", "متن با نقطه"),  # punctuation discarded
+        ("یکی|دو", "یکی دو"),  # transcript/segment separator -> word boundary
         ("hello world", ""),  # Latin letters -> discarded utterance (upstream SKIP rule)
     ],
 }

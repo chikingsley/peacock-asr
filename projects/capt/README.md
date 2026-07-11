@@ -1,7 +1,6 @@
 # capt — Two-Path Pronunciation Scoring
 
-No-training, generalist pronunciation scoring built on a universal phone recognizer + canonical
-G2P + phonological-feature distance — aimed at languages with **no L2 learner database**.
+No-training, generalist pronunciation scoring built on a universal phone recognizer + canonical G2P + phonological-feature distance — aimed at languages with **no L2 learner database**.
 
 One funnel, two target sources (see `docs/free_speaking_architecture_status.md` for the why):
 
@@ -12,10 +11,7 @@ text -> G2P -> canonical IPA   vs   audio -> phone recognizer -> produced IPA   
 - **read-aloud** — target text is the known reference. No ASR. Clean ceiling of the funnel.
 - **free-form** — target text is recovered by ElevenLabs Scribe v2 (`superwhisper-api`).
 
-Recognizer: **ZIPA** (universal multilingual IPA phone recognizer, ONNX), run in-process via
-onnxruntime (vendored in `capt.recognize`). XLSR-eSpeak was compared and dropped — ZIPA won.
-G2P target: per-language routed backends (espeak-ng / Epitran / CharsiuG2P), with ZIPA-distilled
-FSTs for the no-G2P gap languages (`capt.g2p.models`).
+Recognizer: **ZIPA** (universal multilingual IPA phone recognizer, ONNX), run in-process via onnxruntime (vendored in `capt.recognize`). XLSR-eSpeak was compared and dropped — ZIPA won. G2P target: per-language routed backends (espeak-ng / Epitran / CharsiuG2P), with ZIPA-distilled FSTs for the no-G2P gap languages (`capt.g2p.models`).
 
 ## Package layout
 
@@ -37,8 +33,7 @@ cd ~/github/peacock-asr/projects/capt
 uv run capt-fetch-zipa          # downloads the ZIPA ONNX + tokens into artifacts/
 ```
 
-The recognizer expects the model at `$ZIPA_ONNX` or `artifacts/zipa-large-crctc-ns-800k/model.onnx`
-(or `model.fp16.onnx`). Free-form (Scribe) needs `superwhisper-api` auth on the host.
+The recognizer expects the model at `$ZIPA_ONNX` or `artifacts/zipa-large-crctc-ns-800k/model.onnx` (or `model.fp16.onnx`). Free-form (Scribe) needs `superwhisper-api` auth on the host.
 
 ## Run the two-path eval
 
@@ -54,8 +49,6 @@ uv run capt-eval --manifest runs/two_paths/manifest.jsonl --out-dir runs/two_pat
 uv run capt-eval --manifest runs/two_paths/manifest.jsonl --out-dir runs/two_paths/eval --free-form
 ```
 
-Outputs `summary.csv`, `words.csv` (per-word target vs recognized phones — the G2P diagnostic),
-`results.jsonl`, and `report.md` (avg PER/PFER by language × mode × lane).
+Outputs `summary.csv`, `words.csv` (per-word target vs recognized phones — the G2P diagnostic), `results.jsonl`, and `report.md` (avg PER/PFER by language × mode × lane).
 
-The per-language G2P routing table (`src/capt/g2p/routing.json`) is rebuilt with
-`capt-g2p-ablation`; trainable gap-language G2P lives in `experiments/g2p_train/`.
+The per-language G2P routing table (`src/capt/g2p/routing.json`) is rebuilt with `capt-g2p-ablation`; trainable gap-language G2P lives in `experiments/g2p_train/`.

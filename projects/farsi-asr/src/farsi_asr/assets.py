@@ -10,7 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from omni_finetune_core.assets import ModelCard, register_cards
+from omni_finetune_core.assets import ModelCard, TokenizerCard, register_cards
 
 if TYPE_CHECKING:
     from fairseq2.runtime.dependency import DependencyContainer
@@ -20,6 +20,8 @@ TOKENIZER_NAME = "omniASR_tokenizer_written_v2"
 
 # This file lives at src/farsi_asr/assets.py, so parents[2] is the persian-asr project root.
 _PROJECT = Path(__file__).resolve().parents[2]
+_BASE_OMNI = _PROJECT.parents[1] / "base_models/omni"
+LOCAL_TOKENIZER_NAME = "peacock_omniASR_tokenizer_written_v2"
 
 #: The PRODUCTION model. STEP ACCOUNTING (so the name is honest): the scribe-v4 baseline trained
 #: to step 34,000, then a warm restart (fresh optimizer + tri_stage schedule, lr 2e-6) loaded those
@@ -31,6 +33,10 @@ _PROJECT = Path(__file__).resolve().parents[2]
 PRODUCTION_MODEL = "omni_ctc_300m_v2_farsi_v4_step_41000"
 
 CARDS = [
+    TokenizerCard(
+        name=LOCAL_TOKENIZER_NAME,
+        tokenizer=_BASE_OMNI / "omniASR_tokenizer_written_v2.model",
+    ),
     ModelCard(
         name=PRODUCTION_MODEL,
         checkpoint=(
@@ -48,6 +54,23 @@ CARDS = [
         checkpoint=_PROJECT / "data/benchmarks/model/model.pt",
         tokenizer_ref=TOKENIZER_NAME,
     ),
+    *[
+        ModelCard(
+            name=f"peacock_omniASR_{family}_{size}_v2",
+            checkpoint=_BASE_OMNI / f"omniASR-{family}-{size}-v2.pt",
+            tokenizer_ref=LOCAL_TOKENIZER_NAME,
+            model_family="wav2vec2_asr" if family == "CTC" else "wav2vec2_llama",
+            model_arch=f"{size.lower()}_v2",
+        )
+        for family, size in (
+            ("CTC", "300M"),
+            ("CTC", "1B"),
+            ("CTC", "3B"),
+            ("LLM", "300M"),
+            ("LLM", "1B"),
+            ("LLM", "3B"),
+        )
+    ],
 ]
 
 

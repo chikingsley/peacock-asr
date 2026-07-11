@@ -119,8 +119,18 @@ def _segment_into_clips(qpath, video_id="chan_v1", n=2):
     claimed = q.claim_video("w1")
     assert claimed is not None
     clips = [
-        QClip(f"{video_id}_{i:04d}", video_id, "chan", i, f"/clips/{i}.flac",
-              i * 5.0, i * 5.0 + 5.0, "tgk_Cyrl", "Cyrillic", None)
+        QClip(
+            f"{video_id}_{i:04d}",
+            video_id,
+            "chan",
+            i,
+            f"/clips/{i}.flac",
+            i * 5.0,
+            i * 5.0 + 5.0,
+            "tgk_Cyrl",
+            "Cyrillic",
+            None,
+        )
         for i in range(n)
     ]
     q.complete_video(video_id, clips, claim_token=claimed.claim_token)

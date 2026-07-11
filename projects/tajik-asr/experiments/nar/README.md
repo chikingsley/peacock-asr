@@ -9,8 +9,8 @@ A non-autoregressive (NAR) LLM **editor** that fixes our frozen CTC's greedy dra
 **Decision point — three honest options:**
 
 1. **Stop here (recommended).** The accumulated evidence (no generalising correction at 100→480 rows; trend going the wrong way) plus the *feature-ceiling* explanation says this is likely a real limit, not a tuning gap. **CTC + KenLM already buys the WER win we wanted** (FLEURS 16.9→14.5, conv 37.6→31.7) at hundreds× realtime, with none of this complexity. That is the production answer.
-2. **One conclusive scale test, then decide.** Wire up the real **180k-row training export** (bigger job — v3's eval export only exposes test partitions) and run once. Only worth it if we want certainty; expected value is low given the trend.
-3. **Different architecture** — a *bidirectionally-pretrained* small multilingual LLM instead of the causal-pretrained omni decoder (outputting its own input is off-distribution for a next-token model). Bigger pivot; only if the editor idea is strategically important.
+1. **One conclusive scale test, then decide.** Wire up the real **180k-row training export** (bigger job — v3's eval export only exposes test partitions) and run once. Only worth it if we want certainty; expected value is low given the trend.
+1. **Different architecture** — a *bidirectionally-pretrained* small multilingual LLM instead of the causal-pretrained omni decoder (outputting its own input is off-distribution for a next-token model). Bigger pivot; only if the editor idea is strategically important.
 
 **What we proved (kept regardless):** the NLE/omni editor is *buildable* and *runs* (gates 1–2), copy needs a tied head, and acoustic conditioning (Q-Former) is the axis that separates "collapses" from "stable." The open failure is **generalising correction**, most consistent with the editor's audio being the *same* features the CTC already used.
 
@@ -40,12 +40,12 @@ Three pieces, all ours / pretrained:
 
 **Measurement plan.** Compare four readouts on the same rows (FLEURS test + conversational held-out):
 
-| readout | WER (FLEURS / conv) | RTFx |
-|---|---|---|
-| greedy CTC (production) | 16.94 / 37.64 | fastest |
-| CTC + KenLM | 14.50 / 31.66 | ~hundreds× |
-| **NAR editor (this)** | target ≤ CTC+KenLM | one parallel LLM pass |
-| autoregressive omni-LLM | ceiling (~10.9 read, 0-shot) | ~6× |
+| readout                 | WER (FLEURS / conv)          | RTFx                  |
+| ----------------------- | ---------------------------- | --------------------- |
+| greedy CTC (production) | 16.94 / 37.64                | fastest               |
+| CTC + KenLM             | 14.50 / 31.66                | ~hundreds×            |
+| **NAR editor (this)**   | target ≤ CTC+KenLM           | one parallel LLM pass |
+| autoregressive omni-LLM | ceiling (~10.9 read, 0-shot) | ~6×                   |
 
 Success = NAR matches/beats CTC+KenLM on WER **and** stays clearly faster than the AR LLM (not "near-CTC speed" — that overclaims). "Single-digit read WER" is a **stretch goal**, not the target.
 
@@ -105,12 +105,12 @@ Re-ran the overfit with the full recipe **and** the key disambiguation fix (code
 
 Trajectory as the copy anchor anneals out and CTC takes over:
 
-| epoch | CTC weight | CTC loss | train WER | output |
-|---|---|---|---|---|
-| 1–12 (warmup) | 0 | — | **18.84%** | clean copy |
-| 15 | 0.30 | 22.2 | 109% | dropping chars |
-| 20 | 0.80 | 5.1 | 150% | mostly spaces |
-| 25 | 1.00 | 8.7 | **534%** | every char space-separated |
+| epoch         | CTC weight | CTC loss | train WER  | output                     |
+| ------------- | ---------- | -------- | ---------- | -------------------------- |
+| 1–12 (warmup) | 0          | —        | **18.84%** | clean copy                 |
+| 15            | 0.30       | 22.2     | 109%       | dropping chars             |
+| 20            | 0.80       | 5.1      | 150%       | mostly spaces              |
+| 25            | 1.00       | 8.7      | **534%**   | every char space-separated |
 
 **Pure CTC degenerates catastrophically.** As the anchor is removed, CTC loss falls while greedy WER *explodes* (insertions/blanks) — a classic degenerate CTC optimum. The crucial inference: **the copy regularizer was load-bearing** — it was holding the output *at* copy, not enabling corrections. Once unanchored, the single Linear projector's acoustic signal is **too weak to drive correct edits**, so CTC games the alignment instead. → **The bottleneck is acoustic conditioning, not the recipe.** (Contrast: IBM keeps a small λ throughout *and* uses a Q-Former projector — the anneal here was a diagnostic to expose the dependency, not the production recipe.)
 
@@ -122,11 +122,11 @@ Swapped the single Linear projector for **IBM's actual NLE projector** (ported f
 
 Same recipe, same λ-anneal as gate 3b — but the Q-Former changes the outcome completely:
 
-| | gate 3b (Linear) | gate 4 (Q-Former) |
-|---|---|---|
-| CTC ramp onset (w≈0.3–0.8) | 109% → 150% | 87% → 100% (transient) |
-| w_ctc = 1.0 (anchor gone) | **534%** (collapse) | **recovers** → 31% → 27% → 18.8% |
-| final (epoch 80) | diverged | **17.92%** (CTC loss 4.3 → 0.29) |
+|                            | gate 3b (Linear)    | gate 4 (Q-Former)                |
+| -------------------------- | ------------------- | -------------------------------- |
+| CTC ramp onset (w≈0.3–0.8) | 109% → 150%         | 87% → 100% (transient)           |
+| w_ctc = 1.0 (anchor gone)  | **534%** (collapse) | **recovers** → 31% → 27% → 18.8% |
+| final (epoch 80)           | diverged            | **17.92%** (CTC loss 4.3 → 0.29) |
 
 **The conditioning hypothesis is confirmed.** Where the Linear projector catastrophically degenerated once unanchored, the Q-Former — same recipe — **recovers and converges to clean, audio-driven output** and **beats the 18.84% draft → 17.92%**. The richer multi-layer features are what let CTC make sensible (not degenerate) use of the audio.
 
@@ -146,10 +146,10 @@ Same harness/recipe as gate 4, only the projector scaled up: **2 Q-Former layers
 
 The first non-overfit run: gate-4 config (1-layer Q-Former, 5×, tied), trained on 480 FLEURS rows with a **held-out 119** the editor never sees. Held-out draft WER = **16.53%** (train draft 17.04%) — the editor must beat *that* to show generalising corrections. Ran both λ regimes:
 
-| run | λ | train WER (draft 17.04) | **held-out WER (draft 16.53)** |
-|---|---|---|---|
-| gate 5 | kept (IBM) | 17.06% | **16.57%** (= copy) |
-| gate 5b | annealed | 17.10% | **16.76%** (slightly worse than copy) |
+| run     | λ          | train WER (draft 17.04) | **held-out WER (draft 16.53)**        |
+| ------- | ---------- | ----------------------- | ------------------------------------- |
+| gate 5  | kept (IBM) | 17.06%                  | **16.57%** (= copy)                   |
+| gate 5b | annealed   | 17.10%                  | **16.76%** (slightly worse than copy) |
 
 **Neither beats the draft — on train *or* held-out.** And the clincher: gate 4's 100-row train-beat (17.92 vs 18.84, −0.9) **vanished at 480 rows** (gate 5: 17.06 vs 17.04). That beat was **memorisation of the tiny overfit set, not a correction policy** — exactly what a held-out eval is for. With `keep-lam` it's pinned at copy (anchor holds it); with anneal it transiently collapses then returns to copy. Either way: **the editor robustly learns to *copy* the CTC draft and does not learn corrections that generalise** at reachable FLEURS scale (100–480 rows).
 
@@ -158,10 +158,10 @@ The first non-overfit run: gate-4 config (1-layer Q-Former, 5×, tied), trained 
 ## Corrections to the original spec
 
 1. **Tied embeddings — required, not optional (MEASURED, gate 3).** The spec said "residual identity + tied embeddings make copying the default," but the omni decoder is **untied** (inherited from the pre-pivot Granite plan). Untied → can't copy (100%); tied → copy in 1 epoch. **Tie the output head to the input embeddings.**
-2. **Vocab mismatch is overstated.** Shared tokenizer is enforced; matching v2 variants → draft ids are Llama ids, no round-trip. Real residual risks: EOS-as-ε double duty, CTC-blank convention, normalisation.
-3. **"Single-digit WER on read" is too optimistic.** NLE approximates (and sometimes loses to) its AR teacher; ceiling is bounded by the 300M CTC features + the 16.9 draft. Target ≤ CTC+KenLM 14.5; single-digit is a stretch.
-4. **Param accounting is inherited, not recomputed.** rank-128 + 14M are both IBM's *base-NLE* numbers for IBM's architecture. Ours (measured, gate 2): rank-128 LoRA over q/k/v/o + gate/inner/output of 12 layers = **82.2M** (rank 64 = 41.1M).
-5. **"The 10.9 zero-shot is the decoder" is misleading.** That score is the *full* omni speech-LLM (its own encoder + projector + decoder). The lifted-decoder + our-CTC stack is a different system; 10.9 proves the language is in the family, not that this stack reaches it.
+1. **Vocab mismatch is overstated.** Shared tokenizer is enforced; matching v2 variants → draft ids are Llama ids, no round-trip. Real residual risks: EOS-as-ε double duty, CTC-blank convention, normalisation.
+1. **"Single-digit WER on read" is too optimistic.** NLE approximates (and sometimes loses to) its AR teacher; ceiling is bounded by the 300M CTC features + the 16.9 draft. Target ≤ CTC+KenLM 14.5; single-digit is a stretch.
+1. **Param accounting is inherited, not recomputed.** rank-128 + 14M are both IBM's *base-NLE* numbers for IBM's architecture. Ours (measured, gate 2): rank-128 LoRA over q/k/v/o + gate/inner/output of 12 layers = **82.2M** (rank 64 = 41.1M).
+1. **"The 10.9 zero-shot is the decoder" is misleading.** That score is the *full* omni speech-LLM (its own encoder + projector + decoder). The lifted-decoder + our-CTC stack is a different system; 10.9 proves the language is in the family, not that this stack reaches it.
 
 ## References
 
