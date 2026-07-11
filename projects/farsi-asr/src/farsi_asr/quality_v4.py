@@ -13,7 +13,7 @@ import numpy as np
 import pyarrow as pa
 import pyarrow.parquet as pq
 import soundfile as sf
-from huggingface_hub import HfApi, hf_hub_download
+from huggingface_hub import HfApi, hf_hub_download, snapshot_download
 
 V4_REPO = "Peacockery/farsi-asr-corpus-v4"
 V4_REVISION = "564d41da9e5b935c0fe2bf2443e205ca7b747c96"
@@ -261,7 +261,26 @@ def cmd_attach(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_download(args: argparse.Namespace) -> int:
+    resolved = snapshot_download(
+        repo_id=V4_REPO,
+        repo_type="dataset",
+        revision=V4_REVISION,
+        local_dir=args.output_dir,
+        allow_patterns=[
+            "README.md",
+            "export_summary.json",
+            "language_distribution_0.tsv",
+            "version=0/corpus=*/split=train/language=fas_Arab/*.parquet",
+        ],
+    )
+    print(f"downloaded pinned V4 train partitions -> {resolved}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
+    from farsi_asr.quality_v4_full import add_parser as add_full_parser
+
     parser = argparse.ArgumentParser(
         description="Build and score a source-balanced audit of the pinned Farsi V4 corpus."
     )
@@ -273,6 +292,10 @@ def build_parser() -> argparse.ArgumentParser:
     sample.add_argument("--seed", type=int, default=20260711)
     sample.set_defaults(func=cmd_sample)
 
+    download = subparsers.add_parser("download", help="download every pinned V4 train partition")
+    download.add_argument("--output-dir", type=Path, required=True)
+    download.set_defaults(func=cmd_download)
+
     attach = subparsers.add_parser("attach", help="attach shared benchmark predictions to JSONL")
     attach.add_argument("--input", type=Path, required=True)
     attach.add_argument("--database", type=Path, required=True)
@@ -280,6 +303,7 @@ def build_parser() -> argparse.ArgumentParser:
     attach.add_argument("--output", type=Path, required=True)
     attach.add_argument("--hypothesis-field", default="hypothesis")
     attach.set_defaults(func=cmd_attach)
+    add_full_parser(subparsers)
     return parser
 
 
