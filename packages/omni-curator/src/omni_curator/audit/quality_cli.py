@@ -265,11 +265,22 @@ def cmd_nfa_run(args: argparse.Namespace) -> int:
         "batch_size": args.batch_size,
         "transcribe_device": args.device,
         "viterbi_device": args.viterbi_device,
+        "log": str(args.log.resolve()) if args.log else None,
         "command": command,
     }
     _write_json(args.output_dir / "omni-quality-nfa-run.json", metadata)
     print("running NeMo Forced Aligner:", " ".join(command), flush=True)
-    subprocess.run(command, check=True)  # noqa: S603 - explicit local interpreter and script
+    if args.log is None:
+        subprocess.run(command, check=True)  # noqa: S603 - explicit interpreter and script
+    else:
+        args.log.parent.mkdir(parents=True, exist_ok=True)
+        with args.log.open("w", encoding="utf-8") as log_handle:
+            subprocess.run(  # noqa: S603 - explicit local interpreter and script
+                command,
+                check=True,
+                stdout=log_handle,
+                stderr=subprocess.STDOUT,
+            )
     return 0
 
 
@@ -487,6 +498,7 @@ def build_parser() -> argparse.ArgumentParser:
     nfa_run.add_argument("--batch-size", type=int, default=4)
     nfa_run.add_argument("--device", default="cuda")
     nfa_run.add_argument("--viterbi-device", default="cpu")
+    nfa_run.add_argument("--log", type=Path)
     nfa_run.set_defaults(func=cmd_nfa_run)
 
     summarize = subparsers.add_parser("nfa-summarize", help="turn NFA CTMs into row metrics")

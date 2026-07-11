@@ -11,7 +11,11 @@ import soundfile as sf
 from asr_benchmark_core.adapters import Adapter
 from asr_benchmark_core.data import Example
 
-from farsi_asr.quality_v4_full import score_asr
+from farsi_asr.quality_v4_full import (
+    _materialize_alignment_chunk,
+    _pending_alignment_rows,
+    score_asr,
+)
 
 ROW_COUNT = 2
 
@@ -79,3 +83,15 @@ def test_full_asr_ledger_is_resumable(tmp_path: Path) -> None:
     assert len(rows) == ROW_COUNT
     assert rows[0][:3] == ("fleurs", "سلام", "سلام")
     assert json.loads(rows[0][3])["wer"] == 0.0
+
+    connection = sqlite3.connect(database)
+    pending = _pending_alignment_rows(connection, limit=ROW_COUNT)
+    connection.close()
+    manifest = _materialize_alignment_chunk(
+        dataset_root=root,
+        work_dir=tmp_path / "ctc-work",
+        pending=pending,
+    )
+    staged = [json.loads(line) for line in manifest.read_text(encoding="utf-8").splitlines()]
+    assert len(staged) == ROW_COUNT
+    assert all(Path(row["audio_filepath"]).is_file() for row in staged)
