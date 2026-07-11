@@ -165,19 +165,43 @@ def cmd_nfa_prepare(args: argparse.Namespace) -> int:
 
     rows = _read_jsonl(args.input)
     prepared: list[dict[str, Any]] = []
+    rejected: list[dict[str, Any]] = []
     changed = 0
     empty = 0
+    tokenizer = None
+    if args.tokenizer_model is not None:
+        from nemo.collections.asr.models import ASRModel
+
+        model = ASRModel.restore_from(
+            restore_path=str(args.tokenizer_model.resolve()), map_location="cpu"
+        )
+        tokenizer = model.tokenizer
     for row in rows:
         raw = str(row[args.reference_field])
         normalized = normalize_for_language(raw, args.language)
         if not normalized:
             empty += 1
             continue
+        incompatible_words = _nfa_incompatible_words(normalized, tokenizer) if tokenizer else []
+        if incompatible_words:
+            item = dict(row)
+            quality = dict(item.get("quality") or {})
+            quality["ctc_alignment_preflight"] = {
+                "status": "token_case_incompatible",
+                "words": incompatible_words,
+                "tokenizer_model": str(args.tokenizer_model.resolve()),
+                "tokenizer_model_sha256": _sha256(args.tokenizer_model),
+            }
+            item["quality"] = quality
+            rejected.append(item)
+            continue
         changed += int(normalized != raw)
         item = dict(row)
         item[args.reference_field] = normalized
         prepared.append(item)
     _write_jsonl(args.output, prepared)
+    if args.rejected_output is not None:
+        _write_jsonl(args.rejected_output, rejected)
     _write_json(
         args.summary,
         {
@@ -185,12 +209,31 @@ def cmd_nfa_prepare(args: argparse.Namespace) -> int:
             "prepared_rows": len(prepared),
             "normalization_changed": changed,
             "normalization_empty": empty,
+            "token_case_incompatible": len(rejected),
+            "tokenizer_model": str(args.tokenizer_model.resolve())
+            if args.tokenizer_model
+            else None,
+            "tokenizer_model_sha256": _sha256(args.tokenizer_model)
+            if args.tokenizer_model
+            else None,
             "language": args.language,
             "reference_field": args.reference_field,
         },
     )
     print(f"prepared {len(prepared)} of {len(rows)} NFA rows -> {args.output}")
     return 0
+
+
+def _nfa_incompatible_words(text: str, tokenizer: Any) -> list[str]:
+    from nemo.collections.asr.parts.utils.aligner_utils import restore_token_case
+
+    incompatible: list[str] = []
+    for word in text.split():
+        try:
+            restore_token_case(word, tokenizer.text_to_tokens(word))
+        except (IndexError, RuntimeError):
+            incompatible.append(word)
+    return incompatible
 
 
 def cmd_nfa_run(args: argparse.Namespace) -> int:
@@ -246,11 +289,100 @@ def _ctm_span(path: Path) -> tuple[int, float | None, float | None]:
     return len(starts), min(starts), max(ends)
 
 
+def _missing_alignment_row(
+    source_row: dict[str, Any],
+    *,
+    reference_field: str,
+    run_metadata: dict[str, Any] | None,
+) -> dict[str, Any]:
+    original = dict(source_row)
+    quality = dict(original.get("quality") or {})
+    quality["ctc_alignment"] = {
+        "status": "not_aligned",
+        "word_count": 0,
+        "reference_word_count": len(normalize(str(original[reference_field])).split()),
+        "word_coverage": 0.0,
+        "first_word_start_seconds": None,
+        "last_word_end_seconds": None,
+        "leading_margin_seconds": None,
+        "trailing_margin_seconds": None,
+        "end_overrun_seconds": None,
+        "aligned_span_seconds": None,
+        "aligned_span_ratio": None,
+        "word_ctm": None,
+        "alignment_reference": None,
+        "normalization_changed": None,
+        "provenance": run_metadata,
+    }
+    original["quality"] = quality
+    return original
+
+
+def _summarize_aligned_row(
+    aligned_row: dict[str, Any],
+    source_row: dict[str, Any],
+    *,
+    duration_field: str,
+    reference_field: str,
+    run_metadata: dict[str, Any] | None,
+) -> tuple[dict[str, Any], float | None, float | None, float | None, float | None, bool]:
+    original = dict(source_row)
+    duration_raw = original.get(duration_field)
+    duration = float(duration_raw) if duration_raw is not None else None
+    # NeMo 2.7 writes ``words_level_*``; newer docs describe ``word_level_*``.
+    ctm_raw = aligned_row.get("words_level_ctm_filepath") or aligned_row.get(
+        "word_level_ctm_filepath"
+    )
+    status = "aligned"
+    word_count = 0
+    first_start: float | None = None
+    last_end: float | None = None
+    if not ctm_raw or not Path(str(ctm_raw)).is_file():
+        status = "missing_ctm"
+    else:
+        word_count, first_start, last_end = _ctm_span(Path(str(ctm_raw)))
+        if word_count == 0:
+            status = "empty_ctm"
+    reference_word_count = len(normalize(str(original[reference_field])).split())
+    leading = first_start
+    trailing = None if duration is None or last_end is None else max(0.0, duration - last_end)
+    end_overrun = None if duration is None or last_end is None else max(0.0, last_end - duration)
+    span = None if first_start is None or last_end is None else max(0.0, last_end - first_start)
+    span_ratio = None if duration in (None, 0.0) or span is None else min(1.0, span / duration)
+    word_coverage = (
+        None if reference_word_count == 0 else min(1.0, word_count / reference_word_count)
+    )
+    quality = dict(original.get("quality") or {})
+    quality["ctc_alignment"] = {
+        "status": status,
+        "word_count": word_count,
+        "reference_word_count": reference_word_count,
+        "word_coverage": word_coverage,
+        "first_word_start_seconds": first_start,
+        "last_word_end_seconds": last_end,
+        "leading_margin_seconds": leading,
+        "trailing_margin_seconds": trailing,
+        "end_overrun_seconds": end_overrun,
+        "aligned_span_seconds": span,
+        "aligned_span_ratio": span_ratio,
+        "word_ctm": str(ctm_raw) if ctm_raw else None,
+        "alignment_reference": aligned_row.get("text"),
+        "normalization_changed": aligned_row.get("text") != original.get(reference_field),
+        "provenance": run_metadata,
+    }
+    original["quality"] = quality
+    return original, leading, trailing, end_overrun, span_ratio, status != "aligned"
+
+
 def cmd_nfa_summarize(args: argparse.Namespace) -> int:
     originals = _read_jsonl(args.input)
     by_audio = {
         str(Path(str(row[args.audio_field])).expanduser().resolve()): row for row in originals
     }
+    if args.rejected_input is not None:
+        for row in _read_jsonl(args.rejected_input):
+            audio = str(Path(str(row[args.audio_field])).expanduser().resolve())
+            by_audio[audio] = row
     aligned = _read_jsonl(args.aligned_manifest)
     run_metadata = (
         json.loads(args.run_metadata.read_text(encoding="utf-8")) if args.run_metadata else None
@@ -261,60 +393,20 @@ def cmd_nfa_summarize(args: argparse.Namespace) -> int:
     overrun_values: list[float] = []
     span_ratios: list[float] = []
     missing = 0
+    seen_audio: set[str] = set()
     for aligned_row in aligned:
         audio = str(Path(str(aligned_row["audio_filepath"])).expanduser().resolve())
-        original = dict(by_audio[audio])
-        duration_raw = original.get(args.duration_field)
-        duration = float(duration_raw) if duration_raw is not None else None
-        # NeMo 2.7 writes ``words_level_*``; newer docs describe ``word_level_*``. Accept both so
-        # an audit remains importable across a pinned NeMo upgrade.
-        ctm_raw = aligned_row.get("words_level_ctm_filepath") or aligned_row.get(
-            "word_level_ctm_filepath"
+        seen_audio.add(audio)
+        original, leading, trailing, end_overrun, span_ratio, alignment_missing = (
+            _summarize_aligned_row(
+                aligned_row,
+                by_audio[audio],
+                duration_field=args.duration_field,
+                reference_field=args.reference_field,
+                run_metadata=run_metadata,
+            )
         )
-        status = "aligned"
-        word_count = 0
-        first_start: float | None = None
-        last_end: float | None = None
-        if not ctm_raw or not Path(str(ctm_raw)).is_file():
-            status = "missing_ctm"
-            missing += 1
-        else:
-            word_count, first_start, last_end = _ctm_span(Path(str(ctm_raw)))
-            if word_count == 0:
-                status = "empty_ctm"
-        reference_word_count = len(normalize(str(original[args.reference_field])).split())
-        leading = first_start
-        trailing = None if duration is None or last_end is None else max(0.0, duration - last_end)
-        end_overrun = (
-            None if duration is None or last_end is None else max(0.0, last_end - duration)
-        )
-        span = None if first_start is None or last_end is None else max(0.0, last_end - first_start)
-        span_ratio = (
-            None if duration in (None, 0.0) or span is None else min(1.0, span / duration)
-        )
-        word_coverage = (
-            None if reference_word_count == 0 else min(1.0, word_count / reference_word_count)
-        )
-        quality = dict(original.get("quality") or {})
-        quality["ctc_alignment"] = {
-            "status": status,
-            "word_count": word_count,
-            "reference_word_count": reference_word_count,
-            "word_coverage": word_coverage,
-            "first_word_start_seconds": first_start,
-            "last_word_end_seconds": last_end,
-            "leading_margin_seconds": leading,
-            "trailing_margin_seconds": trailing,
-            "end_overrun_seconds": end_overrun,
-            "aligned_span_seconds": span,
-            "aligned_span_ratio": span_ratio,
-            "word_ctm": str(ctm_raw) if ctm_raw else None,
-            "alignment_reference": aligned_row.get("text"),
-            "normalization_changed": aligned_row.get("text")
-            != original.get(args.reference_field),
-            "provenance": run_metadata,
-        }
-        original["quality"] = quality
+        missing += int(alignment_missing)
         output_rows.append(original)
         if leading is not None:
             leading_values.append(leading)
@@ -324,6 +416,17 @@ def cmd_nfa_summarize(args: argparse.Namespace) -> int:
             overrun_values.append(end_overrun)
         if span_ratio is not None:
             span_ratios.append(span_ratio)
+    for audio, source_row in by_audio.items():
+        if audio in seen_audio:
+            continue
+        missing += 1
+        output_rows.append(
+            _missing_alignment_row(
+                source_row,
+                reference_field=args.reference_field,
+                run_metadata=run_metadata,
+            )
+        )
     _write_jsonl(args.output, output_rows)
     summary = {
         "input_rows": len(originals),
@@ -372,6 +475,8 @@ def build_parser() -> argparse.ArgumentParser:
     prepare.add_argument("--summary", type=Path, required=True)
     prepare.add_argument("--language", required=True)
     prepare.add_argument("--reference-field", default="text")
+    prepare.add_argument("--tokenizer-model", type=Path)
+    prepare.add_argument("--rejected-output", type=Path)
     prepare.set_defaults(func=cmd_nfa_prepare)
 
     nfa_run = subparsers.add_parser("nfa-run", help="run a version-matched NeMo Forced Aligner")
@@ -393,6 +498,7 @@ def build_parser() -> argparse.ArgumentParser:
     summarize.add_argument("--reference-field", default="text")
     summarize.add_argument("--duration-field", default="duration")
     summarize.add_argument("--run-metadata", type=Path)
+    summarize.add_argument("--rejected-input", type=Path)
     summarize.set_defaults(func=cmd_nfa_summarize)
     return parser
 

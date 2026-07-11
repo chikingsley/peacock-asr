@@ -77,7 +77,7 @@ For a new corpus or materially different source domain:
 1. Manually audit stratified clean/middle/tail bins before selecting thresholds.
 1. Compare a size-matched random training subset with a size-matched cleaned subset using the same training recipe, step count, and held-out benchmarks.
 
-The current draft-recognizer lane uses the matched 0.6B Parakeet TDT recipe for local pilots. Scribe remains the accepted high-quality teacher/verifier lane; C1Tech remains a benchmark comparator. CTC alignment validates whether the supplied text can be placed monotonically over the audio and exposes suspicious clip margins; it does not prove that every word is true.
+The current V4 audit lane uses `C1Tech/whisper-base-fa` at its measured batch-1 setting because it has the best accessible greedy WER on the shared Persian benchmark. This remains an independent audit/comparator lane: its hypotheses never become training labels, while Scribe remains the accepted high-quality teacher/verifier lane. Pass `--tokenizer-model` and `--rejected-output` to `nfa-prepare` so NeMo token-case incompatibilities are retained with explicit status before alignment. CTC alignment validates whether the supplied text can be placed monotonically over the audio and exposes suspicious clip margins; it does not prove that every word is true.
 
 ## Benchmarks
 

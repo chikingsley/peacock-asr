@@ -66,6 +66,7 @@ farsi-omni-eval-lm = "farsi_asr.omni.lm_eval:main"
 # Score any shared cross-model SQLite run with the canonical Persian normalizer.
 farsi-benchmark-score = "farsi_asr.benchmark:main"
 farsi-vad-yield = "farsi_asr.vad_yield:main"
+farsi-v4-quality = "farsi_asr.quality_v4:main"
 # parakeet family
 farsi-parakeet-train-tokenizer = "farsi_asr.parakeet.train:train_tokenizer"
 farsi-parakeet-train-ctc = "farsi_asr.parakeet.train:train_ctc"

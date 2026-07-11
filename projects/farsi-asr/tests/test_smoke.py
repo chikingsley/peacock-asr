@@ -22,6 +22,7 @@ def test_cli_entrypoints_import() -> None:
         train_tdt,
         train_tokenizer,
     )
+    from farsi_asr.quality_v4 import main as v4_quality
 
     fns = (
         curate,
@@ -33,6 +34,7 @@ def test_cli_entrypoints_import() -> None:
         train_nemo_recipe,
         train_tdt,
         train_tokenizer,
+        v4_quality,
     )
     assert all(callable(f) for f in fns)
 

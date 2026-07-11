@@ -129,8 +129,7 @@ def test_nfa_summarize_adds_alignment_margins(tmp_path):
     word_ctm.write_text("a 1 0.25 0.50 alpha\na 1 0.75 0.50 beta\n", encoding="utf-8")
     source = tmp_path / "source.jsonl"
     source.write_text(
-        json.dumps({"audio_filepath": str(audio), "text": "alpha beta", "duration": 2.0})
-        + "\n",
+        json.dumps({"audio_filepath": str(audio), "text": "alpha beta", "duration": 2.0}) + "\n",
         encoding="utf-8",
     )
     aligned = tmp_path / "aligned.jsonl"
@@ -165,3 +164,71 @@ def test_nfa_summarize_adds_alignment_margins(tmp_path):
     assert signal["word_coverage"] == 1.0
     assert signal["leading_margin_seconds"] == 0.25
     assert signal["trailing_margin_seconds"] == 0.75
+
+
+def test_nfa_summarize_retains_preflight_rejection(tmp_path):
+    aligned_audio = tmp_path / "aligned.wav"
+    rejected_audio = tmp_path / "rejected.wav"
+    aligned_audio.write_bytes(b"")
+    rejected_audio.write_bytes(b"")
+    word_ctm = tmp_path / "aligned.ctm"
+    word_ctm.write_text("a 1 0.00 0.50 alpha\n", encoding="utf-8")
+    source = tmp_path / "source.jsonl"
+    source.write_text(
+        json.dumps({"audio_filepath": str(aligned_audio), "text": "alpha", "duration": 1.0})
+        + "\n"
+        + json.dumps({"audio_filepath": str(rejected_audio), "text": "۱+۵", "duration": 1.0})
+        + "\n",
+        encoding="utf-8",
+    )
+    aligned = tmp_path / "aligned.jsonl"
+    aligned.write_text(
+        json.dumps(
+            {
+                "audio_filepath": str(aligned_audio),
+                "words_level_ctm_filepath": str(word_ctm),
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    rejected = tmp_path / "rejected.jsonl"
+    rejected.write_text(
+        json.dumps(
+            {
+                "audio_filepath": str(rejected_audio),
+                "text": "۱+۵",
+                "duration": 1.0,
+                "quality": {"ctc_alignment_preflight": {"status": "token_case_incompatible"}},
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    output = tmp_path / "scored.jsonl"
+    summary = tmp_path / "summary.json"
+
+    assert (
+        main(
+            [
+                "nfa-summarize",
+                "--input",
+                str(source),
+                "--aligned-manifest",
+                str(aligned),
+                "--rejected-input",
+                str(rejected),
+                "--output",
+                str(output),
+                "--summary",
+                str(summary),
+            ]
+        )
+        == 0
+    )
+
+    rows = [json.loads(line) for line in output.read_text(encoding="utf-8").splitlines()]
+    assert len(rows) == 2
+    assert rows[1]["quality"]["ctc_alignment_preflight"]["status"] == ("token_case_incompatible")
+    assert rows[1]["quality"]["ctc_alignment"]["status"] == "not_aligned"
+    assert json.loads(summary.read_text(encoding="utf-8"))["missing_or_empty_ctm"] == 1
