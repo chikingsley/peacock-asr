@@ -279,7 +279,6 @@ def cmd_download(args: argparse.Namespace) -> int:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    from farsi_asr.quality_v4_export import add_parser as add_export_parser
     from farsi_asr.quality_v4_full import add_parser as add_full_parser
 
     parser = argparse.ArgumentParser(
@@ -305,7 +304,6 @@ def build_parser() -> argparse.ArgumentParser:
     attach.add_argument("--hypothesis-field", default="hypothesis")
     attach.set_defaults(func=cmd_attach)
     add_full_parser(subparsers)
-    add_export_parser(subparsers)
     return parser
 
 

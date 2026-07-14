@@ -464,6 +464,31 @@ ______________________________________________________________________
 - **Result:** cleaned macro CER changed by -0.44 points on seed 0 and +0.05 on seed 1; two-seed macro CER changed by -0.19. Primary macro WER changed by +0.02 across both seeds, seed 1 reversed seed 0 on five of six surfaces, and WorldSpeech regressed consistently. The composite hard filter therefore fails promotion. Keep ASR-edge and CTC geometry as durable metadata for review, analysis, and future policies; retain the full V4 corpus for training.
 - **Invalidated precursor:** the first export accidentally omitted the 5–10-second allocation branch. Its manifests, four model runs, evaluations, and SQLite selection rows were deleted after the corrected V2 export was verified; none of its metrics contribute to this decision.
 
+### Signal-isolation follow-up
+
+- **Design:** reused the exact 9,788-row fixed control for three two-seed arms: ASR agreement only, beginning/end mismatch only, and CTC alignment geometry only. Every arm preserves the control's source/duration-bin counts and excludes control identities. Agreement-unavailable digit rows and edge-unavailable clips at or above 20 seconds retain their control-stratum proportion through deterministic random sampling, so missing signals never become implicit rejection rules. The exact selections are durable in `/mnt/tiny-2t/peacock-asr/farsi-asr/data/audit/v4-full-score/quality.sqlite3` under run `v4-quality-isolations-20h-s20260713`; temporary FLAC/JSONL staging is disposable.
+- **Training and evaluation:** the same 110M pure-TDT 2,000-step recipe, seeds 0 and 1, best-validation-loss checkpoints, and six fixed fp32 surfaces. Six models and 36 evaluations completed with zero empty hypotheses. Run families are `e4-v4-quality-agreement20h-iso-s{0,1}`, `e5-v4-quality-edge20h-iso-s{0,1}`, and `e6-v4-quality-ctc20h-iso-s{0,1}`. Delta columns use control subtraction, so positive WER is worse.
+
+| Policy        | Seed 0 macro WER | Seed 1 macro WER | Two-seed macro WER | Delta WER | Two-seed macro CER | Delta CER |
+| ------------- | ---------------: | ---------------: | -----------------: | --------: | -----------------: | --------: |
+| Fixed control |            46.05 |            45.24 |              45.64 |     +0.00 |              19.28 |     +0.00 |
+| Agreement     |            45.87 |            45.41 |              45.64 |     +0.00 |              19.13 |     -0.14 |
+| Edge          |            46.51 |            45.69 |              46.10 |     +0.46 |              19.27 |      0.00 |
+| CTC geometry  |            46.11 |            45.26 |              45.69 |     +0.04 |              18.89 |     -0.38 |
+| Composite     |            45.79 |            45.52 |              45.66 |     +0.02 |              19.08 |     -0.19 |
+
+| Surface           | Agreement delta WER | Edge delta WER | CTC delta WER |
+| ----------------- | ------------------: | -------------: | ------------: |
+| FLEURS dev        |               -0.20 |          +0.24 |         -0.27 |
+| YouTube dev conv  |               +0.09 |          +0.78 |         +0.41 |
+| FLEURS test       |               -0.50 |          -0.52 |         -1.10 |
+| Neyshekar test    |               +0.02 |          +0.38 |         -0.21 |
+| WorldSpeech test  |               +0.37 |          +1.10 |         +1.05 |
+| YouTube test conv |               +0.24 |          +0.76 |         +0.37 |
+
+- **Decision:** ASR agreement has zero practical WER effect. Edge-only filtering is globally harmful despite its repeatable FLEURS gain. CTC geometry is globally WER-neutral with a CER gain, consistently improving clean FLEURS while consistently reducing WorldSpeech and conversational YouTube robustness. None earns a global rejection gate. Retain the signals as metadata; the only justified follow-up is a source-specific CTC policy confined to clean/read corpora while noisy and conversational sources retain their full distribution.
+- **Active-code decision:** this restored-Parquet experiment adapter is retired after the gate rather than becoming a second production exporter. Future corpus exports continue through the existing `omni-curator` CuratorStore export path; the experiment's exact selections remain in SQLite and its measurements remain here.
+
 ______________________________________________________________________
 
 ## Best result of record (current)
