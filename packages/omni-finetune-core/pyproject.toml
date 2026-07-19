@@ -40,7 +40,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-omnilingual-asr = { path = "../../../omnilingual-asr", editable = true }
+omnilingual-asr = { path = "../omnilingual-asr", editable = true }
 
 [tool.uv]
 # Peacock uses a local omnilingual-asr fork with fairseq2 0.8.1 metadata. Keep this stack

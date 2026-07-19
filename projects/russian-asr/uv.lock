@@ -1876,14 +1876,17 @@ requires-dist = [
     { name = "num2geotext", marker = "extra == 'normalize'", specifier = ">=0.0.1" },
     { name = "num2words", marker = "extra == 'normalize'", specifier = ">=0.5.14" },
     { name = "numpy", specifier = "==2.4.6" },
+    { name = "onnxruntime", marker = "extra == 'vad-silero'", specifier = "==1.26.0" },
+    { name = "pvcobra", marker = "extra == 'vad-cobra'", specifier = "==3.0.3" },
     { name = "pyarrow", specifier = ">=18" },
+    { name = "silero-vad", marker = "extra == 'vad-silero'", specifier = "==6.2.1" },
     { name = "soundfile", specifier = "==0.13.1" },
     { name = "tajiknlp", marker = "extra == 'normalize'", specifier = ">=1.2" },
     { name = "torchaudio", specifier = "==2.9.1" },
     { name = "tqdm", specifier = ">=4.66" },
     { name = "yt-dlp", marker = "extra == 'youtube'" },
 ]
-provides-extras = ["ingest", "youtube", "normalize"]
+provides-extras = ["ingest", "youtube", "normalize", "vad-silero", "vad-cobra"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -1922,7 +1925,7 @@ requires-dist = [
     { name = "jiwer", specifier = ">=3.1.0,<5" },
     { name = "librosa", specifier = "==0.11.0" },
     { name = "numpy", specifier = "==2.4.6" },
-    { name = "omnilingual-asr", editable = "../../../omnilingual-asr" },
+    { name = "omnilingual-asr", editable = "../../packages/omnilingual-asr" },
     { name = "pyarrow", specifier = "==24.0.0" },
     { name = "pydantic", specifier = ">=2.11" },
     { name = "pyyaml", specifier = ">=6.0" },
@@ -1940,7 +1943,7 @@ dev = [
 
 [[package]]
 name = "omnilingual-asr"
-source = { editable = "../../../omnilingual-asr" }
+source = { editable = "../../packages/omnilingual-asr" }
 dependencies = [
     { name = "fairseq2", extra = ["arrow"] },
     { name = "kenlm" },

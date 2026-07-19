@@ -27,7 +27,7 @@ dependencies = [
 [tool.uv.sources]
 omni-curator = { path = "../../packages/omni-curator", editable = true }
 omni-finetune-core = { path = "../../packages/omni-finetune-core", editable = true }
-omnilingual-asr = { path = "../../../omnilingual-asr", editable = true }
+omnilingual-asr = { path = "../../packages/omnilingual-asr", editable = true }
 parakeet-finetune-core = { path = "../../packages/parakeet-finetune-core", editable = true }
 
 [tool.uv]

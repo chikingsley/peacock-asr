@@ -948,7 +948,7 @@ requires-dist = [
     { name = "jiwer", specifier = ">=3.1.0,<5" },
     { name = "librosa", specifier = "==0.11.0" },
     { name = "numpy", specifier = "==2.4.6" },
-    { name = "omnilingual-asr", editable = "../../../omnilingual-asr" },
+    { name = "omnilingual-asr", editable = "../omnilingual-asr" },
     { name = "pyarrow", specifier = "==24.0.0" },
     { name = "pydantic", specifier = ">=2.11" },
     { name = "pyyaml", specifier = ">=6.0" },
@@ -966,7 +966,7 @@ dev = [
 
 [[package]]
 name = "omnilingual-asr"
-source = { editable = "../../../omnilingual-asr" }
+source = { editable = "../omnilingual-asr" }
 dependencies = [
     { name = "fairseq2", extra = ["arrow"] },
     { name = "kenlm" },

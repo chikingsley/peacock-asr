@@ -20,7 +20,7 @@ dev = [
 [tool.uv.sources]
 omni-curator = { path = "../../packages/omni-curator", editable = true }
 omni-finetune-core = { path = "../../packages/omni-finetune-core", editable = true }
-omnilingual-asr = { path = "../../../omnilingual-asr", editable = true }
+omnilingual-asr = { path = "../../packages/omnilingual-asr", editable = true }
 
 [tool.uv]
 # Peacock uses a local omnilingual-asr fork with fairseq2 0.8.1 metadata. Keep Omni CTC on

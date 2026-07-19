@@ -660,7 +660,7 @@ requires-dist = [
     { name = "numpy", specifier = "==2.4.6" },
     { name = "omni-curator", extras = ["ingest", "normalize", "vad-cobra", "vad-silero", "youtube"], editable = "../../packages/omni-curator" },
     { name = "omni-finetune-core", editable = "../../packages/omni-finetune-core" },
-    { name = "omnilingual-asr", editable = "../../../omnilingual-asr" },
+    { name = "omnilingual-asr", editable = "../../packages/omnilingual-asr" },
     { name = "onnxruntime", specifier = "==1.26.0" },
     { name = "parakeet-finetune-core", editable = "../../packages/parakeet-finetune-core" },
     { name = "pyarrow", specifier = "==24.0.0" },
@@ -2020,7 +2020,7 @@ requires-dist = [
     { name = "jiwer", specifier = ">=3.1.0,<5" },
     { name = "librosa", specifier = "==0.11.0" },
     { name = "numpy", specifier = "==2.4.6" },
-    { name = "omnilingual-asr", editable = "../../../omnilingual-asr" },
+    { name = "omnilingual-asr", editable = "../../packages/omnilingual-asr" },
     { name = "pyarrow", specifier = "==24.0.0" },
     { name = "pydantic", specifier = ">=2.11" },
     { name = "pyyaml", specifier = ">=6.0" },
@@ -2038,7 +2038,7 @@ dev = [
 
 [[package]]
 name = "omnilingual-asr"
-source = { editable = "../../../omnilingual-asr" }
+source = { editable = "../../packages/omnilingual-asr" }
 dependencies = [
     { name = "fairseq2", extra = ["arrow"] },
     { name = "kenlm" },
