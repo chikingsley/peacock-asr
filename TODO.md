@@ -38,11 +38,35 @@ Active work only. Completed work belongs in `CHANGELOG.md`; live pipeline state 
 
 ## Data lifecycle and storage
 
+**Archive pass 2026-07-24 — project paused for token/compute budget.** Artifacts that had ZERO Hugging Face coverage were rescued first; see "Backup state" below before deleting anything local.
+
+- [ ] Slow Scribe v2 relabel of the Farsi raw corpus for the new voice-lab requirements. The runner already exists: `/home/simon/github/pimsleur-hub/transcript-generation-15-second-cooldown/` (Go). It submits one job at a time through the Peacockery Voice Lab batch API using `elevenlabs-scribe_v2`, holds an exclusive local file lock, and persists `next_eligible_at` so the 15-second cooldown survives across invocations; diarization and auto language detection on. Needs `PEACOCKERY_VOICE_API_KEY` or `PEACOCKERY_VOICE_LAB_API_KEY`. Source audio is the `iran_international` FLAC corpus, uploaded as individual `.flac` files (not tarred) specifically so clips can be relabeled incrementally without pulling the whole 257 GB. Partial relabeling is acceptable — the cooldown makes this inherently slow.
 - [ ] Replace the retired ad hoc HF uploader with one maintained release workflow: explicit staging, append-only state, one upload method, remote sibling/checksum verification, and deletion only after proof.
 - [ ] Export final YouTube datasets, publish/verify them on HF, then remove local release-safe clips and caches. Segmenting alone does not relieve disk pressure.
 - [ ] Verify exact current HF repository names before deleting superseded Persian/Farsi model repos or the large local Farsi/Tajik exports.
 - [ ] Publish or move Russian canonical audio off WorkersSSD before treating it as general scratch.
 - [ ] Make `archive_needed()` cheaper than scanning every segmented source path on every factory tick.
+
+### Backup state as of 2026-07-24
+
+Verify any claim here against `HfApi().repo_info(repo, files_metadata=True)` — an earlier agent reported an upload complete that had never happened. Use `HF_HUB_DISABLE_XET=1` for large uploads (the Xet backend stalls silently on big files), and tar directories holding tens of thousands of small files (HF caps ~320 repo commits/hour).
+
+Rescued because they had NO Hugging Face copy at all:
+
+- `Peacockery/peacock-asr-owned-dictation-backup-2026-07-24` — **PRIVATE by design.** 945 MB: the 1,711 personal dictation recordings, the 200-row human `review.sqlite` (plus both pre-edit snapshots), the frozen `gold-v1` manifest, and session ledgers from `english-asr/data/owned-dictation/mac-import-20260716/`. Archive entry count verified 2992/2992. This is the only non-pseudo-label human supervision in the project. Keep it private — it is the user's own voice and dictation content, unlike the model/dataset repos.
+- `Peacockery/english-asr-runs-backup-2026-07-24` — public. The 40-run english-asr experiment record (metrics, WER/CER, alpha sweeps, predictions), MOSS eval measurements, and data provenance ledgers; plus the 92 final `.nemo` exports (42 GB).
+- `Peacockery/farsi-asr-iran-international-raw` — public. The 11,993-file / 257 GB raw FLAC scrape, uploaded because re-downloading is explicitly not an option. Note it is NOT represented in `farsi-asr-corpus-v4`, whose seven corpora are `thomcles_persian_farsi_speech`, `common_voice_25_0`, `asr_farsi_youtube`, `mana_tts`, `neyshekar`, `worldspeech`, `fleurs`.
+
+Known-broken: `Peacockery/MOSS-Transcribe-preview-2B-MLX` contains only `.gitattributes` and `README.md` — **zero weight files**; the local `artifacts/mlx/` (8.5 GB) was never uploaded despite a prior report that it had been.
+
+Corrected belief: there is no paid ElevenLabs/Scribe labeled data in this repo today. In `english-asr/data/curator.sqlite` the `scribe_wer` / `scribe_cer` / `scribe_status` columns are 100% NULL across all 1,337,984 rows; existing pseudo-labels come from local `AutoArk-AI/ARK-ASR-3B` inference. Paid Scribe labeling is planned work (see the relabel item above), not sunk cost.
+
+Reclaimable once the uploads above are confirmed complete, with the basis for each:
+
+- `base_models/` (63 GB) — every item re-downloadable from public upstreams (Meta OmniASR direct HTTP, `nvidia/parakeet-*`, `Qwen/Qwen3-ASR-*`, `openai/whisper-large-v3-turbo`, `C1Tech/whisper_base_persian`), pinned revisions and SHA256s in `base_models/README.md`. Exception: `parakeet/ctc.nemo` (418 MB) has unreconciled provenance — keep or upload it.
+- `moss-mlx-conversion/bundles/` + the duplicated 15.79 GB of `coreml/build/` (~31 GB) — byte-exact against `Peacockery/MOSS-Transcribe-preview-2B-CoreML` (33/33 files, zero size mismatches). Do NOT delete `artifacts/mlx/` until it is actually uploaded.
+- `english-asr/data/datasets/` (3.3 GB) — 153/153 files match `Peacockery/english-asr-corpus-v0`; and `benchmarks/` (688 MB), re-downloadable parquet with recorded SHA256.
+- `english-asr/runs/**/*.ckpt` (214 GB) — mid-training Lightning checkpoints, regenerable only by re-running ~40 training jobs. Deliberate decision, not an easy delete.
 
 ## Documentation
 
