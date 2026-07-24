@@ -13,6 +13,7 @@ from parakeet_finetune_core.eval import (
     compute_wer_percent,
     default_checkpoint_for_kind,
     default_model_for_kind,
+    enable_memory_efficient_subsampling,
     load_manifest,
     load_model,
     make_normalizer,
@@ -42,6 +43,9 @@ class FakeEvalModel:
         self.events.append(("eval",))
         return self
 
+    def change_attention_model(self, attention_model, context):
+        self.events.append(("change_attention_model", attention_model, context))
+
 
 class FakeHybridEvalModel(FakeEvalModel):
     cur_decoder = "rnnt"
@@ -57,6 +61,7 @@ class FakeStandaloneEvalModel(FakeEvalModel):
 
 def _install_fake_model_runtime(monkeypatch, model):
     torch = types.ModuleType("torch")
+    torch.__dict__["cuda"] = types.SimpleNamespace(empty_cache=lambda: None)
 
     def load_checkpoint(*_args, **_kwargs):
         return {"state_dict": {"weight": "trained"}}
@@ -125,6 +130,84 @@ def test_load_model_keeps_final_nemo_vocabulary(monkeypatch, tmp_path):
 
     assert loaded is model
     assert not any(event[0] == "change_vocabulary" for event in model.events)
+
+
+def test_load_model_configures_official_longform_attention_and_bf16(monkeypatch, tmp_path):
+    model = FakeEvalModel()
+    _install_fake_model_runtime(monkeypatch, model)
+    sys.modules["torch"].__dict__["bfloat16"] = "bf16"
+    final_model = tmp_path / "final.nemo"
+    final_model.touch()
+    args = argparse.Namespace(
+        checkpoint=None,
+        device="cuda",
+        inference_dtype="bf16",
+        longform_attention_context=128,
+        load_model_on_cpu=True,
+        disable_cuda_graph_decoder=False,
+        memory_efficient_subsampling=False,
+        replace_tokenizer=False,
+        tokenizer_dir=tmp_path / "tokenizer",
+        tokenizer_type="bpe",
+    )
+
+    loaded = load_model(args, final_model)
+
+    assert loaded is model
+    assert ("change_attention_model", "rel_pos_local_attn", [128, 128]) in model.events
+    assert ("to", "bf16") in model.events
+    assert ("to", "cuda") in model.events
+
+
+def test_load_model_disables_cuda_graph_decoder(monkeypatch, tmp_path):
+    from omegaconf import OmegaConf
+
+    model = FakeHybridEvalModel()
+    model.cfg = OmegaConf.create(
+        {
+            "decoding": {"strategy": "greedy_batch", "greedy": {"max_symbols": 10}},
+            "aux_ctc": {"decoding": {}},
+        }
+    )
+    _install_fake_model_runtime(monkeypatch, model)
+    final_model = tmp_path / "final.nemo"
+    final_model.touch()
+    args = argparse.Namespace(
+        checkpoint=None,
+        device="cpu",
+        kind="tdt",
+        ngram_lm=None,
+        beam_size=0,
+        inference_dtype="fp32",
+        longform_attention_context=0,
+        load_model_on_cpu=True,
+        disable_cuda_graph_decoder=True,
+        memory_efficient_subsampling=False,
+        replace_tokenizer=False,
+        tokenizer_dir=tmp_path / "tokenizer",
+        tokenizer_type="bpe",
+    )
+
+    load_model(args, final_model)
+
+    event = next(event for event in model.events if event[0] == "change_decoding_strategy")
+    assert event[2] == "rnnt"
+    assert event[1].greedy.use_cuda_graph_decoder is False
+
+
+def test_memory_efficient_subsampling_replaces_nemo_channel_concat():
+    class Subsampler:
+        def channel_chunked_conv(self, *_args):
+            raise AssertionError("original implementation should be replaced")
+
+    subsampler = Subsampler()
+    model = types.SimpleNamespace(encoder=types.SimpleNamespace(pre_encode=subsampler))
+    torch = types.SimpleNamespace()
+
+    enable_memory_efficient_subsampling(model, torch)
+
+    assert subsampler.channel_chunked_conv.__self__ is subsampler
+    assert subsampler.channel_chunked_conv.__name__ == "channel_chunked_conv"
 
 
 def test_load_model_replaces_base_vocabulary_before_checkpoint(monkeypatch, tmp_path):
@@ -288,6 +371,19 @@ def test_compute_error_rates_reports_wer_cer_and_empty_hypotheses():
     assert rates["wer_percent"] == 66.66666666666666
     assert rates["cer_percent"] > 0
     assert rates["empty_hypotheses"] == 1
+    assert rates["scored_rows"] == 2
+    assert rates["excluded_empty_references"] == 0
+
+
+def test_compute_error_rates_accounts_for_references_normalized_to_empty():
+    def normalize(text: str) -> str:
+        return "" if text == "[noise]" else text.lower()
+
+    rates = compute_error_rates(["HELLO", "[noise]"], ["hello", "noise"], normalize)
+
+    assert rates["wer_percent"] == 0.0
+    assert rates["scored_rows"] == 1
+    assert rates["excluded_empty_references"] == 1
 
 
 def test_write_summary_creates_parent_and_json(tmp_path):

@@ -36,6 +36,19 @@ uv run --project projects/tajik-asr tajik-parakeet-eval --limit 80 --device cpu
 
 Do not launch project workflows through direct interpreters or helper-script paths. The reusable surface is `uv run --project <language-project> <console-script> ...`.
 
+Projects that train Parakeet from an `omni-curator` export should expose a thin console command around `parakeet_finetune_core.materialize.materialize_main`. It converts the shared Hive-partitioned Parquet contract into deterministic FLAC files and NeMo JSONL manifests without adding another project-specific exporter:
+
+```python
+from parakeet_finetune_core.materialize import materialize_main
+
+def materialize(argv=None):
+    return materialize_main(PROJECT, argv)
+```
+
+```bash
+uv run --project projects/english-asr english-parakeet-materialize --split train
+```
+
 ## Common vs Language-Specific
 
 Common in this package:
@@ -59,6 +72,10 @@ Language-specific in each `<language>-asr` project:
 - output run root
 - default CTC/TDT run names
 - text normalization and curation policy outside the Parakeet trainer
+
+For same-language fine-tuning, leave `default_tokenizer_dir` unset. The TDT trainer then preserves the tokenizer embedded in the base `.nemo` together with its pretrained decoder/joint vocabulary weights. Set `default_tokenizer_dir` only when the language or vocabulary really changes; NeMo's `change_vocabulary()` rebuilds those layers even when the replacement tokenizer is nominally identical.
+
+Use `--prepare-only` for a live CPU preflight: it restores the real `.nemo`, applies the loss/eval configuration, confirms the tokenizer contract, and exits before Lightning allocates GPU training state.
 
 ## Training Metric Policy
 

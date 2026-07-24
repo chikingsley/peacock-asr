@@ -10,6 +10,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from types import MethodType
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -82,6 +83,42 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
     parser.add_argument("--max-duration", type=float, default=None)
     parser.add_argument("--limit", type=int, default=0, help="0 means all rows")
     parser.add_argument("--device", default="cpu")
+    parser.add_argument(
+        "--inference-dtype",
+        choices=["fp32", "bf16"],
+        default="fp32",
+        help="Model dtype used for inference. The official NeMo leaderboard uses bf16 on CUDA.",
+    )
+    parser.add_argument(
+        "--longform-attention-context",
+        type=int,
+        default=0,
+        help=(
+            "Use NeMo rel_pos_local_attn with this symmetric context for long recordings; "
+            "0 preserves the model's serialized attention configuration."
+        ),
+    )
+    parser.add_argument(
+        "--load-model-on-cpu",
+        action="store_true",
+        help=(
+            "Restore local model/checkpoint weights on CPU, cast there, and move the final model "
+            "to --device. This avoids retaining the original GPU weight allocation."
+        ),
+    )
+    parser.add_argument(
+        "--disable-cuda-graph-decoder",
+        action="store_true",
+        help="Disable NeMo's greedy CUDA graph decoder to reduce inference-only GPU state.",
+    )
+    parser.add_argument(
+        "--memory-efficient-subsampling",
+        action="store_true",
+        help=(
+            "Use an allocation-efficient equivalent of NeMo's channel-chunked FastConformer "
+            "subsampler for recordings that exceed available GPU memory."
+        ),
+    )
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument(
         "--warmup-count",
@@ -175,11 +212,7 @@ def make_normalizer(spec: str | None, language: str | None) -> Normalizer:
 
 
 def compute_wer_percent(refs: list[str], hyps: list[str], normalizer: Normalizer) -> float:
-    from jiwer import process_words
-
-    normalized_refs = [normalizer(ref) for ref in refs]
-    normalized_hyps = [normalizer(hyp) for hyp in hyps]
-    return float(process_words(normalized_refs, normalized_hyps).wer * 100)
+    return float(compute_error_rates(refs, hyps, normalizer)["wer_percent"])
 
 
 def compute_error_rates(
@@ -189,10 +222,20 @@ def compute_error_rates(
 
     normalized_refs = [normalizer(ref) for ref in refs]
     normalized_hyps = [normalizer(hyp) for hyp in hyps]
+    scored = [
+        (reference, hypothesis)
+        for reference, hypothesis in zip(normalized_refs, normalized_hyps, strict=True)
+        if reference.strip()
+    ]
+    if not scored:
+        raise ValueError("normalization removed every reference")
+    scored_refs, scored_hyps = (list(values) for values in zip(*scored, strict=True))
     return {
-        "wer_percent": float(process_words(normalized_refs, normalized_hyps).wer * 100),
-        "cer_percent": float(process_characters(normalized_refs, normalized_hyps).cer * 100),
-        "empty_hypotheses": sum(not hyp.strip() for hyp in normalized_hyps),
+        "wer_percent": float(process_words(scored_refs, scored_hyps).wer * 100),
+        "cer_percent": float(process_characters(scored_refs, scored_hyps).cer * 100),
+        "empty_hypotheses": sum(not hypothesis.strip() for hypothesis in scored_hyps),
+        "scored_rows": len(scored),
+        "excluded_empty_references": len(normalized_refs) - len(scored),
     }
 
 
@@ -249,15 +292,122 @@ def configured_decoding(source: Any, args: argparse.Namespace, decoder_type: str
     return decoding_cfg
 
 
-def load_model(args: argparse.Namespace, model_name: str | Path) -> Any:
+def configure_inference_runtime(model: Any, args: argparse.Namespace, torch: Any) -> Any:
+    """Apply explicit long-form attention and inference dtype choices."""
+    longform_context = getattr(args, "longform_attention_context", 0)
+    if longform_context < 0:
+        raise ValueError("--longform-attention-context must be non-negative")
+    if longform_context:
+        if not hasattr(model, "change_attention_model"):
+            raise TypeError("model does not support NeMo long-form local attention")
+        model.change_attention_model("rel_pos_local_attn", [longform_context, longform_context])
+        print(
+            "long-form attention="
+            f"rel_pos_local_attn context=[{longform_context}, {longform_context}]",
+            flush=True,
+        )
+
+    if getattr(args, "memory_efficient_subsampling", False):
+        enable_memory_efficient_subsampling(model, torch)
+        print("memory-efficient channel-chunked subsampling enabled", flush=True)
+
+    inference_dtype = getattr(args, "inference_dtype", "fp32")
+    if inference_dtype == "bf16":
+        model = model.to(torch.bfloat16)
+    elif inference_dtype != "fp32":
+        raise ValueError(f"unsupported inference dtype: {inference_dtype}")
+    model = model.to(args.device).eval()
+    if str(args.device).startswith("cuda") and hasattr(torch, "cuda"):
+        torch.cuda.empty_cache()
+    return model
+
+
+def disable_cuda_graph_decoder(decoding_cfg: Any) -> Any:
+    """Return a NeMo decoding config with the greedy CUDA graph path disabled."""
+    from copy import deepcopy
+
+    from omegaconf import OmegaConf
+
+    decoding_cfg = deepcopy(decoding_cfg)
+    OmegaConf.update(
+        decoding_cfg,
+        "greedy.use_cuda_graph_decoder",
+        value=False,
+        force_add=True,
+    )
+    return decoding_cfg
+
+
+def enable_memory_efficient_subsampling(model: Any, torch: Any) -> None:
+    """Avoid NeMo's duplicate full-output allocation while preserving chunked convolution math."""
+    try:
+        subsampler = model.encoder.pre_encode
+    except AttributeError as error:
+        raise TypeError("model does not expose a FastConformer pre-encoder") from error
+    if not hasattr(subsampler, "channel_chunked_conv"):
+        raise TypeError("model does not expose NeMo channel-chunked convolution")
+
+    def channel_chunked_conv(self: Any, conv: Any, chunk_size: int, x: Any) -> Any:
+        channel_offset = 0
+        output = None
+        for chunk in torch.split(x, chunk_size, 1):
+            channels = chunk.size(1)
+            if self.is_causal:
+                padded_chunk = torch.nn.functional.pad(
+                    chunk,
+                    pad=(
+                        self._kernel_size - 1,
+                        self._stride - 1,
+                        self._kernel_size - 1,
+                        self._stride - 1,
+                    ),
+                )
+                chunk_output = torch.nn.functional.conv2d(
+                    padded_chunk,
+                    conv.weight[channel_offset : channel_offset + channels],
+                    bias=conv.bias[channel_offset : channel_offset + channels],
+                    stride=self._stride,
+                    padding=0,
+                    groups=channels,
+                )
+            else:
+                chunk_output = torch.nn.functional.conv2d(
+                    chunk,
+                    conv.weight[channel_offset : channel_offset + channels],
+                    bias=conv.bias[channel_offset : channel_offset + channels],
+                    stride=self._stride,
+                    padding=self._left_padding,
+                    groups=channels,
+                )
+            if output is None:
+                output = chunk_output.new_empty(
+                    (
+                        chunk_output.size(0),
+                        conv.out_channels,
+                        chunk_output.size(2),
+                        chunk_output.size(3),
+                    )
+                )
+            output[:, channel_offset : channel_offset + channels].copy_(chunk_output)
+            channel_offset += channels
+            del chunk_output
+        if output is None:
+            raise ValueError("channel-chunked convolution received an empty tensor")
+        return output
+
+    subsampler.channel_chunked_conv = MethodType(channel_chunked_conv, subsampler)
+
+
+def load_model(args: argparse.Namespace, model_name: str | Path) -> Any:  # noqa: C901, PLR0912
     tokenizer_dir = replacement_tokenizer_dir(args)
 
     import torch  # ty: ignore[unresolved-import]
     from nemo.collections.asr.models import ASRModel  # ty: ignore[unresolved-import]
 
+    load_device = "cpu" if getattr(args, "load_model_on_cpu", False) else args.device
     model_path = Path(str(model_name)).expanduser()
     if model_path.exists():
-        model = ASRModel.restore_from(str(model_path), map_location=args.device)
+        model = ASRModel.restore_from(str(model_path), map_location=load_device)
     else:
         model = ASRModel.from_pretrained(str(model_name))
 
@@ -268,7 +418,7 @@ def load_model(args: argparse.Namespace, model_name: str | Path) -> Any:
         )
 
     if args.checkpoint is not None:
-        checkpoint = torch.load(args.checkpoint, map_location=args.device, weights_only=False)
+        checkpoint = torch.load(args.checkpoint, map_location=load_device, weights_only=False)
         state_dict = checkpoint.get("state_dict", checkpoint)
         model.load_state_dict(state_dict, strict=True)
         print(f"loaded checkpoint {args.checkpoint} with an exact state-dict match", flush=True)
@@ -278,26 +428,38 @@ def load_model(args: argparse.Namespace, model_name: str | Path) -> Any:
     if hasattr(model, "cur_decoder"):
         decoder_type = "ctc" if args.kind == "ctc" else "rnnt"
         wants_decode_change = (
-            getattr(args, "ngram_lm", None) is not None or getattr(args, "beam_size", 0) > 0
+            getattr(args, "ngram_lm", None) is not None
+            or getattr(args, "beam_size", 0) > 0
+            or getattr(args, "disable_cuda_graph_decoder", False)
         )
         if wants_decode_change:
             source = model.cfg.decoding if decoder_type == "rnnt" else model.cfg.aux_ctc.decoding
             decoding_cfg = configured_decoding(source, args, decoder_type)
+            if decoding_cfg is None:
+                decoding_cfg = source
+            if getattr(args, "disable_cuda_graph_decoder", False):
+                decoding_cfg = disable_cuda_graph_decoder(decoding_cfg)
         else:
             decoding_cfg = None
         model.change_decoding_strategy(decoding_cfg, decoder_type=decoder_type)
         print(f"hybrid model: decoding with the {decoder_type} head", flush=True)
     else:
         wants_decode_change = (
-            getattr(args, "ngram_lm", None) is not None or getattr(args, "beam_size", 0) > 0
+            getattr(args, "ngram_lm", None) is not None
+            or getattr(args, "beam_size", 0) > 0
+            or getattr(args, "disable_cuda_graph_decoder", False)
         )
         if wants_decode_change:
             decoder_type = "ctc" if args.kind == "ctc" else "rnnt"
             decoding_cfg = configured_decoding(model.cfg.decoding, args, decoder_type)
+            if decoding_cfg is None:
+                decoding_cfg = model.cfg.decoding
+            if getattr(args, "disable_cuda_graph_decoder", False):
+                decoding_cfg = disable_cuda_graph_decoder(decoding_cfg)
             model.change_decoding_strategy(decoding_cfg)
             print(f"standalone model: configured the {decoder_type} decoder", flush=True)
 
-    return model.to(args.device).eval()
+    return configure_inference_runtime(model, args, torch)
 
 
 def write_predictions(path: Path, rows: list[EvalRow], hyps: list[str]) -> None:
@@ -392,6 +554,11 @@ def run(project: ParakeetProject, args: argparse.Namespace) -> None:
         "manifest": str(manifest),
         "rows": len(rows),
         "device": args.device,
+        "inference_dtype": args.inference_dtype,
+        "longform_attention_context": args.longform_attention_context,
+        "load_model_on_cpu": args.load_model_on_cpu,
+        "disable_cuda_graph_decoder": args.disable_cuda_graph_decoder,
+        "memory_efficient_subsampling": args.memory_efficient_subsampling,
         "batch_size": args.batch_size,
         "beam_size": args.beam_size,
         "beam_beta": args.beam_beta,
@@ -405,11 +572,19 @@ def run(project: ParakeetProject, args: argparse.Namespace) -> None:
     print("\n=== samples ===", flush=True)
     for row, hyp in list(zip(rows, hyps, strict=True))[: args.sample_count]:
         print(f"REF: {row.text[:120]}\nHYP: {hyp[:120]}\n", flush=True)
+    normalized_cer = normalized["cer_percent"]
+    normalized_cer_text = "n/a" if normalized_cer is None else f"{normalized_cer:.2f}%"
     print(
-        f"=== normalized WER/CER ({len(rows)} clips): "
-        f"{normalized['wer_percent']:.2f}% / {normalized['cer_percent']:.2f}% ===",
+        f"=== normalized WER/CER ({normalized['scored_rows']}/{len(rows)} clips): "
+        f"{normalized['wer_percent']:.2f}% / {normalized_cer_text} ===",
         flush=True,
     )
+    if normalized["excluded_empty_references"]:
+        print(
+            "normalized scoring excluded "
+            f"{normalized['excluded_empty_references']} empty references",
+            flush=True,
+        )
     print(
         f"raw WER/CER: {raw['wer_percent']:.2f}% / {raw['cer_percent']:.2f}% | "
         f"empty hypotheses: {normalized['empty_hypotheses']}",

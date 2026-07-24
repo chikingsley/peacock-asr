@@ -6,6 +6,7 @@ requires-python = ">=3.12,<3.14"
 dependencies = [
   "jiwer>=3.1,<4",
   "omegaconf>=2.3",
+  "pyarrow>=18",
 ]
 
 [dependency-groups]

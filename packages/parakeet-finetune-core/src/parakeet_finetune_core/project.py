@@ -24,6 +24,8 @@ class ParakeetProject:
     default_hybrid_model: Path | None = None
     default_train_manifest: Path | None = None
     default_validation_manifest: Path | None = None
+    default_dataset_root: Path | None = None
+    default_materialized_root: Path | None = None
     default_tokenizer_dir: Path | None = None
     default_tdt_checkpoint: Path | None = None
     default_ctc_checkpoint: Path | None = None
@@ -87,7 +89,7 @@ class ParakeetProject:
         """Set cache defaults under the language project root."""
         os.environ.setdefault("HF_HOME", str(self.hf_home))
         os.environ.setdefault("HF_DATASETS_CACHE", str(self.hf_home / "datasets"))
-        os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
+        os.environ.setdefault("PYTORCH_ALLOC_CONF", "expandable_segments:True")
         os.environ.setdefault("CUDA_MODULE_LOADING", "LAZY")
 
     def tokenizer_name(self, spe_type: str, vocab_size: int) -> str:

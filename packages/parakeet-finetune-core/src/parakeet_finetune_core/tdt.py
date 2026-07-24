@@ -4,14 +4,33 @@ from __future__ import annotations
 
 import argparse
 import json
+import threading
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterator
 
     from parakeet_finetune_core.project import ParakeetProject
+
+_AUDIO_SAMPLE_RATE = 16_000
+
+
+def _audio_seconds_from_batch(batch: object) -> float:
+    """Return unpadded audio exposure from a standard NeMo ASR batch."""
+    if isinstance(batch, dict):
+        lengths = batch.get("audio_signal_length")
+    elif isinstance(batch, (list, tuple)) and len(batch) > 1:
+        lengths = batch[1]
+    else:
+        return 0.0
+    if lengths is None:
+        return 0.0
+    total = lengths.sum() if hasattr(lengths, "sum") else sum(lengths)
+    if hasattr(total, "item"):
+        total = total.item()
+    return float(total) / _AUDIO_SAMPLE_RATE
 
 
 class JsonlTrainLogger:
@@ -22,8 +41,11 @@ class JsonlTrainLogger:
         self.every = every
         self.t0 = time.time()
         self._last_logged_step: int | None = None
+        self.audio_seconds_seen = 0.0
 
     def on_train_batch_end(self, trainer: Any, _pl_module: Any, *_args: object) -> None:
+        batch = _args[1] if len(_args) > 1 else None
+        self.audio_seconds_seen += _audio_seconds_from_batch(batch)
         step = trainer.global_step
         if step % self.every != 0 or step == self._last_logged_step:
             return
@@ -37,6 +59,7 @@ class JsonlTrainLogger:
             "loss": round(loss_value, 4),
             "lr": round(lr, 8),
             "t": round(time.time() - self.t0, 1),
+            "audio_hours_seen": round(self.audio_seconds_seen / 3600, 4),
         }
         with self.path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(record) + "\n")
@@ -200,20 +223,24 @@ def _change_vocabulary(model: Any, tokenizer_dir: Path, tokenizer_type: str) -> 
 def load_and_prepare_model(
     asr_model_cls: Any,
     model_name: str,
-    tokenizer_dir: Path,
+    tokenizer_dir: Path | None,
     args: argparse.Namespace,
 ) -> Any:
     """Load the base model, apply the chosen recipe, and configure the TDT loss."""
     model_path = Path(model_name)
     if model_path.exists():
-        model = asr_model_cls.restore_from(str(model_path))
+        # Restore on CPU so preflight/model construction does not opportunistically compete with
+        # an unrelated resident GPU service. Lightning moves the prepared model onto the GPU.
+        model = asr_model_cls.restore_from(str(model_path), map_location="cpu")
     else:
-        model = asr_model_cls.from_pretrained(model_name)
+        model = asr_model_cls.from_pretrained(model_name, map_location="cpu")
     print(
         f"loaded {type(model).__name__} num_extra_outputs={model.joint.num_extra_outputs}",
         flush=True,
     )
     if args.recipe == "extend-restore":
+        if tokenizer_dir is None:
+            raise ValueError("extend-restore requires --tokenizer-dir")
         from parakeet_finetune_core.extend_restore import (
             restore_extended_decoder_joint,
             snapshot_decoder_joint,
@@ -228,8 +255,13 @@ def load_and_prepare_model(
             f"num_classes_with_blank={info['num_classes_with_blank']}",
             flush=True,
         )
-    else:
+    elif tokenizer_dir is not None:
         _change_vocabulary(model, tokenizer_dir, args.tokenizer_type)
+    else:
+        print(
+            "tokenizer=embedded (preserving the base decoder/joint vocabulary weights)",
+            flush=True,
+        )
     num_classes = apply_loss_init_fix(model, args.reduction or None)
     configure_fused_tdt_loss(model, args.fused_batch_size)
     enable_eval_loss(model)
@@ -248,14 +280,123 @@ def load_and_prepare_model(
     return model
 
 
+def parse_train_sources(values: list[str] | None) -> list[tuple[Path, float]]:
+    """Parse repeated ``PATH=WEIGHT`` source specifications for Lhotse multiplexing."""
+    sources: list[tuple[Path, float]] = []
+    seen: set[Path] = set()
+    for value in values or []:
+        path_text, separator, weight_text = value.rpartition("=")
+        if not separator or not path_text or not weight_text:
+            raise ValueError(f"invalid --train-source {value!r}; expected PATH=WEIGHT")
+        path = Path(path_text)
+        try:
+            weight = float(weight_text)
+        except ValueError as error:
+            raise ValueError(
+                f"invalid --train-source weight {weight_text!r} in {value!r}"
+            ) from error
+        if weight <= 0:
+            raise ValueError(f"--train-source weight must be positive: {value!r}")
+        if path in seen:
+            raise ValueError(f"duplicate --train-source path: {path}")
+        seen.add(path)
+        sources.append((path, weight))
+    return sources
+
+
+def _add_l2sp_gradients(entries: list[tuple[str, Any, str]], anchors: Any, weight: float) -> None:
+    for _name, parameter, buffer_name in entries:
+        if parameter.grad is None:
+            continue
+        difference = parameter.detach() - getattr(anchors, buffer_name)
+        parameter.grad.add_(difference, alpha=weight)
+
+
+def make_l2sp_callback(callback_base: type, model: Any, weight: float) -> Any:
+    """Anchor trainable parameters to their restored base values with L2-SP gradients."""
+    if weight <= 0:
+        raise ValueError("l2sp_weight must be positive")
+
+    import torch  # ty: ignore[unresolved-import]
+
+    anchors = torch.nn.Module()
+    entries: list[tuple[str, Any, str]] = []
+    parameter_count = 0
+    for index, (name, parameter) in enumerate(model.named_parameters()):
+        if not parameter.requires_grad:
+            continue
+        buffer_name = f"anchor_{index}"
+        anchors.register_buffer(buffer_name, parameter.detach().clone(), persistent=False)
+        entries.append((name, parameter, buffer_name))
+        parameter_count += parameter.numel()
+    if not entries:
+        raise ValueError("L2-SP requires at least one trainable parameter")
+    model.add_module("l2sp_anchors", anchors)
+
+    class L2SPCallback(callback_base):
+        def __init__(self) -> None:
+            super().__init__()
+            self._last_reported_step: int | None = None
+
+        def on_before_optimizer_step(self, _trainer: Any, pl_module: Any, _optimizer: Any) -> None:
+            anchor_module = pl_module.l2sp_anchors
+            with torch.no_grad():
+                _add_l2sp_gradients(entries, anchor_module, weight)
+
+        def on_validation_end(self, trainer: Any, pl_module: Any) -> None:
+            step = trainer.global_step
+            if step == self._last_reported_step:
+                return
+            self._last_reported_step = step
+            anchor_module = pl_module.l2sp_anchors
+            squared_l2 = 0.0
+            with torch.no_grad():
+                for _name, parameter, buffer_name in entries:
+                    difference = (
+                        parameter.detach().float() - getattr(anchor_module, buffer_name).float()
+                    )
+                    squared_l2 += float(difference.square().sum())
+            half_squared_l2 = 0.5 * squared_l2
+            rms = (squared_l2 / parameter_count) ** 0.5
+            print(
+                f"  [l2sp @ step {step}] weight={weight:g} "
+                f"half_squared_l2={half_squared_l2:.4f} rms_drift={rms:.8f} "
+                f"effective_penalty={weight * half_squared_l2:.4f}",
+                flush=True,
+            )
+
+    print(
+        f"L2-SP enabled: weight={weight:g} anchored_parameters={parameter_count}",
+        flush=True,
+    )
+    return L2SPCallback()
+
+
 def train_ds(
-    manifest: Path, max_dur: float, batch_dur: float, num_workers: int, seed: int
+    manifest: Path | list[tuple[Path, float]],
+    max_dur: float,
+    batch_dur: float,
+    num_workers: int,
+    seed: int,
 ) -> dict[str, Any]:
+    source_config: dict[str, Any]
+    if isinstance(manifest, Path):
+        source_config = {"manifest_filepath": str(manifest)}
+    else:
+        if not manifest:
+            raise ValueError("at least one weighted training manifest is required")
+        source_config = {
+            "input_cfg": [
+                {"type": "nemo", "manifest_filepath": str(path), "weight": weight}
+                for path, weight in manifest
+            ]
+        }
     return {
-        "manifest_filepath": str(manifest),
+        **source_config,
         "sample_rate": 16_000,
         "use_lhotse": True,
         "use_bucketing": True,
+        "concurrent_bucketing": True,
         "num_buckets": 30,
         "batch_duration": batch_dur,
         "quadratic_duration": 15.0,
@@ -292,6 +433,87 @@ def validation_checkpoint_config(ckpt_dir: Path) -> dict[str, Any]:
         "filename": "best-valloss-step{step}-{val_loss:.3f}",
         "auto_insert_metric_name": False,
     }
+
+
+def validation_schedule(val_every: int, accumulate_grad_batches: int) -> dict[str, Any]:
+    """Return a global optimizer-step validation schedule for an iterable training loader."""
+    return {
+        "val_check_interval": val_every * accumulate_grad_batches,
+        "check_val_every_n_epoch": None,
+    }
+
+
+def _loader_graph(*roots: Any) -> Iterator[Any]:
+    """Yield the bounded loader/sampler object graph used by Lightning and NeMo."""
+    pending = list(roots)
+    seen: set[int] = set()
+    while pending:
+        current = pending.pop()
+        if current is None or id(current) in seen:
+            continue
+        seen.add(id(current))
+        if isinstance(current, dict):
+            pending.extend(current.values())
+            continue
+        if isinstance(current, (list, tuple)):
+            pending.extend(current)
+            continue
+        yield current
+        for attribute in (
+            "sampler",
+            "dataset",
+            "batch_sampler",
+            "iterables",
+            "loaders",
+            "_loaders",
+        ):
+            child = getattr(current, attribute, None)
+            if child is not None:
+                pending.append(child)
+
+
+def _thread_owned_lhotse_samplers() -> Iterator[Any]:
+    """Recover detached DynamicBucketer owners from Lhotse producer closures."""
+    for thread in threading.enumerate():
+        target = getattr(thread, "_target", None)
+        for cell in getattr(target, "__closure__", None) or ():
+            try:
+                owner = cell.cell_contents
+            except ValueError:
+                continue
+            if getattr(owner, "_producer_thread", None) is thread:
+                yield owner
+
+
+def shutdown_lhotse_training_sampler(
+    model: Any, *, trainer: Any | None = None, join_timeout: float = 5.0
+) -> bool:
+    """Stop Lhotse's non-daemon concurrent bucketing producer after bounded training."""
+    # Lightning may wrap or replace the model's original loader. Start with its active
+    # loader graph, then retain NeMo's ``_train_dl`` as a fallback for direct callers.
+    active_dataloader = getattr(trainer, "train_dataloader", None)
+    model_dataloader = getattr(model, "_train_dl", None)
+    candidates = [
+        *_loader_graph(active_dataloader, model_dataloader),
+        *_thread_owned_lhotse_samplers(),
+    ]
+    seen: set[int] = set()
+    for sampler in candidates:
+        if id(sampler) in seen:
+            continue
+        seen.add(id(sampler))
+        producer = getattr(sampler, "_producer_thread", None)
+        if producer is None or not producer.is_alive():
+            continue
+
+        sampler._source_exhausted = True  # noqa: SLF001 - mirrors Lhotse's own cleanup
+        producer.join(timeout=join_timeout)
+        if producer.is_alive():
+            raise RuntimeError("Lhotse concurrent bucketing producer did not stop")
+        # Keep the joined thread object until Lhotse's generator finalizer observes that it
+        # is no longer alive; clearing it here makes that finalizer call ``None.is_alive()``.
+        return True
+    return False
 
 
 def export_training_artifacts(
@@ -348,6 +570,16 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
     )
     parser.add_argument("--train-manifest", type=Path, default=project.default_train_manifest)
     parser.add_argument(
+        "--train-source",
+        action="append",
+        default=[],
+        metavar="PATH=WEIGHT",
+        help=(
+            "Repeat to sample separate NeMo manifests with explicit Lhotse weights. "
+            "When set, these sources replace --train-manifest."
+        ),
+    )
+    parser.add_argument(
         "--validation-manifest",
         type=Path,
         default=project.default_validation_manifest,
@@ -369,6 +601,15 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
     parser.add_argument("--num-workers", type=int, default=8)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
+        "--l2sp-weight",
+        type=float,
+        default=0.0,
+        help=(
+            "Gradient coefficient anchoring trainable parameters to their restored base values. "
+            "0 disables L2-SP."
+        ),
+    )
+    parser.add_argument(
         "--ctc-loss-weight",
         type=float,
         default=None,
@@ -388,7 +629,7 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
         "--recipe",
         choices=["simple", "extend-restore"],
         default="simple",
-        help="simple: fresh tokenizer + reinit decoder/joint. "
+        help="simple: preserve the embedded tokenizer, or replace it when --tokenizer-dir is set. "
         "extend-restore: extend the base tokenizer and restore pretrained decoder/joint rows.",
     )
     parser.add_argument(
@@ -405,6 +646,14 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
         "(all, or --unfreeze-top N). 0 disables the warmup callback.",
     )
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--prepare-only",
+        action="store_true",
+        help=(
+            "Restore and prepare the model on CPU, print the live contract, then exit before "
+            "Trainer."
+        ),
+    )
     return parser
 
 
@@ -415,16 +664,17 @@ def require(value: Any, label: str) -> Any:
 
 
 def run(args: argparse.Namespace) -> None:
-    train_manifest = require(args.train_manifest, "--train-manifest")
+    train_sources = parse_train_sources(args.train_source)
+    train_manifest = train_sources or require(args.train_manifest, "--train-manifest")
     validation_manifest = require(args.validation_manifest, "--validation-manifest")
-    tokenizer_dir = require(args.tokenizer_dir, "--tokenizer-dir")
+    tokenizer_dir = args.tokenizer_dir
     model_name = str(require(args.model_name, "--model-name"))
     run_dir = args.exp_dir / args.name
     ckpt_dir = run_dir / "checkpoints"
 
     print(
         f"model={model_name} train={train_manifest} dev={validation_manifest} "
-        f"tokenizer={tokenizer_dir} run={run_dir} batch_dur={args.batch_dur} "
+        f"tokenizer={tokenizer_dir or 'embedded'} run={run_dir} batch_dur={args.batch_dur} "
         f"accumulate_grad_batches={args.accumulate_grad_batches}",
         flush=True,
     )
@@ -447,6 +697,15 @@ def run(args: argparse.Namespace) -> None:
 
     ckpt_dir.mkdir(parents=True, exist_ok=True)
     model = load_and_prepare_model(ASRModel, model_name, tokenizer_dir, args)
+    if args.prepare_only:
+        parameters = sum(parameter.numel() for parameter in model.parameters())
+        vocab_size = getattr(getattr(model, "tokenizer", None), "vocab_size", "unknown")
+        print(
+            f"prepared model on CPU: parameters={parameters} tokenizer_vocab={vocab_size} "
+            f"compute_eval_loss={model.compute_eval_loss}",
+            flush=True,
+        )
+        return
 
     checkpoint_train = ModelCheckpoint(
         dirpath=str(ckpt_dir),
@@ -467,6 +726,10 @@ def run(args: argparse.Namespace) -> None:
         TrainLogger(run_dir / "train_log.jsonl", args.log_every),
         ValLogger(run_dir / "val_log.jsonl"),
     ]
+    if args.l2sp_weight < 0:
+        raise ValueError("l2sp_weight must be nonnegative")
+    if args.l2sp_weight > 0:
+        callbacks.append(make_l2sp_callback(pl.Callback, model, args.l2sp_weight))
     if args.recipe == "extend-restore" and args.freeze_warmup_steps > 0:
         from parakeet_finetune_core.extend_restore import make_freeze_warmup_callback
 
@@ -483,9 +746,9 @@ def run(args: argparse.Namespace) -> None:
         accumulate_grad_batches=args.accumulate_grad_batches,
         max_steps=args.max_steps,
         # Lightning counts val_check_interval in microbatches, while max_steps and our CLI
-        # contract count optimizer updates. Preserve the historical optimizer-step interval
-        # when gradient accumulation is enabled.
-        val_check_interval=args.val_every * args.accumulate_grad_batches,
+        # contract count optimizer updates. check_val_every_n_epoch=None makes the integer
+        # interval global across iterable-loader epoch boundaries.
+        **validation_schedule(args.val_every, args.accumulate_grad_batches),
         num_sanity_val_steps=0,
         gradient_clip_val=1.0,
         log_every_n_steps=args.log_every,
@@ -499,7 +762,11 @@ def run(args: argparse.Namespace) -> None:
         {
             "model": {
                 "train_ds": train_ds(
-                    Path(train_manifest), args.max_dur, args.batch_dur, args.num_workers, args.seed
+                    train_manifest if isinstance(train_manifest, list) else Path(train_manifest),
+                    args.max_dur,
+                    args.batch_dur,
+                    args.num_workers,
+                    args.seed,
                 ),
                 "validation_ds": val_ds(Path(validation_manifest), args.max_dur, args.num_workers),
                 "optim": {
@@ -538,7 +805,10 @@ def run(args: argparse.Namespace) -> None:
     resume_ckpt = (
         str(ckpt_dir / "last.ckpt") if args.resume and (ckpt_dir / "last.ckpt").exists() else None
     )
-    trainer.fit(model, ckpt_path=resume_ckpt)
+    try:
+        trainer.fit(model, ckpt_path=resume_ckpt)
+    finally:
+        shutdown_lhotse_training_sampler(model, trainer=trainer)
     export_training_artifacts(model, run_dir, args.name, checkpoint_val.best_model_path)
 
 

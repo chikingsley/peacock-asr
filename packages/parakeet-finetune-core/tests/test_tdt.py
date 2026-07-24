@@ -6,10 +6,14 @@ import types
 from types import SimpleNamespace
 from typing import Any
 
+import pytest
+
 from parakeet_finetune_core.project import ParakeetProject
 from parakeet_finetune_core.tdt import (
     JsonlTrainLogger,
     JsonlValLogger,
+    _add_l2sp_gradients,
+    _audio_seconds_from_batch,
     apply_loss_init_fix,
     build_parser,
     configure_aux_ctc_weight,
@@ -18,10 +22,14 @@ from parakeet_finetune_core.tdt import (
     enable_eval_loss,
     export_training_artifacts,
     freeze_encoder,
+    load_and_prepare_model,
+    parse_train_sources,
+    shutdown_lhotse_training_sampler,
     spec_augment_config,
     train_ds,
     val_ds,
     validation_checkpoint_config,
+    validation_schedule,
 )
 
 
@@ -31,6 +39,12 @@ class FakeRNNTLoss:
         self.loss_name = loss_name
         self.loss_kwargs = loss_kwargs
         self.reduction = reduction
+
+
+def test_audio_seconds_from_standard_nemo_batch() -> None:
+    assert _audio_seconds_from_batch((object(), [16_000, 8_000])) == 1.5
+    assert _audio_seconds_from_batch({"audio_signal_length": [32_000]}) == 2.0
+    assert _audio_seconds_from_batch(None) == 0.0
 
 
 def _install_fake_rnnt_loss(monkeypatch):
@@ -234,6 +248,7 @@ def test_tdt_dataset_configs_use_lhotse_train_and_plain_validation(tmp_path):
     validation_config = val_ds(tmp_path / "dev.jsonl", max_dur=25.0, num_workers=2)
 
     assert train_config["use_lhotse"] is True
+    assert train_config["concurrent_bucketing"] is True
     assert train_config["batch_duration"] == 120.0
     assert train_config["batch_size"] is None
     assert train_config["num_workers"] == 8
@@ -244,6 +259,132 @@ def test_tdt_dataset_configs_use_lhotse_train_and_plain_validation(tmp_path):
     assert validation_config["max_duration"] == 25.0
 
 
+def test_shutdown_lhotse_training_sampler_stops_producer():
+    sampler = SimpleNamespace(_source_exhausted=False, _producer_thread=None)
+
+    class Producer:
+        alive = True
+        timeout = None
+
+        def is_alive(self):
+            return self.alive
+
+        def join(self, timeout):
+            assert sampler._source_exhausted is True  # noqa: SLF001
+            self.timeout = timeout
+            self.alive = False
+
+    producer = Producer()
+    sampler._producer_thread = producer  # noqa: SLF001
+    # Reproduce Lightning's wrapped active-loader graph. The stale model loader is a decoy;
+    # the live Lhotse producer belongs to the trainer's nested DataLoader.
+    model = SimpleNamespace(_train_dl=SimpleNamespace(sampler=SimpleNamespace()))
+    trainer = SimpleNamespace(
+        train_dataloader=SimpleNamespace(
+            loaders={
+                "train": SimpleNamespace(
+                    dataset=SimpleNamespace(sampler=sampler),
+                    sampler=SimpleNamespace(),
+                )
+            }
+        )
+    )
+
+    assert shutdown_lhotse_training_sampler(model, trainer=trainer, join_timeout=2.0) is True
+    assert producer.timeout == 2.0
+    assert sampler._producer_thread is producer  # noqa: SLF001
+
+
+def test_shutdown_lhotse_training_sampler_supports_direct_model_loader():
+    producer = SimpleNamespace(is_alive=lambda: False)
+    sampler = SimpleNamespace(_producer_thread=producer)
+    model = SimpleNamespace(_train_dl=SimpleNamespace(sampler=sampler))
+
+    assert shutdown_lhotse_training_sampler(model) is False
+
+
+def test_shutdown_lhotse_training_sampler_recovers_detached_thread_owner(monkeypatch):
+    sampler = SimpleNamespace(_source_exhausted=False, _producer_thread=None)
+
+    class Producer:
+        alive = True
+
+        def is_alive(self):
+            return self.alive
+
+        def join(self, timeout):
+            assert sampler._source_exhausted is True  # noqa: SLF001
+            assert timeout == 5.0
+            self.alive = False
+
+    producer = Producer()
+
+    def target():
+        return sampler
+
+    producer._target = target  # noqa: SLF001 - mirrors threading.Thread's closure target
+    sampler._producer_thread = producer  # noqa: SLF001
+    monkeypatch.setattr("parakeet_finetune_core.tdt.threading.enumerate", lambda: [producer])
+
+    assert shutdown_lhotse_training_sampler(SimpleNamespace()) is True
+    assert sampler._producer_thread is producer  # noqa: SLF001
+
+
+def test_shutdown_lhotse_training_sampler_is_noop_without_producer():
+    assert shutdown_lhotse_training_sampler(SimpleNamespace()) is False
+
+
+def test_tdt_dataset_config_supports_explicit_source_weights(tmp_path):
+    train_config = train_ds(
+        [(tmp_path / "one.jsonl", 0.5), (tmp_path / "two.jsonl", 0.5)],
+        max_dur=30.0,
+        batch_dur=120.0,
+        num_workers=8,
+        seed=17,
+    )
+
+    assert train_config["input_cfg"] == [
+        {"type": "nemo", "manifest_filepath": str(tmp_path / "one.jsonl"), "weight": 0.5},
+        {"type": "nemo", "manifest_filepath": str(tmp_path / "two.jsonl"), "weight": 0.5},
+    ]
+
+
+def test_parse_train_sources_rejects_bad_weights_and_duplicates(tmp_path):
+    one = tmp_path / "one.jsonl"
+
+    assert parse_train_sources([f"{one}=0.25"]) == [(one, 0.25)]
+    with pytest.raises(ValueError, match="expected PATH=WEIGHT"):
+        parse_train_sources([str(one)])
+    with pytest.raises(ValueError, match="must be positive"):
+        parse_train_sources([f"{one}=0"])
+    with pytest.raises(ValueError, match="duplicate"):
+        parse_train_sources([f"{one}=0.5", f"{one}=0.5"])
+
+
+def test_l2sp_callback_adds_anchor_gradient() -> None:
+    class FakeGradient:
+        def __init__(self) -> None:
+            self.value = 0.0
+
+        def add_(self, difference, *, alpha) -> None:
+            self.value += difference * alpha
+
+    class FakeParameter:
+        def __init__(self, value) -> None:
+            self.value = value
+            self.grad = FakeGradient()
+
+        def detach(self):
+            return self.value
+
+    parameter = FakeParameter(2.0)
+    anchors = SimpleNamespace(anchor_0=0.0)
+
+    _add_l2sp_gradients([("weight", parameter, "anchor_0")], anchors, weight=0.25)
+
+    assert parameter.grad.value == 0.5
+
+
 def test_tdt_parser_exposes_gradient_accumulation(tmp_path):
     project = ParakeetProject(name="farsi", language="fas_Arab", root=tmp_path)
 
@@ -252,12 +393,78 @@ def test_tdt_parser_exposes_gradient_accumulation(tmp_path):
     assert args.accumulate_grad_batches == 2
 
 
+def test_tdt_parser_allows_embedded_tokenizer(tmp_path):
+    project = ParakeetProject(name="english", language="eng_Latn", root=tmp_path)
+
+    args = build_parser(project).parse_args([])
+
+    assert args.tokenizer_dir is None
+
+
+def test_load_and_prepare_model_preserves_embedded_tokenizer(monkeypatch, tmp_path):
+    class PreparedModel(FakeModel):
+        def __init__(self):
+            super().__init__(FakeJoint())
+            self.changed_vocabulary = False
+
+        def change_vocabulary(self, **_kwargs):
+            self.changed_vocabulary = True
+
+    model = PreparedModel()
+
+    class FakeASRModel:
+        @staticmethod
+        def restore_from(_path, *, map_location):
+            assert map_location == "cpu"
+            return model
+
+    model_path = tmp_path / "base.nemo"
+    model_path.touch()
+    args = build_parser(
+        ParakeetProject(name="english", language="eng_Latn", root=tmp_path)
+    ).parse_args([])
+    monkeypatch.setattr(
+        "parakeet_finetune_core.tdt.apply_loss_init_fix", lambda *_args, **_kwargs: 1024
+    )
+    monkeypatch.setattr("parakeet_finetune_core.tdt.configure_fused_tdt_loss", lambda *_args: None)
+
+    prepared = load_and_prepare_model(FakeASRModel, str(model_path), None, args)
+
+    assert prepared is model
+    assert model.changed_vocabulary is False
+    assert model.compute_eval_loss is True
+
+
+def test_extend_restore_rejects_missing_tokenizer(monkeypatch, tmp_path):
+    class FakeASRModel:
+        @staticmethod
+        def restore_from(_path, *, map_location):
+            assert map_location == "cpu"
+            return FakeModel(FakeJoint())
+
+    model_path = tmp_path / "base.nemo"
+    model_path.touch()
+    args = build_parser(
+        ParakeetProject(name="english", language="eng_Latn", root=tmp_path)
+    ).parse_args(["--recipe", "extend-restore"])
+
+    with pytest.raises(ValueError, match="requires --tokenizer-dir"):
+        load_and_prepare_model(FakeASRModel, str(model_path), None, args)
+
+
 def test_validation_checkpoint_monitors_eval_loss(tmp_path):
     config = validation_checkpoint_config(tmp_path / "checkpoints")
 
     assert config["monitor"] == "val_loss"
     assert config["mode"] == "min"
     assert config["filename"] == "best-valloss-step{step}-{val_loss:.3f}"
+
+
+def test_validation_schedule_counts_globally_across_iterable_epochs():
+    assert validation_schedule(100, 2) == {
+        "val_check_interval": 200,
+        "check_val_every_n_epoch": None,
+    }
 
 
 class FakeArtifactModel:
