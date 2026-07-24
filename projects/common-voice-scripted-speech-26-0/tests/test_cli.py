@@ -43,3 +43,9 @@ def test_subcommand_help(name: str) -> None:
     with pytest.raises(SystemExit) as exc:
         parser.parse_args([name, "--help"])
     assert exc.value.code == 0
+
+
+def test_process_accepts_dataset_id() -> None:
+    """Processing can target one dataset without draining unrelated archives."""
+    args = cli.build_parser().parse_args(["process", "--dataset-id", "english-id"])
+    assert args.dataset_id == ["english-id"]

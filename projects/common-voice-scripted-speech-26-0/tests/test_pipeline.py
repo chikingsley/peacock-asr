@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import replace
 from types import SimpleNamespace
 from typing import TYPE_CHECKING, cast
 
@@ -138,6 +139,53 @@ def test_convert_only_run_stays_a_candidate(
 
     assert _last_status(cfg.state_path) == "converted"
     assert select_candidates([row], cfg) == [row]
+
+
+def test_run_filters_to_requested_dataset_id(
+    tmp_path: Path,
+    make_archive: Callable[..., None],
+    cv_row: Callable[..., ManifestRow],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A targeted run must not process other downloaded archives."""
+    selected = replace(cv_row("selected.tar.gz"), dataset_id="selected")
+    unrelated = replace(cv_row("unrelated.tar.gz"), dataset_id="unrelated")
+    cfg = RunConfig(
+        archive_dir=tmp_path / "archives",
+        parquet_root=tmp_path / "out",
+        state_path=tmp_path / "state.jsonl",
+        repo_id="Peacockery/test",
+        dataset_ids=(selected.dataset_id,),
+    )
+    cfg.archive_dir.mkdir()
+    make_archive(cfg.archive_dir / selected.filename)
+    make_archive(cfg.archive_dir / unrelated.filename)
+    monkeypatch.setattr(pipeline.config, "MANIFEST", tmp_path / "manifest.jsonl")
+    pipeline.config.MANIFEST.write_text(
+        "\n".join(
+            json.dumps(
+                {
+                    "dataset_id": row.dataset_id,
+                    "name": row.name,
+                    "collection": row.collection,
+                    "locale": row.locale,
+                    "language": row.language,
+                    "filename": row.filename,
+                    "license": row.license,
+                    "license_url": row.license_url,
+                    "source": row.source,
+                    "download_api": row.download_api,
+                }
+            )
+            for row in (selected, unrelated)
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    pipeline.run(cfg, watch=False)
+
+    assert load_state(cfg.state_path) == {selected.dataset_id: "converted"}
 
 
 def test_path_guard_rejects_escape(tmp_path: Path) -> None:

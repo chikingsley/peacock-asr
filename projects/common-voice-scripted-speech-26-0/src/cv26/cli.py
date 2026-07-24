@@ -100,6 +100,7 @@ def _cmd_process(args: argparse.Namespace) -> None:
         overwrite=args.overwrite,
         dry_run=args.dry_run,
         limit=args.limit,
+        dataset_ids=tuple(args.dataset_id),
     )
     run(cfg, watch=args.watch)
 
@@ -143,6 +144,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     process = sub.add_parser("process", help="convert downloaded archives, upload, verify, delete")
     process.add_argument("--repo-id", default=config.REPO_ID)
+    process.add_argument("--dataset-id", action="append", default=[])
     process.add_argument("--limit", type=int, default=0)
     process.add_argument("--upload", action="store_true")
     process.add_argument("--create-repo", action="store_true", help="create the repo if missing")

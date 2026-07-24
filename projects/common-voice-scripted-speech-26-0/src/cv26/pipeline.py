@@ -68,6 +68,7 @@ class RunConfig:
     overwrite: bool = False
     dry_run: bool = False
     limit: int = 0
+    dataset_ids: tuple[str, ...] = ()
 
 
 def load_state(path: Path) -> dict[str, str]:
@@ -211,7 +212,7 @@ def run(cfg: RunConfig, *, watch: bool) -> None:
 
     failed: set[str] = set()  # archives that errored this session (bad TSV, corrupt, …) — skip
     while True:
-        rows = select_rows(load_manifest(config.MANIFEST))
+        rows = select_rows(load_manifest(config.MANIFEST), dataset_ids=cfg.dataset_ids)
         candidates = sorted(
             (r for r in select_candidates(rows, cfg) if r.dataset_id not in failed),
             key=lambda r: _archive_size(cfg, r),
