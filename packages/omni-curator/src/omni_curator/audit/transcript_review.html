@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Transcript Review</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #0d1117; color: #e6edf3; }
+    main { width: min(1100px, 95vw); margin: 0 auto; padding: 24px 0 50px; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 14px; padding: 20px; margin-top: 16px; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .muted { color: #8b949e; }
+    .bar { height: 10px; background: #21262d; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+    .bar div { height: 100%; background: #3fb950; width: 0; }
+    audio { width: 100%; margin: 10px 0; }
+    .transcript { font-size: 23px; line-height: 1.9; min-height: 110px; }
+    .word { border-radius: 5px; padding: 2px 3px; cursor: pointer; transition: background .08s; }
+    .word.active { background: #1f6feb; }
+    .word.selected { outline: 2px solid #f0c85a; background: #3d3420; }
+    .word.flagged { text-decoration: underline wavy #f85149 2px; }
+    .buttons { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+    button, select, textarea { border: 1px solid #30363d; border-radius: 9px; background: #21262d; color: #e6edf3; font: inherit; }
+    button { padding: 12px 8px; cursor: pointer; font-weight: 700; }
+    button:hover { filter: brightness(1.2); }
+    .exact { background: #238636; }
+    .finish { background: #8957e5; }
+    .key { color: #f0c85a; margin-right: 5px; }
+    .markers { display: flex; flex-wrap: wrap; gap: 7px; min-height: 38px; margin: 12px 0; }
+    .marker { padding: 7px 9px; background: #30363d; border-radius: 8px; cursor: pointer; }
+    textarea { width: 100%; min-height: 80px; padding: 10px; resize: vertical; }
+    .hidden { display: none; }
+    @media (max-width: 760px) { .buttons { grid-template-columns: 1fr 1fr; } .transcript { font-size: 19px; } }
+  </style>
+</head>
+<body>
+<main>
+  <div class="row"><div><h1>Dictation transcript review</h1><div class="muted"><strong>Judge the ideal pasted dictation, not a verbatim transcript.</strong> Harmless filler and stutter cleanup is acceptable. Click a word to pause; Shift-click selects a range.</div></div><label>Speed <select id="speed"><option selected>1</option><option>1.5</option><option>2</option></select>×</label></div>
+  <section class="card"><div class="row"><span id="position">Loading…</span><span id="completed"></span></div><div class="bar"><div id="progress"></div></div></section>
+  <section class="card" id="review">
+    <audio id="audio" controls preload="auto"></audio>
+    <div class="transcript" id="transcript"></div>
+    <div class="buttons">
+      <button class="exact" id="exact"><span class="key">1</span>Accept output + next</button>
+      <button data-kind="word"><span class="key">2</span>Content word error</button>
+      <button data-kind="formatting"><span class="key">3</span>Formatting</button>
+      <button data-kind="boundary"><span class="key">4</span>Boundary/clipped</button>
+      <button data-kind="private"><span class="key">5</span>Private/exclude</button>
+      <button data-kind="unsure"><span class="key">6</span>Unsure</button>
+    </div>
+    <div class="markers" id="markers"></div>
+    <div id="correction-panel" class="hidden">
+      <div class="muted">Correct the intended dictation output below. The selected word or range is selected automatically; type to replace it. Use Ctrl/⌘+Enter to save.</div>
+      <textarea id="correction" placeholder="Correct only the mistaken portion; the rest is already filled in."></textarea>
+    </div>
+    <div class="row">
+      <button id="previous">← Back</button>
+      <button id="undo"><span class="key">0</span>Undo last action</button>
+      <span id="status" class="muted">Space pauses; arrows seek five seconds.</span>
+      <button class="finish" id="issues"><span class="key">Enter</span>Save issues + next</button>
+      <button id="next">Next →</button>
+    </div>
+  </section>
+</main>
+<script>
+const audio = document.querySelector('#audio');
+let items = [], reviews = {}, markerMap = {}, index = 0, busy = false, selectedStart = null, selectedEnd = null;
+const current = () => items[index];
+const post = async (path, payload, method='POST') => { const response = await fetch(path, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)}); const result = await response.json(); if (!response.ok) throw new Error(result.error || response.status); return result; };
+function updateProgress() { const done = Object.keys(reviews).length; document.querySelector('#position').textContent = `Item ${index + 1} of ${items.length} · session ${current()?.session_id || ''}`; document.querySelector('#completed').textContent = `${done} / ${items.length} reviewed`; document.querySelector('#progress').style.width = `${items.length ? done/items.length*100 : 0}%`; }
+function showMarkers() { const rows = markerMap[current().item_id] || []; const holder = document.querySelector('#markers'); holder.innerHTML=''; rows.forEach(row => { const chip=document.createElement('span'); chip.className='marker'; chip.textContent=`${row.kind} @ ${Number(row.audio_time).toFixed(1)}s ×`; chip.onclick=async()=>{ await post('/api/marker',{item_id:current().item_id,marker_id:row.id},'DELETE'); markerMap[current().item_id]=rows.filter(item=>item.id!==row.id); showMarkers(); markWords(); }; holder.append(chip); }); document.querySelector('#correction-panel').classList.toggle('hidden', !rows.some(row=>row.kind==='word'||row.kind==='formatting')); }
+function markWords() { const markers=markerMap[current().item_id]||[]; document.querySelectorAll('.word').forEach((span,i)=>{ const word=current().words[i]; span.classList.toggle('flagged',markers.some(marker=>marker.audio_time>=word.start-.35&&marker.audio_time<=word.end+.35)); }); }
+function correctionRange(startIndex,endIndex) { const value=document.querySelector('#correction').value.toLocaleLowerCase(); let cursor=0,start=null,end=null; for(let i=0;i<=endIndex;i++){const token=current().words[i].text.trim().toLocaleLowerCase();const position=value.indexOf(token,cursor);if(position<0)continue;if(i===startIndex)start=position;if(i===endIndex)end=position+token.length;cursor=position+token.length;}return start===null||end===null?null:[start,end]; }
+function focusCorrectionSelection() { if(selectedStart===null)return; document.querySelector('#correction-panel').classList.remove('hidden'); const range=correctionRange(Math.min(selectedStart,selectedEnd),Math.max(selectedStart,selectedEnd)); const correction=document.querySelector('#correction'); requestAnimationFrame(()=>{correction.focus();if(range)correction.setSelectionRange(range[0],range[1]);}); }
+function selectWord(event,i) { audio.pause();audio.currentTime=current().words[i].start;if(event.shiftKey&&selectedStart!==null)selectedEnd=i;else selectedStart=selectedEnd=i;const low=Math.min(selectedStart,selectedEnd),high=Math.max(selectedStart,selectedEnd);document.querySelectorAll('.word').forEach((span,index)=>span.classList.toggle('selected',index>=low&&index<=high));document.querySelector('#status').textContent=`Paused at “${current().words[i].text}”. Press 2 for a content correction or 3 for formatting.`; }
+function showItem(next, autoplay=true) { index=(next+items.length)%items.length; selectedStart=selectedEnd=null; const item=current(); audio.src=item.audio; audio.playbackRate=Number(document.querySelector('#speed').value); const transcript=document.querySelector('#transcript'); transcript.innerHTML=''; item.words.forEach((word,i)=>{ const span=document.createElement('span'); span.className='word'; span.textContent=word.text+' '; span.onclick=event=>selectWord(event,i); span.dataset.index=i; transcript.append(span); }); document.querySelector('#correction').value=reviews[item.item_id]?.correction||item.transcript; showMarkers(); markWords(); updateProgress(); if(autoplay) audio.play().catch(()=>{}); }
+async function addMarker(kind) { if(busy)return; const payload={item_id:current().item_id,kind,audio_time:audio.currentTime}; const result=await post('/api/marker',payload); (markerMap[current().item_id] ||= []).push({...payload,id:result.marker_id}); showMarkers(); markWords(); if(kind==='word'||kind==='formatting')focusCorrectionSelection(); document.querySelector('#status').textContent=`Marked ${kind} at ${audio.currentTime.toFixed(1)}s`; }
+async function finish(verdict) { if(busy)return; const markers=markerMap[current().item_id]||[]; if(verdict==='accepted'&&markers.length){document.querySelector('#status').textContent='This item has markers. Remove them or save issues.';return;} if(verdict==='issues'&&!markers.length){document.querySelector('#status').textContent='Add at least one issue marker, or accept the cleaned output.';return;} const correction=document.querySelector('#correction').value; if(verdict==='issues'&&markers.some(marker=>marker.kind==='word'||marker.kind==='formatting')&&correction.trim()===current().transcript.trim()){document.querySelector('#status').textContent='Edit the corrected output before saving this content or formatting error.';focusCorrectionSelection();return;} busy=true; const item=current(); const savedCorrection=verdict==='issues'?correction:''; await post('/api/review',{item_id:item.item_id,verdict,correction:savedCorrection}); reviews[item.item_id]={verdict,correction:savedCorrection}; busy=false; const next=items.findIndex((candidate,offset)=>offset>index&&!reviews[candidate.item_id]); showItem(next<0?0:next,true); }
+async function undoLast() { if(busy)return; const item=current(); if(reviews[item.item_id]){await post('/api/review',{item_id:item.item_id},'DELETE');delete reviews[item.item_id];updateProgress();document.querySelector('#status').textContent='Removed this saved decision.';return;} const markers=markerMap[item.item_id]||[]; if(markers.length){const marker=markers[markers.length-1];await post('/api/marker',{item_id:item.item_id,marker_id:marker.id},'DELETE');markerMap[item.item_id]=markers.slice(0,-1);showMarkers();markWords();document.querySelector('#status').textContent='Removed the last marker.';return;} const previousIndex=(index-1+items.length)%items.length; const previousItem=items[previousIndex]; if(reviews[previousItem.item_id]){await post('/api/review',{item_id:previousItem.item_id},'DELETE');delete reviews[previousItem.item_id];showItem(previousIndex,false);document.querySelector('#status').textContent='Reopened the previous decision.';return;} document.querySelector('#status').textContent='Nothing to undo here.'; }
+audio.addEventListener('timeupdate',()=>{ const time=audio.currentTime; document.querySelectorAll('.word').forEach((span,i)=>{const word=current().words[i]; span.classList.toggle('active',time>=word.start&&time<word.end);});});
+document.querySelectorAll('[data-kind]').forEach(button=>button.onclick=()=>addMarker(button.dataset.kind));
+document.querySelector('#exact').onclick=()=>finish('accepted'); document.querySelector('#issues').onclick=()=>finish('issues'); document.querySelector('#previous').onclick=()=>showItem(index-1,false); document.querySelector('#next').onclick=()=>showItem(index+1,false); document.querySelector('#undo').onclick=undoLast; document.querySelector('#speed').onchange=event=>audio.playbackRate=Number(event.target.value);
+document.querySelector('#correction').addEventListener('keydown',event=>{if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){event.preventDefault();finish('issues');}});
+document.addEventListener('keydown',event=>{ if(event.target.tagName==='TEXTAREA')return; if(event.code==='Space'){event.preventDefault();audio.paused?audio.play():audio.pause();} else if(event.key==='ArrowRight'){audio.currentTime=Math.min(audio.duration||Infinity,audio.currentTime+5);} else if(event.key==='ArrowLeft'){audio.currentTime=Math.max(0,audio.currentTime-5);} else if(event.key==='0'||event.key==='Backspace'){event.preventDefault();undoLast();} else if(event.key==='1')finish('accepted'); else if(event.key==='2')addMarker('word'); else if(event.key==='3')addMarker('formatting'); else if(event.key==='4')addMarker('boundary'); else if(event.key==='5')addMarker('private'); else if(event.key==='6')addMarker('unsure'); else if(event.key==='Enter')finish('issues');});
+fetch('/api/state').then(response=>response.json()).then(state=>{items=state.items;reviews=state.reviews||{};markerMap=state.markers||{};const first=items.findIndex(item=>!reviews[item.item_id]);showItem(Math.max(0,first),false);});
+</script>
+</body>
+</html>
