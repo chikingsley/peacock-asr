@@ -9,9 +9,11 @@ expires. Each completed archive is recorded in :data:`cv26.config.DOWNLOAD_REPOR
 from __future__ import annotations
 
 import email.utils
+import http.client
 import json
 import logging
 import os
+import re
 import shutil
 import threading
 import time
@@ -51,10 +53,15 @@ HTTP_SERVER_ERRORS = frozenset({500, 502, 503, 504})
 RATE_LIMIT_BASE_SECONDS = 60.0
 RATE_LIMIT_BUFFER_SECONDS = 5.0
 RETRY_BASE_SECONDS = 30.0
+_CONTENT_RANGE_RE = re.compile(r"bytes\s+\d+-\d+/(\d+)")
 
 
 class DownloadError(RuntimeError):
     """Raised when an MDC request or archive download cannot be completed."""
+
+
+class IncompleteDownloadError(DownloadError):
+    """Raised when a response ends before the server-declared object size."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,6 +160,24 @@ def _resolve_url(dataset_id: str, cfg: DownloadConfig) -> str:
     return url
 
 
+def _expected_total_bytes(response: object, status: int) -> int:
+    headers = response.headers
+    if status == HTTP_PARTIAL_CONTENT:
+        content_range = headers.get("Content-Range")
+        match = _CONTENT_RANGE_RE.fullmatch(content_range or "")
+        if match is None:
+            raise IncompleteDownloadError(
+                f"partial response has no valid Content-Range: {content_range!r}"
+            )
+        return int(match.group(1))
+    content_length = headers.get("Content-Length")
+    if content_length is None or not content_length.isdigit():
+        raise IncompleteDownloadError(
+            f"full response has no valid Content-Length: {content_length!r}"
+        )
+    return int(content_length)
+
+
 def _download_once(url: str, destination: Path) -> int:
     destination.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = destination.parent / f".{destination.name}.part"
@@ -162,14 +187,26 @@ def _download_once(url: str, destination: Path) -> int:
     with urllib.request.urlopen(request, timeout=DOWNLOAD_TIMEOUT_SECONDS) as response:  # noqa: S310
         status = getattr(response, "status", response.getcode())
         mode = "ab" if resume_at and status == HTTP_PARTIAL_CONTENT else "wb"
+        expected_total = _expected_total_bytes(response, status)
         if resume_at and status != HTTP_PARTIAL_CONTENT:
             LOGGER.info("  server ignored Range; restarting partial file")
         with tmp_path.open(mode) as tmp:
-            while chunk := response.read(CHUNK_SIZE):
-                tmp.write(chunk)
+            try:
+                while chunk := response.read(CHUNK_SIZE):
+                    tmp.write(chunk)
+            except http.client.IncompleteRead as exc:
+                if exc.partial:
+                    tmp.write(exc.partial)
+                raise IncompleteDownloadError(
+                    f"response ended early at {tmp.tell()} of {expected_total} bytes"
+                ) from exc
             tmp.flush()
             os.fsync(tmp.fileno())
     size = tmp_path.stat().st_size
+    if size != expected_total:
+        raise IncompleteDownloadError(
+            f"response ended early at {size} of {expected_total} bytes"
+        )
     tmp_path.replace(destination)
     return size
 
@@ -200,7 +237,12 @@ def _download_with_retries(row: ManifestRow, cfg: DownloadConfig) -> tuple[int, 
                 cfg.retries,
             )
             time.sleep(delay)
-        except (TimeoutError, urllib.error.URLError) as exc:
+        except (
+            ConnectionError,
+            IncompleteDownloadError,
+            TimeoutError,
+            urllib.error.URLError,
+        ) as exc:
             if attempt > cfg.retries:
                 raise
             delay = min(RETRY_BASE_SECONDS * attempt, float(cfg.max_sleep))
