@@ -28,6 +28,7 @@ Active work only. Completed work belongs in `CHANGELOG.md`; live pipeline state 
 
 ## Training and benchmarks
 
+- [ ] English dictation 110M: finish the local `AutoArk-AI/ARK-ASR-3B` teacher benchmark, inventory owned recordings read-only, freeze the session-disjoint 200-segment review set, and run the bounded 25-hour 2K pilot described in `projects/english-asr/README.md`.
 - [ ] Analyze the Tajik 110M TDT versus Omni v3 conversational predictions by source, duration, and error type. TDT wins WER (33.85 versus 37.65) but loses CER (14.89 versus 14.04); understand that tradeoff before any new Tajik TDT training.
 - [ ] Harden `packages/asr-benchmark-core` after the current language work: make language scorers and Omni model cards pluggable, add suite/config registration, model/data checksums and run completion state, then standardize the cross-model contract around fixed clips and segmentation revision, raw and normalized WER/CER, empty-output rate, cold end-to-end latency, warm batched RTFx, safe maximum batch, peak VRAM, load time, timestamp support, exact model revision, and saved predictions.
 - [ ] Persian benchmark: current Omni, newly accessible C1Tech Whisper Persian, Qwen3-ASR 0.6B/1.7B, Whisper large-v3-turbo, and Scribe v2 on the same canonical splits.

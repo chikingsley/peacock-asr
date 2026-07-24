@@ -1,0 +1,76 @@
+[project]
+name = "english-asr"
+version = "0.1.0"
+description = "English Parakeet TDT 110M data curation, fine-tuning, and evaluation."
+requires-python = ">=3.12,<3.14"
+dependencies = [
+  "httpx>=0.28",
+  "nemo-toolkit[asr]>=2.7.3",
+  "numba==0.65.1",
+  "omni-curator[ingest,vad-silero]",
+  "parakeet-finetune-core",
+  "sentencepiece>=0.2",
+  "tensorboard>=2.20",
+]
+
+[tool.uv.sources]
+omni-curator = { path = "../../packages/omni-curator", editable = true }
+parakeet-finetune-core = { path = "../../packages/parakeet-finetune-core", editable = true }
+
+[project.scripts]
+english-arm = "english_asr.arm:main"
+english-cv26 = "english_asr.cv26:main"
+english-curate = "english_asr.curate:main"
+english-dictation = "english_asr.dictation:main"
+english-exam = "english_asr.exams:main"
+english-external-matrix = "english_asr.external_matrix:main"
+english-interpolate = "english_asr.interpolate:main"
+english-mixture = "english_asr.mixture:main"
+english-pnc = "english_asr.pnc:main"
+english-parakeet-materialize = "english_asr.parakeet.materialize:main"
+english-parakeet-train-tdt = "english_asr.parakeet.train:train_tdt"
+english-parakeet-eval = "english_asr.parakeet.eval:evaluate"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+  "pytest>=8",
+  "ruff==0.15.15",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/english_asr"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+  "D",
+  "COM812",
+  "ISC001",
+  "EM101", "EM102", "TRY003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "PLR2004", "ANN", "INP001"]
+"src/english_asr/cv26.py" = ["T201"]
+"src/english_asr/dictation.py" = ["T201"]
+"src/english_asr/arm.py" = ["S603", "T201"]
+"src/english_asr/exams.py" = ["T201"]
+"src/english_asr/external_matrix.py" = ["S603"]
+"src/english_asr/interpolate.py" = ["T201"]
+"src/english_asr/mixture.py" = ["T201"]
+"src/english_asr/pnc.py" = ["T201"]
+
+[tool.ty.environment]
+python = ".venv"

@@ -1,0 +1,32 @@
+{
+  "hf_repo": null,
+  "hf_revision": null,
+  "artifacts": {
+    "datasets/pilot-v0/export_summary.json": {
+      "sha256": "86eee1435ab01a0c546a64b92bd21deefce809f90870e332963ac4dc0f5f7019",
+      "rows": 336,
+      "hours": 1.316191388888888,
+      "unknown_tokenizer_rows": 0,
+      "source": "english-curate ingest peoples-speech-microset; english-curate export pilot-v0 --max-duration 30"
+    },
+    "parakeet/materialized/pilot-v0/manifests/train.jsonl": {
+      "sha256": "fce4ea4290d18b860fab59b89b2b10001f43553b45351d182f25d077a5de1a34",
+      "rows": 323,
+      "hours": 1.2630858333333326
+    },
+    "parakeet/materialized/pilot-v0/manifests/dev.jsonl": {
+      "sha256": "179bc735116d19a43b61423eb5b89539cf0dbd1455eb5da9162cb50f6532424f",
+      "rows": 13,
+      "hours": 0.05310555555555556
+    }
+  },
+  "base_model": {
+    "local_path": "base_models/parakeet/parakeet-tdt_ctc-110m.nemo",
+    "source_repo": "nvidia/parakeet-tdt_ctc-110m",
+    "source_revision": "431a349f3051ab85c22b9b7a2741b5fe77065665",
+    "source_file": "parakeet-tdt_ctc-110m.nemo",
+    "source_sha256": "1e6b5c3bcaa390b479bd8112512ede515d2ef5b61495568f2c266d6d5e680c3a",
+    "source_size": 459243520,
+    "tokenizer_policy": "preserve the embedded 1024-piece English case-and-punctuation tokenizer"
+  }
+}

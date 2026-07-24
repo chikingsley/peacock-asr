@@ -1,0 +1,15 @@
+/data
+/runs
+/.venv
+/.pytest_cache
+/.ruff_cache
+__pycache__/
+*.py[cod]
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.ckpt
+*.nemo
+*.pt
+*.pth
+*.safetensors
