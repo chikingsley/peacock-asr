@@ -24,6 +24,7 @@ from omni_curator.data.export import (
     YoutubeSplitPolicy,
     _normalize_and_filter,
     export_dataset,
+    export_nemo_manifests,
     normalize_youtube_category,
     write_weighted_distribution,
 )
@@ -61,6 +62,22 @@ def test_duration_bound_applies_everywhere(make_sample):
     assert not sel.keeps(make_sample(split="test", duration=55.0))
 
 
+def test_store_collection_filters_select_only_requested_rows(make_sample, tmp_path):
+    store = CuratorStore(tmp_path / "store.sqlite")
+    store.upsert(
+        [
+            make_sample(id="a-train", source="a", split="train"),
+            make_sample(id="a-dev", source="a", split="dev"),
+            make_sample(id="b-train", source="b", split="train"),
+        ]
+    )
+
+    ids = [sample.id for sample in store.iter_samples(sources=["a"], splits=["train"])]
+    store.close()
+
+    assert ids == ["a-train"]
+
+
 def test_heldout_video_is_gated_then_regrouped(make_sample):
     sel = Selection(max_scribe_wer=0.35, heldout_test_videos=frozenset({"chan_vid001"}))
     good = make_sample(id="chan_vid001_0003", split="train", scribe_wer=0.1)
@@ -93,6 +110,28 @@ def test_trusted_provenance_authority_bypasses_language_gate(make_sample):
     sel = Selection(trusted_language_authorities=frozenset({"gold-corpus"}))
 
     assert not sel.applies_language_gate(sample)
+
+
+def test_normalized_empty_label_is_always_dropped(make_sample, tmp_path):
+    store = CuratorStore(tmp_path / "store.sqlite")
+    store.upsert([make_sample(language="eng_Latn", text="[silence] わかりません")])
+
+    grouped, dropped = _normalize_and_filter(store, Selection(language_gate=False))
+    store.close()
+
+    assert grouped == {}
+    assert dropped == {"empty_normalized_text": 1}
+
+
+def test_normalized_descriptor_only_label_is_dropped_from_train(make_sample, tmp_path):
+    store = CuratorStore(tmp_path / "store.sqlite")
+    store.upsert([make_sample(language="eng_Latn", text="わかりません?")])
+
+    grouped, dropped = _normalize_and_filter(store, Selection(language_gate=False))
+    store.close()
+
+    assert grouped == {}
+    assert dropped == {"descriptor_only_normalized": 1}
 
 
 def test_descriptor_only_cases():
@@ -235,3 +274,62 @@ def test_export_writes_sample_metadata(make_sample, tmp_path):
         "tier": "clean",
         "title": "Video title",
     }
+
+
+def test_export_preserves_canonical_flac_bytes(make_sample, tmp_path):
+    audio = tmp_path / "clip.flac"
+    sf.write(audio, np.zeros(1600, dtype=np.float32), 16_000, format="FLAC")
+    expected = audio.read_bytes()
+    store = CuratorStore(tmp_path / "store.sqlite")
+    store.upsert([make_sample(audio_path=str(audio))])
+
+    export_dataset(
+        store,
+        tmp_path / "dataset",
+        selection=Selection(language_gate=False),
+        row_group_size=1,
+    )
+    store.close()
+
+    parquet = next(
+        (tmp_path / "dataset" / "version=0").glob("corpus=*/split=*/language=*/*.parquet")
+    )
+    table = pq.read_table(parquet)
+    actual = np.asarray(table.column("audio_bytes")[0].as_py(), dtype=np.int8).tobytes()
+    assert actual == expected
+
+
+def test_nemo_manifest_export_references_canonical_audio_without_copy(make_sample, tmp_path):
+    audio = tmp_path / "clip.flac"
+    sf.write(audio, np.zeros(1600, dtype=np.float32), 16_000, format="FLAC")
+    store = CuratorStore(tmp_path / "store.sqlite")
+    store.upsert(
+        [
+            make_sample(
+                audio_path=str(audio),
+                language="eng_Latn",
+                text="Hello, world!",
+                meta={"category": "news"},
+            )
+        ]
+    )
+
+    output = tmp_path / "manifest-export"
+    stats = export_nemo_manifests(
+        store,
+        output,
+        selection=Selection(language_gate=False),
+        licenses={"test": ("cc0-1.0", True)},
+    )
+    store.close()
+
+    row = json.loads((output / "train.jsonl").read_text(encoding="utf-8"))
+    assert stats.rows == 1
+    assert row["audio_filepath"] == str(audio.resolve())
+    assert row["text"] == "Hello, world!"
+    assert row["metadata"] == {"category": "news"}
+    assert list(output.rglob("*.flac")) == []
+    summary = json.loads((output / "export_summary.json").read_text(encoding="utf-8"))
+    assert summary["audio_mode"] == "reference"
+    with pytest.raises(FileExistsError, match="immutable"):
+        export_nemo_manifests(store, output)

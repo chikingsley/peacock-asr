@@ -45,8 +45,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
+import tempfile
 import warnings
 from collections import defaultdict
+from contextlib import ExitStack
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -66,6 +69,7 @@ from omni_curator.process.language import keep_for_language
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Mapping
+    from typing import TextIO
 
     from omni_curator.data.sample import Sample
     from omni_curator.data.store import CuratorStore
@@ -369,12 +373,16 @@ def normalize_youtube_category(value: object) -> str:
 
 
 def _flac_bytes(audio_path: Path) -> np.ndarray:
-    """Read ``audio_path`` as 16 kHz mono and return its re-encoded FLAC bytes as an int8 array.
+    """Return ``audio_path`` as canonical 16 kHz mono FLAC bytes in an int8 array.
 
-    Re-encoding (rather than slurping the file verbatim) guarantees the stored bytes decode to
-    16 kHz mono regardless of the source clip's container/rate, matching what the trainer expects.
+    Canonical FLAC clips pass through verbatim. Other containers, sample rates, and channel layouts
+    are decoded and re-encoded, so the stored bytes still always match what the trainer expects.
     """
     import soundfile as sf
+
+    info = sf.info(str(audio_path))
+    if info.format == "FLAC" and info.samplerate == SAMPLE_RATE and info.channels == 1:
+        return np.frombuffer(audio_path.read_bytes(), dtype=np.int8)
 
     samples, rate = sf.read(str(audio_path), dtype="float32", always_2d=False)
     if samples.ndim > 1:
@@ -398,7 +406,7 @@ def _video_id(sample: Sample) -> str:
 def _select(store: CuratorStore, selection: Selection) -> Iterator[Sample]:
     """Yield the samples kept by ``selection``, applying the per-source cap in store order."""
     seen: dict[str, int] = defaultdict(int)
-    for sample in store.iter_samples():
+    for sample in store.iter_samples(sources=selection.sources, splits=selection.splits):
         if not selection.keeps(sample):
             continue
         if selection.max_per_source is not None and seen[sample.source] >= selection.max_per_source:
@@ -612,6 +620,16 @@ def _normalize_and_filter(
     dropped: dict[str, int] = defaultdict(int)
     for sample in _select(store, selection):
         norm_text = normalize_text(sample.text, sample.language)
+        if not norm_text:
+            dropped["empty_normalized_text"] += 1
+            continue
+        if (
+            selection.gates(sample)
+            and selection.drop_descriptor_only
+            and is_descriptor_only(norm_text)
+        ):
+            dropped["descriptor_only_normalized"] += 1
+            continue
         # Language gate (the ONLY content-language filter): drop clips whose text isn't the target
         # language — e.g. a Russian segment from a Tajik source. The store keeps every clip (Scribe
         # auto-detect transcribes each in its own language); this is where we select the target.
@@ -756,6 +774,117 @@ def export_dataset(
                 true_tsv, output_dir / "language_distribution_weighted.tsv", mixture_weights
             )
     _write_summary(output_dir, version, selection, stats, mixture_weights=mixture_weights)
+    return stats
+
+
+def export_nemo_manifests(
+    store: CuratorStore,
+    output_dir: Path,
+    *,
+    selection: Selection | None = None,
+    coverage_check: Callable[[list[str]], int] | None = None,
+    strict: bool = True,
+    licenses: Mapping[str, LicenseValue] | None = None,
+    commercial_only: bool = False,
+) -> ExportStats:
+    """Export normalized NeMo manifests that reference curator-owned canonical audio.
+
+    This is the fast local-training path. It applies the same selection, normalization, quality,
+    language, tokenizer-coverage, license, and split policy as :func:`export_dataset`, but it does
+    not embed audio in Parquet and does not copy audio into a second materialized tree. The
+    resulting ``<split>.jsonl`` files point directly at the stable paths already recorded in the
+    curator store.
+
+    The output directory is immutable and published atomically. Missing audio is counted and
+    skipped, matching the Parquet exporter. Use the Parquet exporter when a self-contained,
+    portable fairseq2/Hugging Face artifact is actually required.
+    """
+    selection = selection or Selection()
+    if output_dir.exists():
+        raise FileExistsError(f"immutable NeMo manifest export already exists: {output_dir}")
+
+    grouped, dropped_by_quality = _normalize_and_filter(store, selection)
+    stats = ExportStats(
+        version=0,
+        output_dir=str(output_dir),
+        dropped_by_quality=dropped_by_quality,
+    )
+    if coverage_check is not None:
+        stats.unk_rows = _run_coverage_gate(grouped, coverage_check, strict=strict)
+
+    output_dir.parent.mkdir(parents=True, exist_ok=True)
+    temp = Path(tempfile.mkdtemp(prefix=f".{output_dir.name}.", dir=output_dir.parent))
+    by_split: dict[str, int] = defaultdict(int)
+    by_corpus: dict[str, int] = defaultdict(int)
+    hours_split: dict[str, float] = defaultdict(float)
+    hours_corpus: dict[str, float] = defaultdict(float)
+    license_registry = normalize_license_registry(licenses)
+    try:
+        with ExitStack() as stack:
+            handles: dict[str, TextIO] = {}
+            for (corpus, split, language), samples in sorted(grouped.items()):
+                license_info = license_registry.get(corpus, UNKNOWN_LICENSE)
+                if commercial_only and not license_info.commercial_use:
+                    continue
+                if split not in handles:
+                    handles[split] = stack.enter_context(
+                        (temp / f"{_sanitize(split)}.jsonl").open("w", encoding="utf-8")
+                    )
+                handle = handles[split]
+                for sample, norm_text in samples:
+                    audio_path = Path(sample.audio_path)
+                    if not audio_path.is_file():
+                        stats.skipped_missing_audio += 1
+                        continue
+                    duration = float(sample.duration)
+                    record = {
+                        "audio_filepath": str(audio_path.resolve()),
+                        "text": norm_text,
+                        "duration": round(duration, 6),
+                        "corpus": corpus,
+                        "language": language,
+                        "sample_id": sample.id,
+                        "speaker_id": sample.speaker_id,
+                        "citation": sample.citation,
+                        "license": license_info.id,
+                        "commercial_use": license_info.commercial_use,
+                        "metadata": sample.meta,
+                    }
+                    handle.write(json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n")
+                    stats.rows += 1
+                    by_split[split] += 1
+                    by_corpus[corpus] += 1
+                    hours_split[split] += duration / 3600.0
+                    hours_corpus[corpus] += duration / 3600.0
+
+        stats.rows_by_split = dict(sorted(by_split.items()))
+        stats.rows_by_corpus = dict(sorted(by_corpus.items()))
+        stats.hours_by_split = dict(sorted(hours_split.items()))
+        stats.hours_by_corpus = dict(sorted(hours_corpus.items()))
+        summary = {
+            "format": "nemo-manifest",
+            "audio_mode": "reference",
+            "output_dir": str(output_dir),
+            "selection": _selection_dict(selection),
+            "rows": stats.rows,
+            "rows_by_split": stats.rows_by_split,
+            "rows_by_corpus": stats.rows_by_corpus,
+            "hours_by_split": stats.hours_by_split,
+            "hours_by_corpus": stats.hours_by_corpus,
+            "hours": stats.hours,
+            "skipped_missing_audio": stats.skipped_missing_audio,
+            "dropped_by_quality": stats.dropped_by_quality,
+            "dropped_quality_total": stats.dropped_quality_total,
+            "unk_rows": stats.unk_rows,
+        }
+        (temp / "export_summary.json").write_text(
+            json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        temp.replace(output_dir)
+    except Exception:
+        shutil.rmtree(temp, ignore_errors=True)
+        raise
     return stats
 
 

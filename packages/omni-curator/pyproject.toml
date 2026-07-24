@@ -19,6 +19,8 @@ dependencies = [
   "jiwer>=3.1.0,<5",
   # Progress bars for the long ingest/process loops.
   "tqdm>=4.66",
+  # English Parakeet labels expand digit runs onto the embedded tokenizer's word surface.
+  "num2words>=0.5.14",
 ]
 
 [project.scripts]
@@ -26,6 +28,8 @@ dependencies = [
 omni-build-lm = "omni_curator.build_lm:main"
 # Prepare/serve the blinded keyboard review used to select a VAD policy.
 omni-vad-review = "omni_curator.create.vad_review:main"
+# Review timestamped ASR transcripts with playback-synchronous issue markers.
+omni-transcript-review = "omni_curator.audit.transcript_review:main"
 # Additive ASR boundary + CTC alignment audits; outputs metrics and never drops rows.
 omni-quality = "omni_curator.audit.quality_cli:main"
 
@@ -113,6 +117,7 @@ ignore = [
 "src/omni_curator/build_lm.py" = ["T201", "S603"]
 # Blinded review CLI/server: stdout is the operator interface.
 "src/omni_curator/create/vad_review.py" = ["T201"]
+"src/omni_curator/audit/transcript_review.py" = ["T201"]
 "src/omni_curator/audit/quality_cli.py" = ["T201"]
 # The Scribe budget balancer: a small cross-project CLI that prints + shells out to `ps`.
 "src/omni_curator/scribe/balance.py" = ["T201", "S603", "S607"]

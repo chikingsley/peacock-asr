@@ -81,6 +81,23 @@ def test_selected_channels_filters(project):
     assert [c.slug for c in project.selected_channels(args)] == ["chan_a"]
 
 
+def test_export_accepts_direct_nemo_manifest_and_source_filter(project):
+    args = build_parser(project).parse_args(
+        [
+            "export",
+            "ami-only-v0",
+            "--format",
+            "nemo-manifest",
+            "--source",
+            "ami",
+            "--no-mixture-weights",
+        ]
+    )
+
+    assert args.format == "nemo-manifest"
+    assert args.source == ["ami"]
+
+
 def test_data_layout_is_owned_by_the_project(project):
     assert project.create_dir == project.data / "create"
     assert project.queue_path == project.data / "queue.sqlite"
@@ -303,6 +320,45 @@ def test_hf_sources_default_to_non_streaming(project, monkeypatch):
     list(huggingface_source("org/dataset", streaming=True)(project))
 
     assert seen == [False, False, True, True]
+
+
+def test_hf_source_forwards_reproducible_bounded_ingest_options(project, monkeypatch):
+    from omni_curator.ingest import huggingface as hf_mod
+
+    seen: dict[str, object] = {}
+
+    def fake_hf(*_args, **kwargs):
+        seen.update(kwargs)
+        return iter(())
+
+    monkeypatch.setattr(hf_mod, "load_hf_audio", fake_hf)
+
+    list(
+        huggingface_source(
+            "org/dataset",
+            config="clean",
+            revision="abc123",
+            splits=("train",),
+            id_column="segment_id",
+            speaker_column="speaker_id",
+            max_hours_per_split=25.0,
+            shuffle_seed=17,
+            validation_fraction=0.05,
+            split_group_column="audio_id",
+            split_seed=19,
+        )(project)
+    )
+
+    assert seen["revision"] == "abc123"
+    assert seen["splits"] == ("train",)
+    assert seen["id_column"] == "segment_id"
+    assert seen["speaker_column"] == "speaker_id"
+    assert seen["max_hours_per_split"] == 25.0
+    assert seen["shuffle_seed"] == 17
+    assert seen["shuffle_buffer_size"] == 256
+    assert seen["validation_fraction"] == 0.05
+    assert seen["split_group_column"] == "audio_id"
+    assert seen["split_seed"] == 19
 
 
 def test_config_typos_fail_at_construction(tmp_path):

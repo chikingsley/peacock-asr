@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Self
 from omni_curator.data.sample import Sample
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
+    from collections.abc import Collection, Iterator
     from pathlib import Path
 
 _SCHEMA = """
@@ -182,15 +182,41 @@ class CuratorStore:
             return cur.rowcount
 
     def iter_samples(
-        self, *, source: str | None = None, split: str | None = None
+        self,
+        *,
+        source: str | None = None,
+        split: str | None = None,
+        sources: Collection[str] | None = None,
+        splits: Collection[str] | None = None,
     ) -> Iterator[Sample]:
+        """Iterate samples with value filters pushed into SQLite.
+
+        ``source``/``split`` preserve the original scalar API. Export recipes use the collection
+        forms so a bounded source export does not read and deserialize the entire curator store.
+        """
+        if source is not None and sources is not None:
+            raise ValueError("pass source or sources, not both")
+        if split is not None and splits is not None:
+            raise ValueError("pass split or splits, not both")
         clauses, params = [], []
         if source is not None:
             clauses.append("source = ?")
             params.append(source)
+        elif sources is not None:
+            source_values = tuple(sorted(set(sources)))
+            if not source_values:
+                return
+            clauses.append(f"source IN ({', '.join('?' for _ in source_values)})")
+            params.extend(source_values)
         if split is not None:
             clauses.append("split = ?")
             params.append(split)
+        elif splits is not None:
+            split_values = tuple(sorted(set(splits)))
+            if not split_values:
+                return
+            clauses.append(f"split IN ({', '.join('?' for _ in split_values)})")
+            params.extend(split_values)
         where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
         query = f"SELECT * FROM samples{where} ORDER BY id"  # noqa: S608 — clauses are fixed strings; params are bound
         for row in self._conn.execute(query, params):

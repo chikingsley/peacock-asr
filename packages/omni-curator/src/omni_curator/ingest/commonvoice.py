@@ -12,6 +12,8 @@ are per language+corpus (recorded by the consuming project).
 from __future__ import annotations
 
 import csv
+import hashlib
+import io
 import json
 import shutil
 import tarfile
@@ -19,12 +21,15 @@ import urllib.request
 from typing import TYPE_CHECKING
 
 from omni_curator.data.sample import Sample
+from omni_curator.ingest._util import slug as _slug
+from omni_curator.ingest.huggingface import _derived_split
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
     from pathlib import Path
 
 _MDC_BASE = "https://mozilladatacollective.com/api/datasets"
+_SAMPLE_RATE = 16_000
 
 
 def download_commonvoice(
@@ -76,15 +81,15 @@ def _scripted_durations(cv_dir: Path) -> dict[str, float]:
     path = cv_dir / "clip_durations.tsv"
     if not path.exists():
         return {}
-    with path.open(encoding="utf-8") as handle:
-        reader = csv.DictReader(handle, delimiter="\t")
+    with path.open(encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle, delimiter="\t", quoting=csv.QUOTE_NONE)
         field = "duration[ms]" if "duration[ms]" in (reader.fieldnames or []) else "duration"
         return {row["clip"]: float(row[field]) / 1000.0 for row in reader if row.get(field)}
 
 
 def _read_tsv(path: Path) -> Iterator[dict[str, str]]:
-    with path.open(encoding="utf-8") as handle:
-        yield from csv.DictReader(handle, delimiter="\t")
+    with path.open(encoding="utf-8", newline="") as handle:
+        yield from csv.DictReader(handle, delimiter="\t", quoting=csv.QUOTE_NONE)
 
 
 def _row_sample(
@@ -152,3 +157,197 @@ def load_commonvoice(
         sample = _row_sample(row, split=row.get("split") or "train", durations={}, **common)
         if sample is not None:
             yield sample
+
+
+def _read_tar_tsv(tar: tarfile.TarFile, member: tarfile.TarInfo) -> list[dict[str, str]]:
+    handle = tar.extractfile(member)
+    if handle is None:
+        return []
+    # Common Voice TSV values are not CSV-quoted. Prompt text can contain unmatched literal
+    # double quotes; treating those as quote delimiters merges many physical records into one
+    # enormous sentence and can make the RNNT joint tensor exhaust GPU memory.
+    text = io.StringIO(handle.read().decode("utf-8"), newline="")
+    return list(csv.DictReader(text, delimiter="\t", quoting=csv.QUOTE_NONE))
+
+
+def _valid_audio_info(path: Path, soundfile: object) -> object | None:
+    if not path.exists():
+        return None
+    try:
+        return soundfile.info(str(path))
+    except soundfile.LibsndfileError:
+        path.unlink(missing_ok=True)
+        return None
+
+
+def _write_archive_clip(
+    encoded: bytes,
+    destination: Path,
+    *,
+    soundfile: object,
+    soxr: object,
+    numpy: object,
+) -> object:
+    """Decode one archive member and atomically write canonical 16 kHz mono FLAC."""
+    info = _valid_audio_info(destination, soundfile)
+    if info is not None:
+        return info
+    samples, sample_rate = soundfile.read(io.BytesIO(encoded), dtype="float32")
+    samples = numpy.asarray(samples)
+    if samples.ndim > 1:
+        samples = numpy.mean(samples, axis=1)
+    if sample_rate != _SAMPLE_RATE:
+        samples = soxr.resample(samples, sample_rate, _SAMPLE_RATE)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary = destination.with_suffix(destination.suffix + ".tmp")
+    try:
+        soundfile.write(str(temporary), samples, _SAMPLE_RATE, format="FLAC", subtype="PCM_16")
+        temporary.replace(destination)
+    except Exception:
+        temporary.unlink(missing_ok=True)
+        raise
+    return soundfile.info(str(destination))
+
+
+def load_commonvoice_archive(  # noqa: C901, PLR0912, PLR0915
+    archive: Path,
+    *,
+    language: str,
+    source: str,
+    audio_dir: Path,
+    upstream_split: str = "train",
+    validation_fraction: float = 0.05,
+    split_seed: int = 17,
+    excluded_clip_ids: frozenset[str] = frozenset(),
+    excluded_audio_sha256: frozenset[str] = frozenset(),
+    max_hours: float | None = None,
+) -> Iterator[Sample]:
+    """Stream one Common Voice archive directly into canonical audio samples.
+
+    The gzip tar is consumed once in forward-only mode. Only the requested upstream split is
+    decoded, so callers do not need to extract the archive or create embedded-audio Parquet
+    intermediates. Existing valid FLACs are reused on rerun. Exact benchmark clip IDs and encoded
+    audio hashes can be excluded before samples enter the curator store.
+    """
+    import numpy as np
+    import soundfile as sf
+    import soxr
+
+    if not archive.is_file():
+        raise FileNotFoundError(archive)
+    if not 0 <= validation_fraction < 1:
+        raise ValueError("validation_fraction must be in [0, 1)")
+    target_tsv = f"{upstream_split}.tsv"
+    source_slug = _slug(source)
+    rows: dict[str, dict[str, str]] | None = None
+    layout: str | None = None
+    yielded_seconds = 0.0
+
+    with tarfile.open(archive, "r|*") as tar:
+        for member in tar:
+            if not member.isfile():
+                continue
+            name = member.name.rsplit("/", 1)[-1]
+            if name == target_tsv:
+                rows = {
+                    str(row.get("path") or ""): row
+                    for row in _read_tar_tsv(tar, member)
+                    if row.get("path") and row.get("sentence")
+                }
+                layout = "scripted"
+                continue
+            if name.endswith(".tsv") and rows is None:
+                candidate_rows = _read_tar_tsv(tar, member)
+                if candidate_rows and {"audio_file", "transcription", "split"}.issubset(
+                    candidate_rows[0]
+                ):
+                    rows = {
+                        str(row.get("audio_file") or ""): row
+                        for row in candidate_rows
+                        if row.get("audio_file")
+                        and row.get("transcription")
+                        and row.get("split") == upstream_split
+                    }
+                    layout = "spontaneous"
+                continue
+            audio_marker = "/audios/" if layout == "spontaneous" else "/clips/"
+            if audio_marker not in member.name or not name.lower().endswith(".mp3"):
+                continue
+            if rows is None:
+                raise ValueError(
+                    f"archive stores audio before {target_tsv} or spontaneous metadata; "
+                    "forward-only ingest cannot classify them"
+                )
+            row = rows.pop(name, None)
+            if row is None or name in excluded_clip_ids:
+                continue
+            handle = tar.extractfile(member)
+            if handle is None:
+                continue
+            encoded = handle.read()
+            encoded_sha256 = hashlib.sha256(encoded).hexdigest()
+            if encoded_sha256 in excluded_audio_sha256:
+                continue
+            identity = f"{source}\0{upstream_split}\0{name}"
+            identity_hash = hashlib.sha256(identity.encode()).hexdigest()
+            uid = f"{source_slug}_{identity_hash[:24]}"
+            destination = audio_dir / identity_hash[:2] / f"{uid}.flac"
+            info = _write_archive_clip(
+                encoded,
+                destination,
+                soundfile=sf,
+                soxr=soxr,
+                numpy=np,
+            )
+            duration = float(info.frames) / float(info.samplerate)
+            group = str(row.get("client_id") or name)
+            output_split = _derived_split(
+                upstream_split,
+                group=group,
+                validation_fraction=validation_fraction,
+                split_seed=split_seed,
+            )
+            metadata = {
+                "upstream_split": upstream_split,
+                "clip_id": name,
+                "encoded_audio_sha256": encoded_sha256,
+                "sentence_id": row.get("sentence_id"),
+                "up_votes": row.get("up_votes"),
+                "down_votes": row.get("down_votes"),
+                "age": row.get("age"),
+                "gender": row.get("gender"),
+                "accents": row.get("accents"),
+                "variant": row.get("variant"),
+                "split_group": group,
+            }
+            if layout == "spontaneous":
+                metadata.update(
+                    {
+                        "audio_id": row.get("audio_id"),
+                        "duration_ms": row.get("duration_ms"),
+                        "prompt_id": row.get("prompt_id"),
+                        "prompt": row.get("prompt"),
+                        "votes": row.get("votes"),
+                        "is_edited": row.get("is_edited"),
+                        "quality_tags": row.get("quality_tags"),
+                    }
+                )
+            yield Sample(
+                id=uid,
+                source=source,
+                language=language,
+                text=str(row.get("sentence") or row.get("transcription") or "").strip(),
+                audio_path=str(destination),
+                duration=duration,
+                sample_rate=_SAMPLE_RATE,
+                split=output_split,
+                speaker_id=row.get("client_id") or None,
+                citation="Mozilla Common Voice",
+                meta=metadata,
+            )
+            yielded_seconds += duration
+            if max_hours is not None and yielded_seconds >= max_hours * 3600:
+                return
+
+    if rows is None:
+        raise ValueError(f"archive has no {target_tsv} or spontaneous metadata TSV: {archive}")

@@ -188,7 +188,12 @@ class CuratorProject:
         return frozenset(json.loads(self.heldout_manifest.read_text())["video_ids"])
 
 
-def _store_batched(store: CuratorStore, samples: Iterable[Sample]) -> int:
+def _store_batched(
+    store: CuratorStore,
+    samples: Iterable[Sample],
+    *,
+    on_progress: Callable[[int], None] | None = None,
+) -> int:
     """Upsert a stream of samples into the store in batches; return the count written."""
     count = 0
     batch: list[Sample] = []
@@ -198,6 +203,8 @@ def _store_batched(store: CuratorStore, samples: Iterable[Sample]) -> int:
         if len(batch) >= _BATCH:
             store.upsert(batch)
             batch = []
+        if on_progress is not None and count % 5_000 == 0:
+            on_progress(count)
     if batch:
         store.upsert(batch)
     return count
@@ -775,11 +782,21 @@ def huggingface_source(
     repo: str,
     *,
     config: str | None = None,
+    revision: str | None = None,
     splits: tuple[str, ...] = ("train", "dev", "test"),
     source: str | None = None,
+    audio_column: str | None = None,
     text_column: str | None = None,
+    id_column: str | None = None,
+    speaker_column: str | None = None,
     force_split: str | None = None,
     streaming: bool = False,
+    max_hours_per_split: float | None = None,
+    shuffle_seed: int | None = None,
+    shuffle_buffer_size: int = 256,
+    validation_fraction: float = 0.0,
+    split_group_column: str | None = None,
+    split_seed: int = 17,
 ) -> IngestFn:
     """Ready-made ingest: any HF audio dataset (column auto-detect; 16 kHz mono FLAC clips).
 
@@ -803,10 +820,20 @@ def huggingface_source(
             language=project.language,
             source=name,
             config=config,
+            revision=revision,
             splits=splits,
+            audio_column=audio_column,
             text_column=text_column,
+            id_column=id_column,
+            speaker_column=speaker_column,
             audio_dir=project.canonical_dir / name,
             streaming=streaming,
+            max_hours_per_split=max_hours_per_split,
+            shuffle_seed=shuffle_seed,
+            shuffle_buffer_size=shuffle_buffer_size,
+            validation_fraction=validation_fraction,
+            split_group_column=split_group_column,
+            split_seed=split_seed,
         )
         if force_split is None:
             return samples
@@ -830,7 +857,13 @@ def cmd_ingest(project: CuratorProject, args: argparse.Namespace) -> int:
     failed: list[str] = []
     for name in datasets:
         try:
-            count = _store_batched(store, project.ingests[name](project))
+            count = _store_batched(
+                store,
+                project.ingests[name](project),
+                on_progress=lambda value, dataset=name: print(
+                    f"  ingested {value} {dataset} samples...", flush=True
+                ),
+            )
         except Exception as exc:  # in --all, one bad source must not abort the rest
             if not args.all:
                 store.close()
@@ -920,8 +953,13 @@ def _parse_weights(project: CuratorProject, values: list[str] | None) -> dict[st
 
 
 def cmd_export(project: CuratorProject, args: argparse.Namespace) -> int:
-    """Materialize a dataset ablation: store -> omni-parquet under ``datasets/<name>``."""
-    from omni_curator.data.export import Selection, YoutubeSplitPolicy, export_dataset
+    """Export a dataset recipe under ``datasets/<name>``."""
+    from omni_curator.data.export import (
+        Selection,
+        YoutubeSplitPolicy,
+        export_dataset,
+        export_nemo_manifests,
+    )
     from omni_curator.data.store import CuratorStore
 
     heldout = frozenset() if args.no_heldout else project.heldout_videos()
@@ -936,24 +974,43 @@ def cmd_export(project: CuratorProject, args: argparse.Namespace) -> int:
         else None
     )
     selection = Selection(
+        sources=args.source,
         max_duration_seconds=args.max_duration,
         max_scribe_wer=args.max_wer,
         heldout_test_videos=heldout,
         youtube_split_policy=youtube_split_policy,
     )
     store = CuratorStore(project.db)
-    stats = export_dataset(
-        store,
-        project.datasets_dir / args.name,
-        version=0,
-        selection=selection,
-        coverage_check=project.coverage_check,
-        strict=not args.no_strict,
-        mixture_weights=weights or None,
-        licenses=project.licenses,
-        commercial_only=args.commercial_only,
-    )
-    store.close()
+    try:
+        if args.format == "nemo-manifest":
+            if weights:
+                raise SystemExit(
+                    "NeMo manifest export does not encode mixture weights; use source-isolated "
+                    "manifests or --no-mixture-weights"
+                )
+            stats = export_nemo_manifests(
+                store,
+                project.datasets_dir / args.name,
+                selection=selection,
+                coverage_check=project.coverage_check,
+                strict=not args.no_strict,
+                licenses=project.licenses,
+                commercial_only=args.commercial_only,
+            )
+        else:
+            stats = export_dataset(
+                store,
+                project.datasets_dir / args.name,
+                version=0,
+                selection=selection,
+                coverage_check=project.coverage_check,
+                strict=not args.no_strict,
+                mixture_weights=weights or None,
+                licenses=project.licenses,
+                commercial_only=args.commercial_only,
+            )
+    finally:
+        store.close()
     print(f"exported {stats.rows} rows ({stats.hours:.2f} h) -> {project.datasets_dir / args.name}")
     if heldout:
         print(f"  held-out conversational test: {len(heldout)} videos carved to split=test")
@@ -1245,8 +1302,19 @@ def _add_store_parsers(sub: argparse._SubParsersAction, project: CuratorProject)
     p_rs.add_argument("--workers", type=int, default=50)
     p_rs.set_defaults(func=cmd_rescore)
 
-    p_ex = sub.add_parser("export", help="store -> omni-parquet ablation (coverage-gated)")
+    p_ex = sub.add_parser("export", help="store -> immutable training export (coverage-gated)")
     p_ex.add_argument("name", help="ablation dir under datasets/ (e.g. v4)")
+    p_ex.add_argument(
+        "--format",
+        choices=("omni-parquet", "nemo-manifest"),
+        default="omni-parquet",
+        help="portable embedded-audio Parquet or fast local NeMo manifests",
+    )
+    p_ex.add_argument(
+        "--source",
+        action="append",
+        help="include only this exact store source (repeatable)",
+    )
     p_ex.add_argument("--max-wer", type=float, default=None, help="drop clips above this WER")
     p_ex.add_argument("--max-duration", type=float, default=OMNI_MAX_DURATION_S)
     p_ex.add_argument("--no-strict", action="store_true", help="warn instead of fail on <unk>")

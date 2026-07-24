@@ -1,6 +1,6 @@
 # Adding a language
 
-A language project is **pure config**. All curation logic, every CLI command, and the data layout live in `omni_curator.project`; the project supplies values. Georgian and tajik are the reference implementations — identical in shape, differing only in their config values.
+A language project is **pure config**. Curation logic and data layout live in shared packages; the project supplies source metadata, paths, model-family configuration, and thin console entry points. A project may use Omni, Parakeet, or both; do not add empty family packages or commands.
 
 ## Step 0 — find the data (always run this checklist)
 
@@ -18,24 +18,18 @@ Ingest sources (1–6) preserve their splits and need no labelling; the create p
 
 ## The recipe
 
-1. **Create the project skeleton** (copy from `projects/georgian-asr`):
+1. **Create the smallest project skeleton for the selected model family**:
 
    ```text
    projects/<lang>-asr/
-     pyproject.toml          deps: omni-curator[ingest,youtube,normalize] + omni-finetune-core;
-                             <lang>-curate / <lang>-omni-train / <lang>-omni-eval script entry points;
-                             a fairseq2.extension entry -> assets:setup_fairseq2_extension
+     pyproject.toml          deps and console commands for the selected families only
      src/<lang>_asr/
        __init__.py           LANGUAGE ("xxx_Yyyy"), SCRIPT, ROOT/DATA/DB path constants
        sources.py            the language config: FLEURS config, Common Voice ids, channel
                              registry (omni_curator.create.youtube.Channel via channel())
        curate.py             ~45 lines: build a CuratorProject, delegate to project.main
-       assets.py             fairseq2 cards (omni_finetune_core.assets shapes): tokenizer,
-                             base model, dataset card(s), trained-checkpoint cards
-       train.py              a FinetuneProject (omni_finetune_core.project) + delegate:
-                             pinned TrainingPreset recipes and/or the generic --regime path
-       eval.py               ~6 lines: delegate to omni_finetune_core.project.eval_main
-       models/               (gitignored) the omni tokenizer + base checkpoint
+       omni/                 optional Omni config, train, and eval adapters
+       parakeet/             optional ParakeetProject, train, materialize, eval, artifacts.json
    ```
 
 1. **Fill `sources.py`**: the FLEURS config code, MDC Common Voice dataset ids, and the vetted YouTube channel registry. Channel policy: a channel qualifies when a meaningful share of its content is the target language; only pure music/song channels are skipped. **Bilingual channels are safe only once the language has a gate registered** (step 4) — without one, `keep_for_language` keeps everything and the contaminant language trains in.
@@ -46,15 +40,17 @@ Ingest sources (1–6) preserve their splits and need no labelling; the create p
 
 1. **Wire the project config** (`curate.py`): register ingest sources (`fleurs_source` / `commonvoice_source` / any `IngestFn`), and build the export coverage gate with `omni_curator.coverage.char_tokenizer_coverage(<tokenizer .model>)` — the tokenizer + fairseq2/omni-finetune-core live in the project venv, not the package.
 
-1. **Run the pipeline**:
+1. **Run the pipeline**. Existing segmented corpora go directly through ingest; the create/VAD path is only for long unsegmented audio. Quality thresholds are source policies, not global language defaults:
 
    ```text
-   <lang>-curate ingest fleurs            # benchmark splits (dev/test ride along, never gated)
+   <lang>-curate ingest <source>           # preserve authoritative labels and source provenance
    <lang>-curate download                 # channel audio -> data/create/<slug>
    <lang>-curate enqueue / segment / labelq / harvest   # the split create pipeline
    <lang>-curate merge && <lang>-curate verify          # master store + script-aware scoring
-   <lang>-curate export v0 --max-wer 0.35               # gated omni-parquet ablation
+   <lang>-curate export v0 --max-duration 30             # no universal Scribe-WER gate
    ```
+
+   Only exclude structural failures by default: missing/unreadable audio, empty/descriptor-only labels, confirmed wrong language, duplicates/leakage, nonpositive duration, and the target model's duration cap. Treat Scribe disagreement, edge error, CTC alignment, and rate heuristics as additive audit signals. An automatic source-specific exclusion threshold must first achieve at least 95% reject precision on human review and then win an equal-hour, matched two-seed training ablation. Never quality-filter dev/test.
 
 1. **Before the first training run**: freeze a held-out conversational test manifest (whole videos — see `tajik heldout_test_videos.json` and `Selection.heldout_test_videos`), and set the project's `mixture_weights` if a small clean corpus needs lifting against a large conversational mass (tajik's anti-drift recipe: `{"fleurs": 490.0}`).
 

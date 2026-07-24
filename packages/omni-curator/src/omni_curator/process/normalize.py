@@ -65,6 +65,51 @@ def base_normalize(text: str) -> str:
 
 
 # --------------------------------------------------------------------------------------------
+# English (eng_Latn): Parakeet 110M embedded PnC tokenizer surface
+# --------------------------------------------------------------------------------------------
+
+_ENGLISH_APOSTROPHES = str.maketrans({"’": "'", "‘": "'", "`": "'"})
+_ENGLISH_DASH_RE = re.compile(r"[-‐‑‒–—―]+")
+_ENGLISH_ALLOWED_RE = re.compile(r"[^A-Za-z.,!?']+")
+_ENGLISH_PUNCT_TOKEN_RE = re.compile(
+    r"<(COMMA|PERIOD|QUESTIONMARK|EXCLAMATIONPOINT)>", re.IGNORECASE
+)
+_ENGLISH_ANNOTATION_RE = re.compile(r"\[[^\]]*\]")
+_ENGLISH_PUNCT_TOKENS = {
+    "COMMA": ",",
+    "PERIOD": ".",
+    "QUESTIONMARK": "?",
+    "EXCLAMATIONPOINT": "!",
+}
+
+
+def normalize_english(text: str) -> str:
+    """Normalize English for the Parakeet 110M embedded case-and-punctuation tokenizer.
+
+    The base tokenizer covers ASCII letters plus ``.,!?'`` but not digits, typographic quotes,
+    dashes, or accented Latin characters. Keep case and sentence punctuation, expand integer runs,
+    fold common Latin diacritics, and turn unsupported separators into spaces. The export coverage
+    gate remains authoritative for language or symbol surfaces this conservative pass misses.
+    """
+    from num2words import num2words
+
+    text = base_normalize(text).translate(_ENGLISH_APOSTROPHES)
+    text = _ENGLISH_ANNOTATION_RE.sub(" ", text)
+    text = _ENGLISH_PUNCT_TOKEN_RE.sub(
+        lambda match: _ENGLISH_PUNCT_TOKENS[match.group(1).upper()], text
+    )
+    text = text.replace("&", " and ").replace("+", " plus ").replace("%", " percent ")
+    text = text.replace("@", " at ").replace("…", "...")
+    text = _ENGLISH_DASH_RE.sub(" ", text)
+    text = _replace_number_runs(text, lambda value: str(num2words(value, lang="en")))
+    text = unicodedata.normalize("NFKD", text)
+    text = "".join(ch for ch in text if not unicodedata.combining(ch))
+    text = _ENGLISH_ALLOWED_RE.sub(" ", text)
+    text = re.sub(r"\s+([.,!?])", r"\1", text)
+    return _WHITESPACE_RE.sub(" ", text).strip()
+
+
+# --------------------------------------------------------------------------------------------
 # Conservative number-run detection
 # --------------------------------------------------------------------------------------------
 
@@ -287,6 +332,7 @@ def normalize_tajik(text: str) -> str:
 
 #: Languages that have opted in to specialized normalization, keyed by FLORES-style code.
 NORMALIZERS: dict[str, Callable[[str], str]] = {
+    "eng_Latn": normalize_english,
     "kat_Geor": normalize_georgian,
     "fas_Arab": normalize_persian,
     "tgk_Cyrl": normalize_tajik,

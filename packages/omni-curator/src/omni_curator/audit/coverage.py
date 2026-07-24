@@ -10,6 +10,7 @@ with a message naming exactly what is absent.
 
 from __future__ import annotations
 
+import tarfile
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -43,5 +44,46 @@ def char_tokenizer_coverage(model_path: Path) -> Callable[[list[str]], int]:
             )
             raise ImportError(msg) from exc
         return audit_texts(texts, load_char_tokenizer(model_path, None)).unk_rows
+
+    return check
+
+
+def nemo_sentencepiece_coverage(nemo_path: Path) -> Callable[[list[str]], int]:
+    """Build an export coverage gate from the SentencePiece model embedded in a ``.nemo``.
+
+    The archive is read in memory and never unpacked into a project-specific tokenizer folder.
+    That matters for same-language Parakeet fine-tuning: the export must target the base model's
+    exact tokenizer while the trainer preserves its pretrained decoder and joint weights.
+    """
+    processor: object | None = None
+
+    def check(texts: list[str]) -> int:
+        nonlocal processor
+        if not nemo_path.exists():
+            raise FileNotFoundError(f"coverage-gate NeMo model not found: {nemo_path}")
+        try:
+            import sentencepiece as spm
+        except ImportError as exc:
+            raise ImportError(
+                "the Parakeet coverage gate needs sentencepiece in the project environment"
+            ) from exc
+        if processor is None:
+            with tarfile.open(nemo_path) as archive:
+                members = [
+                    member
+                    for member in archive.getmembers()
+                    if member.isfile() and member.name.endswith("_tokenizer.model")
+                ]
+                if len(members) != 1:
+                    raise RuntimeError(
+                        f"expected one embedded SentencePiece model in {nemo_path}, "
+                        f"found {len(members)}"
+                    )
+                handle = archive.extractfile(members[0])
+                if handle is None:
+                    raise RuntimeError(f"could not read {members[0].name} from {nemo_path}")
+                processor = spm.SentencePieceProcessor(model_proto=handle.read())
+        unk_id = processor.unk_id()
+        return sum(unk_id in processor.encode(text, out_type=int) for text in texts)
 
     return check

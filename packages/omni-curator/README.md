@@ -66,6 +66,13 @@ uv run --project projects/farsi-asr --locked omni-vad-review serve \
   --review-dir /scratch/farsi-vad-review
 ```
 
+For transcript review, `omni-transcript-review` requires an already frozen JSONL with `item_id`, `session_id`, `audio_path`, `transcript`, and aligned `words` (`text`, `start`, `end`). It writes a resumable SQLite bundle whose browser player highlights the active word and records timestamped content, formatting, boundary, privacy, and uncertainty markers. The review target may be an explicit product-output surface rather than a verbatim transcript: accepted rows keep the proposed output, while content and formatting markers require a corrected full output and use the clicked word or Shift-clicked range to focus the post-edit:
+
+```bash
+uv run --project projects/english-asr omni-transcript-review prepare --manifest /path/review-aligned.jsonl --output-dir /path/reviewer
+uv run --project projects/english-asr omni-transcript-review serve --review-dir /path/reviewer --host 100.121.185.11 --port 8766
+```
+
 The browser receives only randomized item IDs and audio paths while voting. Keys `1` through `4` record speech, non-speech, a cut-off speech fragment, or unsure; Space replays the isolated region, `C` plays context, and `0` skips. JSON and CSV exports reveal the engine direction only after votes have been stored.
 
 ## Additive data-quality audits

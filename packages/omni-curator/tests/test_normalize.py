@@ -31,6 +31,16 @@ BOM = chr(0xFEFF)
 # ZWNJ -> space (the Farsi README policy): morphemes become separate
 # word units, digits stay digits, Arabic letter variants fold to canonical Persian forms.
 PINNED: dict[str, list[tuple[str, str]]] = {
+    "eng_Latn": [
+        ("Hello, world!", "Hello, world!"),
+        ("I [disfluency] agree [noise].", "I agree."),
+        ("It’s 2026—café & 10%.", "It's two thousand and twenty six cafe and ten percent."),
+        ("“Quoted” co-operate@example.com", "Quoted co operate at example.com"),
+        (
+            "HELLO <COMMA> WORLD <PERIOD> REALLY <QUESTIONMARK> YES <EXCLAMATIONPOINT>",
+            "HELLO, WORLD. REALLY? YES!",
+        ),
+    ],
     "fas_Arab": [
         (f"می{ZWNJ}خوام برم", "می خوام برم"),  # ZWNJ -> space, NOT glued (3 words)
         (f"کتاب{ZWNJ}ها را", "کتاب ها را"),
