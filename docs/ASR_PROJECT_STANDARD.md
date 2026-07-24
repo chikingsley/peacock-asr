@@ -8,8 +8,9 @@ One uniform layout that supports **single-lane** (one model family) and **multi-
 
 ```
 src/<lang>_asr/
-  __init__.py  sources.py  assets.py  curate.py      # shared / curation
-  omni/        __init__.py  train.py  eval.py         # omni CTC family (always present)
+  __init__.py  sources.py  curate.py                   # shared / curation
+  assets.py                                           # only when fairseq2/Omni cards are used
+  omni/        __init__.py  train.py  eval.py         # only when the omni CTC family is used
   parakeet/    __init__.py(ParakeetProject)  train.py  eval.py  artifacts.json   # only where used
 ```
 
@@ -20,10 +21,10 @@ Package name is always `<lang>_asr` (no `_omnilingual_`).
 ```
 <lang>-curate
 <lang>-omni-train   <lang>-omni-eval
-<lang>-parakeet-train-tokenizer  -train-ctc  -train-tdt  -train-nemo   <lang>-parakeet-eval
+<lang>-parakeet-materialize  <lang>-parakeet-train-tdt  <lang>-parakeet-eval
 ```
 
-Bare `<lang>-train`/`<lang>-eval` aliases are retired. Use the explicit family commands above.
+Expose only commands for the families and workflows the project actually uses. Tokenizer, CTC, and generic NeMo-recipe commands are optional, not boilerplate. Bare `<lang>-train`/`<lang>-eval` aliases are retired; use explicit family commands.
 
 ## data / artifacts
 
@@ -53,6 +54,8 @@ runs/ omni/<run>/  parakeet/<run>/           # live training output (ephemeral)
 - Base model paths come from the repo-level `base_models/parakeet/` cache.
 - Eval defaults to the stable final `.nemo`, not a `runs/.../last.ckpt`.
 - Recipes are NOT packaged into the wheel (vendored NeMo tree is too heavy/churny) — they live in the shared repo-level dir above.
+- Same-language Parakeet fine-tuning leaves `default_tokenizer_dir` unset and preserves the tokenizer embedded in the base `.nemo`; vocabulary replacement is only for a real language/vocabulary change.
+- `parakeet-finetune-core.materialize` is the shared omni-parquet -> deterministic FLAC + NeMo JSONL bridge. A language project supplies paths and a console entry point, not another exporter.
 
 ## Rollout order
 
