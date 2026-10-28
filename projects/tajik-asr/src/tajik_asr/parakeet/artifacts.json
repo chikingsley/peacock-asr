@@ -1,7 +1,18 @@
 {
-  "_comment": "Tracked pointer for canonical Tajik Parakeet artifacts. Files live under the gitignored data/parakeet (and the repo-level base_models/parakeet cache); this file records sha256 / provenance / planned HF target so they are reproducible. HF push is a follow-up; revision is filled once uploaded.",
+  "_comment": "Published model provenance and current training defaults. The original train_big manifest records the released model's history; new training uses v3-safe with source identity checks.",
   "hf_repo": "peacockery/tajik-parakeet-tdt-110m",
-  "hf_revision": null,
+  "hf_revision": "1b213a53b8f8e39e553039f39200467dafe25a7f",
+  "license": "CC-BY-4.0",
+  "training_defaults": {
+    "dataset_repo": "Peacockery/tajik-asr-corpus-v3",
+    "dataset_revision": "3b05a4bb89104c21643081250729595347d1188e",
+    "prepare_command": "uv run --project projects/tajik-asr tajik-parakeet-prepare --download --all-splits",
+    "train_manifest": "v3-safe/manifests/train.jsonl",
+    "validation_manifest": "v3-safe/manifests/dev.jsonl",
+    "test_manifest": "v3-safe/manifests/test.jsonl",
+    "tokenizer": "tokenizers/v3-safe/tokenizer_spe_bpe_v1024",
+    "initial_weights": "original NVIDIA base; regenerate tokenizer from the clean training manifest"
+  },
   "artifacts": {
     "manifests/train_big.jsonl": {"sha256_16": "c3c3236790aaa817", "rows": 232824, "hours": 1197, "source": "gate1b_curator_manifest.py --max-wer 0.35 --max-dur 30 (curator.sqlite, split=train, tgk_Cyrl)"},
     "manifests/dev_big.jsonl": {"sha256_16": "7396e9fcee20af1a", "rows": 357, "source": "curator.sqlite split=dev tgk_Cyrl"},

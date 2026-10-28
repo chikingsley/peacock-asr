@@ -269,6 +269,8 @@ def test_export_writes_sample_metadata(make_sample, tmp_path):
     )
     table = pq.read_table(parquet)
     assert table.schema.names[:3] == ["text", "audio_bytes", "audio_size"]
+    assert table.column("sample_id")[0].as_py() == sample.id
+    assert table.column("source_video_id")[0].as_py() == "chan_vid001"
     assert json.loads(table.column("metadata")[0].as_py()) == {
         "category": "news",
         "tier": "clean",
@@ -328,6 +330,7 @@ def test_nemo_manifest_export_references_canonical_audio_without_copy(make_sampl
     assert row["audio_filepath"] == str(audio.resolve())
     assert row["text"] == "Hello, world!"
     assert row["metadata"] == {"category": "news"}
+    assert row["source_video_id"] == "chan_vid001"
     assert list(output.rglob("*.flac")) == []
     summary = json.loads((output / "export_summary.json").read_text(encoding="utf-8"))
     assert summary["audio_mode"] == "reference"

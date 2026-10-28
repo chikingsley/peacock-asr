@@ -24,6 +24,8 @@ class ParakeetProject:
     default_hybrid_model: Path | None = None
     default_train_manifest: Path | None = None
     default_validation_manifest: Path | None = None
+    heldout_manifest: Path | None = None
+    evaluation_manifests: tuple[Path, ...] = ()
     default_dataset_root: Path | None = None
     default_materialized_root: Path | None = None
     default_tokenizer_dir: Path | None = None

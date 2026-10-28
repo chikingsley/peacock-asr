@@ -136,6 +136,8 @@ EXPORT_SCHEMA: pa.Schema = pa.schema(
         pa.field("license", pa.string()),
         pa.field("commercial_use", pa.bool_()),
         pa.field("metadata", pa.string()),
+        pa.field("sample_id", pa.string()),
+        pa.field("source_video_id", pa.string()),
     ]
 )
 
@@ -498,6 +500,8 @@ def _batch_to_table(
     audio: list[np.ndarray] = []
     sizes: list[int] = []
     metadata: list[str] = []
+    sample_ids: list[str] = []
+    video_ids: list[str | None] = []
     skipped = 0
     for sample, norm_text in batch:
         path = Path(sample.audio_path)
@@ -508,6 +512,8 @@ def _batch_to_table(
         audio.append(_flac_bytes(path))
         sizes.append(max(1, round(sample.duration * SAMPLE_RATE)))
         metadata.append(json.dumps(sample.meta, ensure_ascii=False, sort_keys=True))
+        sample_ids.append(sample.id)
+        video_ids.append(_video_id(sample) if sample.source.startswith("youtube") else None)
     n = len(texts)
     table = pa.Table.from_arrays(
         [
@@ -517,6 +523,8 @@ def _batch_to_table(
             pa.array([license_str] * n, type=pa.string()),
             pa.array([commercial] * n, type=pa.bool_()),
             pa.array(metadata, type=pa.string()),
+            pa.array(sample_ids, type=pa.string()),
+            pa.array(video_ids, type=pa.string()),
         ],
         schema=EXPORT_SCHEMA,
     )
@@ -844,6 +852,9 @@ def export_nemo_manifests(
                         "corpus": corpus,
                         "language": language,
                         "sample_id": sample.id,
+                        "source_video_id": _video_id(sample)
+                        if corpus.startswith("youtube")
+                        else None,
                         "speaker_id": sample.speaker_id,
                         "citation": sample.citation,
                         "license": license_info.id,

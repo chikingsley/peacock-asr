@@ -1,0 +1,357 @@
+{
+  "audit_date": "2026-10-28",
+  "scope": "Public Hugging Face comment, published weight identity, original training manifests, source licenses, and dependency upgrade review",
+  "discussion": {
+    "url": "https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m/discussions/1",
+    "created_at": "2026-10-28T08:32:40Z",
+    "author": "deniswsrosa",
+    "request": "License for ONNX INT8 use in a free Android translation app and possible further fine-tuning",
+    "reported_fleurs_wer_percent": 17,
+    "reported_score_status": "External self-report; evaluation methodology remains to be reconciled"
+  },
+  "model": {
+    "id": "Peacockery/tajik-parakeet-tdt-110m",
+    "revision": "1b213a53b8f8e39e553039f39200467dafe25a7f",
+    "published_files": [
+      ".gitattributes",
+      "manifests/dev_big.jsonl",
+      "manifests/test_big.jsonl",
+      "manifests/test_fleurs.jsonl",
+      "tajik-parakeet-tdt-110m_final.nemo",
+      "tokenizer_spe_bpe_v1024/tokenizer.model",
+      "tokenizer_spe_bpe_v1024/tokenizer.vocab",
+      "tokenizer_spe_bpe_v1024/vocab.txt",
+      "README.md",
+      "LICENSE",
+      "NOTICE"
+    ],
+    "sha256": "92e672d08b730a1c50cad7c0369c2d19fc1b9ebc83b16aa0fb5ae69267f3879f",
+    "local_final_sha256_matches_published": true,
+    "base_id": "nvidia/parakeet-tdt_ctc-110m",
+    "base_revision": "431a349f3051ab85c22b9b7a2741b5fe77065665",
+    "base_license": "cc-by-4.0",
+    "base_source": "https://huggingface.co/nvidia/parakeet-tdt_ctc-110m",
+    "initial_revision": "79c0e75d4a3d5b49e26ecc153f17fbcf4897468c",
+    "initial_card_data": null,
+    "card_license": "cc-by-4.0"
+  },
+  "license_assessment": {
+    "release_status": "Published and read back on 2026-10-28; all three public files match their local SHA-256 hashes; model weights unchanged",
+    "common_voice": "CC0",
+    "fleurs": "CC BY 4.0",
+    "muhtasham": "Published dataset card contains schema and split metadata; license and original-source provenance remain unresolved",
+    "youtube": "Published Peacockery dataset cards declare CC BY 4.0; underlying video permissions remain unresolved. All 31 retained local info sidecars omit the license field; their filenames have zero matches to the 11268 training video pairs.",
+    "boundary": "Weight licensing and third-party training-data rights require separate assessment. This audit verifies provenance; legal clearance remains a separate step.",
+    "sources": [
+      "https://commonvoice.mozilla.org/dav/terms",
+      "https://huggingface.co/datasets/google/fleurs",
+      "https://huggingface.co/datasets/muhtasham/tajik-asr-augmented-test",
+      "https://huggingface.co/datasets/Peacockery/tajik-asr-youtube",
+      "https://support.google.com/youtube/answer/2797468?hl=en",
+      "https://creativecommons.org/licenses/by/4.0/",
+      "https://creativecommons.org/using-cc-licensed-works-for-ai-training-2/"
+    ],
+    "weight_release_license": "CC BY 4.0, preserving NVIDIA/Suno attribution and identifying the Tajik fine-tune"
+  },
+  "training": {
+    "manifest_audit": {
+      "train_rows": 232824,
+      "train_source_rows": {
+        "youtube": 229470,
+        "commonvoice": 236,
+        "fleurs": 2265,
+        "hf-muhtasham": 853
+      },
+      "train_source_hours": {
+        "youtube": 1186.1963222222244,
+        "commonvoice": 0.34314999999999996,
+        "fleurs": 8.469733333333327,
+        "hf-muhtasham": 2.348400000000003
+      },
+      "heldout_video_overlap_rows": 2246,
+      "heldout_video_overlap_hours": 10.9212,
+      "heldout_video_overlap_videos": 143,
+      "conversational_eval_rows": 1625,
+      "audio_overlap_verification": "Original files for the 2246 overlapping training rows were unavailable at their current local data paths. Video overlap is verified from the frozen manifest; byte-level audio identity remains unresolved.",
+      "exact_corpus_text_duration_matches": 6,
+      "jingle_descriptor_rows": 17814,
+      "jingle_descriptor_hours": 19.243
+    },
+    "manifest_hashes": {
+      "projects/tajik-asr/data/parakeet/manifests/train_big.jsonl": {
+        "sha256": "c3c3236790aaa817652f6641d5b4f99004d3cba3b2b4f173da2a8e57183e9e23",
+        "rows": 232824
+      },
+      "projects/tajik-asr/data/parakeet/manifests/dev_big.jsonl": {
+        "sha256": "7396e9fcee20af1ad8b497a615fb983006a20c180885cc5b958b1be353acd321",
+        "rows": 357
+      },
+      "projects/tajik-asr/data/parakeet/manifests/test_big.jsonl": {
+        "sha256": "060080e31ba5934e7e6ebe2ce639f35cbcb83e2d4ae0185d0bba18eba9e500b6",
+        "rows": 721
+      },
+      "projects/tajik-asr/data/parakeet/manifests/test_fleurs.jsonl": {
+        "sha256": "10802469b3ded0ce463475bbc3cc3f343d93473c9b0e2d3a709889d86d53b443",
+        "rows": 600
+      }
+    },
+    "heldout_video_manifest": "projects/tajik-asr/manifests/heldout_test_videos.json",
+    "heldout_video_manifest_sha256": "3fe92b34542376836141db0a8b8cad87598272093a5166a81ad0d59c347d36a7",
+    "recipe": {
+      "steps": 100000,
+      "precision": "bf16",
+      "tokenizer": "Fresh Tajik SentencePiece BPE 1024",
+      "learning_rate": 0.0003,
+      "warmup_steps": 2000,
+      "batch_duration_seconds": 120,
+      "checkpoint": "Last-step final model",
+      "source": "projects/tajik-asr/experiments/tdt/README.md"
+    },
+    "manifest_builder": "projects/tajik-asr/experiments/tdt/gate1b_curator_manifest.py",
+    "split_finding": "The direct SQLite training export selects split=train and applies duration and Scribe WER limits. It bypasses the separate heldout video list used by the Omni exporter. The recorded 33.8455 percent conversational WER measures a video-overlapping benchmark for this 110M checkpoint.",
+    "path_overlap_with_dev_big": 0,
+    "path_overlap_with_test_big": 0,
+    "path_overlap_scope": "Exact path checks establish manifest-path separation; cross-source duplicate and augmentation provenance require further checking"
+  },
+  "recorded_evaluation": {
+    "source": "projects/tajik-asr/data/parakeet/eval/reproduction-2026-07-09",
+    "fleurs_rows": 600,
+    "fleurs_normalized_wer_percent": 19.030451791056223,
+    "dev_normalized_wer_percent": 17.773202950763427,
+    "conversational_normalized_wer_percent": 33.84549566067718,
+    "status": "Reproduced on 2026-10-28 under NeMo 2.7.3 and 3.0.0; all 600 prediction records identical",
+    "reproduction": {
+      "nemo273": {
+        "rows": 600,
+        "normalized": {
+          "wer_percent": 19.030451791056223,
+          "cer_percent": 6.7172602608131795,
+          "empty_hypotheses": 0,
+          "scored_rows": 600,
+          "excluded_empty_references": 0
+        },
+        "inference_dtype": "fp32",
+        "prediction_sha256": "d6c2d556ee43fc51d673d778e21a71979a1ca1ef8f89664edb0a23cf3ae5e0fc"
+      },
+      "nemo300": {
+        "rows": 600,
+        "normalized": {
+          "wer_percent": 19.030451791056223,
+          "cer_percent": 6.7172602608131795,
+          "empty_hypotheses": 0,
+          "scored_rows": 600,
+          "excluded_empty_references": 0
+        },
+        "inference_dtype": "fp32",
+        "prediction_sha256": "d6c2d556ee43fc51d673d778e21a71979a1ca1ef8f89664edb0a23cf3ae5e0fc"
+      }
+    },
+    "evidence_directory": "/home/simon/github/ai-lab/peacock-asr/projects/tajik-asr/runs/parakeet/clean-retrain-20261028/released-baseline"
+  },
+  "dependencies": {
+    "latest_stable_checked": {
+      "nemo-toolkit": "3.0.0",
+      "fairseq2": "0.8.1",
+      "fairseq2n": "0.8.1",
+      "omnilingual-asr": "0.2.0",
+      "lhotse": "1.33.0"
+    },
+    "nemo_upgrade_dry_run": {
+      "command": "uv lock --project projects/tajik-asr --upgrade-package 'nemo-toolkit==3.0.0' --dry-run",
+      "result": "Resolved 194 packages successfully; current Torch 2.9.1 and fairseq2 0.8.1 retained",
+      "validation_boundary": "Historical resolver-only check; the completed runtime and regression checks appear in upgrade_validation."
+    },
+    "upstream_tdt_loss_fix": "NeMo v3.0.0 hybrid_rnnt_ctc_bpe_models.py still initializes replacement loss with joint.num_classes_with_blank - 1. Retain the shared duration-output correction and validate it during migration.",
+    "meta_status": "The project already uses Omni CTC 300M v2 and a local omnilingual-asr fork supporting fairseq2 0.8.1. Upstream package metadata still caps fairseq2 at 0.6.0.",
+    "sources": [
+      "https://github.com/NVIDIA-NeMo/Speech/releases/tag/v3.0.0",
+      "https://nvidia.custhelp.com/app/answers/detail/a_id/5885",
+      "https://github.com/facebookresearch/fairseq2/releases",
+      "https://github.com/facebookresearch/omnilingual-asr",
+      "https://pypi.org/pypi/nemo-toolkit/json",
+      "https://pypi.org/pypi/fairseq2n/json",
+      "https://raw.githubusercontent.com/NVIDIA-NeMo/Speech/v3.0.0/nemo/collections/asr/models/hybrid_rnnt_ctc_bpe_models.py"
+    ],
+    "locked_before_upgrade": {
+      "datasets": "4.8.5",
+      "fairseq2": "0.8.1",
+      "fairseq2n": "0.8.1",
+      "huggingface-hub": "0.36.2",
+      "jiwer": "3.1.0",
+      "lhotse": "1.33.0",
+      "nemo-toolkit": "2.7.3",
+      "torch": "2.9.1",
+      "torchaudio": "2.9.1"
+    },
+    "locked": {
+      "nemo-toolkit": "3.0.0",
+      "torch": "2.9.1",
+      "torchaudio": "2.9.1",
+      "fairseq2": "0.8.1",
+      "fairseq2n": "0.8.1",
+      "lhotse": "1.33.0",
+      "datasets": "4.8.5",
+      "huggingface-hub": "0.36.2",
+      "lightning": "2.4.0",
+      "pytorch-lightning": "2.6.6",
+      "transformers": "4.57.6",
+      "jiwer": "3.1.0",
+      "aiohttp": "3.14.5",
+      "pillow": "13.0.0",
+      "onnx": "1.22.0",
+      "yt-dlp": "2026.10.26",
+      "httpx": "0.28.1"
+    },
+    "upgrade_validation": {
+      "baseline_predictions_identical": 600,
+      "cpu_original_base_parameters": 114624647,
+      "new_tokenizer_vocab": 1024,
+      "rnnt_loss_classes": 1024,
+      "compute_eval_loss": true,
+      "runtime_smoke_optimizer_steps": 2,
+      "runtime_smoke_finite_validation": true,
+      "last_and_best_nemo_exports_verified": true,
+      "parakeet_and_project_tests_passed": 84,
+      "curator_tests_passed": 265,
+      "production_batch_pilot": "passed"
+    },
+    "datasets_boundary": "Datasets 5.1.0 imports BucketNotFoundError from Hub 1.x and fails with the current Hub 0.36.2. Datasets is bounded >=4.8.5,<5; Transformers 4.57.6 requires Hub <1.",
+    "remaining_audit": {
+      "advisory_entries": 26,
+      "affected_packages": [
+        "datasets",
+        "fsspec",
+        "hydra-core",
+        "lightning",
+        "torch",
+        "transformers"
+      ],
+      "constraints": "NeMo 3 caps Hydra and Lightning; Datasets 4 and Transformers 4 constrain Hub and fsspec; Torch 2.9.1 matches fairseq2 native wheels. Curated audio uses pinned Parquet and local FLAC, rather than arbitrary remote dataset scripts."
+    }
+  },
+  "work_completed": "License published and verified; local curated data restored and checked; shared pipeline repaired; NeMo 3 migrated with regression and live model checks; supervised clean training launched. Final retrain quality remains pending.",
+  "clean_retrain": {
+    "prepared_data": {
+      "status": "complete",
+      "dataset_repo": "Peacockery/tajik-asr-corpus-v3",
+      "dataset_revision": "3b05a4bb89104c21643081250729595347d1188e",
+      "dataset_inventory": {
+        "revision": "3b05a4bb89104c21643081250729595347d1188e",
+        "verified_shards": 62,
+        "bytes": 75569082732
+      },
+      "source_database": "/mnt/workerssd-2t/peacock-asr/tajik-asr/provenance/curator-2026-10-28.sqlite",
+      "heldout_manifest_sha256": "3fe92b34542376836141db0a8b8cad87598272093a5166a81ad0d59c347d36a7",
+      "source_identity_method": "candidate match by corpus, normalized text, and sample count; every candidate evaluation video reserved",
+      "splits": {
+        "dev": {
+          "rows": 239,
+          "hours": 0.9335166666666666,
+          "excluded_duration": 0,
+          "excluded_provenance": 0,
+          "manifest": "/mnt/workerssd-2t/peacock-asr/tajik-asr/parakeet/v3-safe/manifests/dev.jsonl"
+        },
+        "test": {
+          "rows": 2224,
+          "hours": 12.335877777777789,
+          "excluded_duration": 0,
+          "excluded_provenance": 0,
+          "manifest": "/mnt/workerssd-2t/peacock-asr/tajik-asr/parakeet/v3-safe/manifests/test.jsonl"
+        },
+        "train": {
+          "rows": 173240,
+          "hours": 987.5421333332866,
+          "excluded_duration": 7200,
+          "excluded_provenance": 243,
+          "manifest": "/mnt/workerssd-2t/peacock-asr/tajik-asr/parakeet/v3-safe/manifests/train.jsonl",
+          "source_matches": {
+            "unique_match": 170933,
+            "ambiguous_match": 2307
+          }
+        }
+      },
+      "evaluation_video_expansion": {
+        "excluded_rows": 237,
+        "video": 237
+      },
+      "pre_expansion_manifest": "/mnt/workerssd-2t/peacock-asr/tajik-asr/parakeet/v3-safe/manifests/train.before-evaluation-video-expansion.jsonl",
+      "preflight": {
+        "train_rows": 173240,
+        "evaluation_rows": 2463
+      }
+    },
+    "audio_preflight": {
+      "preflight": {
+        "train_rows": 173240,
+        "evaluation_rows": 3063
+      },
+      "audio_files_checked": 176104,
+      "status": "passed",
+      "duration_tolerance_seconds": 0.010001,
+      "centisecond_rounding_rows": 71,
+      "largest_duration_difference_seconds": 0.009937499999999488,
+      "format_errors": 0
+    },
+    "unit": "peacock-tajik-clean-20261028.service",
+    "status": "training_running",
+    "base_sha256": "1e6b5c3bcaa390b479bd8112512ede515d2ef5b61495568f2c266d6d5e680c3a",
+    "tokenizer_sha256": "0f9d5ca7f7c4053b071fcc884752e3a366a5cc69c49f1c5a5ebf84bfe19a14c2",
+    "training_manifest_sha256": "e65a91daa351dcc87d58f92269598d000358dacc8d69a2cf9fdc84ce68a8b57c",
+    "max_steps": 100000,
+    "checkpoint_metric": "val_loss",
+    "final_evaluation": [
+      "FLEURS full 600, fp32",
+      "conversational 1625, pseudo-reference, fp32"
+    ],
+    "service_restoration": "systemd ExecStopPost starts vllm-asr and checks /health; recovery verified after both startup failures",
+    "run_root": "/home/simon/github/ai-lab/peacock-asr/projects/tajik-asr/runs/parakeet/clean-retrain-20261028",
+    "pilot": {
+      "pilot_steps": 50,
+      "seconds_per_step": 0.20999999999999996,
+      "estimated_training_hours_excluding_validation": 5.833333333333332,
+      "validation": {
+        "step": 50,
+        "val_loss": 113.5226,
+        "val_wer_bf16": 1.0,
+        "val_wer_ctc_bf16": 1.0
+      }
+    },
+    "progress_snapshot": {
+      "captured_at": "2026-10-28T19:07:59.748042+00:00",
+      "step": 2350,
+      "loss": 80.6558,
+      "lr": 0.00029999,
+      "t": 397.4,
+      "audio_hours_seen": 31.7696
+    },
+    "first_full_run_validation": {
+      "step": 2000,
+      "val_loss": 45.5202,
+      "val_wer_bf16": 0.7703,
+      "val_wer_ctc_bf16": 0.7961
+    },
+    "resume_checkpoint": "/home/simon/github/ai-lab/peacock-asr/projects/tajik-asr/runs/parakeet/tajik-parakeet-tdt-110m-clean-20261028/checkpoints/last.ckpt"
+  },
+  "pipeline_repairs": [
+    "Reject frozen or candidate evaluation video identities before model allocation",
+    "Preserve sample and video IDs in future Parquet exports and materialized manifests",
+    "Require one explicit nonempty transcript from LLM fusion and retry malformed replies",
+    "Retire the legacy SQL exporter that bypassed curation",
+    "Verify all pinned dataset shards and retain source and run fingerprints",
+    "Use packed Arrow audio bytes rather than one Python integer per byte"
+  ],
+  "upstream_training_status": {
+    "official_tdt_support": "NeMo Speech 3.0.0 documents TDT and hybrid fine-tuning, Lhotse, and OOMptimizer; the 110M vocabulary loss-class correction remains in this stack. Accuracy advantage requires matched evaluations.",
+    "sources": [
+      "https://github.com/NVIDIA-NeMo/Speech/releases/tag/v3.0.0",
+      "https://docs.nvidia.com/nemo/speech/latest/asr/fine_tuning.html",
+      "https://github.com/facebookresearch/fairseq2/releases/tag/v0.8.1"
+    ]
+  },
+  "next_evidence": [
+    "Production-batch pilot throughput and memory",
+    "Clean 100k-step best-checkpoint evaluation on identical benchmarks",
+    "Native-speaker review of a frozen conversational benchmark",
+    "Optional gold-data mixture ablation after the clean baseline"
+  ]
+}

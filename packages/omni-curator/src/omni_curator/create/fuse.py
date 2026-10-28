@@ -32,9 +32,9 @@ _CONSENSUS_INSTRUCTION = (
     "Perso-Arabic, etc.), convert it to {script}; NEVER leave a {lang} word in another script.\n"
     "- Keep any other language (e.g. English) EXACTLY as spoken; do NOT paraphrase or translate "
     "it.\n"
-    "- Use cross-run and cross-language agreement plus linguistic sense to fix mishearings and "
-    "hallucinations; correct a word even when it appears in none of the hypotheses if grammar "
-    "or meaning require it.\n"
+    "- Use cross-run and cross-language agreement to choose the best-supported wording. "
+    "Restrict corrections to wording supported by the supplied hypotheses and script "
+    "conversion. Preserve spoken repetitions, dialect, and code-switching.\n"
     "- Output the final transcript inside <transcript></transcript> tags and NOTHING else."
 )
 
@@ -54,9 +54,12 @@ def default_client() -> SuperwhisperClient:
 
 
 def extract_transcript(text: str) -> str:
-    """Return the tagged transcript, or the whole text if the model omitted the tags."""
-    match = TRANSCRIPT_TAG.search(text)
-    return (match.group(1) if match else text).strip()
+    """Accept one explicit transcript; surface malformed LLM output for retry/review."""
+    matches = TRANSCRIPT_TAG.findall(text)
+    if len(matches) != 1 or not matches[0].strip():
+        msg = "LLM response requires exactly one nonempty <transcript> element"
+        raise ValueError(msg)
+    return matches[0].strip()
 
 
 def consensus_fuse(

@@ -21,6 +21,7 @@ dependencies = [
   "tqdm>=4.66",
   # English Parakeet labels expand digit runs onto the embedded tokenizer's word surface.
   "num2words>=0.5.14",
+  "httpx>=0.28.1,<1",
 ]
 
 [project.scripts]

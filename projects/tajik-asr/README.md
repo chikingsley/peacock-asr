@@ -1,40 +1,75 @@
 # Tajik ASR
 
-Fine-tuning OmniASR CTC for Tajik (`tgk_Cyrl`). A thin per-language project — config (`sources.py`) plus wiring (`curate.py`, `train.py`, `eval.py`, `assets.py`) over the shared packages [`omni-curator`](../../packages/omni-curator) (data) and [`omni-finetune-core`](../../packages/omni-finetune-core) (training).
+Tajik (`tgk_Cyrl`) ASR data preparation, Omni CTC training, and Parakeet TDT training. Language configuration lives here; reusable data and model mechanics live in `omni-curator`, `omni-finetune-core`, and `parakeet-finetune-core`.
 
-## Pipeline
+## Released model
 
-```text
-curate download → enqueue → segment → labelq → harvest → merge → (ingest) → verify → export
+[Peacockery/tajik-parakeet-tdt-110m](https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m) carries CC BY 4.0, NVIDIA/Suno attribution, a model card, and a notice. Its original weights remain the published baseline. The October 28, 2026 check reproduced 19.03% normalized WER on all 600 FLEURS test clips; NeMo 2.7.3 and 3.0.0 produced identical prediction records.
+
+The historical `train_big.jsonl` preserves the released model's provenance. Its SQL exporter included clips from 143 reserved evaluation videos and 17,814 jingle-descriptor labels. Current training defaults use the curated v3 corpus and explicit identity checks. The conversational benchmark is relative to machine-generated references; FLEURS supplies the independent reference benchmark.
+
+Publication and audit evidence lives in `docs/license-publication-2026-10-28.json`, `docs/license-and-training-audit-2026-10-28.json`, and `src/tajik_asr/parakeet/artifacts.json`.
+
+## Data and provenance
+
+The retained curator database contains 347,897 clips and 1,841.55 hours. The published [curated v3 corpus](https://huggingface.co/datasets/Peacockery/tajik-asr-corpus-v3) contains 183,146 clips and 1,070.81 hours across training, development, and test. It stores complete FLAC audio in Parquet. Its training partition contains 180,683 clips and 1,057.54 hours before the Parakeet duration cap and additional identity exclusions.
+
+The broader [YouTube corpus](https://huggingface.co/datasets/Peacockery/tajik-asr-youtube) retains clip identities and Scribe agreement scores. Original recordings remain in `/mnt/massive-22t/peacock-asr-archive/tajik` on this host. The clean retrain consumes the curated corpus locally on the worker SSD. Source recordings serve future curation and segmentation experiments.
+
+YouTube labels originated from Scribe hypotheses and LLM fusion. Scribe agreement measures consistency between machine transcripts. FLEURS retains its reference transcripts. The preparation report records those origins separately and retains `unknown` for individual YouTube recording licenses.
+
+## Prepare clean Parakeet training
+
+Run commands from the repository root:
+
+```bash
+uv sync --project projects/tajik-asr --locked
+uv run --project projects/tajik-asr --locked tajik-parakeet-prepare --download --all-splits
 ```
 
-- `tajik-curate download [--tier clean]` — pull YouTube channel audio (`sources.YOUTUBE_CHANNELS`) to `data/create/<slug>/` (16 kHz FLAC, resumable, cookie-authenticated).
-- `tajik-curate enqueue / segment / labelq / harvest` — the split create pipeline: queue not-yet-labeled videos, VAD-segment them into clips (CPU producers), Scribe-label the clip queue (~200 I/O workers), fold labeled clips into `data/channels/<slug>/store.sqlite`.
-- `tajik-curate merge` — fold the per-channel stores into the master `data/curator.sqlite`.
-- `tajik-curate ingest fleurs|commonvoice` — existing-labeled datasets into the store.
-- `tajik-curate verify` / `rescore` — Scribe-score every clip (script-aware; WER/CER persisted for the export gate).
-- `tajik-curate export vN [--max-wer ...]` — `Selection` over the pool → omni-parquet under `data/datasets/vN` (normalize → language gate → quality filter → tokenizer-coverage gate).
-- `tajik-omni-train` / `tajik-omni-eval` — fine-tune / score via `omni-finetune-core` presets + `assets.py` cards.
+`--source-database` selects a retained curator snapshot. `--dataset-root` and `--output-root` select storage locations. On this host, `data/datasets/v3` and `data/parakeet/v3-safe` resolve to the worker SSD. The verified curator snapshot is `/mnt/workerssd-2t/peacock-asr/tajik-asr/provenance/curator-2026-10-28.sqlite`.
 
-## Data layout (`data/`, gitignored)
+Preparation verifies every Parquet shard against the pinned Hub revision, extracts deterministic FLAC files, reconstructs candidate source identities by corpus, normalized text, and sample count, and records ambiguous matches. Training excludes every candidate matching a reserved video or evaluation identity. Its manifest includes audio hashes, candidate source IDs, label origins, dataset revision, and recording-license status. Development and test preserve the published v3 duration range through 40 seconds; training uses 0.5–30 seconds.
 
-```text
-data/
-  create/<slug>/    downloaded channel audio
-  channels/<slug>/  per-channel labeled stores
-  labeled/<slug>/   per-video VAD clip cuts (label workspace)
-  canonical_audio/  resampled ingest clips
-  raw/              transient dataset downloads (HF cache, Common Voice)
-  curator.sqlite    master pool (merge target)
-  datasets/vN/      exported omni-parquet ablations
+`source-audit.json` and `materialization-<split>.json` record the resulting counts and exclusions. Training entry points check the frozen video list, evaluation identities, audio availability, and manifest completeness before restoring the model.
+
+The October 28 preparation retained 173,240 training clips and 987.54 hours after excluding 7,200 overlong or short clips and 243 evaluation-identity conflicts. All 62 source Parquet shards passed SHA-256 verification. Header checks covered 176,104 distinct training and evaluation audio files: 16 kHz mono throughout, with source-duration rounding below 10 milliseconds. Future curator Parquet exports also carry sample and video IDs directly, and the shared materializer preserves those fields.
+
+Local SSD staging keeps network and rotating-disk latency outside the training loop. The Parquet archive occupies 75.6 GB; extracted FLAC files provide direct access for Lhotse's shuffled batches. Streaming with a local cache is a viable option for a larger corpus. This corpus fits locally with over 500 GB of SSD space remaining.
+
+## Train and evaluate
+
+Train a fresh tokenizer from the prepared training manifest:
+
+```bash
+uv run --project projects/tajik-asr --locked tajik-parakeet-train-tokenizer \
+  --manifest projects/tajik-asr/data/parakeet/v3-safe/manifests/train.jsonl \
+  --name v3-safe --vocab-size 1024
 ```
 
-## Sources (`sources.py`)
+The tokenizer wrapper uses NVIDIA's `scripts/tokenizers/process_asr_text_tokenizer.py` under the configured NeMo recipe cache. This host has the script from the NeMo Speech `v3.0.0` tag. The base checkpoint is `nvidia/parakeet-tdt_ctc-110m`; its SHA-256 is `1e6b5c3bcaa390b479bd8112512ede515d2ef5b61495568f2c266d6d5e680c3a`.
 
-Wired now: **FLEURS** `tg_tj`, and **43 vetted YouTube channels** (19 clean — news / audiobook / narration / lessons; 24 noisy — talk / podcast / vlog).
+Start with a short pilot, then run the clean baseline:
 
-Planned (see `TODO.md`, not yet in `sources.py`): **Common Voice 25** `tg` and HF datasets (`muhtasham/tajik-asr-augmented-test`, …) via `omni_curator.ingest.huggingface.load_hf_audio`.
+```bash
+uv run --project projects/tajik-asr --locked tajik-parakeet-train-tdt \
+  --name tajik-parakeet-tdt-110m-clean-20261028 \
+  --max-steps 100000 --warmup 2000 --lr 0.0003 \
+  --batch-dur 120 --max-dur 30 --fused-batch-size 2
+```
 
-## Legacy
+The curated labels use lowercase, punctuation-free text. This is the new model's output-style contract. TDT uses validation loss for checkpoint selection and standalone fp32 WER for quality comparisons. Each invocation records its arguments, package versions, and input hashes in `run_invocations.jsonl`. Training saves last-step and best-validation-loss model artifacts separately.
 
-The original combined dataset (`dataset_prep/artifacts/tajik_asr_combined_v0`, gitignored) and its trained checkpoint are kept as provenance: 1,884 / 263 / 440 train/dev/test from `fleurs_tg_tj` (1,815) + `common_voice_25_tg` (572) + `muhtasham_tajik_asr_augmented_test` (200), Scribe-v2 corpus WER train 11.7% / dev 13.1% / test 14.7%. The `data/datasets` pipeline supersedes it.
+The October 28 host job is supervised by the user service `peacock-tajik-clean-20261028.service`. Its scripts and logs live in `runs/parakeet/clean-retrain-20261028`. It runs a 50-step pilot, checks finite training and validation losses, starts the 100,000-step run, and evaluates the best checkpoint on the full 600-clip FLEURS benchmark and the 1,625-clip conversational benchmark. `ExecStopPost` restarts `vllm-asr` and checks its health after success, failure, or a service stop. The host launcher explicitly provides `CUDA_PATH=/opt/cuda` for Numba's TDT loss compiler.
+
+NeMo is upgraded to 3.0.0. Datasets remains on 4.8.5 because Datasets 5 imports Hub 1.x APIs while the current Transformers stack requires Hub below 1. The dependency audit records the remaining version constraints in `docs/license-and-training-audit-2026-10-28.json`.
+
+Compare the best checkpoint with the released baseline on the same FLEURS and conversational manifests. Report those benchmarks separately. Promotion follows measured quality and an explicit model-card update.
+
+## Collection pipeline
+
+```text
+curate download → enqueue → segment → labelq → harvest → merge → ingest → verify → export
+```
+
+The project exposes `tajik-curate`, `tajik-omni-train`, `tajik-omni-eval`, and the `tajik-parakeet-*` commands. FLEURS, Common Voice, and external Hugging Face ingestion are configured in `curate.py`. Current LLM fusion accepts one explicit transcript element and limits corrections to wording supported by the supplied hypotheses and script conversion.

@@ -813,6 +813,12 @@ def run(args: argparse.Namespace) -> None:
 
 
 def train_tdt_main(project: ParakeetProject, argv: list[str] | None = None) -> int:
+    from parakeet_finetune_core.provenance import record_run
+    from parakeet_finetune_core.splits import preflight
+
     project.configure_environment()
-    run(build_parser(project).parse_args(argv))
+    args = build_parser(project).parse_args(argv)
+    preflight(project, args)
+    record_run(project, args)
+    run(args)
     return 0

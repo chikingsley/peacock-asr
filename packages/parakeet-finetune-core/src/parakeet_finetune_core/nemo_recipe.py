@@ -182,8 +182,11 @@ def run_script(script: Path, script_args: list[str], *, disable_cudnn: bool) -> 
 
 
 def train_nemo_recipe_main(project: ParakeetProject, argv: list[str] | None = None) -> int:
+    from parakeet_finetune_core.splits import preflight
+
     project.configure_environment()
     args = build_parser(project).parse_args(argv)
+    preflight(project, args)
     script, script_args = build_script_args(args)
     command = ["runpy", str(script), *script_args]
     print(" ".join(command))

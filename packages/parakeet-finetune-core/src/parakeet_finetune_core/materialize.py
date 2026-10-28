@@ -10,10 +10,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import pyarrow as pa
 import pyarrow.parquet as pq
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable, Iterable
     from typing import TextIO
 
     from parakeet_finetune_core.project import ParakeetProject
@@ -28,6 +29,7 @@ class MaterializationStats:
     rows: int = 0
     excluded_empty: int = 0
     excluded_duration: int = 0
+    excluded_provenance: int = 0
     duration_seconds: float = 0.0
     rows_by_corpus: dict[str, int] = field(default_factory=dict)
 
@@ -84,6 +86,13 @@ def matching_parquets(
 
 
 def _payload(blob: object) -> bytes:
+    if isinstance(blob, (pa.ListScalar, pa.LargeListScalar)):
+        # Embedded FLAC is int8: retain Arrow's packed representation instead of allocating
+        # one Python integer for every audio byte in the batch.
+        values = blob.values.cast(pa.int8(), safe=True)
+        return values.to_numpy(zero_copy_only=False).tobytes()
+    if isinstance(blob, (pa.BinaryScalar, pa.LargeBinaryScalar)):
+        return blob.as_py()
     if isinstance(blob, bytes):
         return blob
     if isinstance(blob, bytearray):
@@ -125,24 +134,46 @@ def _record(
     return record
 
 
+def _carry_provenance(record: dict[str, object], extras: dict[str, list], row_index: int) -> None:
+    for field_name, output_key in (
+        ("sample_id", "source_sample_ids"),
+        ("source_video_id", "source_video_ids"),
+    ):
+        if field_name in extras and extras[field_name][row_index]:
+            record[output_key] = [extras[field_name][row_index]]
+    for field_name in ("license", "metadata"):
+        if field_name in extras and extras[field_name][row_index] is not None:
+            record[field_name] = extras[field_name][row_index]
+
+
 def _rows(
     paths: Iterable[Path],
     args: argparse.Namespace,
     *,
     audio_root: Path | None,
     manifest: TextIO | None,
+    record_transform: Callable[[dict[str, object]], dict[str, object] | None] | None = None,
 ) -> MaterializationStats:
     stats = MaterializationStats()
     for parquet_path in paths:
         corpus = _partition_value(parquet_path, "corpus")
-        for batch in pq.ParquetFile(parquet_path).iter_batches(
-            batch_size=128, columns=["text", "audio_bytes", "audio_size"]
+        parquet = pq.ParquetFile(parquet_path)
+        optional = [
+            name
+            for name in ("sample_id", "source_video_id", "license", "metadata")
+            if name in parquet.schema_arrow.names
+        ]
+        for batch in parquet.iter_batches(
+            batch_size=128, columns=["text", "audio_bytes", "audio_size", *optional]
         ):
-            for text_value, blob, size_value in zip(
-                batch.column("text").to_pylist(),
-                batch.column("audio_bytes").to_pylist(),
-                batch.column("audio_size").to_pylist(),
-                strict=True,
+            extras = {name: batch.column(name).to_pylist() for name in optional}
+            for row_index, (text_value, blob, size_value) in enumerate(
+                zip(
+                    batch.column("text").to_pylist(),
+                    batch.column("audio_bytes"),
+                    batch.column("audio_size").to_pylist(),
+                    strict=True,
+                )
             ):
                 text = str(text_value or "").strip()
                 if not text:
@@ -156,23 +187,24 @@ def _rows(
                     continue
                 payload = _payload(blob)
                 digest = hashlib.sha256(payload).hexdigest()
+                audio_path = (audio_root or Path("audio")) / corpus / digest[:2] / f"{digest}.flac"
+                record = _record(
+                    audio_path=audio_path,
+                    text=text,
+                    duration=duration,
+                    corpus=corpus,
+                    digest=digest,
+                    args=args,
+                )
+                _carry_provenance(record, extras, row_index)
+                if record_transform is not None:
+                    record = record_transform(record)
+                    if record is None:
+                        stats.excluded_provenance += 1
+                        continue
                 if audio_root is not None and manifest is not None:
-                    audio_path = audio_root / corpus / digest[:2] / f"{digest}.flac"
                     _write_exact(audio_path, payload)
-                    manifest.write(
-                        json.dumps(
-                            _record(
-                                audio_path=audio_path,
-                                text=text,
-                                duration=duration,
-                                corpus=corpus,
-                                digest=digest,
-                                args=args,
-                            ),
-                            ensure_ascii=False,
-                        )
-                        + "\n"
-                    )
+                    manifest.write(json.dumps(record, ensure_ascii=False) + "\n")
                 stats.rows += 1
                 stats.duration_seconds += duration
                 stats.rows_by_corpus[corpus] = stats.rows_by_corpus.get(corpus, 0) + 1
@@ -202,13 +234,18 @@ def _summary(
         "rows_by_corpus": stats.rows_by_corpus,
         "excluded_empty": stats.excluded_empty,
         "excluded_duration": stats.excluded_duration,
+        "excluded_provenance": stats.excluded_provenance,
         "hours": stats.hours,
         "manifest": str(manifest),
     }
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
-def materialize(args: argparse.Namespace) -> tuple[MaterializationStats, Path]:
+def materialize(
+    args: argparse.Namespace,
+    *,
+    record_transform: Callable[[dict[str, object]], dict[str, object] | None] | None = None,
+) -> tuple[MaterializationStats, Path]:
     if args.dataset_root is None:
         raise SystemExit("--dataset-root is required")
     if args.output_root is None:
@@ -225,12 +262,27 @@ def materialize(args: argparse.Namespace) -> tuple[MaterializationStats, Path]:
     )
     manifest = output_root / "manifests" / f"{args.split}.jsonl"
     if args.dry_run:
-        return _rows(paths, args, audio_root=None, manifest=None), manifest
+        return _rows(
+            paths,
+            args,
+            audio_root=None,
+            manifest=None,
+            record_transform=record_transform,
+        ), manifest
 
     manifest.parent.mkdir(parents=True, exist_ok=True)
     manifest_tmp = manifest.with_suffix(".jsonl.tmp")
     with manifest_tmp.open("w", encoding="utf-8") as handle:
-        stats = _rows(paths, args, audio_root=output_root / "audio", manifest=handle)
+        stats = _rows(
+            paths,
+            args,
+            audio_root=output_root / "audio",
+            manifest=handle,
+            record_transform=record_transform,
+        )
+    if stats.rows == 0:
+        manifest_tmp.unlink()
+        raise ValueError("Materialization requires at least one accepted row")
     manifest_tmp.replace(manifest)
     _summary(
         output_root / f"materialization-{args.split}.json",

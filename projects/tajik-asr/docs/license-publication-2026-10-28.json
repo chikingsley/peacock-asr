@@ -1,0 +1,13 @@
+{
+  "repository": "Peacockery/tajik-parakeet-tdt-110m",
+  "parent_revision": "79c0e75d4a3d5b49e26ecc153f17fbcf4897468c",
+  "revision": "1b213a53b8f8e39e553039f39200467dafe25a7f",
+  "url": "https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m/commit/1b213a53b8f8e39e553039f39200467dafe25a7f",
+  "license": "cc-by-4.0",
+  "files": {
+    "README.md": "4e0129e1a45909fc188b3a49e86da159edbbad9851ce6723387ad9a22e170cd8",
+    "LICENSE": "d557539df68e771cc1eedcc91d13f70fca930e508d11eedcafa4b15db49e3744",
+    "NOTICE": "f9a933259dc8da6653487986fe662d25368b080d862c2b4f906c3e745c5a0f3a"
+  },
+  "weight_sha256": "92e672d08b730a1c50cad7c0369c2d19fc1b9ebc83b16aa0fb5ae69267f3879f"
+}

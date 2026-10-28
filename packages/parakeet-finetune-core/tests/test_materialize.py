@@ -29,6 +29,9 @@ def test_materialize_writes_deterministic_manifest_and_audio(tmp_path: Path) -> 
                 "text": "hello world",
                 "audio_bytes": list(array("b", payload)),
                 "audio_size": 16_000,
+                "sample_id": "meeting_0001",
+                "source_video_id": "meeting",
+                "license": "cc-by-4.0",
             },
             {
                 "text": "too long",
@@ -57,6 +60,9 @@ def test_materialize_writes_deterministic_manifest_and_audio(tmp_path: Path) -> 
     assert stats.rows_by_corpus == {"meetings": 1}
     assert records[0]["text"] == "hello world"
     assert records[0]["corpus"] == "meetings"
+    assert records[0]["source_sample_ids"] == ["meeting_0001"]
+    assert records[0]["source_video_ids"] == ["meeting"]
+    assert records[0]["license"] == "cc-by-4.0"
     assert Path(records[0]["audio_filepath"]).read_bytes() == payload
     assert materialize(args)[0].rows == 1
 
