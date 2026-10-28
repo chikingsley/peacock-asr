@@ -150,16 +150,16 @@
   "baseline_service": "peacock-tajik-clean-20261028.service",
   "followup_service": "peacock-tajik-upgrades-20261028.service",
   "followup_status": {
-    "status": "waiting_for_clean_baseline"
+    "status": "stopped_and_superseded_by_immediate_continuation"
   },
-  "selection_policy": "Development-set normalized fp32 WER selects the candidate before the held-out tests run. Baseline, control refinement, balanced refinement, and their averages are compared.",
-  "service_recovery": "try/finally and lease-guarded ExecStopPost restore vllm-asr; a waiting worker leaves the baseline service lease intact.",
+  "selection_policy": "Continuation final, best validation loss, and averaged checkpoints are selected by development-set normalized fp32 WER before the selected model runs on the held-out tests.",
+  "service_recovery": "The active continuation owns the GPU lease. Its finally block and lease-guarded ExecStopPost restore vllm-asr and verify HTTP health. The preceding baseline stop successfully restored ASR before the new continuation paused it.",
   "sources": [
     "https://raw.githubusercontent.com/NVIDIA-NeMo/Speech/main/.claude/skills/nemo-speech-asr-finetune/references/training-evaluation.md",
     "https://raw.githubusercontent.com/NVIDIA-NeMo/Speech/main/.claude/skills/nemo-speech-asr-finetune/references/data-lhotse.md",
     "https://raw.githubusercontent.com/NVIDIA-NeMo/Speech/main/.claude/skills/nemo-speech-asr-finetune/references/architecture-tokenizer-metrics.md"
   ],
-  "remaining_measurement": "Full-duration runtime behavior, controlled refinement accuracy, and candidate selection complete after the baseline. The 200-step runtime trial establishes short-clip performance and finite losses.",
+  "remaining_measurement": "The full-duration upgraded continuation has resumed from step 14000 and produced finite optimizer updates. Final quality and checkpoint selection follow training completion. The 19.5 percent throughput gain applies to the controlled short-clip comparison.",
   "weighted_training_smoke": {
     "optimizer_steps": 2,
     "finite_training_and_validation_loss": true,
@@ -173,5 +173,80 @@
     ],
     "scope": "Runtime diagnostic; final accuracy comes from completed controlled refinements"
   },
-  "materializer": "Packed Arrow buffers preserve audio bytes and slice offsets with NumPy remaining optional for the standalone core."
+  "materializer": "Packed Arrow buffers preserve audio bytes and slice offsets with NumPy remaining optional for the standalone core.",
+  "active_service": "peacock-tajik-upgraded-20261028.service",
+  "immediate_continuation": {
+    "switch": {
+      "checkpoint": {
+        "path": "/home/simon/github/ai-lab/peacock-asr/projects/tajik-asr/runs/parakeet/upgrades-20261028/switch-checkpoint/step14000.ckpt",
+        "bytes": 1376994792,
+        "sha256": "d50b235324e45caeac54d34df7cb5e4a215481978fc2bae46039b49ca7aae178"
+      },
+      "global_step": 14000,
+      "optimizer_states": 1,
+      "scheduler_states": 1,
+      "current_learning_rate": 0.0002894029298151731,
+      "replacement_service": "peacock-tajik-upgraded-20261028.service",
+      "stopped_services": [
+        "peacock-tajik-upgrades-20261028.service",
+        "peacock-tajik-clean-20261028.service"
+      ]
+    },
+    "recipe": {
+      "run": "tajik-parakeet-tdt-110m-upgraded-20261028",
+      "resume_checkpoint": {
+        "path": "/home/simon/github/ai-lab/peacock-asr/projects/tajik-asr/runs/parakeet/upgrades-20261028/switch-checkpoint/step14000.ckpt",
+        "bytes": 1376994792,
+        "sha256": "d50b235324e45caeac54d34df7cb5e4a215481978fc2bae46039b49ca7aae178"
+      },
+      "optimizer": "restored with scheduler and global step from the saved checkpoint",
+      "training_arguments": [
+        "tajik-parakeet-train-tdt",
+        "--name",
+        "tajik-parakeet-tdt-110m-upgraded-20261028",
+        "--resume",
+        "--max-steps",
+        "100000",
+        "--warmup",
+        "2000",
+        "--lr",
+        "0.0003",
+        "--val-every",
+        "2000",
+        "--log-every",
+        "50",
+        "--save-top-k",
+        "5",
+        "--batch-dur",
+        "120",
+        "--max-dur",
+        "30",
+        "--num-workers",
+        "4",
+        "--fused-batch-size",
+        "2",
+        "--precision",
+        "bf16-mixed",
+        "--train-source",
+        "/home/simon/github/ai-lab/peacock-asr/projects/tajik-asr/runs/parakeet/upgrades-20261028/manifests/gold=0.12",
+        "--train-source",
+        "/home/simon/github/ai-lab/peacock-asr/projects/tajik-asr/runs/parakeet/upgrades-20261028/manifests/pseudo=0.88"
+      ],
+      "runtime": {
+        "loss_mode": "unfused",
+        "precision": "bf16-mixed"
+      },
+      "gold_clip_sampling_weight": 0.12,
+      "status": "training_upgraded"
+    },
+    "live_verification": {
+      "step": 14400,
+      "loss": 91.5453,
+      "lr": 0.00028869,
+      "t": 83.2,
+      "audio_hours_seen": 5.8471,
+      "peak_cuda_bytes": 4706325504
+    },
+    "tests": "4 workflow tests passed, including saved-state continuation, development-only selection, and ASR recovery after failure"
+  }
 }

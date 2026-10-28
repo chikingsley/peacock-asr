@@ -1,4 +1,4 @@
-"""Measured runtime trials and controlled gold-data refinement after a clean baseline."""
+"""Measured TDT upgrades, checkpoint continuation, and development-set selection."""
 
 from __future__ import annotations
 
@@ -23,6 +23,7 @@ BASELINE_NAME = "tajik-parakeet-tdt-110m-clean-20261028"
 BASELINE_UNIT = "peacock-tajik-clean-20261028"
 BASELINE_JOB = PROJECT.runs / "clean-retrain-20261028"
 DEFAULT_OUTPUT = PROJECT.runs / "upgrades-20261028"
+CONTINUATION_NAME = "tajik-parakeet-tdt-110m-upgraded-20261028"
 DEFAULT_RUNTIME = {"loss_mode": "fused", "precision": "bf16-mixed"}
 PILOT_MIN_DURATION = 2
 PILOT_MAX_DURATION = 6
@@ -352,6 +353,10 @@ def refine(output: Path) -> dict:
             break
     else:
         raise RuntimeError("Refinement failed with both runtime configurations")
+    return select_and_evaluate(output, variants, runtime)
+
+
+def select_and_evaluate(output: Path, variants: dict[str, Path], runtime: dict) -> dict:
     # Development scores are the only input to candidate selection.
     scores = {
         name: evaluate(output, f"dev-{name}", model, PROJECT.default_validation_manifest)
@@ -376,6 +381,97 @@ def refine(output: Path) -> dict:
     report["status"] = "complete"
     write_json(output / "selection.json", report)
     return report
+
+
+def continue_training(output: Path, checkpoint: Path, name: str) -> dict:
+    """Continue saved optimizer state immediately with the measured runtime and new mixture."""
+    prepared = json.loads((output / "plan.json").read_text())
+    if fingerprint(PROJECT.default_train_manifest)["sha256"] != prepared["input"]["sha256"]:
+        raise ValueError("Training manifest changed after upgrade preparation")
+    run = PROJECT.runs / name
+    if run.exists():
+        raise FileExistsError(f"Preserve the previous continuation before rerunning: {run}")
+    source = fingerprint(checkpoint)
+    checkpoint_dir = run / "checkpoints"
+    checkpoint_dir.mkdir(parents=True)
+    shutil.copyfile(checkpoint, checkpoint_dir / "last.ckpt")
+    selected = json.loads((output / "runtime-trials.json").read_text())["selected"]
+    runtime = {key: selected[key] for key in DEFAULT_RUNTIME}
+    args = [
+        "tajik-parakeet-train-tdt",
+        "--name",
+        name,
+        "--resume",
+        "--max-steps",
+        "100000",
+        "--warmup",
+        "2000",
+        "--lr",
+        "0.0003",
+        "--val-every",
+        "2000",
+        "--log-every",
+        "50",
+        "--save-top-k",
+        "5",
+        "--batch-dur",
+        "120",
+        "--max-dur",
+        "30",
+        "--num-workers",
+        "4",
+        "--fused-batch-size",
+        "2",
+        "--precision",
+        runtime["precision"],
+        "--train-source",
+        f"{output / 'manifests/gold'}={GOLD_SHARE}",
+        "--train-source",
+        f"{output / 'manifests/pseudo'}={1 - GOLD_SHARE}",
+    ]
+    report = {
+        "run": name,
+        "resume_checkpoint": source,
+        "optimizer": "restored with scheduler and global step from the saved checkpoint",
+        "training_arguments": args,
+        "runtime": runtime,
+        "gold_clip_sampling_weight": GOLD_SHARE,
+        "status": "training_upgraded",
+    }
+    write_json(output / "continuation.json", report)
+    write_json(output / "status.json", {"status": report["status"], "run": name})
+    log_name = f"{name}-{runtime['loss_mode']}"
+    status = command(output, log_name, [*args, "--loss-mode", runtime["loss_mode"]])
+    log_text = (output / f"{log_name}.log").read_text() if status else ""
+    if status and any(marker in log_text for marker in ("OutOfMemoryError", "CUDA out of memory")):
+        runtime = DEFAULT_RUNTIME.copy()
+        report.update(runtime=runtime, memory_fallback="fused loss with the same data mixture")
+        write_json(output / "continuation.json", report)
+        status = command(output, f"{name}-memory-fallback", [*args, "--loss-mode", "fused"])
+    if status:
+        raise RuntimeError(f"Upgraded training exited with status {status}; inspect {output}")
+    report["training_result"] = training_result(name, 100000)
+    report["status"] = "selecting_on_development"
+    write_json(output / "continuation.json", report)
+    write_json(output / "status.json", {"status": report["status"], "run": name})
+    result = select_and_evaluate(output, candidates(run, output), runtime)
+    report.update(status="complete", selected=result["selected"])
+    write_json(output / "continuation.json", report)
+    return result
+
+
+def continue_with_asr_paused(output: Path, checkpoint: Path, name: str) -> dict:
+    (output / "gpu-lease").touch()
+    try:
+        subprocess.run(["/usr/bin/docker", "stop", "--time", "60", "vllm-asr"], check=True)
+        result = continue_training(output, checkpoint, name)
+        write_json(output / "status.json", {"status": "complete", "selected": result["selected"]})
+        return result
+    finally:
+        subprocess.run(  # noqa: S603 - verified local service restoration script
+            [str(BASELINE_JOB / "restore-asr.sh")], check=True
+        )
+        (output / "gpu-lease").unlink(missing_ok=True)
 
 
 def wait_and_refine(output: Path) -> dict:
@@ -409,10 +505,22 @@ def wait_and_refine(output: Path) -> dict:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "action", choices=["prepare", "verify-sampling", "benchmark", "refine", "wait-and-refine"]
+        "action",
+        choices=[
+            "prepare",
+            "verify-sampling",
+            "benchmark",
+            "refine",
+            "wait-and-refine",
+            "continue",
+        ],
     )
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--checkpoint", type=Path)
+    parser.add_argument("--run-name", default=CONTINUATION_NAME)
     args = parser.parse_args(argv)
+    if args.action == "continue" and (args.checkpoint is None or not args.checkpoint.is_file()):
+        parser.error("continue requires --checkpoint pointing to a saved training checkpoint")
     PROJECT.configure_environment()
     os.environ.setdefault("CUDA_PATH", "/opt/cuda")
     actions = {
@@ -421,6 +529,7 @@ def main(argv: list[str] | None = None) -> int:
         "benchmark": benchmark,
         "refine": refine,
         "wait-and-refine": wait_and_refine,
+        "continue": lambda output: continue_with_asr_paused(output, args.checkpoint, args.run_name),
     }
     try:
         result = actions[args.action](args.output_root.resolve())

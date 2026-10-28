@@ -78,3 +78,67 @@ def test_asr_restoration_runs_when_refinement_fails(
         upgrades.wait_and_refine(tmp_path)
     assert commands[-1] == [str(tmp_path / "restore-asr.sh")]
     assert not (tmp_path / "gpu-lease").exists()
+
+
+def test_continuation_restores_checkpoint_and_uses_upgraded_sources(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    train = tmp_path / "train.jsonl"
+    train.write_text("audited training input")
+    checkpoint = tmp_path / "source.ckpt"
+    checkpoint.write_bytes(b"saved optimizer and model state")
+    project = SimpleNamespace(runs=tmp_path / "runs", default_train_manifest=train)
+    monkeypatch.setattr(upgrades, "PROJECT", project)
+    upgrades.write_json(tmp_path / "plan.json", {"input": fingerprint(train)})
+    runtime = {"loss_mode": "unfused", "precision": "bf16-mixed"}
+    upgrades.write_json(tmp_path / "runtime-trials.json", {"selected": runtime})
+    commands = []
+
+    def command(_output: Path, _name: str, arguments: list[str]) -> int:
+        assert (
+            project.runs / "upgraded/checkpoints/last.ckpt"
+        ).read_bytes() == checkpoint.read_bytes()
+        commands.append(arguments)
+        return 0
+
+    monkeypatch.setattr(upgrades, "command", command)
+    monkeypatch.setattr(upgrades, "training_result", lambda *_: {"steps": 100000})
+    monkeypatch.setattr(upgrades, "candidates", lambda *_: {"best": tmp_path / "best.nemo"})
+    monkeypatch.setattr(upgrades, "select_and_evaluate", lambda *_: {"selected": "best"})
+    result = upgrades.continue_training(tmp_path, checkpoint, "upgraded")
+    assert result["selected"] == "best"
+    assert len(commands) == 1
+    args = commands[0]
+    assert "--resume" in args
+    assert (
+        "--keep-tokenizer" not in args
+    )  # Original base + same replacement vocabulary precede resume.
+    assert args[args.index("--loss-mode") + 1] == "unfused"
+    assert args[args.index("--max-steps") + 1] == "100000"
+    assert str(tmp_path / "manifests/gold") + "=0.12" in args
+    report = json.loads((tmp_path / "continuation.json").read_text())
+    assert report["resume_checkpoint"] == fingerprint(checkpoint)
+    assert report["status"] == "complete"
+    with pytest.raises(FileExistsError, match="Preserve"):
+        upgrades.continue_training(tmp_path, checkpoint, "upgraded")
+
+
+def test_asr_restoration_runs_when_continuation_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(upgrades, "BASELINE_JOB", tmp_path)
+    commands = []
+
+    def run(args: list[str], **_kwargs: object) -> SimpleNamespace:
+        commands.append(args)
+        return SimpleNamespace(returncode=0)
+
+    def fail(*_args: object) -> dict:
+        raise ValueError("test continuation failure")
+
+    monkeypatch.setattr(upgrades.subprocess, "run", run)
+    monkeypatch.setattr(upgrades, "continue_training", fail)
+    with pytest.raises(ValueError, match="test continuation failure"):
+        upgrades.continue_with_asr_paused(tmp_path, tmp_path / "saved.ckpt", "upgraded")
+    assert commands[-1] == [str(tmp_path / "restore-asr.sh")]
+    assert not (tmp_path / "gpu-lease").exists()
