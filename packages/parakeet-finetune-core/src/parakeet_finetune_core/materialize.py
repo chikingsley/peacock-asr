@@ -90,7 +90,9 @@ def _payload(blob: object) -> bytes:
         # Embedded FLAC is int8: retain Arrow's packed representation instead of allocating
         # one Python integer for every audio byte in the batch.
         values = blob.values.cast(pa.int8(), safe=True)
-        return values.to_numpy(zero_copy_only=False).tobytes()
+        if len(values) == 0:
+            return b""
+        return values.buffers()[1].slice(values.offset, len(values)).to_pybytes()
     if isinstance(blob, (pa.BinaryScalar, pa.LargeBinaryScalar)):
         return blob.as_py()
     if isinstance(blob, bytes):

@@ -9,6 +9,8 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from parakeet_finetune_core.manifests import manifest_paths
+
 if TYPE_CHECKING:
     from parakeet_finetune_core.project import ParakeetProject
 
@@ -50,7 +52,9 @@ def record_run(project: ParakeetProject, args: Any) -> None:
         "configured_at": datetime.now(UTC).isoformat(),
         "arguments": vars(args),
         "packages": packages,
-        "inputs": [fingerprint(path) for path in dict.fromkeys(paths)],
+        "inputs": [
+            fingerprint(shard) for path in dict.fromkeys(paths) for shard in manifest_paths(path)
+        ],
     }
     with (run_dir / "run_invocations.jsonl").open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(payload, default=str, sort_keys=True) + "\n")

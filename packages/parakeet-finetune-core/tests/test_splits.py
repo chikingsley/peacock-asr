@@ -68,3 +68,15 @@ def test_direct_export_identities_match_materialized_manifests(tmp_path, identit
     evaluation = manifest(tmp_path, "evaluation", **{plural: ["reserved"]})
     with pytest.raises(ValueError, match="overlaps"):
         validate_splits([train], [evaluation])
+
+
+def test_overlap_in_later_shard_is_checked(tmp_path):
+    first = manifest(tmp_path, "first", source_video_ids=["clean"])
+    second = manifest(tmp_path, "second", source_video_ids=["reserved"])
+    evaluation = manifest(tmp_path, "evaluation", source_video_ids=["reserved"])
+    shards = tmp_path / "shards"
+    shards.mkdir()
+    first.rename(shards / "shard_00000.jsonl")
+    second.rename(shards / "shard_00001.jsonl")
+    with pytest.raises(ValueError, match="overlaps"):
+        validate_splits([shards], [evaluation])

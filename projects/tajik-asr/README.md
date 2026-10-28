@@ -66,6 +66,16 @@ NeMo is upgraded to 3.0.0. Datasets remains on 4.8.5 because Datasets 5 imports 
 
 Compare the best checkpoint with the released baseline on the same FLEURS and conversational manifests. Report those benchmarks separately. Promotion follows measured quality and an explicit model-card update.
 
+## Applied training upgrades
+
+The October 28 runtime comparison tested identical 200-step short-clip workloads. Unfused loss with BF16 mixed precision measured 0.14125 seconds per step, versus 0.16875 for the fused path: about 19.5% higher audio throughput. Peak allocated CUDA memory was 2.52 GB and 2.47 GB respectively. The baseline process was suspended with its GPU memory resident during this comparison. Both full-BF16 trials reached the hybrid CTC loss's FP32 requirement, so the selected runtime uses mixed precision. Full-duration refinement supplies the next memory and quality check, with the established fused configuration as a fallback.
+
+The follow-up service `peacock-tajik-upgrades-20261028.service` waits for the clean baseline and its evaluation to finish, then runs two 2,000-step refinements from the same best model: the original data mixture and a mixture with 12% FLEURS clips. Both preserve the trained tokenizer, use a learning rate of `1e-5`, and save validation checkpoints every 500 steps. The prepared sources contain 2,250 reference-labeled FLEURS clips and 170,990 Scribe-labeled clips. A live NeMo sampler check drew 12.2% FLEURS across 5,000 examples.
+
+Each source uses shuffled 200-clip manifest shards. The workflow compares the baseline and both refinements' final, best-validation-loss, and averaged artifacts on the development set in fp32. It selects the lowest development WER, then evaluates that fixed choice on FLEURS and the conversational test. ASR restoration runs on both success and failure. Candidate results remain clearly associated with their source models and manifests.
+
+The repeatable command is `uv run --project projects/tajik-asr --locked tajik-parakeet-upgrade`, with `prepare`, `verify-sampling`, `benchmark`, `refine`, and `wait-and-refine` actions. This workflow targets the October 28 baseline. Run details live in `runs/parakeet/upgrades-20261028`, and the tracked measurements and official references live in `docs/training-upgrades-2026-10-28.json`.
+
 ## Collection pipeline
 
 ```text

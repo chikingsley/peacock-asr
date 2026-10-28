@@ -7,6 +7,8 @@ from collections import Counter
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from parakeet_finetune_core.manifests import manifest_paths
+
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
@@ -79,7 +81,7 @@ def validate_splits(
     failures: list[str] = []
     problems: Counter[str] = Counter()
     for phase, paths in (("evaluation", evaluation), ("train", train)):
-        for path in paths:
+        for path in (shard for item in paths for shard in manifest_paths(item)):
             rows = 0
             with path.open(encoding="utf-8") as handle:
                 for line_number, line in enumerate(handle, 1):

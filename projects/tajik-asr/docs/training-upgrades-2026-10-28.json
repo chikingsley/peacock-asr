@@ -1,0 +1,177 @@
+{
+  "date": "2026-10-28",
+  "purpose": "Apply and measure current official TDT training guidance and improve use of trusted reference labels",
+  "runtime_trials": {
+    "trials": [
+      {
+        "name": "tajik-runtime-fused-bf16-mixed-20261028",
+        "loss_mode": "fused",
+        "precision": "bf16-mixed",
+        "exit_code": 0,
+        "steps": 200,
+        "validation": {
+          "step": 200,
+          "val_loss": 47.6937,
+          "val_wer_bf16": 1.0,
+          "val_wer_ctc_bf16": 1.0
+        },
+        "steady_seconds_per_step": 0.16875,
+        "steady_audio_hours_per_second": 0.023837037037037035,
+        "peak_cuda_bytes": 2468809216
+      },
+      {
+        "name": "tajik-runtime-fused-bf16-true-20261028",
+        "loss_mode": "fused",
+        "precision": "bf16-true",
+        "exit_code": 1,
+        "error": "NotImplementedError: \"ctc_loss_cuda\" not implemented for 'BFloat16'"
+      },
+      {
+        "name": "tajik-runtime-unfused-bf16-mixed-20261028",
+        "loss_mode": "unfused",
+        "precision": "bf16-mixed",
+        "exit_code": 0,
+        "steps": 200,
+        "validation": {
+          "step": 200,
+          "val_loss": 47.5795,
+          "val_wer_bf16": 1.0,
+          "val_wer_ctc_bf16": 1.0
+        },
+        "steady_seconds_per_step": 0.14124999999999996,
+        "steady_audio_hours_per_second": 0.028477876106194695,
+        "peak_cuda_bytes": 2522694656
+      },
+      {
+        "name": "tajik-runtime-unfused-bf16-true-20261028",
+        "loss_mode": "unfused",
+        "precision": "bf16-true",
+        "exit_code": 1,
+        "error": "NotImplementedError: \"ctc_loss_cuda\" not implemented for 'BFloat16'"
+      }
+    ],
+    "selected": {
+      "name": "tajik-runtime-unfused-bf16-mixed-20261028",
+      "loss_mode": "unfused",
+      "precision": "bf16-mixed",
+      "exit_code": 0,
+      "steps": 200,
+      "validation": {
+        "step": 200,
+        "val_loss": 47.5795,
+        "val_wer_bf16": 1.0,
+        "val_wer_ctc_bf16": 1.0
+      },
+      "steady_seconds_per_step": 0.14124999999999996,
+      "steady_audio_hours_per_second": 0.028477876106194695,
+      "peak_cuda_bytes": 2522694656
+    },
+    "scope": "short-clip runtime comparison; full-duration refinement validates memory and quality"
+  },
+  "measured_audio_throughput_gain_percent": 19.469026548672595,
+  "preparation": {
+    "input": {
+      "path": "/mnt/workerssd-2t/peacock-asr/tajik-asr/parakeet/v3-safe/manifests/train.jsonl",
+      "bytes": 197367185,
+      "sha256": "e65a91daa351dcc87d58f92269598d000358dacc8d69a2cf9fdc84ce68a8b57c"
+    },
+    "gold_rows": 2250,
+    "pseudo_rows": 170990,
+    "original_gold_clip_fraction": 0.012987762641422304,
+    "trial_gold_clip_fraction": 0.12,
+    "refinement_steps_per_arm": 2000,
+    "refinement_lr": 1e-05,
+    "shard_rows": 200,
+    "arms": [
+      "original mixture control",
+      "12 percent gold clip mixture"
+    ],
+    "selection": "lowest normalized fp32 development WER; test sets used after selection",
+    "benchmark_scope": "same short clips and seed; baseline GPU process suspended with its memory resident"
+  },
+  "sampler_check": {
+    "draws": 5000,
+    "gold_fraction": 0.122,
+    "sources": {
+      "youtube-najm_tv": 396,
+      "youtube-dfilm_tj": 422,
+      "youtube-ilm_va_tabiat": 406,
+      "youtube-jahonnamo": 65,
+      "youtube-samo_tajikistan": 317,
+      "youtube-tafakkur_tv": 5,
+      "youtube-aziya_khujand": 106,
+      "youtube-avlod_media": 50,
+      "youtube-quran_tajik": 641,
+      "youtube-intellect_online": 199,
+      "youtube-safina": 27,
+      "youtube-radio_ozodi": 432,
+      "youtube-asiaplus": 284,
+      "youtube-alifbo_podcast": 26,
+      "fleurs": 610,
+      "youtube-vashgird": 24,
+      "youtube-hikmat_tv": 106,
+      "youtube-your_tajikistan": 104,
+      "youtube-tajik_show": 39,
+      "youtube-imshab": 251,
+      "youtube-ozodagon": 93,
+      "youtube-rasonanigor": 48,
+      "youtube-tv_tajikistan": 32,
+      "youtube-alifbo_afsona": 80,
+      "youtube-king_i": 19,
+      "youtube-modari_mehrubon": 20,
+      "youtube-blogi_tojikon": 14,
+      "youtube-puhtupaz": 9,
+      "youtube-kitob_1000": 39,
+      "youtube-horeca_podcast": 16,
+      "youtube-tvt_tojikiston": 30,
+      "youtube-doctor_ibrohim": 10,
+      "youtube-biznes_tj": 32,
+      "youtube-timeless_tales": 17,
+      "youtube-akhbori_tojikiston": 2,
+      "youtube-muvaffaq_bosh": 4,
+      "youtube-zabon_omuzishi": 12,
+      "youtube-4maghz": 4,
+      "youtube-two_daqiqa": 9
+    }
+  },
+  "averaging_validation": {
+    "checkpoints": 2,
+    "averaged_nemo_bytes": 459253760,
+    "source_provenance": "/home/simon/github/ai-lab/peacock-asr/projects/tajik-asr/runs/parakeet/upgrades-20261028/average-smoke/averaged.provenance.json",
+    "roundtrip_restore": "passed",
+    "tokenizer_vocab": 1024,
+    "parameters": 114624647
+  },
+  "tests": {
+    "parakeet_and_tajik": 98,
+    "standalone_core_passed": 80,
+    "standalone_core_optional_torch_module_skipped": 1
+  },
+  "baseline_service": "peacock-tajik-clean-20261028.service",
+  "followup_service": "peacock-tajik-upgrades-20261028.service",
+  "followup_status": {
+    "status": "waiting_for_clean_baseline"
+  },
+  "selection_policy": "Development-set normalized fp32 WER selects the candidate before the held-out tests run. Baseline, control refinement, balanced refinement, and their averages are compared.",
+  "service_recovery": "try/finally and lease-guarded ExecStopPost restore vllm-asr; a waiting worker leaves the baseline service lease intact.",
+  "sources": [
+    "https://raw.githubusercontent.com/NVIDIA-NeMo/Speech/main/.claude/skills/nemo-speech-asr-finetune/references/training-evaluation.md",
+    "https://raw.githubusercontent.com/NVIDIA-NeMo/Speech/main/.claude/skills/nemo-speech-asr-finetune/references/data-lhotse.md",
+    "https://raw.githubusercontent.com/NVIDIA-NeMo/Speech/main/.claude/skills/nemo-speech-asr-finetune/references/architecture-tokenizer-metrics.md"
+  ],
+  "remaining_measurement": "Full-duration runtime behavior, controlled refinement accuracy, and candidate selection complete after the baseline. The 200-step runtime trial establishes short-clip performance and finite losses.",
+  "weighted_training_smoke": {
+    "optimizer_steps": 2,
+    "finite_training_and_validation_loss": true,
+    "embedded_tokenizer_preserved": true,
+    "weighted_shard_loading": "passed",
+    "loss_mode": "unfused",
+    "precision": "bf16-mixed",
+    "exported_artifacts": [
+      "final",
+      "best-valloss"
+    ],
+    "scope": "Runtime diagnostic; final accuracy comes from completed controlled refinements"
+  },
+  "materializer": "Packed Arrow buffers preserve audio bytes and slice offsets with NumPy remaining optional for the standalone core."
+}

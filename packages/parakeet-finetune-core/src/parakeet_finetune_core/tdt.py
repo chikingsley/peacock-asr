@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 import threading
 import time
 from pathlib import Path
@@ -61,6 +62,9 @@ class JsonlTrainLogger:
             "t": round(time.time() - self.t0, 1),
             "audio_hours_seen": round(self.audio_seconds_seen / 3600, 4),
         }
+        torch = sys.modules.get("torch")
+        if torch is not None and torch.cuda.is_available():
+            record["peak_cuda_bytes"] = torch.cuda.max_memory_allocated()
         with self.path.open("a", encoding="utf-8") as handle:
             handle.write(json.dumps(record) + "\n")
 
@@ -118,9 +122,10 @@ def apply_loss_init_fix(model: Any, reduction_override: str | None = None) -> in
     return int(num_classes)
 
 
-def configure_fused_tdt_loss(model: Any, fused_batch_size: int) -> None:
-    model.joint.set_fused_batch_size(fused_batch_size)
-    model.joint.set_fuse_loss_wer(fuse_loss_wer=True, loss=model.loss, metric=model.wer)
+def configure_fused_tdt_loss(model: Any, fused_batch_size: int, *, enabled: bool = True) -> None:
+    if enabled:
+        model.joint.set_fused_batch_size(fused_batch_size)
+    model.joint.set_fuse_loss_wer(fuse_loss_wer=enabled, loss=model.loss, metric=model.wer)
 
 
 def enable_eval_loss(model: Any) -> None:
@@ -263,7 +268,9 @@ def load_and_prepare_model(
             flush=True,
         )
     num_classes = apply_loss_init_fix(model, args.reduction or None)
-    configure_fused_tdt_loss(model, args.fused_batch_size)
+    configure_fused_tdt_loss(
+        model, args.fused_batch_size, enabled=getattr(args, "loss_mode", "fused") == "fused"
+    )
     enable_eval_loss(model)
     ctc_loss_weight = configure_aux_ctc_weight(model, args.ctc_loss_weight)
     effective_ctc_loss_weight = (
@@ -379,15 +386,17 @@ def train_ds(
     num_workers: int,
     seed: int,
 ) -> dict[str, Any]:
+    from parakeet_finetune_core.manifests import manifest_pattern
+
     source_config: dict[str, Any]
     if isinstance(manifest, Path):
-        source_config = {"manifest_filepath": str(manifest)}
+        source_config = {"manifest_filepath": manifest_pattern(manifest)}
     else:
         if not manifest:
             raise ValueError("at least one weighted training manifest is required")
         source_config = {
             "input_cfg": [
-                {"type": "nemo", "manifest_filepath": str(path), "weight": weight}
+                {"type": "nemo", "manifest_filepath": manifest_pattern(path), "weight": weight}
                 for path, weight in manifest
             ]
         }
@@ -585,6 +594,13 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
         default=project.default_validation_manifest,
     )
     parser.add_argument("--tokenizer-dir", type=Path, default=project.default_tokenizer_dir)
+    parser.add_argument(
+        "--keep-tokenizer",
+        action="store_const",
+        const=None,
+        dest="tokenizer_dir",
+        help="Preserve the tokenizer and decoder weights embedded in a same-language model.",
+    )
     parser.add_argument("--tokenizer-type", default="bpe")
     parser.add_argument("--exp-dir", type=Path, default=project.runs)
     parser.add_argument("--batch-dur", type=float, default=120.0)
@@ -625,6 +641,8 @@ def build_parser(project: ParakeetProject) -> argparse.ArgumentParser:
     parser.add_argument("--freeze-encoder", action="store_true")
     parser.add_argument("--unfreeze-top", type=int, default=0)
     parser.add_argument("--fused-batch-size", type=int, default=2)
+    parser.add_argument("--loss-mode", choices=["fused", "unfused"], default="fused")
+    parser.add_argument("--save-top-k", type=int, default=2)
     parser.add_argument(
         "--recipe",
         choices=["simple", "extend-restore"],
@@ -718,7 +736,7 @@ def run(args: argparse.Namespace) -> None:
         auto_insert_metric_name=False,
     )
     checkpoint_val = ModelCheckpoint(
-        **validation_checkpoint_config(ckpt_dir),
+        **{**validation_checkpoint_config(ckpt_dir), "save_top_k": args.save_top_k},
     )
     callbacks: list[Any] = [
         checkpoint_train,

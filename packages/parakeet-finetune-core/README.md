@@ -75,6 +75,10 @@ Language-specific in each `<language>-asr` project:
 
 For same-language fine-tuning, leave `default_tokenizer_dir` unset. The TDT trainer then preserves the tokenizer embedded in the base `.nemo` together with its pretrained decoder/joint vocabulary weights. Set `default_tokenizer_dir` only when the language or vocabulary really changes; NeMo's `change_vocabulary()` rebuilds those layers even when the replacement tokenizer is nominally identical.
 
+`--keep-tokenizer` explicitly preserves the embedded tokenizer for a same-language refinement, including projects whose defaults select a replacement tokenizer. `--loss-mode unfused` enables the newer official training path for measured comparisons; `fused` retains the established default. `--save-top-k` controls the number of validation checkpoints available for later averaging. Each run records the selected options.
+
+A training manifest argument may also point to a directory containing contiguous `shard_00000.jsonl` files. The TDT loader supplies a NeMo shard pattern, and preflight and provenance inspect every shard. Weighted sources retain their configured mixture weight across the shards.
+
 Use `--prepare-only` for a live CPU preflight: it restores the real `.nemo`, applies the loss/eval configuration, confirms the tokenizer contract, and exits before Lightning allocates GPU training state.
 
 ## Training Metric Policy
@@ -119,6 +123,8 @@ The TDT harness writes two different model artifacts after training:
 - `<run>_best-valloss.nemo`: weights reloaded from the best `val_loss` checkpoint; use this as the promotion candidate, then confirm it with fp32 held-out WER.
 
 If a run produces no validation checkpoint, only the last-step final model is written and the harness reports that explicitly.
+
+`parakeet_finetune_core.averaging.average_checkpoints` averages explicitly selected local validation checkpoints. It validates state keys, shapes, dtypes, and finite floating tensors, preserves integer buffers from the first checkpoint, retains the trained tokenizer, and writes source fingerprints beside the averaged model. Compare individual and averaged candidates with standalone development WER before selecting a candidate for held-out testing.
 
 ## TDT Status
 

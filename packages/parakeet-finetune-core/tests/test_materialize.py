@@ -7,7 +7,7 @@ from pathlib import Path
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from parakeet_finetune_core.materialize import build_parser, materialize
+from parakeet_finetune_core.materialize import _payload, build_parser, materialize
 from parakeet_finetune_core.project import ParakeetProject
 
 
@@ -94,3 +94,9 @@ def test_materialize_dry_run_does_not_create_output(tmp_path: Path) -> None:
     assert stats.rows == 1
     assert manifest == output / "manifests" / "dev.jsonl"
     assert not output.exists()
+
+
+def test_packed_audio_respects_arrow_slice_offsets() -> None:
+    values = pa.array([[1], [-1, 0, 122]], type=pa.list_(pa.int8()))
+    assert _payload(values[1]) == b"\xff\x00z"
+    assert _payload(pa.array([[]], type=pa.list_(pa.int8()))[0]) == b""

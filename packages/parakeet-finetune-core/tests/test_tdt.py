@@ -138,6 +138,25 @@ def test_enable_eval_loss_updates_runtime_flag_and_model_cfg():
     assert model.cfg["compute_eval_loss"] is True
 
 
+def test_unfused_loss_keeps_duration_corrected_loss_and_metric():
+    model = FakeModel(FakeJoint())
+    configure_fused_tdt_loss(model, 2, enabled=False)
+    assert model.joint.fused_batch_size is None
+    assert model.joint.fuse_loss_wer == {
+        "fuse_loss_wer": False,
+        "loss": model.loss,
+        "metric": model.wer,
+    }
+
+
+def test_same_language_refinement_can_preserve_embedded_tokenizer(tmp_path):
+    project = ParakeetProject(
+        name="example", language="tg", root=tmp_path, default_tokenizer_dir=tmp_path / "tokenizer"
+    )
+    assert build_parser(project).parse_args([]).tokenizer_dir == tmp_path / "tokenizer"
+    assert build_parser(project).parse_args(["--keep-tokenizer"]).tokenizer_dir is None
+
+
 def test_configure_aux_ctc_weight_updates_runtime_flag_and_model_cfg():
     model = FakeModel(FakeJoint())
     model.ctc_loss_weight = 0.3
@@ -426,7 +445,9 @@ def test_load_and_prepare_model_preserves_embedded_tokenizer(monkeypatch, tmp_pa
     monkeypatch.setattr(
         "parakeet_finetune_core.tdt.apply_loss_init_fix", lambda *_args, **_kwargs: 1024
     )
-    monkeypatch.setattr("parakeet_finetune_core.tdt.configure_fused_tdt_loss", lambda *_args: None)
+    monkeypatch.setattr(
+        "parakeet_finetune_core.tdt.configure_fused_tdt_loss", lambda *_args, **_kwargs: None
+    )
 
     prepared = load_and_prepare_model(FakeASRModel, str(model_path), None, args)
 
