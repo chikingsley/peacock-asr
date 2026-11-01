@@ -1,7 +1,7 @@
 {
-  "_comment": "Published model provenance and current training defaults. The original train_big manifest records the released model's history; new training uses v3-safe with source identity checks.",
-  "hf_repo": "peacockery/tajik-parakeet-tdt-110m",
-  "hf_revision": "1b213a53b8f8e39e553039f39200467dafe25a7f",
+  "_comment": "Current v1.1.0 release plus historical artifact records. The clean v3 checkpoint is the default evaluator model; the earlier model remains preserved.",
+  "hf_repo": "Peacockery/parakeet-tdt-110m-tajik",
+  "hf_revision": "6ebb1f729e9f5a0cdde6433e71439a440f6ffef2",
   "license": "CC-BY-4.0",
   "training_defaults": {
     "dataset_repo": "Peacockery/tajik-asr-corpus-v3",
@@ -14,16 +14,89 @@
     "initial_weights": "original NVIDIA base; regenerate tokenizer from the clean training manifest"
   },
   "artifacts": {
-    "manifests/train_big.jsonl": {"sha256_16": "c3c3236790aaa817", "rows": 232824, "hours": 1197, "source": "gate1b_curator_manifest.py --max-wer 0.35 --max-dur 30 (curator.sqlite, split=train, tgk_Cyrl)"},
-    "manifests/dev_big.jsonl": {"sha256_16": "7396e9fcee20af1a", "rows": 357, "source": "curator.sqlite split=dev tgk_Cyrl"},
-    "manifests/test_big.jsonl": {"sha256_16": "060080e31ba5934e", "rows": 721, "source": "curator.sqlite split=test tgk_Cyrl (600 fleurs + 121 commonvoice)"},
-    "manifests/test_fleurs.jsonl": {"sha256_16": "10802469b3ded0ce", "rows": 600, "source": "curator.sqlite split=test source=fleurs tgk_Cyrl"},
-    "tokenizers/tokenizer_spe_bpe_v1024/tokenizer.model": {"sha256_16": "00610deafa89a8e2", "vocab": 1024, "type": "spe_bpe", "source": "process_asr_text_tokenizer.py on train_big_text (full 232k-transcript corpus, char-coverage 1.0)"},
-    "final/tajik-parakeet-tdt-110m_final.nemo": {"sha256_16": "92e672d08b730a1c", "wer_fleurs": 19.0, "wer_dev": 17.8, "rtfx": 568, "source": "tajik-parakeet-train-tdt (110M hybrid full FT, 100k steps, bf16)"}
+    "manifests/train_big.jsonl": {
+      "sha256_16": "c3c3236790aaa817",
+      "rows": 232824,
+      "hours": 1197,
+      "source": "gate1b_curator_manifest.py --max-wer 0.35 --max-dur 30 (curator.sqlite, split=train, tgk_Cyrl)"
+    },
+    "manifests/dev_big.jsonl": {
+      "sha256_16": "7396e9fcee20af1a",
+      "rows": 357,
+      "source": "curator.sqlite split=dev tgk_Cyrl"
+    },
+    "manifests/test_big.jsonl": {
+      "sha256_16": "060080e31ba5934e",
+      "rows": 721,
+      "source": "curator.sqlite split=test tgk_Cyrl (600 fleurs + 121 commonvoice)"
+    },
+    "manifests/test_fleurs.jsonl": {
+      "sha256_16": "10802469b3ded0ce",
+      "rows": 600,
+      "source": "curator.sqlite split=test source=fleurs tgk_Cyrl"
+    },
+    "tokenizers/tokenizer_spe_bpe_v1024/tokenizer.model": {
+      "sha256_16": "00610deafa89a8e2",
+      "vocab": 1024,
+      "type": "spe_bpe",
+      "source": "process_asr_text_tokenizer.py on train_big_text (full 232k-transcript corpus, char-coverage 1.0)"
+    },
+    "final/tajik-parakeet-tdt-110m_final.nemo": {
+      "sha256_16": "92e672d08b730a1c",
+      "wer_fleurs": 19.0,
+      "wer_dev": 17.8,
+      "rtfx": 568,
+      "source": "tajik-parakeet-train-tdt (110M hybrid full FT, 100k steps, bf16)"
+    },
+    "final/parakeet_tdt_110m_tajik_v3_step_100000.nemo": {
+      "sha256": "9c4674e40c4c7d12087f2c5694cf6e9042cbc8afb7eab173935b87f5ee6cbdea",
+      "hf_path": "model.nemo",
+      "wer_fleurs": 17.481015571066962,
+      "wer_dev": 17.988394584139265,
+      "wer_conversational": 34.71947194719472,
+      "source": "100000-step clean v3 training; final selected by fp32 development WER"
+    },
+    "v3-safe/manifests/train.jsonl": {
+      "sha256": "e65a91daa351dcc87d58f92269598d000358dacc8d69a2cf9fdc84ce68a8b57c",
+      "rows": 173240,
+      "hours": 987.5421333332866,
+      "hf_path": "manifests/train.jsonl.gz"
+    },
+    "v3-safe/manifests/dev.jsonl": {
+      "sha256": "86b86efc7967707c49af40ea1000c56a8ffb71c2b0adde43ff278e13aeea5105",
+      "rows": 239,
+      "hours": 0.9335166666666666,
+      "hf_path": "manifests/dev.jsonl.gz"
+    },
+    "v3-safe/manifests/test.jsonl": {
+      "sha256": "4938f5cb0f255c7a64307072a7c19a995ca935d5634fab2869c4e3aa555fe113",
+      "rows": 2224,
+      "hours": 12.335877777777789,
+      "hf_path": "manifests/test.jsonl.gz"
+    },
+    "tokenizers/v3-safe/tokenizer_spe_bpe_v1024/tokenizer.model": {
+      "sha256": "0f9d5ca7f7c4053b071fcc884752e3a366a5cc69c49f1c5a5ebf84bfe19a14c2",
+      "vocab": 1024,
+      "type": "spe_bpe",
+      "source": "v3-safe training text; identical to embedded tokenizer"
+    }
   },
   "base_models": {
     "_note": "repo-level shared cache base_models/parakeet/ (copied from upstream NeMo / farsi finetune_parakeet); not committed.",
-    "parakeet-tdt_ctc-110m-base-hybrid.nemo": {"role": "tdt+ctc training base"},
-    "ctc.nemo": {"role": "ctc training base"}
-  }
+    "parakeet-tdt_ctc-110m-base-hybrid.nemo": {
+      "role": "tdt+ctc training base"
+    },
+    "ctc.nemo": {
+      "role": "ctc training base"
+    }
+  },
+  "legacy_release": {
+    "hf_repo": "peacockery/tajik-parakeet-tdt-110m",
+    "weight_revision": "1b213a53b8f8e39e553039f39200467dafe25a7f",
+    "current_card_revision": "0cfe7fc598405eb99fb2b345dd84a8ecdbaae07e",
+    "weight_file": "final/tajik-parakeet-tdt-110m_final.nemo",
+    "weight_sha256": "92e672d08b730a1c50cad7c0369c2d19fc1b9ebc83b16aa0fb5ae69267f3879f"
+  },
+  "hf_tag": "v1.1.0",
+  "artifact_id": "parakeet_tdt_110m_tajik_v3_step_100000"
 }

@@ -41,6 +41,12 @@ runs/ omni/<run>/  parakeet/<run>/           # live training output (ephemeral)
 - **Eval defaults to the stable `data/<family>/final/<model>.nemo`** (or an HF revision) — never `runs/.../last.ckpt` (that's resume-only).
 - **Tracking:** canonical manifests/tokenizer/final → push to Peacockery HF; track a small pointer file **outside** `data/` at `src/<lang>_asr/parakeet/artifacts.json` (local path, sha256, source command, row counts, HF repo id + revision). HF-push tooling may be staged as a follow-up; pointer files exist now.
 
+## Model identity
+
+Hugging Face model repositories follow `<family>-<size>-<language>`, for example `Peacockery/parakeet-tdt-110m-tajik` and `Peacockery/omni-ctc-300m-farsi`. An incremental model release can use a tag such as `v1.1.0` within that stable repository name. Dataset repositories retain `<language>-asr-corpus-vN`; the dataset version and model release version describe different things.
+
+Checkpoint identities record the architecture, language, dataset version, and step. Omni cards include their base-model version, such as `omni_ctc_300m_v2_tajik_v3_step_20000`. The corresponding Parakeet identity is `parakeet_tdt_110m_tajik_v3_step_100000`. Track exact hashes and Hub revisions alongside these names. Preserve older published artifacts when introducing a canonical name.
+
 ## Rules
 
 - Nothing in `experiments/` may be a default path in a `[project.scripts]` config object. Graduating an experiment moves its data → `data/<family>/` and code → `src/<lang>_asr/<family>/`.

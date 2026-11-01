@@ -159,7 +159,7 @@
     "https://raw.githubusercontent.com/NVIDIA-NeMo/Speech/main/.claude/skills/nemo-speech-asr-finetune/references/data-lhotse.md",
     "https://raw.githubusercontent.com/NVIDIA-NeMo/Speech/main/.claude/skills/nemo-speech-asr-finetune/references/architecture-tokenizer-metrics.md"
   ],
-  "remaining_measurement": "The full-duration upgraded continuation has resumed from step 14000 and produced finite optimizer updates. Final quality and checkpoint selection follow training completion. The 19.5 percent throughput gain applies to the controlled short-clip comparison.",
+  "remaining_measurement": "Completed training, development selection and both held-out evaluations. Future architecture, label-quality and deployment experiments remain separate work.",
   "weighted_training_smoke": {
     "optimizer_steps": 2,
     "finite_training_and_validation_loss": true,
@@ -174,7 +174,7 @@
     "scope": "Runtime diagnostic; final accuracy comes from completed controlled refinements"
   },
   "materializer": "Packed Arrow buffers preserve audio bytes and slice offsets with NumPy remaining optional for the standalone core.",
-  "active_service": "peacock-tajik-upgraded-20261028.service",
+  "active_service": "completed peacock-tajik-upgraded-20261028.service",
   "immediate_continuation": {
     "switch": {
       "checkpoint": {
@@ -237,7 +237,20 @@
         "precision": "bf16-mixed"
       },
       "gold_clip_sampling_weight": 0.12,
-      "status": "training_upgraded"
+      "status": "complete",
+      "training_result": {
+        "steps": 100000,
+        "validation": {
+          "step": 100000,
+          "val_loss": 10.9515,
+          "val_wer_bf16": 0.1767,
+          "val_wer_ctc_bf16": 0.1869
+        },
+        "steady_seconds_per_step": 0.15542491268917347,
+        "steady_audio_hours_per_second": 0.059310748258557415,
+        "peak_cuda_bytes": 5499646464
+      },
+      "selected": "tajik-parakeet-tdt-110m-upgraded-20261028-final"
     },
     "live_verification": {
       "step": 14400,
@@ -248,5 +261,95 @@
       "peak_cuda_bytes": 4706325504
     },
     "tests": "4 workflow tests passed, including saved-state continuation, development-only selection, and ASR recovery after failure"
+  },
+  "final_evaluation": {
+    "selection": "lowest normalized development WER, followed by fixed held-out evaluation",
+    "selected": "tajik-parakeet-tdt-110m-upgraded-20261028-final",
+    "inference_dtype": "fp32",
+    "normalizer": "omni_curator.process.normalize with language tgk_Cyrl",
+    "development": {
+      "tajik-parakeet-tdt-110m-upgraded-20261028-best": {
+        "wer_percent": 18.085106382978726,
+        "cer_percent": 5.802543912780133,
+        "empty_hypotheses": 0,
+        "scored_rows": 239,
+        "excluded_empty_references": 0
+      },
+      "tajik-parakeet-tdt-110m-upgraded-20261028-final": {
+        "wer_percent": 17.988394584139265,
+        "cer_percent": 5.729860690490612,
+        "empty_hypotheses": 0,
+        "scored_rows": 239,
+        "excluded_empty_references": 0
+      },
+      "tajik-parakeet-tdt-110m-upgraded-20261028-averaged": {
+        "wer_percent": 18.800773694390717,
+        "cer_percent": 6.302241066020593,
+        "empty_hypotheses": 0,
+        "scored_rows": 239,
+        "excluded_empty_references": 0
+      }
+    },
+    "heldout": {
+      "fleurs600": {
+        "rows": 600,
+        "raw": {
+          "wer_percent": 18.094870806016196,
+          "cer_percent": 6.253521802203599,
+          "empty_hypotheses": 0,
+          "scored_rows": 600,
+          "excluded_empty_references": 0
+        },
+        "normalized": {
+          "wer_percent": 17.481015571066962,
+          "cer_percent": 6.079636878887581,
+          "empty_hypotheses": 0,
+          "scored_rows": 600,
+          "excluded_empty_references": 0
+        }
+      },
+      "conversational": {
+        "rows": 1625,
+        "raw": {
+          "wer_percent": 34.71947194719472,
+          "cer_percent": 15.63480753897569,
+          "empty_hypotheses": 0,
+          "scored_rows": 1625,
+          "excluded_empty_references": 0
+        },
+        "normalized": {
+          "wer_percent": 34.71947194719472,
+          "cer_percent": 15.63480753897569,
+          "empty_hypotheses": 0,
+          "scored_rows": 1625,
+          "excluded_empty_references": 0
+        }
+      }
+    },
+    "reference_types": {
+      "fleurs600": "FLEURS human reference transcripts",
+      "conversational": "machine-generated transcripts; reference quality limits interpretation"
+    },
+    "previous_model": {
+      "repo_id": "Peacockery/tajik-parakeet-tdt-110m",
+      "revision": "1b213a53b8f8e39e553039f39200467dafe25a7f",
+      "fleurs600_normalized_wer_percent": 19.030451791056223,
+      "conversational_recorded_wer_percent": 33.84549566067718,
+      "conversational_scope": "previous training included clips from reserved evaluation videos"
+    }
+  },
+  "publication": {
+    "repository": "Peacockery/parakeet-tdt-110m-tajik",
+    "revision": "6ebb1f729e9f5a0cdde6433e71439a440f6ffef2",
+    "tag": "v1.1.0",
+    "url": "https://huggingface.co/Peacockery/parakeet-tdt-110m-tajik/tree/v1.1.0",
+    "weight_sha256": "9c4674e40c4c7d12087f2c5694cf6e9042cbc8afb7eab173935b87f5ee6cbdea",
+    "verified": "remote LFS digest, tag revision, model card, license, notice, provenance and scores",
+    "legacy_repository": {
+      "repository": "Peacockery/tajik-parakeet-tdt-110m",
+      "revision": "0cfe7fc598405eb99fb2b345dd84a8ecdbaae07e",
+      "change": "model card links current canonical release",
+      "weight_sha256": "92e672d08b730a1c50cad7c0369c2d19fc1b9ebc83b16aa0fb5ae69267f3879f"
+    }
   }
 }

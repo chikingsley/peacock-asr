@@ -28,7 +28,7 @@ PROJECT = ParakeetProject(
     default_hybrid_model=_BASE / "parakeet-tdt_ctc-110m-base-hybrid.nemo",
     default_tdt_model=_BASE / "parakeet-tdt_ctc-110m-base-hybrid.nemo",
     # eval defaults to the promoted final model (a stable .nemo), not a runs/ checkpoint
-    default_eval_tdt_model=_PK / "final" / "tajik-parakeet-tdt-110m_final.nemo",
+    default_eval_tdt_model=_PK / "final" / "parakeet_tdt_110m_tajik_v3_step_100000.nemo",
     default_train_manifest=_PK / "v3-safe" / "manifests" / "train.jsonl",
     default_validation_manifest=_PK / "v3-safe" / "manifests" / "dev.jsonl",
     heldout_manifest=ROOT / "manifests" / "heldout_test_videos.json",

@@ -168,6 +168,16 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
+## 2026-10-28 — audited v3 Parakeet continuation; v1.1.0 release
+
+The 110M hybrid was retrained from the original NVIDIA base with a fresh BPE-1024 tokenizer and 173,240 audited v3 training clips totaling 987.54 hours. The preparation filtered duration limits and known evaluation-source identities. A step-14,000 checkpoint supplied weights, optimizer state, scheduler state, and global step for immediate continuation to 100,000 steps. The continuation combined unfused BF16 mixed-precision loss, shuffled 200-row shards, and 12% reference-labeled FLEURS clip sampling. These changes were evaluated together.
+
+Standalone fp32 development WER selected the final model: 17.988% versus 18.085% for the best-validation-loss candidate and 18.801% for checkpoint averaging. The fixed final candidate then scored 17.481% normalized WER and 6.080% CER on all 600 FLEURS test recordings. The earlier published model scored 19.030% WER on those same recordings: a 1.549 percentage-point improvement and about 8.1% relative error reduction. Conversational WER was 34.719% across 1,625 machine-referenced clips, compared with the previous recorded 33.845%. The earlier model's training contained clips from reserved evaluation videos; the audited retrain separates those source identities. Both the transcript origin and historical overlap qualify the conversational comparison.
+
+Training and both evaluations completed successfully. The service restored Cohere ASR and received HTTP 200 from its health endpoint. Peak training CUDA allocation was about 5.5 GB. The measured 19.5% runtime gain came from the separate identical 200-step short-clip comparison; full-run throughput carries its own data-mixture and duration distribution.
+
+The release is [Peacockery/parakeet-tdt-110m-tajik, v1.1.0](https://huggingface.co/Peacockery/parakeet-tdt-110m-tajik/tree/v1.1.0). Exact artifact identity: `parakeet_tdt_110m_tajik_v3_step_100000`; SHA-256: `9c4674e40c4c7d12087f2c5694cf6e9042cbc8afb7eab173935b87f5ee6cbdea`. Published provenance includes the dataset revision, compressed portable manifests, bundled-tokenizer fingerprints, and evaluation scorecard. The historical model remains available in its original repository. Publication readback lives in `docs/release-v1.1.0-publication.json`.
+
 ## Gaps / not recorded
 
 - v0 **test** WER/CER was first measured 2026-05-30 (the v0 entry above), not on the original 2026-05-29 training day (GPU was on the Persian run); the README still notes it as "not yet measured" in its v0-vs-Scribe section.

@@ -21,6 +21,8 @@ metrics:
 
 # Tajik Parakeet TDT 110M
 
+The incremental **v1.1.0** release is available at [Peacockery/parakeet-tdt-110m-tajik](https://huggingface.co/Peacockery/parakeet-tdt-110m-tajik/tree/v1.1.0), following the family-size-language naming convention. It uses the audited v3 corpus and scores 17.48% normalized WER on the full 600-clip FLEURS test. This repository preserves the earlier checkpoint and its provenance below.
+
 A Tajik speech-recognition fine-tune of [NVIDIA/Suno Parakeet TDT-CTC 110M](https://huggingface.co/nvidia/parakeet-tdt_ctc-110m), released by Peacockery Studio. The model uses a FastConformer encoder and hybrid TDT/CTC heads with a Tajik SentencePiece BPE vocabulary of 1,024 tokens. Input audio is mono at 16 kHz; output is Tajik Cyrillic text.
 
 ## License and attribution

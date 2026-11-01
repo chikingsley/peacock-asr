@@ -1,0 +1,17 @@
+Parakeet TDT 110M Tajik v1.1.0
+
+Tajik fine-tuning contributions: Peacockery Studio, 2026.
+Base model: NVIDIA/Suno Parakeet TDT-CTC 110M.
+Base model source: https://huggingface.co/nvidia/parakeet-tdt_ctc-110m
+Fine-tuned model source: https://huggingface.co/Peacockery/parakeet-tdt-110m-tajik
+
+The model weights and Peacockery's fine-tuning contributions are licensed under
+Creative Commons Attribution 4.0 International (CC BY 4.0).
+License: https://creativecommons.org/licenses/by/4.0/
+
+Changes from the base model include Tajik BPE-1024 vocabulary replacement and
+100,000 steps of full fine-tuning on the training sources described in README.md.
+Further adaptations should identify their changes and preserve this attribution.
+
+Training recordings and third-party datasets retain their respective rights.
+See README.md for training-source provenance and evaluation limitations.
