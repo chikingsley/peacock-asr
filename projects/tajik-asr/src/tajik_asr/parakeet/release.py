@@ -12,13 +12,15 @@ from pathlib import Path
 
 from tajik_asr.parakeet import PROJECT
 
-REPO_ID = "Peacockery/parakeet-tdt-110m-tajik"
+REPO_ID = "Peacockery/tajik-parakeet-tdt-110m"
 VERSION = "v1.1.0"
+MODEL_FILENAME = "tajik-parakeet-tdt-110m_final.nemo"
+PREVIOUS_REVISION = "1b213a53b8f8e39e553039f39200467dafe25a7f"
 RUN_NAME = "tajik-parakeet-tdt-110m-upgraded-20261028"
 MODEL_SHA256 = "9c4674e40c4c7d12087f2c5694cf6e9042cbc8afb7eab173935b87f5ee6cbdea"
 REPO_ROOT = PROJECT.root.parents[1]
-CARD = REPO_ROOT / "docs/hf-cards/parakeet-tdt-110m-tajik"
-RELEASE_DIR = PROJECT.data / "parakeet/releases" / VERSION
+CARD = REPO_ROOT / "docs/hf-cards/tajik-parakeet-tdt-110m"
+RELEASE_DIR = PROJECT.data / "parakeet/releases" / f"{VERSION}-original-repository"
 
 
 def digest(path: Path) -> str:
@@ -61,8 +63,8 @@ def prepare() -> dict:
     manifests.mkdir(exist_ok=True)
     for name in ("README.md", "LICENSE", "NOTICE"):
         shutil.copyfile(CARD / name, RELEASE_DIR / name)
-    shutil.copyfile(model, RELEASE_DIR / "model.nemo")
-    tokenizer = RELEASE_DIR / "tokenizer"
+    shutil.copyfile(model, RELEASE_DIR / MODEL_FILENAME)
+    tokenizer = RELEASE_DIR / "tokenizer_spe_bpe_v1024"
     tokenizer.mkdir(exist_ok=True)
     with tarfile.open(model) as archive:
         for name in ("tokenizer.model", "tokenizer.vocab", "vocab.txt"):
@@ -122,7 +124,7 @@ def prepare() -> dict:
         "repository": REPO_ID,
         "release": VERSION,
         "artifact_id": "parakeet_tdt_110m_tajik_v3_step_100000",
-        "model": {"file": "model.nemo", "sha256": MODEL_SHA256},
+        "model": {"file": MODEL_FILENAME, "sha256": MODEL_SHA256},
         "base_model": "nvidia/parakeet-tdt_ctc-110m",
         "base_model_sha256": "1e6b5c3bcaa390b479bd8112512ede515d2ef5b61495568f2c266d6d5e680c3a",
         "dataset": {
@@ -148,7 +150,7 @@ def prepare() -> dict:
                 "pseudo_clip_weight": 0.88,
                 "manifest_shard_rows": 200,
             },
-            "tokenizer": "fresh Tajik BPE-1024 from training text; embedded in model.nemo",
+            "tokenizer": f"fresh Tajik BPE-1024 from training text; embedded in {MODEL_FILENAME}",
         },
         "manifests": manifest_report,
         "files": {
@@ -161,8 +163,8 @@ def prepare() -> dict:
     return report
 
 
-def publish() -> dict:
-    from huggingface_hub import CommitOperationAdd, HfApi, hf_hub_download
+def publish(expected_parent: str) -> dict:
+    from huggingface_hub import CommitOperationAdd, CommitOperationDelete, HfApi, hf_hub_download
 
     report = json.loads((RELEASE_DIR / "release.json").read_text())
     files = [RELEASE_DIR / name for name in report["files"]] + [RELEASE_DIR / "release.json"]
@@ -170,22 +172,40 @@ def publish() -> dict:
         if digest(RELEASE_DIR / name) != expected:
             raise ValueError(f"Staged release changed after preparation: {name}")
     api = HfApi()
-    if api.repo_exists(REPO_ID):
-        raise FileExistsError(f"Inspect the existing release before publishing again: {REPO_ID}")
-    api.create_repo(REPO_ID, private=False)
-    parent = api.model_info(REPO_ID).sha
+    current = api.model_info(REPO_ID, files_metadata=True)
+    if current.sha != expected_parent:
+        raise ValueError(
+            "Repository changed after inspection; refresh the expected parent revision"
+        )
+    tags = {tag.name: tag.target_commit for tag in api.list_repo_refs(REPO_ID).tags}
+    if VERSION in tags:
+        raise FileExistsError(f"Release tag already exists: {VERSION}")
+    if "v1.0.0" in tags and tags["v1.0.0"] != PREVIOUS_REVISION:
+        raise ValueError("Historical release tag points to an unexpected revision")
+    if "v1.0.0" not in tags:
+        api.create_tag(REPO_ID, tag="v1.0.0", revision=PREVIOUS_REVISION)
+    legacy_manifests = {
+        "manifests/dev_big.jsonl",
+        "manifests/test_big.jsonl",
+        "manifests/test_fleurs.jsonl",
+    }
     commit = api.create_commit(
         repo_id=REPO_ID,
-        parent_commit=parent,
-        commit_message="Release v1.1.0: audited v3 data and measured Tajik training upgrades",
+        parent_commit=expected_parent,
+        commit_message="Publish v1.1.0 weights, tokenizer, evaluations and model card",
         operations=[
             CommitOperationAdd(path_in_repo=str(p.relative_to(RELEASE_DIR)), path_or_fileobj=p)
             for p in files
+        ]
+        + [
+            CommitOperationDelete(path_in_repo=file.rfilename)
+            for file in current.siblings
+            if file.rfilename in legacy_manifests
         ],
     )
     api.create_tag(REPO_ID, tag=VERSION, revision=commit.oid)
     remote = api.model_info(REPO_ID, revision=VERSION, files_metadata=True)
-    weights = next(file for file in remote.siblings if file.rfilename == "model.nemo")
+    weights = next(file for file in remote.siblings if file.rfilename == MODEL_FILENAME)
     if remote.sha != commit.oid or weights.lfs.sha256 != MODEL_SHA256:
         raise ValueError("Published model or version differs from the staged release")
     for name in ("README.md", "LICENSE", "NOTICE", "release.json", "evaluation.json"):
@@ -209,8 +229,11 @@ def publish() -> dict:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=["prepare", "publish"])
+    parser.add_argument("--expected-parent", help="Inspected Hub commit required for publication")
     args = parser.parse_args(argv)
+    if args.action == "publish" and not args.expected_parent:
+        parser.error("publish requires --expected-parent from the inspected repository")
     PROJECT.configure_environment()
-    result = prepare() if args.action == "prepare" else publish()
+    result = prepare() if args.action == "prepare" else publish(args.expected_parent)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0

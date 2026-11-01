@@ -176,7 +176,7 @@ Standalone fp32 development WER selected the final model: 17.988% versus 18.085%
 
 Training and both evaluations completed successfully. The service restored Cohere ASR and received HTTP 200 from its health endpoint. Peak training CUDA allocation was about 5.5 GB. The measured 19.5% runtime gain came from the separate identical 200-step short-clip comparison; full-run throughput carries its own data-mixture and duration distribution.
 
-The release is [Peacockery/parakeet-tdt-110m-tajik, v1.1.0](https://huggingface.co/Peacockery/parakeet-tdt-110m-tajik/tree/v1.1.0). Exact artifact identity: `parakeet_tdt_110m_tajik_v3_step_100000`; SHA-256: `9c4674e40c4c7d12087f2c5694cf6e9042cbc8afb7eab173935b87f5ee6cbdea`. Published provenance includes the dataset revision, compressed portable manifests, bundled-tokenizer fingerprints, and evaluation scorecard. The historical model remains available in its original repository. Publication readback lives in `docs/release-v1.1.0-publication.json`.
+The release is [Peacockery/tajik-parakeet-tdt-110m v1.1.0](https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m/tree/v1.1.0). Exact artifact identity: `parakeet_tdt_110m_tajik_v3_step_100000`; SHA-256: `9c4674e40c4c7d12087f2c5694cf6e9042cbc8afb7eab173935b87f5ee6cbdea`. Published provenance includes the dataset revision, compressed portable manifests, bundled-tokenizer fingerprints, and evaluation scorecard. The historical model remains available under the original repository's `v1.0.0` tag. Publication readback lives in `docs/release-v1.1.0-publication.json`.
 
 ## Gaps / not recorded
 

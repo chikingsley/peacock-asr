@@ -43,9 +43,9 @@ runs/ omni/<run>/  parakeet/<run>/           # live training output (ephemeral)
 
 ## Model identity
 
-Hugging Face model repositories follow `<family>-<size>-<language>`, for example `Peacockery/parakeet-tdt-110m-tajik` and `Peacockery/omni-ctc-300m-farsi`. An incremental model release can use a tag such as `v1.1.0` within that stable repository name. Dataset repositories retain `<language>-asr-corpus-vN`; the dataset version and model release version describe different things.
+New Hugging Face model repositories follow `<family>-<size>-<language>`, for example `Peacockery/omni-ctc-300m-farsi`. Existing published repositories retain their established names, including `Peacockery/tajik-parakeet-tdt-110m`. Publish updates and version tags in that original repository. An incremental model release can use a tag such as `v1.1.0` within that stable repository name. Dataset repositories retain `<language>-asr-corpus-vN`; the dataset version and model release version describe different things.
 
-Checkpoint identities record the architecture, language, dataset version, and step. Omni cards include their base-model version, such as `omni_ctc_300m_v2_tajik_v3_step_20000`. The corresponding Parakeet identity is `parakeet_tdt_110m_tajik_v3_step_100000`. Track exact hashes and Hub revisions alongside these names. Preserve older published artifacts when introducing a canonical name.
+Checkpoint identities record the architecture, language, dataset version, and step. Omni cards include their base-model version, such as `omni_ctc_300m_v2_tajik_v3_step_20000`. The corresponding Parakeet identity is `parakeet_tdt_110m_tajik_v3_step_100000`. Track exact hashes and Hub revisions alongside these names. Preserve earlier weights and their documentation under version tags. Use plain repository names in public titles and keep naming-policy explanations in internal documentation.
 
 ## Rules
 

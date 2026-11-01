@@ -339,17 +339,37 @@
     }
   },
   "publication": {
-    "repository": "Peacockery/parakeet-tdt-110m-tajik",
-    "revision": "6ebb1f729e9f5a0cdde6433e71439a440f6ffef2",
+    "repository": "Peacockery/tajik-parakeet-tdt-110m",
+    "revision": "67b879acf943505b956d29bf956727c86a8fff77",
     "tag": "v1.1.0",
-    "url": "https://huggingface.co/Peacockery/parakeet-tdt-110m-tajik/tree/v1.1.0",
+    "url": "https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m/tree/v1.1.0",
     "weight_sha256": "9c4674e40c4c7d12087f2c5694cf6e9042cbc8afb7eab173935b87f5ee6cbdea",
     "verified": "remote LFS digest, tag revision, model card, license, notice, provenance and scores",
-    "legacy_repository": {
+    "previous_release": {
       "repository": "Peacockery/tajik-parakeet-tdt-110m",
-      "revision": "0cfe7fc598405eb99fb2b345dd84a8ecdbaae07e",
-      "change": "model card links current canonical release",
-      "weight_sha256": "92e672d08b730a1c50cad7c0369c2d19fc1b9ebc83b16aa0fb5ae69267f3879f"
-    }
+      "tag": "v1.0.0",
+      "revision": "1b213a53b8f8e39e553039f39200467dafe25a7f"
+    },
+    "mirror": {
+      "repository": "Peacockery/parakeet-tdt-110m-tajik",
+      "revision": "f5ecb67cd6e8c9f7a2382c0e026f1c5cb247f83e",
+      "role": "compatibility copy linking to original repository"
+    },
+    "model_card_checks": [
+      {
+        "repository": "Peacockery/tajik-parakeet-tdt-110m",
+        "revision": "67b879acf943505b956d29bf956727c86a8fff77",
+        "title": "# tajik-parakeet-tdt-110m",
+        "em_dash_count": 0,
+        "en_dash_count": 0
+      },
+      {
+        "repository": "Peacockery/parakeet-tdt-110m-tajik",
+        "revision": "f5ecb67cd6e8c9f7a2382c0e026f1c5cb247f83e",
+        "title": "# parakeet-tdt-110m-tajik",
+        "em_dash_count": 0,
+        "en_dash_count": 0
+      }
+    ]
   }
 }
