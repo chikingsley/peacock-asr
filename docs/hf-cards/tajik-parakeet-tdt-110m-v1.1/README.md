@@ -95,10 +95,10 @@ The recipe used BF16 mixed precision, AdamW, a peak learning rate of `3e-4`, 2,0
 
 ## Comparison with the original model
 
-| Model                                                                 | Training data              | FLEURS WER | Conversational WER |
-| --------------------------------------------------------------------- | -------------------------- | ---------: | -----------------: |
-| [Original](https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m) | Original 1,197-hour export |      19.03 |              33.85 |
-| v1.1                                                                  | Filtered v3, 987.54 hours  |      17.48 |              34.72 |
+| Model                                                                       | Training data              | FLEURS WER | Conversational WER |
+| --------------------------------------------------------------------------- | -------------------------- | ---------: | -----------------: |
+| [Original v1](https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m-v1) | Original 1,197-hour export |      19.03 |              33.85 |
+| v1.1                                                                        | Filtered v3, 987.54 hours  |      17.48 |              34.72 |
 
 v1.1 reduces FLEURS WER by 1.55 percentage points, an 8.1% relative reduction. The conversational comparison has the source-overlap and reference-quality limitations described above. The original checkpoint and its evaluation remain available in the linked model repository.
 

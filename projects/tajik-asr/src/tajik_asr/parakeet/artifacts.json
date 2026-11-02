@@ -1,7 +1,7 @@
 {
-  "_comment": "The v1.1 checkpoint has its own versioned Hugging Face repository. The original repository serves the original checkpoint with matching tokenizer and manifests.",
+  "_comment": "Separate versioned repositories contain v1 and v1.1, each with its matching checkpoint, tokenizer and evaluation documentation.",
   "hf_repo": "Peacockery/tajik-parakeet-tdt-110m-v1.1",
-  "hf_revision": "b9b0b7e2c8d2ac44b0ac20d6ebd924fc7db4ce8c",
+  "hf_revision": "ca6901463ed434957605efe4115ef01e72bb8ba0",
   "license": "CC-BY-4.0",
   "training_defaults": {
     "dataset_repo": "Peacockery/tajik-asr-corpus-v3",
@@ -93,10 +93,12 @@
   "hf_tag": "v1.1",
   "artifact_id": "parakeet_tdt_110m_tajik_v3_step_100000",
   "previous_release": {
-    "repository": "Peacockery/tajik-parakeet-tdt-110m",
-    "revision": "08fe42360e974a8c275729f5eb19f2c98776df57",
+    "repository": "Peacockery/tajik-parakeet-tdt-110m-v1",
+    "revision": "b114c6b841bb82bd1cba74ba74289eeeefc797e6",
     "historical_revision": "1b213a53b8f8e39e553039f39200467dafe25a7f",
     "weight_sha256": "92e672d08b730a1c50cad7c0369c2d19fc1b9ebc83b16aa0fb5ae69267f3879f",
-    "verified": "all original payload Git blobs and LFS digests match the historical release; new card links to v1.1"
-  }
+    "verified": "original weights, tokenizer, manifests and license match the historical release; model card and notice use the v1 name",
+    "renamed_from": "Peacockery/tajik-parakeet-tdt-110m"
+  },
+  "hf_tag_revision": "b9b0b7e2c8d2ac44b0ac20d6ebd924fc7db4ce8c"
 }

@@ -340,17 +340,18 @@
   },
   "publication": {
     "repository": "Peacockery/tajik-parakeet-tdt-110m-v1.1",
-    "revision": "b9b0b7e2c8d2ac44b0ac20d6ebd924fc7db4ce8c",
+    "revision": "ca6901463ed434957605efe4115ef01e72bb8ba0",
     "tag": "v1.1",
-    "url": "https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m-v1.1/tree/v1.1",
+    "url": "https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m-v1.1",
     "weight_sha256": "9c4674e40c4c7d12087f2c5694cf6e9042cbc8afb7eab173935b87f5ee6cbdea",
     "verified": "remote LFS digest, tag revision, model card, license, notice, provenance and scores",
     "previous_release": {
-      "repository": "Peacockery/tajik-parakeet-tdt-110m",
-      "revision": "08fe42360e974a8c275729f5eb19f2c98776df57",
+      "repository": "Peacockery/tajik-parakeet-tdt-110m-v1",
+      "revision": "b114c6b841bb82bd1cba74ba74289eeeefc797e6",
       "historical_revision": "1b213a53b8f8e39e553039f39200467dafe25a7f",
       "weight_sha256": "92e672d08b730a1c50cad7c0369c2d19fc1b9ebc83b16aa0fb5ae69267f3879f",
-      "verified": "all original payload Git blobs and LFS digests match the historical release; new card links to v1.1"
+      "verified": "original weights, tokenizer, manifests and license match the historical release; model card and notice use the v1 name",
+      "renamed_from": "Peacockery/tajik-parakeet-tdt-110m"
     },
     "renamed_from": {
       "from": "Peacockery/parakeet-tdt-110m-tajik",
@@ -358,20 +359,20 @@
       "revision": "f5ecb67cd6e8c9f7a2382c0e026f1c5cb247f83e",
       "action": "rename existing repository, preserving history and tags"
     },
-    "layout": "separate model repositories for the original and v1.1 checkpoints",
+    "layout": "separate explicitly versioned model repositories for v1 and v1.1",
     "model_card_checks": [
       {
-        "repository": "Peacockery/tajik-parakeet-tdt-110m-v1.1",
-        "revision": "b9b0b7e2c8d2ac44b0ac20d6ebd924fc7db4ce8c",
-        "title": "# tajik-parakeet-tdt-110m-v1.1",
+        "repository": "Peacockery/tajik-parakeet-tdt-110m-v1",
+        "revision": "b114c6b841bb82bd1cba74ba74289eeeefc797e6",
+        "title": "# tajik-parakeet-tdt-110m-v1",
         "em_dash_count": 0,
         "en_dash_count": 0,
         "license": "cc-by-4.0"
       },
       {
-        "repository": "Peacockery/tajik-parakeet-tdt-110m",
-        "revision": "08fe42360e974a8c275729f5eb19f2c98776df57",
-        "title": "# tajik-parakeet-tdt-110m",
+        "repository": "Peacockery/tajik-parakeet-tdt-110m-v1.1",
+        "revision": "ca6901463ed434957605efe4115ef01e72bb8ba0",
+        "title": "# tajik-parakeet-tdt-110m-v1.1",
         "em_dash_count": 0,
         "en_dash_count": 0,
         "license": "cc-by-4.0"
@@ -387,6 +388,7 @@
       "https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3",
       "https://huggingface.co/docs/hub/repositories-settings",
       "https://huggingface.co/docs/huggingface_hub/guides/repository"
-    ]
+    ],
+    "tag_revision": "b9b0b7e2c8d2ac44b0ac20d6ebd924fc7db4ce8c"
   }
 }

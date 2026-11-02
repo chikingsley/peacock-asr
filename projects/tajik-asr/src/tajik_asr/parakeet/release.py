@@ -110,7 +110,7 @@ def prepare() -> dict:
             ),
         },
         "previous_model": {
-            "repo_id": "Peacockery/tajik-parakeet-tdt-110m",
+            "repo_id": "Peacockery/tajik-parakeet-tdt-110m-v1",
             "revision": "1b213a53b8f8e39e553039f39200467dafe25a7f",
             "fleurs600_normalized_wer_percent": 19.030451791056223,
             "conversational_recorded_wer_percent": 33.84549566067718,
@@ -180,7 +180,7 @@ def publish(expected_parent: str) -> dict:
     tags = {tag.name: tag.target_commit for tag in api.list_repo_refs(REPO_ID).tags}
     if VERSION in tags:
         raise FileExistsError(f"Release tag already exists: {VERSION}")
-    previous = api.model_info("Peacockery/tajik-parakeet-tdt-110m", revision=PREVIOUS_REVISION)
+    previous = api.model_info("Peacockery/tajik-parakeet-tdt-110m-v1", revision=PREVIOUS_REVISION)
     if previous.sha != PREVIOUS_REVISION:
         raise ValueError("Original model revision differs from the recorded baseline")
     commit = api.create_commit(

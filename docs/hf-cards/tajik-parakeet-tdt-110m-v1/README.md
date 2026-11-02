@@ -19,7 +19,7 @@ metrics:
   - cer
 ---
 
-# tajik-parakeet-tdt-110m
+# tajik-parakeet-tdt-110m-v1
 
 The updated model is available at [tajik-parakeet-tdt-110m-v1.1](https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m-v1.1), with 17.48% FLEURS WER. This repository contains the original June 2026 checkpoint, with 19.03% FLEURS WER.
 
@@ -33,7 +33,7 @@ CC BY 4.0 permits use, redistribution, conversion, and adaptation, including com
 
 Suggested attribution:
 
-> Tajik Parakeet TDT 110M by Peacockery Studio, fine-tuned from NVIDIA/Suno Parakeet TDT-CTC 110M. Licensed under CC BY 4.0. Model: https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m. Base model: https://huggingface.co/nvidia/parakeet-tdt_ctc-110m. License: https://creativecommons.org/licenses/by/4.0/.
+> Tajik Parakeet TDT 110M by Peacockery Studio, fine-tuned from NVIDIA/Suno Parakeet TDT-CTC 110M. Licensed under CC BY 4.0. Model: https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m-v1. Base model: https://huggingface.co/nvidia/parakeet-tdt_ctc-110m. License: https://creativecommons.org/licenses/by/4.0/.
 
 Training recordings and third-party datasets retain their respective rights and terms. Source permissions for the YouTube recordings and the Muhtasham augmented dataset remain under provenance review. This weight release grants the rights held by the model licensors; rights in third-party recordings remain with their owners.
 
@@ -72,7 +72,7 @@ from huggingface_hub import hf_hub_download
 from nemo.collections.asr.models import ASRModel
 
 checkpoint = hf_hub_download(
-    repo_id="Peacockery/tajik-parakeet-tdt-110m",
+    repo_id="Peacockery/tajik-parakeet-tdt-110m-v1",
     filename="tajik-parakeet-tdt-110m_final.nemo",
 )
 model = ASRModel.restore_from(checkpoint)
