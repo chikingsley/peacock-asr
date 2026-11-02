@@ -168,7 +168,7 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
-## 2026-10-28 — audited v3 Parakeet continuation; v1.1.0 release
+## 2026-10-28: audited v3 Parakeet continuation; v1.1 release
 
 The 110M hybrid was retrained from the original NVIDIA base with a fresh BPE-1024 tokenizer and 173,240 audited v3 training clips totaling 987.54 hours. The preparation filtered duration limits and known evaluation-source identities. A step-14,000 checkpoint supplied weights, optimizer state, scheduler state, and global step for immediate continuation to 100,000 steps. The continuation combined unfused BF16 mixed-precision loss, shuffled 200-row shards, and 12% reference-labeled FLEURS clip sampling. These changes were evaluated together.
 
@@ -176,7 +176,7 @@ Standalone fp32 development WER selected the final model: 17.988% versus 18.085%
 
 Training and both evaluations completed successfully. The service restored Cohere ASR and received HTTP 200 from its health endpoint. Peak training CUDA allocation was about 5.5 GB. The measured 19.5% runtime gain came from the separate identical 200-step short-clip comparison; full-run throughput carries its own data-mixture and duration distribution.
 
-The release is [Peacockery/tajik-parakeet-tdt-110m v1.1.0](https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m/tree/v1.1.0). Exact artifact identity: `parakeet_tdt_110m_tajik_v3_step_100000`; SHA-256: `9c4674e40c4c7d12087f2c5694cf6e9042cbc8afb7eab173935b87f5ee6cbdea`. Published provenance includes the dataset revision, compressed portable manifests, bundled-tokenizer fingerprints, and evaluation scorecard. The historical model remains available under the original repository's `v1.0.0` tag. Publication readback lives in `docs/release-v1.1.0-publication.json`.
+The release is [Peacockery/tajik-parakeet-tdt-110m-v1.1](https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m-v1.1). Exact artifact identity: `parakeet_tdt_110m_tajik_v3_step_100000`; SHA-256: `9c4674e40c4c7d12087f2c5694cf6e9042cbc8afb7eab173935b87f5ee6cbdea`. Published provenance includes the dataset revision, compressed portable manifests, bundled-tokenizer fingerprints, and evaluation scorecard. The original repository serves the original checkpoint. Publication readback lives in `docs/release-v1.1-publication.json`. The November 2 layout correction renamed the extra repository into the versioned release and restored the original checkpoint with its matching tokenizer and manifests. Existing Git history and tags remain available.
 
 ## Gaps / not recorded
 

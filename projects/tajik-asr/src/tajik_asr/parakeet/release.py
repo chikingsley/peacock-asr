@@ -12,15 +12,15 @@ from pathlib import Path
 
 from tajik_asr.parakeet import PROJECT
 
-REPO_ID = "Peacockery/tajik-parakeet-tdt-110m"
-VERSION = "v1.1.0"
-MODEL_FILENAME = "tajik-parakeet-tdt-110m_final.nemo"
+REPO_ID = "Peacockery/tajik-parakeet-tdt-110m-v1.1"
+VERSION = "v1.1"
+MODEL_FILENAME = "model.nemo"
 PREVIOUS_REVISION = "1b213a53b8f8e39e553039f39200467dafe25a7f"
 RUN_NAME = "tajik-parakeet-tdt-110m-upgraded-20261028"
 MODEL_SHA256 = "9c4674e40c4c7d12087f2c5694cf6e9042cbc8afb7eab173935b87f5ee6cbdea"
 REPO_ROOT = PROJECT.root.parents[1]
-CARD = REPO_ROOT / "docs/hf-cards/tajik-parakeet-tdt-110m"
-RELEASE_DIR = PROJECT.data / "parakeet/releases" / f"{VERSION}-original-repository"
+CARD = REPO_ROOT / "docs/hf-cards/tajik-parakeet-tdt-110m-v1.1"
+RELEASE_DIR = PROJECT.data / "parakeet/releases" / f"{VERSION}-versioned-repository"
 
 
 def digest(path: Path) -> str:
@@ -64,7 +64,7 @@ def prepare() -> dict:
     for name in ("README.md", "LICENSE", "NOTICE"):
         shutil.copyfile(CARD / name, RELEASE_DIR / name)
     shutil.copyfile(model, RELEASE_DIR / MODEL_FILENAME)
-    tokenizer = RELEASE_DIR / "tokenizer_spe_bpe_v1024"
+    tokenizer = RELEASE_DIR / "tokenizer"
     tokenizer.mkdir(exist_ok=True)
     with tarfile.open(model) as archive:
         for name in ("tokenizer.model", "tokenizer.vocab", "vocab.txt"):
@@ -164,7 +164,7 @@ def prepare() -> dict:
 
 
 def publish(expected_parent: str) -> dict:
-    from huggingface_hub import CommitOperationAdd, CommitOperationDelete, HfApi, hf_hub_download
+    from huggingface_hub import CommitOperationAdd, HfApi, hf_hub_download
 
     report = json.loads((RELEASE_DIR / "release.json").read_text())
     files = [RELEASE_DIR / name for name in report["files"]] + [RELEASE_DIR / "release.json"]
@@ -180,27 +180,16 @@ def publish(expected_parent: str) -> dict:
     tags = {tag.name: tag.target_commit for tag in api.list_repo_refs(REPO_ID).tags}
     if VERSION in tags:
         raise FileExistsError(f"Release tag already exists: {VERSION}")
-    if "v1.0.0" in tags and tags["v1.0.0"] != PREVIOUS_REVISION:
-        raise ValueError("Historical release tag points to an unexpected revision")
-    if "v1.0.0" not in tags:
-        api.create_tag(REPO_ID, tag="v1.0.0", revision=PREVIOUS_REVISION)
-    legacy_manifests = {
-        "manifests/dev_big.jsonl",
-        "manifests/test_big.jsonl",
-        "manifests/test_fleurs.jsonl",
-    }
+    previous = api.model_info("Peacockery/tajik-parakeet-tdt-110m", revision=PREVIOUS_REVISION)
+    if previous.sha != PREVIOUS_REVISION:
+        raise ValueError("Original model revision differs from the recorded baseline")
     commit = api.create_commit(
         repo_id=REPO_ID,
         parent_commit=expected_parent,
-        commit_message="Publish v1.1.0 weights, tokenizer, evaluations and model card",
+        commit_message="Publish v1.1 model card, checkpoint provenance and evaluation",
         operations=[
             CommitOperationAdd(path_in_repo=str(p.relative_to(RELEASE_DIR)), path_or_fileobj=p)
             for p in files
-        ]
-        + [
-            CommitOperationDelete(path_in_repo=file.rfilename)
-            for file in current.siblings
-            if file.rfilename in legacy_manifests
         ],
     )
     api.create_tag(REPO_ID, tag=VERSION, revision=commit.oid)
@@ -222,7 +211,7 @@ def publish(expected_parent: str) -> dict:
             "remote LFS digest, tag revision, model card, license, notice, provenance and scores"
         ),
     }
-    save_json(PROJECT.root / "docs/release-v1.1.0-publication.json", result)
+    save_json(PROJECT.root / "docs/release-v1.1-publication.json", result)
     return result
 
 

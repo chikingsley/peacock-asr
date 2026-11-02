@@ -6,53 +6,66 @@ library_name: nemo
 pipeline_tag: automatic-speech-recognition
 base_model: nvidia/parakeet-tdt_ctc-110m
 base_model_relation: finetune
-datasets:
-  - Peacockery/tajik-asr-corpus-v3
 tags:
   - tajik
   - speech
+  - audio
   - fastconformer
   - tdt
   - ctc
+  - automatic-speech-recognition
 metrics:
   - wer
   - cer
-model-index:
-  - name: tajik-parakeet-tdt-110m
-    results:
-      - task:
-          type: automatic-speech-recognition
-          name: Automatic Speech Recognition
-        dataset:
-          type: google/fleurs
-          name: FLEURS Tajik test, all 600 recordings
-          config: tg_tj
-          split: test
-        metrics:
-          - type: wer
-            name: Normalized WER
-            value: 17.481015571066962
-          - type: cer
-            name: Normalized CER
-            value: 6.079636878887581
 ---
 
 # tajik-parakeet-tdt-110m
 
-Tajik automatic speech recognition model fine-tuned from [NVIDIA/Suno Parakeet TDT-CTC 110M](https://huggingface.co/nvidia/parakeet-tdt_ctc-110m). It uses a FastConformer encoder, TDT and CTC heads, and a Tajik SentencePiece BPE tokenizer with 1,024 tokens.
+The updated model is available at [tajik-parakeet-tdt-110m-v1.1](https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m-v1.1), with 17.48% FLEURS WER. This repository contains the original June 2026 checkpoint, with 19.03% FLEURS WER.
 
-| Property        | Value                                                                           |
-| --------------- | ------------------------------------------------------------------------------- |
-| Language        | Tajik, Cyrillic script                                                          |
-| Input           | Mono audio at 16 kHz                                                            |
-| Output          | Lowercase text, generally without punctuation                                   |
-| Framework       | NVIDIA NeMo                                                                     |
-| Current version | [v1.1.0](https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m/tree/v1.1.0) |
-| License         | CC BY 4.0                                                                       |
+A Tajik speech-recognition fine-tune of [NVIDIA/Suno Parakeet TDT-CTC 110M](https://huggingface.co/nvidia/parakeet-tdt_ctc-110m), released by Peacockery Studio. The model uses a FastConformer encoder and hybrid TDT/CTC heads with a Tajik SentencePiece BPE vocabulary of 1,024 tokens. Input audio is mono at 16 kHz; output is Tajik Cyrillic text.
+
+## License and attribution
+
+The model weights and Peacockery's fine-tuning contributions are released under **Creative Commons Attribution 4.0 International (CC BY 4.0)**. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+CC BY 4.0 permits use, redistribution, conversion, and adaptation, including commercial use and further fine-tuning, subject to its terms. Preserve attribution to NVIDIA/Suno and Peacockery Studio, link to the license, and identify changes such as ONNX conversion, quantization, or further fine-tuning. An application credits screen can contain the attribution and links, with the license and notice accompanying the distributed model.
+
+Suggested attribution:
+
+> Tajik Parakeet TDT 110M by Peacockery Studio, fine-tuned from NVIDIA/Suno Parakeet TDT-CTC 110M. Licensed under CC BY 4.0. Model: https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m. Base model: https://huggingface.co/nvidia/parakeet-tdt_ctc-110m. License: https://creativecommons.org/licenses/by/4.0/.
+
+Training recordings and third-party datasets retain their respective rights and terms. Source permissions for the YouTube recordings and the Muhtasham augmented dataset remain under provenance review. This weight release grants the rights held by the model licensors; rights in third-party recordings remain with their owners.
+
+## Training
+
+The published checkpoint is the final model from a 100,000-step full fine-tune completed in June 2026. The training manifest contains 232,824 clips totaling 1,197.36 hours.
+
+| Source                                |   Clips |    Hours | Source information                                                                                                                 |
+| ------------------------------------- | ------: | -------: | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Tajik YouTube channels                | 229,470 | 1,186.20 | Project-generated Scribe pseudo-labels; individual source permissions under review                                                 |
+| Google FLEURS `tg_tj`                 |   2,265 |     8.47 | [FLEURS](https://huggingface.co/datasets/google/fleurs), CC BY 4.0                                                                 |
+| Muhtasham augmented Tajik             |     853 |     2.35 | [Dataset](https://huggingface.co/datasets/muhtasham/tajik-asr-augmented-test), license and original-source provenance under review |
+| Common Voice Scripted Speech 25 Tajik |     236 |     0.34 | Mozilla Common Voice, CC0                                                                                                          |
+
+The recipe used fresh Tajik BPE-1024 tokenization, BF16 training, a learning rate of `3e-4`, 2,000 warmup steps, cosine decay to `1e-5`, and Lhotse duration-based batching with a 120-second audio budget. Training clips passed a Scribe-agreement WER threshold of 0.35 and duration limits of 0.5-30 seconds. The TDT loss class count was corrected after vocabulary replacement to exclude the duration outputs.
+
+The YouTube labels are machine-generated. Agreement between Scribe passes is a consistency signal; native-speaker review remains necessary to establish transcription correctness.
+
+## Recorded evaluation
+
+These scores come from the saved July 9, 2026 evaluation of the published checkpoint with NeMo 2.7.3, fp32 inference, and the project's Tajik text normalizer applied to references and predictions. WER and CER are corpus-level percentages. Case, punctuation, and other text normalization choices materially affect comparisons.
+
+| Evaluation manifest                  | Clips | Normalized WER | Normalized CER |
+| ------------------------------------ | ----: | -------------: | -------------: |
+| FLEURS Tajik test                    |   600 |          19.03 |           6.72 |
+| Development, FLEURS and Common Voice |   357 |          17.77 |           5.89 |
+
+The October 28, 2026 audit found training clips from 143 videos reserved for an earlier conversational evaluation. That evaluation's recorded 33.85% WER therefore describes a benchmark with overlapping source videos. Generalization assessment requires a separate conversational test set. The supplied FLEURS and development manifests have disjoint audio paths from the training manifest; cross-source augmentation provenance remains under review.
 
 ## Usage
 
-Tested with NeMo 3.0.0 and PyTorch 2.9.1.
+Load the bundled checkpoint and tokenizer with NeMo:
 
 ```python
 from huggingface_hub import hf_hub_download
@@ -61,62 +74,21 @@ from nemo.collections.asr.models import ASRModel
 checkpoint = hf_hub_download(
     repo_id="Peacockery/tajik-parakeet-tdt-110m",
     filename="tajik-parakeet-tdt-110m_final.nemo",
-    revision="v1.1.0",
 )
 model = ASRModel.restore_from(checkpoint)
 model.eval()
-
-for result in model.transcribe(["audio.wav"]):
-    print(result.text)
+transcriptions = model.transcribe(["tajik-16khz-mono.wav"])
+for transcription in transcriptions:
+    print(transcription.text)
 ```
 
-The checkpoint includes its trained tokenizer. Use speech segmentation for long recordings; training clips were 0.5 to 30 seconds long.
+Use the tokenizer already bundled in the fine-tuned model. NeMo vocabulary replacement rebuilds decoder and joint layers, so it belongs in a deliberate new-language training workflow.
 
-## Evaluation
+ONNX export, INT8 quantization, and Android deployment are permitted by the model license under its terms. Runtime compatibility and accuracy for each conversion should be measured on the target implementation.
 
-Evaluation uses fp32 inference and the project's Tajik text normalizer on both references and predictions. WER and CER are corpus-level percentages; lower is better.
+## Artifact identity and reproducibility
 
-| Dataset             | Recordings |   WER |   CER |
-| ------------------- | ---------: | ----: | ----: |
-| FLEURS Tajik test   |        600 | 17.48 |  6.08 |
-| Development         |        239 | 17.99 |  5.73 |
-| Conversational test |      1,625 | 34.72 | 15.63 |
-
-The final checkpoint was selected by development WER before test evaluation. Development WER was 17.988% for the final checkpoint, 18.085% for the best-validation-loss checkpoint, and 18.801% for the averaged checkpoint. Exact scores are in [evaluation.json](evaluation.json).
-
-FLEURS uses human reference transcripts. The conversational test uses machine-generated references and measures agreement with those transcripts. The previous model's training included clips from reserved evaluation videos; v1.1.0 excludes the known evaluation-source identities. Native-speaker-reviewed conversational references would provide a stronger quality benchmark.
-
-## Training
-
-The model was trained on the filtered [Tajik corpus v3](https://huggingface.co/datasets/Peacockery/tajik-asr-corpus-v3/tree/3b05a4bb89104c21643081250729595347d1188e): 173,240 clips totaling 987.54 hours. The training set contains 2,250 FLEURS reference-labeled clips and 170,990 clips with Scribe hypotheses and LLM-fused labels. Preparation applies duration limits and known evaluation-source exclusions.
-
-Training started from the original NVIDIA checkpoint with a fresh Tajik BPE tokenizer and ran for 100,000 optimizer steps. At step 14,000, continuation restored the model, optimizer, scheduler, and global step, then switched to unfused TDT loss, shuffled manifest shards, and 12% FLEURS clip sampling. The remaining 88% of sampling used pseudo-labeled clips.
-
-The recipe used BF16 mixed precision, AdamW, a peak learning rate of `3e-4`, 2,000 warmup steps, cosine decay to `1e-5`, and a 120-second batch audio budget. Validation checkpoints were ranked by loss, then compared using standalone fp32 development WER.
-
-## Versions
-
-| Version                                                                         | Training data              | FLEURS WER | Conversational WER |
-| ------------------------------------------------------------------------------- | -------------------------- | ---------: | -----------------: |
-| [v1.0.0](https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m/tree/v1.0.0) | Original 1,197-hour export |      19.03 |              33.85 |
-| [v1.1.0](https://huggingface.co/Peacockery/tajik-parakeet-tdt-110m/tree/v1.1.0) | Filtered v3, 987.54 hours  |      17.48 |              34.72 |
-
-v1.1.0 reduces FLEURS WER by 1.55 percentage points. The conversational comparison has the source-overlap and reference-quality limitations described above. Version tags preserve each release's weights, tokenizer, and documentation.
-
-## Files and reproducibility
-
-- `tajik-parakeet-tdt-110m_final.nemo`: model weights and embedded tokenizer.
-- `tokenizer_spe_bpe_v1024/`: matching tokenizer files.
-- `manifests/`: compressed training, development, and evaluation manifests with relative audio paths and available source identities.
-- [release.json](release.json): model, tokenizer, dataset, and manifest fingerprints.
-- [evaluation.json](evaluation.json): full evaluation scores.
-
-The audio is available through the source dataset. Manifest paths refer to the preparation output under an `audio/` directory. Training code is in [Peacock ASR](https://github.com/chikingsley/peacock-asr), commit `55af600a`.
-
-Model SHA-256: `9c4674e40c4c7d12087f2c5694cf6e9042cbc8afb7eab173935b87f5ee6cbdea`.
-
-## License
-
-Model weights and Peacockery's fine-tuning contributions are licensed under [CC BY 4.0](LICENSE). Attribution belongs to NVIDIA/Suno for the base model and Peacockery Studio for the Tajik fine-tune. See [NOTICE](NOTICE).
-
-Training recordings retain their respective rights. FLEURS is CC BY 4.0. Individual YouTube recording permissions remain under provenance review, with unresolved entries recorded as `unknown`. The model license covers rights held by the model licensors; recording rights remain with their owners.
+- Weight file: `tajik-parakeet-tdt-110m_final.nemo`
+- SHA-256: `92e672d08b730a1c50cad7c0369c2d19fc1b9ebc83b16aa0fb5ae69267f3879f`
+- Training code and audit: [Peacock ASR](https://github.com/chikingsley/peacock-asr)
+- The supplied JSONL evaluation manifests contain historical local audio paths. Obtain the source audio and map those paths to your environment before evaluation.

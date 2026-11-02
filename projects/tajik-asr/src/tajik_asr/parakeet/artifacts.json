@@ -1,7 +1,7 @@
 {
-  "_comment": "Current v1.1.0 release in the original Hugging Face repository. The v1.0.0 tag preserves previous weights and documentation. Historical local artifacts remain available.",
-  "hf_repo": "Peacockery/tajik-parakeet-tdt-110m",
-  "hf_revision": "67b879acf943505b956d29bf956727c86a8fff77",
+  "_comment": "The v1.1 checkpoint has its own versioned Hugging Face repository. The original repository serves the original checkpoint with matching tokenizer and manifests.",
+  "hf_repo": "Peacockery/tajik-parakeet-tdt-110m-v1.1",
+  "hf_revision": "b9b0b7e2c8d2ac44b0ac20d6ebd924fc7db4ce8c",
   "license": "CC-BY-4.0",
   "training_defaults": {
     "dataset_repo": "Peacockery/tajik-asr-corpus-v3",
@@ -50,7 +50,7 @@
     },
     "final/parakeet_tdt_110m_tajik_v3_step_100000.nemo": {
       "sha256": "9c4674e40c4c7d12087f2c5694cf6e9042cbc8afb7eab173935b87f5ee6cbdea",
-      "hf_path": "tajik-parakeet-tdt-110m_final.nemo",
+      "hf_path": "model.nemo",
       "wer_fleurs": 17.481015571066962,
       "wer_dev": 17.988394584139265,
       "wer_conversational": 34.71947194719472,
@@ -90,18 +90,13 @@
       "role": "ctc training base"
     }
   },
-  "hf_tag": "v1.1.0",
+  "hf_tag": "v1.1",
   "artifact_id": "parakeet_tdt_110m_tajik_v3_step_100000",
   "previous_release": {
     "repository": "Peacockery/tajik-parakeet-tdt-110m",
-    "tag": "v1.0.0",
-    "revision": "1b213a53b8f8e39e553039f39200467dafe25a7f"
-  },
-  "mirrors": [
-    {
-      "repository": "Peacockery/parakeet-tdt-110m-tajik",
-      "revision": "f5ecb67cd6e8c9f7a2382c0e026f1c5cb247f83e",
-      "role": "compatibility copy linking to original repository"
-    }
-  ]
+    "revision": "08fe42360e974a8c275729f5eb19f2c98776df57",
+    "historical_revision": "1b213a53b8f8e39e553039f39200467dafe25a7f",
+    "weight_sha256": "92e672d08b730a1c50cad7c0369c2d19fc1b9ebc83b16aa0fb5ae69267f3879f",
+    "verified": "all original payload Git blobs and LFS digests match the historical release; new card links to v1.1"
+  }
 }
