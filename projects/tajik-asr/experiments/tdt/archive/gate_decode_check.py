@@ -7,7 +7,7 @@ Overfit a TINY set (~32 rows) HARD in fp32 (high LR, many steps) so train loss -
   - loss -> low BUT hyp = garbage => decode is BROKEN (TDT decode-after-change_vocabulary) =>
     fix decode (cfg / patch) before any big run.
 
-  uv run --project /home/simon/github/peacock-asr/projects/farsi-asr \
+  uv run --project /home/simon/github/ai-lab/peacock-asr/projects/farsi-asr \
     python projects/tajik-asr/experiments/tdt/gate_decode_check.py
 """
 

@@ -8,7 +8,7 @@ Validated pipeline (gate_decode_check proved decode works; loss-init fix applied
 Logs {step, loss, lr, t} to runs/<name>/train_log.jsonl every log step (cron reads the tail).
 Checkpoints to runs/<name>/checkpoints (save_last + top-3 by train_loss) for resume / fp32 eval.
 
-  uv run --project /home/simon/github/peacock-asr/projects/tajik-asr \
+  uv run --project /home/simon/github/ai-lab/peacock-asr/projects/tajik-asr \
     tajik-parakeet-train-tdt --name big_110m --batch-dur 120 --max-dur 30 --max-steps 100000
 """
 

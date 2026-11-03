@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Confirm the promoted 110M pure-TDT BPE-512, no-SpecAugment recipe with seed 1.
 set -euo pipefail
-cd /home/simon/github/peacock-asr/projects/farsi-asr
+cd /home/simon/github/ai-lab/peacock-asr/projects/farsi-asr
 
 UV=/home/simon/.local/bin/uv
 NAME=c3-bpe512-spec-off-s1

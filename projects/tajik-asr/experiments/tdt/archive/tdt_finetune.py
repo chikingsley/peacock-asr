@@ -8,7 +8,7 @@ Arms (cumulative; loss-init fix is in every *trainable* arm — A0 is the broken
 Logs TDT-head (val_wer) and CTC-head (val_wer_ctc) separately. 110M-hybrid first (cheap, has a
 CTC head as a sanity floor), then the winning arm on v3.
 
-  uv run --project /home/simon/github/peacock-asr/projects/tajik-asr \
+  uv run --project /home/simon/github/ai-lab/peacock-asr/projects/tajik-asr \
     tajik-parakeet-train-tdt --name gate-b --max-steps 2000
 """
 

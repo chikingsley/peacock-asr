@@ -10,7 +10,7 @@ dataset:
   storage_mode: "MIXTURE_PARQUET"
   task_mode: "ASR"
   mixture_parquet_storage_config:
-    dataset_summary_path: "/home/simon/github/peacock-asr/projects/persian-asr/data/raw/fleurs_fa_ir_omni/language_distribution_0.tsv"
+    dataset_summary_path: "/home/simon/github/ai-lab/peacock-asr/projects/persian-asr/data/raw/fleurs_fa_ir_omni/language_distribution_0.tsv"
     beta_corpus: 0.5
     beta_language: 0.5
     fragment_loading:

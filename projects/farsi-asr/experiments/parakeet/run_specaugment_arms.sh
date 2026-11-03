@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Full-data 10k-step SpecAugment ablations for the pure-TDT BPE-512 winner.
 set -euo pipefail
-cd /home/simon/github/peacock-asr/projects/farsi-asr
+cd /home/simon/github/ai-lab/peacock-asr/projects/farsi-asr
 
 UV=/home/simon/.local/bin/uv
 TOKENIZER=data/parakeet/tokenizers/fa_spe_bpe_v512_scribe_v4/tokenizer_spe_bpe_v512

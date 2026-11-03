@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # First controlled 0.6B transfer of the confirmed Farsi 110M recipe.
 set -euo pipefail
-cd /home/simon/github/peacock-asr/projects/farsi-asr
+cd /home/simon/github/ai-lab/peacock-asr/projects/farsi-asr
 
 UV=/home/simon/.local/bin/uv
 NAME=d0-bpe512-spec-off-06b-ada-s0

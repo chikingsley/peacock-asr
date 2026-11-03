@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Matched-audio 0.6B confirmation: two 60-second microbatches per optimizer update.
 set -euo pipefail
-cd /home/simon/github/peacock-asr/projects/farsi-asr
+cd /home/simon/github/ai-lab/peacock-asr/projects/farsi-asr
 
 UV=/home/simon/.local/bin/uv
 NAME=d1-bpe512-spec-off-06b-ada-acc2-s0

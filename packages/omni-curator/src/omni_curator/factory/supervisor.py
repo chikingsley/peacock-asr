@@ -64,7 +64,7 @@ DEFAULT_CLIPS_ROOT = "/mnt/workerssd-2t/peacock-clips"
 DEFAULT_ARCHIVE_ROOT = "/mnt/massive-22t/peacock-asr-archive"
 
 #: Default repo root holding ``projects/<lang>-asr``.
-REPO_ROOT = Path("/home/simon/github/peacock-asr")
+REPO_ROOT = Path("/home/simon/github/ai-lab/peacock-asr")
 
 #: After spawning a DAEMON, how long to wait for it to acquire its lock before declaring the launch
 #: failed (and freeing its cap slot for a retry next tick). Segment's import path (nemo/torch) is
@@ -96,7 +96,7 @@ class Project:
     """A registered language project the factory drives."""
 
     name: str  # short lang name, e.g. "dari" (the curate-script prefix)
-    path: Path  # the project dir, e.g. /home/simon/github/peacock-asr/projects/dari-asr
+    path: Path  # the project dir, e.g. /home/simon/github/ai-lab/peacock-asr/projects/dari-asr
     clips_root: Path  # SSD clips root for THIS lang (segment --clips-root)
     create_root: Path  # source-audio root for THIS lang (enqueue --create-root)
     archive_root: Path  # archive destination ROOT (archive --archive-root; <name>/ appended by CLI)

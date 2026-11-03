@@ -28,7 +28,7 @@ NEMO_VAD_MODEL_NAME = "vad_multilingual_frame_marblenet"
 VAD_MODEL_ENV = "OMNI_CURATOR_VAD_MODEL"
 MARBLENET_V2_SHA256 = "84bda37e925ac6fd740c2ced55642cb79f94f81348e1fa0db992ca50d4b09706"
 BENCHMARK_MARBLENET_PATH = Path(
-    "/home/simon/docker/a-vad-bench/models/marblenet-v2/frame_vad_multilingual_marblenet_v2.0.nemo"
+    "/home/simon/github/ai-lab/vad-bench/models/marblenet-v2/frame_vad_multilingual_marblenet_v2.0.nemo"
 )
 POLICY_REVISION = "peacock-multi-vad-v1"
 

@@ -6,7 +6,7 @@ fine-tunes briefly on FLEURS-Tajik, logging the TDT-head WER (`val_wer`) and CTC
 stalls high. The loss-init bug (change_vocabulary omits `- num_extra_outputs`) is already
 confirmed by source inspection; this shows its training effect.
 
-  uv run --project /home/simon/github/peacock-asr/projects/farsi-asr \
+  uv run --project /home/simon/github/ai-lab/peacock-asr/projects/farsi-asr \
     python projects/tajik-asr/experiments/tdt/gate0a_repro.py
 """
 

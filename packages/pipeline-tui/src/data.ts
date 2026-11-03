@@ -7,7 +7,7 @@ export type Lang = (typeof LANGS)[number];
 // russian is a provided-text dataset (no youtube videos/clips funnel) -> verify only.
 export const VERIFY_ONLY: ReadonlySet<Lang> = new Set(["russian"]);
 
-const DATA_ROOT = "/home/simon/github/peacock-asr/projects";
+const DATA_ROOT = "/home/simon/github/ai-lab/peacock-asr/projects";
 const WORKER = fileURLToPath(new URL("./db-worker.ts", import.meta.url));
 const YTDLP_IMAGE = "jauderho/yt-dlp:latest";
 

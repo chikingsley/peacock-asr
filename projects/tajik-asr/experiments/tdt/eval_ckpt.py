@@ -3,7 +3,7 @@
 train_loss is noisy + not an accuracy number, and bf16 TDT decode is unreliable — so load the
 checkpoint in fp32, transcribe held-out audio, and compute WER vs the reference (omni-normalized).
 
-  uv run --project /home/simon/github/peacock-asr/projects/farsi-asr \
+  uv run --project /home/simon/github/ai-lab/peacock-asr/projects/farsi-asr \
     python projects/tajik-asr/experiments/tdt/eval_ckpt.py --split dev --n 80 --device cpu
 """
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Matched 2k-step auxiliary-CTC-weight ablations on the mix50 surface.
 set -euo pipefail
-cd /home/simon/github/peacock-asr/projects/farsi-asr
+cd /home/simon/github/ai-lab/peacock-asr/projects/farsi-asr
 
 UV=/home/simon/.local/bin/uv
 COMMON=(--model-name ../../base_models/parakeet/parakeet-tdt_ctc-110m-base-hybrid.nemo

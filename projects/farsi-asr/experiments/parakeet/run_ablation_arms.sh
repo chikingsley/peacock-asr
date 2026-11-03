@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Matched 2k-step ablation arms on the mix50 surface (b3 recipe = lr 5e-4 baseline).
 set -euo pipefail
-cd /home/simon/github/peacock-asr/projects/farsi-asr
+cd /home/simon/github/ai-lab/peacock-asr/projects/farsi-asr
 
 COMMON=(--model-name ../../base_models/parakeet/parakeet-tdt_ctc-110m-base-hybrid.nemo
   --train-manifest data/parakeet/manifests/mix50_train.jsonl

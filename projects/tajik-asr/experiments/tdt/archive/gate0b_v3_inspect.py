@@ -5,7 +5,7 @@ v3 or a separate model)? what are the TDT joint sizes (blank id, num_extra_outpu
 bins) the restore code must respect? and does v3's 8192 unified tokenizer cover Tajik
 Cyrillic or fall back to bytes/<unk>? Run in the farsi-asr NeMo env:
 
-  uv run --project /home/simon/github/peacock-asr/projects/farsi-asr \
+  uv run --project /home/simon/github/ai-lab/peacock-asr/projects/farsi-asr \
     python projects/tajik-asr/experiments/tdt/gate0b_v3_inspect.py
 """
 

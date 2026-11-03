@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Matched 2k-step tokenizer-size ablations using the winning hybrid-loss weight.
 set -euo pipefail
-cd /home/simon/github/peacock-asr/projects/farsi-asr
+cd /home/simon/github/ai-lab/peacock-asr/projects/farsi-asr
 
 UV=/home/simon/.local/bin/uv
 CTC_WEIGHT=${CTC_WEIGHT:-0.0}

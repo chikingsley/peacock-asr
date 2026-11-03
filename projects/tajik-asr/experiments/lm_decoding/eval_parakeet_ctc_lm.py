@@ -7,7 +7,7 @@ Mirrors the omni lm_decoding methodology (run.py) but for the parakeet CTC head:
         (subword/BPE alphabet using sentencepiece '▁' word-boundary marker), small a/b sweep
   - WER via omni_curator.process.normalize(tgk_Cyrl) + omni_finetune_core.metrics.compute_measures
 
-  uv run --project /home/simon/github/peacock-asr/projects/tajik-asr \
+  uv run --project /home/simon/github/ai-lab/peacock-asr/projects/tajik-asr \
     python experiments/lm_decoding/eval_parakeet_ctc_lm.py --device cuda
 """
 

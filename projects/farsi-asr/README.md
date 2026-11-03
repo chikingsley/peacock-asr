@@ -7,7 +7,7 @@ This directory has two active Markdown documents: this operational README and `E
 ## Setup
 
 ```bash
-cd /home/simon/github/peacock-asr/projects/farsi-asr
+cd /home/simon/github/ai-lab/peacock-asr/projects/farsi-asr
 uv sync
 ```
 
