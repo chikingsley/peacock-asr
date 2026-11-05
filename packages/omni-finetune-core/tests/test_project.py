@@ -213,7 +213,7 @@ def test_eval_prediction_artifacts_are_joinable_by_row_index(tmp_path: Path) -> 
         ["Raw Hyp"],
         ["raw ref"],
         ["raw hyp"],
-        ["youtube-demo"],
+        corpora=["youtube-demo"],
     )
 
     assert json.loads(output.read_text()) == {

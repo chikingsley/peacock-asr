@@ -13,6 +13,7 @@ finishing FLEURS — one big manifest, run once, resume if interrupted.
 
     uv run capt-g2p-ablation --manifest <manifest> --skip-routed
 """
+
 from __future__ import annotations
 
 import argparse
@@ -63,7 +64,7 @@ def main() -> None:
         best = min(means, key=lambda c: means[c])
         routing[language] = best
         _write_json(args.routing_out, routing)
-        _append_report(report_path, language, best, means, actual, args.candidates)
+        _append_report(report_path, language, best, means, actual, candidates=args.candidates)
         print(f"== {language} -> {best} ({means[best]:.4f})", flush=True)
 
     print(f"Done. Routing table: {args.routing_out} ({len(routing)} languages)")
@@ -105,6 +106,7 @@ def _append_report(
     best: str,
     means: dict[str, float],
     actual: dict[str, str],
+    *,
     candidates: list[str],
 ) -> None:
     lines = [f"## {language} -> best: **{best}** ({means[best]:.4f})"]

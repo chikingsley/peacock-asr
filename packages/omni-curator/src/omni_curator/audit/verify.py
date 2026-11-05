@@ -284,7 +284,7 @@ def verify_store(
                         proven = False  # re-arm the cap: re-prove the service before ramping back
                         epoch += 1  # in-flight futures now "old"; their fails won't re-trip
                     continue
-                _record_score(store, stats, sample, detail, wers, cers)
+                _record_score(store, stats, sample, detail, wers, cers=cers)
                 if submitted_epoch == epoch:
                     # only a CURRENT-epoch success proves the service is alive right now; a stale
                     # pre-pause success must not reset the streak or reopen the window mid-outage
@@ -317,6 +317,7 @@ def _record_score(
     sample: Sample,
     detail: dict[str, object],
     wers: list[float],
+    *,
     cers: list[float],
 ) -> None:
     """Persist one clip's fresh score and fold it into the run's distributions."""
@@ -457,7 +458,7 @@ def rescore_cross_script(
                         proven = False
                         epoch += 1
                     continue
-                _record_score(store, stats, sample, detail, wers, cers)
+                _record_score(store, stats, sample, detail, wers, cers=cers)
                 if submitted_epoch == epoch:
                     consecutive = 0
                     pauses = 0

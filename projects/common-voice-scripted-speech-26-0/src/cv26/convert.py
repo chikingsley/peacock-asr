@@ -142,6 +142,7 @@ def _record(
     root: str,
     duration_ms: int | None,
     row: ManifestRow,
+    *,
     upstream_split: str,
     tsv_row: Mapping[str, str],
 ) -> dict[str, object]:
@@ -283,8 +284,8 @@ class _Converter:
                     self.root,
                     self.durations.get(name),
                     self.row,
-                    split,
-                    self.split_rows[split][name],
+                    upstream_split=split,
+                    tsv_row=self.split_rows[split][name],
                 ),
             )
 

@@ -45,29 +45,41 @@ def build_editor(rank: int, dtype: torch.dtype, device: str) -> tuple:
     from fairseq2.models.llama import LLaMAConfig
     from fairseq2.models.transformer.attention_bias import IdentityBias
 
-    cfg = LLaMAConfig(model_dim=DIM, max_seq_len=8192, vocab_size=VOCAB, pad_idx=1,
-                      num_layers=12, num_attn_heads=8, num_key_value_heads=8,
-                      ffn_inner_dim=4096, rope_theta=10000.0, dropout_p=0.0)
+    cfg = LLaMAConfig(
+        model_dim=DIM,
+        max_seq_len=8192,
+        vocab_size=VOCAB,
+        pad_idx=1,
+        num_layers=12,
+        num_attn_heads=8,
+        num_key_value_heads=8,
+        ffn_inner_dim=4096,
+        rope_theta=10000.0,
+        dropout_p=0.0,
+    )
     orig = wllf.CausalAttentionBias
-    wllf.CausalAttentionBias = IdentityBias            # bidirectional editor
+    wllf.CausalAttentionBias = IdentityBias  # bidirectional editor
     try:
         dec = wllf.OmnilingualASRLLamaFactory(cfg).create_decoder()
     finally:
         wllf.CausalAttentionBias = orig
 
     sd = torch.load(CKPT, map_location="cpu", weights_only=True)["model"]
-    dec_sd = {k.removeprefix("llama_decoder."): v for k, v in sd.items()
-              if k.startswith("llama_decoder.")}
+    dec_sd = {
+        k.removeprefix("llama_decoder."): v for k, v in sd.items() if k.startswith("llama_decoder.")
+    }
     missing, unexpected = dec.load_state_dict(dec_sd, strict=False)
     miss = [m for m in missing if "freqs" not in m]  # RoPE freqs are a recomputed buffer
-    print(f"decoder loaded: {len(dec_sd)} tensors, missing(non-freq) {miss}, "
-          f"unexpected {unexpected}", flush=True)
+    print(
+        f"decoder loaded: {len(dec_sd)} tensors, missing(non-freq) {miss}, unexpected {unexpected}",
+        flush=True,
+    )
 
     text_frontend = nn.Embedding(VOCAB + NSPECIAL, DIM)
     text_frontend.weight.data = sd["text_frontend.weight"]
     final_proj = nn.Linear(DIM, VOCAB, bias=False)
     final_proj.weight.data = sd["final_proj.weight"]
-    proj = nn.Linear(ENC, DIM)                          # == encoder_proj, TRAINABLE
+    proj = nn.Linear(ENC, DIM)  # == encoder_proj, TRAINABLE
     proj.weight.data = sd["encoder_proj.weight"]
     proj.bias.data = sd["encoder_proj.bias"]
 
@@ -76,7 +88,7 @@ def build_editor(rank: int, dtype: torch.dtype, device: str) -> tuple:
     final_proj.requires_grad_(requires_grad=False)
     for mod in (dec, text_frontend, final_proj, proj):
         mod.to(device=device, dtype=dtype)
-    for m in dec.modules():                             # RoPE freqs must stay fp32
+    for m in dec.modules():  # RoPE freqs must stay fp32
         f = getattr(m, "freqs", None)
         if isinstance(f, Tensor):
             m.freqs = f.float()
@@ -102,31 +114,35 @@ def interleave(draft_ids: Tensor, device: str) -> Tensor:
     return xt
 
 
-def editor_forward(row: dict, dec, text_frontend, final_proj, proj,
-                   dtype: torch.dtype, device: str) -> tuple[Tensor, Tensor]:
+def editor_forward(
+    row: dict, dec, text_frontend, final_proj, proj, *, dtype: torch.dtype, device: str
+) -> tuple[Tensor, Tensor]:
     """One bidirectional pass; return (logits over the 2N+1 edit positions, interleaved input)."""
     from fairseq2.nn import BatchLayout
 
-    H = row["H"].to(device=device, dtype=dtype)          # [T', ENC]
-    prefix = proj(H)                                     # [T', DIM]
-    xt = interleave(row["draft_ids"], device)           # [2N+1]
-    xt_emb = text_frontend(xt)                           # [2N+1, DIM]
-    seqs = torch.cat([prefix, xt_emb], dim=0)[None]      # [1, L, DIM]
+    H = row["H"].to(device=device, dtype=dtype)  # [T', ENC]
+    prefix = proj(H)  # [T', DIM]
+    xt = interleave(row["draft_ids"], device)  # [2N+1]
+    xt_emb = text_frontend(xt)  # [2N+1, DIM]
+    seqs = torch.cat([prefix, xt_emb], dim=0)[None]  # [1, L, DIM]
     seq_len, t0 = seqs.shape[1], prefix.shape[0]
     layout = BatchLayout((1, seq_len), seq_lens=[seq_len], device=torch.device(device))
-    hid = dec(seqs.to(dtype), layout)                   # [1, L, DIM]
-    logits = final_proj(hid[0, t0:])                    # [2N+1, VOCAB]
+    hid = dec(seqs.to(dtype), layout)  # [1, L, DIM]
+    logits = final_proj(hid[0, t0:])  # [2N+1, VOCAB]
     return logits, xt
 
 
 def losses(logits: Tensor, xt: Tensor, ref_ids: Tensor, device: str) -> tuple[Tensor, Tensor]:
     """Return (ctc, cr) tensors; caller combines per phase."""
     m = logits.shape[0]
-    logp = logits.float().log_softmax(-1)               # [M, VOCAB]
+    logp = logits.float().log_softmax(-1)  # [M, VOCAB]
     ctc = nn.functional.ctc_loss(
-        logp[:, None, :], ref_ids.to(device)[None],
-        torch.tensor([m]), torch.tensor([ref_ids.numel()]),
-        blank=EOS, zero_infinity=True,
+        logp[:, None, :],
+        ref_ids.to(device)[None],
+        torch.tensor([m]),
+        torch.tensor([ref_ids.numel()]),
+        blank=EOS,
+        zero_infinity=True,
     )
     cr = nn.functional.cross_entropy(logits.float(), xt)  # copy: predict own input token
     return ctc, cr
@@ -153,8 +169,11 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--ramp", type=int, default=10, help="epochs to ramp CTC weight 0->1")
     ap.add_argument("--lam", type=float, default=0.02, help="copy-reg weight")
     ap.add_argument("--clip", type=float, default=1.0, help="grad-norm clip")
-    ap.add_argument("--tie", action="store_true",
-                    help="tie output head to input embeddings (residual-identity copy bias)")
+    ap.add_argument(
+        "--tie",
+        action="store_true",
+        help="tie output head to input embeddings (residual-identity copy bias)",
+    )
     return ap.parse_args()
 
 
@@ -171,7 +190,7 @@ def main() -> int:
     assert EOS not in sp.encode("салом"), "EOS id leaks into normal text"
 
     data = torch.load(CACHE, weights_only=False)["rows"]
-    train, heldout = data[: args.n_train], data[args.n_train:]
+    train, heldout = data[: args.n_train], data[args.n_train :]
 
     # blank == EOS == ε, so a ref must never contain id EOS, and ref_len must fit 2N+1
     # (else CTC is impossible and zero_infinity silently drops the row from the gradient).
@@ -186,17 +205,23 @@ def main() -> int:
         return compute_measures(refs, [normalize(h, lang) for h in hyps]).wer
 
     draft_wer = wer_of(train, [r["draft_text"] for r in train])
-    print(f"train rows {len(train)}  held-out {len(heldout)}  "
-          f"CTC draft WER (train) = {draft_wer:.2f}%", flush=True)
+    print(
+        f"train rows {len(train)}  held-out {len(heldout)}  "
+        f"CTC draft WER (train) = {draft_wer:.2f}%",
+        flush=True,
+    )
 
     dec, tf, fp, proj, lora = build_editor(args.rank, dtype, device)
     if args.tie:  # head := input embeddings, so residual identity makes copy near-free
         fp.weight.data = tf.weight.data[:VOCAB].clone()
         print("TIED output head to input embeddings", flush=True)
     trainable = list(proj.parameters()) + lora
-    print(f"trainable: projector {sum(p.numel() for p in proj.parameters()) / 1e6:.1f}M + "
-          f"LoRA r{args.rank} {sum(p.numel() for p in lora) / 1e6:.1f}M = "
-          f"{sum(p.numel() for p in trainable) / 1e6:.1f}M\n", flush=True)
+    print(
+        f"trainable: projector {sum(p.numel() for p in proj.parameters()) / 1e6:.1f}M + "
+        f"LoRA r{args.rank} {sum(p.numel() for p in lora) / 1e6:.1f}M = "
+        f"{sum(p.numel() for p in trainable) / 1e6:.1f}M\n",
+        flush=True,
+    )
 
     opt = torch.optim.AdamW(trainable, lr=args.lr, weight_decay=0.01)
     steps_per_epoch = math.ceil(len(train) / args.accum)
@@ -212,11 +237,16 @@ def main() -> int:
 
     @torch.no_grad()
     def eval_hyps(rows: list[dict]) -> list[str]:
-        return [ctc_decode(editor_forward(r, dec, tf, fp, proj, dtype, device)[0], sp)
-                for r in rows]
+        return [
+            ctc_decode(editor_forward(r, dec, tf, fp, proj, dtype=dtype, device=device)[0], sp)
+            for r in rows
+        ]
 
-    print(f"  epoch 0 (untrained): train WER {wer_of(train, eval_hyps(train)):.2f}%   "
-          f"(warmup={args.warmup} copy-only, ramp={args.ramp})", flush=True)
+    print(
+        f"  epoch 0 (untrained): train WER {wer_of(train, eval_hyps(train)):.2f}%   "
+        f"(warmup={args.warmup} copy-only, ramp={args.ramp})",
+        flush=True,
+    )
     for ep in range(1, args.epochs + 1):
         w_ctc = 0.0 if ep <= args.warmup else min(1.0, (ep - args.warmup) / max(1, args.ramp))
         tot_ctc = tot_cr = 0.0
@@ -225,7 +255,7 @@ def main() -> int:
         # as CTC ramps in (w_ctc 0->1) so a plateau-at-copy can't be blamed on a lingering anchor.
         lam_eff = args.lam * (1.0 - w_ctc)
         for j, r in enumerate(train):
-            logits, xt = editor_forward(r, dec, tf, fp, proj, dtype, device)
+            logits, xt = editor_forward(r, dec, tf, fp, proj, dtype=dtype, device=device)
             ctc, cr = losses(logits, xt, r["ref_ids"], device)
             loss = cr if ep <= args.warmup else w_ctc * ctc + lam_eff * cr
             (loss / args.accum).backward()
@@ -238,23 +268,28 @@ def main() -> int:
                 opt.zero_grad(set_to_none=True)
         if ep % 5 == 0 or ep in (1, args.warmup):
             hyps = eval_hyps(train)
-            tw, hw = wer_of(train, hyps), (wer_of(heldout, eval_hyps(heldout))
-                                          if heldout else float("nan"))
+            tw, hw = (
+                wer_of(train, hyps),
+                (wer_of(heldout, eval_hyps(heldout)) if heldout else float("nan")),
+            )
             tag = "warmup" if ep <= args.warmup else f"ctc{w_ctc:.2f}"
-            print(f"  epoch {ep:3d} [{tag:>7}]  ctc {tot_ctc / len(train):.3f} "
-                  f"cr {tot_cr / len(train):.3f}  lr {sched.get_last_lr()[0]:.1e}  "
-                  f"train WER {tw:6.2f}%  held-out {hw:6.2f}%  | hyp0={hyps[0][:38]!r}",
-                  flush=True)
+            print(
+                f"  epoch {ep:3d} [{tag:>7}]  ctc {tot_ctc / len(train):.3f} "
+                f"cr {tot_cr / len(train):.3f}  lr {sched.get_last_lr()[0]:.1e}  "
+                f"train WER {tw:6.2f}%  held-out {hw:6.2f}%  | hyp0={hyps[0][:38]!r}",
+                flush=True,
+            )
 
     final = wer_of(train, eval_hyps(train))
-    print(f"\nBASELINE CTC draft WER (train) {draft_wer:.2f}%  ->  editor train WER "
-          f"{final:.2f}%   ({'BEAT draft' if final < draft_wer else 'did NOT beat draft'})",
-          flush=True)
+    print(
+        f"\nBASELINE CTC draft WER (train) {draft_wer:.2f}%  ->  editor train WER "
+        f"{final:.2f}%   ({'BEAT draft' if final < draft_wer else 'did NOT beat draft'})",
+        flush=True,
+    )
     print("sample (draft || editor || ref):", flush=True)
     for r in train[:4]:
-        ed = ctc_decode(editor_forward(r, dec, tf, fp, proj, dtype, device)[0], sp)
-        print(f"  {r['draft_text'][:55]!r}\n  {ed[:55]!r}\n  {r['ref_text'][:55]!r}\n",
-              flush=True)
+        ed = ctc_decode(editor_forward(r, dec, tf, fp, proj, dtype=dtype, device=device)[0], sp)
+        print(f"  {r['draft_text'][:55]!r}\n  {ed[:55]!r}\n  {r['ref_text'][:55]!r}\n", flush=True)
     return 0
 
 

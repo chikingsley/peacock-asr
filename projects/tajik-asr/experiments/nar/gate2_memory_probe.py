@@ -28,7 +28,7 @@ CARD_GB = 12.0
 MODEL_DIM = 4096
 VOCAB = 10288
 AUDIO_DIM = 1024  # our CTC encoder hidden -> projector input (size barely affects memory)
-LORA_RANK = 128   # the spec's rank; we also report the analytic r=64 delta
+LORA_RANK = 128  # the spec's rank; we also report the analytic r=64 delta
 
 
 def build_decoder(dtype: torch.dtype, device: str) -> nn.Module:
@@ -36,9 +36,16 @@ def build_decoder(dtype: torch.dtype, device: str) -> nn.Module:
     from omnilingual_asr.models.wav2vec2_llama.factory import OmnilingualASRLLamaFactory
 
     cfg = LLaMAConfig(
-        model_dim=MODEL_DIM, max_seq_len=8192, vocab_size=VOCAB, pad_idx=1,
-        num_layers=12, num_attn_heads=8, num_key_value_heads=8,
-        ffn_inner_dim=4096, rope_theta=10000.0, dropout_p=0.0,
+        model_dim=MODEL_DIM,
+        max_seq_len=8192,
+        vocab_size=VOCAB,
+        pad_idx=1,
+        num_layers=12,
+        num_attn_heads=8,
+        num_key_value_heads=8,
+        ffn_inner_dim=4096,
+        rope_theta=10000.0,
+        dropout_p=0.0,
     )
     dec = OmnilingualASRLLamaFactory(cfg).create_decoder()
     dec.requires_grad_(requires_grad=False)  # body frozen
@@ -87,22 +94,23 @@ def attach_lora(dec, rank: int, dtype, device) -> list[nn.Parameter]:
 
 def lora_param_count(rank: int) -> int:
     per_layer = (
-        rank * (MODEL_DIM + MODEL_DIM) * 4          # q,k,v,o : 4096<->4096
-        + rank * (MODEL_DIM + 2816) * 2             # gate,inner : 4096->2816
-        + rank * (2816 + MODEL_DIM)                 # ffn output_proj : 2816->4096
+        rank * (MODEL_DIM + MODEL_DIM) * 4  # q,k,v,o : 4096<->4096
+        + rank * (MODEL_DIM + 2816) * 2  # gate,inner : 4096->2816
+        + rank * (2816 + MODEL_DIM)  # ffn output_proj : 2816->4096
     )
     return per_layer * 12
 
 
-def run_step(dec, lora_params, B: int, T_audio: int, M_text: int, dtype, device) -> float:
+def run_step(dec, lora_params, B: int, T_audio: int, M_text: int, *, dtype, device) -> float:
     from fairseq2.nn import BatchLayout
 
-    proj = nn.Linear(AUDIO_DIM, MODEL_DIM).to(device=device, dtype=dtype)        # trainable
+    proj = nn.Linear(AUDIO_DIM, MODEL_DIM).to(device=device, dtype=dtype)  # trainable
     head = nn.Linear(MODEL_DIM, VOCAB, bias=False).to(device=device, dtype=dtype)  # trainable
     embed = nn.Embedding(VOCAB, MODEL_DIM).to(device=device, dtype=dtype)
     embed.requires_grad_(requires_grad=False)  # text frontend treated as frozen body
-    opt = torch.optim.AdamW(lora_params + list(proj.parameters()) + list(head.parameters()),
-                            lr=1e-4)
+    opt = torch.optim.AdamW(
+        lora_params + list(proj.parameters()) + list(head.parameters()), lr=1e-4
+    )
 
     L = T_audio + M_text
     torch.cuda.reset_peak_memory_stats()
@@ -110,22 +118,23 @@ def run_step(dec, lora_params, B: int, T_audio: int, M_text: int, dtype, device)
 
     audio_feats = torch.randn(B, T_audio, AUDIO_DIM, device=device, dtype=dtype)
     text_ids = torch.randint(0, VOCAB, (B, M_text), device=device)
-    prefix = proj(audio_feats)                       # [B, T_audio, d]  (grad path to projector)
-    text_emb = embed(text_ids)                       # [B, M_text, d]
-    seqs = torch.cat([prefix, text_emb], dim=1)      # [B, L, d]
+    prefix = proj(audio_feats)  # [B, T_audio, d]  (grad path to projector)
+    text_emb = embed(text_ids)  # [B, M_text, d]
+    seqs = torch.cat([prefix, text_emb], dim=1)  # [B, L, d]
     layout = BatchLayout((B, L), seq_lens=[L] * B, device=torch.device(device))
 
-    hidden = dec(seqs, layout)                       # [B, L, d]  bidirectional in real editor
-    logits = head(hidden[:, T_audio:, :])            # CTC over the M_text edit positions
+    hidden = dec(seqs, layout)  # [B, L, d]  bidirectional in real editor
+    logits = head(hidden[:, T_audio:, :])  # CTC over the M_text edit positions
     log_probs = logits.float().log_softmax(-1).transpose(0, 1)  # [M_text, B, vocab]
-    tgt_len = max(1, M_text // 2)                    # ~N tokens of reference (R ~= N from gate 1)
+    tgt_len = max(1, M_text // 2)  # ~N tokens of reference (R ~= N from gate 1)
     targets = torch.randint(1, VOCAB, (B, tgt_len), device=device)
     loss = nn.functional.ctc_loss(
         log_probs,
         targets,
         torch.full((B,), M_text, dtype=torch.long),
         torch.full((B,), tgt_len, dtype=torch.long),
-        blank=0, zero_infinity=True,
+        blank=0,
+        zero_infinity=True,
     )
     loss.backward()
     opt.step()
@@ -147,15 +156,23 @@ def main() -> int:
     dec = build_decoder(dtype, device)
     nparams = sum(p.numel() for p in dec.parameters())
     weights_gb = nparams * 2 / 1e9
-    print(f"editor decoder: {nparams/1e6:.0f}M params (frozen), {weights_gb:.2f} GB bf16",
-          flush=True)
+    print(
+        f"editor decoder: {nparams / 1e6:.0f}M params (frozen), {weights_gb:.2f} GB bf16",
+        flush=True,
+    )
     lp = attach_lora(dec, LORA_RANK, dtype, device)
     nl = sum(p.numel() for p in lp)
-    print(f"LoRA rank {LORA_RANK}: {nl/1e6:.1f}M trainable  "
-          f"(analytic r=64 -> {lora_param_count(64)/1e6:.1f}M, "
-          f"r=128 -> {lora_param_count(128)/1e6:.1f}M)", flush=True)
-    print(f"Adam overhead at r={LORA_RANK} ~ {nl*12/1e9:.2f} GB (grad+m+v); "
-          f"already included in measured peaks below.\n", flush=True)
+    print(
+        f"LoRA rank {LORA_RANK}: {nl / 1e6:.1f}M trainable  "
+        f"(analytic r=64 -> {lora_param_count(64) / 1e6:.1f}M, "
+        f"r=128 -> {lora_param_count(128) / 1e6:.1f}M)",
+        flush=True,
+    )
+    print(
+        f"Adam overhead at r={LORA_RANK} ~ {nl * 12 / 1e9:.2f} GB (grad+m+v); "
+        f"already included in measured peaks below.\n",
+        flush=True,
+    )
 
     # (label, batch, T_audio, M_text=2N+1) — audio prefix from frame-rate assumption.
     # 50 fps = no acoustic downsample; the editor could downsample (IBM uses 5x) to shrink T.
@@ -170,15 +187,16 @@ def main() -> int:
         ("conv worst 5x-ds  batch 4", 4, 400, 1447),
         ("conv worst 5x-ds  batch 8", 8, 400, 1447),
     ]
-    print(f"{'scenario':<38} {'B':>2} {'T_aud':>6} {'M':>5} {'L':>5} {'peak GB':>8}  fit?",
-          flush=True)
+    print(
+        f"{'scenario':<38} {'B':>2} {'T_aud':>6} {'M':>5} {'L':>5} {'peak GB':>8}  fit?", flush=True
+    )
     for label, B, T, M in scenarios:
         try:
-            peak = run_step(dec, lp, B, T, M, dtype, device)
+            peak = run_step(dec, lp, B, T, M, dtype=dtype, device=device)
             fit = "OK" if peak < CARD_GB else "OVER"
-            print(f"{label:<38} {B:>2} {T:>6} {M:>5} {T+M:>5} {peak:>8.2f}  {fit}", flush=True)
+            print(f"{label:<38} {B:>2} {T:>6} {M:>5} {T + M:>5} {peak:>8.2f}  {fit}", flush=True)
         except torch.cuda.OutOfMemoryError:
-            print(f"{label:<38} {B:>2} {T:>6} {M:>5} {T+M:>5} {'OOM':>8}  OVER", flush=True)
+            print(f"{label:<38} {B:>2} {T:>6} {M:>5} {T + M:>5} {'OOM':>8}  OVER", flush=True)
             torch.cuda.empty_cache()
     return 0
 

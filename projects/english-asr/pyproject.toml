@@ -4,13 +4,16 @@ version = "0.1.0"
 description = "English Parakeet TDT 110M data curation, fine-tuning, and evaluation."
 requires-python = ">=3.12,<3.14"
 dependencies = [
-  "httpx>=0.28",
-  "nemo-toolkit[asr]>=2.7.3",
+  "httpx>=0.28.1",
+  "nemo-toolkit[asr]>=3.0.0",
   "numba==0.65.1",
+  # Hold the runtime the recorded Parakeet results were measured on.
+  "torch==2.9.1",
+  "torchaudio==2.9.1",
   "omni-curator[ingest,vad-silero]",
   "parakeet-finetune-core",
-  "sentencepiece>=0.2",
-  "tensorboard>=2.20",
+  "sentencepiece>=0.2.2",
+  "tensorboard>=2.21.0",
 ]
 
 [tool.uv.sources]
@@ -31,14 +34,21 @@ english-parakeet-materialize = "english_asr.parakeet.materialize:main"
 english-parakeet-train-tdt = "english_asr.parakeet.train:train_tdt"
 english-parakeet-eval = "english_asr.parakeet.eval:evaluate"
 
+[tool.uv]
+# NeMo 3.0.0 and Lightning 2.4 cap these below the releases that fix advisories.
+override-dependencies = [
+  "fsspec>=2026.7.0",
+  "hydra-core>=1.3.8",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
-  "pytest>=8",
-  "ruff==0.15.15",
+  "pytest>=9.2.0",
+  "ruff==0.17.3",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -55,6 +65,7 @@ src = ["src"]
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+  "CPY", # This repository has no declared copyright owner.
   "D",
   "COM812",
   "ISC001",

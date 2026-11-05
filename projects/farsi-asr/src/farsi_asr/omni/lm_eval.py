@@ -389,6 +389,7 @@ def decode_rows(
     pipe: Any,
     grids: list[tuple[str, str | None, float, float]],
     unigrams: list[str],
+    *,
     sp: Any,
     build_ctcdecoder: Any,
     cache: LogitsCache | None,
@@ -446,6 +447,7 @@ def decode_rows_cached(
     meta: dict[str, Any],
     grids: list[tuple[str, str | None, float, float]],
     unigrams: list[str],
+    *,
     sp: Any,
     build_ctcdecoder: Any,
 ) -> DecodeResult:
@@ -631,7 +633,14 @@ def run_eval_live(
     sp = spm.SentencePieceProcessor()
     sp.Load(str(args.tokenizer_path))
     result = decode_rows(
-        args, audio, pipe, decoder_grid(args), unigrams, sp, build_ctcdecoder, cache
+        args,
+        audio,
+        pipe,
+        decoder_grid(args),
+        unigrams,
+        sp=sp,
+        build_ctcdecoder=build_ctcdecoder,
+        cache=cache,
     )
     audio_seconds = durations
 
@@ -656,7 +665,9 @@ def run_eval_live(
 
     print_results(benchmark_name, refs_norm, result, args.nbest)
     if args.database is not None:
-        persist_results(args, benchmark_name, benchmark_paths[0], audio_seconds, refs, result)
+        persist_results(
+            args, benchmark_name, benchmark_paths[0], audio_seconds, refs, result=result
+        )
     return 0
 
 
@@ -685,12 +696,12 @@ def run_eval_cached(
     sp = spm.SentencePieceProcessor()
     sp.Load(str(args.tokenizer_path))
     result = decode_rows_cached(
-        args, cache, meta, decoder_grid(args), unigrams, sp, build_ctcdecoder
+        args, cache, meta, decoder_grid(args), unigrams, sp=sp, build_ctcdecoder=build_ctcdecoder
     )
     print_results(benchmark_name, refs_norm, result, args.nbest)
     if args.database is not None:
         persist_results(
-            args, benchmark_name, benchmark_paths[0], meta["audio_seconds"], refs, result
+            args, benchmark_name, benchmark_paths[0], meta["audio_seconds"], refs, result=result
         )
     return 0
 
@@ -701,6 +712,7 @@ def persist_results(
     benchmark_path: Path,
     audio_seconds: list[float],
     refs: list[str],
+    *,
     result: DecodeResult,
 ) -> None:
     """Persist decoder variants beside the shared greedy/model-family benchmark runs."""

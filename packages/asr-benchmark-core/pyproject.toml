@@ -4,13 +4,13 @@ version = "0.1.0"
 description = "Resumable, model-neutral ASR inference into a canonical SQLite store."
 requires-python = ">=3.12,<3.13"
 dependencies = [
-  "accelerate==1.12.0",
-  "numpy==2.4.6",
-  "pyarrow==24.0.0",
-  "soundfile==0.13.1",
-  "torch==2.9.1",
-  "torchaudio==2.9.1",
-  "transformers @ git+https://github.com/huggingface/transformers.git@0bc355418bb265136a66c2dedc501066ffbc237d",
+  "accelerate>=1.15.0",
+  "numpy>=2.4.6",
+  "pyarrow>=26.0.1",
+  "soundfile>=0.14.0",
+  "torch>=2.9.1",
+  "torchaudio>=2.9.1",
+  "transformers>=5.22.1",
 ]
 
 [project.scripts]
@@ -18,16 +18,13 @@ asr-benchmark = "asr_benchmark_core.cli:main"
 
 [dependency-groups]
 dev = [
-  "pytest>=8",
-  "ruff==0.15.15",
+  "pytest>=9.2.0",
+  "ruff==0.17.3",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.hatch.metadata]
-allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/asr_benchmark_core"]
@@ -40,6 +37,7 @@ src = ["src"]
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+  "CPY", # This repository has no declared copyright owner.
   "D",
   "COM812",
   "ISC001",

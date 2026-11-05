@@ -31,8 +31,9 @@ def build_bidirectional(dtype, device):  # noqa: ANN201
 
 def confirm_bias(dec, kind: str) -> None:
     biases = {
-        type(getattr(lyr.self_attn.sdpa, "attn_bias",
-                     getattr(lyr.self_attn.sdpa, "bias", None))).__name__
+        type(
+            getattr(lyr.self_attn.sdpa, "attn_bias", getattr(lyr.self_attn.sdpa, "bias", None))
+        ).__name__
         for lyr in dec.layers
     }
     print(f"  {kind} decoder attn-bias across layers: {biases}", flush=True)
@@ -59,7 +60,7 @@ def main() -> int:
         results[kind] = {}
         for label, B, T, M in shapes:
             try:
-                peak = run_step(dec, lp, B, T, M, dtype, device)
+                peak = run_step(dec, lp, B, T, M, dtype=dtype, device=device)
                 results[kind][label] = peak
                 print(f"  {kind:13s} {label}: {peak:.2f} GB", flush=True)
             except torch.cuda.OutOfMemoryError:
@@ -74,7 +75,7 @@ def main() -> int:
     for label, *_ in shapes:
         c = results["causal"][label]
         b = results["bidirectional"][label]
-        print(f"{label:<34} {c:>8.2f}G {b:>8.2f}G {b-c:>+6.2f}G", flush=True)
+        print(f"{label:<34} {c:>8.2f}G {b:>8.2f}G {b - c:>+6.2f}G", flush=True)
     return 0
 
 

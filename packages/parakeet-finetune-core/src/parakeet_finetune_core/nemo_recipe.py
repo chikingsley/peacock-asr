@@ -156,8 +156,10 @@ def build_script_args(args: argparse.Namespace) -> tuple[Path, list[str]]:
                 f"+exp_manager.early_stopping_callback_params.mode={args.early_stopping_mode}",
                 f"+exp_manager.early_stopping_callback_params.patience={args.early_stopping_patience}",
                 f"+exp_manager.early_stopping_callback_params.min_delta={args.early_stopping_min_delta}",
-                "+exp_manager.early_stopping_callback_params.check_on_train_epoch_end="
-                f"{str(args.early_stopping_check_on_train_epoch_end).lower()}",
+                (
+                    "+exp_manager.early_stopping_callback_params.check_on_train_epoch_end="
+                    f"{str(args.early_stopping_check_on_train_epoch_end).lower()}"
+                ),
             ]
         )
     return script, script_args

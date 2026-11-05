@@ -11,6 +11,7 @@ import pytest
 from cv26.mdc import download
 
 if TYPE_CHECKING:
+    import urllib.request
     from pathlib import Path
 
 
@@ -25,16 +26,11 @@ class _Response(io.BytesIO):
     def __enter__(self) -> Self:
         return self
 
-    def __exit__(self, *_args: object) -> None:
-        self.close()
-
     def getcode(self) -> int:
         return self.status
 
 
-def test_download_once_refuses_early_eof(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_download_once_refuses_early_eof(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """An EOF before Content-Length leaves only a resumable partial file."""
     response = _Response(b"short", status=200, headers={"Content-Length": "10"})
     monkeypatch.setattr(download.urllib.request, "urlopen", lambda *_args, **_kwargs: response)
@@ -61,7 +57,7 @@ def test_download_once_resumes_to_declared_total(
     )
     seen: dict[str, object] = {}
 
-    def urlopen(request: object, **_kwargs: object) -> _Response:
+    def urlopen(request: urllib.request.Request, **_kwargs: object) -> _Response:
         seen["range"] = request.headers.get("Range")
         return response
 

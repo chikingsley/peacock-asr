@@ -68,6 +68,7 @@ def annotate(
     heldout: frozenset[str],
     split: str,
     counts: Counter[str],
+    *,
     reserved_samples: frozenset[str] = frozenset(),
     reserved_audio: frozenset[str] = frozenset(),
 ) -> dict[str, object] | None:
@@ -113,6 +114,7 @@ def _annotate_and_reserve(
     split: str,
     heldout: set[str],
     reserved_samples: set[str],
+    *,
     reserved_audio: set[str],
 ) -> dict[str, object] | None:
     result = annotation(record)

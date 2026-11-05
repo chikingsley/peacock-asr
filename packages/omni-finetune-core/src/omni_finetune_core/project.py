@@ -328,6 +328,7 @@ def _write_eval_predictions(
     hyps: list[str],
     refs_norm: list[str],
     hyps_norm: list[str],
+    *,
     corpora: list[str],
 ) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -451,7 +452,7 @@ def eval_main(project: FinetuneProject, argv: list[str] | None = None) -> int:
         summary[label] = m
         if args.output_dir is not None:
             output_path = args.output_dir / f"{_safe_output_label(label)}-predictions.jsonl"
-            _write_eval_predictions(output_path, refs, hyps_raw, refs_norm, hyps, corpora)
+            _write_eval_predictions(output_path, refs, hyps_raw, refs_norm, hyps, corpora=corpora)
             print(f"wrote {output_path}", flush=True)
         print(
             f"{label}: WER {m['wer']:.2f}%  CER {m['cer']:.2f}%  MER {m['mer']:.2f}%  "

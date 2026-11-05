@@ -5,15 +5,15 @@ description = "Mirror Mozilla Data Collective Common Voice archives to a Hugging
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-  "huggingface-hub==1.20.1",
-  "pyarrow==24.0.0",
+  "huggingface-hub==2.4.0",
+  "pyarrow==26.0.1",
 ]
 
 [dependency-groups]
 dev = [
-  "pytest==9.1.1",
-  "ruff==0.15.18",
-  "ty==0.0.52",
+  "pytest==9.2.0",
+  "ruff==0.17.3",
+  "ty==0.0.97",
   "vulture==2.16",
 ]
 
@@ -41,6 +41,7 @@ python = ".venv"
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+  "CPY", # This repository has no declared copyright owner.
   # Ruff's documented formatter-conflict rules — the formatter owns whitespace/quotes/commas, so
   # linting them fights `ruff format`. See https://docs.astral.sh/ruff/formatter/.
   "W191", "E111", "E114", "E117", "D206", "D300",

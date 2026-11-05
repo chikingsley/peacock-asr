@@ -104,6 +104,7 @@ class StatefulFusedQwen3Decoder(nn.Module):
         hidden_states: torch.Tensor,
         attention_mask: torch.Tensor,
         cos: torch.Tensor,
+        *,
         sin: torch.Tensor,
     ) -> torch.Tensor:
         attention = layer.self_attn
@@ -127,12 +128,16 @@ class StatefulFusedQwen3Decoder(nn.Module):
                 self.head_dim,
             )
         ).transpose(1, 2)
-        value_states = attention.v_proj(hidden_states).view(
-            1,
-            query_len,
-            self.num_key_value_heads,
-            self.head_dim,
-        ).transpose(1, 2)
+        value_states = (
+            attention.v_proj(hidden_states)
+            .view(
+                1,
+                query_len,
+                self.num_key_value_heads,
+                self.head_dim,
+            )
+            .transpose(1, 2)
+        )
 
         query_states, key_states = self._apply_rotary_pos_emb(
             query_states,
@@ -170,6 +175,7 @@ class StatefulFusedQwen3Decoder(nn.Module):
         hidden_states: torch.Tensor,
         attention_mask: torch.Tensor,
         cos: torch.Tensor,
+        *,
         sin: torch.Tensor,
     ) -> torch.Tensor:
         residual = hidden_states
@@ -180,7 +186,7 @@ class StatefulFusedQwen3Decoder(nn.Module):
             hidden_states,
             attention_mask,
             cos,
-            sin,
+            sin=sin,
         )
         hidden_states = residual + hidden_states
 
@@ -204,7 +210,7 @@ class StatefulFusedQwen3Decoder(nn.Module):
                 hidden_states,
                 attention_mask,
                 cos,
-                sin,
+                sin=sin,
             )
         hidden_states = self.model.norm(hidden_states)
         last_hidden = hidden_states[:, -1, :]
@@ -427,9 +433,7 @@ def export_stateful_decoder(
     default_query_len = trace_query_len if default_query_len is None else default_query_len
     default_end_step = trace_end_step if default_end_step is None else default_end_step
     if not 1 <= default_query_len <= cache_len:
-        raise ValueError(
-            f"default_query_len={default_query_len} must be in [1, {cache_len}]"
-        )
+        raise ValueError(f"default_query_len={default_query_len} must be in [1, {cache_len}]")
     if not 1 <= default_end_step <= cache_len:
         raise ValueError(f"default_end_step={default_end_step} must be in [1, {cache_len}]")
     if default_end_step < default_query_len:

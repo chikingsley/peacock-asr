@@ -93,12 +93,16 @@ class StaticQwen3CacheBuilder(nn.Module):
                 self.head_dim,
             )
         ).transpose(1, 2)
-        value_states = attention.v_proj(hidden_states).view(
-            1,
-            self.seq_len,
-            self.num_key_value_heads,
-            self.head_dim,
-        ).transpose(1, 2)
+        value_states = (
+            attention.v_proj(hidden_states)
+            .view(
+                1,
+                self.seq_len,
+                self.num_key_value_heads,
+                self.head_dim,
+            )
+            .transpose(1, 2)
+        )
 
         query_states, key_states = self._apply_rotary_pos_emb(query_states, key_states)
         attention_keys = key_states
@@ -202,12 +206,16 @@ class StaticQwen3DecoderStep(nn.Module):
         key_states = attention.k_norm(
             attention.k_proj(hidden_states).view(1, 1, self.num_key_value_heads, self.head_dim)
         ).transpose(1, 2)
-        value_states = attention.v_proj(hidden_states).view(
-            1,
-            1,
-            self.num_key_value_heads,
-            self.head_dim,
-        ).transpose(1, 2)
+        value_states = (
+            attention.v_proj(hidden_states)
+            .view(
+                1,
+                1,
+                self.num_key_value_heads,
+                self.head_dim,
+            )
+            .transpose(1, 2)
+        )
 
         query_states, key_states = self._apply_rotary_pos_emb(query_states, key_states)
         updated_key = torch.cat((past_key, key_states), dim=2)
@@ -312,6 +320,7 @@ class StaticQwen3PaddedDecoderStep(nn.Module):
         past_key: torch.Tensor,
         past_value: torch.Tensor,
         cache_update_mask: torch.Tensor,
+        *,
         attention_mask: torch.Tensor,
         cos: torch.Tensor,
         sin: torch.Tensor,
@@ -323,12 +332,16 @@ class StaticQwen3PaddedDecoderStep(nn.Module):
         key_states = attention.k_norm(
             attention.k_proj(hidden_states).view(1, 1, self.num_key_value_heads, self.head_dim)
         ).transpose(1, 2)
-        value_states = attention.v_proj(hidden_states).view(
-            1,
-            1,
-            self.num_key_value_heads,
-            self.head_dim,
-        ).transpose(1, 2)
+        value_states = (
+            attention.v_proj(hidden_states)
+            .view(
+                1,
+                1,
+                self.num_key_value_heads,
+                self.head_dim,
+            )
+            .transpose(1, 2)
+        )
 
         query_states, key_states = self._apply_rotary_pos_emb(
             query_states,
@@ -364,6 +377,7 @@ class StaticQwen3PaddedDecoderStep(nn.Module):
         past_key: torch.Tensor,
         past_value: torch.Tensor,
         cache_update_mask: torch.Tensor,
+        *,
         attention_mask: torch.Tensor,
         cos: torch.Tensor,
         sin: torch.Tensor,
@@ -376,9 +390,9 @@ class StaticQwen3PaddedDecoderStep(nn.Module):
             past_key,
             past_value,
             cache_update_mask,
-            attention_mask,
-            cos,
-            sin,
+            attention_mask=attention_mask,
+            cos=cos,
+            sin=sin,
         )
         hidden_states = residual + attn_output
 
@@ -387,7 +401,7 @@ class StaticQwen3PaddedDecoderStep(nn.Module):
         hidden_states = layer.mlp(hidden_states)
         return residual + hidden_states, updated_key, updated_value
 
-    def forward(
+    def forward(  # noqa: PLR0917 - torch.jit.trace passes inputs positionally
         self,
         inputs_embeds: torch.Tensor,
         past_keys: torch.Tensor,
@@ -407,9 +421,9 @@ class StaticQwen3PaddedDecoderStep(nn.Module):
                 past_keys[layer_idx],
                 past_values[layer_idx],
                 cache_update_mask,
-                attention_mask,
-                cos,
-                sin,
+                attention_mask=attention_mask,
+                cos=cos,
+                sin=sin,
             )
             updated_keys.append(key_states)
             updated_values.append(value_states)

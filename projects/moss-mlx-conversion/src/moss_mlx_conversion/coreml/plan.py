@@ -254,8 +254,10 @@ def build_coreml_plan(
                 "inputs": ["input_ids"],
                 "outputs": ["token_embeddings"],
                 "notes": [
-                    "Host merges token embeddings with audio_placeholder_embeddings using "
-                    "audio_input_mask."
+                    (
+                        "Host merges token embeddings with audio_placeholder_embeddings using "
+                        "audio_input_mask."
+                    )
                 ],
             },
             {
@@ -276,8 +278,10 @@ def build_coreml_plan(
                 "inputs": ["step_input_id", "position_id", "attention_mask", "kv_cache"],
                 "outputs": ["logits", "updated_kv_cache"],
                 "notes": [
-                    "Use host-managed KV cache by default, following the Cohere "
-                    "cache-external direction in FluidAudio/Mobius.",
+                    (
+                        "Use host-managed KV cache by default, following the Cohere "
+                        "cache-external direction in FluidAudio/Mobius."
+                    ),
                     "Keep decoder and LM head at float32 until overflow parity is ruled out.",
                 ],
             },
@@ -301,17 +305,26 @@ def build_coreml_plan(
             },
         ],
         "moss_specific_deltas": [
-            "MOSS is audio-embedding injection into a decoder-only Qwen3 stack, not an "
-            "encoder-decoder cross-attention model.",
-            "The prompt length is driven mostly by audio placeholders; use audio_input_mask as "
-            "the injection source of truth.",
-            "The audio tower is Qwen3-Omni-MoE with 32 layers and 1280 hidden size, not the "
-            "Qwen3-ASR 0.6B audio stack.",
+            (
+                "MOSS is audio-embedding injection into a decoder-only Qwen3 stack, not an "
+                "encoder-decoder cross-attention model."
+            ),
+            (
+                "The prompt length is driven mostly by audio placeholders; use audio_input_mask as "
+                "the injection source of truth."
+            ),
+            (
+                "The audio tower is Qwen3-Omni-MoE with 32 layers and 1280 hidden size, not the "
+                "Qwen3-ASR 0.6B audio stack."
+            ),
             "Baseline is English-only with time markers disabled.",
         ],
         "validation_plan": [
-            "Export PyTorch reference tensors for one fixture: mel, input_ids, audio_input_mask, "
-            "audio embeddings, merged embeddings, first logits, and first generated tokens.",
+            (
+                "Export PyTorch reference tensors for one fixture: mel, input_ids, "
+                "audio_input_mask, "
+                "audio embeddings, merged embeddings, first logits, and first generated tokens."
+            ),
             "Validate CoreML audio_encoder_adapter output against PyTorch before wiring decode.",
             "Validate token_embedding plus host scatter against PyTorch merged embeddings.",
             "Validate decoder_prefill last hidden state and cache tensors against PyTorch.",

@@ -64,7 +64,8 @@ def test_coreml_bundle_manifest_declares_required_cache_presets() -> None:
     assert manifest["version"] == 1
     assert manifest["default_cache_preset"] == "compat-768"
     artifacts = manifest["artifacts"]
-    assert artifacts["token_package_path"] == "compiled/moss_token_embedding.mlmodelc"
+    expected_package = "compiled/moss_token_embedding.mlmodelc"
+    assert artifacts["token_package_path"] == expected_package
     assert artifacts["tokenizer_path"] == "../../artifacts/coreml/moss_tokenizer.json"
 
     presets = {item["name"]: item for item in manifest["cache_presets"]}

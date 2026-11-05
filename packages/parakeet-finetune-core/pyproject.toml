@@ -6,14 +6,14 @@ requires-python = ">=3.12,<3.14"
 dependencies = [
   "jiwer>=3.1,<4",
   "omegaconf>=2.3",
-  "pyarrow>=18",
+  "pyarrow>=26.0.1",
 ]
 
 [dependency-groups]
 dev = [
-  "pytest>=8",
-  "ruff==0.15.15",
-  "ty==0.0.40",
+  "pytest>=9.2.0",
+  "ruff==0.17.3",
+  "ty==0.0.97",
 ]
 
 [build-system]
@@ -31,6 +31,7 @@ src = ["src"]
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+  "CPY", # This repository has no declared copyright owner.
   "D",
   "COM812",
   "ISC001",

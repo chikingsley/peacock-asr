@@ -4,17 +4,19 @@ version = "0.1.0"
 description = "Russian ASR: create-path data (YouTube + Pimsleur) + omni 300M fine-tune, separate from Iranian Farsi."
 requires-python = ">=3.12,<3.13"
 dependencies = [
+  # Datasets 5 imports Hub 1.x APIs; fairseq2's Transformers stack needs Hub below 1.
+  "datasets>=4.8.5,<5",
   "omni-curator[ingest,youtube,normalize]",
   "omni-finetune-core",
 ]
 
 [dependency-groups]
 dev = [
-    "pytest>=8.0",
+    "pytest>=9.2.0",
   "kenlm>=0.3.0",
   "pyctcdecode>=0.5.0",
-  "ruff==0.15.15",
-  "ty==0.0.40",
+  "ruff==0.17.3",
+  "ty==0.0.97",
 ]
 
 [tool.uv.sources]
@@ -26,6 +28,9 @@ omnilingual-asr = { path = "../../packages/omnilingual-asr", editable = true }
 # Peacock uses a local omnilingual-asr fork with fairseq2 0.8.1 metadata. Keep Omni CTC on
 # CPython 3.12 until fairseq2n publishes cp313 wheels or we own that native build.
 override-dependencies = [
+  # NeMo 3.0.0 and Lightning 2.4 cap these below the releases that fix advisories.
+  "fsspec>=2026.7.0",
+  "hydra-core>=1.3.8",
   "fairseq2[arrow]==0.8.1",
   "huggingface-hub==0.36.2",
   "numpy==2.4.6",
@@ -57,6 +62,7 @@ python = ".venv"
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+  "CPY", # This repository has no declared copyright owner.
   "D", "COM812", "ISC001", "ANN401", "PLR0913", "PLC0415",
   "TD002", "TD003", "FIX002", "EM101", "EM102", "TRY003",
 ]
@@ -66,3 +72,6 @@ ignore = [
 "src/russian_asr/omni/train.py" = ["T201"]
 "src/russian_asr/omni/eval.py" = ["T201"]
 "tests/**" = ["S101", "INP001"]  # asserts + no __init__ are standard pytest idioms
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -139,6 +139,7 @@ def _write_materialization_summary(
     manifest: Path,
     max_duration: float | None,
     stats: MaterializationStats,
+    *,
     args: argparse.Namespace,
 ) -> None:
     summary = {
@@ -180,7 +181,7 @@ def materialize(args: argparse.Namespace) -> tuple[int, int, float, Path]:
         manifest,
         max_duration,
         stats,
-        args,
+        args=args,
     )
     return stats.rows, stats.excluded, stats.duration_seconds, manifest
 

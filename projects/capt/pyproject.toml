@@ -4,29 +4,29 @@ version = "0.1.0"
 description = "Computer-assisted pronunciation training: no-training, multilingual pronunciation scoring (text -> G2P -> canonical IPA vs ZIPA phone recognizer, panphon PFER)."
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "accelerate>=1.0",
-    "datasets<4",
+    "accelerate>=1.15.0",
+    "datasets>=5.1.0",
     # ZIPA's training targets were generated with Epitran (+ CharsiuG2P) then PHOIBLE-normalized,
     # so Epitran is the convention-matched G2P for scoring against ZIPA. Primary target backend.
-    "epitran>=1.25",
-    "huggingface-hub>=0.34",
-    "librosa>=0.11",
+    "epitran>=1.35.3",
+    "huggingface-hub>=2.4.0",
+    "librosa>=1.0.0",
     # ZIPA front-end: 80-bin Kaldi fbank (capt.recognize runs ZIPA in-process, not via subprocess).
-    "lhotse>=1.30",
-    "nemo-text-processing>=1.1.0",
-    "numpy>=2.0",
-    "onnxruntime-gpu>=1.18; platform_system == 'Linux'",
-    "onnxruntime>=1.18; platform_system != 'Linux'",
-    "panphon>=0.22",
-    "phonemizer>=3.3",
+    "lhotse>=1.33.0",
+    "nemo-text-processing>=1.2.0",
+    "numpy>=2.5.4",
+    "onnxruntime-gpu>=1.31.1; platform_system == 'Linux'",
+    "onnxruntime>=1.31.1; platform_system != 'Linux'",
+    "panphon>=0.22.2",
+    "phonemizer>=3.6.0",
     # Trained-G2P (`trained` backend) for the no-G2P gap languages; ships OpenFST/OpenGrm binaries.
-    "phonetisaurus>=0.3",
-    "soundfile>=0.13",
+    "phonetisaurus>=0.3.0",
+    "soundfile>=0.14.0",
     # ElevenLabs Scribe v2 realtime ASR lane via the Cloudflare relay (asr.ScribeAsrTranscriber).
-    "websockets>=15",
-    "torch>=2.8",
-    "torchaudio>=2.8",
-    "transformers>=4.55",
+    "websockets>=17.4",
+    "torch>=2.15.0",
+    "torchaudio>=2.11.1",
+    "transformers>=5.22.1",
 ]
 
 [project.scripts]
@@ -37,8 +37,8 @@ capt-fetch-zipa = "capt.cli.fetch:main"
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.0",
-    "ruff>=0.15",
+    "pytest>=9.2.0",
+    "ruff>=0.17.3",
 ]
 
 [build-system]
@@ -59,6 +59,7 @@ extend-exclude = ["artifacts", "experiments"]
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+  "CPY", # This repository has no declared copyright owner.
     "D",        # mandatory docstrings everywhere — too heavy
     "COM812",   # trailing-comma rule conflicts with the formatter
     "ISC001",   # implicit-str-concat rule conflicts with the formatter

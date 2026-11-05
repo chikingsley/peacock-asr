@@ -7,18 +7,18 @@ dependencies = [
   # ASR (Scribe) + the text endpoint (consensus / stitch / polish) via the deployed
   # superwhisper HTTP service — talked to over httpx from omni_curator.swservice.
   # Audio cutting/probing and the NeMo frame-VAD segmenter.
-  "soundfile==0.13.1",
-  "numpy==2.4.6",
+  "soundfile>=0.14.0",
+  "numpy>=2.4.6",
   # store -> omni-parquet export (export.py): the format omni-finetune-core trains on.
-  "pyarrow>=18",
+  "pyarrow>=26.0.1",
   # resample on export when a stored clip isn't already 16 kHz.
   "librosa>=0.10",
-  "torchaudio==2.9.1",
-  "nemo-toolkit[asr]>=2.7.3",
+  "torchaudio>=2.9.1",
+  "nemo-toolkit[asr]>=3.0.0",
   # Standardized WER/CER (benchmark). <4 keeps jiwer.compute_measures for nemo compatibility.
   "jiwer>=3.1.0,<5",
   # Progress bars for the long ingest/process loops.
-  "tqdm>=4.66",
+  "tqdm>=4.70.1",
   # English Parakeet labels expand digit runs onto the embedded tokenizer's word surface.
   "num2words>=0.5.14",
   "httpx>=0.28.1,<1",
@@ -47,11 +47,11 @@ youtube = ["yt-dlp"]
 #   num2geotext — Georgian (kat_Geor) integer/float -> Georgian words (v0.0.1; wrapped defensively)
 #   anbani      — Georgian script utilities (Mtavruli capital -> Mkhedruli folding)
 normalize = [
-  "tajiknlp>=1.2",
-  "hazm>=0.12",
+  "tajiknlp>=1.2.0",
+  "hazm>=0.12.1",
   "num2words>=0.5.14",
   "num2geotext>=0.0.1",
-  "anbani>=0.9.5",
+  "anbani>=3.4.0",
 ]
 vad-silero = [
     "onnxruntime==1.26.0",
@@ -63,13 +63,20 @@ vad-cobra = [
 
 [dependency-groups]
 dev = [
-  "ai-slop-detector>=3.8.6",
-  "aislop>=0.12.1",
+  "ai-slop-detector>=3.12.0",
+  "aislop>=0.20.0",
   "dslop>=0.2.2",
-  "pytest>=8",
-  "ruff==0.15.15",
-  "ty==0.0.40",
+  "pytest>=9.2.0",
+  "ruff==0.17.3",
+  "ty==0.0.97",
   "vulture>=2.16",
+]
+
+[tool.uv]
+# NeMo 3.0.0 and Lightning 2.4 cap these below the releases that fix advisories.
+override-dependencies = [
+  "fsspec>=2026.7.0",
+  "hydra-core>=1.3.8",
 ]
 
 [build-system]
@@ -92,6 +99,7 @@ python = ".venv"
 # formatter-conflicting rules.
 select = ["ALL"]
 ignore = [
+  "CPY", # This repository has no declared copyright owner.
   "D",        # mandatory docstrings everywhere — too heavy for a library this size
   "COM812",   # trailing-comma rule conflicts with the formatter
   "ISC001",   # implicit-str-concat rule conflicts with the formatter

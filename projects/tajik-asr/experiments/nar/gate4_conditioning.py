@@ -46,7 +46,7 @@ class ProjCfg:
     num_encoder_layers: int = 4
     hidden_size: int = 2048
     num_heads: int = 32
-    num_layers: int = 1          # Q-Former depth (IBM base NLE = 1; NLE++ = 2)
+    num_layers: int = 1  # Q-Former depth (IBM base NLE = 1; NLE++ = 2)
     mlp_ratio: int = 2
     block_size: int = 15
     downsample_rate: int = 5
@@ -112,7 +112,8 @@ class QFormerProjector(nn.Module):
         super().__init__()
         self.c = c
         self.layer_norms = nn.ModuleList(
-            [nn.LayerNorm(c.encoder_dim, eps=c.layernorm_eps) for _ in range(c.num_encoder_layers)])
+            [nn.LayerNorm(c.encoder_dim, eps=c.layernorm_eps) for _ in range(c.num_encoder_layers)]
+        )
         self.layer_projector = nn.Linear(c.encoder_dim * c.num_encoder_layers, c.hidden_size)
         self.dropout = nn.Dropout(c.dropout_prob)
         self.projector_act = nn.GELU()
@@ -150,14 +151,15 @@ class QFormerProjector(nn.Module):
 # ---- editor forward (gate3 harness + the Q-Former prefix) ----
 
 
-def editor_forward(row: dict, dec, tf, fp, projector,
-                   dtype: torch.dtype, device: str) -> tuple[Tensor, Tensor]:
+def editor_forward(
+    row: dict, dec, tf, fp, projector, *, dtype: torch.dtype, device: str
+) -> tuple[Tensor, Tensor]:
     from fairseq2.nn import BatchLayout
 
-    h = row["H"].to(device=device, dtype=dtype)              # [T', num_layers, enc_dim]
-    prefix = projector(h.reshape(1, h.shape[0], -1))[0]      # [T_out, DIM]
+    h = row["H"].to(device=device, dtype=dtype)  # [T', num_layers, enc_dim]
+    prefix = projector(h.reshape(1, h.shape[0], -1))[0]  # [T_out, DIM]
     xt = interleave(row["draft_ids"], device)
-    seqs = torch.cat([prefix, tf(xt)], dim=0)[None]          # [1, L, DIM]
+    seqs = torch.cat([prefix, tf(xt)], dim=0)[None]  # [1, L, DIM]
     t0, seq_len = prefix.shape[0], prefix.shape[0] + xt.shape[0]
     layout = BatchLayout((1, seq_len), seq_lens=[seq_len], device=torch.device(device))
     hid = dec(seqs.to(dtype), layout)
@@ -179,8 +181,11 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--downsample", type=int, default=5, help="acoustic downsample (IBM=5)")
     ap.add_argument("--block-size", type=int, default=15, help="Q-Former window (block %% ds == 0)")
     ap.add_argument("--tie", action="store_true")
-    ap.add_argument("--keep-lam", action="store_true",
-                    help="keep copy-reg lam constant after warmup (IBM-faithful; default anneals)")
+    ap.add_argument(
+        "--keep-lam",
+        action="store_true",
+        help="keep copy-reg lam constant after warmup (IBM-faithful; default anneals)",
+    )
     return ap.parse_args()
 
 
@@ -194,7 +199,7 @@ def main() -> int:
     device, dtype, lang = "cuda", torch.bfloat16, "tgk_Cyrl"
     sp = spm.SentencePieceProcessor(model_file=str(TOKENIZER))
     data = torch.load(CACHE, weights_only=False)["rows"]
-    train, heldout = data[: args.n_train], data[args.n_train:]
+    train, heldout = data[: args.n_train], data[args.n_train :]
     no_eos = all(EOS not in r["ref_ids"].tolist() for r in train + heldout)
     assert no_eos, "a ref contains the EOS/blank id"
     infeasible = sum(len(r["ref_ids"]) > 2 * len(r["draft_ids"]) + 1 for r in train)
@@ -213,13 +218,17 @@ def main() -> int:
         fp.weight.data = tf.weight.data[:VOCAB].clone()
         print("TIED output head to input embeddings", flush=True)
     assert args.block_size % args.downsample == 0, "block_size must be divisible by downsample"
-    cfg = ProjCfg(num_layers=args.qformer_layers, downsample_rate=args.downsample,
-                  block_size=args.block_size)
+    cfg = ProjCfg(
+        num_layers=args.qformer_layers, downsample_rate=args.downsample, block_size=args.block_size
+    )
     projector = QFormerProjector(cfg).to(device=device, dtype=dtype)
     trainable = list(projector.parameters()) + lora
-    print(f"trainable: Q-Former {sum(p.numel() for p in projector.parameters()) / 1e6:.1f}M "
-          f"(layers={cfg.num_layers}, ds={cfg.downsample_rate}) + LoRA "
-          f"{sum(p.numel() for p in lora) / 1e6:.1f}M\n", flush=True)
+    print(
+        f"trainable: Q-Former {sum(p.numel() for p in projector.parameters()) / 1e6:.1f}M "
+        f"(layers={cfg.num_layers}, ds={cfg.downsample_rate}) + LoRA "
+        f"{sum(p.numel() for p in lora) / 1e6:.1f}M\n",
+        flush=True,
+    )
 
     opt = torch.optim.AdamW(trainable, lr=args.lr, weight_decay=0.01)
     spe = math.ceil(len(train) / args.accum)
@@ -234,8 +243,10 @@ def main() -> int:
 
     @torch.no_grad()
     def eval_hyps(rows: list[dict]) -> list[str]:
-        return [ctc_decode(editor_forward(r, dec, tf, fp, projector, dtype, device)[0], sp)
-                for r in rows]
+        return [
+            ctc_decode(editor_forward(r, dec, tf, fp, projector, dtype=dtype, device=device)[0], sp)
+            for r in rows
+        ]
 
     print(f"  epoch 0 (untrained): train WER {wer_of(train, eval_hyps(train)):.2f}%", flush=True)
     for ep in range(1, args.epochs + 1):
@@ -244,7 +255,7 @@ def main() -> int:
         tot_ctc = tot_cr = 0.0
         opt.zero_grad(set_to_none=True)
         for j, r in enumerate(train):
-            logits, xt = editor_forward(r, dec, tf, fp, projector, dtype, device)
+            logits, xt = editor_forward(r, dec, tf, fp, projector, dtype=dtype, device=device)
             ctc, cr = losses(logits, xt, r["ref_ids"], device)
             loss = cr if ep <= args.warmup else w_ctc * ctc + lam_eff * cr
             (loss / args.accum).backward()
@@ -260,14 +271,19 @@ def main() -> int:
             tw = wer_of(train, hyps)
             hw = wer_of(heldout, eval_hyps(heldout)) if heldout else float("nan")
             tag = "warmup" if ep <= args.warmup else f"ctc{w_ctc:.2f}"
-            print(f"  epoch {ep:3d} [{tag:>7}]  ctc {tot_ctc / len(train):.3f} "
-                  f"cr {tot_cr / len(train):.3f}  train WER {tw:6.2f}%  held-out {hw:6.2f}%  "
-                  f"| hyp0={hyps[0][:38]!r}", flush=True)
+            print(
+                f"  epoch {ep:3d} [{tag:>7}]  ctc {tot_ctc / len(train):.3f} "
+                f"cr {tot_cr / len(train):.3f}  train WER {tw:6.2f}%  held-out {hw:6.2f}%  "
+                f"| hyp0={hyps[0][:38]!r}",
+                flush=True,
+            )
 
     final = wer_of(train, eval_hyps(train))
     verdict = "BEAT draft" if final < draft_wer else "did NOT beat draft"
-    print(f"\nBASELINE draft WER {draft_wer:.2f}%  ->  editor WER {final:.2f}%   ({verdict})",
-          flush=True)
+    print(
+        f"\nBASELINE draft WER {draft_wer:.2f}%  ->  editor WER {final:.2f}%   ({verdict})",
+        flush=True,
+    )
     return 0
 
 

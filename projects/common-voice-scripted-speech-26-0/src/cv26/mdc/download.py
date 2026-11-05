@@ -127,7 +127,7 @@ def _resolve_url(dataset_id: str, cfg: DownloadConfig) -> str:
     endpoint = f"https://mozilladatacollective.com/api/datasets/{dataset_id}/download"
     payload: dict[str, object] | None = None
     for attempt in range(1, cfg.retries + 2):
-        request = urllib.request.Request(  # noqa: S310 — fixed https MDC endpoint
+        request = urllib.request.Request(
             endpoint,
             data=b"{}",
             headers={"Authorization": f"Bearer {cfg.token}", "Content-Type": "application/json"},
@@ -160,7 +160,7 @@ def _resolve_url(dataset_id: str, cfg: DownloadConfig) -> str:
     return url
 
 
-def _expected_total_bytes(response: object, status: int) -> int:
+def _expected_total_bytes(response: http.client.HTTPResponse, status: int) -> int:
     headers = response.headers
     if status == HTTP_PARTIAL_CONTENT:
         content_range = headers.get("Content-Range")
@@ -204,9 +204,7 @@ def _download_once(url: str, destination: Path) -> int:
             os.fsync(tmp.fileno())
     size = tmp_path.stat().st_size
     if size != expected_total:
-        raise IncompleteDownloadError(
-            f"response ended early at {size} of {expected_total} bytes"
-        )
+        raise IncompleteDownloadError(f"response ended early at {size} of {expected_total} bytes")
     tmp_path.replace(destination)
     return size
 

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
 from pathlib import Path
 from typing import Any
@@ -15,8 +16,16 @@ LANGUAGE_CONFIGS = {
 
 # A diverse default spread so the two-path eval exercises G2P across scripts/families.
 DEFAULT_LANGUAGES = [
-    "en_us", "ru_ru", "fr_fr", "de_de", "es_419",
-    "it_it", "fa_ir", "hi_in", "tr_tr", "ja_jp",
+    "en_us",
+    "ru_ru",
+    "fr_fr",
+    "de_de",
+    "es_419",
+    "it_it",
+    "fa_ir",
+    "hi_in",
+    "tr_tr",
+    "ja_jp",
 ]
 
 
@@ -38,7 +47,7 @@ def main() -> None:
 
     try:
         import soundfile as sf
-        from datasets import load_dataset
+        from datasets import Audio, load_dataset
     except ImportError as exc:
         raise SystemExit(
             "FLEURS manifest building needs `datasets` and `soundfile`. "
@@ -53,7 +62,16 @@ def main() -> None:
     with manifest_path.open("w", encoding="utf-8") as out:
         for language in args.languages:
             try:
-                _emit_language(out, audio_dir, language, args, load_dataset, sf, seen_ids)
+                _emit_language(
+                    out,
+                    audio_dir,
+                    language,
+                    args,
+                    load_dataset,
+                    audio_feature=Audio,
+                    sf=sf,
+                    seen_ids=seen_ids,
+                )
             except Exception as exc:  # noqa: BLE001 - skip a language that fails to load/download
                 print(f"  skip {language}: {exc}")
     print(f"Wrote {manifest_path}")
@@ -65,23 +83,25 @@ def _emit_language(
     language: str,
     args: argparse.Namespace,
     load_dataset: Any,
+    *,
+    audio_feature: Any,
     sf: Any,
     seen_ids: set[str],
 ) -> None:
     config = LANGUAGE_CONFIGS.get(language, language)
     print(f"Loading google/fleurs config={config} split={args.split}")
-    dataset = load_dataset(
-        "google/fleurs", config, split=args.split, streaming=True, trust_remote_code=True
-    )
+    dataset = load_dataset("google/fleurs", config, split=args.split, streaming=True)
+    # Read the raw bytes with soundfile rather than the torchcodec-backed audio decoder.
+    dataset = dataset.cast_column("audio", audio_feature(decode=False))
     count = 0
     for example in dataset:
         sample_id = f"fleurs_{language}_{example['id']}"
         if sample_id in seen_ids:
             continue
         seen_ids.add(sample_id)
-        audio = example["audio"]
+        samples, sampling_rate = sf.read(io.BytesIO(example["audio"]["bytes"]), dtype="float32")
         wav_path = audio_dir / f"{sample_id}.wav"
-        sf.write(wav_path, audio["array"], audio["sampling_rate"])
+        sf.write(wav_path, samples, sampling_rate)
         row: dict[str, Any] = {
             "id": sample_id,
             "source": "google/fleurs",

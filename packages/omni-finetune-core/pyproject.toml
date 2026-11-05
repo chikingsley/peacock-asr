@@ -11,8 +11,8 @@ dependencies = [
   "torchaudio==2.9.1",
   # Data / audio / metrics.
   "numpy==2.4.6",
-  "pyarrow==24.0.0",
-  "soundfile==0.13.1",
+  "pyarrow==26.0.1",
+  "soundfile==0.14.0",
   "librosa==0.11.0",
   # jiwer's process_words/process_characters API is stable across 3.x and 4.x; pinned with a
   # floor (not ==4.0.0) so consumer projects whose other deps cap jiwer can still resolve
@@ -20,9 +20,9 @@ dependencies = [
   # process_characters, both present since jiwer 3.x.
   "jiwer>=3.1.0,<5",
   # Typed config models + YAML emission for the recipe.
-  "pydantic>=2.11",
-  "pyyaml>=6.0",
-  "tqdm==4.67.3",
+  "pydantic>=2.14.2",
+  "pyyaml>=6.0.3",
+  "tqdm==4.70.1",
 ]
 
 [project.scripts]
@@ -34,9 +34,9 @@ omni-bench-llm = "omni_finetune_core.bench_llm:main"
 
 [dependency-groups]
 dev = [
-  "pytest>=8",
-  "ruff==0.15.15",
-  "ty==0.0.40",
+  "pytest>=9.2.0",
+  "ruff==0.17.3",
+  "ty==0.0.97",
 ]
 
 [tool.uv.sources]
@@ -69,6 +69,7 @@ extend-exclude = ["src/omni_finetune_core/recipe"]
 # formatter-conflicting rules. Keep this list short and justified.
 select = ["ALL"]
 ignore = [
+  "CPY", # This repository has no declared copyright owner.
   "D",        # mandatory docstrings everywhere — too heavy for a library this size
   "COM812",   # trailing-comma rule conflicts with the formatter
   "ISC001",   # implicit-str-concat rule conflicts with the formatter

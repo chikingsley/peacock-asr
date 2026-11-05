@@ -18,6 +18,7 @@ network, so it is opt-in via ``--free-form``.
     uv run capt-eval --manifest runs/<name>/manifest.jsonl \
         --out-dir runs/<name>/two_paths [--free-form]
 """
+
 from __future__ import annotations
 
 import argparse
@@ -38,14 +39,32 @@ READ_ALOUD = "read_aloud"
 FREE_FORM = "free_form"
 
 SUMMARY_FIELDS = [
-    "id", "language", "mode", "lane",
-    "PER", "PFER", "feature_distance", "errors", "reference_count",
-    "recognizer_error", "g2p_warnings", "target_text",
+    "id",
+    "language",
+    "mode",
+    "lane",
+    "PER",
+    "PFER",
+    "feature_distance",
+    "errors",
+    "reference_count",
+    "recognizer_error",
+    "g2p_warnings",
+    "target_text",
 ]
 WORD_FIELDS = [
-    "id", "language", "mode", "lane", "word",
-    "target_phones", "recognized_phones", "PER", "PFER",
-    "substitutions_detail", "deletions_detail", "insertions_detail",
+    "id",
+    "language",
+    "mode",
+    "lane",
+    "word",
+    "target_phones",
+    "recognized_phones",
+    "PER",
+    "PFER",
+    "substitutions_detail",
+    "deletions_detail",
+    "insertions_detail",
 ]
 
 
@@ -77,7 +96,7 @@ def main() -> None:
     with results_path.open("w", encoding="utf-8") as results_file:
         for index, row in enumerate(rows, start=1):
             print(f"[{index}/{len(rows)}] {row['id']} ({row['language']})")
-            payload = _score_sample(pipeline, scribe, row, modes, summary_rows, word_rows)
+            payload = _score_sample(pipeline, scribe, row, modes, summary_rows, word_rows=word_rows)
             results_file.write(json.dumps(payload, ensure_ascii=False) + "\n")
 
     _write_csv(args.out_dir / "summary.csv", SUMMARY_FIELDS, summary_rows)
@@ -96,6 +115,7 @@ def _score_sample(
     row: dict[str, Any],
     modes: list[str],
     summary_rows: list[dict[str, Any]],
+    *,
     word_rows: list[dict[str, Any]],
 ) -> dict[str, Any]:
     """Recognize the audio once, then score each requested mode; append CSV rows in place."""
@@ -189,8 +209,10 @@ def _render_report(summary_rows: list[dict[str, Any]], modes: list[str]) -> str:
         "# P016 Two-Path Eval",
         "",
         "Funnel: text -> G2P -> canonical IPA  vs  recognized IPA -> PER/PFER.",
-        f"Modes: {', '.join(modes)} (read_aloud target = reference text; "
-        "free_form target = Scribe ASR).",
+        (
+            f"Modes: {', '.join(modes)} (read_aloud target = reference text; "
+            "free_form target = Scribe ASR)."
+        ),
         "",
         "| language | mode | lane | n | avg PER | avg PFER |",
         "| --- | --- | --- | ---: | ---: | ---: |",

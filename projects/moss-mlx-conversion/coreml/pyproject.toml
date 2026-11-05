@@ -3,13 +3,13 @@ name = "moss-transcribe-coreml"
 version = "0.1.0"
 description = "Private CoreML export workbench for MOSS-Transcribe-preview-2B."
 readme = "README.md"
-requires-python = ">=3.10,<3.12"
+requires-python = ">=3.11,<3.12"
 dependencies = [
-    "coremltools>=8.1,<10",
-    "numpy>=1.26,<3",
-    "safetensors>=0.5.3",
-    "torch>=2.4.0",
-    "transformers>=4.57.1,<5",
+    "coremltools>=9.0,<10",
+    "numpy>=2.4.6,<3",
+    "safetensors>=0.8.0",
+    "torch>=2.15.0",
+    "transformers>=4.57.6,<5",
 ]
 
 [build-system]
